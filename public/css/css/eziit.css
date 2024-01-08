@@ -1,0 +1,131 @@
+.body{
+  /* background-image: url('../../ez-nav.png') !important; */
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* opacity: 0.4; */
+  /* filter: gray; */
+  /* background-repeat: repeat-y; */
+}
+
+
+
+  /* ezit css */
+  .landing-page-card{
+    height: 30px !important;
+  }
+
+  .bg-img {
+    background-image: url('https://mdbcdn.b-cdn.net/img/new/standard/city/041.webp');background-position: center;
+  background-repeat: no-repeat;
+   background-size: cover;
+    height: 100%;
+}
+
+  .signup-page{
+      background-image: url('https://cdn.pixabay.com/photo/2017/12/01/08/52/feedback-2990424_1280.jpg') !important;
+
+
+    content: "";
+    opacity: 0.21;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;  
+  }
+
+  .no-border-input{
+  border:0;outline:0;
+  }
+  .no-border-input:focus{
+  border:0;outline:0;
+  }
+
+  .no-edit{
+    cursor: pointer;
+  }
+
+  .skin-blue .main-header .navbar{
+    background-color:rgb(196, 161, 21) !important
+  }
+
+  .skin-blue .main-header .logo{
+    background-color:rgb(196, 161, 21) !important
+
+  }
+
+  .skin-blue .wrapper, .skin-blue .main-sidebar, .skin-blue .left-side{
+    background-color:rgb(143, 115, 3) !important
+
+  }
+
+  .skin-blue .sidebar-menu>li:hover>a, .skin-blue .sidebar-menu>li.active>a, .skin-blue .sidebar-menu>li.menu-open>a{
+    background-color:rgb(143, 115, 3) !important
+
+  }
+
+  .skin-blue .sidebar-menu>li>.treeview-menu{
+    background-color:rgb(70, 56, 3) !important
+
+  }
+
+  .skin-blue .sidebar a {
+      color: #eff0f1;
+  }
+
+
+  .org-name{
+    padding-top:20px;
+    color: #eff0f1;
+  }
+
+  .card-block-landing-page{
+    /* z-index: 30 ; */
+    position: absolute !important;
+  }
+
+
+  .landing-page-video{
+  
+  }
+
+  .card-block-landing-page{
+
+    margin-top:130px ;
+    margin-left: 180px;
+  }
+
+  .welcome-text1{
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    color: #eff0f1 !important;
+  }
+
+  .welcome-text2{
+ background-color: rgba(0, 0, 0, 0.3) !important;
+    color: #eff0f1 !important;
+    /* padding-left: 220px !important; */
+  }
+
+  .tagline-text{
+    margin-top: 230px !important;
+  }
+
+  .ez-nav{
+    /* display: none !important; */
+
+  }
+
+
+
+
+@media print{
+   .noprint{
+       display:none !important;
+   }
+}
+
+.phpdebugbar phpdebugbar-minimized phpdebugbar-closed{
+  display: none;
+}

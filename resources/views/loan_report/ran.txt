@@ -1,0 +1,2 @@
+  <h3><b> {{\App\Models\Office::find($office_id)->name}} - New Loans Statement <span class="pull-right"> </span></h3>
+   <b>{{\App\Models\Office::find($office_id)->name}}  <br> 
