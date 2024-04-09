@@ -1,6 +1,6 @@
-<aside class="main-sidebar" >
+<aside class="main-sidebar" style="color: #ffffff">
     <!-- sidebar: style can be found in sidebar.less -->
-    <section class="sidebar">
+    <section class="sidebar" style="color: #ffffff">
         <!-- Sidebar user panel -->
         <div class="user-panel">
             <div class="pull-left image">
@@ -50,6 +50,15 @@
                     </ul>
                 </li>
             @endif
+
+
+            <li class="">
+                    <!-- <a href="{{ url('user/edit_my_details') }}"> -->
+                    <a href="{{ url('user/my_details') }}">
+                        <i class="fa fa-user"></i> <span>My information</span>
+                    </a>
+                </li>
+
         </ul>
     </section>
     <!-- /.sidebar -->

@@ -79,7 +79,13 @@ Route::get('clear_cache', function () {
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('login', 'HomeController@login');
+Route::get('create_account', 'HomeController@create_account');
+Route::get('signup', 'HomeController@signup');
+Route::post('create_client_user','HomeController@create_client_account');
 Route::post('login', 'HomeController@process_login');
+Route::post('register', 'HomeController@register');
+//Route::post('create_Profile', 'HomeController@create_Profile');
+Route::post('createProfile', 'HomeController@createProfile');
 Route::get('logout', 'HomeController@logout');
 Route::get('password_reset', 'HomeController@password_reset');
 Route::post('password_reset', 'HomeController@process_password_reset');
@@ -95,14 +101,18 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('{id}/branch_page', 'UserController@branch_page');
     Route::get('{id}/province_page', 'UserController@province_page');
     Route::get('client_users/data', 'UserController@client_users_index');
-    Route::get('daily_figures','UserController@');
+    Route::get('daily_figures','UserController@daily_figures');
     Route::get('create', 'UserController@create');
     Route::post('store', 'UserController@store');
+ //   Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
     Route::post('{id}/update', 'UserController@update');
     Route::get('{id}/delete', 'UserController@delete');
     Route::get('edit_profile', 'UserController@edit_profile');
+    Route::post('update_my_details','UserController@update_my_details');
+    Route::get('my_details','UserController@my_details');
+    Route::get('edit_my_details','UserController@edit_my_details');
     Route::get('profile', 'UserController@profile');
     Route::post('update_profile', 'UserController@profile_update');
     Route::get('{user}/staff_info','UserController@user_info');
@@ -167,6 +177,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::post('{id}/inactive', 'ClientController@inactive');
     Route::post('{id}/transfer', 'ClientController@transfer');
     Route::get('{id}/active', 'ClientController@active');
+    Route::get('{id}/account', 'ClientController@account');
     //identification
     Route::post('{id}/identification/store', 'ClientController@store_client_identification');
     Route::get('identification/{id}/delete', 'ClientController@delete_client_identification');
@@ -465,6 +476,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::post('{id}/refund/store', 'LoanController@store_refund');
     //loan application
     Route::get('application/data', 'LoanController@index_application');
+    Route::get('my_applications/data', 'LoanController@my_applications');
     Route::get('application/{loan_application}/show', 'LoanController@show_application');
     Route::get('application/{id}/delete', 'LoanController@delete_application');
     Route::get('application/{loan_application}/edit', 'LoanController@edit_application');
@@ -870,14 +882,28 @@ Route::group(['prefix' => 'payroll'], function () {
     Route::get('data', 'PayrollController@index');
     Route::get('create', 'PayrollController@create');
     Route::post('store', 'PayrollController@store');
+    Route::post('create_new_payroll','PayrollController@create_new_payroll');
     Route::get('{payroll}/show', 'PayrollController@show');
     Route::get('{payroll}/edit', 'PayrollController@edit');
     Route::post('{id}/update', 'PayrollController@update');
     Route::get('{id}/delete', 'PayrollController@delete');
     Route::get('getUser/{id}', 'PayrollController@getUser');
-    Route::get('{payroll}/payslip', 'PayrollController@pdfPayslip');
+    Route::get('{id}/payslip', 'PayrollController@pdfPayslip');
     Route::get('{user}/data', 'PayrollController@staffPayroll');
     Route::get('mypayslips','PayrollController@myPayslips');
+    Route::get('mypayslips_old','PayrollController@myPayslipsOld');
+    Route::get('payroll_list','PayrollController@payroll_list');
+    Route::get('my_payroll_information','PayrollController@my_payroll_information');
+    Route::post('add_payroll_information','PayrollController@add_payroll_information');
+    Route::get('{id}/edit_payroll','PayrollController@edit_payroll');
+    Route::get('{user}/user_payslip','PayrollController@user_payslip');
+    Route::post('{id}/save_user_payslip','PayrollController@edit_payroll_information_manager');
+    Route::post('{id}/save_payroll','PayrollController@save_payroll');
+    Route::get('create_payroll','PayrollController@create_payroll');
+    Route::any('download_payroll_excel_report', 'PayrollController@payroll_report_excel');
+    Route::any('payroll_query','PayrollController@payroll_query');
+    Route::get('{payroll}/payslip_old', 'PayrollController@pdfPayslipOld');
+
 //template
     Route::any('template', 'PayrollTemplateController@index');
     Route::get('template/{id}/edit', 'PayrollTemplateController@edit');

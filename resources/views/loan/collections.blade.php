@@ -29,6 +29,10 @@ usort($LoanArray,"compare");
     align-items: center;
     justify-content: center; padding-bottom: 10px; ">
 
+<a href="javascript:;" onmousedown="togglePastDue('dueDiv');" style="margin: 10px;">
+<span class="label label-primary" style="font-size: 15px;">Past Due</span>
+</a>
+
 <a href="javascript:;" onmousedown="toggleToday('todayDiv');" style="margin: 10px;">
 <span class="label label-primary" style="font-size: 15px;">Today</span>
 </a>
@@ -45,7 +49,87 @@ usort($LoanArray,"compare");
 <span class="label label-default" style="font-size: 15px;">All</span>
 </a> -->
 </div>
+
+
+<div id='dueDiv' style="display:none"  class="box-body table-responsive">
+<div class="box box-primary">
+<div class="box-header with-border">
+<h2 class="box-title" style="font-weight: bold;">LOANS PAST DUE</h2>
+</div>
+<table class="table  table-bordered table-hover table-striped" id="data-table">
+<thead>
+    <tr>
+    <th>Loan ID</th>
+    <th>Client Name</th>
+    <th>Loan Consultant</th>
+    <th>Balance</th>
+    <th>Due Date</th>
+    </tr>
+</thead>
+<tbody>
+    @foreach($LoanArrayTwo as $Loan)
+    <?php
+$OutIn = 0;
+$out = 0;
+$in = 0;
+$newout = 0;
+$reloansCount = 0;
+?>
+    @foreach($Loan->transactions as $transaction)
+<?php
+    $out = $out + $transaction->debit;
+
+if($transaction->transaction_type != 'interest_waiver'){
+    $in = $in + $transaction->credit;
+}
+
+if($transaction->transaction_type == 'specified_due_date_fee'){
+    $newout = $newout + $transaction->debit;
+}
+
+if($transaction->payment_apply_to == 'reloan_payment'){
+    $reloansCount = $reloansCount + 1;
+ }
+?>
+@endforeach
+<?php
+$OutIn = $out - $in;
+$OutIn = $OutIn - $newout;
+if($OutIn < 0){
+    $OutIn = 0;
+}
+?>
+
+    @if($Loan->first_repayment_date < $todaysDate && $Loan->status == 'disbursed')
+    <tr>
+    <td>
+        @if($reloansCount > 0)
+        <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a><span style="color: blue;">(Reloan)</span>
+        @else
+        <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
+        @endif
+    </td>
+    <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
+    @if(!empty($Loan->loan_officer->first_name))
+    <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
+    @endif
+    <td>{{number_format($OutIn,2)}}</td>
+    <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
+    </tr>
+    @endif
+    @endforeach
+</tbody>
+</table>
+</div>
+</div>
+
+
+
+
 <div id='todayDiv' style="display:block"  class="box-body table-responsive">
+<?php 
+$todayTotal = 0
+?>
 <div class="box box-primary">
 <div class="box-header with-border">
 <h2 class="box-title" style="font-weight: bold;">LOANS DUE TODAY</h2>
@@ -77,9 +161,6 @@ if($transaction->transaction_type != 'interest_waiver'){
     $in = $in + $transaction->credit;
 }
 
-if($transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
 
 if($transaction->payment_apply_to == 'reloan_payment'){
     $reloansCount = $reloansCount + 1;
@@ -88,9 +169,8 @@ if($transaction->payment_apply_to == 'reloan_payment'){
 @endforeach
 <?php
 $OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
+if($Loan->first_repayment_date == $todaysDate){
+    $todayTotal = $todayTotal + $OutIn;
 }
 ?>
     @if($Loan->first_repayment_date == $todaysDate)
@@ -112,9 +192,13 @@ if($OutIn < 0){
 </tbody>
 </table>
 </div>
+<p style="font-weight: bold;">TOTAL: K{{$todayTotal}}</p>
 </div>
 
 <div id='thisWeekDiv' style="display:none"  class="box-body table-responsive">
+<?php
+ $thisWeekTotal = 0
+?>
 <div class="box box-primary">
 <div class="box-header with-border">
 <h2 class="box-title" style="font-weight: bold;">LOANS DUE THIS WEEK</h2>
@@ -146,9 +230,6 @@ if($transaction->transaction_type != 'interest_waiver'){
     $in = $in + $transaction->credit;
 }
 
-if($transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
 
 if($transaction->payment_apply_to == 'reloan_payment'){
     $reloansCount = $reloansCount + 1;
@@ -157,9 +238,8 @@ if($transaction->payment_apply_to == 'reloan_payment'){
 @endforeach
 <?php
 $OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
+if($Loan->first_repayment_date >= $todaysDate && $Loan->first_repayment_date <= $thisWeekDate){
+    $thisWeekTotal = $thisWeekTotal + $OutIn;
 }
 ?>
     @if($Loan->first_repayment_date >= $todaysDate && $Loan->first_repayment_date <= $thisWeekDate)
@@ -181,9 +261,13 @@ if($OutIn < 0){
 </tbody>
 </table>
 </div>
+<p style="font-weight: bold;">TOTAL: K{{$thisWeekTotal}}</p>
 </div>
 
 <div id='thisMonthDiv' style="display:none"  class="box-body table-responsive">
+<?php 
+$thisMonthTotal = 0
+?>
 <div class="box box-primary">
 <div class="box-header with-border">
 <h2 class="box-title" style="font-weight: bold;">LOANS DUE THIS MONTH</h2>
@@ -215,9 +299,6 @@ if($transaction->transaction_type != 'interest_waiver'){
     $in = $in + $transaction->credit;
 }
 
-if($transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
 
 if($transaction->payment_apply_to == 'reloan_payment'){
     $reloansCount = $reloansCount + 1;
@@ -226,10 +307,10 @@ if($transaction->payment_apply_to == 'reloan_payment'){
 @endforeach
 <?php
 $OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
+if($Loan->first_repayment_date >= $todaysDate && $Loan->first_repayment_date <= $thisMonthDate){
+    $thisMonthTotal = $thisMonthTotal + $OutIn;
 }
+
 ?>
     @if($Loan->first_repayment_date >= $todaysDate && $Loan->first_repayment_date <= $thisMonthDate)
     <tr>
@@ -250,6 +331,7 @@ if($OutIn < 0){
 </tbody>
 </table>
 </div>
+<p style="font-weight: bold;">TOTAL: K{{$thisMonthTotal}}</p>
 </div>
 
 <div id='allDiv' style="display:none"  class="box-body table-responsive">
@@ -260,32 +342,36 @@ if($OutIn < 0){
 @endsection
 @section('footer-scripts')
 <script>
-
 var today = document.getElementById('todayDiv');
         var thisWeek = document.getElementById('thisWeekDiv');
         var thisMonth = document.getElementById('thisMonthDiv');
         var allDiv = document.getElementById('allDiv');
+        var pastDue = document.getElementById('dueDiv');
 
+function togglePastDue(){
+    if(pastDue.style.display == 'none'){
+            today.style.display = 'none'
+            thisWeek.style.display = 'none'
+            thisMonth.style.display = 'none'
+            allDiv.style.display = 'none'
+            pastDue.style.display = 'block'
+    }
+}
     function toggleToday(){
-       
-
-       
-
     if(today.style.display == 'none'){
             thisWeek.style.display = 'none'
             thisMonth.style.display = 'none'
             allDiv.style.display = 'none'
+            pastDue.style.display = 'none'
             today.style.display = 'block'
         }
     }
     function toggleThisWeek(){
-    
-
-
     if(thisWeek.style.display == 'none'){
             today.style.display = 'none'
             thisMonth.style.display = 'none'
             allDiv.style.display = 'none'
+            pastDue.style.display = 'none'
             thisWeek.style.display = 'block'
         }
     }
@@ -297,6 +383,7 @@ var today = document.getElementById('todayDiv');
             today.style.display = 'none'
             thisWeek.style.display = 'none'
             allDiv.style.display = 'none'
+            pastDue.style.display = 'none'
             thisMonth.style.display = 'block'
         }
     }
@@ -306,6 +393,7 @@ var today = document.getElementById('todayDiv');
             today.style.display = 'none'
             thisWeek.style.display = 'none'
             thisMonth.style.display = 'none'
+            pastDue.style.display = 'none'
             allDiv.style.display = 'block'
         }
     }

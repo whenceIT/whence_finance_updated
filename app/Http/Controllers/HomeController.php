@@ -54,7 +54,75 @@ class HomeController extends Controller
     
     
   
+    public function create_account(){
+        if (Sentinel::check()) {
+            return redirect('dashboard');
+        }
+        return view('new_signup');
+    }
+
     
+    public function create_client_account(Request $request){
+
+        // if (!Sentinel::hasAccess('users.create')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
+        $rules = array(
+            'email' => 'required|unique:users',
+            'password' => 'required',
+            'repeat_password' => 'required|same:password',
+            'first_name' => 'required',
+            'last_name' => 'required',
+        );
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            Flash::warning(trans('general.validation_error'));
+            return redirect()->back()->withInput()->withErrors($validator);
+
+        } else {
+            $credentials = [
+                'email' => $request->email,
+                'password' => $request->password,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'address' => null,
+                'notes' => null,
+                'gender' => $request->gender,
+                'phone' => $request->phone,
+                'office_id'=> $request->office_id,
+                'permission'=>2,
+            ];
+            $user = Sentinel::registerAndActivate($credentials);
+            $role = Sentinel::findRoleById(2);
+           // $role->users()->attach($user->id);
+            //check custom fields
+            if (Setting::where('setting_key', 'enable_custom_fields')->first()->setting_value == 1) {
+                $custom_fields = CustomField::where('category', 'users')->get();
+                foreach ($custom_fields as $key) {
+                    $custom_field = new CustomFieldMeta();
+                    $id = "custom_field_" . $key->id;
+                    if ($key->field_type == "checkbox") {
+                        if (!empty($request->$id)) {
+                            $custom_field->name = serialize($request->$id);
+                        } else {
+                            $custom_field->name = serialize([]);
+                        }
+                    } else {
+                        $custom_field->name = $request->$id;
+                    }
+                    $custom_field->parent_id = $user->id;
+                    $custom_field->custom_field_id = $key->id;
+                    $custom_field->category = "users";
+                    $custom_field->save();
+                }
+            }
+            GeneralHelper::audit_trail("Create", "Users", $user->id);
+           
+           // return redirect('login');
+            Flash::success("sfgbru");
+        }
+    }
     
 
     public function create_Profile(Request $request)
@@ -83,9 +151,9 @@ class HomeController extends Controller
     public function createProfile(Request $request)
     {
 
-            $id = $request->id;
+             $id = $request->id;
             $user = Sentinel::findById($id);
-        if(!$user) return redirect('login');
+         if(!$user) return redirect('login');
 
         $client = new Client();
 
@@ -95,7 +163,9 @@ class HomeController extends Controller
         $client->user_id = $id;
         $client->phone = $user->phone;
         $client->email = $user->email;
-        if ($request->client_type == "individual") {
+        $client->office_id = $request->office_id;
+        $client->staff_id = $request->loan_officer_id;
+    if ($request->client_type == "individual") {
             $client->first_name = $user->first_name;
             $client->middle_name = $user->middle_name;
             $client->last_name = $user->last_name;
@@ -408,16 +478,23 @@ class HomeController extends Controller
                 "password" => $request->get('password'),
                 "first_name" => $request->get('first_name'),
                 "last_name" => $request->get('last_name'),
+                'office_id'=> $request->office,
+                'role'=>$request->role,
             );
+            $role_Id = $request->role;
             $user = Sentinel::registerAndActivate($credentials);
-            $role = Sentinel::findRoleByName('Client');
+            $role = Sentinel::findRoleById($role_Id);
             $role->users()->attach($user);
             $msg = trans('login.success');
             Flash::success(trans('login.success'));
 
             $id = $user->id;
 
-        return view('create_profile', compact('id'));
+            if($role_Id == '3'){
+                return view('login');
+            }else{
+                return view('create_profile', compact('id'));
+            }
 
         }
     }

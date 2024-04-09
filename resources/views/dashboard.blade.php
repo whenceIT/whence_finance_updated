@@ -6,8 +6,149 @@
 @section('content')
 <!-- What Clients see -->
 @if($role->role_id == '2')
-    
+<div>
+    @if(!($clientLoan))
+<div class="row">
+<div class="col-lg-4 col-xs-12">
+    <p style="text-align: center; font-weight:bold; ">Name: {{$user->first_name}} {{$user->last_name}}</p>
+    </div>
+    <div class="col-lg-4 col-xs-12">
+    <p style="text-align: center; font-weight:bold;">Branch: {{$clientBranch->name}}</p>
+    </div>
+    <div class="col-lg-4 col-xs-12">
+    <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}} {{$staff->last_name}}</p>
+    </div>
+
+    <div class="col-lg-4 col-xs-12">
+<div class="small-box bg-red">
+<div class="inner">
+<p style="font-weight: bold;">Outstanding balance</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>0.00</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-aqua">
+<div class="inner">
+<p style="font-weight: bold;">Due date</p>
+<div class="icon">
+<i class="fa fa-calendar-o"></i>
+</div>
+<h3>-</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+
+
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-green">
+<div class="inner">
+<p style="font-weight: bold;">Paid</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>0.00</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+   
+</div>
+    @else
+    <div class="row">
+    <div class="col-lg-4 col-xs-12">
+    <p style="text-align: center; font-weight:bold; ">Name: {{$user->first_name}} {{$user->last_name}}</p>
+    </div>
+    <div class="col-lg-4 col-xs-12">
+    <p style="text-align: center; font-weight:bold;">Branch: {{$clientBranch->name}}</p>
+    </div>
+    <div class="col-lg-4 col-xs-12">
+    <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}} {{$staff->last_name}}</p>
+    </div>
+<?php 
+$balance = 0;;
+$in = 0;
+$out = 0;
+?>
+    @foreach($clientLoan->transactions as $transaction)
+    <?php 
+    if($transaction->transaction_type != 'specified_due_date_fee'){
+        $out = $out + $transaction->debit;
+    }
+
+    $in = $in + $transaction->credit;
+    ?>
+    @endforeach
+    <?php 
+$balance = $out - $in;
+?>
+
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-aqua">
+<div class="inner">
+<p style="font-weight: bold;">Outstanding balance</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>{{number_format($balance,2)}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-green">
+<div class="inner">
+<p style="font-weight: bold;">Due date</p>
+<div class="icon">
+<i class="fa fa-calendar-o"></i>
+</div>
+<h3>{{date("jS M, Y",strtotime($clientLoan->expected_first_repayment_date))}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+
+
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-red">
+<div class="inner">
+<p style="font-weight: bold;">Paid</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>{{number_format($in,2)}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+
+    </div>
+
+    @endif
+  
+
+</div>
 @endif
+
 
 <!-- What Loan Consultants see -->
 @if($role->role_id == '3')
@@ -114,6 +255,7 @@ $transID = 0;
 $transAmount = 0;
 $reloanID = 0;
 $reloanTransAmount = 0;
+$still_uncollected_today = 0;
 ?>
 
 <!-- CALCULATION LOAN BALANCES FOR CYCLE OPENING UNCOLLECTED -->
@@ -123,30 +265,41 @@ $MoneyCollected = 0;
 $MoneyGivenOut = 0;
 $charges = 0;
 $balance = 0;
+$OutIn = 0;
+$out = 0;
+$in = 0;
 ?>
 @foreach($loan->transactions as $transaction)
 <?php
-if($transaction->date <= $compareDate){
+if($transaction->date <= $compareDate && $transaction->transaction_type != 'specified_due_date_fee'){
     $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
 }
 
-if($transaction->transaction_type != 'interest_waiver' && $transaction->date <= $compareDate){
+if($transaction->date <= $compareDate){
     $MoneyCollected = $MoneyCollected + $transaction->credit;
 }
 
-
-if($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $compareDate){
-    $charges = $charges + $transaction->debit;
+if($transaction->transaction_type != 'specified_due_date_fee'){
+    $out = $out + $transaction->debit;
 }
+
+
+$in = $in + $transaction->credit;
+
+// if($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $compareDate){
+//     $charges = $charges + $transaction->debit;
+// }
 
 ?>
 @endforeach
 <?php 
 
-$balance = ($MoneyGivenOut - $MoneyCollected - $charges);
-if($balance < 0){
-    $balance = 0;
-}
+$balance = $MoneyGivenOut - $MoneyCollected;
+$OutIn = $out - $in;
+// if($balance < 0){
+//     $balance = 0;
+// }
+$still_uncollected_today = $still_uncollected_today + $OutIn;
 $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
 if($cycle_opening_uncollected_amount == 0){
     $cycle_opening_uncollected_amount = 1;
@@ -229,6 +382,60 @@ if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $f
 <!-- <p>{{$target_reloan}}</p> -->
 <!-- <p>{{$reloanID}} {{$reloanTransAmount}}</p> -->
 @endforeach
+<?php
+$month_count = 3;
+$total = 0;
+$excess = 0;
+$excess_array = [];
+$start_amount = 0;
+$total_array = [];
+while($month_count != 0){
+    $total = 0;
+    $targetDate_new =  date('Y-m-d',strtotime($targetDate. ' - '. $month_count.'months'));
+    $compareDate_new = date('Y-m-d',strtotime($compareDate. ' - '. $month_count.'months'));
+    foreach($myLoans as $loan){
+        foreach($loan->transactions as $transaction){
+            $add_on_1 = 0;
+            $add_on_2 = 0;
+            if($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate_new && $transaction->date <= $targetDate_new){
+                $target_monthly = $target_monthly + $transaction->debit;
+                $add_on_1 = $transaction->debit;
+            }
+
+            
+          if($transaction->transaction_type == 'interest' && $transaction->date > $compareDate_new && $transaction->date <= $targetDate_new){
+                 $principal = $transaction->debit/0.4;
+                 $target_reloan = $target_reloan + $principal;
+                 $add_on_2 = $transaction->debit/0.4;
+             }
+
+            if($total < 40000){
+                $total = $total + $add_on_1 + $add_on_2 + $start_amount;
+            }else{
+                $excess = $excess + $add_on_1 + $add_on_2;
+            }
+
+            $start_amount = 0;
+        }
+    }
+    //Add total to array
+    array_push($excess_array,$excess);
+    array_push($total_array,$total);
+    $total = 0;
+    $start_amount = $excess;
+    $excess = 0;
+    $month_count = $month_count - 1;
+ }
+?>
+<!-- <p>{{$total_array[0]}}</p> -->
+<!-- @foreach($total_array as $array_item)
+<p>{{$array_item}}</p>
+@endforeach
+
+@foreach($excess_array as $excess_item)
+<p>{{$excess_item}}</p>
+@endforeach -->
+
 
 @foreach($myOpenLoans as $myOpenLoan)
 @foreach($myOpenLoan->transactions as $transaction)
@@ -253,8 +460,6 @@ if($transaction->transaction_type == 'interest' && $transaction->date > $compare
 }
 ?>
 
-<p>{{$transID}} {{$transAmount}} {{$transaction->loan->client->first_name}} {{$transStatus}}</p> 
-<p>{{$reloanID}} {{$reloanTransAmount}} {{$transaction->id}} {{$transaction->loan->client->first_name}} {{$compareDate}} {{$status}} {{$transaction->date }}</p>
 <?php 
 $transID = 0;
 $transAmount = 0;
@@ -278,20 +483,6 @@ $target_total = $target_monthly + $target_reloan;
 
 
 
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-aqua">
-<div class="inner">
-<p style="font-weight: bold;">Your cycle ends on</p>
-<div class="icon">
-<i class="fa fa-clock-o"></i>
-</div>
-<h3 id='target'></h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
 
 
 <div class="col-lg-4 col-xs-12">
@@ -309,6 +500,35 @@ $target_total = $target_monthly + $target_reloan;
 </div>
 </div>
 
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-aqua">
+<div class="inner">
+<p style="font-weight: bold;">Still Uncollected Today</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>{{number_format($still_uncollected_today,2)}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+
+<!-- <div class="col-lg-4 col-xs-12">
+<div class="small-box bg-aqua">
+<div class="inner">
+<p style="font-weight: bold;">Your cycle ends on</p>
+<div class="icon">
+<i class="fa fa-clock-o"></i>
+</div>
+<h3 id='target'></h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div> -->
 
 
 
@@ -460,6 +680,7 @@ $target_total = $target_monthly + $target_reloan;
 <canvas id='graph'></canvas>
 
 @endif
+
 </div>
 
 <div id='mydivoff' style="display:none">
@@ -479,6 +700,9 @@ $target_total = $target_monthly + $target_reloan;
                 </tr>
                 </thead>
                 <tbody>
+                    <?php
+                    $new_out = 0;
+                    ?>
 @foreach($myLoans as $loan)
 
 
@@ -486,42 +710,53 @@ $target_total = $target_monthly + $target_reloan;
  $OutIn = 0;
  $out = 0;
  $in = 0;
- $newout = 0;
 ?>
 @foreach($loan->transactions as $transaction)
 <?php
-if($transaction->date <= $compareDate){
+
+if($transaction->transaction_type != 'specified_due_date_fee'){
     $out = $out + $transaction->debit;
 }
 
-if($transaction->date <= $compareDate && $transaction->transaction_type != 'interest_waiver'){
-    $in = $in + $transaction->credit;
-}
 
-if($transaction->date <= $compareDate && $transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
+// if($transaction->date <= $compareDate && $transaction->transaction_type != 'interest_waiver'){
+//     $in = $in + $transaction->credit;
+// }
+
+
+    $in = $in + $transaction->credit;
+
+// if($transaction->date <= $compareDate && $transaction->transaction_type == 'specified_due_date_fee'){
+//     $newout = $newout + $transaction->debit;
+// }
 
 ?>
 @endforeach
 
 <?php 
 $OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
-}
+//$OutIn = $OutIn - $newout;
+// if($OutIn < 0){
+//     $OutIn = 0;
+// }
+
 ?>
 
 <tr>
-   @if($OutIn != 0)
-    <td>{{$loan->id}}</td>
+
+
+    <td><a href="{{ url('loan/'.$loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$loan->id}}</a></td>
+    @if(!empty($loan->client->first_name))
     <td>{{$loan->client->first_name}} {{$loan->client->last_name}} 
         @if($loan->defaulted == 'yes')
         <span style="color: red;">(Defaulted)</span>
         @endif
     </td>
+    @if($OutIn < 0)
+    <td style="color: red;">{{number_format($OutIn,2)}}</td>
+    @else
     <td>{{number_format($OutIn,2)}}</td>
+    @endif
     @endif
 </tr>
 @endforeach
@@ -567,8 +802,8 @@ if($OutIn < 0){
 </div>
 
 
-//GOES HERE
-
+<!-- //GOES HERE -->
+</div>
 
 @endif
 
@@ -1491,6 +1726,12 @@ while($bar_chart_count < 5){
 <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
 </a>
 
+
+<a href="javascript:;" onmousedown="toggleCollections('mydiv');" style="margin: 10px;">
+<span class="label label-primary" style="font-size: 15px;">Total Collections breakdown</span>
+<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
+</a>
+
 <a href="{{ url('user/daily_figures')}}" style="margin: 10px;">
    <span class="label label-primary" style="font-size: 15px;">Daily figures</span>
 </a>
@@ -1566,7 +1807,9 @@ $trans_id_int = 0;
 $full_payments_today = 0;
 $part_payments_today = 0;
 $reloan_payments_today = 0;
+$add = 0;
 
+$trans = []
 // foreach($province_loans as $province_loan){
 //     foreach($province_loan->transactions as $transaction){
 //         array_push($province_transactions, $transaction);
@@ -1620,7 +1863,7 @@ $collections = [];
 $given_out = [];
 $given_out_not_exp = [];
 $target_dates = [];
-while($bar_chart_count < 5){
+while($bar_chart_count < 1){
 
 
     $branchtargetDateAlgo = date('Y-m-d',strtotime($branchtargetDate. ' - '. $bar_chart_count.'months'));
@@ -1638,12 +1881,17 @@ while($bar_chart_count < 5){
     $principal = 0;
     $reloans_given_out_not_exp = 0;
     $new_loans_given_out_not_exp = 0;
+    $full_payments_today = 0;
+    $part_payments_today = 0;
+    $reloan_payments_today = 0;
    // {{date("jS M, Y", strtotime($compareDate))}} 
     array_push($target_dates,date("jS M, Y",strtotime($branchtargetDateAlgo)));
 
     foreach($allTransactions as $transaction){
+        
         if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
             $full_payments = $full_payments + $transaction->credit;
+            
             if($bar_chart_count == 4){
                 $collections_count_fullpayment = $collections_count_fullpayment + 1;
             }
@@ -1651,6 +1899,7 @@ while($bar_chart_count < 5){
         
         if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
             $part_payments = $part_payments + $transaction->credit;
+          
             if($bar_chart_count == 4){
                 $collections_count_partpayment = $collections_count_partpayment + 1;
             }
@@ -1660,7 +1909,8 @@ while($bar_chart_count < 5){
         
             $reloan_amount = $transaction->credit; + ($transaction->credit/0.4);
             $interest = $transaction->credit/0.4;
-            $reloan_payments = $reloan_payments + $reloan_amount + $interest; 
+            $reloan_payments = $reloan_payments + $reloan_amount ; 
+            array_push($trans,$transaction);
             if($bar_chart_count == 4){
                 $collections_count_reloan = $collections_count_reloan + 1;
             }
@@ -1699,6 +1949,7 @@ while($bar_chart_count < 5){
             $reloan_amount_today = $transaction->credit; + ($transaction->credit/0.4);
             $interest_today = $transaction->credit/0.4;
             $reloan_payments_today = $reloan_payments_today + $reloan_amount_today + $interest_today; 
+            
         }
 
 
@@ -1715,6 +1966,33 @@ while($bar_chart_count < 5){
 }
 ?>
 
+<table class="table  table-bordered table-hover table-striped" id="data-table">
+                <thead>
+                <tr>
+                    <th>Loan ID</th>
+                    <th>Name</th>
+                    <th>Transaction Type</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($trans as $tran)
+         <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td>{{number_format($tran->credit,2)}}</td>
+    <td></td>
+    <td></td>
+</tr>       
+@endforeach
+</tbody>
+            </table>
+<p>{{$reloan_payments}}</p>
+<p>{{$part_payments}}</p>
+<p>{{$full_payments}}</p>
+
 <?php 
  foreach($allTransactions as $transaction){
     
@@ -1730,12 +2008,12 @@ while($bar_chart_count < 5){
     if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date == $todaysDate){
         $reloan_amount_today = $transaction->credit; + ($transaction->credit/0.4);
         $interest_today = $transaction->credit/0.4;
-        $reloan_payments_today = $reloan_payments_today + $reloan_amount_today + $interest_today; 
+        $reloan_payments_today = $reloan_payments_today + $reloan_amount_today; 
     }
  }
 
 
- $pdua = ($collections[0]/$cycle_opening_uncollected_amount)*100
+ $pdua = ($collections[0]/$cycle_opening_uncollected_amount)
 ?>
 
 
@@ -1830,20 +2108,7 @@ while($bar_chart_count < 5){
 </div>
 </div>
 
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-aqua">
-<div class="inner">
-<p style="font-weight: bold;">PDUA %</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($collections[0]/$cycle_opening_uncollected_amount)}}%</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
+
 </div>
 
 
@@ -2014,95 +2279,44 @@ while($bar_chart_count < 5){
 @endforeach
 </div>
 
+<div id='mydivofff' style="display: none;">
+<div class="box box-primary">
+    <div id='mydivoff_new'  class="box-body table-responsive" >
+    <div class="box-header with-border">
+            <h3 class="box-title">Transactions as at start of cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
+            <span style="font-size: 15px; padding-left: 10px;">COUA breakdown</span>
+        </a></h3>
+        </div>
+        <table class="table  table-bordered table-hover table-striped" id="data-table">
+                <thead>
+                <tr>
+                    <th>Loan ID</th>
+                    <th>Name</th>
+                    <th>Transaction Type</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($allTransactions as $transaction)
+            @if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDateAlgo &&  $transaction->date <= $branchtargetDateAlgo && $transaction->credit)
+         <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td>{{number_format($transaction->credit,2)}}</td>
+    <td></td>
+    <td></td>
+</tr>       
+@endif
+@endforeach
+</tbody>
+            </table>
 
 
-<div class="col-md-8">
-                    <div class="box box-primary">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">{{ trans_choice('general.collection',1) }} {{ trans_choice('general.statistic',2) }}</h3>
-
-                            <div class="box-tools pull-right">
-                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i
-                                            class="fa fa-minus"></i>
-                                </button>
-                            </div>
-                            <!-- /.box-tools -->
-                        </div>
-                        <!-- /.box-header -->
-                        <div class="box-body" id="">
-                            <div class="row text-center">
-                                <?php
-                                $target = 0;
-                                foreach (\App\Models\LoanRepaymentSchedule::where('year', date("Y"))->where('month',
-                                    date("m"))->get() as $key) {
-                                    $target = $target + $key->principal - $key->principal_waived - $key->principal_written_off + $key->interest - $key->interest_waived - $key->interest_written_off + $key->fees - $key->fees_waived - $key->fees_written_off + $key->penalty - $key->penalty_waived - $key->penalty_written_off;
-                                }
-                                $paid_this_month = \App\Models\LoanTransaction::where('transaction_type',
-                                    'repayment')->where('reversed', 0)->where('year', date("Y"))->where('month',
-                                    date("m"))->sum('credit');
-                                if ($target > 0) {
-                                    $percent = round(($paid_this_month / $target) * 100);
-                                } else {
-                                    $percent = 0;
-                                }
-                                ?>
-                                <div class="col-md-4">
-                                    <div class="content-group">
-
-                                        <h5 class="text-semibold no-margin">
-                                            {{ number_format(\App\Models\LoanTransaction::where('transaction_type','repayment')->where('reversed', 0)->where('date',date("Y-m-d"))->sum('credit'),2) }}
-                                        </h5>
-                                        <span class="text-muted text-size-small">{{ trans_choice('general.today',1) }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="content-group">
-
-                                        <h5 class="text-semibold no-margin">
-                                            {{ number_format(\App\Models\LoanTransaction::where('transaction_type',
-                                'repayment')->where('reversed', 0)->whereBetween('date',array('date_sub(now(),INTERVAL 1 WEEK)','now()'))->sum('credit'),2) }}
-                                        </h5>
-                                        <span class="text-muted text-size-small">{{ trans_choice('general.last',1) }} {{ trans_choice('general.week',1) }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="content-group">
-
-                                        <h5 class="text-semibold no-margin">{{ number_format($paid_this_month,2) }}</h5>
-                                        <span class="text-muted text-size-small">{{ trans_choice('general.this',1) }} {{ trans_choice('general.month',1) }}</span>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="text-center">
-                                        <h5 class=" text-semibold">{{ trans_choice('general.monthly',1) }} {{ trans_choice('general.target',1) }}</h5>
-                                    </div>
-                                    <div class="progress" data-toggle="tooltip"
-                                         title="{{ trans_choice('general.target',1) }} : {{number_format($target,2)}}">
-
-                                        <div class="progress-bar progress-bar-success progress-bar-striped active"
-                                             style="width: {{$percent}}%">
-                                            <span>{{$percent}}% {{ trans_choice('general.complete',1) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <h3 class="text-center">{{ trans_choice('general.collection',1) }} {{ trans_choice('general.overview',2) }}</h3>
-                                    <div id="collection_statistics_graph" style="height: 300px;"></div>
-                                </div>
-                            </div>
-
-                        </div>
-                        <!-- /.box-body -->
-                    </div>
-
-                </div>
+        </div>
+    </div>
+</div>
 
 
 @endif
@@ -2313,6 +2527,24 @@ setGaugeValue(gaugeElementAdmin, '{{($pdua)}}');
     }
 } 
 
+function toggleCollections(divid){
+    console.log('hello')
+    varon = divid + 'on';
+    varoff = divid + 'offf';
+ 
+    if(document.getElementById(varon).style.display == 'block')
+    {
+    document.getElementById(varon).style.display = 'none';
+    document.getElementById(varoff).style.display = 'block';
+    }
+   
+    else
+    {  
+    document.getElementById(varoff).style.display = 'none';
+    document.getElementById(varon).style.display = 'block'
+    }
+}
+
 
 const companymonths = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 let companytargetDateName = companymonths[new Date('{{$branchtargetDate}}').getMonth()]
@@ -2437,11 +2669,10 @@ let provincetargetDateName = provincemonths[new Date('{{$branchtargetDate}}').ge
   let provincefirstDateName = provincemonths[new Date('{{$branchfirstDate}}').getMonth()];
   let provincesecondDateName = provincemonths[new Date('{{$branchsecondDate}}').getMonth()]
 
-  var collections =  
-    <?php echo json_encode($collections); ?>; 
+  //console.log($trans)
     var given_out =  
     <?php echo json_encode($given_out); ?>; 
-    console.log(collections.reverse())
+    console.log(collections)
     console.log(given_out.reverse())
 
     var dates =  
@@ -2644,6 +2875,7 @@ function toggleDiv(divid)
  
     varon = divid + 'on';
     varoff = divid + 'off';
+
  
     if(document.getElementById(varon).style.display == 'block')
     {
@@ -2717,7 +2949,7 @@ let firstDateName = months[new Date('{{$firstDate}}').getMonth()];
 let secondDateName = months[new Date('{{$secondDate}}').getMonth()]
 let targetDateName = months[new Date('{{$targetDate}}').getMonth()]
 console.log(firstDateName)
-var dateTarget = document.getElementById("target").innerHTML = '24 ' + targetDateName;
+// var dateTarget = document.getElementById("target").innerHTML = '24 ' + targetDateName;
 const ctx = document.getElementById('graph');
 
 new Chart(ctx, {

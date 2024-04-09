@@ -129,7 +129,21 @@
                     </a>
                 </li>
             @endif
+       
 
+            @if(Sentinel::hasAccess('loans.create'))
+                            <li>
+                                <a href="{{ url('loan/my_applications/data') }}"><i
+                                            class="fa fa-pencil"></i> My Loan Applications
+                                    <span class="pull-right-container">
+                                    <?php
+                                            $loan_officer_id = Sentinel::getUser()->id;
+                                            ?>
+                                        <span class="label label-warning pull-right">{{\App\Models\LoanApplication::where('staff_id',$loan_officer_id)->where('status','pending')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                        @endif
 
 
             @if(Sentinel::hasAccess('offices'))
@@ -361,7 +375,10 @@
                                 </a>
                             </li>
                         @endif
-                        @if(Sentinel::hasAccess('loans.create') && \App\Models\Setting::where('setting_key','allow_client_apply')->first()->setting_value==1)
+
+
+
+                        @if(Sentinel::hasAccess('payroll'))
                             <li>
                                 <a href="{{ url('loan/application/data') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.loan',2)}} {{trans_choice('general.application',2)}}
@@ -371,6 +388,11 @@
                                 </a>
                             </li>
                         @endif
+
+
+
+    
+
                         @if(Sentinel::hasAccess('loans.create'))
                             <li><a href="{{ url('loan/create') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.loan',1)}}
@@ -645,11 +667,11 @@
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        @if(Sentinel::hasAccess('payroll.view'))
+                        <!-- @if(Sentinel::hasAccess('payroll.view'))
                             <li><a href="{{ url('payroll/data') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.view',2)}} {{trans_choice('general.payroll',1)}}
                                 </a></li>
-                        @endif
+                        @endif -->
                         @if(Sentinel::hasAccess('payroll.create'))
                             <li><a href="{{ url('payroll/create') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.add',1)}} {{trans_choice('general.payroll',1)}}
@@ -658,6 +680,17 @@
                         @if(Sentinel::hasAccess('payroll.update'))
                             <li><a href="{{ url('payroll/template') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.manage',1)}} {{trans_choice('general.payroll',1)}} {{trans_choice('general.template',2)}}
+                                </a></li>
+                        @endif
+                        @if(Sentinel::hasAccess('payroll.update'))
+                            <li><a href="{{ url('payroll/payroll_list') }}"><i
+                                            class="fa fa-circle-o"></i> Payroll List
+                                </a></li>
+                        @endif
+
+                        @if(Sentinel::hasAccess('payroll.update'))
+                            <li><a href="{{ url('payroll/payroll_query') }}"><i
+                                            class="fa fa-circle-o"></i> Payroll Query
                                 </a></li>
                         @endif
                     </ul>
@@ -728,6 +761,15 @@
                 <li class="">
                     <a href="{{ url('payroll/mypayslips') }}">
                         <i class="fa fa-money"></i> <span>My Payslips</span>
+                    </a>
+                </li>
+            @endif
+
+              
+            @if(Sentinel::hasAccess('loans'))
+                <li class="">
+                    <a href="{{ url('payroll/mypayslips_old') }}">
+                        <i class="fa fa-money"></i> <span>My Payslips 2023 - Jan 2024</span>
                     </a>
                 </li>
             @endif

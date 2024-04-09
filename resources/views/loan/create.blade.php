@@ -4,9 +4,22 @@
 @endsection
 @section('content')
     <div class="box box-primary">
+    <div class="form-group">
+                    <label for="loan_officer_id"
+                           class="control-label col-md-2">Loan Consultant</label>
+                    <div class="col-md-3">
+                    <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
+                            <option></option>
+                            @foreach(\App\Models\User::all() as $key)
+                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                    <option value="{{$key->id}}">{{$key->first_name}} {{$key->last_name}}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                </div>  
         <div class="box-header with-border">
             <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}t6fty</h3>
-
             <div class="box-tools pull-right">
                 <button onclick="window.history.back()" class="btn btn-info btn-sm">
                     {{ trans_choice('general.cancel',1) }}
@@ -15,12 +28,16 @@
         </div>
 
         <div class="box-body form-horizontal">
+
+
+
+
             <div class="form-group" id="">
                 <label for="type"
                        class="control-label col-md-3">{{trans_choice('general.type',1)}}
                 </label>
                 <div class="col-md-5">
-                    <select name="type" class="form-control " id="type"
+                    <select name="type" class="form-control" id="type"
                             required>
                         <option></option>
                         <option value="client">{{trans_choice('general.client',1)}}</option>
@@ -53,6 +70,10 @@
                     </select>
                 </div>
             </div>
+
+            
+           
+                
             <div class="form-group" id="groups_div" style="display: none">
                 <label for="group_id"
                        class="control-label col-md-3">{{trans_choice('general.group',1)}}</label>
@@ -67,6 +88,10 @@
                     </select>
                 </div>
             </div>
+
+
+
+
             <div class="form-group" id="">
                 <label for="loan_product_id"
                        class="control-label col-md-3">{{trans_choice('general.product',1)}}</label>
@@ -81,6 +106,9 @@
                     </select>
                 </div>
             </div>
+
+
+
             <div class="form-group">
                 <label for=""
                        class="control-label col-md-3"></label>

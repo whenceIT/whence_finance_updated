@@ -83,6 +83,17 @@ class ClientController extends Controller
     }
 
 
+    
+
+
+
+    public function account(Request $request, $id){
+        $client = Client::find($id);
+        return view('client.create_account',compact('client'));
+    }
+
+
+
     public function pending_approval()
     {
         if (!Sentinel::hasAccess('clients.pending_approval')) {
@@ -538,10 +549,10 @@ class ClientController extends Controller
 
     public function picture(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('clients.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.view')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $client = Client::find($id);
         if (!empty($client->picture)) {
             @unlink(public_path() . '/uploads/' . $client->picture);
@@ -679,10 +690,10 @@ class ClientController extends Controller
     //client identification
     public function store_client_identification(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('clients.identification.create')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.identification.create')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $rules = array(
             'name' => 'required|unique:client_identifications',
             'client_identification_type_id' => 'required',
@@ -720,10 +731,10 @@ class ClientController extends Controller
 
     public function delete_client_identification(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('clients.identification.delete')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.identification.delete')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $client_identification = ClientIdentification::find($id);
         if (!empty($client_identification->attachment)) {
             @unlink(public_path() . '/uploads/' . $client_identification->attachment);
@@ -738,10 +749,10 @@ class ClientController extends Controller
     //client documents
     public function store_client_document(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('clients.documents.create')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.documents.create')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $rules = array(
             'name' => 'required',
             'attachment' => 'required',
@@ -779,10 +790,10 @@ class ClientController extends Controller
 
     public function delete_client_document(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('clients.documents.delete')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.documents.delete')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $client_document = Document::find($id);
         if (!empty($client_document->location)) {
             @unlink(public_path() . '/uploads/' . $client_document->location);
@@ -797,10 +808,10 @@ class ClientController extends Controller
     //client next_of_kin
     public function store_next_of_kin(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('clients.next_of_kin.create')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.next_of_kin.create')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $rules = array(
             'first_name' => 'required',
             'last_name' => 'required',
@@ -827,6 +838,7 @@ class ClientController extends Controller
                     Flash::warning(trans('general.validation_error'));
                     return redirect()->back()->withInput()->withErrors($validator);
                 } else {
+
                     $fname = str_slug($request->name, '_') . "" . uniqid() . '.' . $request->file('picture')->guessExtension();
                     $next_of_kin->picture = $fname;
                     $request->file('picture')->move(public_path() . '/uploads',
@@ -843,10 +855,10 @@ class ClientController extends Controller
 
     public function delete_next_of_kin(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('clients.next_of_kin.delete')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.next_of_kin.delete')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $next_of_kin = ClientNextOfKin::find($id);
         if (!empty($next_of_kin->picture)) {
             @unlink(public_path() . '/uploads/' . $next_of_kin->picture);
@@ -860,10 +872,10 @@ class ClientController extends Controller
 
     public function show_next_of_kin($next_of_kin)
     {
-        if (!Sentinel::hasAccess('clients.next_of_kin.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.next_of_kin.view')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
 
         return View::make('client.show_next_of_kin', compact('next_of_kin'))->render();
 
@@ -871,10 +883,10 @@ class ClientController extends Controller
 
     public function edit_next_of_kin($next_of_kin)
     {
-        if (!Sentinel::hasAccess('clients.next_of_kin.update')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.next_of_kin.update')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
 
         return View::make('client.edit_next_of_kin', compact('next_of_kin'))->render();
 
@@ -882,10 +894,10 @@ class ClientController extends Controller
 
     public function update_next_of_kin(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('clients.next_of_kin.update')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('clients.next_of_kin.update')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $rules = array(
             'first_name' => 'required',
             'last_name' => 'required',

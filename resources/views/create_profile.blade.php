@@ -17,6 +17,7 @@
                 </button>
             </div>
         </div>
+   
 
         <form method="post" action="{{url('createProfile')}}" class="form-horizontal" enctype="multipart/form-data">
             {{csrf_field()}}
@@ -39,6 +40,36 @@
                         </select>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label for="office_id"
+                           class="control-label col-md-2">Branch</label>
+                    <div class="col-md-3">
+                    <select name="office_id" class="branch form-control" id="office_id" required>
+                            <option></option>
+                            @foreach(\App\Models\Office::all() as $key)
+                                <option value="{{$key->id}}">{{$key->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="loan_officer_id"
+                           class="control-label col-md-2">Loan Consultant</label>
+                    <div class="col-md-3">
+                    <select name="loan_officer_id" class="branch form-control" id="loan_officer_id" required>
+                            <option></option>
+                            @foreach(\App\Models\User::all() as $key)
+                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                    <option value="{{$key->id}}">{{$key->first_name}} {{$key->last_name}}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                </div>  
+
 
                 <div id="business_name_div" style="display: none">
                     <div class="form-group">
@@ -64,6 +95,8 @@
                         <label for="dob"
                                class="control-label col-md-2">{{trans_choice('general.dob',1)}}</label>
                         <div class="col-md-3">
+
+                  
                             <input type="date" name="dob" class="form-control date-picker"
                                    value="{{old('dob')}}"
                                    id="dob">
@@ -215,6 +248,22 @@
 @endsection
 @section('footer-scripts')
     <script>
+
+$(document).ready(function() {
+    $('.branch').select2();
+});
+
+
+// $(document).ready(function(){
+//     $('.office_id').select2();
+// });
+
+
+// $(document).ready(function(){
+//     $('.loan_officer_id').select2();
+// });
+
+
         if ($("#client_type").val() == "individual") {
             $("#business_name_div").hide();
             $("#individual_name_div").show();
@@ -285,5 +334,8 @@
                 }
             }
         });
+
+
+
     </script>
 @endsection

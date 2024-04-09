@@ -86,9 +86,7 @@ class LoanController extends Controller
         }
         $staff_id = Sentinel::getUser()->id;
         $data = Loan::where('status', 'disbursed')->with('repayment_schedules')->where('loan_officer_id', $staff_id)->get();
-        $loan_transaction = LoanTransaction::get();
-
-
+        //$loan_transaction = LoanTransaction::get();
         return view('loan.my_loans', compact('data'));
     }
 
@@ -132,22 +130,26 @@ class LoanController extends Controller
         $userBranch = Sentinel::getUser()->office_id; 
         $BranchLoans = Loan::with('transactions')->where('office_id',$userBranch)->where('status','disbursed')->get();
         $LoanArray = [];
+        $LoanArrayTwo = [];
         foreach($BranchLoans as $loan){
             array_push($LoanArray,$loan);
+            array_push($LoanArrayTwo,$loan);
         }
 
-        return view('loan.collections',compact('LoanArray','BranchLoans',));
+        return view('loan.collections',compact('LoanArray','BranchLoans','LoanArrayTwo',));
     }
 
     public function my_collections(){
         $user = Sentinel::getUser()->id; 
         $BranchLoans = Loan::with('transactions')->where('loan_officer_id',$user)->where('status','disbursed')->get();
         $LoanArray = [];
+        $LoanArrayTwo = [];
         foreach($BranchLoans as $loan){
             array_push($LoanArray,$loan);
+            array_push($LoanArrayTwo,$loan);
         }
 
-        return view('loan.my_collections',compact('LoanArray','BranchLoans',));
+        return view('loan.my_collections',compact('LoanArray','BranchLoans','LoanArrayTwo',));
     }
 
     
@@ -2294,14 +2296,22 @@ class LoanController extends Controller
 
     public function pdf_transaction($loan_transaction)
     {
-        if (!Sentinel::hasAccess('loans.transactions.view')) {
-            Flash::warning(trans('general.permission_denied'));
-            return redirect()->back();
+        // if (!Sentinel::hasAccess('loans.transactions.view')) {
+        //     Flash::warning(trans('general.permission_denied'));
+        //     return redirect()->back();
+        // }
+        $current_balance = 0;
+        $out = 0;
+        $in = 0;
+        $Loan = Loan::with('transactions')->where('id',$loan_transaction->loan_id)->first();
+        foreach($Loan->transactions as $transaction){
+            $out = $out + $transaction->debit;
+            $in = $in + $transaction->credit;
         }
-        $Loan = Loan::where('id',$loan_transaction->loan_id)->first();
+        $current_balance = $out - $in;
         $due_date = $Loan->first_repayment_date;
         ////////////////////////////////////////////
-        $pdf = PDF::loadView('loan.transaction.pdf', compact('loan_transaction','due_date'));
+        $pdf = PDF::loadView('loan.transaction.pdf', compact('loan_transaction','due_date','current_balance'));
         return $pdf->download(trans_choice('general.loan', 1) . ' ' . trans_choice('general.transaction', 1) . ' ' . trans_choice('general.receipt', 1) . ".pdf");
 
     }
@@ -2722,10 +2732,10 @@ public function delete_pending_transactions_fp_pp(Request $request, $trans_id){
 
     public function print_statement($loan)
     {
-        if (!Sentinel::hasAccess('loans.pdf_schedule')) {
-            Flash::warning(trans('general.permission_denied'));
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('loans.pdf_schedule')) {
+        //     Flash::warning(trans('general.permission_denied'));
+        //     return redirect()->back();
+        // }
 
         return view('loan.print_statement', compact('loan'));
     }
@@ -2875,6 +2885,17 @@ public function delete_pending_transactions_fp_pp(Request $request, $trans_id){
         return view('loan.application.data', compact('data'));
     }
 
+//LIVE SYSTEM LINE 87
+    public function my_applications(){
+        if (!Sentinel::hasAccess('loans.view')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+        $loan_officer_id = Sentinel::getUser()->id;
+        $data = LoanApplication::where('staff_id',$loan_officer_id)->where('status','pending')->get();
+        return view('loan.application.my_data', compact('data'));
+    }
+
     public function show_application($loan_application)
     {
         if (!Sentinel::hasAccess('loans.view')) {
@@ -2915,8 +2936,18 @@ public function delete_pending_transactions_fp_pp(Request $request, $trans_id){
         }
     }
 
+
+
     public function approve_application(Request $request, $id)
     {
+        $loan_application = LoanApplication::find($id);
+        $client_loan = Loan::where('client_id', '=',  $loan_application->client_id)->where('loan_product_id', '=', $loan_application->loan_product_id)->where('status', '!=','closed')->where('status', '!=','declined')->first();
+           
+        if($client_loan){
+            Flash::warning('This client already has a loan');
+            return redirect()->back();
+        }else{
+
         if (!Sentinel::hasAccess('loans.create')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
@@ -2928,7 +2959,6 @@ public function delete_pending_transactions_fp_pp(Request $request, $trans_id){
         if ($validator->fails()) {
             return redirect()->back()->withInput()->withErrors($validator);
         } else {
-            $loan_application = LoanApplication::find($id);
             if ($loan_application->status != "pending") {
                 Flash::warning("Loan application not pending");
                 return redirect()->back();
@@ -2941,17 +2971,18 @@ public function delete_pending_transactions_fp_pp(Request $request, $trans_id){
             $loan_product = $loan_application->loan_product;
             //create loan
             $loan = new Loan();
-            $name = $loan->client->firstname;
-            $name_array = explode(' ',trim($name));
+           // $name = $loan->client->firstname;
+         //   $name_array = explode(' ',trim($name));
         
-            $firstWord = $name_array[0];
-            $lastWord = $name_array[count($name_array)-1];
+         //   $firstWord = $name_array[0];
+           // $lastWord = $name_array[count($name_array)-1];
 
             $loan->account_number = $loan->id;
             $loan->created_by_id = Sentinel::getUser()->id;
             $loan->created_date = $request->approved_date;
             $loan->client_type = $loan_application->client_type;
             $loan->loan_product_id = $loan_product->id;
+            $loan->loan_officer_id = $loan_application->staff_id;
             $loan->group_id = $loan_application->group_id;
             $loan->client_id = $loan_application->client_id;
             $loan->office_id = $loan_application->office_id;
@@ -2985,5 +3016,6 @@ public function delete_pending_transactions_fp_pp(Request $request, $trans_id){
             return redirect('loan/' . $loan->id . '/edit');
         }
     }
-
+    
+    }
 }

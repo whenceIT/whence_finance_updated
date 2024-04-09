@@ -16,22 +16,22 @@
                        class="table table-bordered table-striped table-condensed table-hover dataTable no-footer">
                     <thead>
                     <tr style="" role="row">
-                        <th>{{trans_choice('general.date',1)}}</th>
+                        <th>{{trans_choice('general.pay',1)}} {{trans_choice('general.date',1)}}</th>
                         <th>
                             {{trans_choice('general.payslip',1)}}
                         </th>
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach($payslips as $key)
+                    @foreach($user->payroll as $key)
                         <tr>
                             <td>
-                            {{date("M, Y",strtotime($key->created_at))}}
+                                {{$key->date}}
                             </td>
                             <td>
                                 <div class="btn-group-horizontal">
                                     <a type="button" class="btn-xs bg-blue"
-                                       href="{{url('payroll/'.$key->id.'/payslip')}}"
+                                       href="{{url('payroll/'.$key->id.'/payslip_old')}}"
                                        target="_blank">{{trans_choice('general.generate_payslip',1)}}</a>
                                 </div>
                             </td>

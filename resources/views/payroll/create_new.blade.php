@@ -3,25 +3,22 @@
     {{trans_choice('general.add',1)}} {{trans_choice('general.payroll',1)}}
 @endsection
 @section('content')
-    <div class="box box-primary">
-        <div class="box-header with-border">
+<div class="box box-primary">
+<div class="box-header with-border">
             <h3 class="box-title">{{trans_choice('general.add',1)}} {{trans_choice('general.payroll',1)}}</h3>
 
             <div class="box-tools pull-right">
 
             </div>
         </div>
-        <form method="post" action="{{url('payroll/create_new_payroll')}}"" class="form-horizontal"
-              enctype="multipart/form-data">
-            {{csrf_field()}}
-            <input type="hidden" name="template_id" value="{{$template->id}}">
-
-            <div class="box-body">
-                <div class="form-group">
+        <form method="post" action="" class="form-horizontal" enctype="multipart/form-data">
+        {{csrf_field()}}
+        <input type="hidden" name="template_id" value="{{$template->id}}">
+        <div  class="box-body">
+        <div class="form-group">
                     <label for="user_id"
                            class="control-label col-md-3">
                         {{trans_choice('general.staff',1)}}
-                      
                         <i class="fa fa-question-circle" data-toggle="tooltip"
                            data-title=""></i>
                     </label>
@@ -36,7 +33,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="">
                     <table width="100%">
                         <tbody>
@@ -55,7 +51,7 @@
                                                     <td width="50%" class="cell_format">
                                                         <div class="margin text-bold">
                                                             <input type="text" name="employee_name" class="form-control"
-                                                                   id="employee_name" value="" required>
+                                                                   id="employee_name" required>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -118,8 +114,6 @@
                                                         </td>
                                                     </tr>
                                                 @endforeach
-
-                                                
                                                 </tbody>
                                             </table>
                                             <!--Pay Period and Salary-->
@@ -145,32 +139,26 @@
                                                     <td width="50%" class="bg-navy">
                                                         <b>{{trans_choice('general.amount',1)}}</b></td>
                                                 </tr>
-                                              
+                                                <?php
+                                                $count = 0;
+                                                foreach($bottom_left as $key){
+                                                ?>
                                                 <tr>
-                                                    <td width="50%" class="cell_format">Basic Pay</td>
+                                                    <td width="50%" class="cell_format">{{$key->name}}</td>
                                                     <td width="50%" class="cell_format">
                                                         <div class="margin text-bold">
-                                                            <input type="number" name="basic_pay"
+                                                            <input type="number" name="{{$key->id}}"
                                                                    onkeyup="sum()"
                                                                    class="form-control bottom_left"
-                                                                   id='basic_pay'
+                                                                   id="{{$key->name}}"
                                                                    required>
                                                         </div>
                                                     </td>
                                                 </tr>
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">Allowances</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                            <input type="number" name="allowances"
-                                                                   onkeyup="sum()"
-                                                                   class="form-control bottom_left"
-                                                                   id="allowances"
-                                                                   >
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                                                <?php
+                                                $count++;
+                                                }
+                                                ?>
 
                                                 </tbody>
                                             </table>
@@ -186,71 +174,26 @@
                                                     <td width="50%" class="bg-navy">
                                                         <b>{{trans_choice('general.amount',1)}}</b></td>
                                                 </tr>
-                                                   <tr>
-                                                    <td width="50%" class="cell_format">Advance deductions</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                            <input type="number" name="advance_deductions"
-                                                                   onkeyup="sum()"
-                                                                   class="form-control bottom_right"
-                                                                   id="advance_deductions"
-                                                                   >
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
+                                                <?php
+                                                $count = 0;
+                                                foreach($bottom_right as $key){
+                                                ?>
                                                 <tr>
-                                                    <td width="50%" class="cell_format">Penalties/Charges</td>
+                                                    <td width="50%" class="cell_format">{{$key->name}}</td>
                                                     <td width="50%" class="cell_format">
                                                         <div class="margin text-bold">
-                                                            <input type="number" name="charges"
+                                                            <input type="number" name="{{$key->id}}"
                                                                    onkeyup="sum()"
                                                                    class="form-control bottom_right"
-                                                                   id="charges"
-                                                                   >
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">NAPSA</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                            <input type="number" name="NAPSA"
-                                                                   onkeyup="sum()"
-                                                                   class="form-control bottom_right"
-                                                                   id="NAPSA"
+                                                                   id="{{$key->name}}"
                                                                    required>
                                                         </div>
                                                     </td>
                                                 </tr>
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">PAYE</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                            <input type="number" name="PAYE"
-                                                                   onkeyup="sum()"
-                                                                   class="form-control bottom_right"
-                                                                   id="PAYE"
-                                                                   required>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">NHIMA</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                            <input type="number" name="NHIMA"
-                                                                   onkeyup="sum()"
-                                                                   class="form-control bottom_right"
-                                                                   id="NHIMA"
-                                                                   required>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
+                                                <?php
+                                                $count++;
+                                                }
+                                                ?>
                                                 </tbody>
                                             </table>
                                             <!--Pre-Tax Deductions-->
@@ -269,7 +212,7 @@
                                                     <td width="50%" class="cell_format">
                                                         <div class="margin text-bold">
                                                             <input type="text" name="total_pay" class="form-control"
-                                                                   id="total_pay"  readonly>
+                                                                   id="total_pay" readonly>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -331,7 +274,6 @@
                                 </table>
                             </td>
                         </tr>
-
                         <tr>
                             <td style="padding-top:10px;">
                                 <table width="100%" class="borderOk" id="net_pay_distribution">
@@ -394,6 +336,7 @@
                                             </div>
                                         </td>
                                         <td width="20%" class="cell_format">
+                                            uh87r6h8e6y
                                             <div class="margin text-bold">
                                                 <input type="number" name="paid_amount" class="form-control"
                                                        id="paid_amount" required>
@@ -480,117 +423,13 @@
                 </div>
 
 
-            </div>
-            <!-- /.box-body -->
-            <div class="box-footer">
-                <button type="submit" class="btn btn-primary pull-right">{{trans_choice('general.save',1)}}</button>
-            </div>
+
+
+
+
+
+
+        </div>
         </form>
-    </div>
-    <!-- /.box -->
-@endsection
-
-@section('footer-scripts')
-    <script>
-        $('#user_id').change(function (e) {
-            $.ajax({
-                type: 'GET',
-                url: '{!! url('payroll/getUser') !!}/' + $('#user_id').val(),
-                success: function (data) {
-                    $('#employee_name').val(data);
-                }
-            });
-        })
-        $(document).ready(function (e) {
-            if ($('#recurring').val() == '1') {
-                $('#recur').show();
-                $('#recur_frequency').attr('required', 'required');
-                $('#recur_start_date').attr('required', 'required');
-                $('#recur_type').attr('required', 'required');
-            } else {
-                $('#recur').hide();
-                $('#recur_frequency').removeAttr('required');
-                $('#recur_start_date').removeAttr('required');
-                $('#recur_type').removeAttr('required');
-            }
-            $('#recurring').change(function () {
-                if ($('#recurring').val() == '1') {
-                    $('#recur').show();
-                    $('#recur_frequency').attr('required', 'required');
-                    $('#recur_type').attr('required', 'required');
-                    $('#recur_start_date').attr('required', 'required');
-                } else {
-                    $('#recur').hide();
-                    $('#recur_frequency').removeAttr('required');
-                    $('#recur_start_date').removeAttr('required');
-                    $('#recur_type').removeAttr('required');
-                }
-            })
-        })
-
-        document.getElementById("PAYE").readOnly = true;
-        document.getElementById("NAPSA").readOnly = true;
-        document.getElementById("NHIMA").readOnly = true;
-
-        $(".form-horizontal").validate()
-        var BasicPay = document.getElementById("Basic Pay").value;
-       console.log(BasicPay)
-       
-       function sum(){
-            var BasicPay = document.getElementById('basic_pay').value;
-          //  var PerformanceAllowance = document.getElementById("Performance Allowance").value
-             var Allowances = document.getElementById("allowances").value
-             var SalaryAdvanceDeductions =  document.getElementById("advance_deductions").value
-             var PenaltyDeductions = document.getElementById("charges").value
-             var GrossPay = (Number(document.getElementById("basic_pay").value));
-            console.log(BasicPay)
-            // console.log(GrossPay * 0.05)
-             document.getElementById("NAPSA").value = 0.05 * BasicPay;
-             document.getElementById('NHIMA').value = 0.01 * BasicPay;
-             if(BasicPay <= 5100){
-                 document.getElementById('PAYE').value = 0;
-             }else if(BasicPay <= 7100){
-                 document.getElementById('PAYE').value = (BasicPay - 5100)*0.20
-             }else if(BasicPay <= 9200){
-                 document.getElementById('PAYE').value = ((BasicPay - 7100)*0.30) + ((7100 - 5100)*0.20)
-             }else{
-                 document.getElementById('PAYE').value = (BasicPay - 9200)*0.37 + (9200 - 7100)*0.30 + (7100 - 5100)*0.20
-             }
-
-            //total_pay
-       var TotalPay =  Number(BasicPay) + Number(Allowances)
-      var  TotalDeductions = Number(SalaryAdvanceDeductions) + Number(PenaltyDeductions) + Number(document.getElementById('PAYE').value) + Number(document.getElementById("NAPSA").value) +  Number(document.getElementById('NHIMA').value)
-       document.getElementById('total_pay').value = TotalPay;
-       document.getElementById('total_deductions').value = TotalDeductions;
-       document.getElementById('net_pay').value = Number(TotalPay) - Number(TotalDeductions);
-       document.getElementById('paid_amount').value = Number(TotalPay) - Number(TotalDeductions);
-        }
-
-   
-
-        // function refresh_totals(e) {
-        //     var totalPay = 0;
-        //     var totalDeductions = 0;
-        //     var totalPaid = 0;
-        //     var netPay = 0;
-        //     for (var i = 0; i < '{{count($bottom_left)}}'; i++) {
-        //         var pay = document.getElementById("bottom_left" + i).value;
-        //         if (pay == "")
-        //             pay = 0;
-        //         totalPay = parseFloat(totalPay) + parseFloat(pay);
-        //     }
-        //     for (var i = 0; i < '{{count($bottom_right)}}'; i++) {
-        //         var deduction = document.getElementById("bottom_right" + i).value;
-        //         if (deduction == "")
-        //             deduction = 0;
-        //         totalDeductions = parseFloat(totalDeductions) + parseFloat(deduction);
-        //     }
-
-        //     document.getElementById("total_pay").value = totalPay;
-        //     document.getElementById("total_deductions").value = totalDeductions;
-        //     document.getElementById("net_pay").value = totalPay - totalDeductions;
-        //     document.getElementById("paid_amount").value = totalPay - totalDeductions;
-        // }
-        $(".form-horizontal").validate();
-    </script>
+</div>
 @endsection

@@ -33,7 +33,7 @@
                 </div>
                 <div class="form-group" id="clients_div" style="display: none">
                     <label for="client_id"
-                           class="control-label col-md-2">{{trans_choice('general.client',1)}}</label>
+                           class="control-label col-md-2">{{trans_choice('general.client',1)}}kbk</label>
                     <div class="col-md-3">
                         <select name="client_id" class="form-control select2" id="client_id">
                             <option></option>
@@ -41,7 +41,7 @@
                                 <option value="{{$key->id}}">
                                     @if($key->client_type=="individual")
                                         {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
-                                        ({{$key->account_no}})
+                                        {{$key->account_no}}
                                     @else
                                         {{$key->full_name}} ({{$key->account_no}}
                                         )
