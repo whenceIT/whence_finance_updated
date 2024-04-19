@@ -171,7 +171,15 @@ if($OutIn < 0){
         <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
         </td>
         @endif
-        <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
+        <td>
+            @if (!empty($Loan->client->first_name))
+                {{ $Loan->client->first_name }}
+            @elseif (!empty($Loan->client->last_name))
+                {{ $Loan->client->last_name }}
+            @else
+                N/A
+            @endif
+        </td>
         <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
         <td>{{number_format($OutIn,2)}}</td>
         <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>

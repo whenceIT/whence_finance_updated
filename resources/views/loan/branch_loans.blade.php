@@ -58,9 +58,9 @@
                     //     }
 
                     // }                    
-                    $trans_principal = \App\Models\LoanTransaction::where('loan_id',$key->id)->where('transaction_type','disbursement')->sum('debit');
-                    $trans_paid = \App\Models\LoanTransaction::where('loan_id',$key->id)->sum('credit');
-                    $trans_debit = \App\Models\LoanTransaction::where('loan_id',$key->id)->sum('debit');
+                    //$trans_principal = \App\Models\LoanTransaction::where('loan_id',$key->id)->where('transaction_type','disbursement')->sum('debit');
+                    //$trans_paid = \App\Models\LoanTransaction::where('loan_id',$key->id)->sum('credit');
+                    //$trans_debit = \App\Models\LoanTransaction::where('loan_id',$key->id)->sum('debit');
                     $trans_principal = 0;
                     $trans_paid = 0;
                     $trans_debit = 0;
@@ -86,9 +86,9 @@
                     }
 
 
-                //    $trans_principal = \App\Models\LoanTransaction::where('loan_id',$key->id)->where('transaction_type','disbursement')->sum('debit');
-                  //  $trans_paid = \App\Models\LoanTransaction::where('loan_id',$key->id)->sum('credit');
-                   // $trans_debit = \App\Models\LoanTransaction::where('loan_id',$key->id)->sum('debit');
+                    $trans_principal = \App\Models\LoanTransaction::where('loan_id',$key->id)->where('transaction_type','disbursement')->sum('debit');
+                    $trans_paid = \App\Models\LoanTransaction::where('loan_id',$key->id)->sum('credit');
+                    $trans_debit = \App\Models\LoanTransaction::where('loan_id',$key->id)->sum('debit');
                     $trans_dif =   $trans_debit -  $trans_paid;
 
                     $balance = ($principal - $principal_paid - $principal_waived - $principal_written_off) + ($interest - $interest_paid - $interest_waived - $interest_written_off) + ($fees - $fees_paid - $fees_waived - $fees_written_off) + ($penalty - $penalty_paid - $penalty_waived - $penalty_written_off);
