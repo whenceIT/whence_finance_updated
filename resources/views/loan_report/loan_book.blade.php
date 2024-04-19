@@ -191,6 +191,7 @@
                     $total_amount = 0;
                     $total_arrears = 0;
                     $total_loans = 0;
+                    $total_total_clients = 0;
                     ?>
                     @foreach($data as $key)
                         <?php
@@ -344,7 +345,7 @@
                         <th colspan="3"></th>
                     </tr>
                     <tr style="height: 20pt">
-                        <td colspan="40" valign="middle" class="style-17">{{ $total_total_clients }}</td>
+                        <td colspan="40" valign="middle" class="style-17">{{$total_total_clients}}</td>
                         <td colspan="40" valign="middle" class="style-17">Report Definitions</td>
                         <td>
                         </td>

@@ -114,10 +114,20 @@
             {{$loan_transaction->payment_apply_to}}
             </p>
         </td>
-
+        <?php 
+            if($loan_transaction->credit>$loan_transaction->debit){
+                $amount = $loan_transaction->credit;
+            }else{
+                $amount = $loan_transaction->debit;
+            }
+            ?>
         <td>
             <p>
-            {{number_format(\App\Helpers\GeneralHelper::new_new_loan_total_balance($loan_transaction->loan->id,$loan_transaction->date),2)}}
+            @if($loan_transaction->payment_apply_to == 'reloan_payment')
+            {{number_format(($current_balance/1.4) + $loan_transaction->credit)}}
+            @else
+            {{number_format($current_balance + $loan_transaction->credit)}}
+            @endif
             </p>
         </td>
 
@@ -133,24 +143,12 @@
             </p>
 
         </td>
-
-        
-            <?php 
-            if($loan_transaction->credit>$loan_transaction->debit){
-                $amount = $loan_transaction->credit;
-            }else{
-                $amount = $loan_transaction->debit;
-            }
-            ?>
-        
-
         <td>
             <p>
-                @if($loan_transaction->payment_apply_to == 'reloan_payment')
-           {{number_format( (0.4 * (\App\Helpers\GeneralHelper::new_loan_total_balance($loan_transaction->loan->id,$loan_transaction->date) - $amount)) + (\App\Helpers\GeneralHelper::new_loan_total_balance($loan_transaction->loan->id,$loan_transaction->date) - $amount))}}
-           @else
-           {{number_format((\App\Helpers\GeneralHelper::new_loan_total_balance($loan_transaction->loan->id,$loan_transaction->date) - $amount))}}
-           @endif 
+       
+         
+           {{number_format($current_balance,2)}}
+
             </p>
         </td>
 

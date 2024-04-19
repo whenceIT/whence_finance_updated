@@ -222,6 +222,7 @@ class PortalController extends Controller
             $client = Client::find($request->client_id);
             $loan_application->office_id = $client->office_id;
             $loan_application->client_id = $client->id;
+            $loan_application->staff_id = $client->staff_id;
         }
         if ($request->type == "group") {
             if (!in_array($request->group_id, $group_ids)) {

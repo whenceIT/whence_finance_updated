@@ -93,15 +93,34 @@
                         <div class="col-xs-8">
                             <button type="submit"
                                     class="btn btn-block btn-flat" style="width:80%; color:#ffffff; background-color:#00a04a;">{{ trans_choice('general.sign_in',1) }}</button>
+                                    <div>
+
+                                    </div>
+                                    <!-- <a href="{{ url('loan/my_collections') }}" style="margin-top: 50px;">
+                                          fugnun
+                                    </a> -->
                         </div>
+                    
+                    
                         <!-- /.col -->
                     </div>
                 </form>
                 <!-- <a href="{{'password_reset'}}">{{ trans_choice('general.forgot_password_msg',1) }}</a><br> -->
             </div>
 
-        </div>
+            <div class="col-xs-8 padding-bottom:10px;">
+            <a href="{{ url('signup') }}" class="btn" style="width:100%; color:#ffffff; background-color:#00a04a;">
+                                          Create a new account
+                                    </a> 
+                                    <div style="padding-top: 20px;"></div>
+                                    <div></div>
+                                    <div></div>
+            </div>
+         
+        
+                      
 
+        </div>
 
     {{-- </div> --}}
         

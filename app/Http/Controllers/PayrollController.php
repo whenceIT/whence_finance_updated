@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\GeneralHelper;
-
+use App\Exports\ExportReport;
 use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
 use App\Models\GlAccount;
@@ -12,10 +12,14 @@ use App\Models\Payroll;
 use App\Models\PayrollMeta;
 use App\Models\PayrollTemplate;
 use App\Models\PayrollTemplateMeta;
+use App\Models\PayrollInfo;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\NewPayroll;
+use App\Models\UserRole;
 use Illuminate\Support\Facades\View;
 use PDF;
+use Excel;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
@@ -47,6 +51,240 @@ class PayrollController extends Controller
     }
 
 
+    public function myPayslipsOld(){
+        if (!Sentinel::hasAccess('loans.view')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+        $user = Sentinel::getUser();
+        return view('payroll.myPayslipsOld',compact('user'));
+    }
+
+
+    public function create_payroll(){
+        $users = User::all();
+        $todaysDate = date('m');
+        foreach($users as $user){
+            $payroll = NewPayroll::where('user_id',$user->id)->orderBy('created_at','desc')->first();
+            if(!empty($payroll)){
+                if(date('m',strtotime($payroll->created_at)) != $todaysDate){
+                    $new_payroll = new NewPayroll();
+                    $new_payroll -> user_id =  $payroll->user_id;
+                    $new_payroll -> basic_pay = $payroll->basic_pay;
+                    $new_payroll -> charges = $payroll->charges;
+                    $new_payroll -> allowances = $payroll->allowances;
+                    $new_payroll -> salary_deductions = $payroll->advance_deductions;
+                    $new_payroll -> save();
+                    Flash::success(trans('general.successfully_saved'));
+                    return redirect('payroll/payroll_list');
+                }else{
+                    Flash::success(trans('Payroll for this month already exists'));
+                    return redirect('payroll/payroll_list');
+                }
+            }
+        }
+    }
+
+
+
+    
+    public function pdfPayslipOld($payroll)
+    {
+
+        $top_left = PayrollMeta::where('payroll_id', $payroll->id)->where('position',
+            'top_left')->get();
+        $top_right = PayrollMeta::where('payroll_id', $payroll->id)->where('position',
+            'top_right')->get();
+        $bottom_left = PayrollMeta::where('payroll_id', $payroll->id)->where('position',
+            'bottom_left')->get();
+        $bottom_right = PayrollMeta::where('payroll_id', $payroll->id)->where('position',
+            'bottom_right')->get();
+        $pdf = PDF::loadView('payroll.pdf_payslip_old',
+            compact('payroll', 'top_left', 'top_right', 'bottom_left', 'bottom_right'));
+        return $pdf->download($payroll->employee_name . " - Payslip.pdf",
+            'D');
+
+    }
+
+    public function payroll_list(){
+
+        $payroll_list = [];
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+     //  $payroll = NewPayroll::get();
+        $users = User::all();
+        foreach($users as $user){
+            $payroll = NewPayroll::where('user_id',$user->id)->orderBy('created_at','desc')->first();
+            if($payroll != null){
+                array_push($payroll_list,$payroll);
+            }
+        }
+        return view('payroll.payroll_list',compact('payroll_list',));
+    }
+
+    public function payroll_query(Request $request){
+        $start_date = $request->start_date;
+        $end_date = $request->end_date;
+        $payroll_list = [];
+        $users = User::all();
+        foreach($users as $user){
+            if($start_date && $end_date != null){
+                $payroll = NewPayroll::where('user_id',$user->id)->whereBetween('created_at',[$start_date,$end_date])->get();
+                if(count($payroll) != 0){
+                    array_push($payroll_list,$payroll);
+                }
+            }
+        }
+        return view('payroll.payroll_query',compact('payroll_list','start_date','end_date'));
+    }
+
+
+    public function payroll_report_excel(){
+        $payroll_list = [];
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+     //  $payroll = NewPayroll::get();
+        $users = User::all();
+        foreach($users as $user){
+            $payroll = NewPayroll::where('user_id',$user->id)->orderBy('created_at','desc')->first();
+            if($payroll != null){
+                array_push($payroll_list,$payroll);
+                $date = $payroll->created_at;
+            }
+        }
+        $payroll_list = [
+            "payroll_list" => $payroll_list,
+            "date" => $date
+        ];
+        return Excel::download(new ExportReport("payroll.payroll_report",$payroll_list),trans_choice('Payroll', 2) . ' ' . trans_choice('Report',
+        1) . ' ' . trans_choice(date("M Y",strtotime($date)), 2) . '.xlsx');
+    }
+
+
+    public function edit_payroll($id){
+        $payroll_user = NewPayroll::where('id',$id)->orderBy('created_at','desc')->first();
+        $user =  User::where('id',$payroll_user->user_id)->first();
+        
+        $template = PayrollTemplate::first();
+        $top_left = PayrollTemplateMeta::where('payroll_template_id', $template->id)->where('position',
+            'top_left')->get();
+        $top_right = PayrollTemplateMeta::where('payroll_template_id', $template->id)->where('position',
+            'top_right')->get();
+
+        return view('payroll.edit_payroll',compact('payroll_user','template','top_left','top_right','id','user',));
+    }
+
+    public function save_payroll(Request $request,$id){
+        $payroll = NewPayroll::where('id',$id)->first();
+        $user =  User::where('id',$payroll->user_id)->first();
+        $payroll -> user_id = $user->id;
+        $payroll -> basic_pay = $request->basic_pay;
+        $payroll -> charges = $request->charges;
+        $payroll -> allowances = $request->allowances;
+        $payroll -> salary_deductions = $request->advance_deductions;
+        $payroll -> save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('payroll/payroll_list');
+    }
+
+
+
+public function user_payslip($user){
+    if (!Sentinel::hasAccess('payroll.create')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
+    }
+    $PayrollInformation = PayrollInfo::where('employee_id',$user->id)->first();
+    $template = PayrollTemplate::first();
+    $top_left = PayrollTemplateMeta::where('payroll_template_id', $template->id)->where('position',
+        'top_left')->get();
+    $top_right = PayrollTemplateMeta::where('payroll_template_id', $template->id)->where('position',
+        'top_right')->get();
+    $bottom_left = PayrollTemplateMeta::where('payroll_template_id', $template->id)->where('position',
+        'bottom_left')->get();
+    $bottom_right = PayrollTemplateMeta::where('payroll_template_id', $template->id)->where('position',
+        'bottom_right')->get();
+
+    return view('payroll.user_payslip', compact( 'bottom_right', 'bottom_left', 'top_right', 'top_left', 'template','PayrollInformation'));
+}
+
+    public function my_payroll_information(){
+        $information = [];
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $information = PayrollInfo::where('employee_id',$user->id)->first();
+      //  $information = count($information);
+        //$new = $information->employee_name;
+       //$information = 2;
+      //  $information ['1','2',3,4,5];
+       
+    return view('payroll.my_payroll_information',compact('information'));
+     
+    }
+
+    public function add_payroll_information(Request $request){
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $role = UserRole::where('user_id',$user->id)->first();
+        $user_name = $user->first_name.' '.$user->last_name;
+        $PayrollInformation = new PayrollInfo();
+        $PayrollInformation -> employee_name = $user_name;
+        $PayrollInformation -> employee_id = $user->id;
+        $PayrollInformation -> branch_id = $user->office_id;
+        $PayrollInformation -> position = $role->role_id;
+        $PayrollInformation -> SSN = $request->SSN;
+        $PayrollInformation -> TPIN = $request->TPIN;
+        $PayrollInformation -> payment_type = $request->payment_type;
+        $PayrollInformation -> account_number = $request->account_number;
+        $PayrollInformation -> save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('/dashboard');
+    }
+
+    // public function edit_payroll(Request $request,$id){
+    //     $user = Sentinel::findById(Sentinel::getUser()->id);
+    //     $role = UserRole::where('user_id',$user->id)->first();
+    //     $user_name = $user->first_name.' '.$user->last_name;
+    //     $PayrollInformation = PayrollInfo::where('id',$id)->first();
+    //     $PayrollInformation -> employee_name = $user_name;
+    //     $PayrollInformation -> branch_id = $user->office_id;
+    //     $PayrollInformation -> position = $role->role_id;
+    //     $PayrollInformation -> SSN = $request->SSN;
+    //     $PayrollInformation -> TPIN = $request->TPIN;
+    //     $PayrollInformation -> payment_type = $request->payment_type;
+    //     $PayrollInformation -> account_number = $request->account_number;
+    //     $PayrollInformation -> save();
+    //     Flash::success(trans('general.successfully_saved'));
+    //     return redirect('/dashboard');
+    // }
+
+    //
+    public function create_new_payroll(Request $request){
+        $new_payroll = new NewPayroll();
+        $new_payroll -> user_id =  $request->user_id;
+        $new_payroll -> basic_pay = $request->basic_pay;
+        $new_payroll -> charges = $request->charges;
+        $new_payroll -> allowances = $request->allowances;
+        $new_payroll -> salary_deductions = $request->advance_deductions;
+        $new_payroll -> save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('payroll/payroll_list');
+      //  $PayrollInformation -> employee_id = $request->user_id;
+    }
+
+    public function edit_payroll_information_manager(Request $request,$id){
+        $basic_pay = 'Basic Pay';
+        $performance_allowance = 'Performance Allowance';
+        $extra_responsibitly_allowance = 'Extra Responsibility Allowance';
+        $salary_advance_deductions = 'Salary Advance Deductions';
+        $penalty_deductions = 'Penalty Deductions';
+        $PayrollInformation = PayrollInfo::where('id',$id)->first();
+        $PayrollInformation -> gross_amount = $request->total_pay;
+        $PayrollInformation -> charges = $request->total_deductions;
+        $PayrollInformation -> allowances = $request->allowances;
+        $PayrollInformation -> net_pay = $request->net_pay;
+        $PayrollInformation -> save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect()->back();
+    }
+
+
     /**
      * Show the form for creating a new resource.
      *
@@ -74,6 +312,23 @@ class PayrollController extends Controller
 
     public function store(Request $request)
     {
+
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $role = UserRole::where('user_id',$user->id)->first();
+        $user_name = $user->first_name.' '.$user->last_name;
+        $PayrollInformation = new PayrollInfo();
+        $PayrollInformation -> employee_name = $request->employee_name;
+        $PayrollInformation -> employee_id = $request->user_id;
+        $PayrollInformation -> branch_id = Sentinel::findUserById($request->user_id)->office_id;
+        //$PayrollInformation -> position =  $role->role_id;
+        $PayrollInformation -> SSN = $request->SSN;
+        $PayrollInformation -> TPIN = $request->TPIN;
+        $PayrollInformation -> payment_type = $request->payment_type;
+        $PayrollInformation -> account_number = $request->account_number;
+        $PayrollInformation -> save();
+
+
+
         if (!Sentinel::hasAccess('payroll.create')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
@@ -152,20 +407,22 @@ class PayrollController extends Controller
         return redirect('payroll/data');
     }
 
-    public function pdfPayslip($payroll)
+    public function pdfPayslip($id)
     {
-
-        $top_left = PayrollMeta::where('payroll_id', $payroll->id)->where('position',
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $template = PayrollTemplate::first();
+        $payslip = NewPayroll::where('id',$id)->first();
+        $top_left = PayrollMeta::where('payroll_id', $template->id)->where('position',
             'top_left')->get();
-        $top_right = PayrollMeta::where('payroll_id', $payroll->id)->where('position',
+        $top_right = PayrollMeta::where('payroll_id', $template->id)->where('position',
             'top_right')->get();
-        $bottom_left = PayrollMeta::where('payroll_id', $payroll->id)->where('position',
+        $bottom_left = PayrollMeta::where('payroll_id', $template->id)->where('position',
             'bottom_left')->get();
-        $bottom_right = PayrollMeta::where('payroll_id', $payroll->id)->where('position',
+        $bottom_right = PayrollMeta::where('payroll_id', $template->id)->where('position',
             'bottom_right')->get();
         $pdf = PDF::loadView('payroll.pdf_payslip',
-            compact('payroll', 'top_left', 'top_right', 'bottom_left', 'bottom_right'));
-        return $pdf->download($payroll->employee_name . " - Payslip.pdf",
+            compact('top_left', 'top_right', 'bottom_left', 'bottom_right','payslip','user'));
+        return $pdf->download( $user->first_name." ".$user->last_name." - Payslip.pdf",
             'D');
 
 
@@ -186,8 +443,10 @@ class PayrollController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $payslips = NewPayroll::where('user_id',$user->id)->get();
         $user = Sentinel::getUser();
-        return view('payroll.myPayslips',compact('user'));
+        return view('payroll.myPayslips',compact('user','payslips'));
     }
 
 

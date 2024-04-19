@@ -11,13 +11,15 @@
 
             </div>
         </div>
-        <form method="post" action="{{url('payroll/create_new_payroll')}}"" class="form-horizontal"
+
+        <body onload="sum()">
+        <form method="post" action="{{url('payroll/'.$payroll_user->id.'/save_payroll')}}" class="form-horizontal"
               enctype="multipart/form-data">
             {{csrf_field()}}
             <input type="hidden" name="template_id" value="{{$template->id}}">
 
             <div class="box-body">
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="user_id"
                            class="control-label col-md-3">
                         {{trans_choice('general.staff',1)}}
@@ -29,13 +31,13 @@
                         <select name="user_id" class="form-control select2" id="user_id" required>
                             <option></option>
                             @foreach(\App\Models\User::all() as $key)
-                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                @if(!Sentinel::findUserById($payroll_user->user_id)->inRole('client'))
                                     <option value="{{$key->id}}">{{$key->first_name}} {{$key->last_name}} </option>
                                 @endif
                             @endforeach
                         </select>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="">
                     <table width="100%">
@@ -54,8 +56,7 @@
                                                         class="cell_format">{{trans_choice('general.staff',1)}} {{trans_choice('general.name',1)}}</td>
                                                     <td width="50%" class="cell_format">
                                                         <div class="margin text-bold">
-                                                            <input type="text" name="employee_name" class="form-control"
-                                                                   id="employee_name" value="" required>
+                                                           <p>{{$user->first_name}} {{$user->last_name}}</p>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -88,8 +89,9 @@
                                                     </td>
                                                     <td width="50%" class="cell_format">
                                                         <div class="margin text-bold">
+                                                      
                                                             <input type="text" name="date"
-                                                                   class="form-control date-picker" value="{{date("Y-m-d")}}"
+                                                                   class="form-control date-picker" value="{{date("Y-m-d",strtotime($payroll_user->created_at))}}"
                                                                    required>
                                                         </div>
                                                     </td>
@@ -154,6 +156,7 @@
                                                                    onkeyup="sum()"
                                                                    class="form-control bottom_left"
                                                                    id='basic_pay'
+                                                                   value="{{$payroll_user->basic_pay}}"
                                                                    required>
                                                         </div>
                                                     </td>
@@ -167,6 +170,7 @@
                                                                    onkeyup="sum()"
                                                                    class="form-control bottom_left"
                                                                    id="allowances"
+                                                                   value="{{$payroll_user->allowances}}"
                                                                    >
                                                         </div>
                                                     </td>
@@ -194,6 +198,7 @@
                                                                    onkeyup="sum()"
                                                                    class="form-control bottom_right"
                                                                    id="advance_deductions"
+                                                                   value="{{$payroll_user->salary_deductions}}"
                                                                    >
                                                         </div>
                                                     </td>
@@ -204,9 +209,10 @@
                                                     <td width="50%" class="cell_format">
                                                         <div class="margin text-bold">
                                                             <input type="number" name="charges"
-                                                                   onkeyup="sum()"
+                                                                onkeyup="sum()"
                                                                    class="form-control bottom_right"
                                                                    id="charges"
+                                                                   value="{{$payroll_user->charges}}"
                                                                    >
                                                         </div>
                                                     </td>
@@ -486,6 +492,7 @@
                 <button type="submit" class="btn btn-primary pull-right">{{trans_choice('general.save',1)}}</button>
             </div>
         </form>
+        </body>
     </div>
     <!-- /.box -->
 @endsection
@@ -542,7 +549,8 @@
              var Allowances = document.getElementById("allowances").value
              var SalaryAdvanceDeductions =  document.getElementById("advance_deductions").value
              var PenaltyDeductions = document.getElementById("charges").value
-             var GrossPay = (Number(document.getElementById("basic_pay").value));
+             var GrossPay = (Number(document.getElementById("basic_pay").value) + Number(document.getElementById("allowances").value )
+             - Number(document.getElementById("advance_deductions").value) - Number(document.getElementById("charges").value))
             console.log(BasicPay)
             // console.log(GrossPay * 0.05)
              document.getElementById("NAPSA").value = 0.05 * BasicPay;
@@ -566,31 +574,6 @@
        document.getElementById('paid_amount').value = Number(TotalPay) - Number(TotalDeductions);
         }
 
-   
-
-        // function refresh_totals(e) {
-        //     var totalPay = 0;
-        //     var totalDeductions = 0;
-        //     var totalPaid = 0;
-        //     var netPay = 0;
-        //     for (var i = 0; i < '{{count($bottom_left)}}'; i++) {
-        //         var pay = document.getElementById("bottom_left" + i).value;
-        //         if (pay == "")
-        //             pay = 0;
-        //         totalPay = parseFloat(totalPay) + parseFloat(pay);
-        //     }
-        //     for (var i = 0; i < '{{count($bottom_right)}}'; i++) {
-        //         var deduction = document.getElementById("bottom_right" + i).value;
-        //         if (deduction == "")
-        //             deduction = 0;
-        //         totalDeductions = parseFloat(totalDeductions) + parseFloat(deduction);
-        //     }
-
-        //     document.getElementById("total_pay").value = totalPay;
-        //     document.getElementById("total_deductions").value = totalDeductions;
-        //     document.getElementById("net_pay").value = totalPay - totalDeductions;
-        //     document.getElementById("paid_amount").value = totalPay - totalDeductions;
-        // }
         $(".form-horizontal").validate();
     </script>
 @endsection

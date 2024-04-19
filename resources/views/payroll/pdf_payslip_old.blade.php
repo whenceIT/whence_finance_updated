@@ -54,7 +54,7 @@
                                 </td>
                                 <td width="50%" class="cell_format">
                                     <div class="margin text-bold">
-                                    {{$user->first_name}} {{$user->last_name}}
+                                        {!! $payroll->employee_name !!}
                                     </div>
                                 </td>
                             </tr>
@@ -85,12 +85,11 @@
                             <tbody>
                             <tr>
                                 <td width="50%" class="cell_format">
-                                    <div class="margin"><b>{{trans_choice('general.payroll',1)}} {{trans_choice('general.date',1)}}</b></div>
+                                    <div class="margin"><b>{{trans_choice('general.payroll',1)}} {{trans_choice('general.date',1)}} ysdg7esdg7u</b></div>
                                 </td>
                                 <td width="50%" class="cell_format">
                                     <div class="margin text-bold">
-                                    {{date("d - M, Y",strtotime($payslip->created_at))}}
-                                       
+                                        March 2024
                                     </div>
                                 </td>
                             </tr>
@@ -145,63 +144,34 @@
                                 <td width="50%" class="bg-navy"><b>{{trans_choice('general.description',1)}}</b></td>
                                 <td width="50%" class="bg-navy"><b>{{trans_choice('general.amount',1)}}</b></td>
                             </tr>
-                        
-
+                            <?php
+                            $count = 0;
+                            foreach($bottom_left as $key){
+                            ?>
                             <tr>
-                                                    <td width="50%" class="cell_format">Basic Pay</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                           {{$payslip->basic_pay}}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">Allowances</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                           {{$payslip->allowances}}
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                                <td width="50%" class="cell_format">
+                                    <div class="margin">
+                                        @if(!empty($key->payroll_template_meta))
+                                            {{$key->payroll_template_meta->name}}
+                                        @endif
+                                    </div>
+                                </td>
+                                <td width="50%" class="cell_format">
+                                    <div class="margin text-bold">
+                                        {!! $key->value !!}
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php
+                            $count++;
+                            }
+                            ?>
 
                             </tbody>
                         </table>
                         <!--Hours and Earnings-->
                     </td>
-                    <?php 
-                    $basic_pay = 0;
-                    $allowances = 0;
-                    $salary_deductions = 0;
-                    $charges = 0;
-                    $NAPSA = 0;
-                    $NHIMA = 0;
-                    $gross_pay = 0;
-                    $net_pay = 0;
 
-                    $basic_pay = $payslip->basic_pay;
-                    $allowances = $payslip->allowances;
-                    $salary_deductions = $payslip->salary_deductions;
-                    $charges = $payslip->charges;
-                    $NAPSA = $basic_pay * 0.05;
-                    $NHIMA = $basic_pay * 0.01;
-                    $gross_pay = $basic_pay + $allowances - $salary_deductions - $charges;
-                    if($basic_pay <= 5100){
-                       $PAYE = 0;
-                    }else if($basic_pay <= 7100){
-                       $PAYE = ($basic_pay - 5100)*0.20;
-                    }else if($basic_pay <= 9200){
-                        $PAYE = (($basic_pay - 7100)*0.30) + ((7100 - 5100)*0.20);
-                    }else{
-                        $PAYE = ($basic_pay - 9200)*0.37 + (9200 - 7100)*0.30 + (7100 - 5100)*0.20;
-                    }
-                    $net_pay = $gross_pay - $NAPSA - $NHIMA - $PAYE;
-                    $total_pay = $basic_pay + $allowances;
-                    $total_deductions = $salary_deductions + $charges + $PAYE + $NAPSA + $NHIMA;
-
-                    $user =  \App\Models\User::where('id',$payslip->user_id)->first();
-                    ?>
                     <td width="50%" valign="top">
                         <table width="100%" id="pre_tax_deductions">
                             <tbody>
@@ -209,58 +179,28 @@
                                 <td width="50%" class="bg-navy"><b>{{trans_choice('general.description',1)}}</b></td>
                                 <td width="50%" class="bg-navy"><b>{{trans_choice('general.amount',1)}}</b></td>
                             </tr>
-
+                            <?php
+                            $count = 0;
+                            foreach($bottom_right as $key){
+                            ?>
                             <tr>
-                                                    <td width="50%" class="cell_format">Advance deductions</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                          {{$payslip->salary_deductions}}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">Penalties/Charges</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                           {{$payslip->charges}}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">NAPSA</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                         {{$NAPSA}}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                 
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">PAYE</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                           {{$PAYE}}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
-                                                <tr>
-                                                    <td width="50%" class="cell_format">NHIMA</td>
-                                                    <td width="50%" class="cell_format">
-                                                        <div class="margin text-bold">
-                                                          {{$NHIMA}}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
-
-
-
-                           
+                                <td width="50%" class="cell_format">
+                                    <div class="margin">
+                                        @if(!empty($key->payroll_template_meta))
+                                            {{$key->payroll_template_meta->name}}
+                                        @endif
+                                    </div>
+                                </td>
+                                <td width="50%" class="cell_format">
+                                    <div class="margin text-bold">
+                                        {!! $key->value !!}
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php
+                            $count++;
+                            }
+                            ?>
                             </tbody>
                         </table>
                         <!--Pre-Tax Deductions-->
@@ -276,7 +216,7 @@
                                 </td>
                                 <td width="50%" class="cell_format">
                                     <div class="margin text-bold">
-                                       {{$total_pay}}
+                                        {!! \App\Helpers\GeneralHelper::single_payroll_total_pay($payroll->id) !!}
                                     </div>
                                 </td>
                             </tr>
@@ -294,7 +234,7 @@
                                 </td>
                                 <td width="50%" class="cell_format">
                                     <div class="margin text-bold">
-                                       {{$total_deductions}}
+                                        {!! \App\Helpers\GeneralHelper::single_payroll_total_deductions($payroll->id) !!}
                                     </div>
                                 </td>
                             </tr>
@@ -315,7 +255,7 @@
                                 </td>
                                 <td width="50%" class="cell_format">
                                     <div class="margin text-bold">
-                                     {{$net_pay}}
+                                        {!! \App\Helpers\GeneralHelper::single_payroll_total_pay($payroll->id)-\App\Helpers\GeneralHelper::single_payroll_total_deductions($payroll->id) !!}
                                     </div>
                                 </td>
                             </tr>
@@ -370,27 +310,28 @@
                 <tr>
                     <td width="20%" class="cell_format">
                         <div class="margin text-bold">
-                           
+                            {!! $payroll->payment_method !!}
                         </div>
                     </td>
                     <td width="20%" class="cell_format">
                         <div class="margin text-bold">
-                       
+                            {!! $payroll->bank_name !!}
                         </div>
                     </td>
                     <td width="20%" class="cell_format">
                         <div class="margin text-bold">
-                         
+                            {!! $payroll->account_number !!}
                         </div>
                     </td>
                     <td width="20%" class="cell_format">
                         <div class="margin text-bold">
-                          
+                            {!! $payroll->description !!}
                         </div>
                     </td>
                     <td width="20%" class="cell_format">
                         <div class="margin text-bold">
-                           {{$net_pay}}
+                            {!! $payroll->paid_amount !!}
+
                         </div>
                     </td>
                 </tr>
@@ -407,7 +348,7 @@
                     <tr>
                         <td width="100%" class="cell_format">
                             <div class="margin text-bold">
-                             "Whence Financial Services strives for accuracy in all pay-related matters. If you notice any discrepancies, please let your immediate supervisor know right away."
+                                "Whence Financial Services strives for accuracy in all pay-related matters. If you notice any discrepancies, please let your immediate supervisor know right away."
                             </div>
                         </td>
                     </tr>
@@ -416,4 +357,30 @@
             <!--Net Pay Distribution-->
         </td>
     </tr>
-  
+    <!-- @if(empty($payroll->comments))
+        <tr style="height: 20px">
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                <table width="100%" class="borderOk" style="margin-top:10px;padding: 10px" id="messages">
+                    <tbody>
+                    <tr>
+                        <td width="100%" class="cell_format">
+                            <div class="margin"><b>{{trans_choice('general.comment',2)}} comment</b></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="100%" class="cell_format">
+                            <div class="margin text-bold">
+                                "Whence Financial Services strives for accuracy in all pay-related matters. If you notice any discrepancies, please let your immediate supervisor know right away."
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    @endif -->
+    </tbody>
+</table>

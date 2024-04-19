@@ -61,6 +61,23 @@
                     <span class="glyphicon glyphicon-user form-control-feedback"></span>
                 </div>
 
+                <div class="form-group has-feedback">
+                <select name="role" class="form-control" id="role" required>
+                                <option disabled selected>Apply as</option>
+                                <option value="2">Client</option>
+                                <option value="3">Loan Consultant</option>
+                            </select>
+                </div>
+
+                <div class="form-group has-feedback">
+                <select name="office" class="form-control" id="office" required>
+                                <option disabled selected>Office</option>
+                                @foreach(\App\Models\Office::all() as $key)
+                                <option value="{{$key->id}}">{{$key->name}}</option>
+                                @endforeach
+                            </select>
+                </div>
+
 
                    <div class="form-group has-feedback">
                     <input type="text" name="phone" class="form-control"

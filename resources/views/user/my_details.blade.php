@@ -13,7 +13,6 @@
             <!-- Profile Image -->
             <div class="box box-primary">
                 <div class="box-body box-profile">
-                    <!------here----->
                     @if(!empty($client->picture))
                         <img class="profile-user-img img-responsive img-circle"
                              src="{{asset('uploads/'.$client->picture)}}"
@@ -39,7 +38,13 @@
                     <a href="#" class="btn btn-primary btn-sm"
                                data-toggle="modal" data-target="#upload_picture_modal"
                                title="{{trans_choice('general.upload',1)}} {{trans_choice('general.picture',1)}}"><b><i
-                                            class="fa fa-camera"></i>
+                                            class="fa fa-camera"></i> Picture
+                                </b></a>
+
+                                <a 
+                               class="btn btn-success btn-sm" href="{{ url('user/edit_my_details') }}"
+                               data-toggle="tooltip" title="{{trans_choice('general.edit',1)}}"><b><i
+                                            class="fa fa-edit"></i> Edit
                                 </b></a>
                     @if (Sentinel::hasAccess('clients.update'))
                             <a href="{{url('client/'.$client->id.'/edit')}}"
@@ -209,7 +214,6 @@
                         @endforeach
                     </ul>
                     <p class="text-center">
-                    <a class="btn btn-sm btn-success" href="{{url('client/'.$client->id.'/account')}}">Create account</a>
 
                         @if($client->status=="pending" && Sentinel::hasAccess('clients.approve'))
                             <a class="btn btn-sm btn-success" data-toggle="modal"
@@ -266,19 +270,18 @@
         <div class="col-md-9">
             <div class="nav-tabs-custom">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a href="#accounts" data-toggle="tab">{{trans_choice('general.account',2)}}</a>
-                    </li>
-                    @if (Sentinel::hasAccess('clients.identification.view'))
-                        <li><a href="#client_identification"
+                   
+                        <li class="active"><a href="#client_identification"
                                data-toggle="tab">{{trans_choice('general.client',1)}} {{trans_choice('general.identification',1)}}</a>
                         </li>
-                    @endif
-                    @if (Sentinel::hasAccess('clients.documents.view'))
+                 
                         <li><a href="#documents" data-toggle="tab">{{trans_choice('general.document',2)}}</a></li>
-                    @endif
-                    @if (Sentinel::hasAccess('clients.next_of_kin.view'))
+                  
+                  
                         <li><a href="#next_of_kin" data-toggle="tab">{{trans_choice('general.next_of_kin',2)}}</a></li>
-                    @endif
+
+                        
+               
                     @if (Sentinel::hasAccess('clients.notes.view'))
                         <li><a href="#notes" data-toggle="tab">{{trans_choice('general.note',2)}}</a></li>
                     @endif
@@ -294,70 +297,16 @@
                     @endif
                 </ul>
                 <div class="tab-content">
-                    <div class="active tab-pane" id="accounts">
-                        <h4>{{ trans_choice('general.loan',2) }}</h4>
-                        <table class="table table-hover table-striped" id="">
-                            <thead>
-                            <tr>
-
-                                <th>{{ trans('general.id') }}</th>
-                                <th>{{ trans_choice('general.product',1) }}</th>
-                                <th>{{ trans('general.outstanding') }}</th>
-                                <th>{{ trans_choice('general.status',1) }}</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach(DB::table('loans as l')->leftJoin("loan_repayment_schedules as lr", "l.id", '=', "lr.loan_id")->leftJoin("loan_products as lp", "l.loan_product_id", '=', "lp.id")->select(DB::raw('(COALESCE(SUM(lr.principal),0)+COALESCE(SUM(lr.interest),0)+COALESCE(SUM(lr.fees),0)+COALESCE(SUM(lr.penalty),0)-COALESCE(SUM(lr.principal_waived),0)-COALESCE(SUM(lr.principal_written_off),0)-COALESCE(SUM(lr.principal_paid),0)-COALESCE(SUM(lr.interest_waived),0)-COALESCE(SUM(lr.interest_written_off),0)-COALESCE(SUM(lr.interest_paid),0)-COALESCE(SUM(lr.fees_waived),0)-COALESCE(SUM(lr.fees_written_off),0)-COALESCE(SUM(lr.fees_paid),0)-COALESCE(SUM(lr.penalty_written_off),0)-COALESCE(SUM(lr.penalty_paid),0)) as balance, l.id,l.loan_product_id,l.status,lp.name'))->where('l.client_id', $client->id)->groupBy("l.id")->get() as $key)
-                                <tr>
-                                    <td>{{ $key->id }}</td>
-                                    <td>
-                                        {{$key->name}}
-                                    </td>
-                                    <td>{{ number_format($key->balance,2) }}</td>
-                                    <td>
-                                        @if($key->status=="disbursed")
-                                            {{trans_choice('general.disbursed',1)}}
-                                        @endif
-                                        @if($key->status=="pending")
-                                            {{trans_choice('general.pending',1)}}
-                                        @endif
-                                        @if($key->status=="withdrawn")
-                                            {{trans_choice('general.withdrawn',1)}}
-                                        @endif
-                                        @if($key->status=="approved")
-                                            {{trans_choice('general.approved',1)}}
-                                        @endif
-                                        @if($key->status=="closed")
-                                            {{trans_choice('general.closed',1)}}
-                                        @endif
-                                        @if($key->status=="written_off")
-                                            {{trans_choice('general.written_off',1)}}
-                                        @endif
-                                        @if($key->status=="rescheduled")
-                                            {{trans_choice('general.rescheduled',1)}}
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <a class="" href="{{url('loan/'.$key->id.'/show')}}"
-                                        ><i class="fa fa-eye"></i> </a>
-
-                                    </td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    @if (Sentinel::hasAccess('clients.identification.view'))
-                        <div class="tab-pane" id="client_identification">
+                  
+                        <div class="active tab-pane" id="client_identification">
                             <div class="row">
                                 <div class="col-md-12">
-                                    @if (Sentinel::hasAccess('clients.identification.create'))
+                                 
                                         <a href="#add_identification_modal"
                                            data-toggle="modal" class="btn btn-info pull-right"><i
                                                     class="fa fa-plus"></i> {{trans_choice('general.add',1)}} {{trans_choice('general.identification',1)}}
                                         </a>
-                                    @endif
+                                  
                                 </div>
                                 <div class="col-md-12 table-responsive">
                                     <table class="table table-hover table-striped" id="">
@@ -382,11 +331,11 @@
                                                 <td>
                                                     <a class="" href="{{asset('uploads/'.$key->attachment)}}"
                                                        target="_blank"><i class="fa fa-download"></i> </a>
-                                                    @if (Sentinel::hasAccess('clients.identification.delete'))
+                                                
                                                         <a class="confirm"
                                                            href="{{url('client/identification/'.$key->id.'/delete')}}"><i
                                                                     class="fa fa-trash"></i> </a>
-                                                    @endif
+                                                
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -395,17 +344,17 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
-                    @if (Sentinel::hasAccess('clients.documents.view'))
+               
+                  
                         <div class="tab-pane" id="documents">
                             <div class="row">
                                 <div class="col-md-12">
-                                    @if (Sentinel::hasAccess('clients.documents.create'))
+                                   
                                         <a href="#add_document_modal"
                                            data-toggle="modal" class="btn btn-info pull-right"><i
                                                     class="fa fa-plus"></i> {{trans_choice('general.add',1)}} {{trans_choice('general.document',1)}}
                                         </a>
-                                    @endif
+                                  
                                 </div>
                                 <div class="col-md-12 table-responsive">
                                     <table class="table table-hover table-striped" id="">
@@ -424,11 +373,11 @@
                                                 <td>
                                                     <a class="" href="{{asset('uploads/'.$key->location)}}"
                                                        target="_blank"><i class="fa fa-download"></i> </a>
-                                                    @if (Sentinel::hasAccess('clients.documents.delete'))
+                                                    
                                                         <a class="confirm"
                                                            href="{{url('client/document/'.$key->id.'/delete')}}"><i
                                                                     class="fa fa-trash"></i> </a>
-                                                    @endif
+                                              
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -437,17 +386,17 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
-                    @if (Sentinel::hasAccess('clients.next_of_kin.view'))
+                    
+                 
                         <div class="tab-pane" id="next_of_kin">
                             <div class="row">
                                 <div class="col-md-12">
-                                    @if (Sentinel::hasAccess('clients.next_of_kin.create'))
+                                  
                                         <a href="#add_next_of_kin_modal"
                                            data-toggle="modal" class="btn btn-info pull-right"><i
                                                     class="fa fa-plus"></i> {{trans_choice('general.add',1)}} {{trans_choice('general.next_of_kin',1)}}
                                         </a>
-                                    @endif
+                                 
                                 </div>
                                 <div class="col-md-12 table-responsive">
                                     <table class="table table-hover table-striped" id="">
@@ -471,21 +420,21 @@
 
                                                 <td>{{ $key->mobile }}</td>
                                                 <td>
-                                                    @if (Sentinel::hasAccess('clients.next_of_kin.view'))
+                                                 
                                                         <a data-id="{{$key->id}}" href="#" data-toggle="modal"
                                                            data-target="#view_next_of_kin"><i class="fa fa-eye"></i>
                                                         </a>
-                                                    @endif
-                                                    @if (Sentinel::hasAccess('clients.next_of_kin.update'))
+                                                 
+                                                   
                                                         <a data-id="{{$key->id}}" href="#" data-toggle="modal"
                                                            data-target="#edit_next_of_kin"><i class="fa fa-edit"></i>
                                                         </a>
-                                                    @endif
-                                                    @if (Sentinel::hasAccess('clients.next_of_kin.delete'))
+                                                 
+                                                  
                                                         <a class="confirm"
                                                            href="{{url('client/next_of_kin/'.$key->id.'/delete')}}"><i
                                                                     class="fa fa-trash"></i> </a>
-                                                    @endif
+                                            
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -494,7 +443,7 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
+                 
                     @if (Sentinel::hasAccess('clients.notes.view'))
                         <div class="tab-pane" id="notes">
                             <div class="row">
@@ -839,7 +788,7 @@
 
                         <div class="form-group">
                             <label for="document_name"
-                                   class="control-label col-md-3">{{trans_choice('general.name',1)}}</label>
+                                   class="control-label col-md-3">{{trans_choice('general.name',1)}}edtete</label>
                             <div class="col-md-9">
                                 <input type="text" name="name" class="form-control"
                                        value="{{old('name')}}"

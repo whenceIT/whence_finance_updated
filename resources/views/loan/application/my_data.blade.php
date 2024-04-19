@@ -1,81 +1,35 @@
 @extends('layouts.master')
 @section('title')
-    {{ trans_choice('general.my',1) }} {{ trans_choice('general.loan',2) }}
+    {{ trans_choice('general.loan',1) }} {{ trans_choice('general.application',2) }}
 @endsection
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">{{ trans_choice('general.my',1) }} {{ trans_choice('general.loan',2) }}</h3>
+            <h3 class="box-title">{{ trans_choice('general.loan',1) }} {{ trans_choice('general.application',2) }}</h3>
 
             <div class="box-tools pull-right">
-                @if(Sentinel::hasAccess('loans.create'))
-                    <a href="{{ url('loan/create') }}" class="btn btn-info btn-sm">
-                        {{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}
-                    </a>
-                @endif
+
             </div>
         </div>
         <div class="box-body table-responsive">
             <table class="table  table-bordered table-hover table-striped" id="data-table">
                 <thead>
                 <tr>
-                    <th>{{ trans_choice('general.account',1) }}#</th>
+                    <th>{{ trans_choice('general.id',1) }}</th>
                     <th>{{ trans_choice('general.branch',1) }}</th>
                     <th>{{ trans_choice('general.client',1) }}</th>
                     <th>{{ trans_choice('general.product',1) }}</th>
-                    <th>{{ trans_choice('general.principal',1) }}</th>
-                    <th>{{ trans_choice('general.paid',1) }}</th>
-                    <th>{{ trans_choice('general.balance',1) }}</th>
-                    <th>{{ trans_choice('general.disbursed',1) }} {{ trans_choice('general.on',1) }}</th>
+                    <th>{{ trans_choice('general.amount',1) }}</th>
                     <th>{{ trans_choice('general.status',1) }}</th>
+                    <th>{{ trans_choice('general.created_at',1) }}</th>
                     <th>{{ trans_choice('general.action',1) }}</th>
                 </tr>
                 </thead>
                 <tbody>
 
                 @foreach($data as $key)
-                    <?php
-                    $principal = 0;
-                    $principal_paid = 0;
-                    $principal_written_off = 0;
-                    $fees = 0;
-                    $fees_paid = 0;
-                    $penalty = 0;
-                    $penalty_paid = 0;
-                    $penalty_written_off = 0;
-                    $interest_waived = 0;
-                    $penalty_waived = 0;
-                    $fees_waived = 0;
-                    $fees_written_off = 0;
-                    $principal_waived = 0;
-                    $interest = 0;
-                    $interest_paid = 0;
-                    $interest_written_off = 0;
-                    foreach ($key->repayment_schedules as $schedule) {
-                        $principal = $principal + $schedule->principal;
-                        $interest = $interest + $schedule->interest;
-                        $penalty = $penalty + $schedule->penalty;
-                        $fees = $fees + $schedule->fees;
-                        $principal_paid = $principal_paid + $schedule->principal_paid;
-                        $interest_paid = $interest_paid + $schedule->interest_paid;
-                        $penalty_paid = $penalty_paid + $schedule->penalty_paid;
-                        $fees_paid = $fees_paid + $schedule->fees_paid;
-                        $principal_waived = $principal_waived + $schedule->principal_waived;
-                        $interest_waived = $interest_waived + $schedule->interest_waived;
-                        $penalty_waived = $penalty_waived + $schedule->penalty_waived;
-                        $fees_waived = $fees_waived + $schedule->fees_waived;
-
-                        $principal_written_off = $principal_written_off + $schedule->principal_written_off;
-                        $interest_written_off = $interest_written_off + $schedule->interest_written_off;
-                        $penalty_written_off = $penalty_written_off + $schedule->penalty_written_off;
-                        $fees_written_off = $fees_written_off + $schedule->fees_written_off;
-
-                    }
-                    $balance = ($principal - $principal_paid - $principal_waived - $principal_written_off) + ($interest - $interest_paid - $interest_waived - $interest_written_off) + ($fees - $fees_paid - $fees_waived - $fees_written_off) + ($penalty - $penalty_paid - $penalty_waived - $penalty_written_off);
-                    $payments = $principal_paid + $interest_paid + $fees_paid + $penalty_paid;
-                    ?>
                     <tr>
-                        <td><a href="{{ url('portal/loan/'.$key->id.'/show') }}" data-toggle="tooltip"
+                        <td><a href="{{ url('portal/loan_application/'.$key->id.'/show') }}" data-toggle="tooltip"
                                title="Click to view">{{ $key->id }}</a></td>
                         <td>
                             @if(!empty($key->office))
@@ -101,10 +55,7 @@
                                 {{$key->loan_product->name}}
                             @endif
                         </td>
-                        <td>{{ number_format($key->principal,$key->decimals) }}</td>
-                        <td>{{ number_format($payments,$key->decimals) }}</td>
-                        <td>{{ number_format($balance,$key->decimals) }}</td>
-                        <td>{{ $key->disbursement_date }}</td>
+                        <td>{{ number_format($key->amount,2) }}</td>
                         <td>
                             @if($key->status=="pending")
                                 {{ trans_choice('general.pending',1) }}
@@ -127,21 +78,31 @@
                             @if($key->status=="withdrawn")
                                 {{ trans_choice('general.withdrawn',1) }}
                             @endif
-                            @if($key->status=="closed")
-                                Closed
-                            @endif
                         </td>
+                        <td>{{ $key->created_at }}</td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-toggle="dropdown"
                                         aria-expanded="false"><i
                                             class="fa fa-navicon"></i></button>
                                 <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                                    <li>
-                                        <a href="{{ url('portal/loan/'.$key->id.'/show') }}"><i
-                                                    class="fa fa-search"></i>
-                                            {{ trans_choice('general.detail',2) }}</a>
-                                    </li>
+                                    @if(Sentinel::hasAccess('loans.view'))
+                                        <li>
+                                            <a href="{{ url('loan/application/'.$key->id.'/show') }}"><i
+                                                        class="fa fa-search"></i>
+                                                {{ trans_choice('general.detail',2) }}</a>
+                                        </li>
+                                    @endif
+                                    @if($key->status=="pending")
+                                        @if(Sentinel::hasAccess('loans.create'))
+                                            <li>
+                                                <a href="{{ url('loan/application/'.$key->id.'/delete') }}"
+                                                   class="delete"><i
+                                                            class="fa fa-trash"></i>
+                                                    {{ trans('general.delete') }}</a>
+                                            </li>
+                                        @endif
+                                    @endif
                                 </ul>
                             </div>
                         </td>

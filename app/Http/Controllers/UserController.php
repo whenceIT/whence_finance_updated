@@ -13,6 +13,7 @@ use App\Models\Setting;
 use App\Models\Loan;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Models\Client;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Cartalyst\Sentinel\Roles\EloquentRole;
 use Cartalyst\Sentinel\Roles\RoleInterface;
@@ -41,16 +42,29 @@ class UserController extends Controller
 
     public function dashboard()
     {   
-        
+      
         $userId = Sentinel::getUser()->id;
         //BELOW THIS
-        $userBranch = Sentinel::getUser()->office_id;
-        $userProvince = Sentinel::getUser()->office->province_id;
-        //$branch = Office::with('province')->where('id',$userBranch)->get
         $role = UserRole::where('user_id',$userId)->first();
+        $userBranch = Sentinel::getUser()->office_id;
+
+        if($role->role_id == '2'){
+            $user = Sentinel::getUser();
+            $client = Client::where('user_id',$user->id)->first();
+            $clientBranch = Office::where('id',$client->office_id)->first();
+            $staff = Sentinel::findUserById($client->staff_id);
+            $clientLoan = Loan::with('transactions')->where('status','disbursed')->where('client_id',$client->id)->first();
+
+        }
+        if($role->role_id != '2'){
+            $userProvince = '2';
+        }
+        //$branch = Office::with('province')->where('id',$userBranch)->get
         $province_loans = [];
         $province_transactions = [];
+        if($role->role_id != '2'){
         $province_branches = Office::where('province_id',$userProvince)->get();
+        }
         $provinces = Province::get();
         $todaysDate = date('Y-m-d');
         $use = date('Y-m-');
@@ -61,7 +75,7 @@ class UserController extends Controller
         $myOpenLoans = [];
         $allLoans = [];
         $allTransactions = [];
-        $afterDate = date('Y-m-d',strtotime($todaysDate. ' - 12 months'));
+        $afterDate = date('Y-m-d',strtotime($todaysDate. ' - 3 months'));
         $myLoans = null;
         $newBranchLoans = null;
         $someData = [];
@@ -137,10 +151,19 @@ class UserController extends Controller
 
      
          $branchUsers = User::where('office_id',$userBranch)->with('loan')->with('role')->get();
-
+         if($role->role_id != '2'){
         return view('dashboard', compact('end','myLoans','role','branchUsers','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','province_branches','allLoans','allTransactions','provinces',));
+         }else{
+            return view('dashboard',compact('role','user','client','clientBranch','staff','clientLoan',));
+         }
     }  
 
+
+    public function my_details(){
+        $user = Sentinel::getUser();
+        $client = Client::where('user_id',$user->id)->first();
+        return view('user.my_details',compact('client'));
+    }
 
     public function daily_figures(){
         $userId = Sentinel::getUser()->id;
@@ -536,6 +559,67 @@ return view('user.province_page',compact('province_loans','province_transactions
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
+
+    // public function create_client_account(Request $request){
+
+    //     if (!Sentinel::hasAccess('users.create')) {
+    //         Flash::warning("Permission Denied");
+    //         return redirect()->back();
+    //     }
+    //     $rules = array(
+    //         'email' => 'required|unique:users',
+    //         'password' => 'required',
+    //         'repeat_password' => 'required|same:password',
+    //         'first_name' => 'required',
+    //         'last_name' => 'required',
+    //     );
+    //     $validator = Validator::make($request->all(), $rules);
+    //     if ($validator->fails()) {
+    //         Flash::warning(trans('general.validation_error'));
+    //         return redirect()->back()->withInput()->withErrors($validator);
+
+    //     } else {
+    //         $credentials = [
+    //             'email' => $request->email,
+    //             'password' => $request->password,
+    //             'first_name' => $request->first_name,
+    //             'last_name' => $request->last_name,
+    //             'address' => null,
+    //             'notes' => null,
+    //             'gender' => $request->gender,
+    //             'phone' => $request->phone,
+    //             'office_id'=> $request->office_id,
+    //             'permission'=>2,
+    //         ];
+    //         $user = Sentinel::registerAndActivate($credentials);
+    //         $role = Sentinel::findRoleById(2);
+    //         $role->users()->attach($user->id);
+    //         //check custom fields
+    //         if (Setting::where('setting_key', 'enable_custom_fields')->first()->setting_value == 1) {
+    //             $custom_fields = CustomField::where('category', 'users')->get();
+    //             foreach ($custom_fields as $key) {
+    //                 $custom_field = new CustomFieldMeta();
+    //                 $id = "custom_field_" . $key->id;
+    //                 if ($key->field_type == "checkbox") {
+    //                     if (!empty($request->$id)) {
+    //                         $custom_field->name = serialize($request->$id);
+    //                     } else {
+    //                         $custom_field->name = serialize([]);
+    //                     }
+    //                 } else {
+    //                     $custom_field->name = $request->$id;
+    //                 }
+    //                 $custom_field->parent_id = $user->id;
+    //                 $custom_field->custom_field_id = $key->id;
+    //                 $custom_field->category = "users";
+    //                 $custom_field->save();
+    //             }
+    //         }
+    //         GeneralHelper::audit_trail("Create", "Users", $user->id);
+    //         Flash::success("sfgbru");
+    //        // return redirect('login');
+    //     }
+    // }
     public function store(Request $request)
     {
         if (!Sentinel::hasAccess('users.create')) {
@@ -726,6 +810,13 @@ return view('user.province_page',compact('province_loans','province_transactions
         return view('user.profile', compact('user'));
     }
 
+//168 in live system
+    public function edit_my_details(){
+        $user = Sentinel::getUser()->id;
+        $client = Client::where('user_id',$user)->first();
+        return view('user.edit_my_details', compact('client'));
+    }
+
     public function edit_profile()
     {
 
@@ -733,6 +824,43 @@ return view('user.province_page',compact('province_loans','province_transactions
         return view('user.edit_profile', compact('user'));
     }
 
+//line 175 live system
+    public function update_my_details(Request $request){
+        $user = Sentinel::getUser()->id;
+        $client = Client::where('user_id',$user)->first();
+        $client->staff_id = $client->staff_id;
+        $client->nrc_number = $request->external_id;
+        $client->mobile = $request->mobile;
+        $client->phone = $request->phone;
+        $client->email = $request->email;
+        $client->client_type = $request->client_type;
+        $client->first_name = $request->first_name;
+        $client->middle_name = $request->middle_name;
+        $client->last_name = $request->last_name;
+        $client->gender = $request->gender;
+        $client->marital_status = $request->marital_status;
+        $client->dob = $request->dob;
+        $client->working_place = $request->working_place;
+        $client->working_position = $request->working_position;
+        $client->salary = $request->salary;
+        $client->nrc_number = $request->nrc_number;
+        $client->full_name = $request->full_name;
+        $client->incorporation_number = $request->incorporation_number;
+        $client->key_contact_person = $request->key_contact_person;
+        $client->key_contact_person_nrc_number = $request->key_contact_person_nrc_number;
+        $client->number_of_shareholders = $request->number_of_shareholders;
+        $client->company_registration_date = $request->company_registration_date;
+        $client->type_of_business = $request->type_of_business;
+        $client->street = $request->street;
+        $client->address = $request->address;
+        $client->joined_date = $request->joined_date;
+        $client->notes = $request->notes;
+        $client->save();
+        GeneralHelper::audit_trail("Update", "Clients", $client->id);
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('/dashboard');
+
+    }
     /**
      * Update the specified resource in storage.
      *

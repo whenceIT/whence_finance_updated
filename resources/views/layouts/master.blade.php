@@ -121,8 +121,11 @@
         <nav class="navbar navbar-static-top" style="background-color:#00a04a;">
             <!-- Sidebar toggle button-->
             <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" style="color: #ffffff">
-                <span class="sr-only">Toggle navigation</span>
+                <span class="sr-only">
+                    Toggle navigation
+                </span>
             </a>
+           
             <!-- Navbar Right Menu -->
             <div class="navbar-custom-menu">
                 <ul class="nav navbar-nav">
@@ -140,7 +143,6 @@
 
                                 <p style="color: #000000;">
                                     {{  isset(Sentinel::getUser()->office) ? Sentinel::getUser()->office->name : ''}}
-
                                 </p>
 
                                 <p style="color: #000000;">

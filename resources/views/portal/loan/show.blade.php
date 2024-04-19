@@ -12,7 +12,19 @@
                     <div class="heading-elements">
 
                     </div>
+                    @if($loan->status=="disbursed" || $loan->status=="closed")
+                    <div class="pull-right btn-group">
+                                <a href="{{ url('loan/'.$loan->id.'/print_statement') }}"
+                     target="_blank"  class="btn btn-primary">
+                    {{ trans_choice('general.loan',1) }} {{ trans_choice('general.statement',1) }}
+                    </a>
+                                </div>
+                     @endif           
                 </div>
+
+
+           
+
                 <div class="panel-body">
                     @if($loan->status=="pending")
                         <div class="row">
@@ -1545,8 +1557,9 @@
                                                 <th>
                                                     {{trans_choice('general.balance',1)}}
                                                 </th>
+                                            
                                                 <th>
-                                                    {{trans_choice('general.detail',2)}}
+                                                        Print Receipt
                                                 </th>
                                             </tr>
                                             </thead>
@@ -1625,7 +1638,21 @@
                                                     <td>{{number_format($key->debit,2)}}</td>
                                                     <td>{{number_format($key->credit,2)}}</td>
                                                     <td>{{number_format($balance,2)}}</td>
-                                                    <td>{{$key->receipt}}</td>
+                                                    <td>
+                                                    @if($key->transaction_type=='repayment' || $key->payment_apply_to == 'part_payment' || $key->payment_apply_to == 'reloan_payment')
+                                                                        <!-- <li>
+                                                                            <a href="{{url('loan/transaction/'.$key->id.'/print')}}"
+                                                                               target="_blank"><i
+                                                                                        class="fa fa-print"></i> {{ trans_choice('general.print',1) }} {{trans_choice('general.receipt',1)}}
+                                                                            </a></li> -->
+                                                                     <div class="btn-group">
+                                                                     <a href="{{url('loan/transaction/'.$key->id.'/pdf')}}"
+                                                                               target="_blank" class="btn btn-primary"><i
+                                                                                        class="fa fa-file-pdf-o" ></i>{{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
+                                                                            </a>
+                                                                     </div>
+                                                                    @endif
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                             </tbody>

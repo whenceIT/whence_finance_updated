@@ -66,12 +66,23 @@
                     </div>
                     <label for="created_date"
                            class="control-label col-md-2">{{trans_choice('general.submitted',1)}} {{trans_choice('general.on',1)}}
-                           data-title="The date the loan account application was received"></i>
+                           <i data-title="The date the loan account application was received"></i>
                     </label>
+                    <?php
+                    $todaysDate = date('Y-m-d');
+                    ?>
                     <div class="col-md-3">
-                        <input type="text" name="created_date" class="form-control date-picker"
+                    @if(Sentinel::hasAccess('loans.approve'))
+                    <input type="text" name="created_date" class="form-control date-picker"
                                value="{{date("Y-m-d")}}"
                                required id="created_date">
+                     @else
+                    
+                    <input type="date" name="created_date" class="form-control date-picker"
+                               min="{{$todaysDate}}"
+                               value="{{date("Y-m-d")}}"
+                               required id="created_date">
+                     @endif
                     </div>
                 </div>
                 <div class="form-group">
@@ -198,9 +209,16 @@
                            data-title="The date that the loan account is expected to be disbursed"></i>
                     </label>
                     <div class="col-md-3">
+                    @if(Sentinel::hasAccess('loans.approve'))
                         <input type="text" name="expected_disbursement_date" class="form-control date-picker"
                                placeholder=""
                                required id="expected_disbursement_date">
+                    @else
+                    <input type="date" name="expected_disbursement_date" class="form-control date-picker"
+                               placeholder=""
+                               min="{{$todaysDate}}"
+                               required id="expected_disbursement_date">
+                    @endif
                     </div>
                     <label for="expected_first_repayment_date"
                            class="control-label col-md-2">{{trans_choice('general.first',1)}} {{trans_choice('general.repayment',1)}} {{trans_choice('general.on',1)}}

@@ -22,16 +22,28 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="pull-right btn-group">
-                                    @if(Sentinel::hasAccess('loans.approve'))
+                                <?php
+                                  $todaysDate = date('Y-m-d');
+                                ?>   
+                                @if($todaysDate > $loan->created_date)
+                                @if(Sentinel::hasAccess('payroll'))
+                                @if(Sentinel::hasAccess('loans.approve'))
                                         <a href="#" data-toggle="modal" data-target="#approve_loan_modal"
                                            class="btn btn-primary"><i
                                                     class="fa fa-check"></i>&nbsp;{{trans_choice('general.approve',1)}}
                                         </a>
+
                                         <a href="#" data-toggle="modal" data-target="#decline_loan_modal"
                                            class="btn btn-primary"><i
                                                     class="fa fa-times"></i>&nbsp;{{trans_choice('general.decline',1)}}
                                         </a>
                                     @endif
+                                @endif
+                                @else
+
+                                @endif
+                                                                    
+                        
                                     @if(Sentinel::hasAccess('loans.update'))
                                         <a href="{{ url('loan/'.$loan->id.'/edit') }}" class="btn btn-primary"><i
                                                     class="fa fa-edit"></i>&nbsp;{{trans_choice('general.edit',1)}}</a>
@@ -598,7 +610,7 @@
                                             <li>
                                                 <a href="{{ url('loan/'.$loan->id.'/print_statement') }}"
                                                    target="_blank">
-                                                    {{ trans_choice('general.loan',1) }} {{ trans_choice('general.statement',1) }} </a>
+                                                    {{ trans_choice('general.loan',1) }} {{ trans_choice('general.statement',1) }}</a>
                                             </li>
                                         @endif
                                         @if(Sentinel::hasAccess('loans.write_off'))
@@ -1174,11 +1186,11 @@
                                         aria-expanded="false">{{trans_choice('general.document',2)}}</a>
                         </li>
                     @endif
-                    @if(Sentinel::hasAccess('loans.documents.view'))
+                  
                         <li class=""><a href="#collateral" data-toggle="tab"
                                         aria-expanded="false">{{trans_choice('general.collateral',1)}}</a>
                         </li>
-                    @endif
+                 
                     @if(Sentinel::hasAccess('loans.guarantors.view'))
                         <li class=""><a href="#guarantors" data-toggle="tab"
                                         aria-expanded="false">{{trans_choice('general.guarantor',2)}}</a>
@@ -1401,16 +1413,16 @@
                             </div>
                         </div>
                     @endif
-                    @if(Sentinel::hasAccess('loans.collateral.view'))
+                   
                         <div class="tab-pane" id="collateral">
                             <div class="row">
                                 <div class="col-md-12">
-                                    @if(Sentinel::hasAccess('loans.collateral.create'))
+                                
                                         <a href="#add_collateral_modal"
                                            data-toggle="modal" class="btn btn-info pull-right"><i
-                                                    class="fa fa-plus"></i> {{trans_choice('general.add',1)}} {{trans_choice('general.collateral',1)}}
+                                                    class="fa fa-plus"></i>{{trans_choice('general.add',1)}} {{trans_choice('general.collateral',1)}}
                                         </a>
-                                    @endif
+                               
                                 </div>
                                 <div class="col-md-12 table-responsive">
                                     <table class="table table-hover table-striped" id="">
@@ -1437,11 +1449,11 @@
                                                 <td>
                                                     <a data-id="{{$key->id}}" href="#" data-toggle="modal"
                                                        data-target="#view_collateral"><i class="fa fa-eye"></i> </a>
-                                                    @if(Sentinel::hasAccess('loans.collateral.update'))
+                                                   
                                                         <a data-id="{{$key->id}}" href="#" data-toggle="modal"
                                                            data-target="#edit_collateral"><i class="fa fa-edit"></i>
                                                         </a>
-                                                    @endif
+                                                 
                                                     @if(Sentinel::hasAccess('loans.collateral.delete'))
                                                         <a class="confirm"
                                                            href="{{url('loan/collateral/'.$key->id.'/delete')}}"><i
@@ -1455,7 +1467,7 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
+              
                     @if(Sentinel::hasAccess('loans.guarantors.view'))
                         <div class="tab-pane" id="guarantors">
                             <div class="row">
@@ -1934,7 +1946,7 @@
                                                                         <li>
                                                                             <a href="{{url('loan/transaction/'.$key->id.'/pdf')}}"
                                                                                target="_blank"><i
-                                                                                        class="fa fa-file-pdf-o"></i> {{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
+                                                                                        class="fa fa-file-pdf-o"></i>{{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
                                                                             </a></li>
                                                                  
                                                                     @endif

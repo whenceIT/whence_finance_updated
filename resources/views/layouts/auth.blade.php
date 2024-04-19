@@ -15,6 +15,10 @@
     <link href="{{ asset('assets/plugins/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('assets/plugins/bootstrap-toastr/toastr.min.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('assets/plugins/icheck/square/blue.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('assets/plugins/select2/css/select2.min.css') }}" rel="stylesheet"
+          type="text/css"/>
+          <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -36,8 +40,39 @@
 
 @yield('content')
 
+<script>
+    jQuery.validator.setDefaults({
+        // Different components require proper error label placement
+        ignore: 'input[type=hidden], .select2-search__field', // ignore hidden fields
+        highlight: function (element) {
+            $(element).closest('.form-group').addClass('has-error');
+        },
+        unhighlight: function (element) {
+            $(element).closest('.form-group').removeClass('has-error');
+        },
+        errorElement: 'span',
+        errorClass: 'help-block',
+        errorPlacement: function (error, element) {
+            if (element.parent('.input-group').length) {
+                error.insertAfter(element.parent());
+            } else {
+                error.insertAfter(element);
+            }
+        }
+    });
+
+
+var state = 0;
+
+ 
+$(window).on('load', function () {
+    $('#loader-wrapper').fadeOut(2000);
+      });
+
+</script>
 <!-- FastClick -->
 <script src="{{ asset('assets/plugins/icheck/icheck.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
 <script src="{{ asset('assets/plugins/jquery-validation/jquery.validate.min.js') }}"></script>
 @yield('footer-scripts')
 
