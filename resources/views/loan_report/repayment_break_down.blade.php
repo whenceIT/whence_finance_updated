@@ -33,6 +33,8 @@ Daily Loan Activities Breakdown Report
                                required id="start_date">
                     </div>
                 </div>
+
+
                 <div class="form-group">
                     <label for="end_date"
                            class="control-label col-md-2">{{trans_choice('general.end',1)}} {{trans_choice('general.date',1)}}</label>
@@ -49,18 +51,20 @@ Daily Loan Activities Breakdown Report
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option value="0"
                                     @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                                    <!--try replacing this part with Expenses::all-->
                             @foreach(\App\Models\Office::all() as $key)
                                 <option value="{{$key->id}}"
                                         @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                             @endforeach
                         </select>
                     </div>
+
                 </div>
                 <div class="form-group">
                     <label for=""
                            class="control-label col-md-2"></label>
                     <div class="col-md-4">
-                        <button type="submit" class="btn btn-success">{{trans_choice('general.search',1)}}! bfuhs9djh9
+                        <button type="submit" class="btn btn-success">{{trans_choice('general.search',1)}}!
                         </button>
 
                         <a href="{{Request::url()}}"
@@ -70,6 +74,8 @@ Daily Loan Activities Breakdown Report
                             <button type="button" class="btn bg-blue dropdown-toggle legitRipple"
                                     data-toggle="dropdown">{{trans_choice('general.download',1)}} {{trans_choice('general.report',1)}}
                                 <span class="caret"></span></button>
+
+                                
                             <ul class="dropdown-menu dropdown-menu-right">
                                 <li>
                                     <a href="{{url('report/loan_report/repayments_report_details/pdf?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id)}}"
@@ -111,7 +117,7 @@ Daily Loan Activities Breakdown Report
                        Full Payments
                       </a>
                     </h4><br>
-                    <!-- <a href="{{url('report/loan_report/full_repayments_report/pdf?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id)}}"
+                    <!--- <a href="{{url('report/loan_report/full_repayments_report/pdf?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id)}}"
                                class="btn btn-info btn-sm pull-right"
                                data-toggle="tooltip" title="statement"><b><i
                                             class="fa fa-file"></i>
@@ -700,13 +706,15 @@ Daily Loan Activities Breakdown Report
                                                 class="icon-file-excel"></i> {{trans_choice('general.download',1)}} {{trans_choice('general.to',1)}} {{trans_choice('general.csv',1)}}
                                     </a>
                                 </li>
-                              
                             </ul>
                         </div>
                   </div>
                   <div id="collapsefive" class="panel-collapse collapse">
                     <div class="box-body">
-        <table class="table">
+                        <table class="table">       
+                    </div>
+
+
   <thead>
     <tr>
       <th>NRC</th>
@@ -865,9 +873,9 @@ $total_loans = 0;
                                 
                             </td>
                                 <td>{{$key->office->name ?? 'None'}}</td>
-    </tr>
+                            </tr>
     
-    @endforeach
+                    @endforeach
                     </tbody>
                     <tr>
                         <th></th>
@@ -886,6 +894,8 @@ $total_loans = 0;
                     </div>
                   </div>
                 </div>
+
+
 
                 <div class="panel box box-warning">
                   <div class="box-header with-border">
@@ -1024,14 +1034,217 @@ $total_loans = 0;
                     </tr>
                     </tfoot>
                 </table>
-                    </div>
-                  </div>
-                </div>
-
-
-
             </div>
         </div>
+    </div>
+
+                <!---------------------------------expenses----------------------------------------->
+<div class="panel box box-warning">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseExpenses">
+                Expenses
+            </a>
+        </h4>
+        <div class="btn-group pull-right">
+            <button type="button" class="btn bg-blue dropdown-toggle legitRipple" data-toggle="dropdown">
+                {{trans_choice('general.download',1)}} {{trans_choice('general.report',1)}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+                <li>
+                    <a href="{{ url('report/loan_report/expense_report/pdf?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id.'&selectedExpenseType='.$selected_expense_type)}}" target="_blank" onclick="generateExpensesReport('pdf');">
+                        <i class="icon-file-pdf"></i> {{ trans_choice('general.download',1) }} {{ trans_choice('general.to',1) }} {{ trans_choice('general.pdf',1) }}
+                    </a>
+                </li>
+                <li>
+                    <!----------------error generating excel file. file name-------------------->
+                    <a href="{{ url('report/loan_report/expense_report/excel?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id.'&selectedExpenseType='.$selected_expense_type) }}" onclick="generateExpensesReport('excel');">
+                        <i class="icon-file-excel"></i> {{trans_choice('general.download',1)}} {{trans_choice('general.to',1)}} {{trans_choice('general.excel',1)}}
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url('report/loan_report/expense_report/csv?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id.'&selectedExpenseType='.$selected_expense_type) }}" onclick="generateExpensesReport('csv');">
+                        <i class="icon-file-excel"></i> {{trans_choice('general.download',1)}} {{trans_choice('general.to',1)}} {{trans_choice('general.csv',1)}}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="collapseExpenses" class="panel-collapse collapse">
+        <div class="box-body">
+            <div style="overflow-x:auto;">
+                <table id="expense_table" class="table table-condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{trans_choice('general.id',1)}}</th>
+                            <th>{{trans_choice('general.expense', 1)}}</th>
+                            <th>{{trans_choice('general.amount', 1)}}</th>
+                            <th>{{trans_choice('general.date',1)}}</th>
+                            <th>{{trans_choice('general.category', 1)}}</th>
+                            <th style="text-align: right;"> 
+                                <div style="display: inline-block;">
+                                    <label for="expense_type_filter">Filter by Category:</label>
+                                    <select id="expense_type_filter" >
+                                        <option value="">All</option>
+                                        @foreach($expenses as $expense)
+                                        <option value="{{ $expense->expense_type }}">{{ $expense->expense_type }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="form-group">
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!--rows -->
+                        @foreach($expenses as $expense)
+                        <tr data-expense-type-id="{{ $expense->type ? $expense->type->id : '' }}">
+                            <td>{{$expense->id}}</td>
+                            <td>{{$expense->name}}</td>
+                            <td>{{$expense->amount}}</td>
+                            <td>{{$expense->date}}</td>
+                            <td>{{ $expense->type ? $expense->type->name : '-' }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2"></td>
+                            <td><b>Total</b></td>
+                            <td><b>{{number_format($expenses->sum('amount'), 2)}}</b></td> 
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var expenseTypeFilter = document.getElementById('expense_type_filter');
+            var expenseTable = document.getElementById('expense_table');
+            var rows = expenseTable.querySelectorAll('tbody tr');
+            var totalCell = expenseTable.querySelector('tfoot td:last-child');
+            var selectedExpenseType = ''; 
+            
+            function updateSelectedExpenseType(value) {
+                selectedExpenseType = value;
+            
+            function calculateTotalAmount() {
+                var totalAmount = 0; 
+
+                for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var expenseType = row.children[4].textContent.trim();
+
+                if (selectedExpenseType === '' || expenseType === selectedExpenseType) {
+                    totalAmount += parseFloat(row.children[2].textContent); 
+                }
+            }
+
+                totalCell.textContent = totalAmount.toFixed(2);
+            }
+
+            expenseTypeFilter.addEventListener('change', function () {
+                selectedExpenseType = this.value; 
+                calculateTotalAmount();
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var expenseType = row.children[4].textContent.trim();
+                    if (selectedExpenseType === '' || expenseType === selectedExpenseType) {
+                        row.style.display = ''; 
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+
+            function generateExpensesReport(format) {
+                if (selectedExpenseType !== '') {
+                    window.location.href = "{{ url('report/loan_report/expense_report/excel?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id.'&selectedExpenseType=') }}" + selectedExpenseType;
+                } else {
+                    alert('Please select a category to generate the report.');
+                }
+            }
+            calculateTotalAmount();
+        });
+    </script>
+
+<div class="panel box box-warning">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseAdvances">
+                Advances
+            </a>
+        </h4>
+        <div class="btn-group pull-right">
+            <button type="button" class="btn bg-blue dropdown-toggle legitRipple" data-toggle="dropdown">
+                {{trans_choice('general.download',1)}} {{trans_choice('general.report',1)}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+                <li>
+                    <a href="{{ url('report/loan_report/advance_report/pdf?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id) }}" target="_blank">
+                        <i class="icon-file-pdf"></i> {{ trans_choice('general.download',1) }} {{ trans_choice('general.to',1) }} {{ trans_choice('general.pdf',1) }}
+                    </a>
+                </li>
+                <li>
+                <a href="{{ url('report/loan_report/advance_report/excel?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id) }}" target="_blank">
+                        <i class="icon-file-excel"></i> {{ trans_choice('general.download',1) }} {{ trans_choice('general.to',1) }} {{ trans_choice('general.excel',1) }}
+                    </a>
+                </li>
+                <li>
+                <a href="{{ url('report/loan_report/advance_report/csv?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id) }}" target="_blank">
+                        <i class="icon-file-csv"></i> {{ trans_choice('general.download',1) }} {{ trans_choice('general.to',1) }} {{ trans_choice('general.csv',1) }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="collapseAdvances" class="panel-collapse collapse">
+  <div class="table-responsive box-body">
+    <table class="table table-bordered table-striped"> <thead>
+        <tr>
+          <th>{{trans_choice('general.id',1)}}</th>
+          <th>{{trans_choice('Name', 1)}}</th>
+          <th>{{trans_choice('Branch', 1)}}</th>
+          <th>{{trans_choice('general.amount', 1)}}</th>
+          <th>{{trans_choice('Credit', 1)}}</th>
+          <th>{{trans_choice('Balance', 1)}}</th>
+          <th>{{trans_choice('Date Approved',1)}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach($advances as $advance)
+          <tr>
+            <td>{{$advance->id}}</td>
+            <td>{{$advance->first_name}} {{$advance->last_name}}</td>
+            <td>{{$advance->office->name}}</td>
+            <td>{{ number_format($advance->amount, 2) }}</td>
+            <td style="white-space: nowrap; overflow: hidden;">{{ number_format($advance->remaining_amount, 2) }}</td>
+            <td>{{ number_format($advance->amount_paid, 2) }}</td>
+            <td>{{$advance->date_approved}}</td>
+          </tr>
+        @endforeach
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2"></td>
+          <td><b>Total Amount</b></td>
+          <td><b>{{number_format($advances->sum('amount'), 2)}}</b></td> 
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+
+</div>
+</div>
 
 
 

@@ -13,6 +13,7 @@
             <!-- Profile Image -->
             <div class="box box-primary">
                 <div class="box-body box-profile">
+                    <!------here----->
                     @if(!empty($client->picture))
                         <img class="profile-user-img img-responsive img-circle"
                              src="{{asset('uploads/'.$client->picture)}}"

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Models\Advance;
 use App\Exports\ExportReport;
 use App\Helpers\GeneralHelper;
 use App\Models\Client;
 use Illuminate\Support\Carbon;
+use App\Models\Expense;
+use App\Models\ExpenseType;
 use App\Models\GlAccount;
 use App\Models\GlJournalEntry;
 use App\Models\Loan;
@@ -175,12 +177,6 @@ class ReportController extends Controller
 
 
 
-
-
-
-
-
-
     public function company_report(Request $request)
     {
         if (!Sentinel::hasAccess('reports')) {
@@ -242,16 +238,6 @@ public function trial_balance_consolidated(Request $request)
     return view('financial_report.trial_balance_conso',
         compact('end_date', 'data'));
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -403,21 +389,6 @@ $current_balance = $debit - $credit;
             compact('start_date',
                 'end_date', 'data','credit','debit','current_balance','office_id', 'loan_id','loan'));
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -644,7 +615,7 @@ public function balance_sheet_consolidated(Request $request)
                 'end_date', 'data', 'officer_id'));
 
     }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public function expected_repayments_pdf(Request $request)
     {
         if (!Sentinel::hasAccess('reports.expected_repayment')) {
@@ -670,7 +641,7 @@ public function balance_sheet_consolidated(Request $request)
         }
 
     }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public function expected_repayments_excel(Request $request)
     {
         if (!Sentinel::hasAccess('reports.expected_repayment')) {
@@ -698,7 +669,7 @@ public function balance_sheet_consolidated(Request $request)
                     2) . '.xlsx');
         }
     }
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public function expected_repayments_csv(Request $request)
     {
         if (!Sentinel::hasAccess('reports.expected_repayment')) {
@@ -734,16 +705,24 @@ public function balance_sheet_consolidated(Request $request)
         if (!Sentinel::hasAccess('reports.repayments_report')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
-        }
+        } 
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $office_id = $request->office_id;
         $loan = $request->id;
+        //added request
+        $transaction_type = $request->input('transaction_type');
         $data = [];
         $part_data = [];
         $reloans_data = [];
         $top_up = [];
         $new_loans = [];
+        $advances = [];
+        $expenses = [];
+        
+        $selected_expense_type = $request->selected_expense_type ?? null;
+        $expenseTypes = ExpenseType::all();
+
         if (!empty($start_date)) {
             if ($office_id != 0) {
                 $data = LoanTransaction::where('transaction_type',
@@ -760,8 +739,21 @@ public function balance_sheet_consolidated(Request $request)
                     $office_id)->whereBetween('date',
                     [$start_date, $end_date])->with('loan')->with('office')->get();
 
+                    $expenses = Expense::whereBetween('date', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
+                    $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
+                    
+
                     $top_up = LoanTopUp::whereBetween('date',
                     [$start_date, $end_date])->where('office_id', $office_id)->with('loan')->with('office')->get();
+
+
+
 
                     // $reloans_data = LoanTransaction::whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->whereBetween('date',
                     // [$start_date, $end_date])->with('loan')->with('office')->get();
@@ -787,7 +779,14 @@ public function balance_sheet_consolidated(Request $request)
                 $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween('date',
                     [$start_date, $end_date])->with('loan')->with('office')->get();
 
-                // $reloans_data = LoanTransaction::whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->whereBetween('date',
+
+                $expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')
+                    ->get();    
+
+                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
+                ->get();   
+
+                /// $reloans_data = LoanTransaction::whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->whereBetween('date',
                 //      [$start_date, $end_date])->with('loan')->with('office')->get();
 
                 $top_up = LoanTopUp::whereBetween('date',
@@ -801,15 +800,15 @@ public function balance_sheet_consolidated(Request $request)
             })->get();
             }
 
-            
+        
 
         }
         return view('loan_report.repayment_break_down',
             compact('start_date',
-                'end_date', 'data', 'part_data', 'reloans_data', 'new_loans','office_id','top_up'));
+                'end_date', 'data', 'part_data', 'reloans_data', 'new_loans','office_id','top_up', 'expenses', 'advances','expenseTypes', 'selected_expense_type'));
     }
 
-
+////////////////////////////////////////////REPAYMENTS REPORT//////////////////////////////////////////////////////////////////////////////////
 
     public function repayments_report_details_pdf(Request $request)
     {
@@ -822,7 +821,7 @@ public function balance_sheet_consolidated(Request $request)
         $office_id = $request->office_id;
         if (!empty($start_date)) {
       if ($office_id != 0) {
-                $data = LoanTransaction::where('transaction_type',
+                    $data = LoanTransaction::where('transaction_type',
                     'repayment')->where('payment_apply_to', 'full_payment')->where('reversed', 0)->where('office_id',
                     $office_id)->whereBetween('date',
                     [$start_date, $end_date])->with('loan')->with('office')->get();
@@ -836,12 +835,22 @@ public function balance_sheet_consolidated(Request $request)
                     $office_id)->whereBetween('date',
                     [$start_date, $end_date])->with('loan')->with('office')->get();
 
+                    $expenses = Expense::whereBetween('date', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
+                    $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
                     
                     $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
                     [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                     if ($office_id != 0) {
                         $query->where('office_id', '=', $office_id);
                     }
+                    
+
                 })->get();
 
 
@@ -856,7 +865,12 @@ public function balance_sheet_consolidated(Request $request)
 
                 $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween('date',
                     [$start_date, $end_date])->with('loan')->with('office')->get();
+
+                $expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')->get();
                     
+                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
+                    ->get();
+
                 $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
                 [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
@@ -866,7 +880,7 @@ public function balance_sheet_consolidated(Request $request)
         }
 
             $pdf = PDF::loadView('loan_report.repayments_report_details_pdf', compact('start_date',
-                'end_date', 'data','part_data', 'reloans_data', 'new_loans','office_id'));
+                'end_date', 'data','part_data', 'reloans_data', 'new_loans','office_id', 'expenses'));
             $pdf->setPaper('A4', 'landscape');
             return $pdf->download(trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report',
                     1) . ".pdf");
@@ -874,6 +888,8 @@ public function balance_sheet_consolidated(Request $request)
 
 
     }
+
+    /////////////////////////////////////////////REPAYMENTS2//////////////////////////////////////////////
 
     public function repayments_report_details_excel(Request $request)
     {
@@ -900,7 +916,14 @@ public function balance_sheet_consolidated(Request $request)
                 $office_id)->whereBetween('date',
                 [$start_date, $end_date])->with('loan')->with('office')->get();
 
-                
+                $expenses = Expense::whereBetween('date', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
+                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+                ->where('office_id', $office_id)->with('office')
+                ->get();    
+
                 $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
                 [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
@@ -915,6 +938,8 @@ public function balance_sheet_consolidated(Request $request)
                 'reloans_data'=>$reloans_data,
                 'office_id' => $office_id,
                 'new_loans'=>$new_loans,
+                'expenses'=>$expenses,
+                'advances'=>$advances
             ];
         }
             else{
@@ -928,6 +953,12 @@ public function balance_sheet_consolidated(Request $request)
 
                 $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween('date',
                     [$start_date, $end_date])->with('loan')->with('office')->get();
+
+                $expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')
+                    ->get();
+
+                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
+                ->get();
                     
                 $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
                 [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
@@ -940,9 +971,11 @@ public function balance_sheet_consolidated(Request $request)
                 'part_data'=> $part_data,
                 'reloans_data'=>$reloans_data,
                 'new_loans'=>$new_loans,
+                'expenses'=>$expenses,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'office_id' => $office_id,
+                'advances' => $advances
             ];
             }
 
@@ -952,11 +985,11 @@ public function balance_sheet_consolidated(Request $request)
         }
      
 
-        }
+    }
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////REPAYMENTS3///////////////////////////////////////////////////////////
 
 public function repayments_report_details_csv(Request $request)
 {
@@ -983,6 +1016,14 @@ public function repayments_report_details_csv(Request $request)
             $office_id)->whereBetween('date',
             [$start_date, $end_date])->with('loan')->with('office')->get();
 
+            $expenses = Expense::whereBetween('date', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+                
+            $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+            ->where('office_id', $office_id)->with('office')
+            ->get();
+
             
             $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
             [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
@@ -998,6 +1039,8 @@ public function repayments_report_details_csv(Request $request)
             'reloans_data'=>$reloans_data,
             'office_id' => $office_id,
             'new_loans'=>$new_loans,
+            'expenses'=>$expenses,
+            'advances'=>$advances
         ];
     }
         else{
@@ -1011,6 +1054,12 @@ public function repayments_report_details_csv(Request $request)
 
             $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween('date',
                 [$start_date, $end_date])->with('loan')->with('office')->get();
+
+            $expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')
+            ->get();
+
+            $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
+            ->get();
                 
             $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
             [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
@@ -1023,9 +1072,11 @@ public function repayments_report_details_csv(Request $request)
             'part_data'=> $part_data,
             'reloans_data'=>$reloans_data,
             'new_loans'=>$new_loans,
+            'expenses'=>$expenses,
             'start_date' => $start_date,
             'end_date' => $end_date,
             'office_id' => $office_id,
+            'advances' => $advances
         ];
         }
         return Excel::download(new ExportReport("loan_report.repayments_report_details_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report',
@@ -1035,7 +1086,6 @@ public function repayments_report_details_csv(Request $request)
    
 
 }
-
 
 
 
@@ -1105,7 +1155,7 @@ public function repayments_report_details_csv(Request $request)
 
 
 
-
+//////////////////////////////////////FULL REPORTS//////////////////////////////////
 
     public function full_repayments_report_pdf(Request $request)
     {
@@ -1226,7 +1276,7 @@ public function repayments_report_details_csv(Request $request)
 
     }
 
-
+///////////////////////////////////PART PAYMENT///////////////////////////////////////////////////
 
     public function part_repayments_report_pdf(Request $request)
     {
@@ -1350,7 +1400,7 @@ public function repayments_report_details_csv(Request $request)
 
     }
 
-
+///////////////////////////////////////RELOANS REPORT////////////////////////////////////////////////////
     public function reloans_report_pdf(Request $request)
     {
         if (!Sentinel::hasAccess('reports.repayments_report')) {
@@ -1466,6 +1516,9 @@ public function repayments_report_details_csv(Request $request)
     }
 
 
+
+/////////////////////////////////////////////NEW LOANS/////////////////////////////////////////////////////
+
     public function new_loans_report_pdf(Request $request)
     {
         if (!Sentinel::hasAccess('reports.repayments_report')) {
@@ -1544,12 +1597,191 @@ public function repayments_report_details_csv(Request $request)
                         1) . '.csv');
     
                 }
+            
+
+    //////////////jghfhfj//////////////////////////////////EXPENSES REPORT/////////////////////////////////////
+    
+    public function expense_report_pdf(Request $request)
+{
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+    $selectedExpenseType = $request->selectedExpenseType;
+    
+    $office = Office::find($office_id);
+    
+    $expenseTypes = Expense::select('expense_type')->distinct()->get();
+
+    
+    $expensesQuery = Expense::whereBetween('date', [$start_date, $end_date])
+    ->where('office_id', $office_id);
+
+    //filter by expense from drpdown
+    if (!empty($selectedExpenseType)) {
+    $expensesQuery->where('expense_type', $selectedExpenseType);
+    }
+
+    $expenses = $expensesQuery->get();
 
 
+    $pdf = PDF::loadView('loan_report.expense_report_pdf', [
+        'expenses' => $expenses,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+        'office' => $office,
+        'expense_type' => $selectedExpenseType
+
+
+        
+    ]);
+    return $pdf->download('loan_report.expense_report.pdf');
+}
+
+public function expense_report_excel(Request $request)
+{
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+    $selectedExpenseType = $request->expense_type_filter;
+
+    $expensesQuery = Expense::whereBetween('date', [$start_date, $end_date])
+        ->where('office_id', $office_id)->where('expense_type', $selectedExpenseType)->get();
+    
+    
+    if ($selectedExpenseType) {
+        $expensesQuery->where('expense_type', $selectedExpenseType);
+    }
+
+    $expenses = $expensesQuery->get();
+
+    $data = [
+        'expenses' => $expenses,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+    ];
+
+    
+    return Excel::download(new ExportReport("loan_report.expense_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report', 1) . '.xlsx');
+}
+
+public function expense_report_csv(Request $request)
+{
+    
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+    $selectedExpenseType = $request->selectedExpenseType;
+
+    
+    $expensesQuery = Expense::whereBetween('date', [$start_date, $end_date])
+        ->where('office_id', $office_id);
+    
+    
+    if ($selectedExpenseType) {
+        $expensesQuery->where('expense_type_id', $selectedExpenseType);
+    }
+
+    $expenses = $expensesQuery->get();
+
+    $data = [
+        'expenses' => $expenses,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+    ];
+
+    
+    return Excel::download(new ExportReport("loan_report.expense_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report', 1) . '.csv');
+}
+
+/////////////////////////////////////////////ADVANCES/////////////////////////////////
+public function advance_report_pdf(Request $request)
+{
+    if (!Sentinel::hasAccess('reports.repayments_report')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
+    }
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+
+            $advancesQuery = Advance::whereBetween('date_approved', [$start_date, $end_date])
+            ->where('office_id', $office_id); 
+        $advances = $advancesQuery->get();
+        
+
+        dd($advances);
+
+        $pdf = PDF::loadView('loan_report.advance_report.pdf', [
+            'advances' => $advances,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'office_id' => $office_id,
+
+        ]);
+            $pdf->setPaper('A4', 'landscape');
+            return $pdf->download(trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report',
+            1) . ".pdf");
+    }
     
 
 
+public function advance_report_excel(Request $request)
+{
+    if (!Sentinel::hasAccess('reports.repayments_report')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
+    }
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
 
+            $advances = Advance::where('status', 'active')->whereBetween('date_approved', [$start_date, $end_date])
+            ->when($office_id, function ($query) use ($office_id) {
+                if ($office_id != 0) {
+                    $query->where('office_id', '=', $office_id);
+                }
+            })->get(); 
+    // Prepare data for export
+    $data = [
+        'advances' => $advances,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+    ];
+    
+    return Excel::download(new ExportReport("loan_report.advance_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report', 1) . '.xlsx');
+}
+
+public function advance_report_csv(Request $request)
+{
+    
+    if (!Sentinel::hasAccess('reports.repayments_report')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
+    }
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+
+            $advances = Advance::where('status', 'active')->whereBetween('date_approved', [$start_date, $end_date])
+            ->when($office_id, function ($query) use ($office_id) {
+                if ($office_id != 0) {
+                    $query->where('office_id', '=', $office_id);
+                }
+            })->get(); 
+
+    $data = [
+        'advances' => $advances,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+    ];
+    
+    return Excel::download(new ExportReport("loan_report.advance_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report', 1) . '.csv');
+}
 
 
 

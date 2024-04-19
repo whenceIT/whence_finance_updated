@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Office;
+use Illuminate\Http\File;
+use Illuminate\Support\Facades\Storage;
 use App\Helpers\GeneralHelper;
 use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
@@ -15,7 +17,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
 use Laracasts\Flash\Flash;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
@@ -30,15 +35,27 @@ class ExpenseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (!Sentinel::hasAccess('expenses')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = Expense::get();
+        $start_date = $request->start_date;
+        $end_date = $request->end_date;
+        $office_id = $request->office_id;
+        $offices = Office::all();
+        $query = Expense::query();
+        if (!empty($start_date) && !empty($end_date)) {
+            $query->whereBetween('date', [$start_date, $end_date]);
+        }
+        
+        if (!empty($office_id) && $office_id != 0) {
+            $query->where('office_id', $office_id);
+        }
+        $data = $query->get();
 
-        return view('expense.data', compact('data'));
+        return view('expense.data', compact('data', 'start_date', 'end_date', 'office_id', 'offices'));
     }
 
     /**
@@ -89,8 +106,23 @@ class ExpenseController extends Controller
         $expense->year = $date[0];
         $expense->month = $date[1];
         $expense->status = "approved";
+        if ($request->hasFile('proof_of_payment')) {
+            $validator = Validator::make($request->all(), [
+                'proof_of_payment' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+    
+            if ($validator->fails()) {
+                Flash::warning(trans('general.validation_error'));
+                return redirect()->back()->withInput()->withErrors($validator);
+            }
+    
+            $image = $request->file('proof_of_payment');
+            $imageName = Str::random(20) . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('proof_of_payment'), $imageName);
+            $expense->proof_of_payment = $imageName;
+        }
         $expense->save();
-        //check custom fields
+        
         if (Setting::where('setting_key', 'enable_custom_fields')->first()->setting_value == 1) {
             $custom_fields = CustomField::where('category', 'expenses')->get();
             foreach ($custom_fields as $key) {
@@ -112,7 +144,6 @@ class ExpenseController extends Controller
             }
         }
 
-        //debit and credit the necessary accounts
         if (!empty($expense->type->gl_account_asset)) {
             $journal = new GlJournalEntry();
             $journal->created_by_id = Sentinel::getUser()->id;
@@ -156,7 +187,6 @@ class ExpenseController extends Controller
 
         return view('expense.show', compact('expense'));
     }
-
 
     public function edit($expense)
     {
@@ -229,7 +259,7 @@ class ExpenseController extends Controller
                 $custom_field->save();
             }
         }
-        //debit and credit the necessary accounts
+        
         if (!empty($expense->type->gl_account_asset)) {
             $journal = new GlJournalEntry();
             $journal->created_by_id = Sentinel::getUser()->id;
@@ -282,6 +312,32 @@ class ExpenseController extends Controller
         Flash::success(trans('general.successfully_deleted'));
         return redirect()->back();
     }
+    
+    public function expensesByTransactionType(Request $request)
+    {
+
+    $transactionType = $request->input('transaction_type');
+
+    $expenses = Expense::where('transaction_type', $transactionType)
+        ->get();
+
+    return view('expense.expenses_by_transaction_type', compact('expenses', 'transactionType'));
+    }
+
+    public function showProofOfPayment($expenseId)
+    {
+    $expense = Expense::find($expenseId);
+
+    if (!$expense || !$expense->proof_of_payment) {
+        abort(404);
+    }
+    $filePath = public_path('proof_of_payment/' . $expense->proof_of_payment);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+}
+
 
 
 }

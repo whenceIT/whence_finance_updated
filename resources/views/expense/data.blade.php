@@ -2,11 +2,20 @@
 @section('title')
     {{trans_choice('general.expense',2)}}
 @endsection
+
+<style>
+    .thumbnail {
+        width: 100px; 
+        height: auto; 
+        cursor: pointer; 
+    }
+</style>
+
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">{{trans_choice('general.expense',2)}}</h3>
-
+            <!---------expense redirect-------------------->
             <div class="box-tools pull-right">
                 @if(Sentinel::hasAccess('expenses.create'))
                     <a href="{{ url('expense/create') }}"
@@ -14,6 +23,46 @@
                 @endif
             </div>
         </div>
+
+        <div class="box-body">
+            <form method="get" action="{{ url()->current() }}" class="form-horizontal" enctype="multipart/form-data">
+                {{ csrf_field() }}
+                <div class="form-group">
+                    <label for="start_date" class="control-label col-md-2">{{trans_choice('general.start',1)}} {{trans_choice('general.date',1)}}</label>
+                    <div class="col-md-3">
+                        <input type="text" name="start_date" class="form-control date-picker" value="{{ $start_date }}" required id="start_date">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date" class="control-label col-md-2">{{trans_choice('general.end',1)}} {{trans_choice('general.date',1)}}</label>
+                    <div class="col-md-3">
+                        <input type="text" name="end_date" class="form-control date-picker" value="{{ $end_date }}" required id="end_date">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="office_id" class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
+                    <div class="col-md-3">
+                        <select name="office_id" class="form-control select2" id="office_id" required>
+                            <option value="0" @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                            @foreach($offices as $office)
+                                <option value="{{ $office->id }}" @if($office_id==$office->id) selected @endif>{{ $office->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-3 text-center">
+                        <button type="submit" class="btn btn-success">{{trans_choice('general.search',1)}}!</button>
+                        <a href="{{ url()->current() }}" class="btn btn-danger">{{trans_choice('general.reset',1)}}!</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+
         <div class="box-body">
             <div class="table-responsive">
                 <table id="data-table" class="table table-bordered table-condensed table-hover">
@@ -24,11 +73,14 @@
                         <th>{{trans_choice('general.date',1)}}</th>
                         <th>{{trans_choice('general.recurring',1)}}</th>
                         <th>{{trans_choice('general.description',1)}}</th>
+                        <th>Proof of Payment</th>
                         <th>{{trans_choice('general.created_by',1)}}</th>
+                        <th>Branch</th>
                         <th>{{ trans_choice('general.action',1) }}</th>
                     </tr>
                     </thead>
                     <tbody>
+                        <!---this was $data-->
                     @foreach($data as $key)
                         <tr>
                             <td>
@@ -47,13 +99,25 @@
                                 @endif
                             </td>
                             <td>{{ $key->name }}</td>
+                            <!-----POP---->
+                            <td>
+                            @if(!empty($key->proof_of_payment))
+                                <a href="{{ asset('proof_of_payment/' . $key->proof_of_payment) }}" target="_blank">
+                                    <img src="{{ asset('proof_of_payment/' . $key->proof_of_payment) }}" class="thumbnail" alt="Proof of Payment">
+                                </a>
+                            @else
+                                No proof of payment attached
+                            @endif
+                            </td>
                             <td>
                                 @if(!empty($key->created_by))
                                     {{$key->created_by->first_name}} {{$key->created_by->last_name}}
                                 @endif
                             </td>
+                            <td>{{ $key->office->name }}</td> 
                             <td>
                                 <div class="btn-group">
+                                    <!------------------------choose option----------------------------------------->
                                     <button type="button" class="btn btn-info btn-xs dropdown-toggle"
                                             data-toggle="dropdown" aria-expanded="false">
                                         {{ trans('general.choose') }} <span class="caret"></span>
@@ -122,4 +186,39 @@
             responsive: false
         });
     </script>
+    <script>
+        $(document).ready(function() {
+            
+            $('#search-button').click(function() {
+                var startDate = $('#start_date').val();
+                var endDate = $('#end_date').val();
+                var officeId = $('#office_id').val();
+        
+                $.ajax({
+                    url: '{{ url()->current() }}',
+                    method: 'GET',
+                    data: {
+                        start_date: startDate,
+                        end_date: endDate,
+                        office_id: officeId
+                    },
+                    success: function(response) {
+                        $('#data-table tbody').html(response);
+                    }
+                });
+            });
+
+            $('#reset-button').click(function() {
+                $('form')[0].reset();
+                $.ajax({
+                    url: '{{ url()->current() }}',
+                    method: 'GET',
+                    success: function(response) {
+                        $('#data-table tbody').html(response);
+                    }
+                });
+            });
+        });
+    </script>
 @endsection
+

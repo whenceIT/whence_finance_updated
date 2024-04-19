@@ -8,6 +8,8 @@ class ExpenseType extends Model
 {
     protected $table = "expense_types";
 
+    protected $primaryKey = 'id';
+
     public function gl_account_asset()
     {
         return $this->hasOne(GlAccount::class, 'id', 'gl_account_asset_id');

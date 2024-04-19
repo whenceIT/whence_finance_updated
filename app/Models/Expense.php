@@ -20,6 +20,10 @@ class Expense extends Model
 
     public function type()
     {
-        return $this->hasOne(ExpenseType::class, 'id', 'expense_type_id');
+        return $this->belongsTo(ExpenseType::class, 'expense_type_id', 'id');
     }
+    protected $fillable = [
+        'proof_of_payment'
+    ];
+    
 }

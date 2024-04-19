@@ -41,17 +41,32 @@ class ClientController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        if (!Sentinel::hasAccess('clients.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
-
-        $data = Client::where('status', 'active')->get();
-
-        return view('client.data', compact('data'));
+    public function index(Request $request)
+{
+    if (!Sentinel::hasAccess('clients.view')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
     }
+    
+    $query = $request->input('query');
+    $data = [];
+
+    if ($query) {
+        $data = Client::where('status', 'active')
+            ->where(function ($q) use ($query) {
+                
+                $q->where('first_name', 'like', "%$query%")
+                    ->orWhere('last_name', 'like', "%$query%")
+                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE '%$query%'");
+                    //->orWhere('id', $query);
+            })
+            
+            ->get();
+    }
+    return view('client.data', compact('data', 'query'));
+}
+
+
 
     public function my_index()
     {
@@ -676,7 +691,7 @@ class ClientController extends Controller
         return redirect()->back();
     }
 
-    //client identification
+    //client identification///////////////////////////////////////////////////////////////////////////
     public function store_client_identification(Request $request, $id)
     {
         if (!Sentinel::hasAccess('clients.identification.create')) {

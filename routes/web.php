@@ -16,6 +16,12 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LoanApprovedEmail;
+use App\Http\Controllers\MailController;
+
+Auth::routes();
+Route::get('/login', 'Auth\LoginController@showLoginForm')->name('login');
 
 Route::model('client', 'App\Models\Client');
 Route::model('user', 'App\Models\User');
@@ -141,7 +147,7 @@ Route::group(['prefix' => 'office'], function () {
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {
-    Route::get('data', 'ClientController@index');
+    Route::get('data', 'ClientController@index')->name('client.data');
     Route::get('my_clients', 'ClientController@my_index');
     Route::get('branch_clients', 'ClientController@branch_index');
     Route::get('declined', 'ClientController@declined');
@@ -362,7 +368,9 @@ Route::group(['prefix' => 'charge'], function () {
 });
 //route for loans
 Route::group(['prefix' => 'loan'], function () {
-    Route::get('data', 'LoanController@index');
+    Route::get('data', 'LoanController@index')->name('loan.data');
+    
+
     Route::get('my_loans', 'LoanController@my_index');
     Route::get('my_app_loans', 'LoanController@my_index_approved');
     Route::get('branch_app_loans', 'LoanController@branch_index_approved');
@@ -397,6 +405,8 @@ Route::group(['prefix' => 'loan'], function () {
     Route::post('{id}/approve', 'LoanController@approve_loan');
     Route::get('collections','LoanController@collections');
     Route::get('my_collections','LoanController@my_collections');
+    //loan emails
+    //Route::post('{id}/send_approve_email', 'LoanController@sendAppprovalEmail');
     //Make defaulted
     Route::get('{id}/set_defaulted', 'LoanController@set_defaulted');
     Route::post('{id}/decline', 'LoanController@decline_loan');
@@ -549,6 +559,7 @@ Route::group(['prefix' => 'report'], function () {
         Route::any('provisioning/excel', 'ReportController@provisioning_excel');
         Route::any('provisioning/csv', 'ReportController@provisioning_csv');
     });
+    //////////////////////////////////////////////////////////REPORTS////////////////////////////////////////////////
     Route::group(['prefix' => 'loan_report'], function () {
         Route::any('expected_repayments', 'ReportController@expected_repayments');
         Route::any('expected_repayments_cro', 'ReportController@expected_repayments_cro');
@@ -576,6 +587,18 @@ Route::group(['prefix' => 'report'], function () {
         Route::any('new_loans_report/pdf', 'ReportController@new_loans_report_pdf');
         Route::any('new_loans_report/excel', 'ReportController@new_loans_report_excel');
         Route::any('new_loans_report/csv', 'ReportController@new_loans_report_csv');
+        //added route
+        Route::get('expense_report/pdf', 'ReportController@expense_report_pdf');
+        Route::get('expense_report/excel', 'ReportController@expense_report_excel');
+        Route::get('expense_report/csv', 'ReportController@expense_report_csv');
+        Route::get('/expense/expense-by-transaction-type', 'ExpenseController@expenseByTransactionType')->name('expense.expenseByTransactionType');
+        //Route::post('expense_report/pdf', 'ExpenseController@expense_report_pdf');
+        //Route::get('expense/data', 'ExpenseController@filter')->name('expenses.index');
+        Route::get('advance_report/pdf', 'ReportController@advance_report_pdf');
+        Route::get('advance_report/excel', 'ReportController@advance_report_excel');
+        Route::get('advance_report/csv', 'ReportController@advance_report_csv');
+
+
         Route::any('repayments_report/excel', 'ReportController@repayments_report_excel');
         Route::any('repayments_report/csv', 'ReportController@repayments_report_csv');
         Route::any('my_collection_sheet', 'ReportController@my_collection_sheet');
@@ -832,6 +855,30 @@ Route::group(['prefix' => 'other_income'], function () {
     Route::post('type/{id}/update', 'OtherIncomeTypeController@update');
     Route::get('type/{id}/delete', 'OtherIncomeTypeController@delete');
 });
+//advances
+Route::group(['prefix' => 'advance'], function () {
+    Route::get('apply', 'AdvanceController@showApplyForm')->name('advances.apply');
+    Route::post('submit', 'AdvanceController@submitAdvance')->name('advances.submit');
+    Route::get('my_advances', 'AdvanceController@showMyAdvances')->name('advances.my_advances');
+    Route::post('{id}/approve', 'AdvanceController@approve')->name('advances.approve');
+    Route::post('{id}/decline', 'AdvanceController@decline')->name('advances.decline');
+    Route::get('/pending_approvals', 'AdvanceController@showPendingApprovals')->name('advances.pending_approvals');
+    Route::get('active_advances', 'AdvanceController@showActiveAdvances')->name('advances.active_advances');
+    Route::get('closed_advances', 'AdvanceController@storeClosedAdvances')->name('advances.closed_advances');
+    Route::get('declined_advances', 'AdvanceController@showDeclinedAdvances')->name('advances.declined_advances');
+    Route::get('/active_advances/{id}', 'AdvanceController@showDetails')->name('advances.show');
+    Route::get('/active_advances_province_manager/{id}', 'AdvanceController@showAdvancesForProvinceManager')->name('advances.active_advances_province_managers');
+});
+
+Route::group(['prefix' => 'ledger'], function () {
+    Route::get('general', 'GeneralLedgerController@index')->name('ledger.general'); 
+    Route::post('/store', 'GeneralLedgerController@store')->name('ledger.store');
+    Route::get('summary', 'GeneralLedgerController@summary')->name('ledger.summary');
+    Route::get('transactions', 'GeneralLedgerController@transactions')->name('ledger.transactions'); 
+    Route::get('/ledger/{officeName}', 'GeneralLedgerController@show')->name('ledger.show');
+
+});
+
 //route for expenses
 Route::group(['prefix' => 'expense'], function () {
     Route::get('data', 'ExpenseController@index');
@@ -843,7 +890,11 @@ Route::group(['prefix' => 'expense'], function () {
     Route::post('{id}/reverse', 'ExpenseController@reverse_expense');
     Route::get('{id}/delete', 'ExpenseController@delete');
     Route::get('{id}/delete_file', 'ExpenseController@deleteFile');
+    ///////////////////////////////////////////here
+    Route::get('proof_of_payment/{filename}', 'ExpenseController@showProofOfPayment')->name('proof_of_payment.download');
 
+
+    
     //expense types
     Route::get('type/data', 'ExpenseTypeController@index');
     Route::get('type/create', 'ExpenseTypeController@create');
@@ -900,3 +951,6 @@ Route::group(['prefix' => 'portal'], function () {
     Route::post('loan_application/store', 'PortalController@loan_application_store');
 
 });
+
+//Route::get('/', [MailController::class, 'sendMail']);
+    
