@@ -47,32 +47,17 @@
                         <?php
                            $todaysDate = date('Y-m-d');
                         ?>
-                        @if($todaysDate > $key->date)
-                        @if(Sentinel::hasAccess('payroll'))
+                     
                         <td>
                         
-                        <a href="{{ url('loan/'.$key->loan_id.'/'.$key->id.'/create_reloan') }}" onclick="return confirm('Are you sure?')" >
+                          <a href="{{ url('loan/'.$key->loan_id.'/'.$key->id.'/create_reloan') }}" onclick="return confirm('Are you sure?')" >
                                         <span class="label label-success" >Approve</span>
                                                             </a>
                                         <a href="{{ url('loan/'.$key->id.'/delete_pending_transaction')}}"  onclick="return confirm('Are you sure?')">
                                         <span class="label label-danger style="color:red" >Decline</span>
                                         </a>
                                           
-                                    </td>
-                        @endif
-                        @else
-                        <td>
-                        
-                        <a href="{{ url('loan/'.$key->loan_id.'/'.$key->id.'/create_reloan') }}" onclick="return confirm('Are you sure?')" >
-                                        <span class="label label-success" >Approve</span>
-                                                            </a>
-                                        <a href="{{ url('loan/'.$key->id.'/delete_pending_transaction')}}"  onclick="return confirm('Are you sure?')">
-                                        <span class="label label-danger style="color:red" >Decline</span>
-                                        </a>
-                                          
-                                    </td>
-                        @endif
-                  
+                                    </td> 
                     </tr>
                 @endforeach
                 </tbody>

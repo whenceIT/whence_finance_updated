@@ -328,25 +328,30 @@ class GeneralHelper
 
     }
 
-public static function new_loan_total_balance($id,$date = ''){
+public static function new_loan_total_balance($id, $date = ''){
     if (empty($date)) {
-        $loan = Loan::find($id);
-        $someInfo = [];
+        $loan = Loan::with('transactions')->find($id);
         $debit = 0;
-        $credit = 0; 
-        if(!empty($loan)){
-            foreach ($loan -> transactions as $transaction) {
-                $debit = $debit + $transaction->debit;
-                $credit = $credit + $transaction->credit;
+        $credit = 0;
 
+        if (!empty($loan)) {
+            foreach ($loan->transactions as $transaction) {
+                $debit += $transaction->debit;
+                $credit += $transaction->credit;
             }
-            return (($debit - $credit));
+            
+            //add the current transaction's credit and debit amounts
+           // $currentTransaction = $loan->transactions->where('id', $transactionId)->first();
+           // if (!empty($currentTransaction)) {
+             //   $debit += $currentTransaction->debit;
+               // $credit += $currentTransaction->credit;
+           // }
 
+            return ($debit - $credit);
         } else {
             return 0;
         }
-
-        }
+    }
     
 }
 

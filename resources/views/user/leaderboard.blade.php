@@ -3,25 +3,34 @@
 Leaderboard
 @endsection
 @section('content')
-<div>
+<div class="box-body hidden-print">
 
 <form method="post" action="{{Request::url()}}" class="form-horizontal" enctype="multipart/form-data">
 {{csrf_field()}}
+
     <div class="form-group">
 
     <label for="time_period"
-        class="control-label col-md-2">Time period
+        class="control-label col-md-2">Start date
     </label>
+
     <div class="col-md-3">
-    <select name="time_period" class="form-control select2" id="time_period" required>
-        <option value="Monthly" selected>This Month</option>
-            <option value="Daily" @if($time_period == 'Daily') selected @endif>Today</option>
-            <option value="Weekly"@if($time_period == 'Weekly') selected @endif>This Week</option>
-        <option value="Yearly" @if($time_period == 'Yearly') selected @endif>This Year</option>
-    </select>
+        <input type="text" name="start_date" class="form-control date-picker" required id="start_date">
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="time_period"
+        class="control-label col-md-2">End date
+    </label>
+
+    <div class="col-md-3">
+            <input type="text" name="end_date" class="form-control date-picker" required id="end_date">
     </div>
 
-  
+</div>
+
+<div class="form-group">
     <label for="office_id"
                            class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
                     <div class="col-md-3">
@@ -32,14 +41,20 @@ Leaderboard
                             @endforeach
                         </select>
                     </div>
+</div>
 
-
-               
-        <button type="submit" class="btn btn-success">Go!
+<div class="form-group">
+<label for=""
+class="control-label col-md-2"></label>
+<div class="col-md-4">
+<button type="submit" class="btn btn-success">Go!
                         </button>
+</div>
+</div>
+               
+        
               
 
-    </div>
    
 </form>
 <?php
@@ -56,6 +71,8 @@ $number = 0;
 $branches = [];
 
 ?>
+
+@if(!empty($startDate))
 <div class="box box-primary">
 <div  class="box-header with-border">
 <h2 class="box-title" style="font-weight: bold;">LOAN CONSULTANT PERFORMANCE LEADERBOARD between {{date("jS M, Y", strtotime($startDate))}} and {{date("jS M, Y", strtotime($endDate))}}</h2>
@@ -85,9 +102,6 @@ if($isBranch == 1){
 }
 
 ?>
-
-@if(!empty($information->role->role_id))
-@if($information->role->role_id == '3' || $information->role->role_id == '4')
 @if($isBranch == 1)
     <tr style="background-color: #B2D3C2;">
         @if(($number + 1) == 1)
@@ -102,15 +116,12 @@ if($isBranch == 1){
         @endif
         <td>{{$information->first_name}} {{$information->last_name}}</td>
         @if($isBranch == 1)
-        <td>{{$information->office}} {{$isBranch}}</td>
+        <td>{{$information->office}}</td>
         @else
-        <td>{{$information->office}} {{$isBranch}}</td>
+        <td>{{$information->office}}</td>
         @endif
-        @if($time_period == 'Yearly')
-        <td>-</td>
-        @else
         <td>{{$information->amount}}</td>
-        @endif
+    
     </tr>
     @else
     <tr>
@@ -126,23 +137,19 @@ if($isBranch == 1){
         @endif
         <td>{{$information->first_name}} {{$information->last_name}}</td>
         @if($isBranch == 1)
-        <td>{{$information->office}} {{$isBranch}}</td>
+        <td>{{$information->office}}</td>
         @else
-        <td>{{$information->office}} {{$isBranch}}</td>
+        <td>{{$information->office}}</td>
         @endif
-        @if($time_period == 'Yearly')
-        <td>-</td>
-        @else
         <td>{{$information->amount}}</td>
-        @endif
     </tr>
     @endif
-@endif
-@endif
 @endforeach                    
 </table>
 </div>
 </div>
+
+@endif
 </div>
 @endsection
 @section('footer-scripts')

@@ -8,7 +8,12 @@
 <div style="display: flex;
     align-items: center;
     justify-content: center; padding-bottom: 10px; ">
-       
+    
+
+<a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
+   <span class="label label-primary" style="font-size: 15px;">Collections</span>
+</a>
+   
 <a href="javascript:;" onmousedown="toggleDiv('mydiv');" style="margin: 10px;">
 <span class="label label-primary" style="font-size: 15px;">COUA and TCC breakdown</span>
 <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
@@ -102,26 +107,20 @@ $balance = 0;
 @foreach($loan->transactions as $transaction)
 
 <?php
-if($transaction->date <= $branchcompareDate){
+if($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee'){
     $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
 }
 
-if($transaction->transaction_type != 'interest_waiver' && $transaction->date <= $branchcompareDate){
+if($transaction->date <= $branchcompareDate){
     $MoneyCollected = $MoneyCollected + $transaction->credit;
 }
 
 
-if($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $branchcompareDate){
-    $charges = $charges + $transaction->debit;
-}
-
 ?>
 @endforeach
 <?php 
-$balance = ($MoneyGivenOut - $MoneyCollected - $charges);
-if($balance < 0){
-    $balance = 0;
-}
+$balance = $MoneyGivenOut - $MoneyCollected;
+
 $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
 if($cycle_opening_uncollected_amount == 0){
     $cycle_opening_uncollected_amount = 1;
@@ -142,9 +141,9 @@ if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $bra
 
 if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate){
 
-    $reloan_amount = $transaction->credit; + ($transaction->credit/0.4);
+    $reloan_amount = $transaction->balance_bf;
     $interest = $transaction->credit/0.4;
-    $reloan_payments = $reloan_payments + $reloan_amount + $interest; 
+    $reloan_payments = $reloan_payments + $reloan_amount;
 }
 
 
@@ -501,25 +500,18 @@ $newout = 0;
 ?>
 @foreach($loan->transactions as $transaction)
 <?php
-if($transaction->date <= $branchcompareDate){
+if($transaction->transaction_type != 'specified_due_date_fee'){
     $out = $out + $transaction->debit;
 }
 
-if($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'interest_waiver'){
-    $in = $in + $transaction->credit;
-}
+$in = $in + $transaction->credit;
 
-if($transaction->date <= $branchcompareDate && $transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
+
 ?>
 @endforeach
 <?php
 $OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
-}
+
 ?>
 <tr>
    @if($OutIn != 0)
@@ -535,6 +527,11 @@ if($OutIn < 0){
         <span style="color: red;">(Defaulted)</span>
         @endif
     </td>
+    @if($OutIn < 0)
+    <td style="color: red;">{{number_format($OutIn,2)}}</td>
+    @else
+    <td>{{number_format($OutIn,2)}}</td>
+    @endif
     <td>{{number_format($OutIn,2)}}</td>
     @endif
 </tr>
@@ -578,7 +575,6 @@ if($OutIn < 0){
 </div>
 
 
-
 @endsection
 
 
@@ -598,7 +594,7 @@ if($OutIn < 0){
     <script src="{{ asset('assets/plugins/amcharts/plugins/export/export.min.js') }}"
             type="text/javascript"></script>
             <script>
-                function toggleDiv(divid)
+ function toggleDiv(divid)
   {
  
     varon = divid + 'on';
@@ -638,6 +634,7 @@ function toggleMyStaff(divid){
     document.getElementById(varon).style.display = 'block'
     }
 }
+
 
 function toggleLedger(divid)
   {
@@ -693,8 +690,7 @@ new Chart(cty, {
       label: 'Branch collections as at end of cycle date',
       data: ['{{$collected_total_1_months}}','{{$collected_total_2_months}}','{{$collected_total}}'],
       borderWidth: 1
-    },
-]
+    }]
   },
   options: {
     scales: {

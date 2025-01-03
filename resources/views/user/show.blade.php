@@ -7,8 +7,7 @@
         <div class="col-md-4">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h3 class="box-title">{{ $user->first_name }} {{ $user->last_name }}</h3>
-                    <h3 class="box-title">{{$user}}</h3>
+                    <h3 class="box-title">{{ $user->status }}</h3>
                     <div class="box-tools pull-right">
 
                     </div>
@@ -26,6 +25,10 @@
                         <tr>
                             <td>{{ trans('general.phone') }}</td>
                             <td>{{ $user->phone }}</td>
+			</tr>
+			<tr>
+                            <td>{{ trans('general.status') }}</td>
+                            <td>{{ $user->status }}</td>
                         </tr>
                         <tr>
                             <td>{{ trans('general.address') }}</td>
@@ -62,7 +65,13 @@
                                 </td>
                             </tr>
                         @endforeach
-                    </table>
+		    </table>
+		<form action="{{ route('user.toggleStatus', $user->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">
+                            {{ $user->status == 'Active' ? 'Set as Inactive' : 'Set as Active' }}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

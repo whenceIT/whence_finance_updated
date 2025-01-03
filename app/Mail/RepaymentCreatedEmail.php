@@ -15,10 +15,14 @@ class RepaymentCreatedEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $loan_transaction;
+    public $due_date;
+    public $current_balance;
 
-    public function __construct($loan_transaction)
+    public function __construct($loan_transaction, $due_date, $current_balance)
     {
         $this->loan_transaction = $loan_transaction;
+        $this->due_date = $due_date;
+        $this->current_balance = $current_balance;
     }
 
     /**
@@ -31,6 +35,9 @@ class RepaymentCreatedEmail extends Mailable
         $clientName = "";
         $loan = $this->loan_transaction->loan;
         $loan_transaction = $this->loan_transaction;
+        $due_date = $this->due_date;
+        $current_balance = $this->current_balance;
+
         if ($loan->client_type == "client") {
             if (!empty($loan->client)) {
                 if ($loan->client->client_type == "individual") {
@@ -49,7 +56,7 @@ class RepaymentCreatedEmail extends Mailable
         $body = Setting::where('setting_key', 'payment_received_email_template')->first()->setting_value;
         $body = str_replace('{clientName}', $clientName, $body);
         $body = str_replace('{loanNumber}', $loan->id, $body);
-        $body = str_replace('{paymentAmount}', $this->loan_transaction->credit, $body);
+        $body = str_replace('{paymentAmount}', number_format($this->loan_transaction->credit, 2), $body);
         $body = str_replace('{transactionId}', $this->loan_transaction->id, $body);
         $body = str_replace('{transactionDate}', $this->loan_transaction->date, $body);
         $body = str_replace('{loanBalance}', GeneralHelper::loan_total_balance($loan->id), $body);
@@ -57,7 +64,7 @@ class RepaymentCreatedEmail extends Mailable
                 'company_website')->first()->setting_value . '"><img src="' . asset('uploads/' . Setting::where('setting_key',
                     'company_logo')->first()->setting_value) . '" height="150"/></a>';
         $body = str_replace('{companyLogo}', $companyLogo, $body);
-        $pdf = PDF::loadView('loan.transaction.pdf', compact('loan_transaction'));
+        $pdf = PDF::loadView('loan.transaction.pdf', compact('loan_transaction', 'due_date', 'current_balance'));
         return $this->from(Setting::where('setting_key', 'company_email')->first()->setting_value, Setting::where('setting_key', 'company_name')->first()->setting_value)->subject(Setting::where('setting_key',
             'payment_received_email_subject')->first()->setting_value)
             ->view('emails.repayment_created', compact('body'))->attachData($pdf->output(),
@@ -66,3 +73,4 @@ class RepaymentCreatedEmail extends Mailable
                 ]);
     }
 }
+ 

@@ -27,7 +27,7 @@ class LoanTransaction extends Model
 
     public function loan()
     {
-        return $this->hasOne(Loan::class, 'id', 'loan_id');
+        return $this->hasOne(Loan::class, 'id', 'loan_id','loan_officer_id','client_id');
     }
 
     public function journal_entries()

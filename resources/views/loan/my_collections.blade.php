@@ -1,18 +1,11 @@
 @extends('layouts.master')
 @section('title')
-My collections
+
 @endsection
 @section('content')
-<div>
-<?php
-$todaysDate = date('Y-m-d');
-$thisWeekDate = date('Y-m-d',strtotime($todaysDate. ' + 7 days'));
-$thisMonthDate = date('Y-m-d',strtotime($todaysDate. ' + 1 months'));
-$first =  strtotime('2023-09-01');
-$second =  strtotime('2023-09-20');
 
-$result = $second - $first;
-$newResult = $result/86400;
+
+<?php 
 
 function compare($a,$b){
     return $a->first_repayment_date <=> $b->first_repayment_date;
@@ -21,122 +14,80 @@ function compare($a,$b){
 function compareTwo($a,$b){
     return $b->first_repayment_date <=>  $a->first_repayment_date;
 }
+
 usort($LoanArray,"compare");
-usort($LoanArrayTwo,"compareTwo")
-
+$balance_bf_total = 0;
 ?>
-<!-- <p>{{$newResult}}</p>
-@foreach($LoanArray as $loan)
-<p>{{$loan->first_repayment_date}}</p>
-@endforeach -->
 
-<div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px; ">
-
-<a href="javascript:;" onmousedown="togglePastDue('dueDiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">Past Due</span>
-</a>
-
-<a href="javascript:;" onmousedown="toggleToday('todayDiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">Today</span>
-</a>
-
-<a href="javascript:;" onmousedown="toggleThisWeek();" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">This Week</span>
-</a>
-
-<a href="javascript:;" onmousedown="toggleThisMonth('thisMonthDiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">This Month</span>
-</a>
-
-<!-- <a href="javascript:;" onmousedown="toggleAllDiv('allDiv');" style="margin: 10px;">
-<span class="label label-default" style="font-size: 15px;">All</span>
-</a> -->
-</div>
-
-<div id='dueDiv' style="display:none"  class="box-body table-responsive">
 <div class="box box-primary">
 <div class="box-header with-border">
-<h2 class="box-title" style="font-weight: bold;">LOANS PAST DUE</h2>
+            <h3 class="box-title">
+           Collection's
+            @if(!empty($compareDate))
+                    for period: <b> {{date("jS M, Y", strtotime($compareDate))}} to {{date("jS M, Y", strtotime($targetDate))}}</b>
+            @endif
+            </h3>
+            <div class="box-tools pull-right">
+
+            </div>
+        </div>
+    <div class="box-body hidden-print">
+    <form method="post" action="{{Request::url()}}" class="form-horizontal" enctype="multipart/form-data">
+{{csrf_field()}}
+   
+
+<div class="form-group">
+    <label for="start_date" class="control-label col-md-2"
+        >{{trans_choice('general.start',1)}} {{trans_choice('general.date',1)}}
+    </label>
+    <div class="col-md-3">
+        <input type="text" name="start_date" class="form-control date-picker" required id="start_date" value="{{$compareDate}}">
+    </div>
 </div>
-<table class="table  table-bordered table-hover table-striped" id="data-table">
-<thead>
-    <tr>
-    <th>Loan ID</th>
-    <th>Client Name</th>
-    <th>Loan Consultant</th>
-    <th>Balance</th>
-    <th>Due Date</th>
-    </tr>
-</thead>
-<tbody>
-    @foreach($LoanArrayTwo as $Loan)
-    <?php
-$OutIn = 0;
-$out = 0;
-$in = 0;
-$newout = 0;
-$reloansCount = 0;
-?>
-    @foreach($Loan->transactions as $transaction)
-<?php
-    $out = $out + $transaction->debit;
 
-if($transaction->transaction_type != 'interest_waiver'){
-    $in = $in + $transaction->credit;
-}
 
-if($transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
+<div class="form-group">
+    <label for="end_date" class="control-label col-md-2">{{trans_choice('general.end',1)}} {{trans_choice('general.date',1)}}
+        
+    </label>
+        <div class="col-md-3">
+            <input type="text" name="end_date" class="form-control date-picker" required id="end_date" value="{{$targetDate}}">
+        </div>
+</div>
 
-if($transaction->payment_apply_to == 'reloan_payment'){
-    $reloansCount = $reloansCount + 1;
- }
-?>
-@endforeach
-<?php
-$OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
-}
-?>
+                 
 
-    @if($Loan->first_repayment_date < $todaysDate && $Loan->status == 'disbursed')
-    <tr>
-    <td>
-        @if($reloansCount > 0)
-        <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a><span style="color: blue;">(Reloan)</span>
-        @else
-        <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
-        @endif
-    </td>
-    <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
-    @if(!empty($Loan->loan_officer->first_name))
-    <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
-    @endif
-    <td>{{number_format($OutIn,2)}}</td>
-    <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
-    </tr>
-    @endif
-    @endforeach
-</tbody>
+
+
+
+<div class="form-group">
+<label for=""
+class="control-label col-md-2"></label>
+<div class="col-md-4"> 
+<button type="submit" class="btn btn-success">Go!
+</button>
+</div>
+</div>
+     
+
+   
+</form>
+    </div>
+</div>
+
+
+@if(!empty($targetDate))
+                        
+<div style="padding-top: 10px;">
+
+<div class="box box-primary">
+<div class="box-body table-responsive" >
+<table class="table  table-bordered table-hover table-striped" id="data-table-2">
+    <thead>
+        
+    </thead>
 </table>
-</div>
-</div>
 
-
-
-
-
-
-<div id='todayDiv' style="display:block"  class="box-body table-responsive">
-<div class="box box-primary">
-<div class="box-header with-border">
-<h2 class="box-title" style="font-weight: bold;">LOANS DUE TODAY</h2>
-</div>
 <table class="table  table-bordered table-hover table-striped" id="data-table">
 <thead>
     <tr>
@@ -145,112 +96,47 @@ if($OutIn < 0){
     <th>Loan Consultant</th>
     <th>Balance</th>
     <th>Due Date</th>
-    </tr>
-</thead>
-<tbody>
-    @foreach($BranchLoans as $Loan)
-    <?php
-$OutIn = 0;
-$out = 0;
-$in = 0;
-$newout = 0;
-$reloansCount = 0;
-?>
-    @foreach($Loan->transactions as $transaction)
-<?php
-    $out = $out + $transaction->debit;
 
-if($transaction->transaction_type != 'interest_waiver'){
-    $in = $in + $transaction->credit;
-}
-
-if($transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
-
-if($transaction->payment_apply_to == 'reloan_payment'){
-    $reloansCount = $reloansCount + 1;
- }
-?>
-@endforeach
-<?php
-$OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
-}
-?>
-    @if($Loan->first_repayment_date == $todaysDate)
-    <tr>
-    <td>
-        @if($reloansCount > 0)
-        <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a><span style="color: blue;">(Reloan)</span>
-        @else
-        <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
-        @endif
-    </td>
-        <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
-        <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
-        <td>{{number_format($OutIn,2)}}</td>
-        <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
-    </tr>
-    @endif
-    @endforeach
-</tbody>
-</table>
-</div>
-</div>
-
-<div id='thisWeekDiv' style="display:none"  class="box-body table-responsive">
-<div class="box box-primary">
-<div class="box-header with-border">
-<h2 class="box-title" style="font-weight: bold;">LOANS DUE THIS WEEK</h2>
-</div>
-<table class="table  table-bordered table-hover table-striped" id="data-table">
-<thead>
-    <tr>
-    <th>Loan ID</th>
-    <th>Client Name</th>
-    <th>Loan Consultant</th>
-    <th>Balance</th>
-    <th>Due Date</th>
     </tr>
 </thead>
 <tbody>
     @foreach($LoanArray as $Loan)
     <?php
-$OutIn = 0;
+$balance_bf = 0;
+$balance = 0;
+$outbf = 0;
+$inbf = 0;
 $out = 0;
 $in = 0;
+
 $newout = 0;
 $reloansCount = 0;
 ?>
     @foreach($Loan->transactions as $transaction)
 <?php
+
+
     $out = $out + $transaction->debit;
 
-if($transaction->transaction_type != 'interest_waiver'){
-    $in = $in + $transaction->credit;
-}
 
-if($transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
+
+
+    $in = $in + $transaction->credit;
+
+
 
 if($transaction->payment_apply_to == 'reloan_payment'){
     $reloansCount = $reloansCount + 1;
  }
+
 ?>
 @endforeach
 <?php
-$OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
-}
+$balance = $out - $in;
+$balance_bf_total = $balance_bf_total + $balance;
 ?>
-    @if($Loan->first_repayment_date >= $todaysDate && $Loan->first_repayment_date <= $thisWeekDate)
     <tr>
+       
     <td>
         @if($reloansCount > 0)
         <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a><span style="color: blue;">(Reloan)</span>
@@ -258,150 +144,69 @@ if($OutIn < 0){
         <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
         </td>
         @endif
-        <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
-        <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
-        <td>{{number_format($OutIn,2)}}</td>
-        <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
-    </tr>
-    @endif
-    @endforeach
-</tbody>
-</table>
-</div>
-</div>
-
-<div id='thisMonthDiv' style="display:none"  class="box-body table-responsive">
-<div class="box box-primary">
-<div class="box-header with-border">
-<h2 class="box-title" style="font-weight: bold;">LOANS DUE THIS MONTH</h2>
-</div>
-<table class="table  table-bordered table-hover table-striped" id="data-table">
-<thead>
-    <tr>
-    <th>Loan ID</th>
-    <th>Client Name</th>
-    <th>Loan Consultant</th>
-    <th>Balance</th>
-    <th>Due Date</th>
-    </tr>
-</thead>
-<tbody>
-    @foreach($LoanArray as $Loan)
-    <?php
-$OutIn = 0;
-$out = 0;
-$in = 0;
-$newout = 0;
-$reloansCount = 0;
-?>
-    @foreach($Loan->transactions as $transaction)
-<?php
-    $out = $out + $transaction->debit;
-
-if($transaction->transaction_type != 'interest_waiver'){
-    $in = $in + $transaction->credit;
-}
-
-if($transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
-
-if($transaction->payment_apply_to == 'reloan_payment'){
-    $reloansCount = $reloansCount + 1;
- }
-?>
-@endforeach
-<?php
-$OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
-}
-?>
-    @if($Loan->first_repayment_date >= $todaysDate && $Loan->first_repayment_date <= $thisMonthDate)
-    <tr>
-    <td>
-        @if($reloansCount > 0)
-        <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a><span style="color: blue;">(Reloan)</span>
-        @else
-        <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
+        <td>
+        @if(!empty($Loan->client->first_name))
+            {{$Loan->client->first_name}}
+        @endif      
+        @if(!empty($Loan->client->last_name)) 
+            {{$Loan->client->last_name}}</td>
+        @endif   
+        <td>
+        @if(!empty($Loan->loan_officer->first_name))
+            {{$Loan->loan_officer->first_name}}
+        @endif  
+        @if(!empty($Loan->loan_officer->last_name))   
+            {{$Loan->loan_officer->last_name}}
+        @endif      
         </td>
-        @endif
-        <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
-        <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
-        <td>{{number_format($OutIn,2)}}</td>
+        <td>{{number_format($balance,2)}}</td>
         <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
     </tr>
-    @endif
     @endforeach
 </tbody>
 </table>
 </div>
-</div>
-
-<div id='allDiv' style="display:none"  class="box-body table-responsive">
-
 </div> 
+ 
+<p style="font-weight: bold; font-size:large">UNCOLLECTED TOTAL: K{{number_format($balance_bf_total,2)}}</p>
+</div>
+@endif
+
 
 </div>
 @endsection
+
 @section('footer-scripts')
 <script>
-var today = document.getElementById('todayDiv');
-        var thisWeek = document.getElementById('thisWeekDiv');
-        var thisMonth = document.getElementById('thisMonthDiv');
-        var allDiv = document.getElementById('allDiv');
-        var pastDue = document.getElementById('dueDiv');
-
-function togglePastDue(){
-    if(pastDue.style.display == 'none'){
-            today.style.display = 'none'
-            thisWeek.style.display = 'none'
-            thisMonth.style.display = 'none'
-            allDiv.style.display = 'none'
-            pastDue.style.display = 'block'
-    }
-}
-    function toggleToday(){
-    if(today.style.display == 'none'){
-            thisWeek.style.display = 'none'
-            thisMonth.style.display = 'none'
-            allDiv.style.display = 'none'
-            pastDue.style.display = 'none'
-            today.style.display = 'block'
-        }
-    }
-    function toggleThisWeek(){
-    if(thisWeek.style.display == 'none'){
-            today.style.display = 'none'
-            thisMonth.style.display = 'none'
-            allDiv.style.display = 'none'
-            pastDue.style.display = 'none'
-            thisWeek.style.display = 'block'
-        }
-    }
-
-
-    function toggleThisMonth(){
-    
-    if(thisMonth.style.display == 'none'){
-            today.style.display = 'none'
-            thisWeek.style.display = 'none'
-            allDiv.style.display = 'none'
-            pastDue.style.display = 'none'
-            thisMonth.style.display = 'block'
-        }
-    }
-
-    function toggleAllDiv(){
-    if(allDiv.style.display == 'none'){
-            today.style.display = 'none'
-            thisWeek.style.display = 'none'
-            thisMonth.style.display = 'none'
-            pastDue.style.display = 'none'
-            allDiv.style.display = 'block'
-        }
-    }
+    $('#data-table').DataTable({
+            dom: 'frtip',
+            "paging": true,
+            "lengthChange": true,
+            "displayLength": 15,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "order": [[5, "desc"]],
+            "columnDefs": [
+                {"orderable": false, "targets": []}
+            ],
+            "language": {
+                "lengthMenu": "{{ trans('general.lengthMenu') }}",
+                "zeroRecords": "{{ trans('general.zeroRecords') }}",
+                "info": "{{ trans('general.info') }}",
+                "infoEmpty": "{{ trans('general.infoEmpty') }}",
+                "search": "{{ trans('general.search') }}",
+                "infoFiltered": "{{ trans('general.infoFiltered') }}",
+                "paginate": {
+                    "first": "{{ trans('general.first') }}",
+                    "last": "{{ trans('general.last') }}",
+                    "next": "{{ trans('general.next') }}",
+                    "previous": "{{ trans('general.previous') }}"
+                }
+            },
+            responsive: false
+        });            
 
 </script>
 @endsection

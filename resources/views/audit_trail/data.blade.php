@@ -11,6 +11,9 @@
 
             </div>
         </div>
+
+        <!--<button id="manager-button" class="btn btn-primary">Managers Audit Trail</button>-->
+
         <div class="box-body">
             <div class="table-responsive">
                 <table id="data-table" class="table table-bordered table-condensed table-hover">
@@ -23,7 +26,7 @@
                         <th> {{ trans_choice('general.date',2) }}</th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody> 
                     @foreach($data as $key)
                         <tr>
                             <td>{{ $key->action }}</td>
@@ -45,18 +48,22 @@
 @endsection
 @section('footer-scripts')
 
-    <script>
+<link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
+    <script>
+    $(document).ready(function() {
         $('#data-table').DataTable({
             dom: 'frtip',
             "paging": true,
             "lengthChange": true,
-            "displayLength": 15,
+            "displayLength": 20,
             "searching": true,
             "ordering": true,
             "info": true,
             "autoWidth": true,
-            "order": [[4, "asc"]],
+            "order": [[4, "desc"]],
             "columnDefs": [
                 {"orderable": false, "targets": []}
             ],
@@ -76,5 +83,7 @@
             },
             responsive: false
         });
-    </script>
+    });
+</script>
 @endsection
+

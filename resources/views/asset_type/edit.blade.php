@@ -26,7 +26,22 @@
                                required id="name">
                     </div>
 
+		</div>
+   <div class="form-group">
+                    <label for="asset_type"
+                           class="control-label col-md-3">Asset Type
+                    </label>
+                    <div class="col-md-9">
+                        <select name="asset_type" class="form-control select2"
+                                id="asset_type">
+                            <option></option>
+                            <option value="INTANGIBLE">INTANGIBLE</option>
+                            <option value="TANGIBLE">TANGIBLE</option>
+                        </select>
+                    </div>
                 </div>
+
+
                 <div class="form-group">
                     <label for="gl_account_asset_id"
                            class="control-label col-md-3">{{trans_choice('general.cash',1)}} {{trans_choice('general.account',1)}}

@@ -14,8 +14,23 @@
                     </a>
                 @endif
             </div>
+            <form id="search-form" action="{{ route('loan.loans_closed') }}" method="GET" style="display: flex; justify-content: center;">
+                <div class="input-group" style="width: 400px; margin-top:15px;">
+                    <input id="search-input" type="text" name="query" class="form-control" placeholder="Search by First Name, Last Name or Loan ID" value="{{ $query ?? '' }}">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                        @if(isset($query))
+                            <button type="button" class="btn btn-default" id="clear-search">Clear</button>
+                        @endif
+                    </span>
+                </div>
+            </form>
         </div>
         <div class="box-body table-responsive">
+        @if(isset($query))
+                <p>Showing results for: {{ $query }}</p>
+            @endif
+            @if(isset($loans))
             <table class="table  table-bordered table-hover table-striped" id="data-table">
                 <thead>
                 <tr>
@@ -31,7 +46,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach($data as $key)
+                @foreach($loans as $key)
                     <?php
                     $principal = 0;
                     $principal_paid = 0;
@@ -154,6 +169,9 @@
                 @endforeach
                 </tbody>
             </table>
+            @else
+                <p>No loans found for the search query.</p>
+            @endif
         </div>
     </div>
 @endsection
@@ -189,5 +207,11 @@
             },
             responsive: false
         });
+        // Clear search button functionality
+        $('#clear-search').click(function() {
+            $('#search-input').val('');
+            $('#search-form').submit();
+        });
     </script>
 @endsection
+ 

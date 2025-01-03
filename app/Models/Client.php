@@ -66,4 +66,13 @@ class Client extends Model
     {
         return $this->hasOne(User::class, 'id', 'staff_id');
     }
+    public function pictureUrl()
+    {
+        if (!empty($this->picture)) {
+            $spaceName = "wfssystem";
+            $baseUrl = "https://$spaceName.nyc3.digitaloceanspaces.com/";
+            return $baseUrl . $this->picture;
+        }
+        return asset('public/uploads/image.png');
+    }
 }

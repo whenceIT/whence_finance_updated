@@ -31,7 +31,9 @@
                 
                 foreach (App\Models\LoanTransaction::where('loan_id',$loan->id)->whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->get() as $key) {
                     $balance = $balance + ($key->debit - $key->credit);   
-                }
+		}
+
+		$repayment_date = date('Y-m-d', strtotime($loan->first_repayment_date. ' + 1 months'));
                 
                 
                 
@@ -250,7 +252,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">×</button>
-        <h4 class="modal-title">Reloan OptionsALLOO</h4>
+        <h4 class="modal-title">Reloan Options</h4>
       </div>
       <div class="modal-body info">
       <form method="post" id="log"
@@ -261,7 +263,7 @@
                                                             <div class="form-group">
                                                                     <label for="rescheduled_on_date"
                                                                            class="control-label">
-                                                                        {{ trans_choice('general.transaction',1) }}  {{ trans_choice('general.date',1) }} AYY
+                                                                        {{ trans_choice('general.transaction',1) }}  {{ trans_choice('general.date',1) }}
                                                                     </label>
                                                                     <input type="text" name="submitte_on_date"
                                                                class="form-control date-picker"
@@ -284,7 +286,7 @@
                                                                 <div class="form-group">
                                                                     <label for="rescheduled_on_date"
                                                                            class="control-label">
-                                                                        {{trans_choice('general.amount',1) }} {{ trans_choice('general.paid',1) }}  AYOO
+                                                                        {{trans_choice('general.amount',1) }} {{ trans_choice('general.paid',1) }}  
                                                                     </label>
                                                                     <input type="NUMBER" name="paid"
                                                                class="form-control"
@@ -297,7 +299,7 @@
                                                                 <div class="form-group">
                                                                     <label for="rescheduled_on_date"
                                                                            class="control-label">
-                                                                         {{ trans_choice('general.balance',1) }}  yry6dd
+                                                                         {{ trans_choice('general.balance',1) }} 
                                                                     </label>
                                                                     <input type="text" name="balance"
                                                                class="form-control "
@@ -338,9 +340,9 @@
                                                                         {{ trans_choice('general.next',1) }} {{ trans_choice('general.repayment',1) }} 
                                                                     </label>
                                                                     <input type="text" name="next_repayment"
-                                                               class="form-control date-picker"
-                                                               value="{{date("Y-m-d")}}"
-                                                               required id="rescheduled_on_date" >
+                                                               class="form-control"
+                                                               value="{{$repayment_date}}"
+                                                               required id="rescheduled_on_date" readonly>
 
                                                                 </div>
 

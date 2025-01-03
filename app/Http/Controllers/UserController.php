@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Advance;
 use App\Helpers\GeneralHelper;
 use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
@@ -10,6 +11,7 @@ use App\Models\Payroll;
 use App\Models\Permission;
 use App\Models\Repair;
 use App\Models\Setting;
+use App\Models\Leave;
 use App\Models\Loan;
 use App\Models\Ticket;
 use App\Models\User;
@@ -46,7 +48,10 @@ class UserController extends Controller
         $userId = Sentinel::getUser()->id;
         //BELOW THIS
         $role = UserRole::where('user_id',$userId)->first();
-        $userBranch = Sentinel::getUser()->office_id;
+	$userBranch = Sentinel::getUser()->office_id;
+	   if($role->role_id != '2'){
+		   $userProvince = Sentinel::getUser()->office->province_id;
+	   }
 
         if($role->role_id == '2'){
             $user = Sentinel::getUser();
@@ -56,7 +61,7 @@ class UserController extends Controller
             $clientLoan = Loan::with('transactions')->where('status','disbursed')->where('client_id',$client->id)->first();
 
         }
-        if($role->role_id != '2'){
+        if($role->role_id == '2'){
             $userProvince = '2';
         }
         //$branch = Office::with('province')->where('id',$userBranch)->get
@@ -82,7 +87,7 @@ class UserController extends Controller
 
         if($role->role_id == '1'){
        
-       $allLoans = Loan::with('transactions')->where('created_date' ,'>', $afterDate)->get();
+         $allLoans = Loan::with('transactions')->where('created_date' ,'>', $afterDate)->get();
        foreach($allLoans as $loans){
         foreach($loans->transactions as $transaction){
             array_push($allTransactions,$transaction);
@@ -156,7 +161,44 @@ class UserController extends Controller
          }else{
             return view('dashboard',compact('role','user','client','clientBranch','staff','clientLoan',));
          }
-    }  
+    } 
+
+
+      public function detailed_dashboard(){
+
+        $userId = Sentinel::getUser()->id;
+        //BELOW THIS
+        $role = UserRole::where('user_id',$userId)->first();
+        $userBranch = Sentinel::getUser()->office_id;
+        $userProvince = Sentinel::getUser()->office->province_id;
+        $province_loans = [];
+        $province_transactions = [];
+        $provinces = Province::get();
+	$todaysDate = date('Y-m-d');
+	$newDate = date('Y-m-d',strtotime($todaysDate. '- 12 months'));
+        $use = date('Y-m-');
+        $myTransactions = [];
+        $branchTransactions = [];
+        $branchUserLoans = [];
+        $myOpenTransactions = [];
+        $myOpenLoans = [];
+        $allLoans = [];
+        $allTransactions = [];
+        $afterDate = date('Y-m-d',strtotime($todaysDate. ' - 2 months'));
+        $myLoans = null;
+        $newBranchLoans = null;
+        $someData = [];
+        if($role->role_id == '1'){
+
+            $allLoans = Loan::with('transactions')->where('created_date','>',$newDate)->get();//Loan::with('transactions')->get();
+            foreach($allLoans as $loans){
+             foreach($loans->transactions as $transaction){
+                 array_push($allTransactions,$transaction);
+             }
+            }
+             }
+             return view('user.detailed_dashboard', compact('myLoans','role','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','allLoans','allTransactions','provinces',));
+    }
 
 
     public function my_details(){
@@ -220,7 +262,7 @@ return view('user.province_page',compact('province_loans','province_transactions
             }
          }
 
-        return view('user.branch_page',compact('newBranchLoans','branchTransactions','branchUsers','office',));
+        return view('user.branch_page',compact('newBranchLoans','branchTransactions','branchUsers','office','id',));
     }
 
 
@@ -232,8 +274,10 @@ return view('user.province_page',compact('province_loans','province_transactions
             foreach($userLoan->transactions as $Transaction){
                 array_push($userTransactions,$Transaction);
             }
-        }
-        return view('user.user_info',compact('user','userLoans','userTransactions','cycleDate'));
+	}
+	$advances = Advance::where('user_id', $user->id)->get();
+        $leave_days = Leave::where('user_id', $user->id)->get();
+        return view('user.user_info',compact('user','userLoans','userTransactions','cycleDate','advances','leave_days'));
     }
 
 
@@ -288,72 +332,51 @@ return view('user.province_page',compact('province_loans','province_transactions
 
 
     public function leaderboard(Request $request){
-        $data = [];
-        $time_period = $request->time_period;
+	     $data = [];
         $office = $request->office;
-        $monthUse = date('Y-m-');
-        $yearUse = date('Y-');
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
         $todaysDate = date('Y-m-d');
-        $tomorrowsDate = date('Y-m-d', strtotime($todaysDate. ' + 1 days'));
-        $weekEndDate = date('Y-m-d', strtotime($todaysDate. ' - 7 days'));
-       
-     
+        $transactions = LoanTransaction::with('loan')->whereBetween('date',[$startDate,$endDate])->get();
 
-        $startDate = '';
-        $endDate = '';
         if($office == 0){
             $LoanConsultants = User::with('role')->with('office')->get();
-            
+
     }else{
         $LoanConsultants = User::with('role')->with('office')->where('office_id',$office)->get();
     }
-     //   if($time_period )
-        if(empty($time_period)){
-            $startDate = $monthUse.'01';
-            $endDate = $monthUse.'31';
-        }elseif($time_period == 'Daily'){
-            $startDate = $todaysDate;
-            $endDate = $tomorrowsDate;
-        }elseif($time_period == 'Weekly'){
-            $startDate = $weekEndDate;
-            $endDate = $todaysDate;
-        }elseif($time_period == 'Yearly'){
-            $startDate = $yearUse.'01-01';
-            $endDate = $yearUse.'12-31';
-        }else{
-            $startDate = $monthUse.'01';
-            $endDate = $monthUse.'31';
-        }
+
 
         foreach($LoanConsultants as $loanConsultant){
             if(!empty($loanConsultant->role->role_id)){
-            if($loanConsultant->role->role_id == '3' || $loanConsultant->role->role_id == '4'){
+            if($loanConsultant->role->role_id !== 2){
                 $object = new stdClass();
                 $full_payment_total = 0;
                 $part_payment_total = 0;
                 $reloan_payments_total = 0;
                 $charge = 0;
-    
-                $loans = \App\Models\Loan::with('transactions')->where('loan_officer_id',$loanConsultant->id)->get();
-                
-                foreach($loans as $loan){
-                    foreach($loan->transactions as $transaction){
-                       if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date >= $startDate && $transaction->date <= $endDate ){
-                           $full_payment_total = $full_payment_total + $transaction->credit;
-                       }
-    
-                       if( $transaction->payment_apply_to == 'part_payment' && $transaction->date >= $startDate && $transaction->date <= $endDate ){
-                        $part_payment_total = $part_payment_total +  $transaction->credit;
+
+
+                    foreach($transactions as $transaction){
+                        if(!empty($transaction->loan->loan_officer_id)){
+
+                            if($transaction->loan->loan_officer_id == $loanConsultant->id){
+                                if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment'){
+                                    $full_payment_total = $full_payment_total + $transaction->credit;
+                                }
+
+                                if( $transaction->payment_apply_to == 'part_payment'){
+                                 $part_payment_total = $part_payment_total +  $transaction->credit;
+                             }
+
+                             if($transaction->payment_apply_to == 'reloan_payment'){
+                                 $reloan_payments_total = $reloan_payments_total +  $transaction->credit;
+                             }
+                            }
+
+                        }
+
                     }
-    
-                    if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date >= $startDate && $transaction->date <= $endDate){
-                        $reloan_payments_total = $reloan_payments_total +  $transaction->credit;
-                    }
-    
-    
-                    }
-                }
-                     
                                 $object->first_name = $loanConsultant->first_name;
                                 $object->last_name = $loanConsultant->last_name;
                                 $object->amount = $full_payment_total + $part_payment_total + $reloan_payments_total;
@@ -363,16 +386,16 @@ return view('user.province_page',compact('province_loans','province_transactions
                                 }else{
                                     $object->office = 'no branch';
                                 }
-                  
-                        
+
+
                 array_push($data,$object);
 
-            }
+           }
+
         }
-          
-        }
-      
-        return view('user.leaderboard',compact('time_period','office','LoanConsultants','data','startDate','endDate'));
+    }
+
+        return view('user.leaderboard',compact('office','LoanConsultants','data','startDate','endDate'));
     }
 
 
@@ -694,6 +717,26 @@ return view('user.province_page',compact('province_loans','province_transactions
         }
         return view('user.show', compact('user'));
     }
+
+    public function inactive()
+    {
+        if (!Sentinel::hasAccess('users.view')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+        $inactiveUsers = User::where('status', 'Inactive')->get();
+
+        return view('user.inactive', compact('inactiveUsers'));
+    }
+
+    public function toggleStatus($id)
+{
+    $user = User::findOrFail($id);
+    $user->status = $user->status == 'Active' ? 'Inactive' : 'Active';
+    $user->save();
+
+    return redirect()->back()->with('success', 'User status updated successfully.');
+}
 
     public function edit($user)
     {

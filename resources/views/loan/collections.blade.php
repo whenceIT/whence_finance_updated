@@ -17,17 +17,23 @@ $newResult = $result/86400;
 function compare($a,$b){
     return $a->first_repayment_date <=> $b->first_repayment_date;
 }
+
+function compareTwo($a,$b){
+    return $b->first_repayment_date <=>  $a->first_repayment_date;
+}
+
+
 usort($LoanArray,"compare");
+usort($LoanArrayTwo,"compareTwo")
 
 ?>
 <!-- <p>{{$newResult}}</p>
 @foreach($LoanArray as $loan)
 <p>{{$loan->first_repayment_date}}</p>
 @endforeach -->
-
-<div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px; ">
+	<div style="display: flex;
+	    align-items: center;
+	    justify-content: center; padding-bottom: 10px; ">
 
 <a href="javascript:;" onmousedown="togglePastDue('dueDiv');" style="margin: 10px;">
 <span class="label label-primary" style="font-size: 15px;">Past Due</span>
@@ -56,12 +62,13 @@ usort($LoanArray,"compare");
 <div class="box-header with-border">
 <h2 class="box-title" style="font-weight: bold;">LOANS PAST DUE</h2>
 </div>
-<table class="table  table-bordered table-hover table-striped" id="data-table">
+<table class="table  table-bordered table-hover table-striped" id="data">
 <thead>
     <tr>
     <th>Loan ID</th>
     <th>Client Name</th>
     <th>Loan Consultant</th>
+    <th>Branch</th>
     <th>Balance</th>
     <th>Due Date</th>
     </tr>
@@ -109,10 +116,28 @@ if($OutIn < 0){
         <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
         @endif
     </td>
-    <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
+
+ <td>
+    @if(!empty($Loan->client->first_name))
+        {{$Loan->client->first_name}} {{$Loan->client->last_name}}
+        @endif
+    </td>
+
+
+    <td>
     @if(!empty($Loan->loan_officer->first_name))
-    <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
-    @endif
+        {{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}
+        @endif
+    </td>
+       
+       <td>
+        <?php
+        $branch_name = \App\Models\Office::where('id',$Loan->office_id)->first();
+        ?>
+          @if(!empty($branch_name->name))
+        {{$branch_name->name}}
+        @endif
+    </td>
     <td>{{number_format($OutIn,2)}}</td>
     <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
     </tr>
@@ -134,12 +159,13 @@ $todayTotal = 0
 <div class="box-header with-border">
 <h2 class="box-title" style="font-weight: bold;">LOANS DUE TODAY</h2>
 </div>
-<table class="table  table-bordered table-hover table-striped" id="data-table">
+<table class="table  table-bordered table-hover table-striped" id="data1">
 <thead>
     <tr>
     <th>Loan ID</th>
     <th>Client Name</th>
     <th>Loan Consultant</th>
+     <th>Branch</th> 
     <th>Balance</th>
     <th>Due Date</th>
     </tr>
@@ -182,8 +208,26 @@ if($Loan->first_repayment_date == $todaysDate){
         <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
         @endif
     </td>
-        <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
-        <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
+           
+ <td>
+    @if(!empty($Loan->client->first_name))
+        {{$Loan->client->first_name}} {{$Loan->client->last_name}}
+        @endif    
+    </td>
+   
+  
+    <td>
+    @if(!empty($Loan->loan_officer->first_name))
+        {{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}
+        @endif
+    </td>
+
+	 <td>
+        <?php
+        $branch_name = \App\Models\Office::where('id',$Loan->office_id)->first();
+        ?>
+        {{$branch_name->name}}
+    </td>    
         <td>{{number_format($OutIn,2)}}</td>
         <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
     </tr>
@@ -203,12 +247,13 @@ if($Loan->first_repayment_date == $todaysDate){
 <div class="box-header with-border">
 <h2 class="box-title" style="font-weight: bold;">LOANS DUE THIS WEEK</h2>
 </div>
-<table class="table  table-bordered table-hover table-striped" id="data-table">
+<table class="table  table-bordered table-hover table-striped" id="data2">
 <thead>
     <tr>
     <th>Loan ID</th>
     <th>Client Name</th>
     <th>Loan Consultant</th>
+ <th>Branch</th>
     <th>Balance</th>
     <th>Due Date</th>
     </tr>
@@ -251,8 +296,24 @@ if($Loan->first_repayment_date >= $todaysDate && $Loan->first_repayment_date <= 
         <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
         </td>
         @endif
-        <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
-        <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
+        <td>
+    @if(!empty($Loan->client->first_name))
+        {{$Loan->client->first_name}} {{$Loan->client->last_name}}
+        @endif    
+    </td>
+   
+  
+    <td>
+    @if(!empty($Loan->loan_officer->first_name))
+        {{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}
+        @endif
+    </td>
+ <td>
+        <?php
+        $branch_name = \App\Models\Office::where('id',$Loan->office_id)->first();
+        ?>
+        {{$branch_name->name}}
+    </td>
         <td>{{number_format($OutIn,2)}}</td>
         <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
     </tr>
@@ -272,12 +333,13 @@ $thisMonthTotal = 0
 <div class="box-header with-border">
 <h2 class="box-title" style="font-weight: bold;">LOANS DUE THIS MONTH</h2>
 </div>
-<table class="table  table-bordered table-hover table-striped" id="data-table">
+<table class="table  table-bordered table-hover table-striped" id="data3">
 <thead>
     <tr>
     <th>Loan ID</th>
     <th>Client Name</th>
     <th>Loan Consultant</th>
+     <th>Branch</th>
     <th>Balance</th>
     <th>Due Date</th>
     </tr>
@@ -319,10 +381,28 @@ if($Loan->first_repayment_date >= $todaysDate && $Loan->first_repayment_date <= 
         <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a><span style="color: blue;">(Reloan)</span>
         @else
         <a href="{{ url('loan/'.$Loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$Loan->id}}</a>
-        </td>
+	</td>
+@endif
+        
+<td>
+    @if(!empty($Loan->client->first_name))
+        {{$Loan->client->first_name}} {{$Loan->client->last_name}}
         @endif
-        <td>{{$Loan->client->first_name}} {{$Loan->client->last_name}}</td>
-        <td>{{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}</td>
+    </td>
+
+
+    <td>
+    @if(!empty($Loan->loan_officer->first_name))
+        {{$Loan->loan_officer->first_name}} {{$Loan->loan_officer->last_name}}
+        @endif
+    </td>
+
+	      <td>
+        <?php
+        $branch_name = \App\Models\Office::where('id',$Loan->office_id)->first();
+        ?>
+        {{$branch_name->name}}
+    </td>
         <td>{{number_format($OutIn,2)}}</td>
         <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
     </tr>
@@ -397,5 +477,128 @@ function togglePastDue(){
             allDiv.style.display = 'block'
         }
     }
+
+
+        $('#data').DataTable({
+            dom: 'frtip',
+            "paging": true,
+            "lengthChange": true,
+            "displayLength": 15,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "order": [[4, "desc"]],
+            "columnDefs": [
+                {"orderable": false, "targets": []}
+            ],
+            "language": {
+                "lengthMenu": "{{ trans('general.lengthMenu') }}",
+                "zeroRecords": "{{ trans('general.zeroRecords') }}",
+                "info": "{{ trans('general.info') }}",
+                "infoEmpty": "{{ trans('general.infoEmpty') }}",
+                "search": "{{ trans('general.search') }}",
+                "infoFiltered": "{{ trans('general.infoFiltered') }}",
+                "paginate": {
+                    "first": "{{ trans('general.first') }}",
+                    "last": "{{ trans('general.last') }}",
+                    "next": "{{ trans('general.next') }}",
+                    "previous": "{{ trans('general.previous') }}"
+                }
+            },
+            responsive: false
+    })
+
+	     $('#data1').DataTable({
+            dom: 'frtip',
+            "paging": true,
+            "lengthChange": true,
+            "displayLength": 12,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "order": [[4, "desc"]],
+            "columnDefs": [
+                {"orderable": false, "targets": []}
+            ],
+            "language": {
+                "lengthMenu": "{{ trans('general.lengthMenu') }}",
+                "zeroRecords": "{{ trans('general.zeroRecords') }}",
+                "info": "{{ trans('general.info') }}",
+                "infoEmpty": "{{ trans('general.infoEmpty') }}",
+                "search": "{{ trans('general.search') }}",
+                "infoFiltered": "{{ trans('general.infoFiltered') }}",
+                "paginate": {
+                    "first": "{{ trans('general.first') }}",
+                    "last": "{{ trans('general.last') }}",
+                    "next": "{{ trans('general.next') }}",
+                    "previous": "{{ trans('general.previous') }}"
+                }
+            },
+            responsive: false
+		});
+
+      $('#data2').DataTable({
+            dom: 'frtip',
+            "paging": true,
+            "lengthChange": true,
+            "displayLength": 12,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "order": [[4, "desc"]],
+            "columnDefs": [
+                {"orderable": false, "targets": []}
+            ],
+            "language": {
+                "lengthMenu": "{{ trans('general.lengthMenu') }}",
+                "zeroRecords": "{{ trans('general.zeroRecords') }}",
+                "info": "{{ trans('general.info') }}",
+                "infoEmpty": "{{ trans('general.infoEmpty') }}",
+                "search": "{{ trans('general.search') }}",
+                "infoFiltered": "{{ trans('general.infoFiltered') }}",
+                "paginate": {
+                    "first": "{{ trans('general.first') }}",
+                    "last": "{{ trans('general.last') }}",
+                    "next": "{{ trans('general.next') }}",
+                    "previous": "{{ trans('general.previous') }}"
+                }
+            },
+            responsive: false
+		});
+
+        $('#data3').DataTable({
+            dom: 'frtip',
+            "paging": true,
+            "lengthChange": true,
+            "displayLength": 12,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "order": [[4, "desc"]],
+            "columnDefs": [
+                {"orderable": false, "targets": []}
+            ],
+            "language": {
+                "lengthMenu": "{{ trans('general.lengthMenu') }}",
+                "zeroRecords": "{{ trans('general.zeroRecords') }}",
+                "info": "{{ trans('general.info') }}",
+                "infoEmpty": "{{ trans('general.infoEmpty') }}",
+                "search": "{{ trans('general.search') }}",
+                "infoFiltered": "{{ trans('general.infoFiltered') }}",
+                "paginate": {
+                    "first": "{{ trans('general.first') }}",
+                    "last": "{{ trans('general.last') }}",
+                    "next": "{{ trans('general.next') }}",
+                    "previous": "{{ trans('general.previous') }}"
+                }
+            },
+            responsive: false
+        });
+
+
 </script>
 @endsection

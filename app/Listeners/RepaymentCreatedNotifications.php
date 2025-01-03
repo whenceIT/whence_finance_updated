@@ -31,7 +31,9 @@ class RepaymentCreatedNotifications
     public function handle(RepaymentCreated $event)
     {
         $loan_transaction = $event->loan_transaction;
-        $loan = $loan_transaction->loan;
+	$loan = $loan_transaction->loan;
+	$due_date = $loan_transaction->due_date;
+        $current_balance = $loan_transaction->current_balance;
         if (Setting::where('setting_key',
                 'auto_payment_receipt_sms')->first()->setting_value == 1
         ) {
@@ -84,7 +86,7 @@ class RepaymentCreatedNotifications
                 }
             }
             if (!empty($email)) {
-                Mail::to($email)->send(new RepaymentCreatedEmail($loan_transaction));
+                Mail::to($email)->send(new RepaymentCreatedEmail($loan_transaction, $due_date, $current_balance));
             }
 
         }

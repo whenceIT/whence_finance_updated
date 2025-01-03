@@ -3,6 +3,9 @@
     {{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}
 @endsection
 @section('content')
+<?php
+                           $todaysDate = date('Y-m-d');
+                        ?>
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}</h3>
@@ -72,17 +75,10 @@
                     $todaysDate = date('Y-m-d');
                     ?>
                     <div class="col-md-3">
-                    @if(Sentinel::hasAccess('loans.approve'))
-                    <input type="text" name="created_date" class="form-control date-picker"
-                               value="{{date("Y-m-d")}}"
-                               required id="created_date">
-                     @else
-                    
-                    <input type="date" name="created_date" class="form-control date-picker"
+                      <input type="date" name="created_date" class="form-control"
                                min="{{$todaysDate}}"
                                value="{{date("Y-m-d")}}"
-                               required id="created_date">
-                     @endif
+                           required id="created_date">
                     </div>
                 </div>
                 <div class="form-group">
@@ -96,7 +92,7 @@
                 </div>
                 <div class="form-group">
                     <label for="principal"
-                           class="control-label col-md-2">{{trans_choice('general.principal',1)}} HEYY
+                           class="control-label col-md-2">{{trans_choice('general.principal',1)}}
                     </label>
                     <div class="col-md-3">
                         <input type="number" name="principal" class="form-control"
@@ -178,11 +174,7 @@
                 </div>
                 <div class="form-group" id="interest_rate_div">
                     <label for="interest_rate"
-<<<<<<< HEAD
-                           class="control-label col-md-2"> {{trans_choice('general.interest',1)}} {{trans_choice('general.rate',1)}}
-=======
-                           class="control-label col-md-2">{{trans_choice('general.interest',1)}} {{trans_choice('general.rate',1)}}
->>>>>>> f90bd886ec5f1fd5d232ef3d176cfba8307e3594
+                           class="control-label col-md-2"> {{trans_choice('general.interest',1)}} {{trans_choice('general.rate',1)}} 
                     </label>
                     <div class="col-md-2">
                         <input type="number" name="interest_rate" class="form-control"
@@ -204,21 +196,16 @@
                 </div>
                 <div class="form-group">
                     <label for="expected_disbursement_date"
-                           class="control-label col-md-2">{{trans_choice('general.disbursement',1)}} {{trans_choice('general.on',1)}} ALLOO
+                           class="control-label col-md-2">{{trans_choice('general.disbursement',1)}} {{trans_choice('general.on',1)}}
                         <i class="fa fa-question-circle" data-toggle="tooltip"
                            data-title="The date that the loan account is expected to be disbursed"></i>
                     </label>
                     <div class="col-md-3">
-                    @if(Sentinel::hasAccess('loans.approve'))
-                        <input type="text" name="expected_disbursement_date" class="form-control date-picker"
-                               placeholder=""
-                               required id="expected_disbursement_date">
-                    @else
-                    <input type="date" name="expected_disbursement_date" class="form-control date-picker"
+                   <input type="date" name="expected_disbursement_date" class="form-control"
                                placeholder=""
                                min="{{$todaysDate}}"
+                               value="{{date("Y-m-d")}}"
                                required id="expected_disbursement_date">
-                    @endif
                     </div>
                     <label for="expected_first_repayment_date"
                            class="control-label col-md-2">{{trans_choice('general.first',1)}} {{trans_choice('general.repayment',1)}} {{trans_choice('general.on',1)}}

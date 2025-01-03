@@ -60,7 +60,8 @@ class ExpenseTypeController extends Controller
             return redirect()->back();
         }
         $expense_type = new ExpenseType();
-        $expense_type->name = $request->name;
+	$expense_type->name = $request->name;
+	$expense_type->distribution_cost = $request->distribution_cost;
         $expense_type->gl_account_asset_id = $request->gl_account_asset_id;
         $expense_type->gl_account_expense_id = $request->gl_account_expense_id;
         $expense_type->notes = $request->notes;

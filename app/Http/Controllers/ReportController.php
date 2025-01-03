@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Models\Asset;
+use App\Models\AssetType;
+use App\Models\Advance;
+use App\Models\Expense;
+use App\Models\ExpenseType;
 use App\Exports\ExportReport;
 use App\Helpers\GeneralHelper;
 use App\Models\Client;
@@ -28,6 +32,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Laracasts\Flash\Flash;
+use App\Models\UserRole;
 
 class ReportController extends Controller
 {
@@ -743,7 +748,12 @@ public function balance_sheet_consolidated(Request $request)
         $part_data = [];
         $reloans_data = [];
         $top_up = [];
-        $new_loans = [];
+	$new_loans = [];
+	 $advances = [];
+        $expenses = [];
+
+        $selected_expense_type = $request->selected_expense_type ?? null;
+        $expenseTypes = ExpenseType::all();
         if (!empty($start_date)) {
             if ($office_id != 0) {
                 $data = LoanTransaction::where('transaction_type',
@@ -758,7 +768,14 @@ public function balance_sheet_consolidated(Request $request)
 
                     $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->where('office_id',
                     $office_id)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+		    [$start_date, $end_date])->with('loan')->with('office')->get();
+		    $expenses = Expense::whereBetween('date', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
+                    $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
 
                     $top_up = LoanTopUp::whereBetween('date',
                     [$start_date, $end_date])->where('office_id', $office_id)->with('loan')->with('office')->get();
@@ -767,7 +784,7 @@ public function balance_sheet_consolidated(Request $request)
                     // [$start_date, $end_date])->with('loan')->with('office')->get();
 
                     
-                    $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                    $new_loans = Loan::whereIn('status', ['disbursed','closed'])->whereBetween('disbursement_date',
                     [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                     if ($office_id != 0) {
                         $query->where('office_id', '=', $office_id);
@@ -785,7 +802,12 @@ public function balance_sheet_consolidated(Request $request)
                     [$start_date, $end_date])->with('loan')->with('office')->get();
 
                 $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+			[$start_date, $end_date])->with('loan')->with('office')->get();
+		$expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')
+                    ->get();
+
+                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
+                ->get();
 
                 // $reloans_data = LoanTransaction::whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->whereBetween('date',
                 //      [$start_date, $end_date])->with('loan')->with('office')->get();
@@ -793,7 +815,7 @@ public function balance_sheet_consolidated(Request $request)
                 $top_up = LoanTopUp::whereBetween('date',
                 [$start_date, $end_date])->get();
                     
-                $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                $new_loans = Loan::whereIn('status', ['disbursed','closed'])->whereBetween('disbursement_date',
                 [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
@@ -806,7 +828,7 @@ public function balance_sheet_consolidated(Request $request)
         }
         return view('loan_report.repayment_break_down',
             compact('start_date',
-                'end_date', 'data', 'part_data', 'reloans_data', 'new_loans','office_id','top_up'));
+                'end_date', 'data', 'part_data', 'reloans_data', 'new_loans','office_id','top_up','expenses', 'advances','expenseTypes', 'selected_expense_type' ));
     }
 
 
@@ -834,10 +856,17 @@ public function balance_sheet_consolidated(Request $request)
 
                     $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->where('office_id',
                     $office_id)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+		    [$start_date, $end_date])->with('loan')->with('office')->get();
+		    $expenses = Expense::whereBetween('date', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
+                    $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
 
                     
-                    $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                    $new_loans = Loan::whereIn('status', ['disbursed','closed'])->whereBetween('disbursement_date',
                     [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                     if ($office_id != 0) {
                         $query->where('office_id', '=', $office_id);
@@ -855,9 +884,13 @@ public function balance_sheet_consolidated(Request $request)
                     [$start_date, $end_date])->with('loan')->with('office')->get();
 
                 $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+			[$start_date, $end_date])->with('loan')->with('office')->get();
+		$expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')->get();
+
+                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
+                    ->get();
                     
-                $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween('disbursement_date',
                 [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
@@ -898,10 +931,17 @@ public function balance_sheet_consolidated(Request $request)
 
                 $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->where('office_id',
                 $office_id)->whereBetween('date',
-                [$start_date, $end_date])->with('loan')->with('office')->get();
+		[$start_date, $end_date])->with('loan')->with('office')->get();
+		$expenses = Expense::whereBetween('date', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
+                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+                ->where('office_id', $office_id)->with('office')
+                ->get();
 
                 
-                $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween('disbursement_date',
                 [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
@@ -914,7 +954,9 @@ public function balance_sheet_consolidated(Request $request)
                 'end_date' => $end_date,
                 'reloans_data'=>$reloans_data,
                 'office_id' => $office_id,
-                'new_loans'=>$new_loans,
+		'new_loans'=>$new_loans,
+		'expenses'=>$expenses,
+                'advances'=>$advances
             ];
         }
             else{
@@ -927,9 +969,14 @@ public function balance_sheet_consolidated(Request $request)
                     [$start_date, $end_date])->with('loan')->with('office')->get();
 
                 $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+			[$start_date, $end_date])->with('loan')->with('office')->get();
+		$expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')
+                    ->get();
+
+                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
+                ->get();
                     
-                $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween('disbursement_date',
                 [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
@@ -942,7 +989,9 @@ public function balance_sheet_consolidated(Request $request)
                 'new_loans'=>$new_loans,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
-                'office_id' => $office_id,
+		'office_id' => $office_id,
+		'expenses'=>$expenses,
+		'advances' => $advances
             ];
             }
 
@@ -981,10 +1030,17 @@ public function repayments_report_details_csv(Request $request)
 
             $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->where('office_id',
             $office_id)->whereBetween('date',
-            [$start_date, $end_date])->with('loan')->with('office')->get();
+	    [$start_date, $end_date])->with('loan')->with('office')->get();
+	    $expenses = Expense::whereBetween('date', [$start_date, $end_date])
+                    ->where('office_id', $office_id)->with('office')
+                    ->get();
+
+            $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+            ->where('office_id', $office_id)->with('office')
+            ->get();
 
             
-            $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+            $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween('disbursement_date',
             [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
             if ($office_id != 0) {
                 $query->where('office_id', '=', $office_id);
@@ -997,7 +1053,9 @@ public function repayments_report_details_csv(Request $request)
             'end_date' => $end_date,
             'reloans_data'=>$reloans_data,
             'office_id' => $office_id,
-            'new_loans'=>$new_loans,
+	    'new_loans'=>$new_loans,
+	    'expenses'=>$expenses,
+            'advances'=>$advances
         ];
     }
         else{
@@ -1010,9 +1068,14 @@ public function repayments_report_details_csv(Request $request)
                 [$start_date, $end_date])->with('loan')->with('office')->get();
 
             $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween('date',
-                [$start_date, $end_date])->with('loan')->with('office')->get();
+		    [$start_date, $end_date])->with('loan')->with('office')->get();
+	    $expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')
+            ->get();
+
+            $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
+            ->get();
                 
-            $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+            $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween('disbursement_date',
             [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
             if ($office_id != 0) {
                 $query->where('office_id', '=', $office_id);
@@ -1025,7 +1088,9 @@ public function repayments_report_details_csv(Request $request)
             'new_loans'=>$new_loans,
             'start_date' => $start_date,
             'end_date' => $end_date,
-            'office_id' => $office_id,
+	    'office_id' => $office_id,
+	    'expenses'=>$expenses,
+	    'advances' => $advances
         ];
         }
         return Excel::download(new ExportReport("loan_report.repayments_report_details_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report',
@@ -1383,6 +1448,147 @@ public function repayments_report_details_csv(Request $request)
     }
 
 
+
+   public function expected_collections_report_pdf(Request $request){
+        $userId = Sentinel::getUser()->id;
+        $role = UserRole::where('user_id',$userId)->first();
+        $userBranch = Sentinel::getUser()->office_id; 
+        $userProvince = Sentinel::getUser()->office->province_id;
+        $targetDate = $request->targetDate;
+        $compareDate = $request->compareDate;
+        $office_id = $request->office_id;
+        $branch_name = \App\Models\Office::where('id',$office_id)->first();
+        $transactionList = [];
+
+        
+        if($office_id != 0){
+            $transactions = LoanTransaction::whereBetween('date',[ date('Y-m-d',strtotime($compareDate. ' - 1 months')), date('Y-m-d',strtotime($targetDate. ' - 1 months'))])->where('office_id',$office_id)->get();
+         
+        }else{
+            $transactions = LoanTransaction::whereBetween('date',[ date('Y-m-d',strtotime($compareDate. '- 1 months')), date('Y-m-d',strtotime($targetDate.  ' - 1 months'))])->get();
+         
+        }
+        
+        foreach($transactions as $transaction){
+            if($transaction->payment_apply_to == 'reloan_payment' || $transaction->transaction_type == 'disbursement'){
+                array_push($transactionList,$transaction);
+            }
+        }
+
+
+        $pdf = PDF::loadview('loan_report.expected_collections_pdf',compact('targetDate','compareDate','role','office_id','transactionList','branch_name'));
+        $pdf->setPaper('A4','landscape');
+        return $pdf->download(('expected collections report'. $branch_name->name . ".pdf"));
+        
+
+
+    }
+
+    public function expected_collections_report_excel(Request $request){
+        $userId = Sentinel::getUser()->id;
+        $role = UserRole::where('user_id',$userId)->first();
+        $userBranch = Sentinel::getUser()->office_id; 
+        $userProvince = Sentinel::getUser()->office->province_id;
+        $targetDate = $request->targetDate;
+        $compareDate = $request->compareDate;
+        $office_id = $request->office_id;
+        $branch_name = \App\Models\Office::where('id',$office_id)->first();
+        $transactionList = [];
+
+        
+        if($office_id != 0){
+            $transactions = LoanTransaction::whereBetween('date',[ date('Y-m-d',strtotime($compareDate. ' - 1 months')), date('Y-m-d',strtotime($targetDate. ' - 1 months'))])->where('office_id',$office_id)->get();
+         
+        }else{
+            $transactions = LoanTransaction::whereBetween('date',[ date('Y-m-d',strtotime($compareDate. '- 1 months')), date('Y-m-d',strtotime($targetDate.  ' - 1 months'))])->get();
+         
+        }
+        
+        foreach($transactions as $transaction){
+            if($transaction->payment_apply_to == 'reloan_payment' || $transaction->transaction_type == 'disbursement'){
+                array_push($transactionList,$transaction);
+            }
+        }
+
+        $data = [
+            'targetDate' => $targetDate,
+            'compareDate' => $compareDate,
+            'role' => $role,
+            'office_id' => $office_id,
+            'transactionList' => $transactionList,
+            'branch_name' => $branch_name
+        ];
+
+        return Excel::download(new ExportReport("loan_report.expected_collections_excel",$data),'expected colllections report '. $branch_name->name .'.xlsx');
+
+
+    }
+
+
+
+      public function collections_report_pdf(Request $request){
+        $targetDate = $request->targetDate;
+        $compareDate = $request->compareDate;
+        $office_id = $request->office_id;
+        $branch_name = \App\Models\Office::where('id',$office_id)->first();
+
+        if($office_id != 0){
+            $BranchLoans = Loan::with('transactions')->where('office_id',$office_id)->where('status','disbursed')->get();
+        }else{
+            $BranchLoans = Loan::with('transactions')->where('status','disbursed')->get();
+        }
+
+        $LoanArray = [];
+        $LoanArrayTwo = [];
+        foreach($BranchLoans as $loan){
+            array_push($LoanArray,$loan);
+            array_push($LoanArrayTwo,$loan);
+        }
+
+        $pdf = PDF::loadView('loan_report.collections_pdf',compact('targetDate','compareDate','office_id','LoanArray','LoanArrayTwo','branch_name',));
+        $pdf->setPaper('A4','landscape');
+        return $pdf->download(('collections report '. $branch_name->name .  ".pdf"));
+
+    }
+
+
+    public function collections_report_excel(Request $request){
+        $targetDate = $request->targetDate;
+        $compareDate = $request->compareDate;
+        $office_id = $request->office_id;
+        $branch_name = \App\Models\Office::where('id',$office_id)->first();
+
+        if($office_id != 0){
+            $BranchLoans = Loan::with('transactions')->where('office_id',$office_id)->where('status','disbursed')->get();
+        }else{
+            $BranchLoans = Loan::with('transactions')->where('status','disbursed')->get();
+        }
+
+        $LoanArray = [];
+        $LoanArrayTwo = [];
+        foreach($BranchLoans as $loan){
+            array_push($LoanArray,$loan);
+            array_push($LoanArrayTwo,$loan);
+        }
+
+        $data = [
+            'targetDate' => $targetDate,
+            'compareDate' => $compareDate,
+            'office_id' => $office_id,
+            'branch_name' => $branch_name,
+            'LoanArray' => $LoanArray,
+            'LoanArrayTwo' => $LoanArrayTwo,
+        ];
+
+        return Excel::download(new ExportReport("loan_report.collections_excel",$data),'colllections report '. $branch_name->name .'.xlsx');
+
+    }
+
+
+
+
+
+
     public function reloans_report_excel(Request $request)
     {
         if (!Sentinel::hasAccess('reports.repayments_report')) {
@@ -1475,7 +1681,7 @@ public function repayments_report_details_csv(Request $request)
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $office_id = $request->office_id;
-                  $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                  $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween('disbursement_date',
                     [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                     if ($office_id != 0) {
                         $query->where('office_id', '=', $office_id);
@@ -1498,7 +1704,7 @@ public function repayments_report_details_csv(Request $request)
             $start_date = $request->start_date;
             $end_date = $request->end_date;
             $office_id = $request->office_id;
-                      $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                      $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween('disbursement_date',
                         [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                         if ($office_id != 0) {
                             $query->where('office_id', '=', $office_id);
@@ -1527,7 +1733,7 @@ public function repayments_report_details_csv(Request $request)
                 $start_date = $request->start_date;
                 $end_date = $request->end_date;
                 $office_id = $request->office_id;
-                          $new_loans = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
+                          $new_loans = Loan::where('status', 'disbursed', 'closed')->whereBetween('disbursement_date',
                             [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
                             if ($office_id != 0) {
                                 $query->where('office_id', '=', $office_id);
@@ -1546,7 +1752,184 @@ public function repayments_report_details_csv(Request $request)
                 }
 
 
+     public function expense_report_pdf(Request $request)
+{
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+    $selectedExpenseType = $request->selectedExpenseType;
     
+    $office = Office::find($office_id);
+    
+    $expenseTypes = Expense::select('expense_type')->distinct()->get();
+
+    
+    $expensesQuery = Expense::whereBetween('date', [$start_date, $end_date])
+    ->where('office_id', $office_id);
+
+    //filter by expense from drpdown
+    if (!empty($selectedExpenseType)) {
+    $expensesQuery->where('expense_type', $selectedExpenseType);
+    }
+
+    $expenses = $expensesQuery->get();
+
+
+    $pdf = PDF::loadView('loan_report.expense_report_pdf', [
+        'expenses' => $expenses,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+        'office' => $office,
+        'expense_type' => $selectedExpenseType
+
+
+        
+    ]);
+    return $pdf->download('loan_report.expense_report.pdf');
+}
+
+public function expense_report_excel(Request $request)
+{
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+    $selectedExpenseType = $request->expense_type_filter;
+
+    $expensesQuery = Expense::whereBetween('date', [$start_date, $end_date])
+        ->where('office_id', $office_id)->where('expense_type', $selectedExpenseType)->get();
+    
+    
+    if ($selectedExpenseType) {
+        $expensesQuery->where('expense_type', $selectedExpenseType);
+    }
+
+    $expenses = $expensesQuery->get();
+
+    $data = [
+        'expenses' => $expenses,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+    ];
+
+    
+    return Excel::download(new ExportReport("loan_report.expense_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report', 1) . '.xlsx');
+}
+
+public function expense_report_csv(Request $request)
+{
+    
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+    $selectedExpenseType = $request->selectedExpenseType;
+
+    
+    $expensesQuery = Expense::whereBetween('date', [$start_date, $end_date])
+        ->where('office_id', $office_id);
+    
+    
+    if ($selectedExpenseType) {
+        $expensesQuery->where('expense_type_id', $selectedExpenseType);
+    }
+
+    $expenses = $expensesQuery->get();
+
+    $data = [
+        'expenses' => $expenses,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+    ];
+
+    
+    return Excel::download(new ExportReport("loan_report.expense_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report', 1) . '.csv');
+}
+
+/////////////////////////////////////////////ADVANCES/////////////////////////////////
+public function advance_report_pdf(Request $request)
+{
+    if (!Sentinel::hasAccess('reports.repayments_report')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
+    }
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+
+            $advancesQuery = Advance::whereBetween('date_approved', [$start_date, $end_date])
+            ->where('office_id', $office_id); 
+        $advances = $advancesQuery->get();
+
+        $pdf = PDF::loadView('loan_report.advance_report_pdf', [
+            'advances' => $advances,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'office_id' => $office_id,
+
+        ]);
+            $pdf->setPaper('A4', 'landscape');
+            return $pdf->download(trans_choice('Salary advances', 2) . ' ' . trans_choice('general.report',
+            1) . ".pdf");
+    }
+    
+
+
+public function advance_report_excel(Request $request)
+{
+    if (!Sentinel::hasAccess('reports.repayments_report')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
+    }
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+
+            $advances = Advance::where('status', 'active')->whereBetween('date_approved', [$start_date, $end_date])
+            ->when($office_id, function ($query) use ($office_id) {
+                if ($office_id != 0) {
+                    $query->where('office_id', '=', $office_id);
+                }
+            })->get(); 
+    // Prepare data for export
+    $data = [
+        'advances' => $advances,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+    ];
+    
+    return Excel::download(new ExportReport("loan_report.advance_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report', 1) . '.xlsx');
+}
+
+public function advance_report_csv(Request $request)
+{
+    
+    if (!Sentinel::hasAccess('reports.repayments_report')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
+    }
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+
+            $advances = Advance::where('status', 'active')->whereBetween('date_approved', [$start_date, $end_date])
+            ->when($office_id, function ($query) use ($office_id) {
+                if ($office_id != 0) {
+                    $query->where('office_id', '=', $office_id);
+                }
+            })->get(); 
+
+    $data = [
+        'advances' => $advances,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'office_id' => $office_id,
+    ];
+    
+    return Excel::download(new ExportReport("loan_report.advance_excel", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report', 1) . '.csv');
+}
 
 
 
@@ -2004,12 +2387,13 @@ public function repayments_report_details_csv(Request $request)
 
     public function arrears_report_pdf(Request $request)
     {
-        if (!Sentinel::hasAccess('reports.arrears_report')) {
+         if (!Sentinel::hasAccess('reports.arrears_report')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
         $end_date = $request->end_date;
         $office_id = $request->office_id;
+        $loan_officer_id = $request->loan_officer_id;
         $data = [];
         if (!empty($end_date)) {
             //get disbursed loans within specified period and officer
@@ -2017,15 +2401,21 @@ public function repayments_report_details_csv(Request $request)
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
-            })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->with('repayment_schedules')->get();
+         
+            })->when($loan_officer_id, function ($query) use ($loan_officer_id) {
+                if (!empty($loan_officer_id)) {
+                    $query->where('loan_officer_id', '=', $loan_officer_id);
+                }
+	    })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->with('repayment_schedules')->get();
+
+	      
+
             $pdf = PDF::loadView('loan_report.arrears_report_pdf', compact('office_id',
                 'end_date', 'data'));
             $pdf->setPaper('A4', 'landscape');
             return $pdf->download(trans_choice('general.arrears', 1) . ' ' . trans_choice('general.report',
                     2) . ".pdf");
         }
-
-
     }
 
     public function arrears_report_excel(Request $request)
@@ -2608,6 +2998,489 @@ $current_balance2 =  $opdebit - $opcredit;
 
 
     }
+
+
+   public function workings(Request $request){
+	    $year_use = $request->year;
+        $start_month = $request->start_month;
+        $end_month = $request->end_month;
+        $period_use = $request->period;
+        $start_date = $year_use.'-'.$start_month.'-'.'01';
+	$end_date = $year_use.'-'.$end_month.'-'.'25';
+	$end_date = date("Y-m-t",strtotime($end_date));
+        $transactions = [];
+  
+            if($start_month > $end_month){
+               $year_use = null;
+            }
+	$loans = Loan::with('transactions')->whereBetween('created_date',[$start_date,$end_date])->get();
+	 $unrecovered_loans = Loan::with('transactions')->where('status','disbursed')->whereBetween('first_repayment_date',[$start_date,$end_date])->get();
+                $expenses = Expense::with('type')->whereBetween('date',[$start_date,$end_date])->get();
+                $expense_types = ExpenseType::get();
+                foreach($loans as $loan){
+                    if(date('m',strtotime($loan->created_date)) == date('m',strtotime($end_date))){
+                        foreach($loan->transactions as $transaction){
+                            array_push($transactions,$transaction);
+                        }
+        
+                    }
+                }
+
+                return view('financial_report.workings',compact('year_use','loans','transactions','start_date','end_date','expenses','expense_types','unrecovered_loans',));
+   }
+
+
+
+    public function statement_of_financial_position(Request $request){
+	       $add_depreciation = 0;
+        $disallowed_expenses = 0;
+        $deferred_tax_allowance = 3583285.68;
+        $total = 0;
+        $total2 = 0;
+        $cost_total = 0;
+        $cost_of_sales = [];
+        $revenues = [];
+        $expense_total = 0;
+        $monthly_expense_total = [];
+        $revenue_total = 0;
+        $years = [];
+        $expenses = [];
+        $expense_index = [];
+        $expense_type_list = [];
+        $distribution_expense_type_list = [];
+        $distribution_expense_index = [];
+        $distribution_array_of_totals = [];
+        $distribution_expenses_totals = [];
+        $array_of_totals = [];
+        $yearly_expenses_totals = [];
+        $test_amount = [];
+        $yearly_revenue_totals = [];
+        $yearly_final_expense_totals = [];
+        $yearly_final_distribution_total = [];
+        $yearly_cost_total = [];
+        $expenses_totals = [];
+        $num = 0;
+        $years = [];
+        $year_index = [];
+        $current_year = date('Y-m-d');
+        $asset_totals = [];
+        $asset_type_index = [];
+        $test = [];
+        $revenue_total = 0;
+        $revenues = [];
+        $num = 0;
+        $dnum = 0;
+        $total = 0;
+        $total2 = 0;
+        $asset_type_intangible_index = [];
+        $yearly_asset_totals = [];
+        $yearly_intangible_assets_totals = [];
+        $asset_totals_1 = [];
+        $intangible_asset_totals = [];
+        $intangible_asset_totals_1 = [];
+        $yearly_revenue_totals = [];
+	$year_total = 0;
+	    $cash_total = 0;
+        $unrecovered_montly_total = 0;
+        $intagible_year_total = 0;
+        $dates = [];
+	$dates_2 = [];
+	$yearly_cash_and_cash_equivalent_totals = [];
+        $yearly_unrecovered_amounts = [];
+        $expense_types = ExpenseType::get();
+
+        $month_dates = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+        for($x=0; $x<3; $x++){
+            if($x != 0){
+                $current_year = date('Y-m',strtotime($current_year. ' - 1 year'));
+              }
+
+            array_push($years,date('Y',strtotime($current_year)));
+            array_push($year_index,$x);
+
+            }
+            $asset_types_intangible = AssetType::where('type','INTANGIBLE')->get();
+                   $asset_types_tangible = AssetType::where('type','TANGIBLE')->get();
+            $assets = Asset::get();
+            $total = 0;
+            $total_intangible = 0;
+            $index = 0;
+            $index_intangible = 0;
+            foreach($asset_types_tangible as $asset_type){
+                array_push($asset_type_index,$index);
+                $index = $index + 1;
+            }
+
+            foreach($asset_types_intangible as $asset_type){
+                array_push($asset_type_intangible_index,$index_intangible);
+                $index_intangible = $index_intangible + 1;
+            }
+	    foreach($years as $year){
+		      $cash_and_cash_equivalent = Asset::where('asset_type_id','6')->whereBetween('purchase_date',[$year.'-01-01',$year.'-12-31'])->get();
+                foreach($cash_and_cash_equivalent as $amount){
+                    $cash_total = $cash_total + $amount->value;
+                }
+                array_push($yearly_cash_and_cash_equivalent_totals,$cash_total);
+                $cash_total = 0;
+                $unrecovered_loans = Loan::with('transactions')->where('status','disbursed')->whereBetween('created_date',[$year.'-01-01',$year.'-12-31'])->get();
+                $month_dates = [$year.'-'.'01',$year.'-'.'02',$year.'-'.'03',$year.'-'.'04',$year.'-'.'05',$year.'-'.'06',$year.'-'.'07',$year.'-'.'08',$year.'-'.'09',$year.'-'.'10',$year.'-'.'11',$year.'-'.'12'];
+                foreach($month_dates as $date){
+                    $start_date = $date.'-'.'01';
+                    $end_date = $date.'-'.'25';
+                    $end_date = date("Y-m-t",strtotime($end_date));
+                    $loans = Loan::with('transactions')->whereBetween('created_date',[$start_date,$end_date])->get();
+                    foreach($loans as $loan){
+                        if(date('Y-m',strtotime($loan->created_date)) == $date){
+                            foreach($loan->transactions as $transaction){
+                                if($transaction->transaction_type == 'disbursement'){
+                                    $interest = $transaction->debit*0.4;
+                                    $total = $total + $transaction->debit + $interest;
+                                    $total2 = $total2 + $transaction->debit;
+                                }
+            
+                                if($transaction->transaction_type == 'interest_initial'){
+                                    $total = $total + $transaction->debit/0.4 + $transaction->debit;
+                                    $total2 = $total2 + $transaction->debit/0.4;
+                                }
+                            }
+                        }
+                    }
+
+                    array_push($revenues,$total);
+                    array_push($cost_of_sales,$total2);
+
+                    $total = 0;
+                    $total2 = 0;
+
+                }
+
+                $out = 0;
+                $in = 0;
+
+                foreach($unrecovered_loans as $loan){
+                        foreach($loan->transactions as $transaction){
+                            if($transaction->transaction_type == 'disbursement'){
+                                $original_balance = $transaction->debit + ($transaction->debit*0.4);
+                            }
+                            $out = $out + $transaction->debit;
+                            $in = $in + $transaction->credit;
+                        }
+                        $current_balance = $out - $in;
+                        if($current_balance < $original_balance){
+                            $unrecovered_montly_total = $unrecovered_montly_total + $current_balance;
+                        }
+                        $out = 0;
+                        $in = 0;
+                        $current_balance = 0;
+                }
+             
+
+                foreach($revenues as $revenue){
+                    $revenue_total = $revenue_total + $revenue;
+                }
+
+                $revenues = [];
+
+                foreach($cost_of_sales as $sale){
+                    $cost_total = $cost_total + $sale;
+                }
+
+                $cost_of_sales = [];
+
+                foreach($asset_types_tangible as $asset_type){
+                    foreach($assets as $asset){
+                        if($asset->asset_type_id == $asset_type->id && date('Y',strtotime($asset->created_at)) == $year){
+                            $total = $total + $asset->value;
+                            
+                        }
+
+                    }
+                    array_push($asset_totals,$total);
+                    array_push($asset_totals_1,$total);
+                    $total = 0;
+                }
+
+
+                foreach($expense_types as $expense_type){
+                    foreach($month_dates as $date){
+                        $start_date = $date.'-'.'01';
+                        $end_date = $date.'-'.'25';
+                        $end_date = date("Y-m-t",strtotime($end_date));
+                        $expenses = Expense::with('type')->whereBetween('date',[$start_date,$end_date])->get();
+                        foreach($expenses as $expense){
+                        
+                            if($expense->expense_type_id == $expense_type->id && date('Y-m',strtotime($expense->date)) == $date){
+                                $expense_total = $expense_total + $expense->amount;
+                            }
+                        }
+                        array_push($monthly_expense_total,$expense_total);
+                        $expense_total = 0;
+                    }
+
+                    if($expense_type->distribution_cost !== 1){
+                        array_push($expense_type_list,$expense_type->name);
+                        array_push($expense_index,$num);
+                        $num =  $num + 1;
+                        array_push($array_of_totals,$monthly_expense_total);
+                      }else{
+                        array_push($distribution_expense_type_list,$expense_type->name);
+                        array_push($distribution_expense_index,$dnum);
+                        $dnum = $dnum + 1;  
+                        array_push($distribution_array_of_totals,$monthly_expense_total);
+                      }
+                      $monthly_expense_total = []; 
+
+                }
+
+                $s2 = 0;     
+
+                foreach($array_of_totals as $totals){
+                    foreach($totals as $total){
+                        $s2 = $s2 + $total;
+                    }
+                    array_push($expenses_totals,$s2);
+                    $s2 = 0;
+                }
+
+                foreach($distribution_array_of_totals as $totals){
+                    foreach($totals as $total){
+                        $s2 = $s2 + $total;
+                    }
+                    array_push($distribution_expenses_totals,$s2);
+                    $s2 = 0;
+                }
+
+                $final_distribution_expense_total = 0;
+foreach($distribution_expenses_totals as $item){
+    $final_distribution_expense_total = $final_distribution_expense_total + $item;
+}
+
+
+               
+
+
+
+                foreach($asset_types_intangible as $asset_type){
+                    foreach($assets as $asset){
+
+                        if($asset->asset_type_id == $asset_type->id && date('Y',strtotime($asset->created_at)) == $year){
+                            $total_intangible = $total_intangible + $asset->value;
+                           
+                        }
+
+                    }
+                    array_push($intangible_asset_totals_1,$total_intangible);
+                    array_push($intangible_asset_totals,$total_intangible);
+
+                    $total_intangible = 0;
+                }
+
+
+                foreach($asset_totals_1 as $total){
+                    $year_total = $year_total + $total;
+                }
+
+                foreach($intangible_asset_totals_1 as $total_1){
+                    $intagible_year_total = $intagible_year_total + $total_1;
+
+                }
+
+                $final_expense_total = 0;
+foreach($expenses_totals as $item){
+    $final_expense_total = $final_expense_total + $item;
+   
+}
+array_push($yearly_final_distribution_total,$final_distribution_expense_total);
+array_push($yearly_final_expense_totals,$final_expense_total);
+                array_push($yearly_revenue_totals,$revenue_total);
+                array_push($yearly_intangible_assets_totals,$intagible_year_total);
+                array_push($yearly_asset_totals,$year_total);
+                array_push($yearly_expenses_totals,$expenses_totals);
+                array_push($yearly_cost_total,$cost_total);
+                array_push($yearly_unrecovered_amounts,($unrecovered_montly_total * pow(1.05,7)));
+                $unrecovered_montly_total = 0;
+                $asset_totals_1 = [];
+                $intangible_asset_totals_1 = [];
+                $year_total = 0;
+                $intagible_year_total = 0;
+                $revenue_total = 0;
+                $expenses_totals = [];
+                $final_expense_total = 0;
+                $final_distribution_expense_total = 0;
+             
+                
+            }
+        
+
+
+        return view('financial_report.statement_of_fin_position',compact('test','dates','dates_2','years','assets','asset_totals','intangible_asset_totals','asset_types_tangible','asset_types_intangible','asset_type_index','yearly_asset_totals','year_index','asset_type_intangible_index','yearly_intangible_assets_totals','yearly_revenue_totals','yearly_expenses_totals','yearly_cost_total','yearly_final_expense_totals','yearly_final_distribution_total','add_depreciation',
+        'disallowed_expenses','deferred_tax_allowance','yearly_unrecovered_amounts','yearly_cash_and_cash_equivalent_totals'));
+    }
+
+      public function statement_of_comp_income(Request $request){
+	          $total = 0;
+        $total2 = 0;
+        $cost_total = 0;
+        $cost_of_sales = [];
+        $revenues = [];
+        $expense_total = 0;
+        $monthly_expense_total = [];
+        $revenue_total = 0;
+        $years = [];
+        $expenses = [];
+        $expense_index = [];
+        $expense_type_list = [];
+        $distribution_expense_type_list = [];
+        $distribution_expense_index = [];
+        $distribution_array_of_totals = [];
+        $distribution_expenses_totals = [];
+        $array_of_totals = [];
+        $yearly_expenses_totals = [];
+        $test_amount = [];
+        $yearly_revenue_totals = [];
+        $yearly_final_expense_totals = [];
+        $yearly_final_distribution_total = [];
+        $yearly_cost_total = [];
+        $expenses_totals = [];
+        $num = 0;
+       $dnum = 0;
+        $year_index = [];
+        $month_dates = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+        $current_year = date('Y-m-d');
+        $expense_types = ExpenseType::get();
+        for($x=0; $x<5; $x++){
+            if($x != 0){
+                $current_year = date('Y-m',strtotime($current_year. ' - 1 year'));
+              }
+            array_push($years,date('Y',strtotime($current_year)));
+            array_push($year_index,$x);
+
+            }
+        
+            foreach($years as $year_use){
+                $month_dates = [$year_use.'-'.'01',$year_use.'-'.'02',$year_use.'-'.'03',$year_use.'-'.'04',$year_use.'-'.'05',$year_use.'-'.'06',$year_use.'-'.'07',$year_use.'-'.'08',$year_use.'-'.'09',$year_use.'-'.'10',$year_use.'-'.'11',$year_use.'-'.'12'];
+                foreach($month_dates as $date){
+                    $start_date = $date.'-'.'01';
+                    $end_date = $date.'-'.'25';
+                    $end_date = date("Y-m-t",strtotime($end_date));
+                    $loans = Loan::with('transactions')->whereBetween('created_date',[$start_date,$end_date])->get();
+                    foreach($loans as $loan){
+                        if(date('Y-m',strtotime($loan->created_date)) == $date){
+                            foreach($loan->transactions as $transaction){
+                                if($transaction->transaction_type == 'disbursement'){
+                                    $interest = $transaction->debit*0.4;
+                                    $total = $total + $transaction->debit + $interest;
+                                    $total2 = $total2 + $transaction->debit;
+                                }
+            
+                                if($transaction->transaction_type == 'interest_initial'){
+                                    $total = $total + $transaction->debit/0.4 + $transaction->debit;
+                                    $total2 = $total2 + $transaction->debit/0.4;
+                                }
+                            }
+                        }
+                    }
+            
+                    array_push($revenues,$total);
+                    array_push($cost_of_sales,$total2);
+
+                    $total = 0;
+                    $total2 = 0;
+            
+                }
+            
+                foreach($revenues as $revenue){
+                    $revenue_total = $revenue_total + $revenue;
+		}
+		  $revenues = [];
+
+
+                foreach($cost_of_sales as $sale){
+                    $cost_total = $cost_total + $sale;
+		}
+		 $cost_of_sales = [];
+
+            
+                foreach($expense_types as $expense_type){
+                    foreach($month_dates as $date){
+                        $start_date = $date.'-'.'01';
+                        $end_date = $date.'-'.'25';
+                        $end_date = date("Y-m-t",strtotime($end_date));
+                        $expenses = Expense::with('type')->whereBetween('date',[$start_date,$end_date])->get();
+                        foreach($expenses as $expense){
+                        
+                            if($expense->expense_type_id == $expense_type->id && date('Y-m',strtotime($expense->date)) == $date){
+                                $expense_total = $expense_total + $expense->amount;
+                            }
+                        }
+                        array_push($monthly_expense_total,$expense_total);
+                        $expense_total = 0;
+                    }
+
+                    if($expense_type->distribution_cost !== 1){
+                        array_push($expense_type_list,$expense_type->name);
+                        array_push($expense_index,$num);
+                        $num =  $num + 1;
+                        array_push($array_of_totals,$monthly_expense_total);
+                      }else{
+                        array_push($distribution_expense_type_list,$expense_type->name);
+                        array_push($distribution_expense_index,$dnum);
+                        $dnum = $dnum + 1;  
+                        array_push($distribution_array_of_totals,$monthly_expense_total);
+                      }
+                      $monthly_expense_total = []; 
+
+                }
+
+
+                $s2 = 0;    
+
+foreach($array_of_totals as $totals){
+    foreach($totals as $total){
+        $s2 = $s2 + $total;
+    }
+    array_push($expenses_totals,$s2);
+    $s2 = 0;
+}
+
+foreach($distribution_array_of_totals as $totals){
+    foreach($totals as $total){
+        $s2 = $s2 + $total;
+    }
+    array_push($distribution_expenses_totals,$s2);
+    $s2 = 0;
+}
+$final_distribution_expense_total = 0;
+foreach($distribution_expenses_totals as $item){
+    $final_distribution_expense_total = $final_distribution_expense_total + $item;
+}
+
+$final_expense_total = 0;
+foreach($expenses_totals as $item){
+    $final_expense_total = $final_expense_total + $item;
+   
+}
+array_push($yearly_final_distribution_total,$final_distribution_expense_total);
+array_push($yearly_final_expense_totals,$final_expense_total);
+array_push($yearly_expenses_totals,$expenses_totals);
+array_push($yearly_revenue_totals,$revenue_total);
+array_push($yearly_cost_total,$cost_total);
+
+$final_distribution_expense_total = 0;
+$final_expense_total = 0;
+$revenue_total = 0;
+$cost_total = 0;
+$expenses_totals = [];
+$array_of_totals = [];
+$distribution_array_of_totals = [];
+$distribution_expenses_totals = [];
+            
+            
+}
+
+        return view('financial_report.statement_of_comp_income',compact('yearly_expenses_totals','yearly_revenue_totals','years','year_index','cost_total','yearly_cost_total','yearly_final_expense_totals','expenses_totals','yearly_final_distribution_total'));
+    }
+
 
     public function disbursed_loans_csv(Request $request)
     {

@@ -42,16 +42,15 @@
                                 {{$key->created_by->first_name}}  {{$key->created_by->last_name}} 
                             @endif
                         </td>
+                         @if(!empty($client->first_name))
                         <td>{{$client->first_name}} {{$client->middle_name}} {{$client->last_name}}</td>
+                        @endif
                         <td>{{number_format($key->credit,2)}}</td>
                         <td>{{$key->date}}</td>
                         <td>{{$key->payment_apply_to}}</td>
                         <?php
                            $todaysDate = date('Y-m-d');
                         ?>
-
-@if($todaysDate > $key->date)
-@if(Sentinel::hasAccess('payroll'))
                         <td>
 
             <a href="{{ url('loan/'.$key->loan_id.'/'.$key->id.'/create_transactiontt') }}" onclick="return confirm('Are you sure?')" >
@@ -60,19 +59,8 @@
                             <a href="{{ url('loan/'.$key->id.'/delete_pending_transaction_fp_pp')}}"  onclick="return confirm('Are you sure?')">
                             <span class="label label-danger style="color:red" >Decline</span>
                             </a>
-                              
-                        </td>
-                        @endif
-@else
-<td>
-<a href="{{ url('loan/'.$key->loan_id.'/'.$key->id.'/create_transactiontt') }}" onclick="return confirm('Are you sure?')" >
-                            <span class="label label-success" >Approve</span>
-                                                </a>
-                            <a href="{{ url('loan/'.$key->id.'/delete_pending_transaction_fp_pp')}}"  onclick="return confirm('Are you sure?')">
-                            <span class="label label-danger style="color:red" >Decline</span>
-                            </a>
 </td>
-@endif
+         
                     
 
 

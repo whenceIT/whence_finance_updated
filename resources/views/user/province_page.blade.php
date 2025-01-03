@@ -234,11 +234,11 @@ while($bar_chart_count < 12){
 <div class="col-lg-4 col-xs-12">
 <div class="small-box bg-red">
 <div class="inner">
-<p style="font-weight: bold;">Province total cycle given out</p>
+<p style="font-weight: bold;">Province cycle still uncollected</p>
 <div class="icon">
 <i class="fa fa-usd"></i>
 </div>
-<h3>{{number_format($given_out[0] ,2)}}</h3>
+<h3>{{number_format(($cycle_opening_uncollected_amount - $collections[0]),2)}}</h3>
 </div>
 <div class="small-box-footer">
     <p></p>

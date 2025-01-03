@@ -4,20 +4,6 @@
 @endsection
 @section('content')
     <div class="box box-primary">
-    <div class="form-group">
-                    <label for="loan_officer_id"
-                           class="control-label col-md-2">Loan Consultant</label>
-                    <div class="col-md-3">
-                    <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
-                            <option></option>
-                            @foreach(\App\Models\User::all() as $key)
-                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                    <option value="{{$key->id}}">{{$key->first_name}} {{$key->last_name}}</option>
-                                @endif
-                            @endforeach
-                        </select>
-                    </div>
-                </div>  
         <div class="box-header with-border">
             <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}t6fty</h3>
             <div class="box-tools pull-right">
@@ -55,7 +41,20 @@
                        class="control-label col-md-3">{{trans_choice('general.client',1)}}</label>
                 <div class="col-md-5">
                     <select name="client_id" class="form-control select2" id="client_id">
-                        <option></option>
+                          <option></option>
+                        @if($role->role_id == '3')
+                        @foreach(\App\Models\Client::where('status', 'active')->where('staff_id',$userId)->where('blacklisted', 0)->get() as $key)
+                            <option value="{{$key->id}}">
+                                @if($key->client_type=="individual")
+                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                    ({{$key->account_no}})({{$key->nrc_number}})
+                                @else
+                                    {{$key->full_name}} ({{$key->account_no}}
+                                    )
+                                @endif
+                            </option>
+                        @endforeach
+                        @elseif($role->role_id == '4')
                         @foreach(\App\Models\Client::where('status', 'active')->where('office_id',$userBranch)->where('blacklisted', 0)->get() as $key)
                             <option value="{{$key->id}}">
                                 @if($key->client_type=="individual")
@@ -67,6 +66,32 @@
                                 @endif
                             </option>
                         @endforeach
+
+                        @elseif($role->role_id == '6')
+                        @foreach($province_clients as $key)
+                            <option value="{{$key->id}}">
+                                @if($key->client_type=="individual")
+                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                    ({{$key->account_no}})({{$key->nrc_number}})
+                                @else
+                                    {{$key->full_name}} ({{$key->account_no}}
+                                    )
+                                @endif
+                            </option>
+                        @endforeach
+                        @else
+                        @foreach($clients as $key)
+                            <option value="{{$key->id}}">
+                                @if($key->client_type=="individual")
+                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                    ({{$key->account_no}})({{$key->nrc_number}})
+                                @else
+                                    {{$key->full_name}} ({{$key->account_no}}
+                                    )
+                                @endif
+                            </option>
+                        @endforeach
+                        @endif
                     </select>
                 </div>
             </div>

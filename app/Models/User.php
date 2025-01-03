@@ -58,7 +58,15 @@ class User extends EloquentUser
     public function role(){
         return $this->hasOne(UserRole::class,'user_id','id','role_id');
     }
+     public function advances()
+    {
+        return $this->hasMany(Advance::class, 'user_id', 'id');
+    }
 
+    public function leave()
+    {
+        return $this->hasMany(Leave::class, 'user_id', 'id');
+    }
 
 
 }

@@ -66,7 +66,10 @@
                                value="{{old('amount')}}" required
                                id="amount">
                     </div>
-                </div>
+		</div>
+
+
+
                 <div class="form-group">
                     <label for="recurring"
                            class="control-label col-md-2">{{trans_choice('general.recurring',1)}}</label>
@@ -122,6 +125,12 @@
                         <textarea name="notes" class="form-control "
                                   placeholder=""
                                   id="notes" rows="3">{{old('notes')}}</textarea>
+                    </div>
+		</div>
+<div class="form-group">
+                    <label for="proof_of_payment" class="control-label col-md-2">{{ __('Proof of Payment') }}</label>
+                    <div class="col-md-3">
+                        <input type="file" name="proof_of_payment" class="form-control-file">
                     </div>
                 </div>
                 @if(\App\Models\Setting::where('setting_key','enable_custom_fields')->first()->setting_value==1)

@@ -10,21 +10,45 @@ $new_loan_count = 0;
 $total = 0;
 $new_loan_total = 0;
 $reloan_total = 0;
-     foreach($userTransactions as $transaction){
-        if($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate && $transaction->date <= $targetDate){
-            $new_loan_total = $new_loan_total + $transaction->debit;
+$nums = [];
+$targets = [];
+$transaction_total = 0;
+$carry_over = 0;
+for($x=12; $x>-1; $x--){
+    foreach($userTransactions as $transaction){
+        if($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
+            $new_loan_total = $transaction->debit;
             $new_loan_count = $new_loan_count + 1;
         }
 
-        if($transaction->transaction_type == 'interest' && $transaction->date > $compareDate && $transaction->date <= $targetDate){
+        if($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
             $principal = $transaction->debit/0.4;
-            $reloan_total = $reloan_total + $principal;
+            $reloan_total = $principal;
             $reloan_count = $reloan_count + 1;
         }
+
+        if($transaction_total + $new_loan_total + $reloan_total >= 40000 ){
+            if($transaction_total == 40000){
+                $carry_over = $carry_over + $new_loan_total + $reloan_total;
+            }else{
+                $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
+                $transaction_total = 40000;
+            }
+
+        }else{
+            $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
+            $carry_over = 0;
+        }
+
+        $new_loan_total = 0;
+        $reloan_total = 0;
     }
 
-    
+    array_push($nums,$x);
+    array_push($targets,$transaction_total);
+    $transaction_total = 0;
     $total = $reloan_total + $new_loan_total;
+}
 ?>
 
 
@@ -74,7 +98,7 @@ $reloan_total = 0;
 
         <div class="col-md-4">
                            <span class="info-box-text" style="font-weight: bold; font-size: 18px;">Total</span>
-                            <span class="info-box-number">{{$total}}</span>
+                            <span class="info-box-number">{{$targets[12]}}</span>
         </div>
 
         <table class="table  table-bordered table-hover table-striped" id="data-table">

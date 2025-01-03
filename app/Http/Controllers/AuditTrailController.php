@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditTrail;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Laracasts\Flash\Flash;
+use Carbon\Carbon;
 
 class AuditTrailController extends Controller
 {
@@ -24,8 +25,13 @@ class AuditTrailController extends Controller
         if (!Sentinel::hasAccess('audit_trail')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
-        }
-        $data = AuditTrail::all();
+	}
+
+	$MonthsAgo = Carbon::now()->subMonths(1);
+
+        $data = AuditTrail::with('user')
+        ->where('created_at', '>=', $MonthsAgo)
+        ->get();
         return view('audit_trail.data', compact('data'));
     }
 

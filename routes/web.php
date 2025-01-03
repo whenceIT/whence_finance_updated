@@ -16,6 +16,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PerformanceMetricsController;
 
 Route::model('client', 'App\Models\Client');
 Route::model('user', 'App\Models\User');
@@ -91,6 +92,9 @@ Route::get('password_reset', 'HomeController@password_reset');
 Route::post('password_reset', 'HomeController@process_password_reset');
 Route::get('confirm_password_reset/{id}/{code}', 'HomeController@confirm_password_reset');
 Route::post('confirm_password_reset/{id}/{code}', 'HomeController@process_confirm_password_reset');
+Route::get('payroll_loan','HomeController@payroll_loan');
+//Route::get('payroll_loan/create-step-one','HomeController@createStepOne');
+Route::any('create_payroll_loan_application','HomeController@create_payroll_loan_application');
 Route::get('dashboard', [UserController::class, 'dashboard']);
 Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');
@@ -104,9 +108,13 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('daily_figures','UserController@daily_figures');
     Route::get('create', 'UserController@create');
     Route::post('store', 'UserController@store');
+      Route::get('detailed_dashboard','UserController@detailed_dashboard');
  //   Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
+    //active-inactive users
+    Route::post('user/{id}/toggle-status', 'UserController@toggleStatus')->name('user.toggleStatus');
+    Route::get('/user/inactive', 'UserController@inactive')->name('user.inactive');
     Route::post('{id}/update', 'UserController@update');
     Route::get('{id}/delete', 'UserController@delete');
     Route::get('edit_profile', 'UserController@edit_profile');
@@ -151,7 +159,7 @@ Route::group(['prefix' => 'office'], function () {
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {
-    Route::get('data', 'ClientController@index');
+	Route::get('data', 'ClientController@index')->name('client.data');
     Route::get('my_clients', 'ClientController@my_index');
     Route::get('branch_clients', 'ClientController@branch_index');
     Route::get('declined', 'ClientController@declined');
@@ -328,6 +336,7 @@ Route::group(['prefix' => 'setting'], function () {
     Route::post('general/update', 'SettingController@update_general');
     Route::get('organisation', 'SettingController@organisation');
     Route::get('system', 'SettingController@system');
+     Route::get('fail_safe','SettingController@fail_safe');
 
 
 });
@@ -373,19 +382,25 @@ Route::group(['prefix' => 'charge'], function () {
 });
 //route for loans
 Route::group(['prefix' => 'loan'], function () {
-    Route::get('data', 'LoanController@index');
+    Route::get('data', 'LoanController@index')->name('loan.data');
     Route::get('my_loans', 'LoanController@my_index');
     Route::get('my_app_loans', 'LoanController@my_index_approved');
     Route::get('branch_app_loans', 'LoanController@branch_index_approved');
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals','LoanController@reloan_approvals');
     Route::get('transaction_approvals','LoanController@transaction_approvals');
+    //waiver changes
+    Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
+    Route::get('loan/waiver-approvals', 'LoanController@showWaiver')->name('waiver.approvals');
+    Route::post('loan/approve-waiver/{id}', 'LoanController@approveWaiver')->name('waiver.approve');
+    Route::post('loan/decline-waiver/{id}', 'LoanController@declineWaiver')->name('waiver.decline');
+
     Route::get('pending_approval', 'LoanController@pending_approval');
     Route::get('managers_pending_approval', 'LoanController@managers_pending_approval');
     Route::get('awaiting_disbursement', 'LoanController@awaiting_disbursement');
     Route::get('loans_declined', 'LoanController@loans_declined');
     Route::get('loans_written_off', 'LoanController@loans_written_off');
-    Route::get('loans_closed', 'LoanController@loans_closed');
+    Route::get('loans_closed', 'LoanController@loans_closed')->name('loan.loans_closed');
     Route::get('loans_rescheduled', 'LoanController@loans_rescheduled');
     Route::get('{id}/{trans_id}/create_reloan', 'LoanController@new_reschedule_loan');
     Route::get('{id}/{trans_id}/create_transactiontt','LoanController@store_repayment');
@@ -407,7 +422,18 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('{id}/delete', 'LoanController@delete');
     Route::post('{id}/approve', 'LoanController@approve_loan');
     Route::get('collections','LoanController@collections');
-    Route::get('my_collections','LoanController@my_collections');
+    Route::any('new_collections','LoanController@new_collections');
+     Route::any('expected_collections','LoanController@expected_collections');
+    Route::any('my_collections','LoanController@my_collections');
+     Route::any('my_expected_collections','LoanController@my_expected_collections');
+    Route::any('{id}/detailed_collections','LoanController@detailed_collections');
+    Route::any('adjust_next_repayment','LoanController@adjust_next_repayment');
+    Route::get('payroll_loan/pending_list','LoanController@pending_list');
+        Route::get('payroll_loan/approved_list','LoanController@approved_list');
+    Route::get('payroll_loan/declined_list','LoanController@declined_list');
+    Route::get('payroll_loan/{id}/payroll_applicant','LoanController@payroll_applicant');
+       Route::get('payroll_loan/{id}/approve_applicant','LoanController@approve_applicant');
+    Route::get('payroll_loan/{id}/decline_applicant','LoanController@decline_applicant');
     //Make defaulted
     Route::get('{id}/set_defaulted', 'LoanController@set_defaulted');
     Route::post('{id}/decline', 'LoanController@decline_loan');
@@ -419,6 +445,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::post('{id}/reschedule_loan', 'LoanController@reschedule_loan');
     Route::post('{id}/change_loan_officer', 'LoanController@change_loan_officer');
     Route::get('{loan}/email_schedule', 'LoanController@email_schedule');
+    Route::get('{loan}/email_statement', 'LoanController@email_statement');
     Route::get('{loan}/print_schedule', 'LoanController@print_schedule');
     Route::get('{loan}/pdf_schedule', 'LoanController@pdf_schedule');
     Route::get('{loan}/print_statement', 'LoanController@print_statement');
@@ -474,6 +501,12 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('transaction/{loan_transaction}/waive', 'LoanController@waive_transaction');
     Route::post('{id}/charge/store', 'LoanController@store_charge');
     Route::post('{id}/refund/store', 'LoanController@store_refund');
+    //new charges
+    Route::post('{id}/charge/store', 'LoanController@store_charge');
+    Route::get('loan/charge_approvals', 'LoanController@showPendingCharges')->name('loan.charge_approvals');
+    Route::post('loan/approve-charge/{id}', 'LoanController@approveCharge')->name('charge.approve');
+    Route::post('loan/decline-charge/{id}', 'LoanController@declineCharge')->name('charge.decline');
+
     //loan application
     Route::get('application/data', 'LoanController@index_application');
     Route::get('my_applications/data', 'LoanController@my_applications');
@@ -546,7 +579,10 @@ Route::group(['prefix' => 'report'], function () {
         Route::any('income_statement/pdf', 'ReportController@income_statement_pdf');
         Route::any('income_statement/excel', 'ReportController@income_statement_excel');
         Route::any('income_statement/csv', 'ReportController@income_statement_csv');
-        Route::any('balance_sheet', 'ReportController@balance_sheet');
+	Route::any('balance_sheet', 'ReportController@balance_sheet');
+	Route::any('workings', 'ReportController@workings');
+	Route::any('statement_of_comp_income','ReportController@statement_of_comp_income');
+	Route::any('statement_of_financial_position','ReportController@statement_of_financial_position');
         Route::any('balance_sheet_conso', 'ReportController@balance_sheet_consolidated');
         Route::any('balance_sheet/pdf', 'ReportController@balance_sheet_pdf');
         Route::any('balance_sheet/excel', 'ReportController@balance_sheet_excel');
@@ -579,7 +615,11 @@ Route::group(['prefix' => 'report'], function () {
         Route::any('full_repayments_report/csv', 'ReportController@full_repayments_report_csv');
         Route::any('part_repayments_report/pdf', 'ReportController@part_repayments_report_pdf');
         Route::any('part_repayments_report/excel', 'ReportController@part_repayments_report_excel');
-        Route::any('part_repayments_report/csv', 'ReportController@part_repayments_report_csv');
+	Route::any('part_repayments_report/csv', 'ReportController@part_repayments_report_csv');
+	Route::any('collections_report/pdf', 'ReportController@collections_report_pdf');
+	Route::any('collections_report/excel', 'ReportController@collections_report_excel');
+	  Route::any('expected_collections_report/pdf','ReportController@expected_collections_report_pdf');
+        Route::any('expected_collections_report/excel','ReportController@expected_collections_report_excel');
         Route::any('reloans_report/pdf', 'ReportController@reloans_report_pdf');
         Route::any('reloans_report/pdf', 'ReportController@reloans_report_pdf');
         Route::any('reloans_report/pdf', 'ReportController@reloans_report_pdf');
@@ -587,7 +627,18 @@ Route::group(['prefix' => 'report'], function () {
         Route::any('reloans_report/csv', 'ReportController@reloans_report_csv');
         Route::any('new_loans_report/pdf', 'ReportController@new_loans_report_pdf');
         Route::any('new_loans_report/excel', 'ReportController@new_loans_report_excel');
-        Route::any('new_loans_report/csv', 'ReportController@new_loans_report_csv');
+	Route::any('new_loans_report/csv', 'ReportController@new_loans_report_csv');
+	//added route
+        Route::get('expense_report/pdf', 'ReportController@expense_report_pdf');
+        Route::get('expense_report/excel', 'ReportController@expense_report_excel');
+        Route::get('expense_report/csv', 'ReportController@expense_report_csv');
+        Route::get('/expense/expense-by-transaction-type', 'ExpenseController@expenseByTransactionType')->name('expense.expenseByTransactionType');
+        //Route::post('expense_report/pdf', 'ExpenseController@expense_report_pdf');
+        //Route::get('expense/data', 'ExpenseController@filter')->name('expenses.index');
+        Route::get('advance_report/pdf', 'ReportController@advance_report_pdf');
+        Route::get('advance_report/excel', 'ReportController@advance_report_excel');
+        Route::get('advance_report/csv', 'ReportController@advance_report_csv');
+
         Route::any('repayments_report/excel', 'ReportController@repayments_report_excel');
         Route::any('repayments_report/csv', 'ReportController@repayments_report_csv');
         Route::any('my_collection_sheet', 'ReportController@my_collection_sheet');
@@ -844,6 +895,59 @@ Route::group(['prefix' => 'other_income'], function () {
     Route::post('type/{id}/update', 'OtherIncomeTypeController@update');
     Route::get('type/{id}/delete', 'OtherIncomeTypeController@delete');
 });
+
+Route::group(['prefix' => 'advance'], function () {
+    Route::get('apply', 'AdvanceController@showApplyForm')->name('advances.apply');
+    Route::post('submit', 'AdvanceController@submitAdvance')->name('advances.submit');
+    Route::get('my_advances', 'AdvanceController@showMyAdvances')->name('advances.my_advances');
+    Route::post('{id}/approve', 'AdvanceController@approve')->name('advances.approve');
+    Route::post('{id}/decline', 'AdvanceController@decline')->name('advances.decline');
+    Route::get('/pending_approvals', 'AdvanceController@showPendingApprovals')->name('advances.pending_approvals');
+    Route::get('active_advances', 'AdvanceController@showActiveAdvances')->name('advances.active_advances');
+    Route::get('closed_advances', 'AdvanceController@storeClosedAdvances')->name('advances.closed_advances');
+    Route::get('declined_advances', 'AdvanceController@showDeclinedAdvances')->name('advances.declined_advances');
+    Route::get('/active_advances/{id}', 'AdvanceController@showDetails')->name('advances.show');
+    Route::post('{id}/close', 'AdvanceController@closeAdvance')->name('advances.close');
+    Route::post('submit-top-up/{id}', 'AdvanceController@submitTopUp')->name('advances.submitTopUp');
+    Route::post('approve/{id}', 'AdvanceController@approveTopUp')->name('topups.approve');
+    Route::post('decline/{id}', 'AdvanceController@declineTopUp')->name('topups.decline');
+    Route::get('/topups_pending_approval', 'AdvanceController@topupPendingApprovals')->name('advances.topups_pending_approval');
+    Route::get('/active_advances_province_manager/{id}', 'AdvanceController@showAdvancesForProvinceManager')->name('advances.active_advances_province_managers');
+});
+
+//annual leave
+Route::group(['prefix' => 'leave'], function () {
+
+    Route::get('my_leave_days', 'LeaveController@myLeavedays')->name('leave.my_leave_days');
+    Route::get('apply', 'LeaveController@applyForLeave')->name('leave.apply');
+    Route::post('submit', 'LeaveController@submitLeave')->name('leave.submit');
+    Route::get('/pending_leave_approvals', 'LeaveController@showPendingApprovals')->name('leave.pending_leave_approvals');
+    Route::post('{id}/approve', 'LeaveController@approve')->name('leave.approve');
+    Route::post('{id}/decline', 'LeaveController@decline')->name('leave.decline');
+    Route::get('active_leave', 'LeaveController@showActiveLeave')->name('leave.active_leave');
+    Route::get('/active_leave/{id}', 'LeaveController@showDetails')->name('leave.show');
+    Route::get('declined_leave', 'LeaveController@showDeclinedLeave')->name('leave.declined_leave');
+});
+
+Route::group(['prefix' => 'ledger'], function () {
+   // Route::get('general', 'GeneralLedgerController@index')->name('ledger.general');
+    Route::post('/store/{officeName}', 'GeneralLedgerController@store')->name('ledger.store');
+    Route::get('summary', 'GeneralLedgerController@summary')->name('ledger.summary');
+    Route::get('transactions', 'GeneralLedgerController@transactions')->name('ledger.transactions');
+    Route::get('/ledger/{officeName}', 'GeneralLedgerController@show')->name('ledger.show');
+    Route::get('ledger_report_pdf', 'GeneralLedgerController@generateReport')->name('ledger.ledger_report_pdf');
+    Route::get('ledger_report_excel', 'GeneralLedgerController@generateExcelReport')->name('ledger.ledger_report_excel');
+    Route::get('all_report_excel', 'GeneralLedgerController@allgenerateExcelReport')->name('ledger.all_report_excel');
+    Route::post('income_store', 'GeneralLedgerController@income_store')->name('ledger.income_store');
+});
+
+Route::group(['prefix' => 'performance_metrics'], function () {
+    Route::get('/', [PerformanceMetricsController::class, 'index'])->name('performance_metrics.index');
+    Route::get('/targets', [PerformanceMetricsController::class, 'targets'])->name('performance_metrics.targets');
+    Route::get('/uncollected', [PerformanceMetricsController::class, 'uncollected'])->name('performance_metrics.uncollected');
+    Route::get('/low_performance', [PerformanceMetricsController::class, 'lowPerformance'])->name('performance_metrics.low_performance');
+    Route::get('/defaulted', [PerformanceMetricsController::class, 'defaulted'])->name('performance_metrics.defaulted');
+});
 //route for expenses
 Route::group(['prefix' => 'expense'], function () {
     Route::get('data', 'ExpenseController@index');
@@ -855,6 +959,7 @@ Route::group(['prefix' => 'expense'], function () {
     Route::post('{id}/reverse', 'ExpenseController@reverse_expense');
     Route::get('{id}/delete', 'ExpenseController@delete');
     Route::get('{id}/delete_file', 'ExpenseController@deleteFile');
+    Route::get('proof_of_payment/{filename}', 'ExpenseController@showProofOfPayment')->name('proof_of_payment.download');
 
     //expense types
     Route::get('type/data', 'ExpenseTypeController@index');
@@ -879,7 +984,9 @@ Route::group(['prefix' => 'expense'], function () {
 });
 //route for payroll
 Route::group(['prefix' => 'payroll'], function () {
-    Route::get('data', 'PayrollController@index');
+	Route::get('data', 'PayrollController@index');
+	Route::any('lc_information','PayrollController@lc_information');
+	  Route::any('{user}/lc_information','PayrollController@lc_info');
     Route::get('create', 'PayrollController@create');
     Route::post('store', 'PayrollController@store');
     Route::post('create_new_payroll','PayrollController@create_new_payroll');

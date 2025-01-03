@@ -20,7 +20,9 @@ use App\Http\Requests;
 use App\Models\Client;
 use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
-
+use App\Models\PayrollApplicant;
+use Aws\S3\S3Client;
+use NoCaptcha\Facades\NoCaptcha;
 
 
 class HomeController extends Controller
@@ -73,7 +75,8 @@ class HomeController extends Controller
             'password' => 'required',
             'repeat_password' => 'required|same:password',
             'first_name' => 'required',
-            'last_name' => 'required',
+	    'last_name' => 'required',
+	    'g-recaptcha-response' => 'required|captcha'
         );
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
@@ -541,6 +544,94 @@ class HomeController extends Controller
             }
 
         }
+    }
+
+
+        public function payroll_loan(){
+        return view('payroll_loan');
+    }
+
+
+     public function create_payroll_loan_application(Request $request){
+             $nrc = $request->file('nrc_file');
+            $payslip = $request->file('payslip');
+           
+            $nrcfileName = uniqid() . '.' . $nrc->getClientOriginalExtension();
+            $payslipfileName = uniqid() . '.' . $payslip->getClientOriginalExtension();
+            
+      
+                $s3Client = new S3Client([
+                    'version' => 'latest',
+                    'region'  => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key'    => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+
+                $nrc_result = $s3Client->putObject([
+                    'Bucket' => 'wfssystem',
+                    'Key'    => $nrcfileName,
+                    'Body'   => fopen($nrc->getPathname(),'r'),//$image->stream()->detach(),
+                    'ACL'    => 'public-read',
+                ]);
+
+                $payslip_result = $s3Client->putObject([
+                    'Bucket' => 'wfssystem',
+                    'Key'    => $payslipfileName,
+                    'Body'   => fopen($payslip->getPathname(),'r'),//$image->stream()->detach(),
+                    'ACL'    => 'public-read',
+                ]);
+
+               
+
+                $nrc_url = $nrc_result['ObjectURL'];
+                $payslip_url = $payslip_result['ObjectURL'];
+              
+          
+
+        $applicant = new PayrollApplicant();
+        $applicant->client_name = $request->client_name;
+        $applicant->nrc =  $request->nrc;
+        $applicant->dob = $request->dob;
+        $applicant->gender =  $request->gender;
+        $applicant->email = $request->email;
+        $applicant->phone =  $request->phone;
+        $applicant->home_address = $request->address;
+        $applicant->employer_name =  $request->employer_name;
+        $applicant->employee_id = $request->man_number;
+        $applicant->job_title =  $request->position;
+        $applicant->length_of_service = $request->length_of_service;
+       
+        $applicant->work_address = $request->work_address;
+        $applicant->work_phone =  $request->work_phone_number;
+        $applicant->amount = $request->loan_amount;
+        $applicant->loan_term =  $request->loan_term;
+
+        $applicant->purpose_of_loan = $request->loan_purpose;
+        $applicant->deduction_amount =  $request->monthly_repayment_one;
+        $applicant->admin_fees = null;
+        $applicant->net_amount =  null;
+        $applicant->repayment_date = null;
+        $applicant->bank_name =  $request->bank_name;
+        $applicant->bank_account = $request->ac_number;
+        $applicant->bank_short_code =  $request->short_code;
+        $applicant->branch_name = $request->branch_name;
+        $applicant->branch_code =  $request->branch_code;
+        $applicant->status = 'pending';
+        $applicant->nrc_file = $nrc_url;
+        $applicant->payslip_file = $payslip_url;
+       
+        $applicant->save();
+        
+        return redirect('payroll_loan')->with('message','Success');
+     }
+
+       public function createStepOne(Request $request){
+        $product = $request->session()->get('product');
+        $item = session()->all();
+        return view('applicant.create-step-one',compact('item'));
     }
 
     public function confirm_password_reset($id, $code)

@@ -36,8 +36,7 @@
 
 <div style="display: flex; justify-content: space-between;">
 <div>
-<img src="{{ public_path('uploads/'.\App\Models\Setting::where('setting_key','company_logo')->first()->setting_value) }}"
-                 class="img-responsive" width="150"/>
+<img src="{{asset('assets/landing_page/img/whence-logo-2.png') }}"/>
         <h2>Whence Financial Services</h2>
 </div>
 <table class="table">
@@ -69,18 +68,15 @@
             @if(!empty($loan_transaction->created_by))
                 {{$loan_transaction->created_by->first_name}} {{$loan_transaction->created_by->last_name}}
             @endif
-            </p>
+	    </p>
+	    <p>Branch: {{$loan_transaction->office->name}}</p>
             <p>Date:  {{date("jS M, Y", strtotime($loan_transaction->date))}}</p>
         </div>
 
         <td class="pull-right">
         <p>Loan #: {{$loan_transaction->loan->id}}</p>
         <p>Transaction #: {{$loan_transaction->id}}</p>
-        @if($loan_transaction->payment_apply_to !== 'full_payment')
-        <p>Due date: {{date("jS M, Y",strtotime($due_date))}}</p>
-        @else
-        <p>Due date: -</p>
-        @endif
+        <p>For Enquiries Contact: {{$loan_transaction->office->phone}}</p>
         </td>
         </td>
   
@@ -94,16 +90,14 @@
             <p>Payment type</p>
         </td>
 
-        <td >
-            <p>Balance b/f</p>
-        </td>
+        
 
         <td>
             <p>Amount paid</p>
         </td>
 
         <td>
-            <p>Outstanding</p>
+            <p>Balance</p>
         </td>
     </tr>
 
@@ -114,25 +108,7 @@
             {{$loan_transaction->payment_apply_to}}
             </p>
         </td>
-        <?php 
-            if($loan_transaction->credit>$loan_transaction->debit){
-                $amount = $loan_transaction->credit;
-            }else{
-                $amount = $loan_transaction->debit;
-            }
-            ?>
-        <td>
-            <p>
-            @if($loan_transaction->payment_apply_to == 'reloan_payment')
-            {{number_format(($current_balance/1.4) + $loan_transaction->credit)}}
-            @else
-            {{number_format($current_balance + $loan_transaction->credit)}}
-            @endif
-            </p>
-        </td>
-
-
-
+       <!-----balance bf------>
         <td>
             <p>
             @if($loan_transaction->credit>$loan_transaction->debit)
@@ -145,10 +121,20 @@
         </td>
         <td>
             <p>
-       
-         
-           {{number_format($current_balance,2)}}
-
+                <?php
+                $current_balance = 0;
+                foreach($loan_transaction->loan->transactions as $transaction) {
+                    $current_balance += $transaction->debit - $transaction->credit;
+		}
+		if ($loan_transaction->payment_apply_to == 'reloan_payment') {
+                    $current_balance += 0.4 * $current_balance;
+                }
+                // Ensure balance is not negative
+                if ($current_balance < 0) {
+                    $current_balance = 0;
+                }
+                echo number_format($current_balance, 2);
+                ?>
             </p>
         </td>
 
@@ -157,5 +143,3 @@
 </table>
 <div style="border-top: 2px solid #eee;"></div>
 </div>
-
-

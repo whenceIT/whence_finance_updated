@@ -20,6 +20,43 @@
                 </tr>
                 </thead>
                 <tbody>
+                
+            <tr>
+                    <td>
+                        <a href="{{url('report/financial_report/workings')}}">Workings</a>
+                    </td>
+                    <td>
+                        Workings
+                    </td>
+                    <td><a href="{{url('report/financial_report/workings')}}"><i class="icon-search4"></i> </a>
+                    </td>
+                </tr>
+           
+
+
+
+ <tr>
+                    <td>
+                        <a href="{{url('report/financial_report/statement_of_comp_income')}}">Statement of comprehensive income</a>
+                    </td>
+                    <td>
+                        Statement of comprehensive income
+                    </td>
+                    <td><a href="{{url('report/financial_report/statement_of_comp_income')}}"><i class="icon-search4"></i> </a>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <a href="{{url('report/financial_report/statement_of_financial_position')}}">Statement of financial position</a>
+                    </td>
+                    <td>
+                        Statement of financial income
+                    </td>
+                    <td><a href="{{url('report/financial_report/statement_of_financial_position')}}"><i class="icon-search4"></i> </a>
+                    </td>
+                </tr>
+
 
                 <tr>
                     <td>

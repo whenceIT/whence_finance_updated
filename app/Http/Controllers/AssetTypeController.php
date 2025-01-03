@@ -62,7 +62,8 @@ class AssetTypeController extends Controller
             return redirect()->back();
         }
         $asset_type = new AssetType();
-        $asset_type->name = $request->name;
+	$asset_type->name = $request->name;
+	$asset_type->type = $request->asset_type;
         $asset_type->gl_account_asset_id = $request->gl_account_asset_id;
         $asset_type->gl_account_expense_id = $request->gl_account_expense_id;
         $asset_type->gl_account_fixed_asset_id = $request->gl_account_fixed_asset_id;
@@ -110,7 +111,9 @@ class AssetTypeController extends Controller
             return redirect()->back();
         }
         $asset_type = AssetType::find($id);
-        $asset_type->name = $request->name;
+	$asset_type->name = $request->name;
+	$asset_type->type = $request->asset_type;
+	   $asset_type->current_type = $request->current_type;
         $asset_type->gl_account_asset_id = $request->gl_account_asset_id;
         $asset_type->gl_account_expense_id = $request->gl_account_expense_id;
         $asset_type->gl_account_fixed_asset_id = $request->gl_account_fixed_asset_id;

@@ -10,8 +10,7 @@
     <div class="login-box ">
         <div class="login-logo">
             @if(!empty(\App\Models\Setting::where('setting_key','company_logo')->first()->setting_value))
-                <img src="{{asset('uploads/'.\App\Models\Setting::where('setting_key','company_logo')->first()->setting_value) }}"
-                     class="" height="100"/>
+                 <img src="{{asset('assets/landing_page/img/whence-logo.png') }}" style="width: 100%;height: 200px;margin-bottom: 10px;"/>
             @else
                 {{ \App\Models\Setting::where('setting_key','company_name')->first()->setting_value }}
             @endif
@@ -44,7 +43,14 @@
             @endif
             <form action="{{url('register')}}" method="post" class="login-form ">
                 {{csrf_field()}}
-                <p class="login-box-msg">Sign up</p>
+               
+    <h3 class="login-box-msg"style="
+        margin-top: -50px;
+        text-align: center;
+        font-size: 22px;
+        color: #000;
+        font-family: apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';letter-spacing: 0.0312rem;
+        font-weight: 700;"><strong>Sign up</strong></h3>
 
                <div class="form-group has-feedback">
                     <input type="text" name="first_name" class="form-control"
@@ -109,27 +115,34 @@
 
 </div>
 
+              <!-- reCAPTCHA checkbox widget -->
+                <div class="mb-3">
+                    <div class="g-recaptcha" data-sitekey="6LfmKmEqAAAAAP_j8EtTzXtC_VxU0CkYQevNlgH2" data-callback="enableSubmitBtn"></div>
+                </div>
+
                 <div class="row">
-                    <div class="col-xs-8">
-                        <div class="checkbox icheck">
-                      
-                        </div>
+                    <div class="col-xs-6">
+                        <button type="submit" id="mySubmitBtn" disabled="disabled" class="btn btn-primary btn-block btn-flat">Sign up</button>
                     </div>
-                    <!-- /.col -->
-                    <div class="col-xs-4">
-                        <button type="submit"
-                                class="btn btn-primary btn-block btn-flat">Sign up</button>
+                    <div class="col-xs-6">
+                        <a href="{{ 'login' }}" class="btn btn-default btn-block btn-flat">{{ trans_choice('general.login', 1) }}</a>
                     </div>
-                    <!-- /.col -->
                 </div>
             </form>
-            <a href="{{'login'}}">{{ trans_choice('general.login',1) }}</a><br>
         </div>
 
     </div>
 @endsection
 @section('footer-scripts')
+<!-- reCAPTCHA v2 script -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
+        function enableSubmitBtn(){
+            document.getElementById("mySubmitBtn").disabled = false;
+        }
+    </script>
+
+<script>
         $(document).ready(function () {
 
             $('#org-type li').on('click', function(){

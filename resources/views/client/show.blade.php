@@ -15,11 +15,11 @@
                 <div class="box-body box-profile">
                     @if(!empty($client->picture))
                         <img class="profile-user-img img-responsive img-circle"
-                             src="{{asset('uploads/'.$client->picture)}}"
+                             src="{{$client->pictureUrl() }}"
                              alt="User profile picture">
                              
                     @else
-                        <img class="profile-user-img img-responsive img-circle" src="{{asset('uploads/user.png')}}"
+                        <img class="profile-user-img img-responsive img-circle" 
                              alt="User profile picture">
                     @endif
                     <h3 class="profile-username text-center">
@@ -1257,14 +1257,44 @@
                             <label for="office_id"
                                    class="control-label col-md-3">{{trans_choice('general.branch',1)}}</label>
                             <div class="col-md-9">
-                                <select name="office_id" class="form-control select2" id="office_id" required>
-                                    <option></option>
-                                    @foreach(\App\Models\Office::whereNotIn('id',[$client->office_id])->get() as $key)
+				<select name="office_id" class="form-control select2" id="office_id" >
+				<option></option>
+                                   
+                                    @foreach(\App\Models\Office::all()  as $key)
                                         <option value="{{$key->id}}">{{$key->name}}</option>
                                     @endforeach
                                 </select>
                             </div>
+			</div>
+			<!-- prev staff selection 
+                        <div class="form-group">
+                        <label for="staff_id" class="control-label col-md-3">{{trans_choice('general.staff',1)}}</label>
+                        <div class="col-md-9">
+                            <select name="staff_id" class="form-control select2" id="staff_id" required>
+                                <option></option>
+                                @foreach(\App\Models\User::whereHas('role', function($query) {
+                                            $query->where('role_id', 3); 
+                                        })->get() as $staff)
+                                    <option value="{{$staff->id}}" {{$client->staff_id == $staff->id ? 'selected' : ''}}>
+                                        {{$staff->first_name}} {{$staff->last_name}}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
+		    </div>-->
+			<div class="form-group">
+    <label for="staff_id" class="control-label col-md-3">{{trans_choice('general.staff',1)}}</label>
+    <div class="col-md-9">
+        <select name="staff_id" class="form-control select2" id="staff_id" required>
+            <option></option>
+            @foreach(\App\Models\User::all() as $staff)
+                <option value="{{$staff->id}}" {{$client->staff_id == $staff->id ? 'selected' : ''}}>
+                    {{$staff->first_name}} {{$staff->last_name}}
+                </option>
+            @endforeach
+        </select>
+    </div>
+</div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default pull-left"

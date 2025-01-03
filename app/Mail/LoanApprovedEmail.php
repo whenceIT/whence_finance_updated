@@ -44,7 +44,7 @@ class LoanApprovedEmail extends Mailable
         $body = Setting::where('setting_key', 'loan_approved_email_template')->first()->setting_value;
         $body = str_replace('{clientName}', $clientName, $body);
         $body = str_replace('{loanNumber}', $this->loan->id, $body);
-        $body = str_replace('{approvedAmount}', $this->loan->approved_amount, $body);
+        $body = str_replace('{approvedAmount}', number_format($this->loan->approved_amount, 2), $body);
         $companyLogo = '<a href="' . Setting::where('setting_key',
                 'company_website')->first()->setting_value . '"><img src="' . asset('uploads/' . Setting::where('setting_key',
                     'company_logo')->first()->setting_value) . '" height="150"/></a>';

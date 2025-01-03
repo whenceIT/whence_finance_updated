@@ -7,43 +7,46 @@
         <div class="col-md-12">
             <div class="panel ">
                 <div class="panel-heading">
-                    <h6 class="panel-title">{{$loan->loan_product->name}}(#{{$loan->id}})
-                        @if($loan->defaulted == 'yes')
+		    <h6 class="panel-title">{{$loan->loan_product->name}}(#{{$loan->id}})
+ @if($loan->defaulted == 'yes')
                         <span style="color: red;">(Defaulted)</span>
                         @endif
-                    </h6>
+</h6>
 
                     <div class="heading-elements">
 
                     </div>
                 </div>
-                <div class="panel-body">
+		<div class="panel-body">
+
+   @if($loan->status=="closed")
+                <div class="row">
+                        <div class="col-md-12">
+                            <div class="pull-right btn-group">
+                                <a href="{{ url('loan/'.$loan->id.'/print_statement') }}"
+                                           class="btn btn-primary"><i
+                                                    class="fa fa-paperclip"></i>Print Statement
+                                </a>
+                            </div>
+                        </div>
+                </div>
+		@endif
+
+
                     @if($loan->status=="pending")
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="pull-right btn-group">
-                                <?php
-                                  $todaysDate = date('Y-m-d');
-                                ?>   
-                                @if($todaysDate > $loan->created_date)
-                                @if(Sentinel::hasAccess('payroll'))
-                                @if(Sentinel::hasAccess('loans.approve'))
+                                    @if(Sentinel::hasAccess('loans.approve'))
                                         <a href="#" data-toggle="modal" data-target="#approve_loan_modal"
                                            class="btn btn-primary"><i
                                                     class="fa fa-check"></i>&nbsp;{{trans_choice('general.approve',1)}}
                                         </a>
-
                                         <a href="#" data-toggle="modal" data-target="#decline_loan_modal"
                                            class="btn btn-primary"><i
                                                     class="fa fa-times"></i>&nbsp;{{trans_choice('general.decline',1)}}
                                         </a>
                                     @endif
-                                @endif
-                                @else
-
-                                @endif
-                                                                    
-                        
                                     @if(Sentinel::hasAccess('loans.update'))
                                         <a href="{{ url('loan/'.$loan->id.'/edit') }}" class="btn btn-primary"><i
                                                     class="fa fa-edit"></i>&nbsp;{{trans_choice('general.edit',1)}}</a>
@@ -109,7 +112,7 @@
                                         <td>
                                         <span class="padded-td">
                                               @if(!empty($loan->currency))
-                                                {{$loan->currency->name}} 
+                                                {{$loan->currency->name}}
                                             @endif
                                         </span>
                                         </td>
@@ -395,16 +398,20 @@
                                     <form method="post" action="{{url('loan/'.$loan->id.'/disburse')}}"
                                           class="form-horizontal "
                                           enctype="multipart/form-data" id="disburse_loan_form">
-                                        {{csrf_field()}}
+					{{csrf_field()}}
+  <?php
+                                             $todaysDate = date('Y-m-d');
+                                             $new_date = date('Y-m-d',strtotime($todaysDate. '+ 1 month'));
+                                            ?>
                                         <div class="modal-body">
                                             <div class="form-group">
                                                 <label for="disbursement_date"
                                                        class="control-label col-md-4">{{trans_choice('general.disbursement',1)}} {{trans_choice('general.date',1)}}</label>
                                                 <div class="col-md-8">
                                                     <input type="text" name="disbursement_date"
-                                                           class="form-control date-picker"
-                                                           value="{{$loan->expected_disbursement_date}}"
-                                                           required id="disbursement_date">
+                                                           class="form-control"
+                                                           value="{{$todaysDate}}"
+                                                           required id="disbursement_date" readonly>
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -412,9 +419,9 @@
                                                        class="control-label col-md-4">{{trans_choice('general.first',1)}} {{trans_choice('general.repayment',1)}} {{trans_choice('general.date',1)}}</label>
                                                 <div class="col-md-8">
                                                     <input type="text" name="first_repayment_date"
-                                                           class="form-control date-picker"
-                                                           value="{{$loan->expected_first_repayment_date}}"
-                                                           required id="first_repayment_date">
+                                                           class="form-control"
+                                                           value="{{$new_date}}"
+                                                           required id="first_repayment_date" readonly>
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -520,6 +527,7 @@
 
                     @endif
                     @if($loan->status=="disbursed")
+
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="pull-right btn-group">
@@ -544,6 +552,15 @@
                                            data-toggle="modal" data-target="#add_charge_modal"
                                            class="btn btn-primary"><i
                                                     class="fa fa-plus"></i>&nbsp;{{trans_choice('general.add',1)}} {{trans_choice('general.charge',1)}}
+                                        </a>
+					@endif
+
+					  @if(Sentinel::hasAccess('loans.charge.create'))
+                                        <a href="#"
+                                           data-toggle="modal" data-target="#add_top_up"
+                                           class="btn btn-primary"><i
+                                                    class="fa fa-plus"></i>&nbsp;Add Top-Up
+                                      
                                         </a>
                                     @endif
 
@@ -590,7 +607,13 @@
                                         @if(Sentinel::hasAccess('loans.email_schedule'))
                                             <li>
                                                 <a href="{{ url('loan/'.$loan->id.'/email_schedule') }}" class="delete">
-                                                    {{ trans_choice('general.email',1) }} {{ trans_choice('general.schedule',1) }}</a>
+                                                    {{ trans_choice('general.email',1) }} {{ trans_choice('general.schedule',1) }} </a>
+                                            </li>
+					    @endif
+					    @if(Sentinel::hasAccess('loans.email_schedule'))
+                                            <li>
+                                                <a href="{{ url('loan/'.$loan->id.'/email_statement') }}" class="delete">
+                                                    {{ trans_choice('general.email',1) }} {{ trans_choice('general.statement',1) }}</a>
                                             </li>
                                         @endif
                                         @if(Sentinel::hasAccess('loans.pdf_schedule'))
@@ -610,7 +633,7 @@
                                             <li>
                                                 <a href="{{ url('loan/'.$loan->id.'/print_statement') }}"
                                                    target="_blank">
-                                                    {{ trans_choice('general.loan',1) }} {{ trans_choice('general.statement',1) }}</a>
+                                                    {{ trans_choice('general.loan',1) }} {{ trans_choice('general.statement',1) }} </a>
                                             </li>
                                         @endif
                                         @if(Sentinel::hasAccess('loans.write_off'))
@@ -622,7 +645,7 @@
                                         @if(Sentinel::hasAccess('loans.close'))
                                             <li class="hidden">
                                                 <a href="#" data-toggle="modal" data-target="#close_loan_modal">
-                                                    {{ trans_choice('general.close',1) }} </a> 
+                                                    {{ trans_choice('general.close',1) }} </a>
                                             </li>
                                         @endif
 
@@ -632,9 +655,9 @@
                                                    data-toggle="modal" data-target="#withdraw_loan_modal">
                                                     Terminate</a>
                                             </li>
-                                        @endif
+					    @endif
 
-                                        @if(Sentinel::hasAccess('loans.waive_interest'))
+					         @if(Sentinel::hasAccess('loans.waive_interest'))
                                             <li>
                                                <a href="{{ url('loan/'.$loan->id.'/set_defaulted') }}">
                                                 Defaulted
@@ -679,7 +702,11 @@
                                 $amount_in_arrears = 0;
                                 $amount_due = 0;
                                 $amount_paid = 0;
-                                $late_count = 0;
+				$late_count = 0;
+				 $new_balance = 0;
+                                $debit_amount = 0;
+                                $credit_amount = 0;
+                                $arrears_amount = 0;
                                 foreach (\App\Models\LoanRepaymentSchedule::where('loan_id', $loan->id)->where('due_date', '<', date("Y-m-d"))->orderBy('due_date', 'asc')->get() as $schedule) {
                                     $total_repayments = $total_repayments + 1;
                                     $amount_in_arrears = $amount_in_arrears + (($schedule->principal - $schedule->principal_waived - $schedule->principal_written_off - $schedule->principal_paid) + ($schedule->interest - $schedule->interest_waived - $schedule->interest_written_off - $schedule->interest_paid) + ($schedule->fees - $schedule->fees_waived - $schedule->fees_written_off - $schedule->fees_paid) + ($schedule->penalty - $schedule->penalty_waived - $schedule->penalty_written_off - $schedule->penalty_paid));
@@ -695,16 +722,40 @@
                                         }
                                     }
 
-                                }
-                                if ($amount_in_arrears > 0) {
-                                    $date1 = new DateTime($overdue_date);
-                                    $date2 = new DateTime(date("Y-m-d"));
-                                    $days_in_arrears = $date2->diff($date1)->format("%a");
-                                }
+				}
+
+
+				                if ($amount_in_arrears > 0) {
+                    $date1 = new DateTime($overdue_date);
+                    $date2 = new DateTime(date("Y-m-d"));
+                    $days_in_arrears = $date2->diff($date1)->format("%a");
+
+}
+
+
+				foreach (\App\Models\LoanTransaction::where('loan_id', $loan->id)->get() as $transaction) {
+                            $debit_amount = $debit_amount + $transaction->debit;
+                            $credit_amount = $credit_amount + $transaction->credit;
+                            $new_balance = $debit_amount - $credit_amount;
+			    //$new_amount = $transaction->debit;
+			        if($transaction->payment_apply_to == 'reloan_payment'){
+                            $days_in_arrears = 0;
+                            //$reloansCount = $reloansCount + 1;
+                         }
+
+                        }
+
+                               
+
+ if($loan->expected_first_repayment_date < date("Y-m-d")){
+                            $arrears_amount = $new_balance;
+                        }
+
+
                                 ?>
                                 <h4 class="">{{ trans_choice('general.current',1) }} {{ trans_choice('general.balance',1) }}
                                     :
-                                    <b>{{number_format(($loan_allocation["principal"]-$loan_allocation["principal_paid"]-$loan_allocation["principal_waived"]-$loan_allocation["principal_written_off"])+($loan_allocation["interest"]-$loan_allocation["interest_paid"]-$loan_allocation["interest_waived"]-$loan_allocation["interest_written_off"])+($loan_allocation["fees"]-$loan_allocation["fees_paid"]-$loan_allocation["fees_waived"]-$loan_allocation["fees_written_off"])+($loan_allocation["penalty"]-$loan_allocation["penalty_paid"]-$loan_allocation["penalty_waived"]-$loan_allocation["penalty_written_off"]),$decimals)}}</b>
+                                    <b>{{number_format(($new_balance),$decimals)}}</b>
                                 </h4>
                                 <h4 class="">
                                     {{ trans_choice('general.timely',1) }} {{ trans_choice('general.repayment',2) }}:
@@ -717,7 +768,7 @@
                                 <h4 class="">
                                     {{ trans_choice('general.amount',1) }} {{ trans_choice('general.in',1) }} {{ trans_choice('general.arrears',1) }}
                                     :
-                                    <b>{{number_format($amount_in_arrears,$decimals)}}</b>
+                                    <b>{{number_format($arrears_amount,$decimals)}}</b>
                                 </h4>
                                 <h4 class="">
                                     {{ trans_choice('general.day',2) }} {{ trans_choice('general.in',1) }} {{ trans_choice('general.arrears',1) }}
@@ -1186,11 +1237,11 @@
                                         aria-expanded="false">{{trans_choice('general.document',2)}}</a>
                         </li>
                     @endif
-                  
+                    @if(Sentinel::hasAccess('loans.documents.view'))
                         <li class=""><a href="#collateral" data-toggle="tab"
                                         aria-expanded="false">{{trans_choice('general.collateral',1)}}</a>
                         </li>
-                 
+                    @endif
                     @if(Sentinel::hasAccess('loans.guarantors.view'))
                         <li class=""><a href="#guarantors" data-toggle="tab"
                                         aria-expanded="false">{{trans_choice('general.guarantor',2)}}</a>
@@ -1413,16 +1464,16 @@
                             </div>
                         </div>
                     @endif
-                   
+                    @if(Sentinel::hasAccess('loans.collateral.view'))
                         <div class="tab-pane" id="collateral">
                             <div class="row">
                                 <div class="col-md-12">
-                                
+                                    @if(Sentinel::hasAccess('loans.collateral.create'))
                                         <a href="#add_collateral_modal"
                                            data-toggle="modal" class="btn btn-info pull-right"><i
-                                                    class="fa fa-plus"></i>{{trans_choice('general.add',1)}} {{trans_choice('general.collateral',1)}}
+                                                    class="fa fa-plus"></i> {{trans_choice('general.add',1)}} {{trans_choice('general.collateral',1)}}
                                         </a>
-                               
+                                    @endif
                                 </div>
                                 <div class="col-md-12 table-responsive">
                                     <table class="table table-hover table-striped" id="">
@@ -1449,11 +1500,11 @@
                                                 <td>
                                                     <a data-id="{{$key->id}}" href="#" data-toggle="modal"
                                                        data-target="#view_collateral"><i class="fa fa-eye"></i> </a>
-                                                   
+                                                    @if(Sentinel::hasAccess('loans.collateral.update'))
                                                         <a data-id="{{$key->id}}" href="#" data-toggle="modal"
                                                            data-target="#edit_collateral"><i class="fa fa-edit"></i>
                                                         </a>
-                                                 
+                                                    @endif
                                                     @if(Sentinel::hasAccess('loans.collateral.delete'))
                                                         <a class="confirm"
                                                            href="{{url('loan/collateral/'.$key->id.'/delete')}}"><i
@@ -1467,7 +1518,7 @@
                                 </div>
                             </div>
                         </div>
-              
+                    @endif
                     @if(Sentinel::hasAccess('loans.guarantors.view'))
                         <div class="tab-pane" id="guarantors">
                             <div class="row">
@@ -1876,6 +1927,9 @@
                                                             @endif
                                                             @if($key->transaction_type=='interest')
                                                                 {{trans_choice('general.interest',1)}} {{trans_choice('general.applied',2)}}
+								@endif
+								 @if($key->transaction_type=='interest_initial')
+                                                                {{trans_choice('general.interest',1)}} {{trans_choice('general.applied',2)}}
                                                             @endif
                                                             @if($key->transaction_type=='repayment')
                                                                 {{trans_choice('general.repayment',1)}}
@@ -1938,17 +1992,12 @@
                                                                         <li>
                                                                     @endif
                                                                     @if($key->transaction_type=='repayment' || $key->payment_apply_to == 'part_payment' || $key->payment_apply_to == 'reloan_payment')
-                                                                        <!-- <li>
-                                                                            <a href="{{url('loan/transaction/'.$key->id.'/print')}}"
-                                                                               target="_blank"><i
-                                                                                        class="fa fa-print"></i> {{ trans_choice('general.print',1) }} {{trans_choice('general.receipt',1)}}
-                                                                            </a></li> -->
+                                                                     
                                                                         <li>
                                                                             <a href="{{url('loan/transaction/'.$key->id.'/pdf')}}"
                                                                                target="_blank"><i
-                                                                                        class="fa fa-file-pdf-o"></i>{{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
+                                                                                        class="fa fa-file-pdf-o"></i> {{ trans_choice('general.pdf',1) }} {{trans_choice('general.receipt',1)}}
                                                                             </a></li>
-                                                                 
                                                                     @endif
                                                                     
                                                                     
@@ -2258,7 +2307,51 @@
 
 
 
-
+   
+                <!-- New add top up modal -->
+                <div class="modal fade" id="add_top_up">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span></button>
+                                        <h4 class="modal-title">Add Top-Up (This feature is still in testing. Use with caution!)</h4>
+                                    </div>
+                                    <form method="post" action="{{url('loan/'.$loan->id.'/topup/update')}}"
+                                          class="form-horizontal "
+                                          enctype="multipart/form-data" id="add_charge_form">
+                                        {{csrf_field()}}
+					<div class="modal-body">
+  <div class="form-group">
+                                                <label for="top_up_date"
+                                                       class="control-label col-md-3">Date</label>
+                                                <div class="col-md-9">
+                                                    <input type="text" name="top_up_date"
+                                                           class="form-control date-picker"
+                                                           value="{{date("Y-m-d")}}"
+                                                           required id="top_up_date">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="charge_amount"
+                                                       class="control-label col-md-3">{{trans_choice('general.amount',1)}}</label>
+                                                <div class="col-md-9">
+                                                    <input type="number" name="amount" class="form-control"
+                                                           value=""
+                                                           required id="amount">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default pull-left"
+                                                    data-dismiss="modal">{{trans_choice('general.close',1)}}</button>
+                                            <button type="submit"
+                                                    class="btn btn-primary">{{trans_choice('general.save',1)}}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>   
 
 
 
@@ -2673,7 +2766,39 @@
                                 </select>
                             </div>
                         </div>
-                 
+                        <div class="" id="clients_div" style="">
+                            <div class="form-group">
+                                <label for="guarantor_client_id"
+                                       class="control-label col-md-3">{{trans_choice('general.client',1)}}</label>
+                                <div class="col-md-9">
+                                    <select name="client_id" class="form-control select2" id="guarantor_client_id">
+                                        <option></option>
+                                        @foreach(\App\Models\Client::where('status', 'active')->get() as $key)
+                                            <option value="{{$key->id}}">
+                                                @if($key->client_type=="individual")
+                                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                                    ({{$key->account_no}})
+                                                @else
+                                                    {{$key->full_name}} ({{$key->account_no}}
+                                                    )
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="lock_funds"
+                                       class="control-label col-md-3">{{trans_choice('general.lock_funds',1)}}</label>
+                                <div class="col-md-9">
+                                    <select name="lock_funds" class="select2 form-control"
+                                            id="lock_funds">
+                                        <option value="0" selected>{{trans_choice('general.no',1)}}</option>
+                                        <option value="1">{{trans_choice('general.yes',1)}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label for="client_relationship_id"
                                    class="control-label col-md-3">{{trans_choice('general.relationship',1)}}</label>
@@ -2968,3 +3093,4 @@ function sum() {
 </script>
 
 @endsection
+

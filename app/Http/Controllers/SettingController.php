@@ -56,6 +56,12 @@ class SettingController extends Controller
         return view('setting.organisation');
     }
 
+       public function fail_safe()
+    {
+        return view('setting.fail_safe');
+    }
+
+
     /**
      * Store a newly created resource in storage.
      *

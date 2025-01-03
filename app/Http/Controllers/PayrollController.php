@@ -17,6 +17,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Models\NewPayroll;
 use App\Models\UserRole;
+use App\Models\Loan;
 use Illuminate\Support\Facades\View;
 use PDF;
 use Excel;
@@ -87,6 +88,43 @@ class PayrollController extends Controller
 
 
 
+    public function lc_information(Request $request){
+	      $user = Sentinel::getUser();
+        $user_role = $user->role->role_id;
+        $user_branch = $user->office_id;
+        $user_province = $user->office->province_id;
+	$branch = $request->office_id;
+	$targetDate = $request->cycle;
+        $compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
+        $userLoans = [];
+        $loanConsultants = [];
+        if(empty($branch)){
+            $users = [];
+        }else{
+            $users = User::where('office_id',$branch)->with('role')->get();
+        }
+
+        foreach($users as $user){
+            if($user->role->role_id == '3'){
+                array_push($loanConsultants,$user);
+                $loans = Loan::with('transactions')->where('loan_officer_id',$user->id)->get();
+                foreach($loans as $loan){
+                    array_push($userLoans,$loan);
+                }
+
+            }
+
+
+        }
+        return view('payroll.lc_information',compact('loanConsultants','userLoans','branch','user_role','user_branch','user_province','compareDate','targetDate',));
+    }
+
+
+      public function lc_info(Request $request, $user){
+
+        $loans = Loan::with('transactions')->where('loan_officer_id',$user->id)->get();
+        return(view('payroll.lc_detail',compact('user','loans',)));
+    }
     
     public function pdfPayslipOld($payroll)
     {

@@ -19,7 +19,29 @@
                 <a href="{{ url('dashboard') }}">
                     <i class="fa fa-dashboard"></i> <span>{{trans_choice('general.dashboard',1)}}</span>
                 </a>
-            </li>
+	    </li>
+@if(Sentinel::hasAccess('reports.client_reports'))
+                <li class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
+                    <a href="#">
+                        <i class="fa fa-dashboard"></i> <span>Ledger</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>    
+                    <ul class="treeview-menu">
+                        @if(Sentinel::hasAccess('groups.create'))
+                            <li>
+                                <a href="{{ route('ledger.summary') }}"><i class="fa fa-circle-o"></i> General Ledger</a>
+                            </li> 
+                        @endif
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('ledger.transactions') }}"><i class="fa fa-circle-o"></i>Branch Ledgers</a>
+                        </li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
 
 
 
@@ -31,7 +53,7 @@
                                             $office_id = Sentinel::getUser()->office_id;
                                             ?>
                           @if(Sentinel::hasAccess('settings'))
-                        <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() + \App\Models\Loan::where('status','pending')->where('office_id',$office_id)->count() + \App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() + \App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>
+                        <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() + \App\Models\Loan::where('status','pending')->count() + \App\Models\Client::where('status','pending')->count() + \App\Models\LoanTransactionUnapproved::count() + \App\Models\Advance::where('status','pending')->count() + \App\Models\TopUp::where('status','pending')->count() + \App\Models\Leave::where('status', 'pending')->count() + \App\Models\WaiverTransactionUnapproved::where('status', 'pending')->count() +  \App\Models\ChargeTransactionUnapproved::where('status', 'pending')->count()  }}</span>
 
                       @else
                         <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>
@@ -71,11 +93,47 @@
                                             $office_id = Sentinel::getUser()->office_id;
                                             ?>
 @if(Sentinel::hasAccess('settings'))
-                                <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>
+                                <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() }}</span>
                                 @else
                                 <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>
                                 @endif
                                     </span>
+                                </a>
+
+                            </li>
+			    @endif
+			    <!--------------waiver approvals---------------->
+                        @if(Sentinel::hasAccess('expenses'))
+                            <li><a href="{{ route('loan.waiver_approvals') }}"><i class="fa fa-circle-o"></i> Waiver Approvals
+                                            <span class="pull-right-container">
+                                            <?php
+                                            $office_id = Sentinel::getUser()->office_id;
+                                            ?>
+@if(Sentinel::hasAccess('settings'))
+                                <span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->count()}}</span>
+                                @else
+                                <span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>
+                                @endif
+                                    </span>
+                                </a>
+
+                            </li>
+                        @endif
+
+
+                        @if(Sentinel::hasAccess('expenses'))
+                            <li><a href="{{ route('loan.charge_approvals') }}"><i
+                                            class="fa fa-circle-o"> </i> Charge Approvals
+                                            <span class="pull-right-container">
+                                            <?php
+                                            $office_id = Sentinel::getUser()->office_id;
+                                            ?>
+@if(Sentinel::hasAccess('settings'))
+                                <span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->count()}}</span>
+                                @else
+                                <span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>
+                                @endif
+                                </span>
                                 </a>
 
                             </li>
@@ -88,12 +146,23 @@
                                     <span class="pull-right-container">
                                     <?php
                                             $office_id = Sentinel::getUser()->office_id;
-                                            ?>
+?>
+@if(Sentinel::hasAccess('settings'))
+					<span class="label label-warning pull-right">{{\App\Models\Loan::where('status','pending')->count() }}</span>
+@else
                                         <span class="label label-warning pull-right">{{\App\Models\Loan::where('status','pending')->where('office_id',$office_id)->count() }}</span>
+                                        @endif
                                     </span>
                                 </a>
                             </li>
-                        @endif
+			    @endif
+
+
+
+                   
+              
+                   
+
 
 
                         @if(Sentinel::hasAccess('expenses'))
@@ -102,10 +171,103 @@
                                             <span class="pull-right-container">
                                             <?php
                                             $office_id = Sentinel::getUser()->office_id;
-                                            ?>
+?>
+@if(Sentinel::hasAccess('settings'))
+					    <span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->count() }}</span>
+@else
                                             <span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</span>
+                                            @endif
                                     </span>
                                 </a></li>
+				@endif
+				@if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('advances.pending_approvals') }}">
+                                <i class="fa fa-circle-o"></i> Advances Pending Approvals
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    $pendingApprovalsCount = 0;
+                                    if ($user->hasAccess('groups.create')) {
+                                        $pendingApprovalsCount = \App\Models\Advance::where('status', 'pending')->count();
+                                    } elseif ($user->hasAccess('offices')) {
+                                        $office_id = $user->office_id;
+                                        $pendingApprovalsCount = \App\Models\Advance::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count();
+                                    } else {
+                                        $userOffice = $user->office;
+                                        $provinceId = $userOffice->province_id;
+                                        $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
+                                        $pendingApprovalsCount = \App\Models\Advance::whereIn('office_id', $provinceOffices)
+                                            ->where('status', 'pending')
+                                            ->count();
+                                    }
+                                    ?>
+                                  <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span>   
+                                </span>
+                            </a>
+                        </li>
+			@endif
+			@if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('advances.topups_pending_approval') }}">
+                                <i class="fa fa-circle-o"></i> Advance-TopUps Approvals
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    $pendingApprovalsCount = 0;
+                                    if ($user->hasAccess('groups.create')) {
+                                        $pendingApprovalsCount = \App\Models\TopUp::where('status', 'pending')->count();
+                                    } elseif ($user->hasAccess('offices')) {
+                                        $office_id = $user->office_id;
+                                        $pendingApprovalsCount = \App\Models\TopUp::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count();
+                                    } else {
+                                        $userOffice = $user->office;
+                                        $provinceId = $userOffice->province_id;
+                                        $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
+                                        $pendingApprovalsCount = \App\Models\TopUp::whereIn('office_id', $provinceOffices)
+                                            ->where('status', 'pending')
+                                            ->count();
+                                    }
+                                    ?>
+                                  <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span>
+                                </span>
+                            </a>
+                        </li>
+                        @endif
+		
+		
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('leave.pending_leave_approvals') }}">
+                                <i class="fa fa-circle-o"></i> Pending Leave Approvals
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    $pendingApprovalsCount = 0;
+                                    if ($user->hasAccess('groups.create')) {
+                                        $pendingApprovalsCount = \App\Models\Leave::where('status', 'pending')->count();
+                                    } elseif ($user->hasAccess('offices')) {
+                                        $office_id = $user->office_id;
+                                        $pendingApprovalCount = \App\Models\Leave::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count();
+                                    } else {
+                                        $userOffice = $user->office;
+                                        $provinceId = $userOffice->province_id;
+                                        $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
+                                        $pendingApprovalsCount = \App\Models\Leave::whereIn('office_id', $provinceOffices)
+                                            ->where('status', 'pending')
+                                            ->count();
+                                    }
+                                    ?>
+                                    <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span> 
+                                </span>
+                            </a>
+                        </li>
                         @endif
 
                     </ul>
@@ -113,13 +275,89 @@
             @endif
 
 
-            @if(Sentinel::hasAccess('expenses'))
+      @if(Sentinel::hasAccess('settings'))
+                <li class="treeview @if(Request::is('setting/*')) active @endif">
+                    <a href="#">
+                        <i class="fa fa-money"></i> <span>Payroll Loan Applications</span>
+                        <span class="pull-right-container">
+                    <span class="label label-info pull-right">{{\App\Models\PayrollApplicant::count()}}</span>
+                        </span>
+                    </a>
+              
+                    <ul class="treeview-menu">
+                        @if(Sentinel::hasAccess('settings.general.view'))
+                            <li><a href="{{ url('loan/payroll_loan/pending_list') }}"><i
+                                            class="fa fa-circle-o"></i> Pending approval
+                                            <span class="pull-right-container">
+                                        <span class="label label-info pull-right">{{\App\Models\PayrollApplicant::where('status','pending')->count() }}</span>
+                                    </span>
+                                </a></li>
+                        @endif
+                        @if(Sentinel::hasAccess('settings.organisation.view'))
+                            <li><a href="{{ url('loan/payroll_loan/approved_list') }}"><i
+                                            class="fa fa-circle-o"></i> Approved
+                                            <span class="pull-right-container">
+                                        <span class="label label-info pull-right">{{\App\Models\PayrollApplicant::where('status','approved')->count() }}</span>
+                                    </span>
+                        @endif
+
+                        @if(Sentinel::hasAccess('settings.organisation.view'))
+                            <li><a href="{{ url('loan/payroll_loan/declined_list') }}"><i
+                                            class="fa fa-circle-o"></i> Declined
+                                            <span class="pull-right-container">
+                                        <span class="label label-info pull-right">{{\App\Models\PayrollApplicant::where('status','declined')->count() }}</span>
+                                    </span>
+                                </a></li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
+
+
+
+
+
+
+           <li class="treeview @if(Request::is('setting/*')) active @endif">
+                    <a href="#">
+                    <i class="fa fa-clock-o"></i><span>Collections</span>
+                    </a>
+              
+                    <ul class="treeview-menu">
+                    @if(Sentinel::hasAccess('expenses'))
                 <li class="">
-                    <a href="{{ url('loan/collections') }}">
-                        <i class="fa fa-clock-o"></i> <span>Collections</span>
+                    <a href="{{ url('loan/new_collections') }}">
+                      <span>Collections</span>
                     </a>
                 </li>
             @endif
+
+            @if(Sentinel::hasAccess('expenses'))
+                <li class="">
+                    <a href="{{ url('loan/expected_collections') }}">
+                       <span>Expected collections</span>
+                    </a>
+                </li>
+            @endif
+
+                    <li class="">
+                    <a href="{{ url('loan/my_collections') }}">
+                        <span>My Collections</span>
+                    </a>
+                </li>
+
+
+                     
+                <li class="">
+                    <a href="{{ url('loan/my_expected_collections') }}">
+                         <span>My Expected Collections</span>
+                    </a>
+                </li>
+           
+
+                    </ul>
+                </li>
+
 
 
             @if(Sentinel::hasAccess('clients'))
@@ -181,9 +419,9 @@
                         @if(Sentinel::hasAccess('clients.view'))
                             <li><a href="{{ url('client/data') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.client',2)}}
-                                    <span class="pull-right-container">
+                                   <!-- <span class="pull-right-container">
                                         <span class="label label-info pull-right">{{\App\Models\Client::where('status','active')->count() }}</span>
-                                    </span>
+                                    </span>-->
                                 </a></li>
                         @endif
                         @if(Sentinel::hasAccess('clients.my_clients'))
@@ -285,9 +523,9 @@
                         @if(Sentinel::hasAccess('loans.view'))
                             <li><a href="{{ url('loan/data') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.active',2)}} {{trans_choice('general.loan',2)}}
-                                    <span class="pull-right-container">
+                                   <!-- <span class="pull-right-container">
                                         <span class="label label-info pull-right">{{\App\Models\Loan::where('status','disbursed')->count() }}</span>
-                                    </span>
+                                    </span>-->
                                 </a></li>
                         @endif
 
@@ -359,9 +597,9 @@
                             <li>
                                 <a href="{{ url('loan/loans_closed') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.loan',2)}} {{trans_choice('general.closed',1)}}
-                                    <span class="pull-right-container">
+                                   <!-- <span class="pull-right-container">
                                         <span class="label label-success pull-right">{{\App\Models\Loan::where('status','closed')->count() }}</span>
-                                    </span>
+                                    </span>-->
                                 </a>
                             </li>
                         @endif
@@ -458,45 +696,11 @@
                         @endif
                     </ul>
                 </li>
-            @endif
-            @if(Sentinel::hasAccess('savings'))
-                <li class="treeview @if(Request::is('savings/*')) active @endif">
-                    <a href="#">
-                        <i class="fa fa-bank"></i> <span>{{trans_choice('general.savings',2)}}</span>
-                        <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
-                    </a>
-                    <ul class="treeview-menu">
-                        @if(Sentinel::hasAccess('savings.view'))
-                            <li><a href="{{ url('savings/data') }}"><i
-                                            class="fa fa-circle-o"></i> {{trans_choice('general.active',2)}} {{trans_choice('general.savings',2)}}
-                                </a></li>
-                        @endif
-                        @if(Sentinel::hasAccess('savings.pending_approval'))
-                            <li><a href="{{ url('savings/pending_approval') }}"><i
-                                            class="fa fa-circle-o"></i> {{trans_choice('general.pending',2)}} {{trans_choice('general.approval',1)}}
-                                </a></li>
-                        @endif
-                        @if(Sentinel::hasAccess('savings.closed'))
-                            <li><a href="{{ url('savings/savings_closed') }}"><i
-                                            class="fa fa-circle-o"></i> {{trans_choice('general.closed',2)}} {{trans_choice('general.savings',2)}}
-                                </a></li>
-                        @endif
-                        @if(Sentinel::hasAccess('savings.create'))
-                            <li><a href="{{ url('savings/create') }}"><i
-                                            class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.savings',2)}} {{trans_choice('general.account',1)}}
-                                </a></li>
-                        @endif
-                        @if(Sentinel::hasAccess('products.savings_products.view'))
-                            <li><a href="{{ url('savings/product/data') }}"><i
-                                            class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.savings',2)}} {{trans_choice('general.product',2)}}
-                                </a></li>
-                        @endif
+		@endif
 
-                    </ul>
-                </li>
-            @endif
+
+
+
             @if(Sentinel::hasAccess('reports'))
                 <li class="treeview @if(Request::is('report/*')) active @endif">
                     <a href="#">
@@ -541,6 +745,260 @@
                 </li>
             @endif
 
+ @if(Sentinel::hasAccess('reports'))
+                <li class="treeview @if(Request::is('advances/*')) active menu-open @endif">
+                    <a href="#">
+                        <i class="fa fa-money"></i> <span>Advances</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>    
+                    <ul class="treeview-menu">
+                        @if(Sentinel::hasAccess('reports.loan_reports'))
+                            <li>
+                                <a href="{{ route('advances.apply') }}"><i class="fa fa-circle-o"></i> Apply for Advance</a>
+                            </li> 
+                        @endif
+                        @if(Sentinel::hasAccess('reports.loan_reports'))
+                        <li>
+                            <a href="{{ route('advances.my_advances') }}"><i class="fa fa-circle-o"></i> My Advances</a>
+                        </li>
+                        @endif
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('advances.active_advances') }}">
+                                <i class="fa fa-circle-o"></i> Active Advances
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    if ($user->hasAccess('groups.create')) {
+                                        $activeAdvancesCount = \App\Models\Advance::where('status', 'approved')->count();
+                                    } elseif ($user->hasAccess('offices')) {
+                                        $office_id = $user->office_id;
+                                        $activeAdvancesCount = \App\Models\Advance::where('status', 'approved')
+                                            ->where('office_id', $office_id)
+                                            ->count();
+                                    } else {
+                                        $userOffice = $user->office;
+                                        $provinceId = $userOffice->province_id;
+                                        $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
+                                        $activeAdvancesCount = \App\Models\Advance::whereIn('office_id', $provinceOffices)
+                                            ->where('status', 'approved')
+                                            ->count();
+                                    }
+                                    ?>
+                                    <span class="label label-warning pull-right">{{ $activeAdvancesCount }}</span>
+                                </span>
+                            </a>
+                        </li>
+                        @endif
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('advances.pending_approvals') }}">
+                                <i class="fa fa-circle-o"></i> Pending Approvals
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    $pendingApprovalsCount = 0;
+                                    if ($user->hasAccess('groups.create')) {
+                                        $pendingApprovalsCount = \App\Models\Advance::where('status', 'pending')->count();
+                                    } elseif ($user->hasAccess('offices')) {
+                                        $office_id = $user->office_id;
+                                        $pendingApprovalsCount = \App\Models\Advance::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count();
+                                    } else {
+                                        $userOffice = $user->office;
+                                        $provinceId = $userOffice->province_id;
+                                        $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
+                                        $pendingApprovalsCount = \App\Models\Advance::whereIn('office_id', $provinceOffices)
+                                            ->where('status', 'pending')
+                                            ->count();
+                                    }
+                                    ?>
+                                    <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span> 
+                                </span>
+                            </a>
+                        </li>
+			@endif
+			@if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('advances.topups_pending_approval') }}">
+                                <i class="fa fa-circle-o"></i> TopUps Pending Approval
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    $pendingApprovalsCount = 0;
+                                    if ($user->hasAccess('groups.create')) {
+                                        $pendingApprovalsCount = \App\Models\TopUp::where('status', 'pending')->count();
+                                    } elseif ($user->hasAccess('offices')) {
+                                        $office_id = $user->office_id;
+                                        $pendingApprovalsCount = \App\Models\TopUp::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count();
+                                    } else {
+                                        $userOffice = $user->office;
+                                        $provinceId = $userOffice->province_id;
+                                        $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
+                                        $pendingApprovalsCount = \App\Models\TopUp::whereIn('office_id', $provinceOffices)
+                                            ->where('status', 'pending')
+                                            ->count();
+                                    }
+                                    ?>
+                                    <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span>
+                                </span>
+                            </a>
+                        </li>
+                        @endif
+		
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('advances.declined_advances') }}">
+                                <i class="fa fa-circle-o"></i> Declined Advances
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    if ($user->hasAccess('groups.create')) {
+                                        $declinedAdvancesCount = \App\Models\Advance::where('status', 'declined')->count();
+                                    } else {
+                                        $office_id = $user->office_id;
+                                        $declinedAdvancesCount = \App\Models\Advance::where('status', 'declined')->where('office_id', $office_id)->count();
+                                    }
+                                    ?>
+                                    <span class="label label-warning pull-right">{{ $declinedAdvancesCount }}</span>
+                                </span>   
+                            </a>
+                        </li>
+                        @endif
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('advances.closed_advances') }}">
+                                <i class="fa fa-circle-o"></i> Closed Advances
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    if ($user->hasAccess('groups.create')) {
+                                        $closedAdvancesCount = \App\Models\Advance::where('status', 'closed')->count();
+                                    } else {
+                                        $office_id = $user->office_id;
+                                        $closedAdvancesCount = \App\Models\Advance::where('status', 'closed')->where('office_id', $office_id)->count();
+                                    }
+                                    ?>
+                                    <span class="label label-warning pull-right">{{ $closedAdvancesCount }}</span>
+                                </span>   
+                            </a>
+                        </li>
+                        @endif
+                    </ul>
+                </li>
+		@endif
+
+		            @if(Sentinel::hasAccess('reports'))
+                <li class="treeview @if(Request::is('leave/*')) active menu-open @endif">
+                    <a href="#">
+                        <i class="fa fa-user"></i> <span>Annual Leave</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        @if(Sentinel::hasAccess('reports.loan_reports'))
+                            <li>
+                                <a href="{{ route('leave.my_leave_days') }}"><i class="fa fa-circle-o"></i> My Leave Days</a>
+                            </li>
+                        @endif
+
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                            <li>
+                                <a href="{{ route('leave.active_leave') }}">
+                                    <i class="fa fa-circle-o"></i> Active Leave
+                                    <span class="pull-right-container">
+                                        <?php
+                                        $user = Sentinel::getUser();
+                                        $currentDate = \Carbon\Carbon::now()->toDateString();
+                                        $activeLeaveCount = 0;
+
+                                        if ($user->hasAccess('groups.create')) {
+                                            $activeLeaveCount = \App\Models\Leave::where('status', 'approved')
+                                                ->where('commencement_date', '<=', $currentDate)
+                                                ->where('return_date', '>=', $currentDate)
+                                                ->count();
+                                        } elseif ($user->hasAccess('offices')) {
+                                            $office_id = $user->office_id;
+                                            $activeLeaveCount = \App\Models\Leave::where('status', 'approved')
+                                                ->where('office_id', $office_id)
+                                                ->where('commencement_date', '<=', $currentDate)
+                                                ->where('return_date', '>=', $currentDate)
+                                                ->count();
+                                        } else {
+                                            $userOffice = $user->office;
+                                            $provinceId = $userOffice->province_id;
+                                            $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
+                                            $activeLeaveCount = \App\Models\Leave::whereIn('office_id', $provinceOffices)
+                                                ->where('status', 'approved')
+                                                ->where('commencement_date', '<=', $currentDate)
+                                                ->where('return_date', '>=', $currentDate)
+                                                ->count();
+                                        }
+                                        ?>
+                                        <span class="label label-warning pull-right">{{ $activeLeaveCount }}</span>
+                                    </span>
+                                </a>
+                            </li>
+                        @endif
+
+
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('leave.pending_leave_approvals') }}">
+                                <i class="fa fa-circle-o"></i> Pending Leave Approvals
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    $pendingApprovalsCount = 0;
+                                    if ($user->hasAccess('groups.create')) {
+                                        $pendingApprovalsCount = \App\Models\Leave::where('status', 'pending')->count();
+                                    } elseif ($user->hasAccess('offices')) {
+                                        $office_id = $user->office_id;
+                                        $pendingApprovalCount = \App\Models\Leave::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count();
+                                    } else {
+                                        $userOffice = $user->office;
+                                        $provinceId = $userOffice->province_id;
+                                        $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
+                                        $pendingApprovalsCount = \App\Models\Leave::whereIn('office_id', $provinceOffices)
+                                            ->where('status', 'pending')
+                                            ->count();
+                                    }
+                                    ?>
+                                    <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span>
+                                </span>
+                            </a>
+                        </li>
+                        @endif
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                        <li>
+                            <a href="{{ route('leave.declined_leave') }}">
+                                <i class="fa fa-circle-o"></i> Declined Leave
+                                <span class="pull-right-container">
+                                    <?php
+                                    $user = Sentinel::getUser();
+                                    if ($user->hasAccess('groups.create')) {
+                                        $declinedLeaveCount = \App\Models\Leave::where('status', 'declined')->count();
+                                    } else {
+                                        $office_id = $user->office_id;
+                                        $declinedLeaveCount = \App\Models\Leave::where('status', 'declined')->where('office_id', $office_id)->count();
+                                    }
+                                    ?>
+                                    <span class="label label-warning pull-right">{{ $declinedLeaveCount }}</span>
+                                </span>
+                            </a>
+                        </li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
 
 
 
@@ -692,10 +1150,27 @@
                             <li><a href="{{ url('payroll/payroll_query') }}"><i
                                             class="fa fa-circle-o"></i> Payroll Query
                                 </a></li>
-                        @endif
+				@endif
                     </ul>
                 </li>
+		@endif
+		<!--@if(Sentinel::hasAccess('expenses'))
+                <li class="">
+                    <a href="{{ route('performance_metrics.index') }}">
+                        <i class="fa fa-trophy"></i> <span>Performance Metrics</span>
+                    </a>
+                </li>
+            @endif-->
+
+    
+            @if(Sentinel::hasAccess('expenses'))
+                            <li><a href="{{ url('payroll/lc_information') }}"><i
+                                            class="fa fa-circle-o"></i> Loan Consultant information
+                                </a></li>
             @endif
+
+
+
             @if(Sentinel::hasAccess('custom_fields'))
                 <li class="treeview @if(Request::is('custom_field/*')) active @endif">
                     <a href="#">
@@ -718,7 +1193,7 @@
                     </ul>
                 </li>
             @endif
-            @if(Sentinel::hasAccess('users'))
+            @if(Sentinel::hasAccess('expenses'))
                 <li class="treeview @if(Request::is('user/*')) active @endif">
                     <a href="{{ url('user/data') }}">
                         <i class="fa fa-users"></i> <span>{{trans_choice('general.user',2)}}</span>
@@ -727,22 +1202,27 @@
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        @if(Sentinel::hasAccess('users.view'))
+                        @if(Sentinel::hasAccess('expenses'))
                             <li><a href="{{ url('user/data') }}">
                                     <i class="fa fa-circle-o"></i>
                                     <span>{{trans_choice('general.view',2)}} {{trans_choice('general.user',2)}}</span>
                                 </a></li>
+				@endif
+				@if(Sentinel::hasAccess('expenses'))
+                            <li><a href="{{ route('user.inactive') }}">
+                                    <i class="fa fa-circle-o"></i>
+                                    <span>View Inactive Users </span>
+                                </a></li>
                         @endif
 
-                        @if(Sentinel::hasAccess('users.view'))
+                        @if(Sentinel::hasAccess('users.create'))
                             <li><a href="{{ url('user/client_users/data') }}">
                                     <i class="fa fa-circle-o"></i>
                                     <span>{{trans_choice('general.view',2)}} {{trans_choice('general.client_users',2)}}</span>
                                 </a></li>
                         @endif
 
-
-
+		
                         @if(Sentinel::hasAccess('users.roles.view'))
                             <li><a href="{{ url('user/role/data') }}"><i
                                             class="fa fa-circle-o"></i>{{trans_choice('general.manage',2)}} {{trans_choice('general.role',2)}}
@@ -757,7 +1237,7 @@
                 </li>
             @endif
 
-            @if(Sentinel::hasAccess('loans'))
+          <!--  @if(Sentinel::hasAccess('loans'))
                 <li class="">
                     <a href="{{ url('payroll/mypayslips') }}">
                         <i class="fa fa-money"></i> <span>My Payslips</span>
@@ -772,7 +1252,7 @@
                         <i class="fa fa-money"></i> <span>My Payslips 2023 - Jan 2024</span>
                     </a>
                 </li>
-            @endif
+            @endif -->
 
             @if(Sentinel::hasAccess('audit_trail'))
                 <li class="@if(Request::is('audit_trail/*')) active @endif">
@@ -798,6 +1278,13 @@
                         @if(Sentinel::hasAccess('settings.organisation.view'))
                             <li><a href="{{ url('setting/organisation') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.organisation',1)}}
+                                </a></li>
+				@endif
+
+
+				 @if(Sentinel::hasAccess('settings.organisation.view'))
+                            <li><a href="{{ url('setting/fail_safe') }}"><i
+                                            class="fa fa-circle-o"></i> System fail safes
                                 </a></li>
                         @endif
                     </ul>

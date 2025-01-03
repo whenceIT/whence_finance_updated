@@ -25,7 +25,20 @@
                                required id="name">
                     </div>
 
+		</div>
+
+     <div class="form-group">
+                    <label for="distribution_cost"
+                           class="control-label col-md-2">Distribution Cost</label>
+                    <div class="col-md-3">
+                        <select name="distribution_cost" class="form-control select2" id="distribution_cost"
+                                required>
+                            <option value="0">{{trans_choice('general.no',1)}}</option>
+                            <option value="1">{{trans_choice('general.yes',1)}}</option>
+                        </select>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label for="gl_account_asset_id"
                            class="control-label col-md-3">{{trans_choice('general.asset',1)}} {{trans_choice('general.account',1)}}

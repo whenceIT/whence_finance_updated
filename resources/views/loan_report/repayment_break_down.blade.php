@@ -60,7 +60,7 @@ Daily Loan Activities Breakdown Report
                     <label for=""
                            class="control-label col-md-2"></label>
                     <div class="col-md-4">
-                        <button type="submit" class="btn btn-success">{{trans_choice('general.search',1)}}! bfuhs9djh9
+                        <button type="submit" class="btn btn-success">{{trans_choice('general.search',1)}}!
                         </button>
 
                         <a href="{{Request::url()}}"
@@ -334,17 +334,17 @@ Daily Loan Activities Breakdown Report
                     $decimals = 0;
                     $total_outstanding=0;
                     $interest_sch=0;
-                    $interest_paid=0;
+                   // $interest_paid=0;
                     $total_interest_paid=0;
                     $prev_balance = 0;
                     $total_prev_balance = 0;
-                    $paid_amount = 0;
+                    //$paid_amount = 0;
                     $new = 0;
                     $new_amount = 0;
                     $total_paid = 0;
-                    $outstanding_total = 0;
+                    //$outstanding_total = 0;
                     $new_balance = 0;
-                    $outstanding_new = 0;
+                    //$outstanding_new = 0;
                     $new_bf = 0;
                     $credit_amount = 0;
                     ?>
@@ -363,31 +363,31 @@ Daily Loan Activities Breakdown Report
                         $bcr=0;
                         $badrcr=0;
                         //sum of credit amounts
-                        $paid_amount = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('credit');
-                        $new = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('debit');
-                        $interest_paid =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('interest_derived');
-                        $balance = \App\Helpers\GeneralHelper::loan_total_balance($key->loan_id);
+                        //$paid_amount = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('credit');
+                        //$new = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('debit');
+                        //$interest_paid =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('interest_derived');
+                        //$balance = \App\Helpers\GeneralHelper::loan_total_balance($key->loan_id);
                         $interest_new = $key->interest_derived;
                         $new_amount = $key -> credit;
                         $bf_balance = $key ->balance_bf;
                         $total_interest_paid = $total_interest_paid + $interest_new;
                         $total_paid = $total_paid + $new_amount;
-                        $prev_balance = $balance - $interest_paid;
-                        $total_bf = 0; 
-                        $total_bf = $total_bf + $bf;
-                        $total_prev_balance  = $total_prev_balance  + $prev_balance;
-                        $test =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
-                        $bf =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
+                        //$prev_balance = $balance - $interest_paid;
+                        //$total_bf = 0; 
+                        //$total_bf = $total_bf + $bf;
+                        //$total_prev_balance  = $total_prev_balance  + $prev_balance;
+                        //$test =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
+                        //$bf =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
                         $new_bf = $new_bf + $bf_balance; //- $new_amount;
                         $credit_amount = $credit_amount + $new_amount;
-                        $bdr =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
-                        $bcr =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('credit');
-                        $badrcr=$bdr-$bcr;
+                        //$bdr =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
+                        //$bcr =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('credit');
+                        //$badrcr=$bdr-$bcr;
                         $total_outstanding = $total_outstanding + $balance;
-                        $outstanding_amount = $bf - $key->credit;
+                        //$outstanding_amount = $bf - $key->credit;
 
 
-                        $outstanding_total = $outstanding_total + $outstanding_amount;
+                        //$outstanding_total = $outstanding_total + $outstanding_amount;
 
                        
                        
@@ -420,7 +420,7 @@ Daily Loan Activities Breakdown Report
                             <td>{{$key->loan->id ?? 'None'}}</td>
 
                             <td>
-                                uugu
+                                
                                 @if(!empty($key->loan))
                                     @if(!empty($key->loan->loan_officer))
                                         {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
@@ -480,12 +480,11 @@ Daily Loan Activities Breakdown Report
                         <td>
                         <!-- <b>{{number_format($new_amount,2)}}</b> -->
                             <b>{{number_format($total_paid,2)}} </b>
-                            <!-- <b>{{number_format($paid_amount,2)}}</b> -->
-                              <!-- <b>{{number_format($interest_paid,2)}}</b> -->
+                            
                         </td>
                       
                         <td>
-                            <!-- <b>{{number_format($outstanding_new,2)}}</b> -->
+                            
                              <b>{{number_format($new_bf - $credit_amount,2)}}</b>
                         </td>
                         <td colspan="3"></td>
@@ -562,7 +561,7 @@ Daily Loan Activities Breakdown Report
                             $decimals = 0;
                         }
                        
-                        $paid_amount = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','part_payment')->sum('credit');
+                        //$paid_amount = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','part_payment')->sum('credit');
                         $principal = $key->principal_derived;
                         $interest = $key->interest_derived;
                         $fees = $key->fees_derived;
@@ -1027,7 +1026,204 @@ $total_loans = 0;
                     </div>
                   </div>
                 </div>
+<div class="panel box box-warning">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseExpenses">
+                Expenses
+            </a>
+        </h4>
+        <div class="btn-group pull-right">
+            <button type="button" class="btn bg-blue dropdown-toggle legitRipple" data-toggle="dropdown">
+                {{trans_choice('general.download',1)}} {{trans_choice('general.report',1)}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+                <li>
+                    <a href="{{ url('report/loan_report/expense_report/pdf?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id.'&selectedExpenseType='.$selected_expense_type)}}" target="_blank" onclick="generateExpensesReport('pdf');">
+                        <i class="icon-file-pdf"></i> {{ trans_choice('general.download',1) }} {{ trans_choice('general.to',1) }} {{ trans_choice('general.pdf',1) }}
+                    </a>
+                </li>
+                <li>
+                    <!----------------error generating excel file. file name-------------------->
+                    <a href="{{ url('report/loan_report/expense_report/excel?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id.'&selectedExpenseType='.$selected_expense_type) }}" onclick="generateExpensesReport('excel');">
+                        <i class="icon-file-excel"></i> {{trans_choice('general.download',1)}} {{trans_choice('general.to',1)}} {{trans_choice('general.excel',1)}}
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url('report/loan_report/expense_report/csv?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id.'&selectedExpenseType='.$selected_expense_type) }}" onclick="generateExpensesReport('csv');">
+                        <i class="icon-file-excel"></i> {{trans_choice('general.download',1)}} {{trans_choice('general.to',1)}} {{trans_choice('general.csv',1)}}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="collapseExpenses" class="panel-collapse collapse">
+        <div class="box-body">
+            <div style="overflow-x:auto;">
+                <table id="expense_table" class="table table-condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{trans_choice('general.id',1)}}</th>
+                            <th>{{trans_choice('general.expense', 1)}}</th>
+                            <th>{{trans_choice('general.amount', 1)}}</th>
+                            <th>{{trans_choice('general.date',1)}}</th>
+			    <th>{{trans_choice('general.category', 1)}}</th>
+			    <th>{{trans_choice('general.office', 1)}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!--rows -->
+                        @foreach($expenses as $expense)
+                        <tr data-expense-type-id="{{ $expense->type ? $expense->type->id : '' }}">
+                            <td>{{$expense->id}}</td>
+                            <td>{{$expense->name}}</td>
+                            <td>{{$expense->amount}}</td>
+                            <td>{{$expense->date}}</td>
+			    <td>{{ $expense->type ? $expense->type->name : '-' }}</td>
+			    <td>{{$expense->office->name}}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2"></td>
+                            <td><b>Total</b></td>
+                            <td><b>{{number_format($expenses->sum('amount'), 2)}}</b></td> 
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var expenseTypeFilter = document.getElementById('expense_type_filter');
+            var expenseTable = document.getElementById('expense_table');
+            var rows = expenseTable.querySelectorAll('tbody tr');
+            var totalCell = expenseTable.querySelector('tfoot td:last-child');
+            var selectedExpenseType = ''; 
+            
+            function updateSelectedExpenseType(value) {
+                selectedExpenseType = value;
+            
+            function calculateTotalAmount() {
+                var totalAmount = 0; 
+
+                for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var expenseType = row.children[4].textContent.trim();
+
+                if (selectedExpenseType === '' || expenseType === selectedExpenseType) {
+                    totalAmount += parseFloat(row.children[2].textContent); 
+                }
+            }
+
+                totalCell.textContent = totalAmount.toFixed(2);
+            }
+
+            expenseTypeFilter.addEventListener('change', function () {
+                selectedExpenseType = this.value; 
+                calculateTotalAmount();
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var expenseType = row.children[4].textContent.trim();
+                    if (selectedExpenseType === '' || expenseType === selectedExpenseType) {
+                        row.style.display = ''; 
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+
+            function generateExpensesReport(format) {
+                if (selectedExpenseType !== '') {
+                    window.location.href = "{{ url('report/loan_report/expense_report/excel?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id.'&selectedExpenseType=') }}" + selectedExpenseType;
+                } else {
+                    alert('Please select a category to generate the report.');
+                }
+            }
+            calculateTotalAmount();
+        });
+    </script>
+
+<div class="panel box box-warning">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseAdvances">
+                Advances
+            </a>
+        </h4>
+        <div class="btn-group pull-right">
+            <button type="button" class="btn bg-blue dropdown-toggle legitRipple" data-toggle="dropdown">
+                {{trans_choice('general.download',1)}} {{trans_choice('general.report',1)}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+                <li>
+                    <a href="{{ url('report/loan_report/advance_report/pdf?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id) }}" target="_blank">
+                        <i class="icon-file-pdf"></i> {{ trans_choice('general.download',1) }} {{ trans_choice('general.to',1) }} {{ trans_choice('general.pdf',1) }}
+                    </a>
+                </li>
+                <li>
+                <a href="{{ url('report/loan_report/advance_report/excel?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id) }}" target="_blank">
+                        <i class="icon-file-excel"></i> {{ trans_choice('general.download',1) }} {{ trans_choice('general.to',1) }} {{ trans_choice('general.excel',1) }}
+                    </a>
+                </li>
+                <li>
+                <a href="{{ url('report/loan_report/advance_report/csv?start_date='.$start_date.'&end_date='.$end_date.'&office_id='.$office_id) }}" target="_blank">
+                        <i class="icon-file-csv"></i> {{ trans_choice('general.download',1) }} {{ trans_choice('general.to',1) }} {{ trans_choice('general.csv',1) }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="collapseAdvances" class="panel-collapse collapse">
+  <div class="table-responsive box-body">
+    <table class="table table-bordered table-striped"> <thead>
+        <tr>
+          <th>{{trans_choice('general.id',1)}}</th>
+          <th>{{trans_choice('Name', 1)}}</th>
+          <th>{{trans_choice('Branch', 1)}}</th>
+          <th>{{trans_choice('general.amount', 1)}}</th>
+          <th>{{trans_choice('Credit', 1)}}</th>
+	  <th>{{trans_choice('Balance', 1)}}</th>
+	  <th>{{trans_choice('Installments', 1)}}</th>
+          <th>{{trans_choice('Installment Amount', 1)}}</th>
+	  <th>{{trans_choice('Date Approved',1)}}</th>
+	  <th>{{trans_choice('Next Payment',1)}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach($advances as $advance)
+          <tr>
+            <td>{{$advance->id}}</td>
+            <td>{{$advance->first_name}} {{$advance->last_name}}</td>
+            <td>{{$advance->office->name}}</td>
+            <td>{{ number_format($advance->amount, 2) }}</td>
+            <td style="white-space: nowrap; overflow: hidden;">{{ number_format($advance->amount_paid, 2) }}</td>
+	    <td>{{ number_format($advance->remaining_amount, 2) }}</td>
+	    <td>{{ number_format($advance->installments) }}</td>
+            <td>{{ number_format($advance->installment_amount, 2) }}</td>
+	    <td>{{$advance->date_approved}}</td>
+	    <td>{{$advance->expected_repayment_dates}}</td>
+          </tr>
+        @endforeach
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2"></td>
+          <td><b>Total Amount</b></td>
+          <td><b>{{number_format($advances->sum('amount'), 2)}}</b></td> 
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
 
 
             </div>

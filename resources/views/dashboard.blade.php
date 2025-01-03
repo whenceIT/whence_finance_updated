@@ -165,10 +165,20 @@ $balance = $out - $in;
    <span class="label label-primary" style="font-size: 15px;">Collections</span>
 </a>
     
-<a href="javascript:;" onmousedown="toggleDiv('mydiv'); ">
-<span class="label label-primary" style="font-size: 15px;">COUA and TCC breakdown</span>
+<a href="javascript:;" onmousedown="toggleCOUA();" style="margin: 10px;">
+<span class="label label-primary" style="font-size: 15px;">COUA</span>
 <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
 </a>
+
+<a href="javascript:;" onmousedown="toggleTCC();" style="margin: 10px;">
+<span class="label label-primary" style="font-size: 15px;">TCC</span>
+</a>
+<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
+
+<a href="javascript:;" onmousedown="toggleGivenOut();" style="margin: 10px;">
+<span class="label label-primary" style="font-size: 15px;">Given out</span>
+</a>
+
 </div>
 
 
@@ -187,302 +197,163 @@ Set your cycle end date
 <!-- first row -->
 <div class="row">
 <!-- cycle countdown -->
-
 <?php
-$use = date('Y-m-');
-$todaysDate = date('Y-m-d');
-$newTodaysDate =  date('Y-m-d', strtotime($todaysDate. ' + 3 months'));
-$targetDate = $use.'24';
-$targetDate = date('Y-m-d',strtotime($targetDate));
-$cycle_opening_uncollected_amount_debit = 0;
-$cycle_opening_uncollected_amount_credit = 0;
-$disbursed_amount = 0;
-$debit = 0;
-$credit = 0;
-$test = 0;
-$testTwo = 0;
-$testThree = 0;
-$d_debit = 0;
-$d_credit = 0;
-$total_cycle_collected_amount = 0;
-$num = 0;
-$item = 0;
-$charges = 0;
-$out = 0;
 $MoneyGivenOut = 0;
 $MoneyCollected = 0;
-$charges = 0;
-$newout = 0;
-$in = 0;
-$added = 5;
-/// Target varibales
-$target_monthly = 0;
-$target_reloan = 0;
-$target_total = 0;
-///
-$reloanAmount = 0;
-$ppAmount = 0;
 $reloan_amount = 0;
-$cycle_opening_uncollected_amount = 0;
+$cycle_opening_uncollected_amount = 0.0001;
 $full_payments = 0;
 $part_payments = 0;
 $reloan_payments = 0;
-/////// 1 month ago
-$reloan_amount_1_months = 0;
-$full_payments_1_months  = 0;
-$part_payments_1_months  = 0;
-$reloan_payments_1_months  = 0;
-////// 2 months ago
-$reloan_amount_2_months = 0;
-$full_payments_2_months  = 0;
-$part_payments_2_months  = 0;
-$reloan_payments_2_months  = 0;
-/////
-$pre_reloan = 0;
-$collected_total = 0;
-$collected_total_1_months = 0;
-$collected_total_2_months = 0;
-$firstAmount = 0;
-$secondAmount = 0;
-if($todaysDate > $targetDate){
-    $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
-}
-$compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
-$zeroDate = date('Y-m-d', strtotime($targetDate. ' - 3 months'));
-$firstDate = date('Y-m-d', strtotime($targetDate. ' - 2 months'));
-$secondDate = date('Y-m-d', strtotime($targetDate. ' - 1 months'));
-$transID = 0;
-$transAmount = 0;
-$reloanID = 0;
-$reloanTransAmount = 0;
-$still_uncollected_today = 0;
+
 ?>
 
-<!-- CALCULATION LOAN BALANCES FOR CYCLE OPENING UNCOLLECTED -->
-@foreach($myLoans as $loan)
+<!-- CALCULATING LOAN BALANCES FOR CYCLE OPENING UNCOLLECTED -->
 <?php
-$MoneyCollected = 0;
-$MoneyGivenOut = 0;
-$charges = 0;
-$balance = 0;
-$OutIn = 0;
-$out = 0;
-$in = 0;
-?>
-@foreach($loan->transactions as $transaction)
-<?php
-if($transaction->date <= $compareDate && $transaction->transaction_type != 'specified_due_date_fee'){
-    $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+$today = date('Y-m-d');
+$currrent_date = date('Y-m');
+$cycle_date = $currrent_date.'-'.'24';
+if($today > $cycle_date){
+    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
 }
 
-if($transaction->date <= $compareDate){
-    $MoneyCollected = $MoneyCollected + $transaction->credit;
-}
-
-if($transaction->transaction_type != 'specified_due_date_fee'){
-    $out = $out + $transaction->debit;
-}
-
-
-$in = $in + $transaction->credit;
-
-// if($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $compareDate){
-//     $charges = $charges + $transaction->debit;
-// }
-
-?>
-@endforeach
-<?php 
-
-$balance = $MoneyGivenOut - $MoneyCollected;
-$OutIn = $out - $in;
-// if($balance < 0){
-//     $balance = 0;
-// }
-$still_uncollected_today = $still_uncollected_today + $OutIn;
-$cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
-if($cycle_opening_uncollected_amount == 0){
-    $cycle_opening_uncollected_amount = 1;
-}
-?>
-@endforeach
-
-<!-- CALCULATING CURRENT CYCLE COLLECTED USING TRANSACTIONS -->
-@foreach($myTransactions as $transaction)
-<?php
-
-if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $compareDate && $transaction->date <= $targetDate){
-    $full_payments = $full_payments + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $compareDate && $transaction->date <= $targetDate){
-    $part_payments = $part_payments + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $compareDate && $transaction->date <= $targetDate){
-
-    $reloan_amount = $transaction->credit; + ($transaction->credit/0.4);
-    $interest = $transaction->credit/0.4;
-    $reloan_payments = $reloan_payments + $reloan_amount + $interest;  
-
-}
-
-//COLLECTIONS -1 MONTH
-if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $zeroDate && $transaction->date <= $firstDate){
-    $full_payments_1_months = $full_payments_1_months + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $zeroDate && $transaction->date <= $firstDate){
-    $part_payments_1_months = $part_payments_1_months + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $zeroDate && $transaction->date <= $firstDate){
-
-    $reloan_amount_1_months = $transaction->credit; + ($transaction->credit/0.4);
-    $interest = $transaction->credit/0.4;
-    $reloan_payments_1_months = $reloan_payments_1_months + $reloan_amount_1_months + $interest;  
-}
-
-//COLLECTIONS -2 MONTH
-if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $firstDate && $transaction->date <= $secondDate){
-    $full_payments_2_months = $full_payments_2_months + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $firstDate && $transaction->date <= $secondDate){
-    $part_payments_2_months = $part_payments_2_months + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $firstDate && $transaction->date <= $secondDate){
-
-    $reloan_amount_2_months = $transaction->credit; + ($transaction->credit/0.4);
-    $interest = $transaction->credit/0.4;
-    $reloan_payments_2_months = $reloan_payments_2_months + $reloan_amount_2_months + $interest;  
-}
-
-// if($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate && $transaction->date <= $targetDate){
-//     $target_monthly = $target_monthly + $transaction->debit;
-//     $transID = $transaction->loan_id;
-//     $transAmount = $transaction->debit;
-// }
-
-// if($transaction->transaction_type == 'interest' && $transaction->date > $firstDate && $transaction->date <= $compareDate){
-//     $principal = $transaction->debit/0.4;
-//     $target_reloan = $target_reloan + $principal;
-//     $reloanID = $transaction->loan_id;
-//     $reloanTransAmount = $transaction->debit;
-// }
-
-//$disbursed_amount = $disbursed_amount + $transaction::where('date','>=',$compareDate)->where('date','<=',$targetDate)->where('date','=',date('Y-m-d',strtotime($loan->first_repayment_date. '- 1 months')))->sum('debit');
-?>
-<!-- <p>{{$firstDate}}</p> <p>{{$compareDate}}</p> -->
-<!-- <p>{{$reloanID}} {{$reloanTransAmount}} {{$transaction->date}}</p>
-<p>{{$target_reloan}}</p> -->
-<!-- <p>{{$transID}} {{$transAmount}}</p>
-<p>{{$target_monthly}}</p> -->
-<!-- <p>{{$target_reloan}}</p> -->
-<!-- <p>{{$reloanID}} {{$reloanTransAmount}}</p> -->
-@endforeach
-<?php
-$month_count = 3;
-$total = 0;
-$excess = 0;
-$excess_array = [];
-$start_amount = 0;
-$total_array = [];
-while($month_count != 0){
-    $total = 0;
-    $targetDate_new =  date('Y-m-d',strtotime($targetDate. ' - '. $month_count.'months'));
-    $compareDate_new = date('Y-m-d',strtotime($compareDate. ' - '. $month_count.'months'));
+$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
+$cycle_opening_uncollected_amounts = [];
+for($x=12; $x>-1; $x--){
+    $cycle_opening_uncollected_amount = 0;
     foreach($myLoans as $loan){
+        $MoneyCollected = 0;
+$MoneyGivenOut = 0;
+$balance = 0;
+
+
         foreach($loan->transactions as $transaction){
-            $add_on_1 = 0;
-            $add_on_2 = 0;
-            if($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate_new && $transaction->date <= $targetDate_new){
-                $target_monthly = $target_monthly + $transaction->debit;
-                $add_on_1 = $transaction->debit;
+            if($transaction->date <= date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->transaction_type != 'specified_due_date_fee'){
+                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
             }
-
             
-          if($transaction->transaction_type == 'interest' && $transaction->date > $compareDate_new && $transaction->date <= $targetDate_new){
-                 $principal = $transaction->debit/0.4;
-                 $target_reloan = $target_reloan + $principal;
-                 $add_on_2 = $transaction->debit/0.4;
-             }
-
-            if($total < 40000){
-                $total = $total + $add_on_1 + $add_on_2 + $start_amount;
-            }else{
-                $excess = $excess + $add_on_1 + $add_on_2;
+            if($transaction->date <= date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months'))){
+                $MoneyCollected = $MoneyCollected + $transaction->credit;
             }
+            
+            
+         
+        }
 
-            $start_amount = 0;
+        $balance = $MoneyGivenOut - $MoneyCollected;
+        $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+    }
+
+array_push($cycle_opening_uncollected_amounts ,$cycle_opening_uncollected_amount + 0.0001);
+
+}
+?>
+
+
+<!-- CALCULATING 12 MONTHS CYCLE COLLECTED USING TRANSACTIONS -->
+ <?php
+$collected_amounts = [];
+$today = date('Y-m-d');
+$currrent_date = date('Y-m');
+$cycle_date = $currrent_date.'-'.'24';
+if($today > $cycle_date){
+    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
+}
+$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
+
+
+for($x=12; $x>-1; $x--){
+    foreach($myTransactions as $transaction){
+        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+            $full_payments = $full_payments + $transaction->credit;
+        }
+
+        if($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+            $part_payments = $part_payments + $transaction->credit;
+        }
+
+        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+
+            $reloan_amount = $transaction->balance_bf;
+            $interest = $transaction->credit/0.4;
+            $reloan_payments = $reloan_payments + $reloan_amount;
+        
         }
     }
-    //Add total to array
-    array_push($excess_array,$excess);
-    array_push($total_array,$total);
-    $total = 0;
-    $start_amount = $excess;
-    $excess = 0;
-    $month_count = $month_count - 1;
+
+    array_push($collected_amounts,($full_payments + $part_payments + $reloan_payments));
+    $full_payments = 0;
+    $part_payments = 0;
+    $reloan_payments = 0;
+
+
  }
-?>
-<!-- <p>{{$total_array[0]}}</p> -->
-<!-- @foreach($total_array as $array_item)
-<p>{{$array_item}}</p>
-@endforeach
-
-@foreach($excess_array as $excess_item)
-<p>{{$excess_item}}</p>
-@endforeach -->
+ ?>
 
 
-@foreach($myOpenLoans as $myOpenLoan)
-@foreach($myOpenLoan->transactions as $transaction)
-<?php 
-$status = 'no';
-$transStatus = 'no';
-if($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate && $transaction->date <= $targetDate){
-    $target_monthly = $target_monthly + $transaction->debit;
-    $transID = $transaction->loan_id;
-    $transAmount = $transaction->debit;
-    $transStatus = 'yes';
+<!-- CALCULATING 12 MONTHS GIVEN OUT USING TRANSACTIONS -->
+<?php
+$new_loan_total = 0;
+$reloan_total = 0;
+$targets = [];
+$transaction_total = 0;
+$carry_over = 0;
+$today = date('Y-m-d');
+$dates = [];
+$colors = [];
+$currrent_date = date('Y-m');
+$cycle_date = $currrent_date.'-'.'24';
+if($today > $cycle_date){
+    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
+}
+$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
+for($x=12; $x>-1; $x--){
+    foreach($myTransactions as $transaction){
+        if($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+            $new_loan_total = $transaction->debit;
+        }
+
+        if($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+            $principal = $transaction->debit/0.4;
+            $reloan_total = $principal;
+        }
+
+        if($transaction_total + $new_loan_total + $reloan_total >= 40000 ){
+            if($transaction_total == 40000){
+                $carry_over = $carry_over + $new_loan_total + $reloan_total;
+            }else{
+                $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
+                $transaction_total = 40000;
+            }
+           
+        }else{
+            $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
+            $carry_over = 0;
+        }
+      
+        $new_loan_total = 0;
+        $reloan_total = 0;
+    }
+
+    array_push($targets,$transaction_total);
+    if($transaction_total < 40000){
+        array_push($colors,'#ff1c4b');
+    }else{
+        array_push($colors,'#57b7fa');
+    }
+    array_push($dates,date("jS M, Y", strtotime($cycle_date. '-' .$x. 'months')));
+    $transaction_total = 0;
+    $total = $reloan_total + $new_loan_total;
 }
 
-//if($transaction->transaction_type == 'interest' && $transaction->date > $firstDate &&  $transaction->date < $compareDate){
+?>
 
-if($transaction->transaction_type == 'interest' && $transaction->date > $compareDate && $transaction->date <= $targetDate){
-    $principal = $transaction->debit/0.4;
-    $target_reloan = $target_reloan + $principal;
-    $reloanID = $transaction->loan_id;
-    $reloanTransAmount = $transaction->debit/0.4;
-    $status = 'yes';
+<?php 
+$uncollected_amounts = [];
+for($x=0; $x<12; $x++){
+    array_push($uncollected_amounts,($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
 }
 ?>
-
-<?php 
-$transID = 0;
-$transAmount = 0;
-$reloanID = 0;
-$reloanTransAmount = 0;
-?>
-@endforeach
-
-<!-- <p>{{$transID}} {{$transAmount}}</p>
-<p>{{$target_monthly}}</p> -->
-@endforeach
-
-<?php 
-$collected_total = $reloan_payments + $part_payments + $full_payments;
-$collected_total_1_months = $reloan_payments_1_months + $part_payments_1_months + $full_payments_1_months;
-$collected_total_2_months = $reloan_payments_2_months + $part_payments_2_months + $full_payments_2_months;
-$target_total = $target_monthly + $target_reloan;
-?>
-
-
-
-
-
 
 
 <div class="col-lg-4 col-xs-12">
@@ -492,7 +363,7 @@ $target_total = $target_monthly + $target_reloan;
 <div class="icon">
 <i class="fa fa-usd"></i>
 </div>
-<h3>{{number_format($cycle_opening_uncollected_amount,2)}}</h3>
+<h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
 </div>
 <div class="small-box-footer">
     <p></p>
@@ -507,30 +378,13 @@ $target_total = $target_monthly + $target_reloan;
 <div class="icon">
 <i class="fa fa-usd"></i>
 </div>
-<h3>{{number_format($still_uncollected_today,2)}}</h3>
+<h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
 </div>
 <div class="small-box-footer">
     <p></p>
 </div>
 </div>
 </div>
-
-<!-- <div class="col-lg-4 col-xs-12">
-<div class="small-box bg-aqua">
-<div class="inner">
-<p style="font-weight: bold;">Your cycle ends on</p>
-<div class="icon">
-<i class="fa fa-clock-o"></i>
-</div>
-<h3 id='target'></h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div> -->
-
-
 
 <div class="col-lg-4 col-xs-12">
 <div class="small-box bg-green">
@@ -539,7 +393,7 @@ $target_total = $target_monthly + $target_reloan;
 <div class="icon">
 <i class="fa fa-usd"></i>
 </div>
-<h3>{{number_format($collected_total,2)}}</h3>
+<h3>{{number_format($collected_amounts[12],2)}}</h3>
 </div>
 <div class="small-box-footer">
     <p></p>
@@ -552,6 +406,10 @@ $target_total = $target_monthly + $target_reloan;
 
 </div>
 <!--second row-->
+<?php
+$tots = ($collected_amounts[12]/$cycle_opening_uncollected_amounts[12])
+?>
+
 <div style="margin-bottom:30px; margin-top:30px;">
 <p style="display: flex;
     align-items: center;
@@ -573,7 +431,7 @@ $target_total = $target_monthly + $target_reloan;
   border-top-right-radius: 100% 200%;
   overflow: hidden;">
 
-@if(($collected_total/$cycle_opening_uncollected_amount) < 0.75)
+@if(($tots) < 0.75)
  <div class="gauge__fill" style=" position: absolute;
   top: 100%;
   left: 0;
@@ -584,7 +442,7 @@ $target_total = $target_monthly + $target_reloan;
   transform: rotate(0.25turn);
   transition: transform 0.2s ease-out;"></div>
 
-@elseif(($collected_total/$cycle_opening_uncollected_amount) >= 0.90)
+@elseif(($tots) >= 0.90)
 <div class="gauge__fill" style=" position: absolute;
   top: 100%;
   left: 0;
@@ -662,13 +520,13 @@ $target_total = $target_monthly + $target_reloan;
                                         <h2 class=" text-semibold">{{ trans_choice('general.monthly',1) }} {{ trans_choice('general.target',1) }}</h2>
                                     </div>
                                     <div class="progress" data-toggle="tooltip"
-                                         title="You're currently at : {{number_format($target_total,2)}}">
+                                         title="You're currently at : {{number_format($targets[12],2)}}">
 <div class="progress-bar progress-bar-success progress-bar-striped active"
-                                             style="width: {{($target_total/40000)*100}}% ">
-@if($target_total > 40000)
+                                             style="width: {{($targets[12]/40000)*100}}% ">
+@if($targets[12] > 40000)
 <span>You've reached your target congratulations!!!</span>
 @else
-<span>{{($target_total/40000)*100}} {{ trans_choice('general.complete',1) }}</span>
+<span>{{($targets[12]/40000)*100}} {{ trans_choice('general.complete',1) }}</span>
 @endif
 </div>
 </div>
@@ -676,19 +534,18 @@ $target_total = $target_monthly + $target_reloan;
                             </div>
                             </div>
 
-
 <canvas id='graph'></canvas>
+<canvas id='target_graph'></canvas>
 
 @endif
 
 </div>
 
-<div id='mydivoff' style="display:none">
+<div id='coua' style="display:none">
     <div class="box box-primary">
     <div  id='mydivon_new' style="display:block" class="box-body table-responsive">
     <div class="box-header with-border">
             <h3 class="box-title">Loans at end of last cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
-            <span style="font-size: 15px; padding-left: 10px;">TCC breakdown</span>
         </a></h3>
         </div>
         <table class="table  table-bordered table-hover table-striped" id="data-table">
@@ -702,6 +559,14 @@ $target_total = $target_monthly + $target_reloan;
                 <tbody>
                     <?php
                     $new_out = 0;
+                    $use = date('Y-m-');
+                    $todaysDate = date('Y-m-d');
+                    $targetDate = $use.'24';
+                    $targetDate = date('Y-m-d',strtotime($targetDate));
+                    if($todaysDate > $targetDate){
+                        $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
+                    }
+                    $compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
                     ?>
 @foreach($myLoans as $loan)
 
@@ -733,7 +598,7 @@ if($transaction->transaction_type != 'specified_due_date_fee'){
 ?>
 @endforeach
 
-<?php 
+<?php
 $OutIn = $out - $in;
 //$OutIn = $OutIn - $newout;
 // if($OutIn < 0){
@@ -747,7 +612,7 @@ $OutIn = $out - $in;
 
     <td><a href="{{ url('loan/'.$loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$loan->id}}</a></td>
     @if(!empty($loan->client->first_name))
-    <td>{{$loan->client->first_name}} {{$loan->client->last_name}} 
+    <td>{{$loan->client->first_name}} {{$loan->client->last_name}}
         @if($loan->defaulted == 'yes')
         <span style="color: red;">(Defaulted)</span>
         @endif
@@ -766,10 +631,15 @@ $OutIn = $out - $in;
     </div>
     </div>
     <div class="box box-primary">
-    <div id='mydivoff_new' style="display:none"  class="box-body table-responsive" >
+    </div>
+
+</div>
+
+
+<div id='tcc' style="display:none"  class="box-body table-responsive" >
+<div class="box box-primary">
     <div class="box-header with-border">
             <h3 class="box-title">Transactions as at start of cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
-            <span style="font-size: 15px; padding-left: 10px;">COUA breakdown</span>
         </a></h3>
         </div>
         <table class="table  table-bordered table-hover table-striped" id="data-table">
@@ -789,7 +659,7 @@ $OutIn = $out - $in;
     <td>{{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}</td>
     <td>{{$transaction->payment_apply_to}}</td>
     <td>{{number_format($transaction->credit,2)}}</td>
-</tr>       
+</tr>
 @endif
 @endforeach
 </tbody>
@@ -797,9 +667,49 @@ $OutIn = $out - $in;
 
 
         </div>
-    </div>
+        </div>
 
-</div>
+
+        <div id='given_out' style="display:none"  class="box-body table-responsive" >
+<div class="box box-primary">
+    <div class="box-header with-border">
+            <h3 class="box-title">Given out as at start of cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
+        </a></h3>
+        </div>
+        <table class="table  table-bordered table-hover table-striped" id="data-table">
+                <thead>
+                <tr>
+                    <th>Loan ID</th>
+                    <th>Name</th>
+                    <th>Transaction Type</th>
+                    <th>Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($myTransactions as $transaction)
+            @if(($transaction->transaction_type == 'disbursement' || $transaction->transaction_type == 'interest') && $transaction->date > $compareDate &&  $transaction->date <= $targetDate)
+            <tr>
+    <td>{{$transaction->loan_id}}</td>
+    <td>{{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}</td>
+    @if($transaction->transaction_type == 'disbursement')
+    <td>New Loan</td>
+    @elseif($transaction->transaction_type == 'interest')
+    <td>Reloan</td>
+    @endif
+    @if($transaction->transaction_type == 'interest')
+    <td>{{number_format(($transaction->debit/0.4),2)}}</td>
+    @else
+    <td>{{number_format($transaction->debit,2)}}</td>
+    @endif
+</tr>
+@endif
+@endforeach
+</tbody>
+            </table>
+
+
+        </div>
+        </div>
 
 
 <!-- //GOES HERE -->
@@ -815,7 +725,7 @@ $OutIn = $out - $in;
     justify-content: center; padding-bottom: 10px; ">
     
 
-<a href="{{ url('loan/collections') }}" style="margin: 10px;">
+<a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
    <span class="label label-primary" style="font-size: 15px;">Collections</span>
 </a>
    
@@ -859,7 +769,7 @@ $secondAmount = 0;
 $MoneyGivenOut = 0;
 $MoneyCollected = 0;
 $charges = 0;
-$cycle_opening_uncollected_amount = 0;
+$cycle_opening_uncollected_amount = 0.00001;
 
 //BRANCH COLLECTED TOTAL CALCULATIONS
 $collected_total = 0;
@@ -912,26 +822,20 @@ $balance = 0;
 @foreach($loan->transactions as $transaction)
 
 <?php
-if($transaction->date <= $branchcompareDate){
+if($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee'){
     $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
 }
 
-if($transaction->transaction_type != 'interest_waiver' && $transaction->date <= $branchcompareDate){
+if($transaction->date <= $branchcompareDate){
     $MoneyCollected = $MoneyCollected + $transaction->credit;
-}
-
-
-if($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $branchcompareDate){
-    $charges = $charges + $transaction->debit;
 }
 
 ?>
 @endforeach
 <?php 
-$balance = ($MoneyGivenOut - $MoneyCollected - $charges);
-if($balance < 0){
-    $balance = 0;
-}
+$balance = $MoneyGivenOut - $MoneyCollected;
+
+
 $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
 if($cycle_opening_uncollected_amount == 0){
     $cycle_opening_uncollected_amount = 1;
@@ -952,9 +856,9 @@ if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $bra
 
 if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate){
 
-    $reloan_amount = $transaction->credit; + ($transaction->credit/0.4);
+    $reloan_amount = $transaction->balance_bf;
     $interest = $transaction->credit/0.4;
-    $reloan_payments = $reloan_payments + $reloan_amount + $interest; 
+    $reloan_payments = $reloan_payments + $reloan_amount; 
 }
 
 
@@ -1311,25 +1215,17 @@ $newout = 0;
 ?>
 @foreach($loan->transactions as $transaction)
 <?php
-if($transaction->date <= $branchcompareDate){
+
+if($transaction->transaction_type != 'specified_due_date_fee'){
     $out = $out + $transaction->debit;
 }
 
-if($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'interest_waiver'){
-    $in = $in + $transaction->credit;
-}
-
-if($transaction->date <= $branchcompareDate && $transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
+$in = $in + $transaction->credit;
 ?>
 @endforeach
 <?php
 $OutIn = $out - $in;
 $OutIn = $OutIn - $newout;
-if($OutIn < 0){
-    $OutIn = 0;
-}
 ?>
 <tr>
    @if($OutIn != 0)
@@ -1345,7 +1241,11 @@ if($OutIn < 0){
         <span style="color: red;">(Defaulted)</span>
         @endif
     </td>
+    @if($OutIn < 0)
+    <td style="color: red;">{{number_format($OutIn,2)}}</td>
+    @else
     <td>{{number_format($OutIn,2)}}</td>
+    @endif
     @endif
 </tr>
 @endforeach
@@ -1393,12 +1293,11 @@ if($OutIn < 0){
 
 <!-- What PMs see -->
 @if($role->role_id == '6')
-    
-<div style="display: flex;
+   <div style="display: flex;
     align-items: center;
     justify-content: center; padding-bottom: 10px; ">
 
-<a href="{{ url('loan/collections') }}" style="margin: 10px;">
+<a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
    <span class="label label-primary" style="font-size: 15px;">Collections</span>
 </a>
 
@@ -1433,7 +1332,7 @@ $branchsecondDate = date('Y-m-d', strtotime($branchtargetDate. ' - 1 months'));
 $MoneyGivenOut = 0;
 $MoneyCollected = 0;
 $charges = 0;
-$cycle_opening_uncollected_amount = 0;
+$cycle_opening_uncollected_amount = 0.0001;
 
 
 //BRANCH COLLECTED TOTAL CALCULATIONS
@@ -1471,6 +1370,7 @@ $givenout_count_newloan = 0;
 $givenout_count_reloan = 0;
 $trans_id = 0;
 $trans_id_int = 0;
+$cycle_opening_uncollected_amounts = [];
 
 // foreach($province_loans as $province_loan){
 //     foreach($province_loan->transactions as $transaction){
@@ -1479,46 +1379,85 @@ $trans_id_int = 0;
 // }
 ?>
 
-<!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
-@foreach($province_loans as $loan)
 <?php
-$MoneyCollected = 0;
+$today = date('Y-m-d');
+$currrent_date = date('Y-m');
+$cycle_date = $currrent_date.'-'.'24';
+if($today > $cycle_date){
+    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
+}
+
+$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
+for($x=12; $x>-1; $x--){
+    $cycle_opening_uncollected_amount = 0;
+    foreach($province_loans as $loan){
+        $MoneyCollected = 0;
 $MoneyGivenOut = 0;
-$charges = 0;
 $balance = 0;
+
+
+        foreach($loan->transactions as $transaction){
+            if($transaction->date <= date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->transaction_type != 'specified_due_date_fee'){
+                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+            }
+            
+            if($transaction->date <= date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months'))){
+                $MoneyCollected = $MoneyCollected + $transaction->credit;
+            }
+            
+            
+         
+        }
+
+        $balance = $MoneyGivenOut - $MoneyCollected;
+        $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+    }
+
+array_push($cycle_opening_uncollected_amounts ,$cycle_opening_uncollected_amount + 0.0001);
+
+}
 ?>
-@foreach($loan->transactions as $transaction)
 
 <?php
-
-if($transaction->date <= $branchcompareDate){
-    $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+$collected_amounts = [];
+$today = date('Y-m-d');
+$currrent_date = date('Y-m');
+$cycle_date = $currrent_date.'-'.'24';
+if($today > $cycle_date){
+    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
 }
-
-if($transaction->transaction_type != 'interest_waiver' && $transaction->date <= $branchcompareDate){
-    $MoneyCollected = $MoneyCollected + $transaction->credit;
-}
+$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
 
 
-if($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $branchcompareDate){
-    $charges = $charges + $transaction->debit;
-}
+for($x=12; $x>-1; $x--){
+    foreach($province_transactions as $transaction){
+        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+            $full_payments = $full_payments + $transaction->credit;
+        }
+
+        if($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+            $part_payments = $part_payments + $transaction->credit;
+        }
+
+        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+
+            $reloan_amount = $transaction->balance_bf; //+ ($transaction->credit/0.4);
+            $interest = $transaction->credit/0.4;
+            $reloan_payments = $reloan_payments + $reloan_amount;
+        
+        }
+    }
+
+    array_push($collected_amounts,($full_payments + $part_payments + $reloan_payments));
+    $full_payments = 0;
+    $part_payments = 0;
+    $reloan_payments = 0;
 
 
+ }
+ ?>
 
-?>
-@endforeach
-<?php 
-$balance = ($MoneyGivenOut - $MoneyCollected - $charges);
-if($balance < 0){
-    $balance = 0;
-}
-$cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
-if($cycle_opening_uncollected_amount == 0){
-    $cycle_opening_uncollected_amount = 1;
-}
-?>
-@endforeach
+
 
 <?php 
 $collections = [];
@@ -1557,9 +1496,9 @@ while($bar_chart_count < 5){
         
         if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
         
-            $reloan_amount = $transaction->credit; + ($transaction->credit/0.4);
+            $reloan_amount = $transaction->balance_bf;
             $interest = $transaction->credit/0.4;
-            $reloan_payments = $reloan_payments + $reloan_amount + $interest; 
+            $reloan_payments = $reloan_payments + $reloan_amount;
             if($bar_chart_count == 4){
                 $collections_count_reloan = $collections_count_reloan + 1;
             }
@@ -1592,6 +1531,70 @@ while($bar_chart_count < 5){
 }
 ?>
 
+<?php
+$new_loan_total = 0;
+$reloan_total = 0;
+$targets = [];
+$transaction_total = 0;
+$carry_over = 0;
+$today = date('Y-m-d');
+$dates = [];
+$colors = [];
+$currrent_date = date('Y-m');
+$cycle_date = $currrent_date.'-'.'24';
+if($today > $cycle_date){
+    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
+}
+$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
+for($x=12; $x>-1; $x--){
+    foreach($province_transactions as $transaction){
+        if($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+            $new_loan_total = $transaction->debit;
+        }
+
+        if($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
+            $principal = $transaction->debit/0.4;
+            $reloan_total = $principal;
+        }
+
+        if($transaction_total + $new_loan_total + $reloan_total >= 40000 ){
+            if($transaction_total == 40000){
+                $carry_over = $carry_over + $new_loan_total + $reloan_total;
+            }else{
+                $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
+                $transaction_total = 40000;
+            }
+           
+        }else{
+            $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
+            $carry_over = 0;
+        }
+      
+        $new_loan_total = 0;
+        $reloan_total = 0;
+    }
+
+    array_push($targets,$transaction_total);
+    if($transaction_total < 40000){
+        array_push($colors,'#ff1c4b');
+    }else{
+        array_push($colors,'#57b7fa');
+    }
+    array_push($dates,date("jS M, Y", strtotime($cycle_date. '-' .$x. 'months')));
+    $transaction_total = 0;
+    $total = $reloan_total + $new_loan_total;
+}
+
+?>
+
+<?php 
+$uncollected_amounts = [];
+for($x=0; $x<12; $x++){
+    array_push($uncollected_amounts,($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
+}
+?>
+
+
 <div class="col-lg-4 col-xs-12">
 <div class="small-box bg-yellow">
 <div class="inner">
@@ -1599,7 +1602,22 @@ while($bar_chart_count < 5){
 <div class="icon">
 <i class="fa fa-usd"></i>
 </div>
-<h3>{{number_format($cycle_opening_uncollected_amount,2)}}</h3>
+<h3>{{number_format($cycle_opening_uncollected_amounts[12],2)}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-aqua">
+<div class="inner">
+<p style="font-weight: bold;">Still Uncollected Today</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
 </div>
 <div class="small-box-footer">
     <p></p>
@@ -1614,22 +1632,7 @@ while($bar_chart_count < 5){
 <div class="icon">
 <i class="fa fa-usd"></i>
 </div>
-<h3>{{number_format($collections[0],2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-red">
-<div class="inner">
-<p style="font-weight: bold;">Province total cycle given out</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($given_out[0] ,2)}}</h3>
+<h3>{{number_format($collected_amounts[12],2)}}</h3>
 </div>
 <div class="small-box-footer">
     <p></p>
@@ -1640,44 +1643,118 @@ while($bar_chart_count < 5){
 
 
 
-
-<canvas id='provincegraph'></canvas>
-
-<div class="row" style="padding-top: 20px;">
+</div>
 
 
+<?php
+$tots = ($collected_amounts[12]/$cycle_opening_uncollected_amounts[12]) + 0.00001
+?>
+<div style="margin-bottom:30px; margin-top:30px;">
+<p style="display: flex;
+    align-items: center;
+    justify-content: center; font-size:50px;">PDUA%</p>
+<div style="display: flex;
+    align-items: center;
+    justify-content: center;">
+    
+<div class="gauge" style="width: 100%;
+  max-width: 250px;
+  font-size: 50px;
+  color: #004033;">
+    <div class="gauge__body" style=" width: 100%;
+  height: 0;
+  padding-bottom: 50%;
+  background: #b4c0be;
+  position: relative;
+  border-top-left-radius: 100% 200%;
+  border-top-right-radius: 100% 200%;
+  overflow: hidden;">
 
-<div class="col-md-6">
-                    <div class="box box-primary">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">Money collected</h3>
-                            <!-- /.box-tools -->
-                        </div>
-                        <!-- /.box-header -->
-                        <div class="box-body" id="">
-                        <canvas id="myChart"></canvas>
-                        </div>
-                        <!-- /.box-body -->
-                    </div>
-                </div>
+@if(($tots) < 0.75)
+ <div class="gauge__fill" style=" position: absolute;
+  top: 100%;
+  left: 0;
+  width: inherit;
+  height: 100%;
+  background: red;
+  transform-origin: center top;
+  transform: rotate(0.25turn);
+  transition: transform 0.2s ease-out;"></div>
 
-                <div class="col-md-6">
-                    <div class="box box-primary">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">Money given out</h3>
-                            <!-- /.box-tools -->
-                        </div>
-                        <!-- /.box-header -->
-                        <div class="box-body" id="">
-                        <canvas id="myOtherChart"></canvas>
-                        </div>
-                        <!-- /.box-body -->
-                    </div>
-                </div>
+@elseif(($tots) >= 0.90)
+<div class="gauge__fill" style=" position: absolute;
+  top: 100%;
+  left: 0;
+  width: inherit;
+  height: 100%;
+  background:#d4af37;
+  transform-origin: center top;
+  transform: rotate(0.25turn);
+  transition: transform 0.2s ease-out;"></div>
+
+@else
+<div class="gauge__fill" style=" position: absolute;
+  top: 100%;
+  left: 0;
+  width: inherit;
+  height: 100%;
+  background:green;
+  transform-origin: center top;
+  transform: rotate(0.25turn);
+  transition: transform 0.2s ease-out;"></div>
+
+@endif
+    <div class="gauge__cover" style="width: 75%;
+  height: 150%;
+  background: #f7f7f7;
+  border-radius: 50%;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  /* Text */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 25%;
+  box-sizing: border-box;"></div>
+
+    </div>
+</div>
+
 
 </div>
 
+<div style="display:flex; flex-direction:row; justify-content:space-between;
+    align-items: center;
+    justify-content: center;">
+<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+<div style="background-color: red;  height: 10px;
+  width: 20px;">
 </div>
+<p style="text-align: center; font-weight:bold;">Poor</p>
+</div>
+
+<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+<div style="background-color: green;  height: 10px;
+  width: 20px;">
+</div>
+<p style="text-align: center; font-weight:bold;">Fair</p>
+</div>
+<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+<div style="background-color: #d4af37;  height: 10px;
+  width: 20px;">
+</div>
+<p style="text-align: center; font-weight:bold;">Good</p>
+</div>
+
+</div>
+</div>
+
+<canvas id='province_graph'></canvas>
+<canvas id='province_target_graph'></canvas>
+
 
 <div>
 
@@ -1685,8 +1762,6 @@ while($bar_chart_count < 5){
 
 
 </div>
-
-
 
 
 
@@ -1707,7 +1782,6 @@ while($bar_chart_count < 5){
 @endforeach
 </div>
 
-
 @endif
 
 
@@ -1717,7 +1791,11 @@ while($bar_chart_count < 5){
     align-items: center;
     justify-content: center; padding-bottom: 10px; ">
 
-<a href="{{ url('loan/collections') }}" style="margin: 10px;">
+ <a href="{{ url('user/detailed_dashboard')}}" style="margin: 10px;">
+   <span class="label label-primary" style="font-size: 15px;">Detailed Dashboard</span>
+</a>
+
+<a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
    <span class="label label-primary" style="font-size: 15px;">Collections</span>
 </a>
 
@@ -1726,17 +1804,18 @@ while($bar_chart_count < 5){
 <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
 </a>
 
-
-<a href="javascript:;" onmousedown="toggleCollections('mydiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">Total Collections breakdown</span>
-<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-</a>
-
 <a href="{{ url('user/daily_figures')}}" style="margin: 10px;">
    <span class="label label-primary" style="font-size: 15px;">Daily figures</span>
 </a>
 
 </div>
+
+<div style="display: flex;
+    align-items: center;
+    justify-content: center; padding-bottom: 10px; ">
+<p style="font-weight: bold;">Data based on loans created in the last 3 months</p>
+</div>
+
 <div id='mydivon' style="display:block">
 <div class="row">
 <?php
@@ -1829,11 +1908,11 @@ $balance = 0;
 
 <?php
 
-if($transaction->date <= $branchcompareDate){
+if($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee'){
     $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
 }
 
-if($transaction->transaction_type != 'interest_waiver' && $transaction->date <= $branchcompareDate){
+if($transaction->date <= $branchcompareDate){
     $MoneyCollected = $MoneyCollected + $transaction->credit;
 }
 
@@ -1847,7 +1926,7 @@ if($transaction->transaction_type == 'specified_due_date_fee' && $transaction->d
 ?>
 @endforeach
 <?php 
-$balance = ($MoneyGivenOut - $MoneyCollected - $charges);
+$balance = ($MoneyGivenOut - $MoneyCollected);
 if($balance < 0){
     $balance = 0;
 }
@@ -1863,7 +1942,7 @@ $collections = [];
 $given_out = [];
 $given_out_not_exp = [];
 $target_dates = [];
-while($bar_chart_count < 1){
+while($bar_chart_count < 3){
 
 
     $branchtargetDateAlgo = date('Y-m-d',strtotime($branchtargetDate. ' - '. $bar_chart_count.'months'));
@@ -1965,34 +2044,6 @@ while($bar_chart_count < 1){
 
 }
 ?>
-
-<table class="table  table-bordered table-hover table-striped" id="data-table">
-                <thead>
-                <tr>
-                    <th>Loan ID</th>
-                    <th>Name</th>
-                    <th>Transaction Type</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($trans as $tran)
-         <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td>{{number_format($tran->credit,2)}}</td>
-    <td></td>
-    <td></td>
-</tr>       
-@endforeach
-</tbody>
-            </table>
-<p>{{$reloan_payments}}</p>
-<p>{{$part_payments}}</p>
-<p>{{$full_payments}}</p>
-
 <?php 
  foreach($allTransactions as $transaction){
     
@@ -2015,53 +2066,6 @@ while($bar_chart_count < 1){
 
  $pdua = ($collections[0]/$cycle_opening_uncollected_amount)
 ?>
-
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-yellow">
-<div class="inner">
-<p style="font-weight: bold;">Total cycle opening uncollected amount</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($cycle_opening_uncollected_amount,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-green">
-<div class="inner">
-<p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($collections[0],2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-red">
-<div class="inner">
-<p style="font-weight: bold;">Total cycle given out</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($given_out_not_exp[0] ,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
 
 <div class="col-lg-4 col-xs-12">
 <div class="small-box bg-red">
@@ -2341,152 +2345,6 @@ while($bar_chart_count < 1){
     @if(!Sentinel::inRole('client'))
         <script>
          
-   var chart = AmCharts.makeChart("registered_clients_graph", {
-                "type": "funnel",
-                "theme": "light",
-                "dataProvider": {!! \App\Helpers\GeneralHelper::client_numbers_graph() !!},
-                "balloon": {
-                    "fixedPosition": false
-                },
-                "valueField": "value",
-                "titleField": "title",
-                "marginRight": 130,
-                "marginLeft": 0,
-                "startX": 0,
-                "rotate": true,
-                "labelPosition": "right",
-                "balloonText": "[[title]]: [[value]] [[description]]",
-                "export": {
-                    "enabled": true,
-                    "libs": {
-                        "path": "{{asset('assets/plugins/amcharts/plugins/export/libs')}}/"
-                    }
-                }
-            });
-            var chart = AmCharts.makeChart("loans_status_graph", {
-                "type": "pie",
-                "theme": "light",
-                "dataProvider": {!! \App\Helpers\GeneralHelper::loans_status_graph() !!},
-                "balloon": {
-                    "fixedPosition": false
-                },
-                "valueField": "value",
-                "titleField": "title",
-                "marginRight": 20,
-                "marginLeft": 20,
-                "radius": 60,
-                "startX": 0,
-                "fontSize": 10,
-                "rotate": true,
-                "labelPosition": "right",
-                "balloonText": "[[title]]: [[value]] [[description]]",
-                "export": {
-                    "enabled": true,
-                    "libs": {
-                        "path": "{{asset('assets/plugins/amcharts/plugins/export/libs')}}/"
-                    }
-                },
-                legend: {
-                    display: true,
-                    labels: {
-                        fontColor: 'rgb(255, 99, 132)'
-                    }
-                }
-            });
-            var chart = AmCharts.makeChart("savings_balance_graph", {
-                "type": "serial",
-                "theme": "light",
-                "dataProvider": {!! \App\Helpers\GeneralHelper::savings_balance_graph() !!},
-                "balloon": {
-                    "fixedPosition": false
-                },
-                "startDuration": 1,
-                "graphs": [{
-                    "balloonText": "[[category]]: <b>[[value]]</b>",
-                    "fillAlphas": 0.8,
-                    "lineAlpha": 0.2,
-                    "type": "column",
-                    "valueField": "value"
-                }],
-                "chartCursor": {
-                    "categoryBalloonEnabled": false,
-                    "cursorAlpha": 0,
-                    "zoomable": false
-                },
-                "categoryField": "title",
-                "categoryAxis": {
-                    "gridPosition": "start",
-                    "gridAlpha": 0,
-                    "tickPosition": "start",
-                    "tickLength": 20
-                },
-                "labelPosition": "right",
-                "balloonText": "[[title]]: [[value]] [[description]]",
-                "export": {
-                    "enabled": true,
-                    "libs": {
-                        "path": "{{asset('assets/plugins/amcharts/plugins/export/libs')}}/"
-                    }
-                }
-            });
-            AmCharts.makeChart("collection_statistics_graph", {
-                "type": "serial",
-                "theme": "light",
-                "autoMargins": true,
-                "marginLeft": 30,
-                "marginRight": 8,
-                "marginTop": 10,
-                "marginBottom": 26,
-                "fontFamily": 'Open Sans',
-                "color": '#888',
-
-                "dataProvider": {!! \App\Helpers\GeneralHelper::collection_overview_graph() !!},
-                "valueAxes": [{
-                    "axisAlpha": 0,
-
-                }],
-                "startDuration": 1,
-                "graphs": [{
-                    "balloonText": "<span style='font-size:13px;'>[[title]] in [[category]]:<b> [[value]]</b> [[additional]]</span>",
-                    "bullet": "round",
-                    "bulletSize": 8,
-                    "lineColor": "#370fc6",
-                    "lineThickness": 4,
-                    "negativeLineColor": "#0dd102",
-                    "title": "{{trans_choice('general.actual',1)}}",
-                    "type": "smoothedLine",
-                    "valueField": "actual"
-                }, {
-                    "balloonText": "<span style='font-size:13px;'>[[title]] in [[category]]:<b> [[value]]</b> [[additional]]</span>",
-                    "bullet": "round",
-                    "bulletSize": 8,
-                    "lineColor": "#d1655d",
-                    "lineThickness": 4,
-                    "negativeLineColor": "#d1cf0d",
-                    "title": "{{trans_choice('general.expected',2)}}",
-                    "type": "smoothedLine",
-                    "valueField": "expected"
-                }],
-                "categoryField": "month",
-                "categoryAxis": {
-                    "gridPosition": "start",
-                    "axisAlpha": 0,
-                    "tickLength": 0,
-                    "labelRotation": 30,
-
-                }, "export": {
-                    "enabled": true,
-                    "libs": {
-                        "path": "{{asset('assets/plugins/amcharts/plugins/export/libs')}}/"
-                    }
-                }, "legend": {
-                    "position": "bottom",
-                    "marginRight": 100,
-                    "autoMargins": false
-                },
-
-
-            });
             
         </script>
         @endif
@@ -2662,37 +2520,55 @@ function toggleMyStaff(divid){
     document.getElementById(varon).style.display = 'block'
     }
 }    
-
-const provincemonths = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-let provincetargetDateName = provincemonths[new Date('{{$branchtargetDate}}').getMonth()]
-//var provinceCycleDate = document.getElementById('branchCycle').innerHTML = '24th ' + provincetargetDateName
-  let provincefirstDateName = provincemonths[new Date('{{$branchfirstDate}}').getMonth()];
-  let provincesecondDateName = provincemonths[new Date('{{$branchsecondDate}}').getMonth()]
-
   //console.log($trans)
-    var given_out =  
-    <?php echo json_encode($given_out); ?>; 
-    console.log(collections)
-    console.log(given_out.reverse())
 
-    var dates =  
-    <?php echo json_encode($target_dates); ?>; 
-    console.log(dates.reverse())
+  var collections = <?php echo json_encode($collected_amounts); ?>;
+var uncollections = <?php echo json_encode($uncollected_amounts); ?>;
+var dates = <?php echo json_encode($dates); ?>;
+
+var targets = <?php echo json_encode($targets); ?>;
+var colors = <?php echo json_encode($colors); ?>;
+
     
-const chrt = document.getElementById('provincegraph');
+const chrt = document.getElementById('province_graph');
+const chrt_new = document.getElementById('province_target_graph');
+
+var Chart2 = new Chart(chrt_new,{
+    type:'bar',
+    data: {
+        labels: dates,
+        datasets: [{
+             label:'Cycle given out for last 12 months',
+             data:targets,
+             backgroundColor:colors,
+             borderWidth:1
+            }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero:true
+            }
+        },
+    }
+});
+
+
 var chartId = new Chart(chrt, {
          type: 'bar',
          data: {
             labels: dates,
             datasets: [{
-               label: "Collections as at end of cycle date",
-               data: collections,
+               label: "uncollected as at end of cycle",
+               data: uncollections,
                borderWidth: 1,
+            backgroundColor:'#ff1c4b'
             },
             {
-               label: "Given out as at end of cycle date",
-               data: given_out,
+               label: "collected as at end of cycle date",
+               data: collections,
                borderWidth: 1,
+                backgroundColor:'#57b7fa'
             },
         ],
          },
@@ -2706,49 +2582,22 @@ var chartId = new Chart(chrt, {
       });
 
 
-var xValues = ["Full and Part Payments", "Reloans"];
-var yValues = ['{{$collections_count_partpayment + $collections_count_fullpayment}}','{{$collections_count_reloan}}'];
-var barColors = [
-  "#F77FBE",
-  "#87CEEB",
-];
-var otherxValues = ["New Loans", "Reloans"];
-var otheryValues = ['{{$givenout_count_newloan}}','{{$givenout_count_reloan}}'];
+const gaugeElement = document.querySelector(".gauge");
 
-new Chart("myChart", {
-  type: "pie",
-  data: {
-    labels: xValues,
-    datasets: [{
-      backgroundColor: barColors,
-      data: yValues
-    }]
-  },
-  options: {
-    title: {
-      display: true,
-      text: "World Wide Wine Production 2018"
-    }
+function setGaugeValue(gauge, value) {
+  if (value < 0 || value > 1) {
+    return;
   }
-});
 
-new Chart("myOtherChart", {
-  type: "pie",
-  data: {
-    labels: otherxValues,
-    datasets: [{
-      backgroundColor: barColors,
-      data: otheryValues
-    }]
-  },
-  options: {
-    title: {
-      display: true,
-      text: "World Wide Wine Production 2018"
-    }
-  }
-});
+  gauge.querySelector(".gauge__fill").style.transform = `rotate(${
+    value / 2
+  }turn)`;
+  gauge.querySelector(".gauge__cover").textContent = `${Math.round(
+    value * 100
+  )}%`;
+}
 
+setGaugeValue(gaugeElement, '{{($collected_amounts[12]/$cycle_opening_uncollected_amounts[12])}}');
 
 </script>
 @endif
@@ -2870,6 +2719,58 @@ new Chart(cty, {
             //Setting up the cycle count down
 
 
+var COUA = document.getElementById('coua');
+var TCC = document.getElementById('tcc');
+var given_out = document.getElementById('given_out')
+var mainDiv = document.getElementById('mydivon')
+
+function toggleCOUA(){
+    if(COUA.style.display == 'none'){
+            TCC.style.display = 'none'
+            mainDiv.style.display = 'none'
+            given_out.style.display = 'none'
+            COUA.style.display = 'block'  
+    }else{
+        COUA.style.display = 'none'
+            mainDiv.style.display = 'block'
+            TCC.style.display = 'none'
+            given_out.style.display = 'none'
+    }
+}
+
+function toggleTCC(){
+    if(TCC.style.display == 'none'){
+            COUA.style.display = 'none'
+            mainDiv.style.display = 'none'
+            given_out.style.display = 'none'
+            TCC.style.display = 'block'  
+           
+    }else{
+        COUA.style.display = 'none'
+            mainDiv.style.display = 'block'
+            TCC.style.display = 'none'
+            given_out.style.display = 'none'
+    }
+
+}
+
+
+function toggleGivenOut(){
+    if(given_out.style.display == 'none'){
+            COUA.style.display = 'none'
+            mainDiv.style.display = 'none'
+            TCC.style.display = 'none'
+            given_out.style.display = 'block'
+    }else{
+            COUA.style.display = 'none'
+            mainDiv.style.display = 'block'
+            TCC.style.display = 'none'
+            given_out.style.display = 'none'
+    }
+
+}
+
+	 
 function toggleDiv(divid)
   {
  
@@ -2941,26 +2842,32 @@ var x = setInterval(function(){
 
 // var layout = { width: 400, height: 300, margin: { t: 0, b: 0 },  paper_bgcolor: "transparent", };
 // Plotly.newPlot('pdua', data, layout);
-console.log('{{$disbursed_amount}}')
-console.log('{{$compareDate}}')
-
-const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-let firstDateName = months[new Date('{{$firstDate}}').getMonth()];
-let secondDateName = months[new Date('{{$secondDate}}').getMonth()]
-let targetDateName = months[new Date('{{$targetDate}}').getMonth()]
-console.log(firstDateName)
 // var dateTarget = document.getElementById("target").innerHTML = '24 ' + targetDateName;
 const ctx = document.getElementById('graph');
-
+const ctx_new = document.getElementById('target_graph');
+var collections = <?php echo json_encode($collected_amounts); ?>;
+var uncollections = <?php echo json_encode($uncollected_amounts); ?>;
+var dates = <?php echo json_encode($dates); ?>;
 new Chart(ctx, {
   type: 'bar',
   data: {
-    labels: ['24 ' + firstDateName, '24 ' + secondDateName, '24 ' + targetDateName,],
-    datasets: [{
-      label: 'Your collections as at end of cycle date',
-      data: ['{{$collected_total_1_months }}','{{$collected_total_2_months}}','{{$collected_total}}'],
-      borderWidth: 1
-    }]
+    labels: dates,
+    datasets: [
+        {
+    label: 'Your uncollected as at end of cycle',
+      data:uncollections,
+      borderWidth: 1,
+      backgroundColor:'#ff1c4b'
+
+},
+        {
+      label: 'Your collected as at end of cycle',
+      data: collections,
+      borderWidth: 1,
+      backgroundColor:'#57b7fa'
+
+    }
+]
   },
   options: {
     scales: {
@@ -2970,6 +2877,30 @@ new Chart(ctx, {
     }
   }
 });
+
+var targets = <?php echo json_encode($targets); ?>;
+var colors = <?php echo json_encode($colors); ?>;
+
+new Chart(ctx_new,{
+    type:'bar',
+    data: {
+        labels: dates,
+        datasets: [{
+             label:'Cycle given out for last 12 months',
+             data:targets,
+             backgroundColor:colors,
+             borderWidth:1
+            }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero:true
+            }
+        },
+    }
+});
+
 
 const gaugeElement = document.querySelector(".gauge");
 
@@ -2986,7 +2917,7 @@ function setGaugeValue(gauge, value) {
   )}%`;
 }
 
-setGaugeValue(gaugeElement, '{{($collected_total/$cycle_opening_uncollected_amount)}}');
+setGaugeValue(gaugeElement, '{{($tots)}}');
 
 $('#data-table').DataTable({
             dom: 'frtip',

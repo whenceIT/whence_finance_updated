@@ -16,16 +16,28 @@ use App\Models\Document;
 use App\Models\Loan;
 use App\Models\Note;
 use App\Models\Office;
+use Aws\S3\S3Client;
+use Aws\Exception\AwsException;
+use League\Flysystem\Filesystem;
+use Illuminate\Support\Facades\Http;
 use App\Models\Savings;
 use App\Models\Setting;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use Intervention\Image\Facades\Image as InterventionImage;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
+use Intervention\Image\Facades\Image;
 use Laracasts\Flash\Flash;
 use Carbon\Carbon;
+use App\Models\UserRole;
+//use Image;
+
 
 class ClientController extends Controller
 {
@@ -41,17 +53,30 @@ class ClientController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        if (!Sentinel::hasAccess('clients.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
-
-        $data = Client::where('status', 'active')->get();
-
-        return view('client.data', compact('data'));
+    public function index(Request $request)
+{
+    if (!Sentinel::hasAccess('clients.view')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
     }
+    
+    $query = $request->input('query');
+    $data = [];
+
+    if ($query) {
+        $data = Client::where('status', 'active')
+            ->where(function ($q) use ($query) {
+                
+                $q->where('first_name', 'like', "%{$query}%")
+                    ->orWhere('last_name', 'like', "%{$query}%")
+                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"]);
+                    //->orWhere('id', $query);
+            })
+            
+            ->get();
+    }
+    return view('client.data', compact('data', 'query'));
+}
 
     public function my_index()
     {
@@ -111,9 +136,15 @@ class ClientController extends Controller
         if (!Sentinel::hasAccess('expenses')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
-        }
+	}
+	$userId = Sentinel::getUser()->id;
+        $role = UserRole::where('user_id',$userId)->first();
         $office_id = Sentinel::getUser()->office_id;
+          if($role->role_id == '1'){
+            $data = Client::where('status', 'pending')->get();
+        }else{   
         $data = Client::where('status', 'pending')->where('office_id',$office_id)->get();
+    }
 
         return view('client.pending_approval', compact('data'));
     }
@@ -548,36 +579,68 @@ class ClientController extends Controller
     }
 
     public function picture(Request $request, $id)
-    {
-        // if (!Sentinel::hasAccess('clients.view')) {
-        //     Flash::warning("Permission Denied");
-        //     return redirect()->back();
-        // }
-        $client = Client::find($id);
-        if (!empty($client->picture)) {
-            @unlink(public_path() . '/uploads/' . $client->picture);
-        }
-        if ($request->hasFile('picture')) {
-            $file = array('picture' => $request->file('picture'));
-            $rules = array('picture' => 'required|mimes:jpeg,jpg,bmp,png');
-            $validator = Validator::make($file, $rules);
-            if ($validator->fails()) {
-                Flash::warning(trans('general.validation_error'));
-                return redirect()->back()->withInput()->withErrors($validator);
-            } else {
-                $fname = str_slug($client->account_no, '_') . "" . uniqid() . '.' . $request->file('picture')->guessExtension();
-                $client->picture = $fname;
-                $request->file('picture')->move(public_path() . '/uploads',
-                    $fname);
+{
+    $client = Client::find($id);
+
+    if ($request->hasFile('picture')) {
+        $file = $request->file('picture');
+        $rules = ['picture' => 'required|mimes:jpeg,jpg,bmp,png'];
+        $validator = Validator::make(['picture' => $file], $rules);
+
+        if ($validator->fails()) {
+            Flash::warning(trans('general.validation_error'));
+            return redirect()->back()->withInput()->withErrors($validator);
+        } else {
+            $fileName = str_slug($client->account_no, '_') . "_" . uniqid() . '.' . $file->getClientOriginalExtension();
+
+            //compression using Intervention Image
+           // $image = Image::make($file)
+             //   ->resize(400, null, function ($constraint) {
+               //     $constraint->aspectRatio();
+               // })
+               // ->encode('jpg', 50); // 75% quality JPEG
+
+            try {
+                $s3Client = new S3Client([
+                    'version' => 'latest',
+                    'region'  => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key'    => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+
+                $result = $s3Client->putObject([
+                    'Bucket' => 'wfssystem',
+                    'Key'    => $fileName,
+                    'Body'   => fopen($file->getPathname(), 'r'),
+                    'ACL'    => 'public-read',
+                ]);
+                //fetch url of uploaded file
+                $url = $result['ObjectURL'];
+                Log::info('File URL:', [$url]);
+                $client->picture = $url;
+            } catch (AwsException $e) {
+                Log::error('Upload error: ' . $e->getMessage());
+                return back()->with('error', 'Failed to upload image to DigitalOcean Spaces.');
+            } catch (\Exception $e) {
+                Log::error('General error: ' . $e->getMessage());
+                return back()->with('error', 'Failed to upload image to DigitalOcean Spaces.');
             }
-
         }
-        $client->save();
-        GeneralHelper::audit_trail("Create Picture", "Clients", $client->id);
-        Flash::success(trans('general.successfully_saved'));
-        return redirect()->back();
-
+    } else {
+        Log::error('No file found in request.');
+        return back()->with('error', 'No file was uploaded.');
     }
+
+    $client->save();
+    GeneralHelper::audit_trail("Create Picture", "Clients", $client->id);
+    Flash::success(trans('general.successfully_saved'));
+
+    return redirect()->back();
+}
+     
 
 
     public function approve(Request $request, $id)
@@ -669,7 +732,8 @@ class ClientController extends Controller
             return redirect()->back();
         }
         $client = Client::find($id);
-        $client->office_id = $request->office_id;
+	$client->office_id = $request->office_id;
+	$client->staff_id = $request->staff_id;
         $client->save();
         foreach (Loan::where("status", "disbursed")->where('client_id', $id)->get() as $key) {
             $loan = Loan::find($key->id);
