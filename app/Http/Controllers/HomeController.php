@@ -20,7 +20,8 @@ use App\Http\Requests;
 use App\Models\Client;
 use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
-use App\Models\PayrollApplicant;
+use App\Models\PayrollAppliicant;
+use App\Models\AppraisalAnswer;
 use Aws\S3\S3Client;
 use NoCaptcha\Facades\NoCaptcha;
 
@@ -276,7 +277,25 @@ class HomeController extends Controller
                             }
                         }
 
+		    }
+
+		       if($role->id == 3 && Sentinel::getUser()->office->id != 41){
+                        $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',1)->where('question_id',3)->where('quater_date','>=','06-2025')->first();
+                        if(empty($answer)){
+                            return redirect('user/my_appraisal_forms');
+                        }
+                    }elseif($role->id == 4){
+                        $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',2)->where('question_id',44)->where('quater_date','>=','06-2025')->first();
+                        if(empty($answer)){
+                            return redirect('user/my_appraisal_forms');
+                        }
+                    }elseif($role->id == 6){
+                        $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',3)->where('question_id',80)->where('quater_date','>=','06-2025')->first();
+                        if(empty($answer)){
+                            return redirect('user/my_appraisal_forms');
+                        }
                     }
+		      
                     return redirect('dashboard');
                 } else {
                     //return back

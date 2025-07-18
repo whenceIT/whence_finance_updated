@@ -61,7 +61,7 @@ $balance_bf_total = 0;
                     <div class="col-md-3">
 
 
-                        @if($role->role_id == '1')
+                        @if($role->role_id == '1' || $role->role_id == '10')
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option value="0"
                                     @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>

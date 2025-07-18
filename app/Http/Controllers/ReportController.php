@@ -750,7 +750,9 @@ public function balance_sheet_consolidated(Request $request)
         $top_up = [];
 	$new_loans = [];
 	 $advances = [];
-        $expenses = [];
+	$expenses = [];
+	$pending_loans = [];
+	 $pending_loans_grouped = [];
 
         $selected_expense_type = $request->selected_expense_type ?? null;
         $expenseTypes = ExpenseType::all();
@@ -778,7 +780,9 @@ public function balance_sheet_consolidated(Request $request)
                     ->get();
 
                     $top_up = LoanTopUp::whereBetween('date',
-                    [$start_date, $end_date])->where('office_id', $office_id)->with('loan')->with('office')->get();
+			    [$start_date, $end_date])->where('office_id', $office_id)->with('loan')->with('office')->get();
+
+		          $pending_loans = Loan::whereIn('status', ['pending', 'approved'])->whereBetween('created_date',[$start_date, $end_date])->where('office_id', $office_id)->get();
 
                     // $reloans_data = LoanTransaction::whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->whereBetween('date',
                     // [$start_date, $end_date])->with('loan')->with('office')->get();
@@ -810,10 +814,13 @@ public function balance_sheet_consolidated(Request $request)
                 ->get();
 
                 // $reloans_data = LoanTransaction::whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->whereBetween('date',
-                //      [$start_date, $end_date])->with('loan')->with('office')->get();
+	//      [$start_date, $end_date])->with('loan')->with('office')->get();
+
 
                 $top_up = LoanTopUp::whereBetween('date',
-                [$start_date, $end_date])->get();
+			[$start_date, $end_date])->get();
+
+		     $pending_loans = Loan::whereIn('status', ['pending', 'approved'])->whereBetween('created_date',[$start_date, $end_date])->get();
                     
                 $new_loans = Loan::whereIn('status', ['disbursed','closed'])->whereBetween('disbursement_date',
                 [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
@@ -823,12 +830,12 @@ public function balance_sheet_consolidated(Request $request)
             })->get();
             }
 
-            
+                 $pending_loans_grouped = $pending_loans->groupBy('office_id');
 
         }
         return view('loan_report.repayment_break_down',
             compact('start_date',
-                'end_date', 'data', 'part_data', 'reloans_data', 'new_loans','office_id','top_up','expenses', 'advances','expenseTypes', 'selected_expense_type' ));
+                'end_date', 'data', 'part_data', 'reloans_data', 'new_loans','office_id','top_up','expenses', 'advances','expenseTypes', 'selected_expense_type','pending_loans_grouped', ));
     }
 
 
@@ -1450,36 +1457,51 @@ public function repayments_report_details_csv(Request $request)
 
 
    public function expected_collections_report_pdf(Request $request){
-        $userId = Sentinel::getUser()->id;
+         $userId = Sentinel::getUser()->id;
         $role = UserRole::where('user_id',$userId)->first();
         $userBranch = Sentinel::getUser()->office_id; 
         $userProvince = Sentinel::getUser()->office->province_id;
+        $today = date('Y-m-d');
+        $last_month = date('Y-m',strtotime($today. '- 1 month'));
+        $cycle_date = $last_month.'-'.'31';
+        $period_start = '2024-01-01';
         $targetDate = $request->targetDate;
         $compareDate = $request->compareDate;
         $office_id = $request->office_id;
         $branch_name = \App\Models\Office::where('id',$office_id)->first();
         $transactionList = [];
 
-        
+        $LoanArray = [];
+        $LoanArrayTwo = [];
+        $transactions = [];
+
         if($office_id != 0){
-            $transactions = LoanTransaction::whereBetween('date',[ date('Y-m-d',strtotime($compareDate. ' - 1 months')), date('Y-m-d',strtotime($targetDate. ' - 1 months'))])->where('office_id',$office_id)->get();
+            $BranchLoans = Loan::with('transactions')->where('office_id',$office_id)->whereBetween('first_repayment_date',[$period_start,$cycle_date])->get();
          
         }else{
-            $transactions = LoanTransaction::whereBetween('date',[ date('Y-m-d',strtotime($compareDate. '- 1 months')), date('Y-m-d',strtotime($targetDate.  ' - 1 months'))])->get();
+            $BranchLoans = [];//Loan::with('transactions')->where('status','disbursed')->get();
          
         }
         
-        foreach($transactions as $transaction){
-            if($transaction->payment_apply_to == 'reloan_payment' || $transaction->transaction_type == 'disbursement'){
-                array_push($transactionList,$transaction);
+        foreach($BranchLoans as $loan){
+            $reloan = 0;
+            foreach($loan->transactions as $transaction){
+                if($transaction->payment_apply_to == 'reloan_payment'){
+                    $reloan = 1;
+                }
+                //array_push($transactions,$transaction);
             }
+            if($reloan == 0){
+                array_push($LoanArray,$loan);
+                array_push($LoanArrayTwo,$loan);
+            }
+           
         }
 
 
-        $pdf = PDF::loadview('loan_report.expected_collections_pdf',compact('targetDate','compareDate','role','office_id','transactionList','branch_name'));
+        $pdf = PDF::loadview('loan_report.expected_collections_pdf',compact('branch_name','targetDate','compareDate','role','office_id','transactionList','userBranch','LoanArray','LoanArrayTwo',));
         $pdf->setPaper('A4','landscape');
-        return $pdf->download(('expected collections report'. $branch_name->name . ".pdf"));
-        
+        return $pdf->download(('branch uncollected report'. $branch_name->name . ".pdf")); 
 
 
     }
@@ -1540,7 +1562,9 @@ public function repayments_report_details_csv(Request $request)
 
         $LoanArray = [];
         $LoanArrayTwo = [];
-        foreach($BranchLoans as $loan){
+       
+	          foreach($BranchLoans as $loan){
+            
             array_push($LoanArray,$loan);
             array_push($LoanArrayTwo,$loan);
         }

@@ -54,15 +54,79 @@
         white-space: pre-wrap;
     }
 </style>
-<p>{{$branch_name->name}} expected collections for period {{date("jS M, Y", strtotime($compareDate))}} to {{date("jS M, Y", strtotime($targetDate))}}</p>
+
+
+<?php 
+function compare($a,$b){
+    return $a->first_repayment_date <=> $b->first_repayment_date;
+}
+
+function compareTwo($a,$b){
+    return $b->first_repayment_date <=>  $a->first_repayment_date;
+}
+
+usort($LoanArray,"compare");
+usort($LoanArrayTwo,"compareTwo")
+?>
+
+<p>{{$branch_name->name}} uncollected loans report</p>
 <?php 
 $balance = 0;
 $interest = 0;
 $amount = 0;
 $total = 0;
 ?>
-<div style="padding-top: 10px;">
 
+<?php
+ $thisWeekTotal = 0;
+ $allTimeTotal = 0;
+ $today = date('Y-m-d');
+ $last_month = date('Y-m',strtotime($today. '- 1 month'));
+ $cycle_date = $last_month.'-'.'31';
+ $period_start = '2023-01-01';
+ $collected_total = 0;
+?>
+
+<?php
+foreach($LoanArray as $Loan){
+
+    $OutIn = 0;
+$out = 0;
+$in = 0;
+$newout = 0;
+$reloansCount = 0;
+
+foreach($Loan->transactions as $transaction){
+
+    $collected_total = $collected_total + $transaction->credit;
+$out = $out + $transaction->debit;
+
+if($transaction->transaction_type != 'interest_waiver'){
+    $in = $in + $transaction->credit;
+}
+
+
+if($transaction->payment_apply_to == 'reloan_payment'){
+    $reloansCount = $reloansCount + 1;
+ }
+
+}
+
+$OutIn = $out - $in;
+
+
+if($Loan->first_repayment_date >= $compareDate && $Loan->first_repayment_date <= $targetDate){
+    $thisWeekTotal = $thisWeekTotal + $OutIn;
+}
+if($Loan->first_repayment_date >= $period_start && $Loan->first_repayment_date <= $cycle_date){
+$allTimeTotal = $allTimeTotal + $OutIn;
+}
+}
+?>
+<div style="padding-top: 10px;">
+<div class="row">
+<p>Uncollected balance as at {{date("jS M, Y",strtotime($cycle_date))}}: <span style="font-weight: bold; font-size:large">K{{number_format($allTimeTotal,2)}}</span></p>
+</div>
 <div class="box box-primary">
 <div class="box-body table-responsive" >
 <table class="table  table-bordered table-hover table-striped" id="data-table-2">
@@ -77,68 +141,69 @@ $total = 0;
     <th>Loan ID</th>
     <th>Client Name</th>
     <th>Loan Consultant</th>
-    <th>Type</th>
     <th>Balance</th>
     <th>Due Date</th>
 
     </tr>
 </thead>
 <tbody>
-    @foreach($transactionList as $transaction)
-    <tr>
-@if(!empty($transaction->Loan->id))
-<td>
-{{$transaction->Loan->id}}
-</td>
-@endif
-<td>
-@if(!empty($transaction->Loan->client->first_name))
-    {{$transaction->Loan->client->first_name}} 
-@endif    
-@if(!empty($transaction->Loan->client->last_name))
-    {{$transaction->Loan->client->last_name}}</td>
-@endif    
-<td>@if(!empty($transaction->Loan->loan_officer->first_name))
-    {{$transaction->Loan->loan_officer->first_name}} 
-@endif
-@if(!empty($transaction->Loan->loan_officer->last_name))
-    {{$transaction->Loan->loan_officer->last_name}}</td>
-@endif    
-@if($transaction->payment_apply_to == 'reloan_payment')
-<td>Reloan</td>
-@elseif($transaction->transaction_type == 'disbursement')
-<td>New Loan</td>
-@else
-<td></td>
-@endif
-<?php 
-if($transaction->transaction_type == 'disbursement'){
-    $interest = $transaction->debit * 0.4;
-    $balance = $transaction->debit + $interest;
-}elseif($transaction->payment_apply_to == 'reloan_payment'){
-    $amount = $transaction->balance_bf - $transaction->credit;
-    $interest = $amount * 0.4;
-    $balance = $amount + $interest;
-}
-?>
-<td>{{$balance}}</td>
 <?php
-$due_date = date('Y-m-d',strtotime($transaction->date. '+ 1 months'))
-?>
-<td>{{date("jS M, Y",strtotime($due_date))}}</td>
-    
-    </tr>
-    <?php
-    $total = $total + $balance;
-    $interest = 0;
-    $balance = 0;
-    $amount = 0;
+     $collected_total = 0;
     ?>
+    @foreach($LoanArray as $Loan)
+    <?php
+      $OutIn = 0;
+      $out = 0;
+      $in = 0;
+    ?>
+    @foreach($Loan->transactions as $transaction)
+<?php
+    $collected_total = $collected_total + $transaction->credit;
+    $out = $out + $transaction->debit;
+    
+    // if($transaction->transaction_type != 'interest_waiver'){
+    //     $in = $in + $transaction->credit;
+    // }
+
+    $in = $in + $transaction->credit;
+    
+?>
+    @endforeach
+    <?php
+    $OutIn = $out - $in;
+    ?>
+    @if($OutIn != 0 && $OutIn > 0)
+    <tr>
+    <td>
+        @if($reloansCount > 0)
+        <p>{{$Loan->id}}<span style="color: blue;">(Reloan)</span></p>
+        @else
+        <p>{{$Loan->id}}</p>
+        </td>
+        @endif
+        <td>
+        @if(!empty($Loan->client->first_name))
+            {{$Loan->client->first_name}}
+        @endif      
+        @if(!empty($Loan->client->last_name)) 
+            {{$Loan->client->last_name}}</td>
+        @endif   
+        <td>
+        @if(!empty($Loan->loan_officer->first_name))
+            {{$Loan->loan_officer->first_name}}
+        @endif  
+        @if(!empty($Loan->loan_officer->last_name))   
+            {{$Loan->loan_officer->last_name}}
+        @endif      
+        </td>
+        <td>{{number_format($OutIn,2)}}</td>
+        <td style="font-weight: bold;">{{date("jS M, Y",strtotime($Loan->first_repayment_date))}}</td>
+    </tr>
+    @endif
     @endforeach
 </tbody>
 </table>
 </div>
 </div> 
  
-<p style="font-weight: bold; font-size:large">EXPECTED COLLECTED TOTAL: K{{number_format($total,2)}}</p>
 </div>

@@ -143,6 +143,19 @@ Route::group(['prefix' => 'user'], function () {
     Route::post('role/{id}/update', 'UserController@updateRole');
     Route::get('role/{id}/delete', 'UserController@deleteRole');
 
+
+     //appraisals
+    Route::any('appraisal_forms','UserController@appraisal_forms');
+    Route::any('my_appraisal_forms','UserController@my_appraisal_forms');
+        Route::any('appraisal_results','UserController@appraisal_results');
+    Route::any('{id}/{form}/appraisal_result','UserController@appraisal_result');
+    Route::any('{id}/appraisal_form','UserController@appraisal_form');
+    Route::any('{id}/my_appraisal','UserController@my_appraisal');
+    Route::any('{id}/submit_appraisal','UserController@submit_appraisal');
+    Route::any('create_form','UserController@create_form');
+    Route::any('{id}/add_section','UserController@add_section');
+    Route::any('{section_id}/{id}/add_question','UserController@add_question');
+
     //LC Cycle information
     Route::get('cycle','UserController@cycle');
     Route::post('addcycle','UserController@addCycle');
@@ -385,6 +398,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('data', 'LoanController@index')->name('loan.data');
     Route::get('my_loans', 'LoanController@my_index');
     Route::get('my_app_loans', 'LoanController@my_index_approved');
+    Route::any('branch_uncollected','LoanController@branch_uncollected');
     Route::get('branch_app_loans', 'LoanController@branch_index_approved');
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals','LoanController@reloan_approvals');
@@ -434,6 +448,8 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('payroll_loan/{id}/payroll_applicant','LoanController@payroll_applicant');
        Route::get('payroll_loan/{id}/approve_applicant','LoanController@approve_applicant');
     Route::get('payroll_loan/{id}/decline_applicant','LoanController@decline_applicant');
+    Route::get('branch_graph','LoanController@branch_graph');
+     Route::get('lusaka_graph','LoanController@lusaka_graph');
     //Make defaulted
     Route::get('{id}/set_defaulted', 'LoanController@set_defaulted');
     Route::post('{id}/decline', 'LoanController@decline_loan');
@@ -444,6 +460,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::post('{id}/write_off', 'LoanController@write_off_loan');
     Route::post('{id}/reschedule_loan', 'LoanController@reschedule_loan');
     Route::post('{id}/change_loan_officer', 'LoanController@change_loan_officer');
+    Route::post('{id}/change_branch', 'LoanController@change_branch');
     Route::get('{loan}/email_schedule', 'LoanController@email_schedule');
     Route::get('{loan}/email_statement', 'LoanController@email_statement');
     Route::get('{loan}/print_schedule', 'LoanController@print_schedule');
@@ -948,6 +965,15 @@ Route::group(['prefix' => 'performance_metrics'], function () {
     Route::get('/low_performance', [PerformanceMetricsController::class, 'lowPerformance'])->name('performance_metrics.low_performance');
     Route::get('/defaulted', [PerformanceMetricsController::class, 'defaulted'])->name('performance_metrics.defaulted');
 });
+
+//company policies
+Route::group(['prefix' => 'policies'], function () {
+    
+    Route::get('view_policies', 'PolicyController@viewPolicies')->name('policies.view_policies');
+    Route::get('add_policies', 'PolicyController@addPolicies')->name('policies.add_policies');
+    Route::post('store_policies', 'PolicyController@storePolicies')->name('policies.store_policies');
+});
+
 //route for expenses
 Route::group(['prefix' => 'expense'], function () {
     Route::get('data', 'ExpenseController@index');
@@ -988,7 +1014,8 @@ Route::group(['prefix' => 'payroll'], function () {
 	Route::any('lc_information','PayrollController@lc_information');
 	  Route::any('{user}/lc_information','PayrollController@lc_info');
     Route::get('create', 'PayrollController@create');
-    Route::post('store', 'PayrollController@store');
+	Route::post('store', 'PayrollController@store');
+	   Route::any('create_wage_bill','PayrollController@create_wage_bill');
     Route::post('create_new_payroll','PayrollController@create_new_payroll');
     Route::get('{payroll}/show', 'PayrollController@show');
     Route::get('{payroll}/edit', 'PayrollController@edit');
@@ -1007,9 +1034,19 @@ Route::group(['prefix' => 'payroll'], function () {
     Route::post('{id}/save_user_payslip','PayrollController@edit_payroll_information_manager');
     Route::post('{id}/save_payroll','PayrollController@save_payroll');
     Route::get('create_payroll','PayrollController@create_payroll');
+        Route::any('store_new_payroll','PayrollController@storeNewPayroll');
+    Route::any('{id}/edit_new_payroll','PayrollController@edit_new_payroll');
+    Route::any('{id}/save_edit_new_payroll','PayrollController@save_edit_new_payroll');
     Route::any('download_payroll_excel_report', 'PayrollController@payroll_report_excel');
     Route::any('payroll_query','PayrollController@payroll_query');
     Route::get('{payroll}/payslip_old', 'PayrollController@pdfPayslipOld');
+       Route::any('submit_payroll','PayrollController@submit_payroll');
+    Route::any('{id}/submit_payroll','PayrollController@submit_single_payroll');
+    Route::any('payroll_pending_approval','PayrollController@payroll_pending_approval');
+    Route::any('{id}/payroll_pending_approval','PayrollController@single_payroll_pending_approval');
+    Route::any('{id}/approve_payroll','PayrollController@approve_payroll');
+    Route::any('{id}/approve_single_payroll','PayrollController@approve_single_payroll');
+        Route::any('{id}/submit_single_payroll','PayrollController@submit_single_payroll');
 
 //template
     Route::any('template', 'PayrollTemplateController@index');
@@ -1017,6 +1054,7 @@ Route::group(['prefix' => 'payroll'], function () {
     Route::post('template/{id}/update', 'PayrollTemplateController@update');
     Route::get('template/{id}/delete_meta', 'PayrollTemplateController@delete_meta');
     Route::post('template/{id}/add_row', 'PayrollTemplateController@add_row');
+        Route::post('template/{id}/add_row_deduction', 'PayrollTemplateController@add_row_deduction');
 });
 //route for client portal
 Route::group(['prefix' => 'portal'], function () {

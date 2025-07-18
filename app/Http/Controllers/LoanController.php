@@ -402,6 +402,103 @@ class LoanController extends Controller
         return view('loan.new_collections',compact('targetDate','compareDate','branch_name','office_id','userProvince','role','userBranch','LoanArray'));
     }
 
+
+        public function branch_uncollected(Request $request){
+        $userId = Sentinel::getUser()->id;
+        $role = UserRole::where('user_id',$userId)->first();
+        $userBranch = Sentinel::getUser()->office_id; 
+        $userProvince = Sentinel::getUser()->office->province_id;
+        $today = date('Y-m-d');
+        $last_month = date('Y-m',strtotime($today. '- 1 month'));
+        $cycle_date = $last_month.'-'.'31';
+        $period_start = '2024-01-01';
+        $targetDate = $request->end_date;
+         $compareDate = $request->start_date;
+        $office_id = $request->office_id;
+        $transactionList = [];
+
+        $LoanArray = [];
+        $LoanArrayTwo = [];
+        $full_loans = [];
+        $part_loans = [];
+        $transactions = [];
+
+      
+            if($office_id != 0){
+                $BranchLoans = Loan::with('transactions')->where('office_id',$office_id)->where('status','disbursed')->whereBetween('first_repayment_date',[$compareDate,$targetDate])->get();
+
+             
+            }else{
+                $BranchLoans = Loan::with('transactions')->whereBetween('first_repayment_date',[$compareDate,$targetDate])->get();
+            }
+     
+        
+
+        foreach($BranchLoans as $loan){
+            $reloan = 0;
+            $part_payment = 0;
+            foreach($loan->transactions as $transaction){
+                if($transaction->payment_apply_to == 'reloan_payment'){
+                    $reloan = 1;
+                }
+
+                if($transaction->payment_apply_to == 'part_payment'){
+                    $part_payment = 1;
+                }
+                //array_push($transactions,$transaction);
+            }
+            if($reloan == 0){
+                array_push($LoanArray,$loan);
+                array_push($LoanArrayTwo,$loan);
+	    }
+
+	          if($part_payment == 1){
+                array_push($part_loans,$loan);
+            }
+           
+            if($part_payment == 0 && $reloan == 0){
+                array_push($full_loans,$loan);
+            }
+        }
+
+
+        return view('loan.branch_uncollected',compact('targetDate','compareDate','role','office_id','transactionList','userBranch','LoanArray','LoanArrayTwo','full_loans','part_loans'));
+    }
+
+
+
+    public function branch_graph(){
+        $todaysDate = date('Y-m-d');
+        $office_loans = [];
+        $office_names = [];
+        $newDate = date('Y-m-d',strtotime($todaysDate. '- 13 months'));
+        $offices = Office::get();
+        foreach($offices as $office){
+            $loans =  Loan::with('transactions')->where('created_date','>',$newDate)->where('office_id',$office->id)->get();
+            array_push($office_loans,$loans);
+            array_push($office_names,$office->name);
+        }
+
+
+        return view('loan.branch_graph',compact('offices','office_loans','office_names'));
+    }
+
+        public function lusaka_graph(){
+
+        $todaysDate = date('Y-m-d');
+        $office_loans = [];
+        $office_names = [];
+        $newDate = date('Y-m-d',strtotime($todaysDate. '- 13 months'));
+        $offices = Office::where('province_id',1)->get();
+        foreach($offices as $office){
+            $loans =  Loan::with('transactions')->whereBetween('created_date',['2024-01-01','2024-12-31'])->where('office_id',$office->id)->get();
+            array_push($office_loans,$loans);
+            array_push($office_names,$office->name);
+        }
+
+        return view('loan.lusaka_graph',compact('offices','office_loans','office_names'));
+
+    }
     
  public function expected_collections(Request $request){
         $userId = Sentinel::getUser()->id;
@@ -411,27 +508,42 @@ class LoanController extends Controller
         $targetDate = $request->end_date;
         $compareDate = $request->start_date;
         $office_id = $request->office_id;
-        $transactionList = [];
+	$transactionList = [];
+
+
+	 $LoanArray = [];
+        $LoanArrayTwo = [];
 
         
-        if($office_id != 0){
-            $transactions = LoanTransaction::whereBetween('date',[ date('Y-m-d',strtotime($compareDate. ' - 1 months')), date('Y-m-d',strtotime($targetDate. ' - 1 months'))])->where('office_id',$office_id)->get();
+                if($office_id != 0){
+            $BranchLoans = Loan::with('transactions')->where('office_id',$office_id)->where('status','disbursed')->get();
          
         }else{
-            $transactions = LoanTransaction::whereBetween('date',[ date('Y-m-d',strtotime($compareDate. '- 1 months')), date('Y-m-d',strtotime($targetDate.  ' - 1 months'))])->get();
+            $BranchLoans = Loan::with('transactions')->where('status','disbursed')->get();
          
         }
+
+
         
-        foreach($transactions as $transaction){
-            if($transaction->payment_apply_to == 'reloan_payment' || $transaction->transaction_type == 'disbursement'){
-                array_push($transactionList,$transaction);
+        foreach($BranchLoans as $loan){
+            $reloan = 0;
+            foreach($loan->transactions as $transaction){
+                if($transaction->payment_apply_to == 'reloan_payment'){
+                    $reloan = 1;
+                }
+                
             }
+            if($reloan == 0){
+                array_push($LoanArray,$loan);
+                array_push($LoanArrayTwo,$loan);
+            }
+           
         }
 
 
 
 
-        return view('loan.expected_collections',compact('targetDate','compareDate','role','office_id','transactionList','userBranch'));
+        return view('loan.expected_collections',compact('targetDate','compareDate','role','office_id','transactionList','userBranch','LoanArray','LoanArrayTwo'));
     }  
 
 //PART PAYMENT AND FULL PAYMENT APPROVALS
@@ -492,10 +604,10 @@ class LoanController extends Controller
         $role = UserRole::where('user_id',$userId)->first();
 	$office_id = Sentinel::getUser()->office_id;
 	if($role->role_id == '1'){
-		   $data = Loan::where('status', 'pending')->get();
+		   $data = Loan::whereIn('status', ['pending', 'approved'])->get();
           
         }else{
-		 $data = Loan::where('status', 'pending')->where('office_id',$office_id)->get();
+		 $data = Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->get();
         }
 
         return view('loan.managers_pending_approval',compact('data'));
@@ -609,6 +721,7 @@ class LoanController extends Controller
 ///////////////////////////////////////
     public function create_client_loan($client, $loan_product)
     {
+	       $userBranch = Sentinel::getUser()->office_id;
         if (!Sentinel::hasAccess('loans.create')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
@@ -629,7 +742,7 @@ class LoanController extends Controller
             return redirect()->back();
         } else {
             return view('loan.create_client_loan',
-                compact('client', 'loan_product'));
+                compact('client', 'loan_product','userBranch'));
         }
     }
 
@@ -708,7 +821,9 @@ class LoanController extends Controller
                 $loan->decimals = $loan_product->decimals;
                 $loan->loan_officer_id = $request->loan_officer_id;
                 $loan->loan_purpose_id = $request->loan_purpose_id;
-                $loan->external_id = $request->external_id;
+		$loan->external_id = $request->external_id;
+		$loan->vetted_by = $request->vetted_by;
+		  $loan->verified_by = $request->verified_by;
                 $loan->principal = $request->principal;
                 $loan->applied_amount = $request->principal;
                 $loan->currency_id = $loan_product->currency_id;
@@ -1769,6 +1884,31 @@ class LoanController extends Controller
             Flash::success(trans('general.successfully_saved'));
             return redirect()->back();
         }
+    }
+
+       public function change_branch(Request $request, $id)
+    {
+        if (!Sentinel::hasAccess('loans.update')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+        $rules = array(
+            'office' => 'required',
+        );
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return redirect()->back()->withInput()->withErrors($validator);
+        } else {
+            $loan = Loan::find($id);
+            $loan->office_id = $request->office;
+            $loan->save();
+            GeneralHelper::audit_trail("Update", "Loans", $id);
+            Flash::success(trans('general.successfully_saved'));
+            return redirect()->back();
+        }
+
     }
 
     public function unapprove_loan(Request $request, $id)

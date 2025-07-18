@@ -26,7 +26,8 @@ class User extends EloquentUser
         'from_time',
         'to_time',
         'access_days',
-        'picture',
+	'picture',
+	'status',
     ];
     public function payroll()
     {
@@ -66,6 +67,11 @@ class User extends EloquentUser
     public function leave()
     {
         return $this->hasMany(Leave::class, 'user_id', 'id');
+    }
+
+
+    public function dual_role(){
+        return $this->hasOne(DualRole::class,'user_id','id','role_id');
     }
 
 

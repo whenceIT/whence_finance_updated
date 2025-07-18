@@ -70,6 +70,9 @@ $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance
     </tr>
 </thead>
 <tbody>
+<?php
+$total = 0;
+?>
 @foreach($userLoans as $loan)
 <?php
 $reloansCount = 0;
@@ -88,9 +91,7 @@ if($transaction->date <= $targetDate && $transaction->transaction_type != 'inter
     $in = $in + $transaction->credit;
 }
 
-if($transaction->date <= $targetDate && $transaction->transaction_type == 'specified_due_date_fee'){
-    $newout = $newout + $transaction->debit;
-}
+
 
 if($loan->status == 'disbursed' && $transaction->payment_apply_to == 'reloan_payment'){
     $reloansCount = $reloansCount + 1;
@@ -103,7 +104,8 @@ $OutIn = $out - $in;
 $OutIn = $OutIn - $newout;
 if($OutIn < 0){
     $OutIn = 0;
-}
+ }
+$total = $total + $OutIn;	    
 ?>
 <tr>
    @if($OutIn != 0)
@@ -125,6 +127,7 @@ if($OutIn < 0){
 </tr>
 @endforeach
 </tbody>
+<p  style="font-weight: bold;">TOTAL: {{$total}}</p>
 </table>
 </div>
 </div>  

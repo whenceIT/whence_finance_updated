@@ -68,9 +68,28 @@ class PayrollTemplateController extends Controller
         $meta = new PayrollTemplateMeta();
         $meta->name = $request->name;
         $meta->payroll_template_id = $id;
-        $meta->position = $request->position;
+	$meta->position = $request->position;
+	   $meta->type = 'addition';
         $meta->save();
         Flash::success(trans('general.successfully_saved'));
+        return redirect('payroll/template/' . $id . '/edit');
+    }
+
+
+
+    public function add_row_deduction(Request $request, $id)
+    {
+        if (!Sentinel::hasAccess('payroll.update')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+        $meta = new PayrollTemplateMeta();
+        $meta->name = $request->name;
+        $meta->payroll_template_id = $id;
+        $meta->position = 'bottom_right';
+        $meta->type = 'deduction';
+        $meta->save();
+        Flash::success(trans('YTG8H'));
         return redirect('payroll/template/' . $id . '/edit');
     }
 

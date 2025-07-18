@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Advance;
+use App\Models\AdvanceTransaction;
 use Carbon\Carbon;
 use App\Models\CycleDates;
 use App\Models\Client;
@@ -77,7 +78,7 @@ class GeneralLedgerController extends Controller
     public function summary(Request $request)
     {
         $todaysDate = date('Y-m-d');
-        $startLimitDate = '2024-09-25';
+        $startLimitDate = '2025-01-04';
         $user = Sentinel::getUser();
         $startDate = $request->input('start_date') ?: $startLimitDate;
         $endDate = $request->input('end_date') ?: $todaysDate;
@@ -109,7 +110,7 @@ class GeneralLedgerController extends Controller
     
             $branchAdvancesPaid = Advance::where('office_id', $branch->id)
             ->where('status', 'approved')
-                ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
+                ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
                 ->sum('amount_paid');
 
             $branchExpenses = Expense::where('office_id', $branch->id)
@@ -166,7 +167,7 @@ class GeneralLedgerController extends Controller
 
             $advancesPaid = Advance::where('office_id', $branch->id)
             ->where('status', 'approved')
-                ->whereBetween('date_approved', [$startDate, $endDate])
+                ->whereBetween('last_update_date', [$startDate, $endDate])
                 ->sum('amount_paid');
     
             $expenses = Expense::where('office_id', $branch->id)
@@ -281,17 +282,17 @@ public function transactions()
 
 //helper function to calculate the net change for the office
 private function calculateNetChange($office, $recentLedgerEntry) {
-    $startLimitDate = '2024-09-25';
+    $startLimitDate = '2025-01-04';
     $todaysDate = date('Y-m-d');
     
     $advancesTotal = Advance::where('office_id', $office->id)
-        ->where('status', 'approved')
+        ->whereIn('status', ['approved','closed'])
         ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
         ->sum('amount');
     
-    $advancesTotalPaid = Advance::where('office_id', $office->id)
-        ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
+    $advancesTotalPaid = AdvanceTransaction::whereHas('advance', function ($query) use ($office) {
+        $query->where('office_id', $office->id);})
+        ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
         ->sum('amount_paid');
 
     $expensesTotal = Expense::where('office_id', $office->id)
@@ -322,7 +323,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $totalIncome = $recentLedgerEntry ? $recentLedgerEntry->total_income : 0;
         
 
-    return $fullPaymentsTotal + $reloanedAmountTotal + $partPaymentTotal + $totalIncome - ($advancesTotal + $expensesTotal + $newLoansTotal);
+    return $fullPaymentsTotal + $reloanedAmountTotal + $partPaymentTotal+ $advancesTotalPaid  + $totalIncome - ($advancesTotal + $expensesTotal + $newLoansTotal);
 }
 
         
@@ -334,7 +335,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         }
     
         $todaysDate = date('Y-m-d');
-        $startLimitDate = '2024-09-25'; // Start date limit
+        $startLimitDate = '2025-01-04'; // Start date limit
         $endDate = $request->end_date ?: $todaysDate;
         $startDate = $request->start_date ?: $startLimitDate;
         
@@ -349,14 +350,14 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         $netChange = 0;
     
         $advancesTotal = Advance::where('office_id', $office->id)
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', 'closed'])
             ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
             ->sum('amount');
         $netChange -= $advancesTotal;
 
-        $advancesPaid = Advance::where('office_id', $office->id)
-        ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
+        $advancesPaid = AdvanceTransaction::whereHas('advance', function ($query) use ($office) {
+            $query->where('office_id', $office->id); })
+        ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
         ->sum('amount_paid');
         $netChange += $advancesPaid;
     
@@ -397,13 +398,13 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     
         
         $advances = Advance::where('office_id', $office->id)
-            ->where('status', 'approved')
-            ->whereBetween('date_approved', [$startDate, $endDate])
+            ->whereIn('status', ['approved', 'closed'])
+            ->whereBetween('last_update_date', [$startDate, $endDate])
             ->sum('amount');
 
-        $advancesPaid = Advance::where('office_id', $office->id)
-        ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
+        $advancesPaid = AdvanceTransaction::whereHas('advance', function ($query) use ($office) {
+            $query->where('office_id', $office->id);})
+        ->whereBetween('last_update_date', [$startDate, $endDate])
         ->sum('amount_paid');
             
         
@@ -494,7 +495,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $todaysDate = date('Y-m-d');
     $officeId = $request->input('office_id');
     $officeName = Office::find($officeId)->name;
-    $startLimitDate = '2024-09-25'; 
+    $startLimitDate = '2025-01-04'; 
     $startDate = $request->input('start_date') ?: $startLimitDate;
     $endDate = $request->input('end_date') ?: $todaysDate;
     $format = $request->input('format', 'pdf');
@@ -514,15 +515,19 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     //closing balance calculation
     
     $advancesTotal = Advance::where('office_id', $officeId)
-    ->where('status', 'approved')
+    ->whereIn('status', ['approved', 'closed'])
     ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
     ->sum('amount');
     $netChange -= $advancesTotal;
 
-    $advancesPaid = Advance::where('office_id', $officeId)
-        ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
-        ->sum('amount_paid');
-        $netChange += $advancesPaid;
+
+    $advancesPaid = AdvanceTransaction::whereHas('advance', function ($query) use ($officeId) {
+        $query->where('office_id', $officeId);
+    })
+    ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
+    ->sum('amount_paid');
+
+    $netChange += $advancesPaid;
 
     $expensesTotal = Expense::where('office_id', $officeId)
         ->whereBetween('date', [$startLimitDate, $todaysDate])
@@ -562,14 +567,15 @@ private function calculateNetChange($office, $recentLedgerEntry) {
 
     //detailed transactions within the specified date range
     $advances = Advance::where('office_id', $officeId)
-        ->where('status', 'approved')
+        ->whereIn('status', ['approved', 'closed'])
         ->whereBetween('date_approved', [$startDate, $endDate])
         ->get(['id','first_name', 'last_name', 'amount', 'date_approved']);
 
-    $advancesPaid = Advance::where('office_id', $officeId)
-        ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startDate, $endDate])
-        ->get(['id','first_name', 'last_name', 'amount_paid', 'date_approved']);
+    $advancesPaid = AdvanceTransaction::whereHas('advance', function ($query) use ($officeId) {
+            $query->where('office_id', $officeId);
+        })
+        ->whereBetween('last_update_date', [$startDate, $endDate])
+        ->get(['advance_id', 'amount_paid', 'last_update_date']);
     
     $expenses = Expense::where('office_id', $officeId)
         ->whereBetween('date', [$startDate, $endDate])
@@ -619,7 +625,7 @@ public function generateExcelReport(Request $request)
     $todaysDate = date('Y-m-d');
     $officeId = $request->input('office_id');
     $officeName = Office::find($officeId)->name;
-    $startLimitDate = '2024-09-25'; 
+    $startLimitDate = '2025-01-04'; 
     $startDate = $request->input('start_date') ?: $startLimitDate;
     $endDate = $request->input('end_date') ?: $todaysDate;
 
@@ -644,7 +650,7 @@ public function generateExcelReport(Request $request)
 
     $advancesPaid = Advance::where('office_id', $officeId)
         ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
+        ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
         ->sum('amount_paid');
         $netChange += $advancesPaid;
 
@@ -686,13 +692,13 @@ public function generateExcelReport(Request $request)
     // Fetch detailed transactions
     $advances = Advance::where('office_id', $officeId)
         ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startDate, $endDate])
+        ->whereBetween('last_update_date', [$startDate, $endDate])
         ->get();
 
-    /*$advancesPaid = Advance::where('office_id', $office->id)
+    $advancesPaid = Advance::where('office_id', $office->id)
         ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
-        ->get();*/
+        ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
+        ->get();
 
     $expenses = Expense::where('office_id', $officeId)
         ->whereBetween('date', [$startDate, $endDate])
@@ -723,7 +729,7 @@ public function generateExcelReport(Request $request)
         'startDate' => $startDate,
         'endDate' => $endDate,
         'advances' => $advances,
-        /*'advancesPaid' => $advancesPaid,*/
+        'advancesPaid' => $advancesPaid,
         'expenses' => $expenses,
         'fullPayments' => $fullPayments,
         'reloanedAmount' => $reloanedAmount,
@@ -743,7 +749,7 @@ public function allgenerateExcelReport(Request $request)
 {
     $todaysDate = date('Y-m-d');
     $offices = Office::all(); 
-    $startLimitDate = '2024-09-25'; 
+    $startLimitDate = '2025-01-04'; 
     $startDate = $request->input('start_date') ?: $startLimitDate;
     $endDate = $request->input('end_date') ?: $todaysDate;
 
@@ -778,7 +784,7 @@ public function allgenerateExcelReport(Request $request)
 
         $advancesPaid = Advance::where('office_id', $officeId)
         ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
+        ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
         ->sum('amount_paid');
 
 
@@ -832,11 +838,11 @@ public function allgenerateExcelReport(Request $request)
             'endDate' => $endDate,
             'advances' => Advance::where('office_id', $officeId)
                 ->where('status', 'approved')
-                ->whereBetween('date_approved', [$startDate, $endDate])
+                ->whereBetween('last_update_date', [$startDate, $endDate])
                 ->get(),
             'advancesPaid' => Advance::where('office_id', $officeId)
                 ->where('status', 'approved')
-                ->whereBetween('date_approved', [$startDate, $endDate])
+                ->whereBetween('last_update_date', [$startDate, $endDate])
                 ->get(),
             'expenses' => Expense::where('office_id', $officeId)
                 ->whereBetween('date', [$startDate, $endDate])

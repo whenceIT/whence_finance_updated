@@ -96,6 +96,15 @@ class Loan extends Model
         return $this->hasOne(User::class, 'id', 'approved_by_id');
     }
 
+
+    public function vetted_by_field(){
+        return $this->hasOne(User::class, 'id', 'vetted_by');
+    }
+
+    public function verified_by_field(){
+        return $this->hasOne(User::class, 'id','verified_by');
+    }
+
     public function rejected_by()
     {
         return $this->hasOne(User::class, 'id', 'rejected_by_id');

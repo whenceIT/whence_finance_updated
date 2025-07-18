@@ -219,7 +219,72 @@
                     </div>
 
                 </div>
+    <div class="form-group">
+                <label for="expected_disbursement_date"
+                           class="control-label col-md-2">Vetted by
+                        <i class="fa fa-question-circle" data-toggle="tooltip"
+                           data-title="The date that the loan account is expected to be disbursed"></i>
+                    </label>
 
+                    <div class="col-md-3">
+                        <select name="vetted_by" class="form-control select2" id="vetted_by" required>
+                            <option></option>
+                                     @if(in_array($userBranch, ['46','47','49','51']))
+
+                            @foreach(\App\Models\User::where('office_id',$userBranch)->get() as $key)
+                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                    <option value="{{$key->id}}"
+                                            @if($client->staff_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                @endif
+                            @endforeach
+
+                            @else
+
+                            @foreach(\App\Models\User::where('office_id',$userBranch)->where('id','!=',Sentinel::getUser()->id)->get() as $key)
+                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                    <option value="{{$key->id}}"
+                                            @if($client->staff_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                @endif
+                            @endforeach
+
+                            @endif
+                        </select>
+		    </div>
+
+        <label for="expected_disbursement_date"
+                           class="control-label col-md-2">Verified by
+                        <i class="fa fa-question-circle" data-toggle="tooltip"
+                           data-title="The date that the loan account is expected to be disbursed"></i>
+                    </label>
+
+                    <div class="col-md-3">
+                        <select name="verified_by" class="form-control select2" id="verified_by" required>
+                            <option></option>
+                                @if(in_array($userBranch, ['46','47','49','51']))
+
+                            @foreach(\App\Models\User::where('office_id',$userBranch)->get() as $key)
+                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                    <option value="{{$key->id}}"
+                                            @if($client->staff_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                @endif
+                            @endforeach
+
+                            @else
+
+                            @foreach(\App\Models\User::where('office_id',$userBranch)->where('id','!=',Sentinel::getUser()->id)->get() as $key)
+                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                    <option value="{{$key->id}}"
+                                            @if($client->staff_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                @endif
+                            @endforeach
+
+                            @endif
+                        </select>
+
+
+                    </div>
+
+                </div>
                 <h3>{{trans_choice('general.charge',2)}}</h3>
                 <hr>
                 <div class="form-group">

@@ -14,7 +14,11 @@ class Advance extends Model
 {
     protected $fillable = ['user_id', 'amount', 'installments', 'date_approved', 'expected_repayment_dates', 'remaining_amount', 'status']; 
 
-    
+public function transactions()
+    {
+    return $this->hasMany(AdvanceTransaction::class);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

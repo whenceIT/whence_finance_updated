@@ -32,6 +32,10 @@ use Illuminate\Support\Facades\Validator;
 use Laracasts\Flash\Flash;
 use Cartalyst\Sentinel\Laravel\Facades\Activation;
 use Psy\CodeCleaner\FunctionContextPass;
+use App\Models\AppraisalForm;
+use App\Models\AppraisalFormSection;
+use App\Models\AppraisalQuestion;
+use App\Models\AppraisalAnswer;
 use stdClass;
 
 class UserController extends Controller
@@ -49,6 +53,14 @@ class UserController extends Controller
         //BELOW THIS
         $role = UserRole::where('user_id',$userId)->first();
 	$userBranch = Sentinel::getUser()->office_id;
+
+  if(Sentinel::getUser()->cycle_dates == null){
+            $cycle_end = 24;
+        }else{
+            $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+        }
+
+
 	   if($role->role_id != '2'){
 		   $userProvince = Sentinel::getUser()->office->province_id;
 	   }
@@ -157,7 +169,7 @@ class UserController extends Controller
      
          $branchUsers = User::where('office_id',$userBranch)->with('loan')->with('role')->get();
          if($role->role_id != '2'){
-        return view('dashboard', compact('end','myLoans','role','branchUsers','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','province_branches','allLoans','allTransactions','provinces',));
+        return view('dashboard', compact('end','myLoans','role','branchUsers','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','province_branches','allLoans','allTransactions','provinces','cycle_end','userId',));
          }else{
             return view('dashboard',compact('role','user','client','clientBranch','staff','clientLoan',));
          }
@@ -200,6 +212,424 @@ class UserController extends Controller
              return view('user.detailed_dashboard', compact('myLoans','role','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','allLoans','allTransactions','provinces',));
     }
 
+
+
+public function submit_appraisal(Request $request ,$id){
+    $year = date('Y');
+$month = date('m');
+$peers = [];
+$managers = [];
+$dm_peers = [];
+$recoveries_reps = [];
+$recoveries_head = [];
+$manager_admin = [];
+    $user = Sentinel::getUser()->id;
+    $users = User::with('role')->where('office_id','!=',null)->get();
+    $userBranch = Sentinel::getUser()->office_id;
+    $role = UserRole::where('user_id',$user)->first();
+    $userProvince = Sentinel::getUser()->office->province_id;
+    $province_branches = Office::where('province_id',$userProvince)->get();
+
+    foreach($province_branches as $province_branch){
+        foreach($users as $person){
+
+            if($person->role != null){
+            if($person->role->role_id == 6 && $person->office_id == $province_branch->id && $person->id != $user){
+                array_push($managers,$person);
+            }
+
+            if($person->role->role_id == 4 && $person->office_id == $userBranch && $person->id != $user){
+                array_push($managers,$person);
+            }
+
+            if($person->role->role_id == 4 && $person->office_id == $province_branch->id){
+                array_push($dm_peers,$person);
+            }
+        }
+
+        if($person->dual_role != null){
+            if($person->dual_role->role_id == 7 && $person->office_id == $userBranch && count($recoveries_reps) == 0){
+                array_push($recoveries_reps,$person);
+            }
+        }
+
+        if($person->dual_role != null){
+            if($person->dual_role->role_id == 8 && count($recoveries_head) == 0){
+                array_push($recoveries_head,$person);
+            }
+        }
+
+
+        if($person->dual_role != null){
+            if($person->dual_role->role_id == 9 && count($manager_admin) == 0){
+                array_push($manager_admin,$person);
+            }
+        }
+
+
+        }
+    }
+
+    foreach($users as $branch_person){
+	       if($branch_person->role != null){
+        if($branch_person->role->role_id == $role->role_id && $branch_person->id != $user && $branch_person->office_id == $userBranch){
+            array_push($peers,$branch_person);
+	}
+	       }
+    }
+    $questions = AppraisalQuestion::where('form_id',$id)->get();
+    foreach($questions as $question){
+        if($question->unit == 'p_r'){
+            foreach($peers as $peer){
+                $key = array_search('{{$peer}}', $peers);
+                $appraisal_answer = new AppraisalAnswer();
+                $item = $peer->id.$question->id;
+                $appraisal_answer -> question_id = $question->id;
+                $appraisal_answer -> section_id = $question->section_id;
+                $appraisal_answer -> form_id = $question->form_id;
+                $appraisal_answer -> unit = $question->unit;
+                $appraisal_answer -> quater_date = $month.'-'.$year;
+                $appraisal_answer -> answer = $request->$item;
+                $appraisal_answer -> user_id = $peer->id;
+                $appraisal_answer->save();
+            }
+        }
+        elseif($question->unit == 'sb_r'){
+            foreach($managers as $peer){
+                $key = array_search('{{$peer}}', $managers);
+                $appraisal_answer = new AppraisalAnswer();
+                $item = $peer->id.$question->id;
+                $appraisal_answer -> question_id = $question->id;
+                $appraisal_answer -> section_id = $question->section_id;
+                $appraisal_answer -> form_id = $question->form_id;
+                $appraisal_answer -> unit = $question->unit;
+                $appraisal_answer -> quater_date = $month.'-'.$year;
+                $appraisal_answer -> answer = $request->$item;
+                $appraisal_answer -> user_id = $peer->id;
+                $appraisal_answer->save();
+            }
+        }
+
+        elseif($question->unit == 'p_r_dm'){
+            foreach($dm_peers as $peer){
+                $key = array_search('{{$peer}}', $dm_peers);
+                $appraisal_answer = new AppraisalAnswer();
+                $item = $peer->id.$question->id;
+                $appraisal_answer -> question_id = $question->id;
+                $appraisal_answer -> section_id = $question->section_id;
+                $appraisal_answer -> form_id = $question->form_id;
+                $appraisal_answer -> unit = $question->unit;
+                $appraisal_answer -> quater_date = $month.'-'.$year;
+                $appraisal_answer -> answer = $request->$item;
+                $appraisal_answer -> user_id = $peer->id;
+                $appraisal_answer->save();
+            }
+        }
+
+        elseif($question->unit == 'rr_r'){
+            foreach($recoveries_reps as $peer){
+                $key = array_search('{{$peer}}', $recoveries_reps);
+                $appraisal_answer = new AppraisalAnswer();
+                $item = $peer->id.$question->id;
+                $appraisal_answer -> question_id = $question->id;
+                $appraisal_answer -> section_id = $question->section_id;
+                $appraisal_answer -> form_id = $question->form_id;
+                $appraisal_answer -> unit = $question->unit;
+                $appraisal_answer -> quater_date = $month.'-'.$year;
+                $appraisal_answer -> answer = $request->$item;
+                $appraisal_answer -> user_id = $peer->id;
+                $appraisal_answer->save();
+            }
+        }
+
+
+        elseif($question->unit == 'ma_r'){
+            foreach($manager_admin as $peer){
+                $key = array_search('{{$peer}}', $manager_admin);
+                $appraisal_answer = new AppraisalAnswer();
+                $item = $peer->id.$question->id;
+                $appraisal_answer -> question_id = $question->id;
+                $appraisal_answer -> section_id = $question->section_id;
+                $appraisal_answer -> form_id = $question->form_id;
+                $appraisal_answer -> unit = $question->unit;
+                $appraisal_answer -> quater_date = $month.'-'.$year;
+                $appraisal_answer -> answer = $request->$item;
+                $appraisal_answer -> user_id = $peer->id;
+                $appraisal_answer->save();
+            }
+        }
+
+        elseif($question->unit == 'rh_r'){
+            foreach($recoveries_head as $peer){
+                $key = array_search('{{$peer}}', $recoveries_head);
+                $appraisal_answer = new AppraisalAnswer();
+                $item = $peer->id.$question->id;
+                $appraisal_answer -> question_id = $question->id;
+                $appraisal_answer -> section_id = $question->section_id;
+                $appraisal_answer -> form_id = $question->form_id;
+                $appraisal_answer -> unit = $question->unit;
+                $appraisal_answer -> quater_date = $month.'-'.$year;
+                $appraisal_answer -> answer = $request->$item;
+                $appraisal_answer -> user_id = $peer->id;
+                $appraisal_answer->save();
+            }
+        }
+
+        else{
+            if($question->unit != 'info'){
+                $appraisal_answer = new AppraisalAnswer();
+                $item = $question->id;
+                $appraisal_answer -> question_id = $question->id;
+                $appraisal_answer -> section_id = $question->section_id;
+                $appraisal_answer -> form_id = $question->form_id;
+                $appraisal_answer -> unit = $question->unit;
+                $appraisal_answer -> quater_date = $month.'-'.$year;
+                if($request->$item == 'Other'){
+                    $appraisal_answer -> answer = $request->$item.'other';
+                }else{
+                    $appraisal_answer -> answer = $request->$item;
+                }
+                $appraisal_answer -> user_id = $user;
+                $appraisal_answer->save();
+            }
+        }
+    }
+
+    Flash::success(trans('general.successfully_saved'));
+    return redirect('user/'.$id.'/my_appraisal')->with('message','Success');
+}
+
+
+       public function my_appraisal($id){
+        $peers = [];
+        $managers = [];
+        $dm_peers = [];
+        $recoveries_reps = [];
+        $recoveries_head = [];
+        $manager_admin = [];
+        $year = date('Y');
+        $month = date('m');
+        $user = Sentinel::getUser()->id;
+        $users = User::with('role')->get();
+        $userBranch = Sentinel::getUser()->office_id;
+        $userProvince = Sentinel::getUser()->office->province_id;
+        $role = UserRole::where('user_id',$user)->first();
+        $branch_people = User::where('office_id',$userBranch)->get();
+        $users = User::with('role')->with('dual_role')->with('office')->get();
+        $province_branches = Office::where('province_id',$userProvince)->get();
+
+        foreach($province_branches as $province_branch){
+            foreach($users as $person){
+                if($person->role != null){
+                        if($person->role->role_id == 6 && $person->office_id == $province_branch->id && $person->id != $user){
+                    array_push($managers,$person);
+                }
+                                 
+                if($person->role->role_id == 4 && $person->office_id == $userBranch && $person->id != $user){
+                    array_push($managers,$person);
+                }
+
+                if($person->role->role_id == 4 && $person->office_id == $province_branch->id){
+                    array_push($dm_peers,$person);
+                }
+                }
+
+
+                if($person->dual_role != null){
+                    if($person->dual_role->role_id == 7 && $person->office_id == $userBranch && count($recoveries_reps) == 0){
+                        array_push($recoveries_reps,$person);
+                    }
+                }
+
+                
+                if($person->dual_role != null){
+                    if($person->dual_role->role_id == 8  && count($recoveries_head) == 0){
+                        array_push($recoveries_head,$person);
+                    }
+                }
+
+
+                if($person->dual_role != null){
+                    if($person->dual_role->role_id == 9 && count($manager_admin) == 0){
+                        array_push($manager_admin,$person);
+                    }
+                }
+            }
+        }
+     
+       
+        foreach($users as $branch_person){
+            if($branch_person->role != null){
+            if($branch_person->role->role_id == 3 && $branch_person->id != $user && $branch_person->status = 'Active' && $branch_person->office_id == $userBranch){
+                array_push($peers,$branch_person);
+            }
+        }
+        }
+        $answer = AppraisalAnswer::where('user_id',$user)->where('form_id',$id)->where('quater_date',$month.'-'.$year)->first();
+        $form = AppraisalForm::where('id',$id)->first();
+        $sections = AppraisalFormSection::where('form_id',$id)->get();
+        $questions = AppraisalQuestion::where('form_id',$id)->get();
+        return view('user.my_appraisal',compact('form','sections','questions','users','answer','peers','branch_people','role','user','managers','dm_peers','recoveries_reps','recoveries_head','manager_admin'));
+    }
+
+    public function appraisal_forms(){
+        $forms = AppraisalForm::get();
+        return view('user.appraisal_forms',compact('forms'));
+    }
+
+        public function my_appraisal_forms(){
+        $forms = [];
+        $user_id = Sentinel::getUser();
+        $form1 =  AppraisalForm::where('role',$user_id->role->role_id)->first();
+        if($user_id->dual_role != null){
+        $form2 =  AppraisalForm::where('role',$user_id->dual_role->role_id)->first();
+        array_push($forms,$form2);
+        }
+        array_push($forms,$form1);
+        return view('user.my_appraisal_forms',compact('forms'));
+    }
+    public function appraisal_results(Request $request){
+        $forms = [];
+        $users = [];
+        $userId = Sentinel::getUser()->id;
+        $role = UserRole::where('user_id',$userId)->first();
+	$office_id = $request->office_id;
+	  $userProvince =  User::where('id',$userId)->first()->office->province_id;
+        $userBranch = User::where('id',$userId)->first()->office->id;
+    
+        if($office_id == 0){
+           $users =  User::with('role')->where('office_id','!=', null)->get();
+        
+        }else{
+                if($role->role_id == '3'){
+                $users =  User::with('role')->where('id',$userId)->where('office_id',$office_id)->get();
+            }else{
+                $users =  User::with('role')->where('office_id',$office_id)->get();
+            }
+        }
+ 
+        return view('user.appraisal_results',compact('users','role','office_id','userProvince','userBranch',));
+    }
+
+
+         
+    public function appraisal_result($id,$form_id){
+           $peers = [];
+        $managers = [];
+        $dm_peers = [];
+        $recoveries_reps = [];
+$recoveries_head = [];
+    $manager_admin = [];
+        $user = User::with('role')->where('id',$id)->first();
+        $user_id = Sentinel::getUser()->id;
+        $userBranch = User::where('id',$id)->first()->office->id;
+        $users = User::with('role')->where('office_id','!=',null)->get();
+        $answers = AppraisalAnswer::where('user_id',$id)->where('form_id',$form_id)->get();
+        $form = AppraisalForm::where('id',$form_id)->first();
+        $sections = AppraisalFormSection::where('form_id',$form_id)->get();
+        $role = UserRole::where('user_id',$user_id)->first();
+        $userProvince =  User::where('id',$id)->first()->office->province_id;
+        $province_branches = Office::where('province_id',$userProvince)->get();
+        $pr_questions = AppraisalQuestion::where('unit','p_r')->get();
+        $sbr_questions = AppraisalQuestion::where('unit','sb_r')->get();
+        $pr_answers = [];
+        $sbr_questions = [];
+
+
+        
+    foreach($users as $branch_person){
+        if($branch_person->role != null){
+        if($branch_person->role->role_id == 3 && $branch_person->office_id == $userBranch){
+            array_push($peers,$branch_person);
+        }
+    }
+    }
+
+    foreach($province_branches as $province_branch){
+        foreach($users as $person){
+
+            if($person->role != null){
+            if($person->role->role_id == 6 && $person->office_id == $province_branch->id){
+                array_push($managers,$person);
+            }
+
+            if($person->role->role_id == 4 && $person->office_id == $userBranch && count($managers) < 1 && $person->id != $id){
+                array_push($managers,$person);
+            }
+
+            if($person->role->role_id == 4 && $person->office_id == $province_branch->id){
+                array_push($dm_peers,$person);
+            }
+        }
+
+        if($person->dual_role != null){
+            if($person->dual_role->role_id == 7 && $person->office_id == $userBranch && count($recoveries_reps) == 0){
+                array_push($recoveries_reps,$person);
+            }
+        }
+
+        if($person->dual_role != null){
+            if($person->dual_role->role_id == 8 && count($recoveries_head) == 0){
+                array_push($recoveries_head,$person);
+            }
+        }
+
+
+        if($person->dual_role != null){
+            if($person->dual_role->role_id == 9 && count($manager_admin) == 0){
+                array_push($manager_admin,$person);
+            }
+        }
+
+
+        }
+    }
+
+   
+
+
+    return view('user.appraisal_result',compact('answers','form','sections','user','peers','user_id','pr_answers','peers','managers','userProvince','recoveries_reps','recoveries_head','manager_admin'));
+    }
+
+
+    public function appraisal_form($id){
+        $form = AppraisalForm::where('id',$id)->first();
+        $sections = AppraisalFormSection::where('form_id',$id)->get();
+        $questions = AppraisalQuestion::where('form_id',$id)->get();
+        return view('user.appraisal_form',compact('form','sections','questions'));
+    }
+
+    public function create_form(Request $request){
+        $appraisal_form = new AppraisalForm();
+        $appraisal_form -> form_name = $request->form_name;
+        $appraisal_form ->role = $request->role;
+        $appraisal_form -> save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('user/appraisal_forms');
+    }
+
+    public function add_section(Request $request,$id){
+        $appraisal_form_section = new AppraisalFormSection();
+        $appraisal_form_section -> form_id = $id;
+        $appraisal_form_section -> section_name = $request->section_name;
+        $appraisal_form_section -> save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('user/'.$id.'/appraisal_form');
+
+    }
+
+
+    public function add_question(Request $request,$id,$section_id){
+        $appraisal_question = new AppraisalQuestion();
+        $appraisal_question -> form_id = $section_id;
+        $appraisal_question -> section_id = $id;
+        $appraisal_question -> question = $request->question;
+        $appraisal_question -> unit = $request->unit;
+        $appraisal_question -> save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect(('user/'.$section_id.'/appraisal_form'));
+
+    }
 
     public function my_details(){
         $user = Sentinel::getUser();
@@ -544,11 +974,13 @@ return view('user.province_page',compact('province_loans','province_transactions
     }
 
     public function addCycle(Request $request){
-        $userId = Sentinel::getUser()->id;
-        $cycle_end_date = CycleDates::where('loan_officer_id','=',$userId)->first();
+            $userId = Sentinel::getUser()->id;
+        $cycle_end = CycleDates::where('loan_officer_id','=',$userId)->first();
 
-        if($cycle_end_date){
-            Flash::warning('You already set a cycle date');
+        if($cycle_end){
+            $cycle_end->cycle_end_date = $request->cycle_end_date;
+            $cycle_end->save();
+            Flash::success(trans('general.successfully_saved'));
             return redirect('dashboard');
         } else {
             $cycle = new CycleDates();

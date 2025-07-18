@@ -109,9 +109,9 @@
             </div>
 
             <div class="col-xs-8 padding-bottom:10px;">
-            <a href="{{ url('signup') }}" class="btn" style="width:100%; color:#ffffff; background-color:#00a04a;">
+           <!-- <a href="{{ url('signup') }}" class="btn" style="width:100%; color:#ffffff; background-color:#00a04a;">
                                           Create a new account
-                                    </a> 
+                                    </a> -->
                                     <div style="padding-top: 20px;"></div>
                                     <div></div>
                                     <div></div>

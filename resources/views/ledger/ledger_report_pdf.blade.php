@@ -72,7 +72,7 @@
             </thead>
             <tbody>
                 <!-- Advances -->
-                @foreach ($advances as $advance)
+		@foreach ($advances as $advance)
                 <tr>
                     <td>{{ $advance->date_approved }}</td>
                     <td>{{ $advance->id }}</td>
@@ -82,6 +82,19 @@
 			<td></td>
                     <td>{{ number_format($advance->amount, 2) }}</td>
                     
+                </tr>
+		@endforeach
+
+		<!--Advances Paid-->
+                @foreach ($advancesPaid as $advance)
+                <tr>
+                    <td>{{ $advance->last_update_date }}</td>
+                    <td>{{ $advance->advance_id }}</td>
+                    <td> - </td>
+                    <td> Advance Paid</td>
+                    <td> {{ $advance->first_name }} {{ $advance->last_name }}</td>
+                    <td>{{ number_format($advance->amount_paid, 2) }}</td>
+                    <td></td>
                 </tr>
                 @endforeach
 

@@ -15,7 +15,7 @@
             <form action="{{ route('ledger.show', ['officeName' => $officeName]) }}" method="GET" class="form-inline">
                 <div class="form-group mr-2">
                     <label for="start_date" class="mr-2">Start Date:</label>
-                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') ?: date('Y-m-25') }}" min="2024-09-25">
+                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') ?: date('Y-m-04') }}" min="2025-01-04">
                 </div>
                 <div class="form-group mr-2">
                     <label for="end_date" class="mr-2">End Date:</label>
@@ -31,13 +31,13 @@
         <span style="margin-right: 15px;">Generate Report:</span>
         <form action="{{ route('ledger.ledger_report_pdf') }}" method="GET" style="margin-right: 10px;">
             <input type="hidden" name="office_id" value="{{ $office->id }}">
-            <input type="hidden" name="start_date" value="{{ request('start_date') ?: date('Y-m-25') }}">
+            <input type="hidden" name="start_date" value="{{ request('start_date') ?: date('Y-m-d') }}">
             <input type="hidden" name="end_date" value="{{ request('end_date') ?: date('Y-m-d') }}">
             <button type="submit" class="btn btn-primary btn-sm" style="background-color: #007bff; border-color: blue;">PDF</button>
         </form>
         <form action="{{ route('ledger.ledger_report_excel') }}" method="GET">
             <input type="hidden" name="office_id" value="{{ $office->id }}">
-            <input type="hidden" name="start_date" value="{{ request('start_date') ?: date('Y-m-25') }}">
+            <input type="hidden" name="start_date" value="{{ request('start_date') ?: date('Y-m-d') }}">
             <input type="hidden" name="end_date" value="{{ request('end_date') ?: date('Y-m-d') }}">
             <button type="submit" class="btn btn-primary btn-sm" style="background-color: #007bff; border-color: blue;">Excel</button>
         </form>

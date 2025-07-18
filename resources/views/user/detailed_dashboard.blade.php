@@ -274,6 +274,21 @@ while($bar_chart_count < 12){
 }
 ?>
 
+<?php
+$total_given_out = 0;
+$total_collected = 0;
+$default_value = 0;
+foreach($given_out as $given){
+  $total_given_out = $total_given_out + $given;
+}
+
+foreach($collections as $collected){
+  $total_collected = $total_collected + $collected;
+}
+
+$default_value = $total_given_out - $total_collected;
+?>
+
 
 
 <?php 
@@ -298,6 +313,10 @@ while($bar_chart_count < 12){
 
  $pdua = ($collections[0]/$cycle_opening_uncollected_amount)
 ?>
+
+<p>GIVEN OUT: {{number_format($total_given_out,2)}}</p>
+<p>COLLECTED: {{number_format($total_collected,2)}}</p>
+<p>DEFAULTED: {{number_format($default_value,2)}}</p>
 
 
 <div class="col-lg-4 col-xs-12">
@@ -500,6 +519,7 @@ while($bar_chart_count < 12){
 
 
 <canvas id='companygraph'></canvas>
+<canvas id='companybargraph'></canvas>
 
 <div class="row" style="padding-top: 20px;">
 
@@ -701,7 +721,33 @@ var collections =
     console.log(dates.reverse())
 
     const allchrt = document.getElementById('companygraph');
+    const newChart = document.getElementById('companybargraph')
 
+
+	       var chartI = new Chart(newChart, {
+         type: 'bar',
+         data: {
+            labels: dates,
+            datasets: [{
+               label: "collections as at end of each cycle",
+               data: collections,
+               borderWidth: 1,
+            },
+            {
+               label: "given out as at end of each cycle",
+               data: given_out,
+               borderWidth: 1,
+            },
+        ],
+         },
+         options: {
+            scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+         },
+      });
 
 var chartId = new Chart(allchrt, {
          type: 'line',

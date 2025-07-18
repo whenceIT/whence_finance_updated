@@ -575,7 +575,14 @@
 
 
 
-
+      @if(Sentinel::hasAccess('loans.update'))
+                                        <a href="#"
+                                           data-toggle="modal" data-target="#change_branch_modal"
+                                           class="btn btn-primary"><i
+                                                    class="fa fa-user"></i>&nbsp;
+                                          Change Branch
+                                        </a>
+                                    @endif
 
 
 
@@ -929,7 +936,35 @@
                                         <td>
                                             <span class="padded-td">{{ $loan->disbursement_date }}</span>
                                         </td>
+				    </tr>
+
+
+
+                                    <tr>
+                                        <th class="table-bold-loan">Vetted by</th>
+                                        <td>
+                                            <span class="padded-td">
+                                            @if(!empty($loan->vetted_by_field))
+                                                {{$loan->vetted_by_field->first_name}} {{$loan->vetted_by_field->last_name}}
+                                            @endif
+                                            </span>
+                                        </td>
                                     </tr>
+
+
+
+                                    <tr>
+                                        <th class="table-bold-loan">Verified by</th>
+                                        <td>
+                                            <span class="padded-td">
+                                            @if(!empty($loan->verified_by_field))
+                                                {{$loan->verified_by_field->first_name}} {{$loan->verified_by_field->last_name}}
+                                            @endif
+                                            </span>
+                                        </td>
+				    </tr>
+
+
                                     </tbody>
                                 </table>
 
@@ -2517,6 +2552,47 @@
             </div>
         </div>
     </div>
+
+<!-- CHANGE BRANCH -->
+    <div class="modal fade" id="change_branch_modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Change Branch</h4>
+                </div>
+                <form method="post" action="{{url('loan/'.$loan->id.'/change_branch')}}"
+                      class="form-horizontal "
+                      enctype="multipart/form-data" id="change_branch_form">
+                    {{csrf_field()}}
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="loan_officer_id"
+                                   class="control-label col-md-3">
+                                {{trans_choice('general.loan',1)}} {{trans_choice('general.officer',1)}}
+                            </label>
+                            <div class="col-md-9">
+                            <select name="office" class="form-control select2" id="office" required>
+                        <option value="0" @if($loan->office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                        @foreach(\App\Models\Office::all() as $key)
+                                <option value="{{$key->id}}"  @if($loan->office_id==$key->id) selected @endif>{{$key->name}}</option>
+                            @endforeach
+                        </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default pull-left"
+                                data-dismiss="modal">{{trans_choice('general.close',1)}}</button>
+                        <button type="submit"
+                                class="btn btn-primary">{{trans_choice('general.save',1)}}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="change_loan_officer_modal">
         <div class="modal-dialog">
             <div class="modal-content">

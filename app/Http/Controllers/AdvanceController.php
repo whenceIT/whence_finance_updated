@@ -15,6 +15,7 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AdvanceApproved;
 use App\Models\TopUp;
+use App\Models\AdvanceTransaction;
 
 class AdvanceController extends Controller
 {
@@ -73,7 +74,9 @@ class AdvanceController extends Controller
     {
         $user = Sentinel::getUser();
 
-        $advances = Advance::where('user_id', $user->id)->get();
+	$advances = Advance::where('user_id', $user->id)
+	->where('status', 'approved')
+	->get();
 
         return view('advances.my_advances', compact('advances'));
     
@@ -269,7 +272,14 @@ class AdvanceController extends Controller
                 $advance->status = 'closed';
                 
             }
-                $advance->save();
+		$advance->save();
+
+		//CreateS a new transaction in the advance_transactions table
+            AdvanceTransaction::create([
+                'advance_id' => $advance->id,
+                'amount_paid' => $installmentAmount,
+                'last_update_date' => $advance->expected_repayment_dates,
+            ]);
             }
         }
         foreach ($advances as $advance) {

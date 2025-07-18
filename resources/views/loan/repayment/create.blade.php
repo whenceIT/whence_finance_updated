@@ -318,8 +318,8 @@
                                                                     </label>
                                                                     <input type="text" name="interest_rate"
                                                                class="form-control "
-                                                               value=""
-                                                               required id="interest_rate" onkeyup="sum();">
+                                                               value="40"
+                                                               required id="interest_rate" onkeyup="sum();" readonly>
 
                                                                 </div>
 
@@ -369,15 +369,16 @@
 
 
     $(".form-horizontal").validate();
-    function sum() {
+		function sum() {
+			  var txtFirstNumberValue = document.getElementById('outstanding').value;
+        var txtSecondNumberValue = document.getElementById('paid').value;
     var inputFirstNumberValue = document.getElementById('balance').value;
     var inputSecondNumberValue = document.getElementById('interest_rate').value;                   
-    var outputs = parseInt(inputFirstNumberValue) * parseInt(inputSecondNumberValue) / 100;
+    var outputs = (txtFirstNumberValue -  txtSecondNumberValue) * 0.4;
     if (!isNaN(outputs)) {
         document.getElementById('interest').value = outputs;
     }
-    var txtFirstNumberValue = document.getElementById('outstanding').value;
-    var txtSecondNumberValue = document.getElementById('paid').value;
+    
     var result = parseInt(txtFirstNumberValue) - parseInt(txtSecondNumberValue);
             if (!isNaN(result)) {
                 document.getElementById('balance').value = result;

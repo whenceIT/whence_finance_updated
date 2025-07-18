@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\NewPayroll;
 use App\Models\UserRole;
 use App\Models\Loan;
+use App\Models\Office;
 use Illuminate\Support\Facades\View;
 use PDF;
 use Excel;
@@ -87,6 +88,182 @@ class PayrollController extends Controller
     }
 
 
+     //NEW
+ public function payroll_pending_approval(){
+    $branches_pending = [];
+    $branches = Office::get();
+    foreach($branches as $branch){
+        $payroll_list = Payroll::where('office_id',$branch->id)->where('status','pending')->get();
+        if(count($payroll_list) > 0){
+            array_push($branches_pending,$branch);
+        }
+    }
+    return view('payroll.payroll_pending_approval',compact('branches_pending'));
+
+ }
+
+
+ public function approve_payroll($id){
+    $payroll_list = Payroll::where('office_id',$id)->get();
+
+    foreach($payroll_list as $payroll){
+        $payroll->status = 'approved';
+        $payroll->save();
+    }
+
+    Flash::success(trans('successfully approved'));
+    return redirect('payroll/payroll_pending_approval');
+ }
+
+
+ public function single_payroll_pending_approval($id){
+    $payroll_list = Payroll::where('office_id',$id)->get();
+    $payroll_fields = PayrollTemplateMeta::get();
+    return view('payroll.single_payroll_pending_approval',compact('payroll_list','payroll_fields','id'));
+ }
+
+ //NEW
+    public function payroll_list(){
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $payroll_list = Payroll::where('office_id',$user->office_id)->get();
+        $payroll_fields = PayrollTemplateMeta::get();
+        return view('payroll.payroll_list',compact('payroll_list','payroll_fields',));
+    }
+
+
+    //NEW
+    public function myPayslips(){
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $payroll_list = Payroll::where('user_id',$user->id)->where('status','approved')->get();
+        $payroll_fields = PayrollTemplateMeta::get();
+        return view('payroll.myPayslips',compact('payroll_list','payroll_fields','user'));
+    }
+
+
+    public function pdfPayslip($id)
+    {
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $payroll_list = Payroll::where('user_id',$user->id)->where('status','approved')->first();
+        $payroll_fields = PayrollTemplateMeta::get();
+
+        $pdf = PDF::loadView('payroll.pdf_payslip',
+            compact('payroll_list', 'payroll_fields','user'));
+        return $pdf->download( $user->first_name." ".$user->last_name." - Payslip.pdf",
+            'D');
+
+
+    }
+
+
+    //NEW
+    public function submit_payroll(Request $request){
+
+        $user = Sentinel::findById(Sentinel::getUser()->id);
+        $payroll_list = Payroll::where('office_id',$user->office_id)->get();
+
+        foreach($payroll_list as $payroll){
+            $payroll->status = 'pending';
+            $payroll->payroll_date = $request -> payroll_date;
+            $payroll->save();
+        }
+
+        Flash::success(trans('successfully submitted'));
+        return redirect('payroll/payroll_list');
+    }
+
+
+    //NEW
+    public function create_wage_bill(Request $request){
+        $branch_id = Sentinel::getUser()->office_id;
+        $users = User::where('office_id',$branch_id)->get();
+        $userBranch = Sentinel::getUser()->office_id;
+
+    return view('payroll.create_wage_bill',compact('users','userBranch',));
+
+    }
+
+     public function approve_single_payroll($id){
+    $payroll = Payroll::where('user_id',$id)->first();
+    $payroll->status = 'approved';
+    $payroll->save();
+
+    Flash::success(trans('successfully submitted'));
+    return redirect('payroll/payroll_pending_approval');
+     }
+
+        public function submit_single_payroll($id){
+        $payroll = Payroll::where('user_id',$id)->first();
+        $payroll->status = 'pending';
+        $payroll->save();
+
+        Flash::success(trans('successfully submitted'));
+        return redirect('payroll/payroll_list');
+    }
+
+//NEW
+    public function edit_new_payroll($id){
+        $payroll = Payroll::where('user_id',$id)->first();
+        $payroll_fields = PayrollMeta::where('payroll_id',$payroll->id)->get();
+        return view('payroll.edit_new_payroll',compact('payroll','payroll_fields'));
+    }
+
+//NEW
+    public function save_edit_new_payroll(Request $request ,$id){
+
+        $payroll = Payroll::where('user_id',$id)->first();
+        $payroll->payroll_date = $request -> payroll_date;
+        $payroll->save();
+
+        $metas = PayrollTemplateMeta::get();
+        foreach ($metas as $key){
+            $use=$key->id;
+                        $meta = PayrollMeta::where('payroll_template_meta_id',$key->id)->where('user_id',$id)->first();
+            $meta->value =  $request->$use;
+            $meta->save();
+        }
+
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('payroll/payroll_list');
+
+    }
+
+        public function storeNewPayroll(Request $request){
+
+        $user = Sentinel::findById($request -> user_id);
+        $user_name = $user->first_name.' '.$user->last_name;
+        $existing_payroll = Payroll::where('user_id',$request->user_id)->first();
+
+        if($existing_payroll){
+            Flash::warning("This user already has payroll");
+        return redirect('payroll/payroll_list');
+        }else{
+
+            $payroll = new Payroll();
+            $payroll->user_id = $request -> user_id;
+            $payroll->employee_name = $user_name;
+            $payroll->payroll_date = $request -> payroll_date;
+            $payroll->office_id = $request -> office_id;
+            $payroll->status = 'unapproved';
+            $payroll->save();
+
+            $metas = PayrollTemplateMeta::get();
+            foreach ($metas as $key){
+                $meta = new PayrollMeta();
+		$use = $key->id;
+		  $meta->user_id = $request -> user_id;
+                $meta->payroll_id = $payroll->id;//$request->user_id;
+                $meta->value =  $request->$use;
+                $meta->payroll_template_meta_id = $key->id;
+                $meta->save();
+            }
+
+            Flash::success(trans('general.successfully_saved'));
+            return redirect('payroll/payroll_list');
+
+        }
+
+    }
+
 
     public function lc_information(Request $request){
 	      $user = Sentinel::getUser();
@@ -144,20 +321,7 @@ class PayrollController extends Controller
 
     }
 
-    public function payroll_list(){
-
-        $payroll_list = [];
-        $user = Sentinel::findById(Sentinel::getUser()->id);
-     //  $payroll = NewPayroll::get();
-        $users = User::all();
-        foreach($users as $user){
-            $payroll = NewPayroll::where('user_id',$user->id)->orderBy('created_at','desc')->first();
-            if($payroll != null){
-                array_push($payroll_list,$payroll);
-            }
-        }
-        return view('payroll.payroll_list',compact('payroll_list',));
-    }
+ 
 
     public function payroll_query(Request $request){
         $start_date = $request->start_date;
@@ -445,26 +609,7 @@ public function user_payslip($user){
         return redirect('payroll/data');
     }
 
-    public function pdfPayslip($id)
-    {
-        $user = Sentinel::findById(Sentinel::getUser()->id);
-        $template = PayrollTemplate::first();
-        $payslip = NewPayroll::where('id',$id)->first();
-        $top_left = PayrollMeta::where('payroll_id', $template->id)->where('position',
-            'top_left')->get();
-        $top_right = PayrollMeta::where('payroll_id', $template->id)->where('position',
-            'top_right')->get();
-        $bottom_left = PayrollMeta::where('payroll_id', $template->id)->where('position',
-            'bottom_left')->get();
-        $bottom_right = PayrollMeta::where('payroll_id', $template->id)->where('position',
-            'bottom_right')->get();
-        $pdf = PDF::loadView('payroll.pdf_payslip',
-            compact('top_left', 'top_right', 'bottom_left', 'bottom_right','payslip','user'));
-        return $pdf->download( $user->first_name." ".$user->last_name." - Payslip.pdf",
-            'D');
-
-
-    }
+    
 
     public function staffPayroll($user)
     {
@@ -476,16 +621,7 @@ public function user_payslip($user){
     }
 
 
-    public function myPayslips(){
-        if (!Sentinel::hasAccess('loans.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
-        $user = Sentinel::findById(Sentinel::getUser()->id);
-        $payslips = NewPayroll::where('user_id',$user->id)->get();
-        $user = Sentinel::getUser();
-        return view('payroll.myPayslips',compact('user','payslips'));
-    }
+    
 
 
 

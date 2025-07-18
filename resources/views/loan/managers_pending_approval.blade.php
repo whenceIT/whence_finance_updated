@@ -24,7 +24,8 @@
                     <th>{{ trans_choice('general.client',1) }}</th>
                     <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
                     <th>{{ trans_choice('general.created_at',1) }}</th>
-                    <th>{{ trans_choice('general.product',1) }}</th>
+		    <th>{{ trans_choice('general.product',1) }}</th>
+                         <th>Status</th>
                     <th>{{ trans_choice('general.action',1) }}</th>
                 </tr>
                 </thead>
@@ -57,7 +58,8 @@
                             @if(!empty($key->loan_product))
                                 {{$key->loan_product->name}}
                             @endif
-                        </td>
+			</td>
+        <td>{{$key->status}}</td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-toggle="dropdown"

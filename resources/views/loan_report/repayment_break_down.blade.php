@@ -590,8 +590,14 @@ Daily Loan Activities Breakdown Report
 
                        ?>
                        
-                        <tr>
-                            <td>{{$key->loan->client->external_id}}</td>
+			<tr>
+   @if(!empty($key->loan->client->external_id))
+			    <td>{{$key->loan->client->external_id}}</td>
+ @else
+                            <td>
+                                -
+                            </td>
+    @endif
                             <td>
                                 @if(!empty($key->loan))
                                     @if($key->loan->client_type=="client")
@@ -610,8 +616,10 @@ Daily Loan Activities Breakdown Report
                                         @endif
                                     @endif
                                 @endif
-                            </td>
-                            <td>{{$key->loan->id}}</td>
+			    </td>
+    @if(!empty($key->loan->id))
+			    <td>{{$key->loan->id}}</td>
+     @endif
                             <td>
                                 @if(!empty($key->loan))
                                     @if(!empty($key->loan->loan_officer))
@@ -1224,6 +1232,65 @@ $total_loans = 0;
     </table>
   </div>
 </div>
+
+ 
+                <div class="panel box box-warning">
+  <div class="box-header with-border">
+    <h4 class="box-title">
+      <a data-toggle="collapse" data-parent="#accordion" href="#collapseNine">
+        Pending Disbursements
+      </a>
+    </h4>
+  </div>
+  <div id="collapseNine" class="panel-collapse collapse">
+    <div class="box-body">
+
+      @foreach($pending_loans_grouped as $office_id => $loans)
+        @php
+          $total_amount = 0;
+          $office_name = $loans->first()->office->name ?? 'Unknown Office';
+        @endphp
+
+        <h5><strong>Office: {{ $office_name }}</strong></h5>
+        <table class="table table-condensed table-hover">
+          <thead>
+            <tr>
+              <th>Loan#</th>
+              <th>Date</th>
+              <th>Loan Officer</th>
+              <th>Client</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($loans as $key)
+              @php $total_amount += $key->principal; @endphp
+              <tr>
+                <td>{{ $key->id }}</td>
+                <td>{{ $key->date }}</td>
+                <td>{{ $key->loan_officer->first_name ?? '' }} {{ $key->loan_officer->last_name ?? '' }}</td>
+                <td>{{ $key->client->first_name ?? '' }} {{ $key->client->last_name ?? '' }}</td>
+                <td>{{ number_format($key->principal, 2) }}</td>
+                <td>{{ $key->status }}</td>
+              </tr>
+            @endforeach
+          </tbody>
+          <tfoot>
+	    <tr>
+<td colspan="4"><strong>Total for {{ $office_name }}</strong></td>
+              <td><strong>{{ number_format($total_amount, 2) }}</strong></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      @endforeach
+
+    </div>
+  </div>
+</div>
+
+
 
 
             </div>

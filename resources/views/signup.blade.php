@@ -71,7 +71,7 @@
                 <select name="role" class="form-control" id="role" required>
                                 <option disabled selected>Apply as</option>
                                 <option value="2">Client</option>
-                                <option value="3">Loan Consultant</option>
+                               <!-- <option value="3">Loan Consultant</option>-->
                             </select>
                 </div>
 

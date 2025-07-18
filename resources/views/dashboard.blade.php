@@ -175,7 +175,7 @@ $balance = $out - $in;
 </a>
 <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
 
-<a href="javascript:;" onmousedown="toggleGivenOut();" style="margin: 10px;">
+<a href="{{url('user/'.$userId.'/given_out_today/given_out_stats')}}"  style="margin: 10px;">
 <span class="label label-primary" style="font-size: 15px;">Given out</span>
 </a>
 
@@ -212,7 +212,7 @@ $reloan_payments = 0;
 <?php
 $today = date('Y-m-d');
 $currrent_date = date('Y-m');
-$cycle_date = $currrent_date.'-'.'24';
+$cycle_date = $currrent_date.'-'.$cycle_end;
 if($today > $cycle_date){
     $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
 }
@@ -255,7 +255,7 @@ array_push($cycle_opening_uncollected_amounts ,$cycle_opening_uncollected_amount
 $collected_amounts = [];
 $today = date('Y-m-d');
 $currrent_date = date('Y-m');
-$cycle_date = $currrent_date.'-'.'24';
+$cycle_date = $currrent_date.'-'.$cycle_end;
 if($today > $cycle_date){
     $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
 }
@@ -302,7 +302,7 @@ $today = date('Y-m-d');
 $dates = [];
 $colors = [];
 $currrent_date = date('Y-m');
-$cycle_date = $currrent_date.'-'.'24';
+$cycle_date = $currrent_date.'-'.$cycle_end;
 if($today > $cycle_date){
     $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
 }
@@ -371,20 +371,6 @@ for($x=0; $x<12; $x++){
 </div>
 </div>
 
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-aqua">
-<div class="inner">
-<p style="font-weight: bold;">Still Uncollected Today</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
 
 <div class="col-lg-4 col-xs-12">
 <div class="small-box bg-green">
@@ -400,6 +386,23 @@ for($x=0; $x<12; $x++){
 </div>
 </div>
 </div>
+
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-aqua">
+<div class="inner">
+<p style="font-weight: bold;">Still Uncollected Today</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
+
+
 
 
 
@@ -1786,7 +1789,7 @@ $tots = ($collected_amounts[12]/$cycle_opening_uncollected_amounts[12]) + 0.0000
 
 
 <!-- What Admins see -->
-@if($role->role_id == '1')
+@if($role->role_id == '1' || $role->role_id == '10')
 <div style="display: flex;
     align-items: center;
     justify-content: center; padding-bottom: 10px; ">
@@ -1839,7 +1842,7 @@ $branchsecondDate = date('Y-m-d', strtotime($branchtargetDate. ' - 1 months'));
 $MoneyGivenOut = 0;
 $MoneyCollected = 0;
 $charges = 0;
-$cycle_opening_uncollected_amount = 0;
+$cycle_opening_uncollected_amount = 0.0001;
 
 
 //BRANCH COLLECTED TOTAL CALCULATIONS
@@ -2597,6 +2600,8 @@ function setGaugeValue(gauge, value) {
   )}%`;
 }
 
+
+
 setGaugeValue(gaugeElement, '{{($collected_amounts[12]/$cycle_opening_uncollected_amounts[12])}}');
 
 </script>
@@ -2917,6 +2922,10 @@ function setGaugeValue(gauge, value) {
   )}%`;
 }
 
+var test1 = <?php echo json_encode($collected_amounts[12]/$cycle_opening_uncollected_amounts[12]); ?>;
+var test2 = <?php echo json_encode($collected_amounts[12]); ?>;
+console.log(test1)
+console.log(test2)
 setGaugeValue(gaugeElement, '{{($tots)}}');
 
 $('#data-table').DataTable({

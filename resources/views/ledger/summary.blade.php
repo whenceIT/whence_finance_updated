@@ -49,7 +49,7 @@
             <form action="{{ route('ledger.summary') }}" method="GET" class="form-inline">
                 <div class="form-group mr-2">
                     <label for="start_date" class="mr-2">Start Date:</label>
-                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') ?: date('Y-m-25') }}" min="2024-09-24">
+                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') ?: date('Y-m-4') }}" min="2025-01-04">
                 </div>
                 <div class="form-group mr-2">
                     <label for="end_date" class="mr-2">End Date:</label>

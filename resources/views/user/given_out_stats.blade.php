@@ -14,6 +14,7 @@ $nums = [];
 $targets = [];
 $transaction_total = 0;
 $carry_over = 0;
+$carry_overs = [];
 for($x=12; $x>-1; $x--){
     foreach($userTransactions as $transaction){
         if($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
@@ -46,6 +47,7 @@ for($x=12; $x>-1; $x--){
 
     array_push($nums,$x);
     array_push($targets,$transaction_total);
+      array_push($carry_overs,$carry_over);
     $transaction_total = 0;
     $total = $reloan_total + $new_loan_total;
 }
@@ -86,19 +88,16 @@ for($x=12; $x>-1; $x--){
 <div class="box box-primary">
 <div class="box-body table-responsive" >
 
-        <div class="col-md-4">
-                           <span class="info-box-text" style="font-weight: bold; font-size: 18px;">Reloans</span>
-                            <span class="info-box-number">{{$reloan_count}}</span>
-        </div>
-
-        <div class="col-md-4">
-                           <span class="info-box-text" style="font-weight: bold; font-size: 18px;">New Loans</span>
-                            <span class="info-box-number">{{$new_loan_count}}</span>
-                        </div>
+       
 
         <div class="col-md-4">
                            <span class="info-box-text" style="font-weight: bold; font-size: 18px;">Total</span>
                             <span class="info-box-number">{{$targets[12]}}</span>
+	</div>
+
+   <div class="col-md-4">
+                           <span class="info-box-text" style="font-weight: bold; font-size: 18px;">Carry Over</span>
+                            <span class="info-box-number">{{$carry_overs[12]}}</span>
         </div>
 
         <table class="table  table-bordered table-hover table-striped" id="data-table">
@@ -149,7 +148,7 @@ for($x=12; $x>-1; $x--){
             "ordering": true,
             "info": true,
             "autoWidth": true,
-            "order": [[5, "desc"]],
+            "order": [[2, "desc"]],
             "columnDefs": [
                 {"orderable": false, "targets": []}
             ],

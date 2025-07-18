@@ -126,7 +126,7 @@ $total = $full_payment_total + $part_payment_total + $reloan_total;
             "ordering": true,
             "info": true,
             "autoWidth": true,
-            "order": [[5, "desc"]],
+            "order": [[2, "desc"]],
             "columnDefs": [
                 {"orderable": false, "targets": []}
             ],
