@@ -17,6 +17,8 @@ use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
 Route::model('user', 'App\Models\User');
@@ -76,6 +78,40 @@ Route::get('clear_cache', function () {
     \Illuminate\Support\Facades\Artisan::call("cache:clear");
     \Illuminate\Support\Facades\Artisan::call("view:clear");
     return redirect('/');
+});
+
+
+// routes/web.php
+use Illuminate\Http\Request;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+
+Route::post('/nextjs-login', function(Request $request) {
+    $credentials = $request->only('email', 'password');
+
+    // Find user
+    $user = Sentinel::findByCredentials($credentials);
+
+    // Validate credentials
+    if (!$user || !Sentinel::validateCredentials($user, $credentials)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
+    }
+
+    // Log in user and start session
+    Sentinel::login($user, true);
+    $request->session()->regenerate(); // Important: regenerate session ID
+
+    // Laravel automatically sets 'laravel_session' cookie in response
+    return response()->json([
+        'success' => true,
+        'user' => [
+            'id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->first_name . ' ' . $user->last_name,
+        ]
+    ]);
 });
 
 Route::get('/', [HomeController::class, 'index']);
@@ -403,6 +439,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals','LoanController@reloan_approvals');
     Route::get('transaction_approvals','LoanController@transaction_approvals');
+     Route::get('top_up_approvals','LoanController@top_up_approvals');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
     Route::get('loan/waiver-approvals', 'LoanController@showWaiver')->name('waiver.approvals');
@@ -430,7 +467,9 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('{loan}/edit', 'LoanController@edit');
     Route::get('{loan}/activate', 'LoanController@activate');
     Route::get('{loan}/show', 'LoanController@show');
-    Route::post('{id}/topup/update', 'LoanController@add_top_up');
+    Route::post('{id}/topup/update', 'LoanController@add_top_up_request');
+    Route::any('{id}/{trans_id}/approve_top_up','LoanController@approve_top_up');
+    Route::any('{id}/decline_top_up','LoanController@decline_top_up');
     Route::post('client_loan/{id}/update', 'LoanController@update_client_loan');
     Route::post('group_loan/{id}/update', 'LoanController@update_group_loan');
     Route::get('{id}/delete', 'LoanController@delete');
@@ -442,6 +481,7 @@ Route::group(['prefix' => 'loan'], function () {
      Route::any('my_expected_collections','LoanController@my_expected_collections');
     Route::any('{id}/detailed_collections','LoanController@detailed_collections');
     Route::any('adjust_next_repayment','LoanController@adjust_next_repayment');
+     Route::any('notification_test','LoanController@notification_test');
     Route::get('payroll_loan/pending_list','LoanController@pending_list');
         Route::get('payroll_loan/approved_list','LoanController@approved_list');
     Route::get('payroll_loan/declined_list','LoanController@declined_list');
@@ -1071,3 +1111,299 @@ Route::group(['prefix' => 'portal'], function () {
     Route::post('loan_application/store', 'PortalController@loan_application_store');
 
 });
+
+
+//HYBRID ROUTES
+
+// Prefix all hybrid routes
+Route::group(['prefix' => 'hybrid'], function () {
+
+    // Expected Collections
+    Route::any('expected_collections', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@expected_collections');
+    });
+
+    // My Collections
+    Route::any('my_collections', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@my_collections');
+    });
+
+    // My Expected Collections
+    Route::any('my_expected_collections', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@my_expected_collections');
+    });
+
+    // Branch Uncollected
+    Route::any('branch_uncollected', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@branch_uncollected');
+    });
+
+    // Appraisal Forms
+    Route::any('appraisal_forms', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@appraisal_forms');
+    });
+
+    // My Appraisal Forms
+    Route::any('my_appraisal_forms', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@my_appraisal_forms');
+    });
+
+
+  Route::any('payroll_loan/pending_list', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@pending_list');
+    });
+
+    Route::any('payroll_loan/approved_list', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@approved_list');
+    });
+
+
+    Route::any('payroll_loan/declined_list', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@declined_list');
+    });
+
+
+    
+    Route::any('my_applications/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@my_applications');
+    });
+
+
+    Route::any('client/closed', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ClientController@closed');
+    });
+
+    Route::any('client/clients_inactive', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ClientController@clients_inactive');
+    });
+
+    Route::any('client/clients_blacklisted', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ClientController@clients_blacklisted');
+    });
+
+    Route::any('client/declined', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ClientController@declined');
+    });
+
+
+    Route::any('gl_account/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\GlAccountController@index');
+    });
+
+
+    Route::any('journal/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\JournalController@index');
+    });
+
+    
+    Route::any('journal/create', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\JournalController@create');
+    });
+
+
+    Route::any('reconciliation/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\JournalController@reconciliation');
+    });
+
+    Route::any('period/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\JournalController@period');
+    });
+
+
+    Route::any('loan_report', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ReportController@loan_report');
+    });
+
+    Route::any('financial_report', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ReportController@financial_report');
+    });
+
+
+    Route::any('savings_report', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ReportController@savings_report');
+    });
+
+
+    Route::any('communication/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\CommunicationController@index');
+    });
+
+    Route::any('communication/create', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\CommunicationController@create');
+    });
+
+
+    Route::any('asset/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\AssetController@index');
+    });
+
+    Route::any('asset/create', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\AssetController@create');
+    });
+
+    Route::any('asset/type/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\AssetTypeController@index');
+    });
+
+
+    Route::any('expenses/type/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ExpenseTypeController@index');
+    });
+
+    Route::any('expenses/budget/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ExpenseBudgetController@index');
+    });
+
+    Route::any('expenses/budget/report', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ExpenseBudgetController@report');
+    });
+
+    Route::any('other_income/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\OtherIncomeController@index');
+    });
+
+    Route::any('other_income/create', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\OtherIncomeController@create');
+    });
+
+    Route::any('other_income/type/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\OtherIncomeTypeController@index');
+    });
+
+
+    Route::any('create_wage_bill', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@create_wage_bill');
+    });
+
+    
+    Route::any('payroll_list', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@payroll_list');
+    });
+
+    Route::any('payroll_pending_approval', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@payroll_pending_approval');
+    });
+
+    Route::any('template', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\PayrollTemplateController@index');
+    });
+
+    Route::any('lc_information', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@lc_information');
+    });
+
+
+    Route::any('custom_fields/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\CustomFieldController@index');
+    });
+
+
+    Route::any('custom_fields/create', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\CustomFieldController@create');
+    });
+
+
+    Route::any('mypayslips', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@myPayslips');
+    });
+
+
+    Route::any('users/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@index');
+    });
+
+
+    Route::any('client_users/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@client_users_index');
+    });
+
+
+    Route::any('role/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@indexRole');
+    });
+
+
+    Route::any('users/create', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@create');
+    });
+
+    Route::any('audit_trail/data', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\AuditTrailController@index');
+    });
+
+    Route::any('settings/general', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\SettingController@general');
+    });
+    
+
+    Route::any('settings/organisation', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\SettingController@organisation');
+    });
+
+
+    Route::any('settings/fail_safe', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\SettingController@fail_safe');
+    });
+
+       Route::any('/dashboard', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@dashboard');
+       });
+
+        Route::any('/whatsapp_clients', function(Request $request) {
+        return handleHybridRoute($request, 'App\Http\Controllers\ClientController@whatsapp_clients');
+    });
+
+    Route::any('detailed_dashboard',function(Request $request){
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@detailed_dashboard');
+    });
+
+
+    Route::any('provinces_dashboard',function(Request $request){
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@provinces_dashboard');
+    });
+
+
+    Route::any('daily_figures',function(Request $request){
+        return handleHybridRoute($request, 'App\Http\Controllers\UserController@daily_figures');
+    });
+
+    Route::any('new_collections',function(Request $request){
+        return handleHybridRoute($request, 'App\Http\Controllers\LoanController@new_collections');
+    });
+
+
+});
+
+/**
+ * Helper function for hybrid JWT login and controller call
+ */
+function handleHybridRoute(Request $request, $controllerMethod)
+{
+    $token = $request->query('token');
+    if (!$token) {
+        return response()->json(['success' => false, 'message' => 'Token missing'], 401);
+    }
+
+    try {
+        $payload = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Invalid token: '.$e->getMessage()], 401);
+    }
+
+    $user = Sentinel::findById($payload->id);
+    if (!$user) {
+        return response()->json(['success' => false, 'message' => 'User not found'], 404);
+    }
+
+    Sentinel::login($user); // sets laravel_session
+
+    // Call the controller method with the current request
+    return app()->call($controllerMethod, ['request' => $request]);
+}
+
+
+
+
+
+
+

@@ -48,6 +48,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
 use Laracasts\Flash\Flash;
 use App\Models\PayrollApplicant;
+use App\Models\AppraisalAnswer;
+use Illuminate\Support\Facades\Http;
 
 class LoanController extends Controller
 {
@@ -291,6 +293,18 @@ class LoanController extends Controller
        Flash::success(trans('general.successfully_saved'));
        return redirect('dashboard');
        }
+
+       public function notification_test(){
+                Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+    'event' => 'notification.created',
+    'data' => [
+        'test' => 'test' ,
+
+    ]
+]);
+       Flash::success(trans('general.successfully_saved'));
+     return redirect('setting/fail_safe');
+    }
 
 
     public function payroll_applicant($id){
@@ -552,7 +566,17 @@ class LoanController extends Controller
       if (!Sentinel::hasAccess('expenses')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
+      }
+
+       $role = Sentinel::getUser()->roles->first();
+
+        if($role->id == 6){
+            $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',3)->where('question_id',80)->where('quater_date','>=','10-2025')->first();
+            if(empty($answer)){
+                return redirect('user/my_appraisal_forms');
+            }
         }
+
         $province_transactions = [];
         $userId = Sentinel::getUser()->id;
         $province_id = Sentinel::getUser()->office->province_id;
@@ -582,6 +606,41 @@ class LoanController extends Controller
         return view('loan.transactions',compact('data'));
     }
 
+       public function top_up_approvals(){
+
+        if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+
+          $province_transactions = [];
+          $userId = Sentinel::getUser()->id;
+           $province_id = Sentinel::getUser()->office->province_id;
+        $office_id = Sentinel::getUser()->office_id;
+        $offices = Office::get();
+         $role = UserRole::where('user_id',$userId)->first();
+
+         if($role->role_id == "6"){
+
+            foreach($offices as $office){
+                if($office->province_id == $province_id){
+                    $transactions = LoanTopUp::where('office_id',$office->id)->get();
+                    foreach($transactions as $transaction){
+                        array_push($province_transactions,$transaction);
+                    }
+                }
+            }
+            $data = $province_transactions;
+         }else{
+            if(Sentinel::hasAccess('settings')){
+                $data = LoanTopUp::get();
+            }else{
+                 $data = LoanTopUp::where('office_id',$office_id)->get();
+            }
+         }
+         return view('loan.top_up_approvals',compact('data'));
+    }
 
     public function pending_approval()
     {
@@ -600,14 +659,27 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
 	}
-        $userId = Sentinel::getUser()->id;
+	$data = [];
+	    $offices = Office::get();
+	$userId = Sentinel::getUser()->id;
+	   $province_id = Sentinel::getUser()->office->province_id;
         $role = UserRole::where('user_id',$userId)->first();
 	$office_id = Sentinel::getUser()->office_id;
-	if($role->role_id == '1'){
-		   $data = Loan::whereIn('status', ['pending', 'approved'])->get();
-          
-        }else{
-		 $data = Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->get();
+	  if($role->role_id == '1'){
+       
+            $data = Loan::whereIn('status', ['pending', 'approved'])->get();
+        }elseif($role->role_id == "6"){
+            foreach($offices as $office){
+                if($office->province_id == $province_id){
+                    $loans = Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office->id)->get();
+                    foreach($loans as $loan){
+                        array_push($data,$loan);
+                    }
+                }
+            }
+        }else
+        {
+            $data = Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->get();
         }
 
         return view('loan.managers_pending_approval',compact('data'));
@@ -846,7 +918,18 @@ class LoanController extends Controller
                 $date = explode('-', $request->created_date);
                 $loan->month = $date[1];
                 $loan->year = $date[0];
-                $loan->save();
+		$loan->save();
+
+            Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+    'event' => 'loan.created',
+    'data' => [
+        'created_by' => Sentinel::getUser()->first_name .' '. Sentinel::getUser()->last_name ,
+        'office_id' => Sentinel::getUser()->office->id,
+        'client' =>  $client->first_name .' '. $client->last_name,
+        'amount' => $request->principal,
+        'type' => 'New Loan',
+    ]
+]);
                 if (!empty($request->charges)) {
                     //loop through the array
                     foreach ($request->charges as $key) {
@@ -1133,6 +1216,68 @@ class LoanController extends Controller
         $loanTransDisbursed -> save();
         $loanTransInterest -> save();
         return redirect('loan/' . $loan->id . '/show');
+    }
+
+
+
+       public function add_top_up_request(Request $request, $id){
+         $loan = Loan::find($id);
+         $loanTransDisbursed = LoanTransaction::where('loan_id',$id)->where('transaction_type','disbursement')->first();
+         $loanTransInterest = LoanTransaction::where('loan_id',$id)->where('transaction_type','interest_initial')->first();
+         $loan_topup = new LoanTopUp();
+          if ($request->top_up_date == null ){
+            $loan_topup->date = date("Y-m-d");
+        }else{
+            $loan_topup->date = $request->top_up_date;
+        }
+        $loan_topup->loan_id = $loan->id;
+        $loan_topup->office_id = $loan->office_id;
+        $loan_topup->created_by = Sentinel::getUser()->id;
+        $loan_topup->amount = $request->amount;
+        $loan_topup->balance_bf = $loanTransDisbursed->debit;
+        $loan_topup->balance_new = $loanTransDisbursed->debit + $request->amount;
+        $loan_topup->status = 'pending';
+	$loan_topup->save();
+	    $client_id = $loan->client_id;
+                $client = \App\Models\Client::find($client_id);
+            Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+    'event' => 'loan.created',
+    'data' => [
+        'created_by' => Sentinel::getUser()->first_name .' '. Sentinel::getUser()->last_name ,
+        'office_id' => Sentinel::getUser()->office->id,
+        'client' =>  $client->first_name .' '. $client->last_name,
+        'amount' => $request->amount,
+        'type' => 'Top-Up',
+    ]
+]);
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('loan/' . $loan->id . '/show');
+    }
+
+
+
+    public function approve_top_up(Request $request, $id,$trans_id){
+        $topup = LoanTopUp::find($trans_id);
+        $loanTransDisbursed = LoanTransaction::where('loan_id',$id)->where('transaction_type','disbursement')->first();
+        $loanTransInterest = LoanTransaction::where('loan_id',$id)->where('transaction_type','interest_initial')->first();
+        $am = $loanTransDisbursed->debit + $topup->amount;
+        $loanTransDisbursed -> debit = $loanTransDisbursed->debit + $topup->amount;
+        $loanTransInterest-> debit = 0.4 * $am;
+        $topup->status = 'approved';
+        $topup-> save();
+        $loanTransDisbursed -> save();
+        $loanTransInterest -> save();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('loan/' . $id . '/show');
+    }
+
+
+    public function decline_top_up(Request $request, $id){
+           $topup = LoanTopUp::find($id);
+           $topup->status = 'declined';
+           $topup-> save();
+           Flash::success(trans('general.successfully_saved'));
+           return redirect('loan/' . $topup->loan_id . '/show');
     }
 
 
@@ -2530,7 +2675,18 @@ class LoanController extends Controller
             $loan_transaction->notes_pd = $request->notes;
            // $loan_transaction->request_id = $request->$id;
             $loan_transaction->save();
-
+     $client_id = $loan->client_id;
+                $client = \App\Models\Client::find($client_id);
+                   Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+    'event' => 'loan.created',
+    'data' => [
+        'created_by' => Sentinel::getUser()->first_name .' '. Sentinel::getUser()->last_name ,
+        'office_id' => Sentinel::getUser()->office->id,
+        'client' =>  $client->first_name .' '. $client->last_name,
+        'amount' => $request->amount,
+        'type' => $request->payment_apply_to,
+    ]
+]);
             Flash::success(trans('general.successfully_saved'));
             return redirect('loan/' . $loan->id . '/show');
  }
@@ -3264,10 +3420,7 @@ public function approveCharge($id)
     $due_date = GeneralHelper::determine_due_date($loan->id, $temporary_charge->date);
     $amount = $temporary_charge->debit;
 
-    $schedule = LoanRepaymentSchedule::where("due_date", $due_date)
-                ->where("loan_id", $loan->id)->first();
-    $schedule->fees += $amount;
-    $schedule->save();
+    
 
     //add to actual loan
     $loan_transaction = new LoanTransaction();
@@ -3276,7 +3429,7 @@ public function approveCharge($id)
     $loan_transaction->loan_id = $loan->id;
     $loan_transaction->transaction_type = "specified_due_date_fee";
     $loan_transaction->date = $due_date;
-    $loan_transaction->loan_repayment_schedule_id = $schedule->id;
+   // $loan_transaction->loan_repayment_schedule_id = $schedule->id;
     $loan_transaction->year = date('Y', strtotime($due_date));
     $loan_transaction->month = date('m', strtotime($due_date));
     $loan_transaction->debit = $amount;
@@ -3375,7 +3528,19 @@ public function declineCharge($id)
         $loan_transaction->month = $date[1];
         $loan_transaction->credit = $request->paid;
         $loan_transaction->interest = $request->interest;
-        $loan_transaction->save(); 
+	$loan_transaction->save();
+             $client_id = $loan->client_id;
+                $client = \App\Models\Client::find($client_id);
+            Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+    'event' => 'loan.created',
+    'data' => [
+        'created_by' => Sentinel::getUser()->first_name .' '. Sentinel::getUser()->last_name ,
+        'office_id' => Sentinel::getUser()->office->id,
+        'client' =>  $client->first_name .' '. $client->last_name,
+        'amount' => $request->paid,
+        'type' => 'reloan_payment',
+    ]
+]);
 
 
         GeneralHelper::audit_trail("Update Repayment", "Loans", $id);

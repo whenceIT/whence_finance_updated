@@ -15,6 +15,7 @@ class VerifyCsrfToken extends Middleware
         'admin.billing.payments.stripe_webhook',
         'billing/payment/stripe/webhook',
         'billing/payment/paynow/webhook',
-        'file/upload',
+	'file/upload',
+	'nextjs-login',
     ];
 }

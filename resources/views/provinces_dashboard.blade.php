@@ -255,32 +255,24 @@ array_push($cycle_opening_uncollected_amounts ,$cycle_opening_uncollected_amount
 $collected_amounts = [];
 $today = date('Y-m-d');
 $currrent_date = date('Y-m');
-$cycle_date = $currrent_date.$cycle_end;
+$cycle_date = $currrent_date.'-'.$cycle_end;
 if($today > $cycle_date){
     $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
 }
 $cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
-$cycle_end_date = date('Y-m-d',strtotime($cycle_start. '+ 1 months'));
-  $use = date('Y-m-');
-$todaysDate = date('Y-m-d');
-$targetDate = $use.$cycle_end;
-$targetDate = date('Y-m-d',strtotime($targetDate));
-if($todaysDate > $targetDate){
-    $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
-}
-$compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
+
 
 for($x=12; $x>-1; $x--){
     foreach($myTransactions as $transaction){
-        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
+        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
             $full_payments = $full_payments + $transaction->credit;
         }
 
-        if($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
+        if($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
             $part_payments = $part_payments + $transaction->credit;
         }
 
-        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
+        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
 
             $reloan_amount = $transaction->balance_bf;
             $interest = $transaction->credit/0.4;
@@ -310,29 +302,18 @@ $today = date('Y-m-d');
 $dates = [];
 $colors = [];
 $currrent_date = date('Y-m');
-$cycle_date = date('Y-m', strtotime($today)) . '-' . str_pad($cycle_end, 2, '0', STR_PAD_LEFT);
-if (strtotime($today) > strtotime($cycle_date)) {
+$cycle_date = $currrent_date.'-'.$cycle_end;
+if($today > $cycle_date){
     $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
 }
 $cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
-$cycle_end_date = date('Y-m-d',strtotime($cycle_start. '+ 1 months'));
-
- $use = date('Y-m-');
-$todaysDate = date('Y-m-d');
-$targetDate = $use.$cycle_end;
-$targetDate = date('Y-m-d',strtotime($targetDate));
-if($todaysDate > $targetDate){
-    $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
-}
-$compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
-
 for($x=12; $x>-1; $x--){
     foreach($myTransactions as $transaction){
-        if($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
+        if($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
             $new_loan_total = $transaction->debit;
         }
 
-        if($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
+        if($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
             $principal = $transaction->debit/0.4;
             $reloan_total = $principal;
         }
@@ -367,185 +348,185 @@ for($x=12; $x>-1; $x--){
 
 ?>
 
-	<?php 
-	$uncollected_amounts = [];
-	for($x=0; $x<12; $x++){
-	    array_push($uncollected_amounts,($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
-	}
-	?>
+<?php 
+$uncollected_amounts = [];
+for($x=0; $x<12; $x++){
+    array_push($uncollected_amounts,($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
+}
+?>
 
 
-	<div class="col-lg-4 col-xs-12">
-	<div class="small-box bg-yellow">
-	<div class="inner">
-	<p style="font-weight: bold;">Cycle opening uncollected amount (COUA)</p>
-	<div class="icon">
-	<i class="fa fa-usd"></i>
-	</div>
-	<h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
-	</div>
-	<div class="small-box-footer">
-	    <p></p>
-	</div>
-	</div>
-	</div>
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-yellow">
+<div class="inner">
+<p style="font-weight: bold;">Cycle opening uncollected amount (COUA) {{$cycle_start}} | {{$today}} | {{$cycle_date}} | {{$cycle_end}}</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
 
 
-	<div class="col-lg-4 col-xs-12">
-	<div class="small-box bg-green">
-	<div class="inner">
-	<p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
-	<div class="icon">
-	<i class="fa fa-usd"></i>
-	</div>
-	<h3>{{number_format($collected_amounts[12],2)}}</h3>
-	</div>
-	<div class="small-box-footer">
-	    <p></p>
-	</div>
-	</div>
-	</div>
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-green">
+<div class="inner">
+<p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>{{number_format($collected_amounts[12],2)}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
 
-	<div class="col-lg-4 col-xs-12">
-	<div class="small-box bg-aqua">
-	<div class="inner">
-	<p style="font-weight: bold;">Still Uncollected Today</p>
-	<div class="icon">
-	<i class="fa fa-usd"></i>
-	</div>
-	<h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
-	</div>
-	<div class="small-box-footer">
-	    <p></p>
-	</div>
-	</div>
-	</div>
-
-
-
+<div class="col-lg-4 col-xs-12">
+<div class="small-box bg-aqua">
+<div class="inner">
+<p style="font-weight: bold;">Still Uncollected Today</p>
+<div class="icon">
+<i class="fa fa-usd"></i>
+</div>
+<h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
+</div>
+<div class="small-box-footer">
+    <p></p>
+</div>
+</div>
+</div>
 
 
 
-	</div>
-	<!--second row-->
-	<?php
-	$tots = ($collected_amounts[12]/$cycle_opening_uncollected_amounts[12])
-	?>
-
-	<div style="margin-bottom:30px; margin-top:30px;">
-	<p style="display: flex;
-	    align-items: center;
-	    justify-content: center; font-size:50px;">PDUA%</p>
-	<div style="display: flex;
-	    align-items: center;
-	    justify-content: center;">
-	    
-	<div class="gauge" style="width: 100%;
-	  max-width: 250px;
-	  font-size: 50px;
-	  color: #004033;">
-	    <div class="gauge__body" style=" width: 100%;
-	  height: 0;
-	  padding-bottom: 50%;
-	  background: #b4c0be;
-	  position: relative;
-	  border-top-left-radius: 100% 200%;
-	  border-top-right-radius: 100% 200%;
-	  overflow: hidden;">
-
-	@if(($tots) < 0.75)
-	 <div class="gauge__fill" style=" position: absolute;
-	  top: 100%;
-	  left: 0;
-	  width: inherit;
-	  height: 100%;
-	  background: red;
-	  transform-origin: center top;
-	  transform: rotate(0.25turn);
-	  transition: transform 0.2s ease-out;"></div>
-
-	@elseif(($tots) >= 0.90)
-	<div class="gauge__fill" style=" position: absolute;
-	  top: 100%;
-	  left: 0;
-	  width: inherit;
-	  height: 100%;
-	  background:#d4af37;
-	  transform-origin: center top;
-	  transform: rotate(0.25turn);
-	  transition: transform 0.2s ease-out;"></div>
-
-	@else
-	<div class="gauge__fill" style=" position: absolute;
-	  top: 100%;
-	  left: 0;
-	  width: inherit;
-	  height: 100%;
-	  background:green;
-	  transform-origin: center top;
-	  transform: rotate(0.25turn);
-	  transition: transform 0.2s ease-out;"></div>
-
-	@endif
-	    <div class="gauge__cover" style="width: 75%;
-	  height: 150%;
-	  background: #f7f7f7;
-	  border-radius: 50%;
-	  position: absolute;
-	  top: 25%;
-	  left: 50%;
-	  transform: translateX(-50%);
-
-	  /* Text */
-	  display: flex;
-	  align-items: center;
-	  justify-content: center;
-	  padding-bottom: 25%;
-	  box-sizing: border-box;"></div>
-
-	    </div>
-	</div>
 
 
-	</div>
 
-	<div style="display:flex; flex-direction:row; justify-content:space-between;
-	    align-items: center;
-	    justify-content: center;">
-	<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-	<div style="background-color: red;  height: 10px;
-	  width: 20px;">
-	</div>
-	<p style="text-align: center; font-weight:bold;">Poor</p>
-	</div>
+</div>
+<!--second row-->
+<?php
+$tots = ($collected_amounts[12]/$cycle_opening_uncollected_amounts[12])
+?>
 
-	<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-	<div style="background-color: green;  height: 10px;
-	  width: 20px;">
-	</div>
-	<p style="text-align: center; font-weight:bold;">Fair</p>
-	</div>
-	<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-	<div style="background-color: #d4af37;  height: 10px;
-	  width: 20px;">
-	</div>
-	<p style="text-align: center; font-weight:bold;">Good</p>
-	</div>
+<div style="margin-bottom:30px; margin-top:30px;">
+<p style="display: flex;
+    align-items: center;
+    justify-content: center; font-size:50px;">PDUA%</p>
+<div style="display: flex;
+    align-items: center;
+    justify-content: center;">
+    
+<div class="gauge" style="width: 100%;
+  max-width: 250px;
+  font-size: 50px;
+  color: #004033;">
+    <div class="gauge__body" style=" width: 100%;
+  height: 0;
+  padding-bottom: 50%;
+  background: #b4c0be;
+  position: relative;
+  border-top-left-radius: 100% 200%;
+  border-top-right-radius: 100% 200%;
+  overflow: hidden;">
 
-	</div>
-	</div>
+@if(($tots) < 0.75)
+ <div class="gauge__fill" style=" position: absolute;
+  top: 100%;
+  left: 0;
+  width: inherit;
+  height: 100%;
+  background: red;
+  transform-origin: center top;
+  transform: rotate(0.25turn);
+  transition: transform 0.2s ease-out;"></div>
 
-	<div style="margin-bottom:30px; margin-top:30px;">
-	<div class="row">
-					<div class="col-md-12">
-					    <div class="text-center">
-						<h2 class=" text-semibold">{{ trans_choice('general.monthly',1) }} {{ trans_choice('general.target',1) }}</h2>
-					    </div>
-					    <div class="progress" data-toggle="tooltip"
-						 title="You're currently at : {{number_format($targets[12],2)}}">
-	<div class="progress-bar progress-bar-success progress-bar-striped active"
-						     style="width: {{($targets[12]/40000)*100}}% ">
-	@if($targets[12] > 40000)
+@elseif(($tots) >= 0.90)
+<div class="gauge__fill" style=" position: absolute;
+  top: 100%;
+  left: 0;
+  width: inherit;
+  height: 100%;
+  background:#d4af37;
+  transform-origin: center top;
+  transform: rotate(0.25turn);
+  transition: transform 0.2s ease-out;"></div>
+
+@else
+<div class="gauge__fill" style=" position: absolute;
+  top: 100%;
+  left: 0;
+  width: inherit;
+  height: 100%;
+  background:green;
+  transform-origin: center top;
+  transform: rotate(0.25turn);
+  transition: transform 0.2s ease-out;"></div>
+
+@endif
+    <div class="gauge__cover" style="width: 75%;
+  height: 150%;
+  background: #f7f7f7;
+  border-radius: 50%;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  /* Text */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 25%;
+  box-sizing: border-box;"></div>
+
+    </div>
+</div>
+
+
+</div>
+
+<div style="display:flex; flex-direction:row; justify-content:space-between;
+    align-items: center;
+    justify-content: center;">
+<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+<div style="background-color: red;  height: 10px;
+  width: 20px;">
+</div>
+<p style="text-align: center; font-weight:bold;">Poor</p>
+</div>
+
+<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+<div style="background-color: green;  height: 10px;
+  width: 20px;">
+</div>
+<p style="text-align: center; font-weight:bold;">Fair</p>
+</div>
+<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+<div style="background-color: #d4af37;  height: 10px;
+  width: 20px;">
+</div>
+<p style="text-align: center; font-weight:bold;">Good</p>
+</div>
+
+</div>
+</div>
+
+<div style="margin-bottom:30px; margin-top:30px;">
+<div class="row">
+                                <div class="col-md-12">
+                                    <div class="text-center">
+                                        <h2 class=" text-semibold">{{ trans_choice('general.monthly',1) }} {{ trans_choice('general.target',1) }}</h2>
+                                    </div>
+                                    <div class="progress" data-toggle="tooltip"
+                                         title="You're currently at : {{number_format($targets[12],2)}}">
+<div class="progress-bar progress-bar-success progress-bar-striped active"
+                                             style="width: {{($targets[12]/40000)*100}}% ">
+@if($targets[12] > 40000)
 <span>You've reached your target congratulations!!!</span>
 @else
 <span>{{($targets[12]/40000)*100}} {{ trans_choice('general.complete',1) }}</span>
@@ -583,7 +564,7 @@ for($x=12; $x>-1; $x--){
                     $new_out = 0;
                     $use = date('Y-m-');
                     $todaysDate = date('Y-m-d');
-                    $targetDate = $use.$cycle_end;
+                    $targetDate = $use.'-'.$cycle_end;
                     $targetDate = date('Y-m-d',strtotime($targetDate));
                     if($todaysDate > $targetDate){
                         $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
@@ -677,7 +658,7 @@ $OutIn = $out - $in;
                 @foreach($myTransactions as $transaction)
             @if($transaction->transaction_type != 'interest_waiver' && $transaction->date > $compareDate &&  $transaction->date <= $targetDate && $transaction->credit)
          <tr>
-    <td>{{$transaction->loan_id}} {{$targetDate}} {{$compareDate}}</td> 
+    <td>{{$transaction->loan_id}}</td>
     <td>{{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}</td>
     <td>{{$transaction->payment_apply_to}}</td>
     <td>{{number_format($transaction->credit,2)}}</td>
@@ -1309,69 +1290,7 @@ $OutIn = $OutIn - $newout;
 </div>
 </div>
 
- <?php
-                                            $office_id = Sentinel::getUser()->office_id;
-?>
-<div id="pendingWidget" style="
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 350px;
-    background: #fefefe;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    overflow: hidden;
-    z-index: 9999;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    cursor: move;
-    transition: transform 0.2s ease;
-">
-    <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
-        <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
-        <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
-        <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
-        <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
-        <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
-        <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
-        <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Advance::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
-        <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\TopUp::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
-        <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{
-             \App\Models\Leave::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-</div>
+
 @endif
 
 
@@ -1871,36 +1790,8 @@ $tots = ($collected_amounts[12]/$cycle_opening_uncollected_amounts[12]) + 0.0000
 
 <!-- What Admins see -->
 @if($role->role_id == '1' || $role->role_id == '10')
-<div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px; ">
 
- <a href="{{ url('user/detailed_dashboard')}}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Detailed Dashboard</span>
-</a>
-
-<a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Collections</span>
-</a>
-
-<a href="javascript:;" onmousedown="toggleMyStaff('mydiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">Provinces</span>
-<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-</a>
-
-<a href="{{ url('user/daily_figures')}}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Daily figures</span>
-</a>
-
-</div>
-
-<div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px; ">
-<p style="font-weight: bold;">Data based on loans created in the last 3 months</p>
-</div>
-
-<div id='mydivon' style="display:block">
+<div id='mydivon' style="display:none">
 <div class="row">
 <?php
 $use = date('Y-m-');
@@ -2352,7 +2243,7 @@ while($bar_chart_count < 3){
 
 
 
-<div id='mydivoff' style="display:none">
+<div>
 @foreach($provinces as $province)
 <a href="{{url('user/'.$province->id.'/province_page')}}">
 <div class="col-md-3 col-sm-6 col-xs-12">
@@ -2406,61 +2297,6 @@ while($bar_chart_count < 3){
     </div>
 </div>
 
-<div id="pendingWidget" style="
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 350px;
-    background: #fefefe;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    overflow: hidden;
-    z-index: 9999;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    cursor: move;
-    transition: transform 0.2s ease;
-">
-    <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
-        <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
-        <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionUnapproved::count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
-        <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionsPending::count() }}</p>
-    </div>
-
-      <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
-        <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\WaiverTransactionUnapproved::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
-        <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\ChargeTransactionUnapproved::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
-        <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Client::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
-        <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Advance::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
-        <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\TopUp::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
-        <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Leave::where('status','pending')->count() }}</p>
-    </div>
-</div>
-
 
 @endif
 
@@ -2489,57 +2325,6 @@ while($bar_chart_count < 3){
         @endif
 @if($role->role_id == '1')
 <script>
-
-  // Auto-slideshow
-    const slides = document.querySelectorAll('#pendingWidget .slide');
-    let currentSlide = 0;
-
-    function showSlide(index){
-        slides.forEach((slide, i) => slide.style.display = i === index ? 'block' : 'none');
-    }
-
-    setInterval(() => {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
-    }, 5000);
-
-    showSlide(currentSlide);
-
-   // Drag functionality (mouse & touch)
-const widget = document.getElementById('pendingWidget');
-let isDragging = false, offsetX = 0, offsetY = 0;
-
-// Mouse events
-widget.addEventListener('mousedown', e => {
-    isDragging = true;
-    offsetX = e.clientX - widget.getBoundingClientRect().left;
-    offsetY = e.clientY - widget.getBoundingClientRect().top;
-    widget.style.transform = 'none';
-});
-document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    widget.style.left = e.clientX - offsetX + 'px';
-    widget.style.top = e.clientY - offsetY + 'px';
-});
-document.addEventListener('mouseup', () => { isDragging = false; });
-
-// Touch events
-widget.addEventListener('touchstart', e => {
-    isDragging = true;
-    const touch = e.touches[0];
-    offsetX = touch.clientX - widget.getBoundingClientRect().left;
-    offsetY = touch.clientY - widget.getBoundingClientRect().top;
-    widget.style.transform = 'none';
-});
-widget.addEventListener('touchmove', e => {
-    if (!isDragging) return;
-    e.preventDefault(); // <-- prevent page scroll
-    const touch = e.touches[0];
-    widget.style.left = touch.clientX - offsetX + 'px';
-    widget.style.top = touch.clientY - offsetY + 'px';
-}, { passive: false });
-widget.addEventListener('touchend', () => { isDragging = false; });
-
 
 const gaugeElementAdmin = document.querySelector(".gauge");
 
@@ -2795,55 +2580,7 @@ setGaugeValue(gaugeElement, '{{($collected_amounts[12]/$cycle_opening_uncollecte
 @endif
 
 @if($role->role_id == '4') 
-	 <script>
-const slidesdm = document.querySelectorAll('#pendingWidget .slide');
-let currentSlidedm = 0;
-
-function showSlidedm(indexdm){
-    slidesdm.forEach((slidedm, idm) => slidedm.style.display = idm === indexdm ? 'block' : 'none');
-}
-
-setInterval(() => {
-    currentSlidedm = (currentSlidedm + 1) % slidesdm.length;
-    showSlidedm(currentSlidedm);
-}, 5000);
-
-showSlidedm(currentSlidedm);
-
-// Drag functionality (mouse & touch)
-const widgetdm = document.getElementById('pendingWidget');
-let isDraggingdm = false, offsetXdm = 0, offsetYdm = 0;
-
-// Mouse events
-widgetdm.addEventListener('mousedown', e => {
-    isDraggingdm = true;
-    offsetXdm = e.clientX - widgetdm.getBoundingClientRect().left;
-    offsetYdm = e.clientY - widgetdm.getBoundingClientRect().top;
-    widgetdm.style.transform = 'none';
-});
-document.addEventListener('mousemove', e => {
-    if (!isDraggingdm) return;
-    widgetdm.style.left = e.clientX - offsetXdm + 'px';
-    widgetdm.style.top = e.clientY - offsetYdm + 'px';
-});
-document.addEventListener('mouseup', () => { isDraggingdm = false; });
-
-// Touch events
-widgetdm.addEventListener('touchstart', e => {
-    isDraggingdm = true;
-    const touchdm = e.touches[0];
-    offsetXdm = touchdm.clientX - widgetdm.getBoundingClientRect().left;
-    offsetYdm = touchdm.clientY - widgetdm.getBoundingClientRect().top;
-    widgetdm.style.transform = 'none';
-});
-widgetdm.addEventListener('touchmove', e => {
-    if (!isDraggingdm) return;
-    e.preventDefault(); // prevent page scroll
-    const touchdm = e.touches[0];
-    widgetdm.style.left = touchdm.clientX - offsetXdm + 'px';
-    widgetdm.style.top = touchdm.clientY - offsetYdm + 'px';
-}, { passive: false });
-widgetdm.addEventListener('touchend', () => { isDraggingdm = false; });
+<script>
 function toggleDiv(divid)
   {
  
@@ -3087,14 +2824,7 @@ const ctx = document.getElementById('graph');
 const ctx_new = document.getElementById('target_graph');
 var collections = <?php echo json_encode($collected_amounts); ?>;
 var uncollections = <?php echo json_encode($uncollected_amounts); ?>;
-var dates = <?php echo json_encode($dates); ?>;
-var coua = <?php echo json_encode($cycle_opening_uncollected_amounts[11]); ?>;
-for (let i = 0; i < coua.length; i++) {
-    console.log("Index:", i, "Value:", coua[i]);
-}
-
-console.log('HELLOOOO');
-
+var coua = <?php echo json_encode($cycle_opening_uncollected_amounts[12]); ?>;
 
 new Chart(ctx, {
   type: 'bar',
@@ -3167,10 +2897,6 @@ function setGaugeValue(gauge, value) {
 
 var test1 = <?php echo json_encode($collected_amounts[12]/$cycle_opening_uncollected_amounts[12]); ?>;
 var test2 = <?php echo json_encode($collected_amounts[12]); ?>;
-var coua = <?php echo json_encode($cycle_opening_uncollected_amounts); ?>;
-for (var i = 0; i < coua.length; i++) {
-    console.log(coua[i]);
-}
 console.log(test1)
 console.log(test2)
 setGaugeValue(gaugeElement, '{{($tots)}}');

@@ -264,7 +264,9 @@ class GeneralHelper
                 $schedule = LoanRepaymentSchedule::where('due_date', '>', $date)->where('loan_id',
                     $id)->orderBy('due_date',
                     'asc')->first();
-                return $schedule->due_date;
+                  if(!empty($schedule->due_date)){
+                        return $schedule->due_date;
+                    }
             }
 
         }

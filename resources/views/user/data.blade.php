@@ -21,15 +21,17 @@
                 <tr>
                     <th>{{ trans('general.name') }}</th>
                     <th>{{ trans('general.gender') }}</th>
+                    <th>Branch</th>
                     <th>{{ trans('general.phone') }}</th>
                     <th>{{ trans_choice('general.email',1) }}</th>
-                    <th>{{ trans('general.address') }}</th>
-                    <th>{{ trans_choice('general.role',1) }}</th>
+                   
                     <th>{{ trans_choice('general.action',1) }}</th>
                 </tr>
                 </thead>
                 <tbody>
                 @foreach($data as $key)
+                @if($key->role && $key->role->role_id != 2)
+      
                     <tr>
                         <td>{{ $key->first_name }} {{ $key->last_name }}</td>
                         <td>
@@ -46,16 +48,9 @@
                                 {{trans_choice('general.unspecified',1)}}
                             @endif
                         </td>
+                        <td>{{ $key->office->name ?? '' }}</td>
                         <td>{{ $key->phone }}</td>
                         <td>{{ $key->email }}</td>
-                        <td>{!!   $key->address !!} jbi</td>
-                        <td>
-                            @if(!empty($key->roles))
-                                @if(!empty($key->roles->first()))
-                                <span class="label label-danger">{{ $key->roles->first()->name }} </span>
-                                @endif
-                            @endif
-                        </td>
 
                         <td>
                             <div class="btn-group">
@@ -89,6 +84,7 @@
                             </div>
                         </td>
                     </tr>
+           @endif
                 @endforeach
                 </tbody>
             </table>
@@ -97,35 +93,35 @@
 @endsection
 @section('footer-scripts')
     <script>
+$('#data-table').DataTable({
+    dom: 'frtip',
+    "paging": true,
+    "lengthChange": true,
+    "displayLength": 15,
+    "searching": true,
+    "ordering": true,
+    "info": true,
+    "autoWidth": true,
+    "order": [[0, "asc"]],
+    "columnDefs": [
+        {"orderable": false, "targets": [5]} // fixed index
+    ],
+    "language": {
+        "lengthMenu": "{{ trans('general.lengthMenu') }}",
+        "zeroRecords": "{{ trans('general.zeroRecords') }}",
+        "info": "{{ trans('general.info') }}",
+        "infoEmpty": "{{ trans('general.infoEmpty') }}",
+        "search": "{{ trans('general.search') }}",
+        "infoFiltered": "{{ trans('general.infoFiltered') }}",
+        "paginate": {
+            "first": "{{ trans('general.first') }}",
+            "last": "{{ trans('general.last') }}",
+            "next": "{{ trans('general.next') }}",
+            "previous": "{{ trans('general.previous') }}"
+        }
+    },
+    responsive: false
+});
 
-        $('#data-table').DataTable({
-            dom: 'frtip',
-            "paging": true,
-            "lengthChange": true,
-            "displayLength": 15,
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "autoWidth": true,
-            "order": [[0, "asc"]],
-            "columnDefs": [
-                {"orderable": false, "targets": [6]}
-            ],
-            "language": {
-                "lengthMenu": "{{ trans('general.lengthMenu') }}",
-                "zeroRecords": "{{ trans('general.zeroRecords') }}",
-                "info": "{{ trans('general.info') }}",
-                "infoEmpty": "{{ trans('general.infoEmpty') }}",
-                "search": "{{ trans('general.search') }}",
-                "infoFiltered": "{{ trans('general.infoFiltered') }}",
-                "paginate": {
-                    "first": "{{ trans('general.first') }}",
-                    "last": "{{ trans('general.last') }}",
-                    "next": "{{ trans('general.next') }}",
-                    "previous": "{{ trans('general.previous') }}"
-                }
-            },
-            responsive: false
-        });
     </script>
 @endsection

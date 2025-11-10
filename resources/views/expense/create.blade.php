@@ -212,9 +212,9 @@
 @endsection
 @section('footer-scripts')
     <script>
-
         $(document).ready(function (e) {
             $(".form-horizontal").validate();
+
             if ($('#recurring').val() == '1') {
                 $('#recur').show();
                 $('#recur_frequency').attr('required', 'required');
@@ -226,6 +226,7 @@
                 $('#recur_start_date').removeAttr('required');
                 $('#recur_type').removeAttr('required');
             }
+
             $('#recurring').change(function () {
                 if ($('#recurring').val() == '1') {
                     $('#recur').show();
@@ -238,9 +239,14 @@
                     $('#recur_start_date').removeAttr('required');
                     $('#recur_type').removeAttr('required');
                 }
-            })
-        })
+            });
 
+            // 🚫 Prevent multiple form submissions
+            $('form').on('submit', function() {
+                const $btn = $(this).find('button[type="submit"]');
+                $btn.prop('disabled', true).text('Saving...');
+            });
+        });
     </script>
 @endsection
 

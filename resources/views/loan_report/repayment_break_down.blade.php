@@ -177,8 +177,11 @@ Daily Loan Activities Breakdown Report
                         $principal = $key->principal_derived;
                         $interest = $key->interest_derived;
                         $fees = $key->fees_derived;
-                        $new_amount = $key -> credit;
-                        $total = $total + $new_amount;
+                        $credit = floatval($key->credit ?? 0);
+
+if (is_numeric($credit) && $credit > 0) {
+    $total += $credit;
+}
                         $penalty = $key->penalty_derived;
                         $total_principal = $total_principal + $principal;
                         $total_interest = $total_interest + $interest;
@@ -346,7 +349,9 @@ Daily Loan Activities Breakdown Report
                     $new_balance = 0;
                     //$outstanding_new = 0;
                     $new_bf = 0;
-                    $credit_amount = 0;
+		    $credit_amount = 0;
+		    $outstanding_amount = 0;
+		    $outstanding_total = 0;
                     ?>
                     @foreach($reloans_data as $key)
                         <?php
@@ -368,10 +373,18 @@ Daily Loan Activities Breakdown Report
                         //$interest_paid =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('interest_derived');
                         //$balance = \App\Helpers\GeneralHelper::loan_total_balance($key->loan_id);
                         $interest_new = $key->interest_derived;
-                        $new_amount = $key -> credit;
-                        $bf_balance = $key ->balance_bf;
-                        $total_interest_paid = $total_interest_paid + $interest_new;
-                        $total_paid = $total_paid + $new_amount;
+                        $credit = floatval($key->credit ?? 0);
+$bf_balance = floatval($key->balance_bf ?? 0);
+$interest_new = floatval($key->interest_derived ?? 0);
+
+if (is_numeric($credit) && $credit > 0) {
+    $total_paid += $credit;
+    $credit_amount += $credit;
+}
+
+$total_interest_paid += $interest_new;
+$new_bf += $bf_balance;
+
                         //$prev_balance = $balance - $interest_paid;
                         //$total_bf = 0; 
                         //$total_bf = $total_bf + $bf;
@@ -384,7 +397,9 @@ Daily Loan Activities Breakdown Report
                         //$bcr =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('credit');
                         //$badrcr=$bdr-$bcr;
                         $total_outstanding = $total_outstanding + $balance;
-                        //$outstanding_amount = $bf - $key->credit;
+			//$outstanding_amount = $bf - $key->credit;
+			$outstanding_amount = floatval($key->balance_bf ?? 0) - floatval($key->credit ?? 0);
+$outstanding_total += $outstanding_amount;
 
 
                         //$outstanding_total = $outstanding_total + $outstanding_amount;
@@ -485,7 +500,8 @@ Daily Loan Activities Breakdown Report
                       
                         <td>
                             
-                             <b>{{number_format($new_bf - $credit_amount,2)}}</b>
+                            <b>{{number_format($outstanding_total, 2)}}</b>
+
                         </td>
                         <td colspan="3"></td>
                     </tr>
@@ -549,9 +565,11 @@ Daily Loan Activities Breakdown Report
                     $total_interest = 0;
                     $total_penalty = 0;
                     $decimals = 0;
-                    $total_outstanding = 0;
+		    $total_outstanding = 0;
+		    $total_balance_sum = 0;
                     $paid_amount = 0;
-                    $total = 0
+		    $total = 0
+			  
                     ?>
                     @foreach($part_data as $key)
                         <?php
@@ -566,8 +584,20 @@ Daily Loan Activities Breakdown Report
                         $interest = $key->interest_derived;
                         $fees = $key->fees_derived;
                         $penalty = $key->penalty_derived;
-                        $new_amount = $key -> credit;
-                        $total = $total + $new_amount;
+			$credit = floatval($key->credit ?? 0);
+			$total_balance_sum += floatval($balance ?? 0);
+
+$balance = floatval(\App\Helpers\GeneralHelper::loan_total_balance($key->loan_id) ?? 0);
+
+if (is_numeric($credit) && $credit > 0) {
+    $total += $credit;
+}
+
+
+if (is_numeric($balance)) {
+    $total_outstanding += $balance;
+}
+
                         $total_principal = $total_principal + $principal;
                         $total_interest = $total_interest + $interest;
                         $total_fees = $total_fees + $fees;
@@ -580,7 +610,7 @@ Daily Loan Activities Breakdown Report
                         $total_expected=0;
                         $principal_outstanding = 0;
                         $total_principal_outstanding = 0;
-                        $balance = \App\Helpers\GeneralHelper::loan_total_balance($key->loan_id);
+                        $balance = \App\Helpers\GeneralHelper::new_loan_total_balance($key->loan_id);
                       
                         $bf_balance=0;
                         $total_balance = $total_balance + $balance;
@@ -669,7 +699,8 @@ Daily Loan Activities Breakdown Report
                             <b>{{number_format($total,2)}}</b>
                         </td>
                         <td>
-                            <b>{{number_format($total_outstanding,2)}}</b>     <!-- ERROR HERE -->
+                            <b>{{number_format($total_balance_sum, 2)}}</b> 
+
                         </td>
                         <td colspan="3"></td>
                     </tr>

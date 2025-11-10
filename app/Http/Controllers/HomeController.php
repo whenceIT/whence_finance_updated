@@ -278,19 +278,8 @@ class HomeController extends Controller
                         }
 
 		    }
-
-		       if($role->id == 3 && Sentinel::getUser()->office->id != 41){
-                        $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',1)->where('question_id',3)->where('quater_date','>=','06-2025')->first();
-                        if(empty($answer)){
-                            return redirect('user/my_appraisal_forms');
-                        }
-                    }elseif($role->id == 4){
-                        $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',2)->where('question_id',44)->where('quater_date','>=','06-2025')->first();
-                        if(empty($answer)){
-                            return redirect('user/my_appraisal_forms');
-                        }
-                    }elseif($role->id == 6){
-                        $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',3)->where('question_id',80)->where('quater_date','>=','06-2025')->first();
+		          if($role->id == 3){
+                        $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',1)->where('question_id',3)->where('quater_date','>=','10-2025')->first();
                         if(empty($answer)){
                             return redirect('user/my_appraisal_forms');
                         }

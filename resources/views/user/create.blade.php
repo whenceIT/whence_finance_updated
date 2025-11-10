@@ -180,35 +180,42 @@
 @section('footer-scripts')
     <script src="{{ asset('assets/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js') }}"></script>
     <script>
-        $(".form").validate({
-            rules: {
-                field: {
-                    required: true,
-                    step: 10
-                }, password: {
-                    required: true,
-                    minlength: 6,
-                },
-                repeat_password: {
-                    required: true,
-                    minlength: 6,
-                    equalTo: "#password"
-                }
-            }, highlight: function (element) {
-                $(element).closest('.form-group').addClass('has-error');
+    // Add custom password strength rule
+    $.validator.addMethod("strongPassword", function(value, element) {
+        return this.optional(element)
+            || /[A-Z]/.test(value)     // has uppercase
+            && /[a-z]/.test(value)     // has lowercase
+            && /[0-9]/.test(value)     // has number
+            && /[\W_]/.test(value)     // has special character
+            && value.length >= 8;      // minimum length
+    }, "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.");
+
+    $(".form").validate({
+        rules: {
+            password: {
+                required: true,
+                strongPassword: true
             },
-            unhighlight: function (element) {
-                $(element).closest('.form-group').removeClass('has-error');
-            },
-            errorElement: 'span',
-            errorClass: 'help-block',
-            errorPlacement: function (error, element) {
-                if (element.parent('.input-group').length) {
-                    error.insertAfter(element.parent());
-                } else {
-                    error.insertAfter(element);
-                }
+            repeat_password: {
+                required: true,
+                equalTo: "#password"
             }
-        });
-    </script>
+        },
+        highlight: function (element) {
+            $(element).closest('.form-group').addClass('has-error');
+        },
+        unhighlight: function (element) {
+            $(element).closest('.form-group').removeClass('has-error');
+        },
+        errorElement: 'span',
+        errorClass: 'help-block',
+        errorPlacement: function (error, element) {
+            if (element.parent('.input-group').length) {
+                error.insertAfter(element.parent());
+            } else {
+                error.insertAfter(element);
+            }
+        }
+    });
+</script>
 @endsection

@@ -7,5 +7,11 @@
 <a href="{{ url('loan/adjust_next_repayment')}}" style="margin: 10px;">
    <span class="label label-primary" style="font-size: 15px;">Adjust repayment dates</span>
 </a>
+
+
+<a href="{{ url('loan/notification_test')}}" style="margin: 10px;">
+   <span class="label label-primary" style="font-size: 15px;">Notification test</span>
+</a>
+
 </div>
 @endsection

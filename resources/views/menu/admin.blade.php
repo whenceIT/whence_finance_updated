@@ -97,7 +97,26 @@
                                     </span>
                                 </a>
                             </li>
+			    @endif
+
+			          @if(Sentinel::hasAccess('expenses'))
+                            <li>
+                                <a href="{{ url('loan/top_up_approvals') }}"><i
+                                            class="fa fa-circle-o"></i> Top Ups Pending Approval
+                                    <span class="pull-right-container">
+                                    <?php
+                                            $office_id = Sentinel::getUser()->office_id;
+?>
+@if(Sentinel::hasAccess('settings'))
+                                        <span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->count() }}</span>
+@else
+                                        <span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->where('office_id',$office_id)->count() }}</span>
+                                        @endif
+                                    </span>
+                                </a>
+                            </li>
                             @endif
+
 
                     @if(Sentinel::hasAccess('expenses'))
                             <li><a href="{{ url('loan/transaction_approvals') }}"><i

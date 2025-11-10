@@ -48,7 +48,10 @@ class UserController extends Controller
 
     public function dashboard()
     {   
-      
+      $role = Sentinel::getUser()->roles->first();
+
+       
+
         $userId = Sentinel::getUser()->id;
         //BELOW THIS
         $role = UserRole::where('user_id',$userId)->first();
@@ -399,6 +402,169 @@ $manager_admin = [];
     return redirect('user/'.$id.'/my_appraisal')->with('message','Success');
 }
 
+ public function provinces_dashboard(Request $request)
+    {
+
+        $role = Sentinel::getUser()->roles->first();
+
+        if($role->id == 3 && Sentinel::getUser()->office->id != 41){
+            $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',1)->where('question_id',3)->where('quater_date','>=','06-2025')->first();
+            if(empty($answer)){
+                return redirect('user/my_appraisal_forms');
+            }
+        }elseif($role->id == 4){
+            $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',2)->where('question_id',44)->where('quater_date','>=','06-2025')->first();
+            if(empty($answer)){
+                return redirect('user/my_appraisal_forms');
+            }
+        }
+
+        $lc_loans = [];
+        $target_date = null;
+        $compare_date = null;
+        $userId = Sentinel::getUser()->id;
+        $year = date('Y');
+        $month = date('m');
+        $answer = AppraisalAnswer::where('user_id',$userId)->where('quater_date',$month.'-'.$year)->first();
+        //BELOW THIS
+        $role = UserRole::where('user_id',$userId)->first();
+        $userBranch = Sentinel::getUser()->office_id;
+
+        $userProvince = Sentinel::getUser()->office->province_id;
+
+        if(Sentinel::getUser()->cycle_dates == null){
+            $cycle_end = 24;
+        }else{
+            $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+        }
+
+        if($role->role_id == '2'){
+            $user = Sentinel::getUser();
+            $client = Client::where('user_id',$user->id)->first();
+            $clientBranch = Office::where('id',$client->office_id)->first();
+            $staff = Sentinel::findUserById($client->staff_id);
+            $clientLoan = Loan::with('transactions')->where('status','disbursed')->where('client_id',$client->id)->first();
+
+        }
+        if($role->role_id == '2'){
+            $userProvince = '2';
+        }
+        //$branch = Office::with('province')->where('id',$userBranch)->get
+        $province_loans = [];
+        $province_transactions = [];
+        if($role->role_id != '2'){
+        $province_branches = Office::where('province_id',$userProvince)->get();
+        }
+        $provinces = Province::get();
+        $todaysDate = date('Y-m-d');
+        $use = date('Y-m-');
+        $myTransactions = [];
+        $branchTransactions = [];
+        $branchUserLoans = [];
+        $myOpenTransactions = [];
+        $myOpenLoans = [];
+        $allLoans = [];
+        $allTransactions = [];
+        $afterDate = date('Y-m-d',strtotime($todaysDate. ' - 3 months'));
+        $myLoans = null;
+        $newBranchLoans = null;
+        $someData = [];
+        $testloans = [];
+        $afterDate = date('Y-m-d',strtotime($todaysDate. ' - 2 months'));
+        $myLoans = null;
+        $newBranchLoans = null;
+        $someData = [];
+
+        if($role->role_id == '1'){
+
+       $allLoans = Loan::with('transactions')->where('created_date' ,'>', $afterDate)->get();
+       foreach($allLoans as $loans){
+        foreach($loans->transactions as $transaction){
+            array_push($allTransactions,$transaction);
+        }
+       }
+
+        }
+
+
+
+
+
+      if(Sentinel::getUser()->cycle_dates == null){
+       $end = 'NCI';
+      }else{
+        if(Sentinel::getUser()->cycle_dates->cycle_end_date < 10){
+            $end = '0'.Sentinel::getUser()->cycle_dates->cycle_end_date;
+        }else{
+            $end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+        }
+      }
+
+      $targetDate = $use.$end;
+      $targetDate = date('Y-m-d',strtotime($targetDate));
+      if($todaysDate >= $targetDate){
+        $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
+    }
+       $compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
+
+
+       if($role->role_id == '3'){
+
+
+        $myTransactions = [];
+        $use = date('Y-m-');
+
+         if($request->cycle == null){
+            $target_date = $use.$cycle_end;
+         }else{
+            $target_date = $request->cycle;
+         }
+
+         $compare_date = date('Y-m-d',strtotime($target_date. ' - 1 months'));
+
+
+        $myLoans = Loan::with('transactions')->where('loan_officer_id',$userId)->get();
+        foreach($myLoans as $myLoan){
+            if($myLoan->cycle_date <= $target_date && $myLoan->cycle_date > $compare_date){
+                array_push($lc_loans,$myLoan);
+            }
+        }
+
+     }
+
+
+     if($role->role_id == '4'){
+        $newBranchLoans = Loan::with('transactions')->where('office_id',$userBranch)->get();
+        foreach($newBranchLoans as $branchLoan){
+            foreach($branchLoan->transactions as $Transaction){
+                array_push($branchTransactions,$Transaction);
+            }
+         }
+     }
+
+     if($role->role_id == '6'){
+        foreach($province_branches as $province_branch){
+            $branch_loans = Loan::with('transactions')->where('office_id',$province_branch->id)->get();
+            foreach($branch_loans as $loan){
+                array_push($province_loans,$loan);
+                foreach($loan->transactions as $transaction){
+                    array_push($province_transactions,$transaction);
+                }
+            }
+        }
+     }
+
+
+
+
+         $branchUsers = User::where('office_id',$userBranch)->with('loan')->with('role')->get();
+         if($role->role_id != '2'){
+        return view('provinces_dashboard', compact('lc_loans','target_date','compare_date','end','myLoans','role','branchUsers','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','province_branches','allLoans','allTransactions','provinces','answer','userId','cycle_end'));
+         }else{
+            return view('provinces_dashboard',compact('role','user','client','clientBranch','staff','clientLoan',));
+         }
+    }
+
 
        public function my_appraisal($id){
         $peers = [];
@@ -415,7 +581,7 @@ $manager_admin = [];
         $userProvince = Sentinel::getUser()->office->province_id;
         $role = UserRole::where('user_id',$user)->first();
         $branch_people = User::where('office_id',$userBranch)->get();
-        $users = User::with('role')->with('dual_role')->with('office')->get();
+        $users = User::with('role')->with('dual_role')->with('office')->where('status','Inactive')->get();
         $province_branches = Office::where('province_id',$userProvince)->get();
 
         foreach($province_branches as $province_branch){
@@ -940,13 +1106,7 @@ return view('user.province_page',compact('province_loans','province_transactions
         }
      
 
-   $data = DB::table('users')->select('users.*')
-
-->join('role_users', 'role_users.user_id', '=', 'users.id')
-->join('roles', 'roles.id', '=', 'role_users.role_id')
-->where('roles.name','!=', 'Client')->get();
-
-        // $data = User::where('roles')->get();
+                $data = User::with('role')->with('office')->get();
         return view('user.data', compact('data'));
     }
 

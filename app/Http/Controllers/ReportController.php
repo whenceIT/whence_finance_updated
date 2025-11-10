@@ -818,7 +818,7 @@ public function balance_sheet_consolidated(Request $request)
 
 
                 $top_up = LoanTopUp::whereBetween('date',
-			[$start_date, $end_date])->get();
+			[$start_date, $end_date])->where('status','approved')->get();
 
 		     $pending_loans = Loan::whereIn('status', ['pending', 'approved'])->whereBetween('created_date',[$start_date, $end_date])->get();
                     
