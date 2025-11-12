@@ -229,7 +229,7 @@
                     <div class="col-md-3">
                         <select name="vetted_by" class="form-control select2" id="vetted_by" required>
                             <option></option>
-                                     @if(in_array($userBranch, ['46','47','49','51','53','54']))
+                                     @if(in_array($userBranch, ['46','47','49','51','53','54','55']))
 
                             @foreach(\App\Models\User::where('office_id',$userBranch)->get() as $key)
                                 @if(!Sentinel::findUserById($key->id)->inRole('client'))
@@ -260,7 +260,7 @@
                     <div class="col-md-3">
                         <select name="verified_by" class="form-control select2" id="verified_by" required>
                             <option></option>
-                                @if(in_array($userBranch, ['46','47','49','51','53','54']))
+                                @if(in_array($userBranch, ['46','47','49','51','53','54','55']))
 
                             @foreach(\App\Models\User::where('office_id',$userBranch)->get() as $key)
                                 @if(!Sentinel::findUserById($key->id)->inRole('client'))
