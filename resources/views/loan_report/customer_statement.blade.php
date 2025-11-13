@@ -2,6 +2,9 @@
 @section('title')
     Customer {{trans_choice('general.statement',1)}}
 @endsection
+@section('page-header-scripts')
+<link rel="stylesheet" type="text/css" href="{{ asset('assets/plugins/bootstrap-daterangepicker/daterangepicker.css') }}">
+@endsection
 @section('content')
     <style type="text/css">
         .style-0 {
@@ -279,10 +282,10 @@
                     <label for="loan_id"
                            class="control-label col-md-2">{{trans_choice('general.account',1)}}</label>
                     <div class="col-md-3">
-                    <select name="loan[]" class="form-control select2" style="width:250px">
+                    <select name="loan_id" class="form-control select2" style="width:250px">
                     <option value="">--- Select Loan ---</option>
-                    @foreach(\App\Models\Loan::where('office_id',$office_id)->with('loan_product')->get() as $key)
-                                <option value= "{{$key->id}}"> Loan # {{$key->id}}---{{$key->client->external_id}}--- {{$key->client->first_name}} {{$key->client->middle_name}} {{$key->client->last_name}}--- {{$key->loan_product->name}} </option>
+                    @foreach(\App\Models\Loan::where('office_id',$office_id)->whereHas('client')->with('loan_product','client')->get() as $key)
+                                <option value= "{{$key->id}}" @if($loan_id == $key->id) selected @endif> Loan # {{$key->id}}---{{$key->client->external_id}}--- {{$key->client->first_name}} {{$key->client->middle_name}} {{$key->client->last_name}}--- {{$key->loan_product->name}} </option>
                             @endforeach
                 </select>
                     </div>
@@ -344,33 +347,36 @@
      
             <div class="panel-body table-responsive">
             <div class="col-md-12">
-	                        <div class="white-box">
-	                            <h3><b>{{\App\Models\Loan::find($loan_id)->client->first_name}}  {{\App\Models\Loan::find($loan_id)->client->last_name}}   - Account Statement   <b>{{$start_date}} to {{$end_date}} <br> </b> <span class="pull-right"> </span></h3>
-	                            <hr>
-	                            <div class="row">
-	                                <div class="col-md-12">
-										<div class="pull-left">
-											<address>
+                         <div class="white-box">
+                             @php
+                                 $found_loan = !empty($loan_id) ? \App\Models\Loan::find($loan_id) : null;
+                             @endphp
+                             <h3><b>@if($found_loan && $found_loan->client){{$found_loan->client->first_name}}  {{$found_loan->client->last_name}}@else Unknown Client @endif   - Account Statement   <b>{{$start_date}} to {{$end_date}} <br> </b> <span class="pull-right"> </span></h3>
+                             <hr>
+                             <div class="row">
+                                 <div class="col-md-12">
+          <div class="pull-left">
+           <address>
                                             @if(!empty(\App\Models\Setting::where('setting_key','company_logo')->first()->setting_value))
             <img src="{{ asset('uploads/'.\App\Models\Setting::where('setting_key','company_logo')->first()->setting_value) }}"
-                 class="img-responsive" width="90"/><br> 
+                 class="img-responsive" width="90"/><br>
 
         @endif
-												<p class="text-muted m-l-6">
-                                                 <b>{{\App\Models\Loan::find($loan_id)->office->name}}  <br> 
-                                                 from: <b>{{$start_date}} to {{$end_date}} <br> 
+            <p class="text-muted m-l-6">
+                                                 <b>@if($found_loan && $found_loan->office){{$found_loan->office->name}}@else Unknown Office @endif  <br>
+                                                 from: <b>{{$start_date}} to {{$end_date}} <br>
                                                  <br>
-												</p>
-											</address>
-										</div>
-										<div class="pull-right text-right">
+            </p>
+           </address>
+          </div>
+          <div class="pull-right text-right">
                                         <div class="alert alert-info" role="alert">
-											
-                                            {{\App\Models\Loan::find($loan_id)->status}}
-											
-										</div>
+
+                                            @if($found_loan){{$found_loan->status}}@else Unknown Status @endif
+
+          </div>
     </div>
-									</div>
+         </div>
 	                               
                                     <table id="repayments-data-table"
                                                    class="table  table-condensed table-hover">
@@ -524,18 +530,33 @@
     @endif
 @endsection
 @section('footer-scripts')
+<script src="{{ asset('assets/plugins/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
 <script type="text/javascript">
-           
-
+@if($start_date && $end_date)
    $(".daterangepicker-field").daterangepicker({
-  callback: function(startDate, endDate, period){
-    var start_date = startDate.format('YYYY-MM-DD');
-    var end_date = endDate.format('YYYY-MM-DD');
-    var title = start_date + ' To ' + end_date;
-    $(this).val(title);
-    $('input[name="start_date"]').val(start_date);
-    $('input[name="end_date"]').val(end_date);
-  }
-});
+       startDate: '{{$start_date}}',
+       endDate: '{{$end_date}}',
+       callback: function(startDate, endDate, period){
+         var start_date = startDate.format('YYYY-MM-DD');
+         var end_date = endDate.format('YYYY-MM-DD');
+         var title = start_date + ' To ' + end_date;
+         $(this).val(title);
+         $('input[name="start_date"]').val(start_date);
+         $('input[name="end_date"]').val(end_date);
+       }
+   });
+   $('.daterangepicker-field').val('{{$start_date}} To {{$end_date}}');
+@else
+   $(".daterangepicker-field").daterangepicker({
+       callback: function(startDate, endDate, period){
+         var start_date = startDate.format('YYYY-MM-DD');
+         var end_date = endDate.format('YYYY-MM-DD');
+         var title = start_date + ' To ' + end_date;
+         $(this).val(title);
+         $('input[name="start_date"]').val(start_date);
+         $('input[name="end_date"]').val(end_date);
+       }
+   });
+@endif
         </script>
 @endsection

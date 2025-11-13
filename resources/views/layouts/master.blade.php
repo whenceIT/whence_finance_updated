@@ -106,19 +106,20 @@
     {{--Start Page header level scripts--}}
     @yield('page-header-scripts')
     {{--End Page level scripts--}}
-</head>
+</head>          
+<?php
+    $role = Sentinel::getUser()->role->role_id;
+    $office = Sentinel::getUser()->office->id;
+?>
 <body class="hold-transition sidebar-mini" style="background-color:#000041; color: #000000;">
 <div class="wrapper">
 
     <header class="main-header">
 
         <!-- Logo -->
-        <a href="{{url('/')}}" class="logo">
-	   <p>WHENCE FINANCE</p>
-                <?php
- $role = Sentinel::getUser()->role->role_id;
- $office = Sentinel::getUser()->office->id;
-                ?>
+        <a href="{{url('/')}}" class="logo" style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
+         <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo" style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
+         <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence Finance</span>
         </a>
 
         <!-- Header Navbar: style can be found in header.less -->
@@ -173,7 +174,7 @@
         </nav>
     </header>
     <!-- Left side column. contains the logo and sidebar -->
-        @if(Sentinel::inRole('client'))
+    @if(Sentinel::inRole('client'))
         @include('menu.client')
     @elseif(Sentinel::inRole('intern'))
         @include('menu.intern')

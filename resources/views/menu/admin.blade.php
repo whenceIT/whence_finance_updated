@@ -1,23 +1,26 @@
 <?php
-                        use App\Models\AppraisalForm;
-                       
-                      
-                        ?>
+    use App\Models\AppraisalForm;               
+?>
 
 <aside class="main-sidebar" style="color: #ffffff">
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar" style="color:#ffffff;">
         <!-- Sidebar user panel -->
-        <div class="user-panel">
+        <div class="user-panel" style="background: linear-gradient(135deg, #667eea 0%, #100E3D 100%); padding: 10px; border-radius: 12px; margin: 15px 0px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
             <div class="pull-left image">
-                <i class="fa fa-user" style="font-size: 60px"></i>
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #667eea; font-size: 18px; border: 2px solid #fff;">
+                    {{ substr(Sentinel::getUser()->first_name, 0, 1) . substr(Sentinel::getUser()->last_name, 0, 1) }}
+                </div>
             </div>
-            <div class="pull-left info">
-                <p>{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}</p>
-                <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+            <div class="pull-left info" style="margin-left: 15px;">
+                <p style="margin: 0; color: #fff; font-weight: bold; font-size: 14px;">{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}</p>
+                <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ Sentinel::getUser()->office->name ?? 'Office' }}</p>
+                <a href="#" style="color: #fff; font-size: 12px;"><i class="fa fa-circle text-success"></i> Online</a>
             </div>
         </div>
         <!-- /.search form -->
+
+
         <!-- sidebar menu: : style can be found in sidebar.less -->
         <ul class="sidebar-menu" data-widget="tree">
 
@@ -25,8 +28,7 @@
                 <a href="{{ url('dashboard') }}">
                     <i class="fa fa-dashboard"></i> <span>{{trans_choice('general.dashboard',1)}}</span>
                 </a>
-	    </li>
-
+	        </li>
 
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/cycle') }}">
@@ -35,7 +37,7 @@
             </li>
 
 
-@if(Sentinel::hasAccess('reports.client_reports'))
+            @if(Sentinel::hasAccess('reports.client_reports'))
                 <li class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
                     <a href="#">
                         <i class="fa fa-dashboard"></i> <span>Ledger</span>
@@ -59,12 +61,10 @@
             @endif
 
 
-        <?php
+            <?php
+                $office_id = Sentinel::getUser()->office_id;
+            ?>
 
-
-
-                                            $office_id = Sentinel::getUser()->office_id;
-                                            ?>
             @if(Sentinel::hasAccess('expenses'))
                 <li class="treeview @if(Request::is('expense/*')) active @endif">
                     <a href="#">
