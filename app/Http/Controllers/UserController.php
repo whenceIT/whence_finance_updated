@@ -190,7 +190,7 @@ class UserController extends Controller
         $province_transactions = [];
         $provinces = Province::get();
 	$todaysDate = date('Y-m-d');
-	$newDate = date('Y-m-d',strtotime($todaysDate. '- 12 months'));
+	$newDate = date('Y-m-d',strtotime($todaysDate. '- 6 months'));
         $use = date('Y-m-');
         $myTransactions = [];
         $branchTransactions = [];
