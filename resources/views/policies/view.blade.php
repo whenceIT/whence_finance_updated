@@ -95,12 +95,43 @@
     </div>
 </div>
 
-<script>
-function acceptAllPolicies() {
-    if (!confirm('Are you sure you want to accept all non-accepted policies?')) {
-        return;
-    }
+<!-- Custom Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="confirmationModalLabel">Confirm Action</h4>
+            </div>
+            <div class="modal-body" id="confirmationModalBody">
+                Are you sure?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary" id="confirmYes">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script>
+let confirmCallback = null;
+
+function showConfirmation(message, callback) {
+    document.getElementById('confirmationModalBody').innerText = message;
+    confirmCallback = callback;
+    $('#confirmationModal').modal('show');
+}
+
+document.getElementById('confirmYes').addEventListener('click', function() {
+    if (confirmCallback) {
+        confirmCallback();
+        confirmCallback = null;
+    }
+    $('#confirmationModal').modal('hide');
+});
+
+function acceptAllPolicies() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const rows = document.querySelectorAll('tr[data-policy-id]');
     const nonAcceptedPolicies = [];
@@ -117,29 +148,31 @@ function acceptAllPolicies() {
         return;
     }
 
-    let completed = 0;
-    nonAcceptedPolicies.forEach(policyId => {
-        fetch(`/policies/${policyId}/respond`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: `status=accepted&_token=${csrfToken}`
-        }).then(response => {
-            completed++;
-            if (completed === nonAcceptedPolicies.length) {
-                location.reload();
-            }
+    showConfirmation('Are you sure you want to accept all non-accepted policies?', () => {
+        const button = document.querySelector('button[onclick="acceptAllPolicies()"]');
+        button.disabled = true;
+        button.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+
+        let completed = 0;
+        nonAcceptedPolicies.forEach(policyId => {
+            fetch(`/policies/${policyId}/respond`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: `status=accepted&_token=${csrfToken}`
+            }).then(response => {
+                completed++;
+                if (completed === nonAcceptedPolicies.length) {
+                    location.reload();
+                }
+            });
         });
     });
 }
 
 function declineAllPolicies() {
-    if (!confirm('Are you sure you want to decline all non-declined policies?')) {
-        return;
-    }
-
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const rows = document.querySelectorAll('tr[data-policy-id]');
     const nonDeclinedPolicies = [];
@@ -156,29 +189,31 @@ function declineAllPolicies() {
         return;
     }
 
-    let completed = 0;
-    nonDeclinedPolicies.forEach(policyId => {
-        fetch(`/policies/${policyId}/respond`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: `status=declined&_token=${csrfToken}`
-        }).then(response => {
-            completed++;
-            if (completed === nonDeclinedPolicies.length) {
-                location.reload();
-            }
+    showConfirmation('Are you sure you want to decline all non-declined policies?', () => {
+        const button = document.querySelector('button[onclick="declineAllPolicies()"]');
+        button.disabled = true;
+        button.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+
+        let completed = 0;
+        nonDeclinedPolicies.forEach(policyId => {
+            fetch(`/policies/${policyId}/respond`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: `status=declined&_token=${csrfToken}`
+            }).then(response => {
+                completed++;
+                if (completed === nonDeclinedPolicies.length) {
+                    location.reload();
+                }
+            });
         });
     });
 }
 
 function resetAllPolicies() {
-    if (!confirm('Are you sure you want to reset all policies to pending?')) {
-        return;
-    }
-
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const rows = document.querySelectorAll('tr[data-policy-id]');
     const respondedPolicies = [];
@@ -195,20 +230,26 @@ function resetAllPolicies() {
         return;
     }
 
-    let completed = 0;
-    respondedPolicies.forEach(policyId => {
-        fetch(`/policies/${policyId}/respond`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: `status=pending&_token=${csrfToken}`
-        }).then(response => {
-            completed++;
-            if (completed === respondedPolicies.length) {
-                location.reload();
-            }
+    showConfirmation('Are you sure you want to reset all policies to pending?', () => {
+        const button = document.querySelector('button[onclick="resetAllPolicies()"]');
+        button.disabled = true;
+        button.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+
+        let completed = 0;
+        respondedPolicies.forEach(policyId => {
+            fetch(`/policies/${policyId}/respond`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: `status=pending&_token=${csrfToken}`
+            }).then(response => {
+                completed++;
+                if (completed === respondedPolicies.length) {
+                    location.reload();
+                }
+            });
         });
     });
 }
