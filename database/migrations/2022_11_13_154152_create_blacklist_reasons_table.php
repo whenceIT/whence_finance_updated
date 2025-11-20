@@ -12,12 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('blacklist_reasons', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('blacklist_reasons')) {
+            Schema::create('blacklist_reasons', function (Blueprint $table) {
+                $table->id();
+                $table->string('name')->nullable();
+                $table->timestamps();
+            });
+        }
     }
+    
 
     /**
      * Reverse the migrations.

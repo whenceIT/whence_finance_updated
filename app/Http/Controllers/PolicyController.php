@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Helpers\GeneralHelper;
 use App\Models\Policy;
+use App\Models\UserPolicyResponse;
 use Illuminate\Http\Request;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Support\Facades\Storage;
 //use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -22,9 +24,24 @@ class PolicyController extends Controller
      */
     public function viewPolicies()
     {
-        $policies = Policy::latest()->get();
-        
+        $user = Sentinel::getUser();
+
+        if ($user) {
+            $policies = Policy::with(['userPolicyResponses' => function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            }])->latest()->get();
+        } else {
+            $policies = Policy::latest()->get();
+        }
+
         return view('policies.view', compact('policies'));
+    }
+
+    public function userResponses()
+    {
+        $offices = \App\Models\Office::all();
+
+        return view('policies.user-responses', compact('offices'));
     }
 
     /**
@@ -116,6 +133,87 @@ class PolicyController extends Controller
         return back()->with('error', 'No policy file was uploaded.');
     }
 }
+
+    /**
+     * Handle user response to a policy (accept or decline)
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $policy_id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function respondToPolicy(Request $request, $policy_id)
+    {
+        $request->validate([
+            'status' => 'required|in:accepted,declined',
+        ]);
+
+        $user = Sentinel::getUser();
+
+        if (!$user) {
+            Flash::error('You must be logged in to respond to policies.');
+            return redirect()->route('login');
+        }
+
+        UserPolicyResponse::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'policy_id' => $policy_id,
+            ],
+            [
+                'status' => $request->status,
+            ]
+        );
+
+        Flash::success('Policy response recorded successfully.');
+        return redirect()->back();
+    }
+
+    public function searchUsers(Request $request)
+    {
+        $query = $request->query('query');
+        $officeId = $request->query('office_id');
+
+        $users = \App\Models\User::query();
+
+        if ($query) {
+            $users->where(function($q) use ($query) {
+                $q->where('first_name', 'like', '%' . $query . '%')
+                  ->orWhere('last_name', 'like', '%' . $query . '%')
+                  ->orWhere('email', 'like', '%' . $query . '%');
+            });
+        }
+
+        if ($officeId) {
+            $users->where('office_id', $officeId);
+        }
+
+        $users = $users->select('id', 'first_name', 'last_name', 'email')->limit(50)->get();
+
+        return response()->json($users->map(function($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+            ];
+        }));
+    }
+
+    public function getUserResponses($userId)
+    {
+        $policies = Policy::with(['userPolicyResponses' => function($query) use ($userId) {
+            $query->where('user_id', $userId);
+        }])->get();
+
+        $responses = $policies->map(function($policy) {
+            $response = $policy->userPolicyResponses->first();
+            return [
+                'policy_title' => $policy->title,
+                'status' => $response ? $response->status : 'Pending',
+            ];
+        });
+
+        return response()->json($responses);
+    }
 
 
 }

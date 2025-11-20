@@ -13,9 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('blacklist_reasons')) {
-            Schema::create('blacklist_reasons', function (Blueprint $table) {
-                $table->id();
+        if (!Schema::hasTable('user_policy_responses')) {
+            Schema::create('user_policy_responses', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('policy_id');
+                $table->enum('status', ['accepted', 'declined']);
                 $table->timestamps();
             });
         }
@@ -29,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('blacklist_reasons');
+        Schema::dropIfExists('user_policy_responses');
     }
 };

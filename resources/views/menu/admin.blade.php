@@ -764,6 +764,12 @@
 
                         @if(Sentinel::hasAccess('reports.client_reports'))
                             <li>
+                                <a href="{{ route('policies.user_responses') }}"><i class="fa fa-circle-o"></i> User Responses</a>
+                            </li>
+                        @endif
+
+                        @if(Sentinel::hasAccess('reports.client_reports'))
+                            <li>
                                 <a href="{{ route('policies.add_policies') }}">
                                     <i class="fa fa-circle-o"></i> Add Policies</a>
                                     <span class="pull-right-container">

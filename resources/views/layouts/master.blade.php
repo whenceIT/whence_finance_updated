@@ -7,6 +7,7 @@
     @laravelPWA
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Bootstrap 3.3.6 -->
     <link rel="stylesheet" href="{{ asset('assets/plugins/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
@@ -220,6 +221,37 @@
                         @endforeach
                     </ul>
                 </div>
+            @endif
+            @php
+            $user = Sentinel::getUser();
+            if ($user && request()->route() && request()->route()->getName() !== 'policies.view_policies') {
+                $totalPolicies = \App\Models\Policy::count();
+                $userResponses = \App\Models\UserPolicyResponse::where('user_id', $user->id)->count();
+                $showPolicyModal = $userResponses < $totalPolicies;
+            } else {
+                $showPolicyModal = false;
+            }
+            @endphp
+            @if($showPolicyModal)
+            <!-- Policy Response Required Modal -->
+            <div id="policyModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom: 20px; color: #333;">Policy Acknowledgment Required</h3>
+                    <p style="margin-bottom: 30px; color: #666;">You have unread company policies that require your acknowledgment. Please review and respond to them.</p>
+                    <a href="{{ route('policies.view_policies') }}" class="btn btn-primary btn-lg" style="padding: 10px 30px; font-size: 16px;">Review Policies</a>
+                </div>
+            </div>
+            <script>
+                // Prevent closing the modal
+                document.getElementById('policyModal').addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                    }
+                });
+            </script>
             @endif
             @yield('content')
         </section>

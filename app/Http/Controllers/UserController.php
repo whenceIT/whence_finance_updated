@@ -16,6 +16,8 @@ use App\Models\Loan;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\Client;
+use App\Models\Policy;
+use App\Models\UserPolicyResponse;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Cartalyst\Sentinel\Roles\EloquentRole;
 use Cartalyst\Sentinel\Roles\RoleInterface;
@@ -45,14 +47,12 @@ class UserController extends Controller
 
         $this->middleware('sentinel');
     }
+public function dashboard()
+{
+   $role = Sentinel::getUser()->roles->first();
 
-    public function dashboard()
-    {   
-      $role = Sentinel::getUser()->roles->first();
 
-       
-
-        $userId = Sentinel::getUser()->id;
+    $userId = Sentinel::getUser()->id;
         //BELOW THIS
         $role = UserRole::where('user_id',$userId)->first();
 	$userBranch = Sentinel::getUser()->office_id;
@@ -172,9 +172,9 @@ class UserController extends Controller
      
          $branchUsers = User::where('office_id',$userBranch)->with('loan')->with('role')->get();
          if($role->role_id != '2'){
-        return view('dashboard', compact('end','myLoans','role','branchUsers','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','province_branches','allLoans','allTransactions','provinces','cycle_end','userId',));
+        return view('dashboard', compact('end','myLoans','role','branchUsers','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','province_branches','allLoans','allTransactions','provinces','cycle_end','userId'));
          }else{
-            return view('dashboard',compact('role','user','client','clientBranch','staff','clientLoan',));
+            return view('dashboard',compact('role','user','client','clientBranch','staff','clientLoan'));
          }
     } 
 

@@ -12,17 +12,20 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('blacklist_history', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('client_id');
-            $table->unsignedBigInteger('created_by_id')->nullable();
-            $table->unsignedBigInteger('office_id')->nullable();
-            $table->unsignedBigInteger('blacklist_reason_id')->nullable();
-            $table->date('date')->nullable();
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('blacklist_history')) {
+            Schema::create('blacklist_history', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->unsignedBigInteger('client_id');
+                $table->unsignedBigInteger('created_by_id')->nullable();
+                $table->unsignedBigInteger('office_id')->nullable();
+                $table->unsignedBigInteger('blacklist_reason_id')->nullable();
+                $table->date('date')->nullable();
+                $table->text('description')->nullable();
+                $table->timestamps();
+            });
+        }
     }
+    
 
     /**
      * Reverse the migrations.

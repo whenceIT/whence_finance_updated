@@ -74,5 +74,10 @@ class User extends EloquentUser
         return $this->hasOne(DualRole::class,'user_id','id','role_id');
     }
 
+    public function userPolicyResponses()
+    {
+        return $this->hasMany(UserPolicyResponse::class);
+    }
+
 
 }

@@ -32,4 +32,12 @@ class Policy extends Model
     {
         return $this->attributes['file_url'] ?? Storage::disk('spaces')->url($this->file_path);
     }
+
+    /**
+     * Get the user policy responses for the policy.
+     */
+    public function userPolicyResponses()
+    {
+        return $this->hasMany(UserPolicyResponse::class);
+    }
 }
