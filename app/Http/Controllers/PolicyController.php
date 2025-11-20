@@ -205,6 +205,10 @@ class PolicyController extends Controller
 
     public function getUserResponses($userId)
     {
+        if (!Sentinel::getUser()) {
+            return response()->json([]);
+        }
+
         $policies = Policy::with(['userPolicyResponses' => function($query) use ($userId) {
             $query->where('user_id', $userId);
         }])->get();
@@ -222,6 +226,10 @@ class PolicyController extends Controller
 
     public function getDeclinedResponses(Request $request)
     {
+        if (!Sentinel::getUser()) {
+            return response()->json([]);
+        }
+
         $query = UserPolicyResponse::with(['user.office', 'policy'])
             ->where('status', 'declined');
 
