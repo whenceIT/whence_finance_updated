@@ -9,69 +9,70 @@
         </div>
     </div>
     <div class="box-body hidden-print">
-                    <!-- Search Filters -->
-                    <div class="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch align-items-lg-end">
-                        <div class="flex-fill">
-                            <label for="officeSelect" class="form-label fw-semibold text-muted">Select Office</label>
-                            <select id="officeSelect" class="form-select">
-                                <option value="">All Offices</option>
-                                @foreach($offices as $office)
-                                <option value="{{ $office->id }}">{{ $office->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="flex-fill">
-                            <label for="userSearch" class="form-label fw-semibold text-muted">Search User</label>
-                            <input type="text" id="userSearch" class="form-control" placeholder="Enter name or email">
-                        </div>
-                        <div class="flex-shrink-0 d-flex gap-2">
-                            <button id="searchUsers" class="btn btn-primary px-4">Search Users</button>
-                            <button id="loadDeclinedResponses" class="btn btn-danger px-4">Load Declined Responses</button>
-                        </div>
-                    </div>
+        <!-- Search Filters -->
+        <div class="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch align-items-lg-end">
+            <div class="flex-fill">
+                <label for="officeSelect" class="form-label fw-semibold text-muted">Select Office</label>
+                <select id="officeSelect" class="form-select">
+                    <option value="">All Offices</option>
+                    @foreach($offices as $office)
+                    <option value="{{ $office->id }}">{{ $office->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex-fill">
+                <label for="userSearch" class="form-label fw-semibold text-muted">Search User</label>
+                <input type="text" id="userSearch" class="form-control" placeholder="Enter name or email">
+            </div>
+            <div class="flex-shrink-0 d-flex gap-2">
+                <button id="searchUsers" class="btn btn-primary px-4">Search Users</button>
+                <button id="loadDeclinedResponses" class="btn btn-danger px-4">Load Declined Responses</button>
+            </div>
+        </div>
 
-                    <!-- Loading Indicator -->
-                    <div id="loadingIndicator" class="text-center py-4" style="display: none;">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Loading users...</p>
-                    </div>
-                    <br>
-                    <!-- User Results -->
-                    <div id="userResults" class="row g-3 mt-2">
-                        <div class="col-md-12 mt-1">
-                            <div class="alert alert-info text-center">
-                                Select an office above to load users.
-                            </div>
-                        </div>
-                    </div>
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="text-center py-4" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading users...</p>
+        </div>
+        <br>
+        <!-- User Results -->
+        <div id="userResults" class="row g-3 mt-2">
+            <div class="col-md-12 mt-1">
+                <div class="alert alert-info text-center">
+                    Select an office above to load users.
+                </div>
+            </div>
+        </div>
 
-                    <!-- User Responses Section -->
-                    <div id="userResponses" style="display: none;">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="mb-0">Policy Responses</h4>
-                            <button id="backToUsers" class="btn btn-secondary btn-sm">Back to Users</button>
-                        </div>
-                        <div class="card border-primary">
-                            <div class="card-body">
-                                <div id="responsesTable" class="table-responsive"></div>
-                            </div>
-                        </div>
-                    </div>
+        <hr>
+        <!-- User Responses Section -->
+        <div id="userResponses" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Policy Responses</h4>
+                <button id="backToUsers" class="btn btn-secondary btn-sm">Back to Users</button>
+            </div>
+            <div class="card border-primary">
+                <div class="card-body">
+                    <div id="responsesTable" class="table-responsive"></div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Declined Responses Table -->
-                    <div id="declinedResponsesTable" style="display: none;">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="mb-0">Declined Policy Responses</h4>
-                            <button id="backToUsersFromDeclined" class="btn btn-secondary btn-sm">Back to Users</button>
-                        </div>
-                        <div class="card border-danger">
-                            <div class="card-body">
-                                <div id="declinedTableContent" class="table-responsive"></div>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Declined Responses Table -->
+        <div id="declinedResponsesTable" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Declined Policy Responses</h4>
+                <button id="backToUsersFromDeclined" class="btn btn-secondary btn-sm">Back to Users</button>
+            </div>
+            <div class="card border-danger">
+                <div class="card-body">
+                    <div id="declinedTableContent" class="table-responsive"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -179,6 +180,7 @@ function viewUserResponses(userId, userName) {
                             <tr>
                                 <th>Policy Title</th>
                                 <th class="text-center">Response Status</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -194,10 +196,11 @@ function viewUserResponses(userId, userName) {
                 `;
             } else {
                 data.forEach(response => {
-                    const status = response.status === 'accepted' ? '<span class="badge badge-success">Accepted</span>' :
-                                response.status === 'declined' ? '<span class="badge badge-danger">Declined</span>' :
-                                '<span class="badge badge-warning">Pending</span>';
-                    html += `<tr><td class="fw-semibold">${response.policy_title}</td><td class="text-center">${status}</td></tr>`;
+                    const status = response.status === 'accepted' ? '<span class="badge" style="background-color: #28a745; color: white;">Accepted</span>' :
+                                response.status === 'declined' ? '<span class="badge" style="background-color: #dc3545; color: white;">Declined</span>' :
+                                '<span class="badge" style="background-color: #ffc107; color: black;">Pending</span>';
+                    const resetButton = response.status !== 'Pending' ? `<button class="btn btn-warning btn-sm" onclick="resetResponse(${userId}, ${response.policy_id})">Reset</button>` : '';
+                    html += `<tr><td class="fw-semibold">${response.policy_title}</td><td class="text-center">${status}</td><td class="text-center">${resetButton}</td></tr>`;
                 });
             }
 
@@ -279,7 +282,7 @@ document.getElementById('loadDeclinedResponses').addEventListener('click', funct
                         <td>${response.user_email}</td>
                         <td>${response.office_name}</td>
                         <td>${response.policy_title}</td>
-                        <td><span class="badge badge-danger">${response.status}</span></td>
+                        <td><span class="badge" style="background-color: #dc3545; color: white;">${response.status}</span></td>
                         <td>${response.responded_at}</td>
                     </tr>`;
                 });
@@ -306,6 +309,30 @@ document.getElementById('backToUsersFromDeclined').addEventListener('click', fun
     document.getElementById('declinedResponsesTable').style.display = 'none';
     document.getElementById('userResponses').style.display = 'none';
 });
+
+function resetResponse(userId, policyId) {
+    if (confirm('Are you sure you want to reset this response? This will delete the current response and set it back to pending.')) {
+        fetch(`/policies/reset-response/${userId}/${policyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the user responses
+                viewUserResponses(userId, document.querySelector('#userResponses h4').textContent.replace('Policy Responses for ', ''));
+            } else {
+                alert('Failed to reset response.');
+            }
+        })
+        .catch(error => {
+            alert('Error resetting response.');
+        });
+    }
+}
 </script>
 
 @endsection

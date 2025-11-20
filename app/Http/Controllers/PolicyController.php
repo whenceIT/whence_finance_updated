@@ -216,6 +216,7 @@ class PolicyController extends Controller
         $responses = $policies->map(function($policy) {
             $response = $policy->userPolicyResponses->first();
             return [
+                'policy_id' => $policy->id,
                 'policy_title' => $policy->title,
                 'status' => $response ? $response->status : 'Pending',
             ];
@@ -259,6 +260,17 @@ class PolicyController extends Controller
                 'responded_at' => $response->updated_at->format('Y-m-d H:i:s'),
             ];
         }));
+    }
+
+    public function resetUserResponse(Request $request, $userId, $policyId)
+    {
+        if (!Sentinel::getUser()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized']);
+        }
+
+        UserPolicyResponse::where('user_id', $userId)->where('policy_id', $policyId)->delete();
+
+        return response()->json(['success' => true]);
     }
 
 

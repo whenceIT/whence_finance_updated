@@ -10,7 +10,6 @@
                     <button type="button" class="btn btn-success me-2" onclick="acceptAllPolicies()">Accept All</button>
                     <button type="button" class="btn btn-danger me-2" onclick="declineAllPolicies()">Decline All</button>
                     <!-- <button type="button" class="btn btn-warning me-2" onclick="resetAllPolicies()">Reset All</button> -->
-                
                 </div>
             </div>
 
@@ -111,6 +110,24 @@
                 <button type="button" class="btn btn-primary" id="confirmYes">Yes</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Signing Animation Overlay -->
+<div id="signingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1060; align-items: center; justify-content: center;">
+    <div class="signing-container">
+        <div class="pen">
+            <div class="pen-body"></div>
+            <div class="pen-tip"></div>
+        </div>
+        <div class="signature-line">
+            <svg width="300" height="100" viewBox="0 0 300 100">
+                <path id="signaturePath" d="M50,50 Q100,30 150,50 T250,50" stroke="#000" stroke-width="2" fill="none" stroke-dasharray="400" stroke-dashoffset="400">
+                    <animate attributeName="stroke-dashoffset" from="400" to="0" dur="2s" fill="freeze" />
+                </path>
+            </svg>
+        </div>
+        <div class="signing-text">Signing...</div>
     </div>
 </div>
 
@@ -266,10 +283,10 @@ function openPolicyModal(policyId, title, url, fileType) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const footerContent = `
-        <form action="/policies/${policyId}/respond" method="POST" style="display: inline;">
+        <button type="button" class="btn btn-success" onclick="acceptPolicy(${policyId})">Accept</button>
+        <form action="/policies/${policyId}/respond" method="POST" style="display: inline;" id="acceptForm${policyId}">
             <input type="hidden" name="_token" value="${csrfToken}">
             <input type="hidden" name="status" value="accepted">
-            <button type="submit" class="btn btn-success">Accept</button>
         </form>
         <form action="/policies/${policyId}/respond" method="POST" style="display: inline;">
             <input type="hidden" name="_token" value="${csrfToken}">
@@ -284,13 +301,16 @@ function openPolicyModal(policyId, title, url, fileType) {
 
     // Load content after modal is shown
     setTimeout(() => {
-        let content = '';
+        let content = `<div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #dee2e6; font-size: 14px; color: #495057;">
+            <strong>Note:</strong> If you can not view the policy below, you can use the external link to open it in your browser and come back to accept/respond.
+            <a href="${url}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">Open in Browser</a>
+        </div>`;
         if (fileType.includes('pdf')) {
-            content = `<embed src="${url}" width="100%" height="100%" type="application/pdf">`;
+            content += `<embed src="${url}" width="100%" height="100%" type="application/pdf">`;
         } else if (fileType.includes('word') || fileType.includes('document')) {
-            content = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true" width="100%" height="100%" style="border: none;"></iframe>`;
+            content += `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true" width="100%" height="100%" style="border: none;"></iframe>`;
         } else {
-            content = `<p>Preview not available for this file type.</p><a href="${url}" target="_blank">Open File</a>`;
+            content += `<p>Preview not available for this file type.</p><a href="${url}" target="_blank">Open File</a>`;
         }
         document.getElementById('modalBody').innerHTML = content;
     }, 100);
@@ -308,6 +328,83 @@ document.getElementById('policyModal').addEventListener('click', function(event)
     }
 });
 
+function acceptPolicy(policyId) {
+    // Show the signing animation
+    document.getElementById('signingOverlay').style.display = 'flex';
+
+    // After animation completes, submit the form
+    setTimeout(() => {
+        document.getElementById(`acceptForm${policyId}`).submit();
+    }, 2500); // 2.5 seconds for animation
+}
+
 </script>
+
+<style>
+.signing-container {
+    text-align: center;
+    color: white;
+}
+
+.pen {
+    position: relative;
+    width: 50px;
+    height: 150px;
+    margin: 0 auto 20px;
+}
+
+.pen-body {
+    width: 8px;
+    height: 120px;
+    background: #8B4513;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 4px;
+}
+
+.pen-tip {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 10px solid #000;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.signature-line {
+    margin: 20px 0;
+    border-bottom: 2px solid #fff;
+    display: inline-block;
+}
+
+.signing-text {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 20px;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Animate the pen moving */
+.pen {
+    animation: sign 2s ease-in-out;
+}
+
+@keyframes sign {
+    0% { transform: translateX(-100px) rotate(-10deg); }
+    50% { transform: translateX(0px) rotate(0deg); }
+    100% { transform: translateX(100px) rotate(10deg); }
+}
+</style>
 
 @endsection
