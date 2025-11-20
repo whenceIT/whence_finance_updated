@@ -109,8 +109,14 @@
     {{--End Page level scripts--}}
 </head>          
 <?php
-    $role = Sentinel::getUser()->role->role_id;
-    $office = Sentinel::getUser()->office->id;
+$user = Sentinel::getUser();
+if ($user) {
+    $role = $user->role->role_id;
+    $office = $user->office->id;
+} else {
+    $role = null;
+    $office = null;
+}
 ?>
 <body class="hold-transition sidebar-mini" style="background-color:#000041; color: #000000;">
 <div class="wrapper">
@@ -135,12 +141,12 @@
             <!-- Navbar Right Menu -->
             <div class="navbar-custom-menu">
                 <ul class="nav navbar-nav">
-
+                    @if($user)
                     <!-- User Account: style can be found in dropdown.less -->
                     <li class="dropdown user user-menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-user"></i>
-                            <span class="hidden-xs" style="color: #ffffff;">{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}</span>
+                            <span class="hidden-xs" style="color: #ffffff;">{{ $user->first_name }} {{ $user->last_name }}</span>
                         </a>
                         <ul class="dropdown-menu">
                             <!-- User image -->
@@ -148,12 +154,12 @@
                                 <i class="fa fa-user" style="font-size: 60px"></i>
 
                                 <p style="color: #000000;">
-                                    {{  isset(Sentinel::getUser()->office) ? Sentinel::getUser()->office->name : ''}}
+                                    {{  isset($user->office) ? $user->office->name : ''}}
                                 </p>
 
                                 <p style="color: #000000;">
-                                    {{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}
-                                    <small>Member since {{ Sentinel::getUser()->created_at }}</small>
+                                    {{ $user->first_name }} {{ $user->last_name }}
+                                    <small>Member since {{ $user->created_at }}</small>
                                 </p>
                             </li>
 
@@ -169,15 +175,16 @@
                             </li>
                         </ul>
                     </li>
+                    @endif
                 </ul>
             </div>
 
         </nav>
     </header>
     <!-- Left side column. contains the logo and sidebar -->
-    @if(Sentinel::inRole('client'))
+    @if($user && Sentinel::inRole('client'))
         @include('menu.client')
-    @elseif(Sentinel::inRole('intern'))
+    @elseif($user && Sentinel::inRole('intern'))
         @include('menu.intern')
     @else
         @include('menu.admin')
@@ -327,7 +334,7 @@ $(window).on('load', function () {
 
 </script>
 
-@if (in_array($role, ['1', '6', '4']))
+@if ($role && in_array($role, ['1', '6', '4']))
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
     var office = <?php echo json_encode($office); ?>;

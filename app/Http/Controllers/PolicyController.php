@@ -17,6 +17,11 @@ use Laracasts\Flash\Flash;
 
 class PolicyController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('sentinel');
+    }
+
     /**
      * Display all policies
      *
