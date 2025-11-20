@@ -215,5 +215,38 @@ class PolicyController extends Controller
         return response()->json($responses);
     }
 
+    public function getDeclinedResponses(Request $request)
+    {
+        $query = UserPolicyResponse::with(['user.office', 'policy'])
+            ->where('status', 'declined');
+
+        if ($request->office_id) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('office_id', $request->office_id);
+            });
+        }
+
+        if ($request->user_query) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('first_name', 'like', '%' . $request->user_query . '%')
+                  ->orWhere('last_name', 'like', '%' . $request->user_query . '%')
+                  ->orWhere('email', 'like', '%' . $request->user_query . '%');
+            });
+        }
+
+        $responses = $query->get();
+
+        return response()->json($responses->map(function($response) {
+            return [
+                'user_name' => $response->user->first_name . ' ' . $response->user->last_name,
+                'user_email' => $response->user->email,
+                'office_name' => $response->user->office ? $response->user->office->name : 'N/A',
+                'policy_title' => $response->policy->title,
+                'status' => $response->status,
+                'responded_at' => $response->updated_at->format('Y-m-d H:i:s'),
+            ];
+        }));
+    }
+
 
 }

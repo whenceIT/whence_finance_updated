@@ -9,10 +9,8 @@
                 <div>
                     <button type="button" class="btn btn-success me-2" onclick="acceptAllPolicies()">Accept All</button>
                     <button type="button" class="btn btn-danger me-2" onclick="declineAllPolicies()">Decline All</button>
-                    <button type="button" class="btn btn-warning me-2" onclick="resetAllPolicies()">Reset All</button>
-                    <!-- <a href="{{ route('policies.add_policies') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add New Policy
-                    </a> -->
+                    <!-- <button type="button" class="btn btn-warning me-2" onclick="resetAllPolicies()">Reset All</button> -->
+                
                 </div>
             </div>
 
@@ -49,6 +47,8 @@
                                                         <span class="label label-success">Accepted</span>
                                                     @elseif($policy->userPolicyResponses->first()->status == 'declined')
                                                         <span class="label label-danger">Declined</span>
+                                                    @elseif($policy->userPolicyResponses->first()->status == 'pending')
+                                                        <span class="label label-warning">Pending</span>
                                                     @endif
                                                 @else
                                                     <span class="label label-warning">Pending</span>

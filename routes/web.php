@@ -1016,6 +1016,7 @@ Route::group(['prefix' => 'policies'], function () {
     Route::post('{policy_id}/respond', 'PolicyController@respondToPolicy')->name('policies.respond');
     Route::get('search-users', 'PolicyController@searchUsers');
     Route::get('user-responses/{userId}', 'PolicyController@getUserResponses');
+    Route::get('declined-responses', 'PolicyController@getDeclinedResponses');
 });
 
 //route for expenses

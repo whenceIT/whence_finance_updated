@@ -24,8 +24,9 @@
                             <label for="userSearch" class="form-label fw-semibold text-muted">Search User</label>
                             <input type="text" id="userSearch" class="form-control" placeholder="Enter name or email">
                         </div>
-                        <div class="flex-shrink-0">
-                            <button id="searchUsers" class="btn btn-primary px-4">Search Now</button>
+                        <div class="flex-shrink-0 d-flex gap-2">
+                            <button id="searchUsers" class="btn btn-primary px-4">Search Users</button>
+                            <button id="loadDeclinedResponses" class="btn btn-danger px-4">Load Declined Responses</button>
                         </div>
                     </div>
 
@@ -58,6 +59,19 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Declined Responses Table -->
+                    <div id="declinedResponsesTable" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0">Declined Policy Responses</h4>
+                            <button id="backToUsersFromDeclined" class="btn btn-secondary btn-sm">Back to Users</button>
+                        </div>
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <div id="declinedTableContent" class="table-responsive"></div>
+                            </div>
+                        </div>
+                    </div>
     </div>
 </div>
 
@@ -68,6 +82,7 @@ function loadUsers(query = '', officeId = '') {
 
     loadingDiv.style.display = 'block';
     resultsDiv.innerHTML = '';
+    document.getElementById('declinedResponsesTable').style.display = 'none';
 
     fetch(`/policies/search-users?query=${encodeURIComponent(query)}&office_id=${officeId}`)
         .then(response => response.json())
@@ -124,6 +139,7 @@ document.getElementById('officeSelect').addEventListener('change', function() {
     } else {
         document.getElementById('userResults').innerHTML = '';
         document.getElementById('userResponses').style.display = 'none';
+        document.getElementById('declinedResponsesTable').style.display = 'none';
     }
 });
 
@@ -131,6 +147,7 @@ document.getElementById('searchUsers').addEventListener('click', function() {
     const query = document.getElementById('userSearch').value;
     const officeId = document.getElementById('officeSelect').value;
     loadUsers(query, officeId);
+    document.getElementById('declinedResponsesTable').style.display = 'none';
 });
 
 function viewUserResponses(userId, userName) {
@@ -203,6 +220,90 @@ function viewUserResponses(userId, userName) {
 
 document.getElementById('backToUsers').addEventListener('click', function() {
     document.getElementById('userResults').style.display = 'flex';
+    document.getElementById('userResponses').style.display = 'none';
+});
+
+document.getElementById('loadDeclinedResponses').addEventListener('click', function() {
+    const officeId = document.getElementById('officeSelect').value;
+    const userQuery = document.getElementById('userSearch').value;
+    const tableDiv = document.getElementById('declinedTableContent');
+    const responsesDiv = document.getElementById('declinedResponsesTable');
+    const userResultsDiv = document.getElementById('userResults');
+    const userResponsesDiv = document.getElementById('userResponses');
+
+    // Hide user results and responses
+    userResultsDiv.style.display = 'none';
+    userResponsesDiv.style.display = 'none';
+    responsesDiv.style.display = 'block';
+
+    // Show loading
+    tableDiv.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading declined responses...</p>
+        </div>
+    `;
+
+    fetch(`/policies/declined-responses?office_id=${officeId}&user_query=${encodeURIComponent(userQuery)}`)
+        .then(response => response.json())
+        .then(data => {
+            let html = `
+                <table class="table table-hover table-striped">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>User Name</th>
+                            <th>Email</th>
+                            <th>Branch</th>
+                            <th>Policy Title</th>
+                            <th>Status</th>
+                            <th>Responded At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            if (data.length === 0) {
+                html += `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No declined responses found.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                data.forEach(response => {
+                    html += `<tr>
+                        <td class="fw-semibold">${response.user_name}</td>
+                        <td>${response.user_email}</td>
+                        <td>${response.office_name}</td>
+                        <td>${response.policy_title}</td>
+                        <td><span class="badge badge-danger">${response.status}</span></td>
+                        <td>${response.responded_at}</td>
+                    </tr>`;
+                });
+            }
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            tableDiv.innerHTML = html;
+        })
+        .catch(error => {
+            tableDiv.innerHTML = `
+                <div class="alert alert-danger text-center" role="alert">
+                    Error loading declined responses. Please try again.
+                </div>
+            `;
+        });
+});
+
+document.getElementById('backToUsersFromDeclined').addEventListener('click', function() {
+    document.getElementById('userResults').style.display = 'flex';
+    document.getElementById('declinedResponsesTable').style.display = 'none';
     document.getElementById('userResponses').style.display = 'none';
 });
 </script>
