@@ -113,23 +113,7 @@
     </div>
 </div>
 
-<!-- Signing Animation Overlay -->
-<div id="signingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1060; align-items: center; justify-content: center;">
-    <div class="signing-container">
-        <div class="pen">
-            <div class="pen-body"></div>
-            <div class="pen-tip"></div>
-        </div>
-        <div class="signature-line">
-            <svg width="300" height="100" viewBox="0 0 300 100">
-                <path id="signaturePath" d="M50,50 Q100,30 150,50 T250,50" stroke="#000" stroke-width="2" fill="none" stroke-dasharray="400" stroke-dashoffset="400">
-                    <animate attributeName="stroke-dashoffset" from="400" to="0" dur="2s" fill="freeze" />
-                </path>
-            </svg>
-        </div>
-        <div class="signing-text">Signing...</div>
-    </div>
-</div>
+@include('policies.signature_animation')
 
 <script>
 let confirmCallback = null;
@@ -335,76 +319,9 @@ function acceptPolicy(policyId) {
     // After animation completes, submit the form
     setTimeout(() => {
         document.getElementById(`acceptForm${policyId}`).submit();
-    }, 2500); // 2.5 seconds for animation
+    }, 3500); // 3.5 seconds for animation
 }
 
 </script>
-
-<style>
-.signing-container {
-    text-align: center;
-    color: white;
-}
-
-.pen {
-    position: relative;
-    width: 50px;
-    height: 150px;
-    margin: 0 auto 20px;
-}
-
-.pen-body {
-    width: 8px;
-    height: 120px;
-    background: #8B4513;
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 4px;
-}
-
-.pen-tip {
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 10px solid #000;
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.signature-line {
-    margin: 20px 0;
-    border-bottom: 2px solid #fff;
-    display: inline-block;
-}
-
-.signing-text {
-    font-size: 24px;
-    font-weight: bold;
-    margin-top: 20px;
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-/* Animate the pen moving */
-.pen {
-    animation: sign 2s ease-in-out;
-}
-
-@keyframes sign {
-    0% { transform: translateX(-100px) rotate(-10deg); }
-    50% { transform: translateX(0px) rotate(0deg); }
-    100% { transform: translateX(100px) rotate(10deg); }
-}
-</style>
 
 @endsection

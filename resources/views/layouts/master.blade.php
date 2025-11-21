@@ -54,6 +54,11 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+@keyframes modalFadeIn {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
 </style>
     <!-- Theme style -->
 
@@ -241,7 +246,7 @@ if ($user) {
             @endphp
             @if($showPolicyModal)
             <!-- Policy Response Required Modal -->
-            <div id="policyModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+            <div id="policyModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
                 <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
                     <h3 style="margin-bottom: 20px; color: #333;">Policy Acknowledgment Required</h3>
                     <p style="margin-bottom: 30px; color: #666;">You have unread company policies that require your acknowledgment. Please review and respond to them.</p>
