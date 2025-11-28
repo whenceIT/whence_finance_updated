@@ -928,12 +928,11 @@ return view('user.province_page',compact('province_loans','province_transactions
 
 
     public function leaderboard(Request $request){
-	     $data = [];
+        $data = [];
         $office = $request->office;
         $startDate = $request->start_date;
         $endDate = $request->end_date;
         $todaysDate = date('Y-m-d');
-        $transactions = LoanTransaction::with('loan')->whereBetween('date',[$startDate,$endDate])->get();
 
         if($office == 0){
             $LoanConsultants = User::with('role')->with('office')->get();
@@ -941,35 +940,29 @@ return view('user.province_page',compact('province_loans','province_transactions
             $LoanConsultants = User::with('role')->with('office')->where('office_id',$office)->get();
         }
 
+        $consultantIds = $LoanConsultants->pluck('id')->toArray();
+
+        $sums = LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
+            ->whereBetween('loan_transactions.date', [$startDate, $endDate])
+            ->whereIn('loans.loan_officer_id', $consultantIds)
+            ->selectRaw('loans.loan_officer_id,
+                SUM(CASE WHEN loan_transactions.transaction_type = "repayment" AND loan_transactions.payment_apply_to = "full_payment" THEN loan_transactions.credit ELSE 0 END) as full_payment_total,
+                SUM(CASE WHEN loan_transactions.payment_apply_to = "part_payment" THEN loan_transactions.credit ELSE 0 END) as part_payment_total,
+                SUM(CASE WHEN loan_transactions.payment_apply_to = "reloan_payment" THEN loan_transactions.credit ELSE 0 END) as reloan_payments_total')
+            ->groupBy('loans.loan_officer_id')
+            ->get();
+
+        $sumMap = $sums->keyBy('loan_officer_id');
 
         foreach($LoanConsultants as $loanConsultant){
             if(!empty($loanConsultant->role->role_id)){
                 if($loanConsultant->role->role_id !== 2){
                     $object = new stdClass();
-                    $full_payment_total = 0;
-                    $part_payment_total = 0;
-                    $reloan_payments_total = 0;
-                    $charge = 0;
+                    $sum = $sumMap->get($loanConsultant->id);
+                    $full_payment_total = $sum ? $sum->full_payment_total : 0;
+                    $part_payment_total = $sum ? $sum->part_payment_total : 0;
+                    $reloan_payments_total = $sum ? $sum->reloan_payments_total : 0;
 
-
-                    foreach($transactions as $transaction){
-                        if(!empty($transaction->loan->loan_officer_id)){
-
-                            if($transaction->loan->loan_officer_id == $loanConsultant->id){
-                                if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment'){
-                                    $full_payment_total = $full_payment_total + $transaction->credit;
-                                }
-
-                                if( $transaction->payment_apply_to == 'part_payment'){
-                                $part_payment_total = $part_payment_total +  $transaction->credit;
-                            }
-
-                            if($transaction->payment_apply_to == 'reloan_payment'){
-                                $reloan_payments_total = $reloan_payments_total +  $transaction->credit;
-                            }
-                            }
-                        }
-                    }
                     $object->first_name = $loanConsultant->first_name;
                     $object->last_name = $loanConsultant->last_name;
                     $object->amount = $full_payment_total + $part_payment_total + $reloan_payments_total;
@@ -979,6 +972,7 @@ return view('user.province_page',compact('province_loans','province_transactions
                     }else{
                         $object->office = 'no branch';
                     }
+
                     array_push($data,$object);
                 }
             }
@@ -986,6 +980,66 @@ return view('user.province_page',compact('province_loans','province_transactions
 
         return view('user.leaderboard',compact('office','LoanConsultants','data','startDate','endDate'));
     }
+
+   public function leaderboardBKP(Request $request){
+        $data = [];
+       $office = $request->office;
+       $startDate = $request->start_date;
+       $endDate = $request->end_date;
+       $todaysDate = date('Y-m-d');
+       $transactions = LoanTransaction::with('loan')->whereBetween('date',[$startDate,$endDate])->get();
+
+       if($office == 0){
+           $LoanConsultants = User::with('role')->with('office')->get();
+       }else{
+           $LoanConsultants = User::with('role')->with('office')->where('office_id',$office)->get();
+       }
+
+
+       foreach($LoanConsultants as $loanConsultant){
+           if(!empty($loanConsultant->role->role_id)){
+               if($loanConsultant->role->role_id !== 2){
+                   $object = new stdClass();
+                   $full_payment_total = 0;
+                   $part_payment_total = 0;
+                   $reloan_payments_total = 0;
+                   $charge = 0;
+
+
+                   foreach($transactions as $transaction){
+                       if(!empty($transaction->loan->loan_officer_id)){
+
+                           if($transaction->loan->loan_officer_id == $loanConsultant->id){
+                               if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment'){
+                                   $full_payment_total = $full_payment_total + $transaction->credit;
+                               }
+
+                               if( $transaction->payment_apply_to == 'part_payment'){
+                               $part_payment_total = $part_payment_total +  $transaction->credit;
+                           }
+
+                           if($transaction->payment_apply_to == 'reloan_payment'){
+                               $reloan_payments_total = $reloan_payments_total +  $transaction->credit;
+                           }
+                           }
+                       }
+                   }
+                   $object->first_name = $loanConsultant->first_name;
+                   $object->last_name = $loanConsultant->last_name;
+                   $object->amount = $full_payment_total + $part_payment_total + $reloan_payments_total;
+                   $object->role = $loanConsultant->role;
+                   if(!empty($loanConsultant->office)){
+                       $object->office = $loanConsultant->office->name;
+                   }else{
+                       $object->office = 'no branch';
+                   }
+                   array_push($data,$object);
+               }
+           }
+       }
+
+       return view('user.leaderboard',compact('office','LoanConsultants','data','startDate','endDate'));
+   }
 
 
     public function given_out_stats(Request $request,$user,$given_out_type){
