@@ -15,7 +15,7 @@ Leaderboard
     </label>
 
     <div class="col-md-3">
-        <input type="text" name="start_date" class="form-control date-picker" required id="start_date">
+        <input type="text" name="start_date" class="form-control date-picker" required id="start_date" value="{{ old('start_date', $startDate ?? '') }}">
     </div>
 </div>
 
@@ -25,9 +25,20 @@ Leaderboard
     </label>
 
     <div class="col-md-3">
-            <input type="text" name="end_date" class="form-control date-picker" required id="end_date">
+            <input type="text" name="end_date" class="form-control date-picker" required id="end_date" value="{{ old('end_date', $endDate ?? '') }}">
     </div>
 
+</div>
+
+<div class="form-group">
+    <label for="leaderboard_type"
+                           class="control-label col-md-2">Leaderboard Type</label>
+                    <div class="col-md-3">
+                        <select name="leaderboard_type" class="form-control" id="leaderboard_type" required>
+                        <option value="officer" @if(($leaderboard_type ?? 'officer') == 'officer') selected @endif>Loan Officer Leaderboard</option>
+                        <option value="office" @if(($leaderboard_type ?? 'officer') == 'office') selected @endif>Office by Office Leaderboard</option>
+                        </select>
+                    </div>
 </div>
 
 <div class="form-group">
@@ -70,26 +81,39 @@ $number = 0;
 
 $branches = [];
 
+$total = array_sum(array_column($data, 'amount'));
+
 ?>
 
 @if(!empty($startDate))
 <div class="box box-primary">
 <div  class="box-header with-border">
-<h2 class="box-title" style="font-weight: bold;">LOAN CONSULTANT PERFORMANCE LEADERBOARD between {{date("jS M, Y", strtotime($startDate))}} and {{date("jS M, Y", strtotime($endDate))}}</h2>
+<h2 class="box-title" style="font-weight: bold;">{{ ($leaderboard_type ?? 'officer') == 'officer' ? 'LOAN CONSULTANT PERFORMANCE LEADERBOARD' : 'OFFICE PERFORMANCE LEADERBOARD' }} between {{date("jS M, Y", strtotime($startDate))}} and {{date("jS M, Y", strtotime($endDate))}}</h2>
 </div>
 <div class="box-body table-responsive">
 <table class="table  table-bordered table-hover table-striped" id="data-table">
 <thead>
     <tr>
     <th>Rank</th>
+    @if(($leaderboard_type ?? 'officer') == 'officer')
     <th>First Name</th>
     <th>Branch</th>
-    <th>Cash Collectionns</th>
+    @else
+    <th>Office</th>
+    @endif
+    <th>Cash Collections</th>
     </tr>
 </thead>
+<tfoot>
+    <tr style="background-color: #f0f0f0; font-weight: bold;">
+        <td colspan="{{ ($leaderboard_type ?? 'officer') == 'officer' ? 3 : 2 }}" style="text-align: right;">Total</td>
+        <td>{{ number_format($total, 2) }}</td>
+    </tr>
+</tfoot>
 <tbody>
+@if(($leaderboard_type ?? 'officer') == 'officer')
 @foreach($data as $information)
-<?php 
+<?php
 $isBranch = 1;
 if(in_array($information->office,$branches)){
     $isBranch = 2;
@@ -115,13 +139,9 @@ if($isBranch == 1){
         </td>
         @endif
         <td>{{$information->first_name}} {{$information->last_name}}</td>
-        @if($isBranch == 1)
         <td>{{$information->office}}</td>
-        @else
-        <td>{{$information->office}}</td>
-        @endif
-        <td>{{$information->amount}}</td>
-    
+        <td>{{ number_format($information->amount, 2) }}</td>
+
     </tr>
     @else
     <tr>
@@ -136,15 +156,30 @@ if($isBranch == 1){
         </td>
         @endif
         <td>{{$information->first_name}} {{$information->last_name}}</td>
-        @if($isBranch == 1)
         <td>{{$information->office}}</td>
-        @else
-        <td>{{$information->office}}</td>
-        @endif
-        <td>{{$information->amount}}</td>
+        <td>{{ number_format($information->amount, 2) }}</td>
     </tr>
     @endif
-@endforeach                    
+@endforeach
+@else
+@foreach($data as $information)
+    <tr>
+        @if(($number + 1) == 1)
+        <td style="font-weight: bold;">
+            {{$number = $number + 1}}
+            <i class="fa fa-trophy" aria-hidden="true" style="color: gold;"></i>
+        </td>
+        @else
+        <td style="font-weight: bold;">
+            {{$number = $number + 1}}
+        </td>
+        @endif
+        <td>{{$information->office}}</td>
+        <td>{{ number_format($information->amount, 2) }}</td>
+    </tr>
+@endforeach
+@endif
+</tbody>
 </table>
 </div>
 </div>
@@ -154,6 +189,19 @@ if($isBranch == 1){
 @endsection
 @section('footer-scripts')
 <script>
+    $('#leaderboard_type').on('change', function() {
+        if ($(this).val() == 'office') {
+            $('#office').val('0').trigger('change').prop('disabled', true);
+        } else {
+            $('#office').prop('disabled', false);
+        }
+    });
+
+    // Initial check
+    if ($('#leaderboard_type').val() == 'office') {
+        $('#office').val('0').trigger('change').prop('disabled', true);
+    }
+
     $('#data-table').DataTable({
             dom: 'frtip',
             "paging": true,
@@ -163,7 +211,7 @@ if($isBranch == 1){
             "ordering": true,
             "info": true,
             "autoWidth": true,
-            "order": [[5, "desc"]],
+            "order": [[{{ ($leaderboard_type ?? 'officer') == 'officer' ? 3 : 1 }}, "desc"]],
             "columnDefs": [
                 {"orderable": false, "targets": []}
             ],

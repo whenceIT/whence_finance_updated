@@ -1006,6 +1006,21 @@ Route::group(['prefix' => 'performance_metrics'], function () {
     Route::get('/defaulted', [PerformanceMetricsController::class, 'defaulted'])->name('performance_metrics.defaulted');
 });
 
+//resignation routes
+Route::group(['prefix' => 'resignation'], function () {
+    Route::get('create', 'ResignationController@create')->name('resignation.create');
+    Route::post('store', 'ResignationController@store')->name('resignation.store');
+    Route::get('cancel/{id}', 'ResignationController@cancel')->name('resignation.cancel');
+    Route::get('my', 'ResignationController@myResignations')->name('resignation.my');
+    Route::get('manager/pending', 'ResignationController@managerPending')->name('resignation.manager.pending');
+    Route::get('admin/pending', 'ResignationController@adminPending')->name('resignation.admin.pending');
+    Route::post('manager/approve/{id}', 'ResignationController@managerApprove')->name('resignation.manager.approve');
+    Route::post('admin/approve/{id}', 'ResignationController@adminApprove')->name('resignation.admin.approve');
+    Route::get('approved', 'ResignationController@approved')->name('resignation.approved');
+    Route::get('declined', 'ResignationController@declined')->name('resignation.declined');
+    Route::get('show/{id}', 'ResignationController@show')->name('resignation.show');
+});
+
 //company policies
 Route::group(['prefix' => 'policies'], function () {
 
