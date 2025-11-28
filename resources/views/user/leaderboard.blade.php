@@ -6,14 +6,11 @@ Leaderboard
 <div class="box-body hidden-print">
 
 <form method="post" action="{{Request::url()}}" class="form-horizontal" enctype="multipart/form-data">
-{{csrf_field()}}
-
+    {{csrf_field()}}
     <div class="form-group">
-
     <label for="time_period"
         class="control-label col-md-2">Start date
     </label>
-
     <div class="col-md-3">
         <input type="text" name="start_date" class="form-control date-picker" required id="start_date" value="{{ old('start_date', $startDate ?? '') }}">
     </div>
@@ -23,37 +20,32 @@ Leaderboard
     <label for="time_period"
         class="control-label col-md-2">End date
     </label>
-
     <div class="col-md-3">
             <input type="text" name="end_date" class="form-control date-picker" required id="end_date" value="{{ old('end_date', $endDate ?? '') }}">
     </div>
-
 </div>
 
 <div class="form-group">
-    <label for="leaderboard_type"
-                           class="control-label col-md-2">Leaderboard Type</label>
-                    <div class="col-md-3">
-                        <select name="leaderboard_type" class="form-control" id="leaderboard_type" required>
-                        <option value="officer" @if(($leaderboard_type ?? 'officer') == 'officer') selected @endif>Loan Officer Leaderboard</option>
-                        <option value="office" @if(($leaderboard_type ?? 'officer') == 'office') selected @endif>Office by Office Leaderboard</option>
-                        </select>
-                    </div>
+    <label for="leaderboard_type" class="control-label col-md-2">Leaderboard Type</label>
+    <div class="col-md-3">
+        <select name="leaderboard_type" class="form-control" id="leaderboard_type" required>
+        <option value="officer" @if(($leaderboard_type ?? 'officer') == 'officer') selected @endif>Loan Officer Leaderboard</option>
+        <option value="office" @if(($leaderboard_type ?? 'officer') == 'office') selected @endif>Office by Office Leaderboard</option>
+        </select>
+    </div>
 </div>
 
 <div class="form-group">
-    <label for="office_id"
-                           class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
-                    <div class="col-md-3">
-                        <select name="office" class="form-control select2" id="office" required>
-                        <option value="0" @if($office=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                        @foreach(\App\Models\Office::all() as $key)
-                                <option value="{{$key->id}}"  @if($office==$key->id) selected @endif>{{$key->name}}</option>
-                            @endforeach
-                        </select>
-                    </div>
+    <label for="office_id" class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
+    <div class="col-md-3">
+        <select name="office" class="form-control select2" id="office" required>
+        <option value="0" @if($office=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+        @foreach(\App\Models\Office::all() as $key)
+                <option value="{{$key->id}}"  @if($office==$key->id) selected @endif>{{$key->name}}</option>
+            @endforeach
+        </select>
+    </div>
 </div>
-
 <div class="form-group">
 <label for=""
 class="control-label col-md-2"></label>
@@ -61,12 +53,7 @@ class="control-label col-md-2"></label>
 <button type="submit" class="btn btn-success">Go!
                         </button>
 </div>
-</div>
-               
-        
-              
-
-   
+</div>  
 </form>
 <?php
 
