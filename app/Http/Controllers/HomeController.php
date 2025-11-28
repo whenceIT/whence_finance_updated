@@ -280,9 +280,9 @@ class HomeController extends Controller
 		    }
 		          if($role->id == 3){
                         $answer = AppraisalAnswer::where('user_id',Sentinel::getUser()->id)->where('form_id',1)->where('question_id',3)->where('quater_date','>=','10-2025')->first();
-                        if(empty($answer)){
-                            return redirect('user/my_appraisal_forms');
-                        }
+           
+                           
+                        
                     }
 		      
                     return redirect('dashboard');
