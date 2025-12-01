@@ -1181,18 +1181,13 @@ return view('user.province_page',compact('province_loans','province_transactions
         return view('user.uncollected_stats',compact('user','targetDate','userLoans','todaysDate','userTransactions'));
     }
 
-
-
-
     public function index()
     {
         if (!Sentinel::hasAccess('users.view')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-     
-
-                $data = User::with('role')->with('office')->get();
+        $data = User::with('role')->with('office')->get();
         return view('user.data', compact('data'));
     }
 

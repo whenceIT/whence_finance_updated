@@ -1471,7 +1471,7 @@
                 </li>
             @endif
 
-            @include('menu.partials.resignation-links')
+            <!-- @include('menu.partials.resignation-links') -->
             
         </ul>
     </section>
