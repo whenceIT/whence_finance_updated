@@ -109,6 +109,10 @@ public function dashboard(Request $request)
         }
        }
 
+          $data = [];
+        $start =  null;
+        $end  = null;
+
         }
 
        
@@ -180,6 +184,10 @@ public function dashboard(Request $request)
                 array_push($branchTransactions,$Transaction);
             }
          }
+
+            $data = [];
+        $start =  null;
+        $end  = null;
      }
        
      if($role->role_id == '6'){
@@ -192,6 +200,10 @@ public function dashboard(Request $request)
                 }
             }
         }
+
+           $data = [];
+        $start =  null;
+        $end  = null;
      }
 
         
