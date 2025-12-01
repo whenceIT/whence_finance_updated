@@ -342,8 +342,9 @@ $(window).on('load', function () {
 @if ($role && in_array($role, ['1', '6', '4']))
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
+    
     var office = <?php echo json_encode($office); ?>;
-const socket = io('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com');
+const socket = io('https://notifications.whencefinancesystem.com');
 
 socket.on('connect', () => {
     console.log('Connected to Socket.io server', socket.id);

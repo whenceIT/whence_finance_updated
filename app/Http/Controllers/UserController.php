@@ -47,7 +47,7 @@ class UserController extends Controller
 
         $this->middleware('sentinel');
     }
-public function dashboard()
+public function dashboard(Request $request)
 {
    $role = Sentinel::getUser()->roles->first();
 
@@ -109,6 +109,10 @@ public function dashboard()
         }
        }
 
+          $data = [];
+        $start =  null;
+        $end  = null;
+
         }
 
        
@@ -143,6 +147,33 @@ public function dashboard()
          }
           }
 
+
+           if(Sentinel::getUser()->cycle_dates == null){
+            $cycle_end = 24;
+        }else{
+            $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+        }
+
+         $fixedDay = $cycle_end;
+             $userId = Sentinel::getUser()->id;
+
+                      // Default dates
+        $start = $request->input('start_month', '2025-11') . "-$fixedDay";
+        $end   = $request->input('end_month', '2025-12') . "-$fixedDay";
+
+
+              $query = http_build_query([
+            'user_id'    => $userId,
+            'start_date' => $start,
+            'end_date'   => $end,
+        ]);
+
+
+           $url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
+
+                 $json = @file_get_contents($url);
+        $data = $json ? json_decode($json, true) : null;
+
      }
    
 
@@ -153,6 +184,10 @@ public function dashboard()
                 array_push($branchTransactions,$Transaction);
             }
          }
+
+            $data = [];
+        $start =  null;
+        $end  = null;
      }
        
      if($role->role_id == '6'){
@@ -165,6 +200,10 @@ public function dashboard()
                 }
             }
         }
+
+           $data = [];
+        $start =  null;
+        $end  = null;
      }
 
         
@@ -172,7 +211,7 @@ public function dashboard()
      
          $branchUsers = User::where('office_id',$userBranch)->with('loan')->with('role')->get();
          if($role->role_id != '2'){
-        return view('dashboard', compact('end','myLoans','role','branchUsers','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','province_branches','allLoans','allTransactions','provinces','cycle_end','userId'));
+        return view('dashboard', compact('end','myLoans','role','branchUsers','userBranch','myTransactions','myOpenLoans','newBranchLoans','branchTransactions','userProvince','province_loans','province_transactions','province_branches','allLoans','allTransactions','provinces','cycle_end','userId','data', 'start', 'end'));
          }else{
             return view('dashboard',compact('role','user','client','clientBranch','staff','clientLoan'));
          }
