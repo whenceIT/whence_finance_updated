@@ -1,5 +1,5 @@
 <div class="container-fluid">
-    <div style="background: linear-gradient(135deg, #000041 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+    <div style="background: linear-gradient(135deg, #fff 0%, #fff 100%); color: black; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
         <div class="row">
             <div class="col-md-6" style="font-size:1.8em">
                 <strong>Employee:</strong> {{ $resignation->user->first_name }} {{ $resignation->user->last_name }}
@@ -19,7 +19,7 @@
                     <span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.875em;">Approved</span>
                 @elseif($resignation->status == 'declined')
                     <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.875em;">Declined</span>
-                @endif
+                @endif  
             </div>
             <div class="col-md-6">
                 <strong>Submitted Date:</strong> {{ date('d M Y H:i', strtotime($resignation->created_at)) }}

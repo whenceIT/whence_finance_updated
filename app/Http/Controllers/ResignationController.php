@@ -97,9 +97,9 @@ class ResignationController extends Controller
         }
 
         $pending = ResignationLetter::where('status', 'pending')
-            ->whereHas('user', function($q) use ($user) {
-                $q->where('office_id', $user->office_id);
-            })
+            // ->whereHas('user', function($q) use ($user) {
+            //     $q->where('office_id', $user->office_id);
+            // })
             ->with('user')
             ->get();
 
@@ -179,7 +179,11 @@ class ResignationController extends Controller
                 'admin_approved_at' => now(),
                 'admin_comment' => $request->comment,
             ]);
-            Flash::success('Resignation approved by admin.');
+
+            // Deactivate the user account
+            $resignation->user->update(['blocked' => 1]);
+
+            Flash::success('Resignation approved by admin. User account has been deactivated.');
         } elseif ($request->action == 'decline') {
             $resignation->update([
                 'status' => 'declined',

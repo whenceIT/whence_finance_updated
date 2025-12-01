@@ -15,6 +15,18 @@
             <div class="pull-left info" style="margin-left: 15px;">
                 <p style="margin: 0; color: #fff; font-weight: bold; font-size: 14px;">{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}</p>
                 <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ Sentinel::getUser()->office->name ?? 'Office' }}</p>
+                <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">
+                    @if($role == 1)
+                        Admin
+                    @elseif($role  == 4)
+                        Manager
+                    @elseif($role  == 3)
+                        Loan Officer
+                    @else
+                        
+                    @endif
+                </p>
+
                 <a href="#" style="color: #fff; font-size: 12px;"><i class="fa fa-circle text-success"></i> Online</a>
             </div>
         </div>
@@ -1459,112 +1471,8 @@
                 </li>
             @endif
 
-            @if(Sentinel::hasAccess('reports'))
-                <li class="treeview @if(Request::is('resignation/*')) active menu-open @endif">
-                    <a href="#">
-                        <i class="fa fa-user-times"></i> <span>Resignations</span>
-                        <span class="pull-right-container">
-                            <i class="fa fa-angle-left pull-right"></i>
-                        </span>
-                    </a>
-                    <ul class="treeview-menu">
-                        @if(Sentinel::hasAccess('reports.loan_reports'))
-                            <li>
-                                <a href="{{ route('resignation.create') }}"><i class="fa fa-circle-o"></i> Submit Resignation</a>
-                            </li>
-                        @endif
-                        @if(Sentinel::hasAccess('reports.loan_reports'))
-                            <li>
-                                <a href="{{ route('resignation.my') }}"><i class="fa fa-circle-o"></i> My Resignations</a>
-                            </li>
-                        @endif
-                        @if(Sentinel::hasAccess('reports.client_reports'))
-                            <li>
-                                <a href="{{ route('resignation.manager.pending') }}">
-                                    <i class="fa fa-circle-o"></i> Manager Pending Approvals
-                                    <span class="pull-right-container">
-                                        <?php
-                                        $user = Sentinel::getUser();
-                                        $pendingCount = 0;
-                                        if ($user->role->role_id == 4) {
-                                            $pendingCount = \App\Models\ResignationLetter::where('status', 'pending')
-                                                ->whereHas('user', function($q) use ($user) {
-                                                    $q->where('office_id', $user->office_id);
-                                                })
-                                                ->count();
-                                        }
-                                        ?>
-                                        <span class="label label-warning pull-right">{{ $pendingCount }}</span>
-                                    </span>
-                                </a>
-                            </li>
-                        @endif
-                        @if(Sentinel::hasAccess('reports.client_reports'))
-                            <li>
-                                <a href="{{ route('resignation.admin.pending') }}">
-                                    <i class="fa fa-circle-o"></i> Admin Pending Approvals
-                                    <span class="pull-right-container">
-                                        <?php
-                                        $user = Sentinel::getUser();
-                                        $pendingCount = 0;
-                                        if ($user->role->role_id == 1) {
-                                            $pendingCount = \App\Models\ResignationLetter::where('status', 'manager_approved')->count();
-                                        }
-                                        ?>
-                                        <span class="label label-warning pull-right">{{ $pendingCount }}</span>
-                                    </span>
-                                </a>
-                            </li>
-                        @endif
-                        @if(Sentinel::hasAccess('reports.client_reports'))
-                            <li>
-                                <a href="{{ route('resignation.approved') }}">
-                                    <i class="fa fa-circle-o"></i> Approved Resignations
-                                    <span class="pull-right-container">
-                                        <?php
-                                        $user = Sentinel::getUser();
-                                        $approvedCount = 0;
-                                        if ($user->role->role_id == 1) {
-                                            $approvedCount = \App\Models\ResignationLetter::where('status', 'admin_approved')->count();
-                                        } elseif ($user->role->role_id == 4) {
-                                            $approvedCount = \App\Models\ResignationLetter::where('status', 'admin_approved')
-                                                ->whereHas('user', function($q) use ($user) {
-                                                    $q->where('office_id', $user->office_id);
-                                                })
-                                                ->count();
-                                        }
-                                        ?>
-                                        <span class="label label-success pull-right">{{ $approvedCount }}</span>
-                                    </span>
-                                </a>
-                            </li>
-                        @endif
-                        @if(Sentinel::hasAccess('reports.client_reports'))
-                            <li>
-                                <a href="{{ route('resignation.declined') }}">
-                                    <i class="fa fa-circle-o"></i> Declined Resignations
-                                    <span class="pull-right-container">
-                                        <?php
-                                        $user = Sentinel::getUser();
-                                        $declinedCount = 0;
-                                        if ($user->role->role_id == 1) {
-                                            $declinedCount = \App\Models\ResignationLetter::where('status', 'declined')->count();
-                                        } elseif ($user->role->role_id == 4) {
-                                            $declinedCount = \App\Models\ResignationLetter::where('status', 'declined')
-                                                ->whereHas('user', function($q) use ($user) {
-                                                    $q->where('office_id', $user->office_id);
-                                                })
-                                                ->count();
-                                        }
-                                        ?>
-                                        <span class="label label-danger pull-right">{{ $declinedCount }}</span>
-                                    </span>
-                                </a>
-                            </li>
-                        @endif
-                    </ul>
-                </li>
-            @endif
+            @include('menu.partials.resignation-links')
+            
         </ul>
     </section>
     <!-- /.sidebar -->
