@@ -15,7 +15,7 @@
             <div class="pull-left info" style="margin-left: 15px;">
                 <p style="margin: 0; color: #fff; font-weight: bold; font-size: 14px;">{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}</p>
                 <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ Sentinel::getUser()->office->name ?? 'Office' }}</p>
-                <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">
+                <!-- <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">
                     @if($role == 1)
                         Admin
                     @elseif($role  == 4)
@@ -25,7 +25,7 @@
                     @else
                         
                     @endif
-                </p>
+                </p> -->
 
                 <a href="#" style="color: #fff; font-size: 12px;"><i class="fa fa-circle text-success"></i> Online</a>
             </div>
