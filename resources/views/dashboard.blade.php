@@ -374,8 +374,118 @@ for($x=12; $x>-1; $x--){
 	}
 	?>
 
+     <div class="box box-primary">
+     
 
-	<div class="col-lg-4 col-xs-12">
+        <form method="GET" action="{{ url('dashboard') }}" class="form-horizontal">
+            <div class="box-body">
+
+                {{-- Start Month --}}
+                <div class="form-group">
+                    <label class="control-label col-md-2">Cycle Start</label>
+                    <div class="col-md-3">
+                        <input
+                            type="month"
+                            name="start_month"
+                            class="form-control"
+                            value="{{ substr($start, 0, 7) }}"
+                        >
+                    </div>
+                </div>
+
+                {{-- End Month --}}
+                <div class="form-group">
+                    <label class="control-label col-md-2">Cycle End</label>
+                    <div class="col-md-3">
+                        <input
+                            type="month"
+                            name="end_month"
+                            class="form-control"
+                            value="{{ substr($end, 0, 7) }}"
+                        >
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="box-footer">
+                <button type="submit" class="btn btn-primary pull-right">Load</button>
+            </div>
+        </form>
+    </div>
+
+        <div class="box box-success">
+        <div class="box-header with-border">
+            <h3 class="box-title">Performance Summary {{date("jS M, Y", strtotime($start))}} to {{date("jS M, Y", strtotime($end))}}</h3>
+        </div>
+
+        <div class="box-body">
+            @if(!$data)
+                <p>No data available or failed to fetch.</p>
+            @else
+
+                {{-- SUMMARY CARDS --}}
+                <div class="row" style="margin-bottom: 25px;">
+
+                    <div class="col-md-3 col-sm-6">
+                        <div class="small-box bg-aqua">
+                            <div class="inner">
+                                <h3>{{ number_format($data['total_uncollected']) }}</h3>
+                                <p>Cycle Opening Uncollected</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-sm-6">
+                        <div class="small-box bg-green">
+                            <div class="inner">
+                                <h3>{{ number_format($data['total_collected']) }}</h3>
+                                <p>Total Collected</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-money"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-sm-6">
+                        <div class="small-box bg-yellow">
+                            <div class="inner">
+                                <h3>{{ number_format($data['still_uncollected']) }}</h3>
+                                <p>Still Uncollected</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-hourglass-half"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-sm-6">
+                        <div class="small-box bg-purple">
+                            <div class="inner">
+                                <h3>{{ number_format($data['given_out']) }}</h3>
+                                <p>Given Out</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-arrow-up"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                {{-- END CARDS --}}
+
+                <hr>
+
+            @endif
+        </div>
+    </div>
+
+
+	<!-- <div class="col-lg-4 col-xs-12">
 	<div class="small-box bg-yellow">
 	<div class="inner">
 	<p style="font-weight: bold;">Cycle opening uncollected amount (COUA)</p>
@@ -388,10 +498,10 @@ for($x=12; $x>-1; $x--){
 	    <p></p>
 	</div>
 	</div>
-	</div>
+	</div> -->
 
 
-	<div class="col-lg-4 col-xs-12">
+	<!-- <div class="col-lg-4 col-xs-12">
 	<div class="small-box bg-green">
 	<div class="inner">
 	<p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
@@ -404,9 +514,9 @@ for($x=12; $x>-1; $x--){
 	    <p></p>
 	</div>
 	</div>
-	</div>
+	</div> -->
 
-	<div class="col-lg-4 col-xs-12">
+	<!-- <div class="col-lg-4 col-xs-12">
 	<div class="small-box bg-aqua">
 	<div class="inner">
 	<p style="font-weight: bold;">Still Uncollected Today</p>
@@ -419,7 +529,7 @@ for($x=12; $x>-1; $x--){
 	    <p></p>
 	</div>
 	</div>
-	</div>
+	</div> -->
 
 
 
