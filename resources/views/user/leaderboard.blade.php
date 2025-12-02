@@ -191,7 +191,7 @@ if($isBranch == 1){
 
     $('#data-table').DataTable({
             dom: 'frtip',
-            "paging": true,
+            "paging": false,
             "lengthChange": true,
             "displayLength": 15,
             "searching": true,
@@ -217,7 +217,7 @@ if($isBranch == 1){
                 }
             },
             responsive: false
-        });            
+        });
 
 </script>
 @endsection
