@@ -295,7 +295,7 @@ class LoanController extends Controller
        }
 
        public function notification_test(){
-                Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+                Http::post('https://notifications.whencefinancesystem.com/emit', [
     'event' => 'notification.created',
     'data' => [
         'test' => 'test' ,
@@ -920,7 +920,7 @@ class LoanController extends Controller
                 $loan->year = $date[0];
 		$loan->save();
 
-            Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+            Http::post('https://notifications.whencefinancesystem.com/emit', [
     'event' => 'loan.created',
     'data' => [
         'created_by' => Sentinel::getUser()->first_name .' '. Sentinel::getUser()->last_name ,
@@ -1240,7 +1240,7 @@ class LoanController extends Controller
 	$loan_topup->save();
 	    $client_id = $loan->client_id;
                 $client = \App\Models\Client::find($client_id);
-            Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+            Http::post('https://notifications.whencefinancesystem.com/emit', [
     'event' => 'loan.created',
     'data' => [
         'created_by' => Sentinel::getUser()->first_name .' '. Sentinel::getUser()->last_name ,
@@ -2677,7 +2677,7 @@ class LoanController extends Controller
             $loan_transaction->save();
      $client_id = $loan->client_id;
                 $client = \App\Models\Client::find($client_id);
-                   Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+                   Http::post('https://notifications.whencefinancesystem.com/emit', [
     'event' => 'loan.created',
     'data' => [
         'created_by' => Sentinel::getUser()->first_name .' '. Sentinel::getUser()->last_name ,
@@ -3531,7 +3531,7 @@ public function declineCharge($id)
 	$loan_transaction->save();
              $client_id = $loan->client_id;
                 $client = \App\Models\Client::find($client_id);
-            Http::post('https://wocgksow08ccckw844cgg0gk.app.whencefinancesystem.com/emit', [
+            Http::post('https://notifications.whencefinancesystem.com/emit', [
     'event' => 'loan.created',
     'data' => [
         'created_by' => Sentinel::getUser()->first_name .' '. Sentinel::getUser()->last_name ,
