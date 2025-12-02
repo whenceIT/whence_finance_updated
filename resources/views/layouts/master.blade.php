@@ -123,6 +123,32 @@ if ($user) {
     $office = null;
 }
 ?>
+
+<div class="modal fade" id="announcementModal" tabindex="-2" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-header bg-primary">
+        <h4 class="modal-title text-white" id="announcementTitle"></h4>
+      </div>
+
+      <div class="modal-body">
+        <p id="announcementMessage"></p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="closeAnnouncement">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+
 <body class="hold-transition sidebar-mini" style="background-color:#000041; color: #000000;">
 <div class="wrapper">
 
@@ -338,6 +364,45 @@ $(window).on('load', function () {
       });
 
 </script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const url = "https://lms2backend.whencefinancesystem.com/announcement";
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (!data || !data.title || !data.message || !data.end_date) return;
+
+        // Convert ISO date to YYYY-MM-DD
+        const endDate = new Date(data.end_date).toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+
+        // Stop if campaign expired
+        if (today > endDate) return;
+
+
+
+        // Fill modal
+        document.getElementById("announcementTitle").textContent = data.title;
+        document.getElementById("announcementMessage").textContent = data.message;
+
+        // Show modal
+        $('#announcementModal').modal('show');
+
+        // Close button
+        document.getElementById("closeAnnouncement").addEventListener("click", function () {
+          $('#announcementModal').modal('hide');
+        });
+
+      })
+      .catch(err => console.error("Announcement fetch failed:", err));
+
+});
+</script>
+
 
 @if ($role && in_array($role, ['1', '6', '4']))
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
