@@ -4,2423 +4,2457 @@
 @endsection
 
 @section('content')
-<!-- What Clients see -->
-@if($role->role_id == '2')
-<div>
-    @if(!($clientLoan))
-<div class="row">
-<div class="col-lg-4 col-xs-12">
-    <p style="text-align: center; font-weight:bold; ">Name: {{$user->first_name}} {{$user->last_name}}</p>
-    </div>
-    <div class="col-lg-4 col-xs-12">
-    <p style="text-align: center; font-weight:bold;">Branch: {{$clientBranch->name}}</p>
-    </div>
-    <div class="col-lg-4 col-xs-12">
-    <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}} {{$staff->last_name}}</p>
-    </div>
-
-    <div class="col-lg-4 col-xs-12">
-<div class="small-box bg-red">
-<div class="inner">
-<p style="font-weight: bold;">Outstanding balance</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>0.00</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-aqua">
-<div class="inner">
-<p style="font-weight: bold;">Due date</p>
-<div class="icon">
-<i class="fa fa-calendar-o"></i>
-</div>
-<h3>-</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-green">
-<div class="inner">
-<p style="font-weight: bold;">Paid</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>0.00</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-   
-</div>
-    @else
-    <div class="row">
-    <div class="col-lg-4 col-xs-12">
-    <p style="text-align: center; font-weight:bold; ">Name: {{$user->first_name}} {{$user->last_name}}</p>
-    </div>
-    <div class="col-lg-4 col-xs-12">
-    <p style="text-align: center; font-weight:bold;">Branch: {{$clientBranch->name}}</p>
-    </div>
-    <div class="col-lg-4 col-xs-12">
-    <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}} {{$staff->last_name}}</p>
-    </div>
-<?php 
-$balance = 0;;
-$in = 0;
-$out = 0;
-?>
-    @foreach($clientLoan->transactions as $transaction)
-    <?php 
-    if($transaction->transaction_type != 'specified_due_date_fee'){
-        $out = $out + $transaction->debit;
-    }
-
-    $in = $in + $transaction->credit;
-    ?>
-    @endforeach
-    <?php 
-$balance = $out - $in;
-?>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-aqua">
-<div class="inner">
-<p style="font-weight: bold;">Outstanding balance</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($balance,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-green">
-<div class="inner">
-<p style="font-weight: bold;">Due date</p>
-<div class="icon">
-<i class="fa fa-calendar-o"></i>
-</div>
-<h3>{{date("jS M, Y",strtotime($clientLoan->expected_first_repayment_date))}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-red">
-<div class="inner">
-<p style="font-weight: bold;">Paid</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($in,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-    </div>
-
-    @endif
-  
-
-</div>
-@endif
-
-
-<!-- What Loan Consultants see -->
-@if($role->role_id == '3')
-
-
-<div></div>
-
-<div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px;">
-
-
-<a href="{{ url('loan/my_collections') }}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Collections</span>
-</a>
-    
-<a href="javascript:;" onmousedown="toggleCOUA();" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">COUA</span>
-<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-</a>
-
-<a href="javascript:;" onmousedown="toggleTCC();" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">TCC</span>
-</a>
-<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-
-<a href="{{url('user/'.$userId.'/given_out_today/given_out_stats')}}"  style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">Given out</span>
-</a>
-
-</div>
-
-
-<!-- Default Dashboard -->
-<div id='mydivon' style="display:block">
-@if($end == 'NCI')
-<div style="display: flex;
-    align-items: center;
-    justify-content: center;">
-<a href="{{ url('user/cycle') }}" class="btn btn-info btn-sm">
-Set your cycle end date 
-</a>
-</div>
-@else
-
-<!-- first row -->
-<div class="row">
-<!-- cycle countdown -->
-<?php
-$MoneyGivenOut = 0;
-$MoneyCollected = 0;
-$reloan_amount = 0;
-$cycle_opening_uncollected_amount = 0.0001;
-$full_payments = 0;
-$part_payments = 0;
-$reloan_payments = 0;
-
-?>
-
-<!-- CALCULATING LOAN BALANCES FOR CYCLE OPENING UNCOLLECTED -->
-<?php
-$today = date('Y-m-d');
-$currrent_date = date('Y-m');
-$cycle_date = $currrent_date.'-'.$cycle_end;
-if($today > $cycle_date){
-    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
-}
-
-$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
-$cycle_opening_uncollected_amounts = [];
-for($x=12; $x>-1; $x--){
-    $cycle_opening_uncollected_amount = 0;
-    foreach($myLoans as $loan){
-        $MoneyCollected = 0;
-$MoneyGivenOut = 0;
-$balance = 0;
-
-
-        foreach($loan->transactions as $transaction){
-            if($transaction->date <= date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->transaction_type != 'specified_due_date_fee'){
-                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
-            }
-            
-            if($transaction->date <= date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months'))){
-                $MoneyCollected = $MoneyCollected + $transaction->credit;
-            }
-            
-            
-         
-        }
-
-        $balance = $MoneyGivenOut - $MoneyCollected;
-        $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
-    }
-
-array_push($cycle_opening_uncollected_amounts ,$cycle_opening_uncollected_amount + 0.0001);
-
-}
-?>
-
-
-<!-- CALCULATING 12 MONTHS CYCLE COLLECTED USING TRANSACTIONS -->
- <?php
-$collected_amounts = [];
-$today = date('Y-m-d');
-$currrent_date = date('Y-m');
-$cycle_date = $currrent_date.$cycle_end;
-if($today > $cycle_date){
-    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
-}
-$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
-$cycle_end_date = date('Y-m-d',strtotime($cycle_start. '+ 1 months'));
-  $use = date('Y-m-');
-$todaysDate = date('Y-m-d');
-$targetDate = $use.$cycle_end;
-$targetDate = date('Y-m-d',strtotime($targetDate));
-if($todaysDate > $targetDate){
-    $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
-}
-$compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
-
-for($x=12; $x>-1; $x--){
-    foreach($myTransactions as $transaction){
-        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
-            $full_payments = $full_payments + $transaction->credit;
-        }
-
-        if($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
-            $part_payments = $part_payments + $transaction->credit;
-        }
-
-        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
-
-            $reloan_amount = $transaction->balance_bf;
-            $interest = $transaction->credit/0.4;
-            $reloan_payments = $reloan_payments + $reloan_amount;
-        
-        }
-    }
-
-    array_push($collected_amounts,($full_payments + $part_payments + $reloan_payments));
-    $full_payments = 0;
-    $part_payments = 0;
-    $reloan_payments = 0;
-
-
- }
- ?>
-
-
-<!-- CALCULATING 12 MONTHS GIVEN OUT USING TRANSACTIONS -->
-<?php
-$new_loan_total = 0;
-$reloan_total = 0;
-$targets = [];
-$transaction_total = 0;
-$carry_over = 0;
-$today = date('Y-m-d');
-$dates = [];
-$colors = [];
-$currrent_date = date('Y-m');
-$cycle_date = date('Y-m', strtotime($today)) . '-' . str_pad($cycle_end, 2, '0', STR_PAD_LEFT);
-if (strtotime($today) > strtotime($cycle_date)) {
-    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
-}
-$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
-$cycle_end_date = date('Y-m-d',strtotime($cycle_start. '+ 1 months'));
-
- $use = date('Y-m-');
-$todaysDate = date('Y-m-d');
-$targetDate = $use.$cycle_end;
-$targetDate = date('Y-m-d',strtotime($targetDate));
-if($todaysDate > $targetDate){
-    $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
-}
-$compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
-
-for($x=12; $x>-1; $x--){
-    foreach($myTransactions as $transaction){
-        if($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
-            $new_loan_total = $transaction->debit;
-        }
-
-        if($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d',strtotime($compareDate. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($targetDate.  '-' .$x. 'months'))){
-            $principal = $transaction->debit/0.4;
-            $reloan_total = $principal;
-        }
-
-        if($transaction_total + $new_loan_total + $reloan_total >= 40000 ){
-            if($transaction_total == 40000){
-                $carry_over = $carry_over + $new_loan_total + $reloan_total;
-            }else{
-                $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
-                $transaction_total = 40000;
-            }
-           
-        }else{
-            $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
-            $carry_over = 0;
-        }
-      
-        $new_loan_total = 0;
-        $reloan_total = 0;
-    }
-
-    array_push($targets,$transaction_total);
-    if($transaction_total < 40000){
-        array_push($colors,'#ff1c4b');
-    }else{
-        array_push($colors,'#57b7fa');
-    }
-    array_push($dates,date("jS M, Y", strtotime($cycle_date. '-' .$x. 'months')));
-    $transaction_total = 0;
-    $total = $reloan_total + $new_loan_total;
-}
-
-?>
-
-	<?php 
-	$uncollected_amounts = [];
-	for($x=0; $x<12; $x++){
-	    array_push($uncollected_amounts,($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
-	}
-	?>
-
-     <div class="box box-primary">
-     
-
-        <form method="GET" action="{{ url('dashboard') }}" class="form-horizontal">
-            <div class="box-body">
-
-                {{-- Start Month --}}
-                <div class="form-group">
-                    <label class="control-label col-md-2">Cycle Start</label>
-                    <div class="col-md-3">
-                        <input
-                            type="month"
-                            name="start_month"
-                            class="form-control"
-                            value="{{ substr($start, 0, 7) }}"
-                        >
+    <!-- What Clients see -->
+    @if($role->role_id == '2')
+        <div>
+            @if(!($clientLoan))
+                <div class="row">
+                    <div class="col-lg-4 col-xs-12">
+                        <p style="text-align: center; font-weight:bold; ">Name: {{$user->first_name}} {{$user->last_name}}</p>
                     </div>
-                </div>
-
-                {{-- End Month --}}
-                <div class="form-group">
-                    <label class="control-label col-md-2">Cycle End</label>
-                    <div class="col-md-3">
-                        <input
-                            type="month"
-                            name="end_month"
-                            class="form-control"
-                            value="{{ substr($end, 0, 7) }}"
-                        >
+                    <div class="col-lg-4 col-xs-12">
+                        <p style="text-align: center; font-weight:bold;">Branch: {{$clientBranch->name}}</p>
                     </div>
-                </div>
+                    <div class="col-lg-4 col-xs-12">
+                        <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}}
+                            {{$staff->last_name}}</p>
+                    </div>
 
-            </div>
+                    <div class="col-lg-4 col-xs-12">
+                        <div class="small-box bg-red">
+                            <div class="inner">
+                                <p style="font-weight: bold;">Outstanding balance</p>
+                                <div class="icon">
+                                    <i class="fa fa-usd"></i>
+                                </div>
+                                <h3>0.00</h3>
+                            </div>
+                            <div class="small-box-footer">
+                                <p></p>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="box-footer">
-                <button type="submit" class="btn btn-primary pull-right">Load</button>
-            </div>
-        </form>
-    </div>
-
-        <div class="box box-success">
-        <div class="box-header with-border">
-            <h3 class="box-title">Performance Summary {{date("jS M, Y", strtotime($start))}} to {{date("jS M, Y", strtotime($end))}}</h3>
-        </div>
-
-        <div class="box-body">
-            @if(!$data)
-                <p>No data available or failed to fetch.</p>
-            @else
-
-                {{-- SUMMARY CARDS --}}
-                <div class="row" style="margin-bottom: 25px;">
-
-                    <div class="col-md-3 col-sm-6">
+                    <div class="col-lg-4 col-xs-12">
                         <div class="small-box bg-aqua">
                             <div class="inner">
-                                <h3>{{ number_format($data['total_uncollected']) }}</h3>
-                                <p>Cycle Opening Uncollected</p>
+                                <p style="font-weight: bold;">Due date</p>
+                                <div class="icon">
+                                    <i class="fa fa-calendar-o"></i>
+                                </div>
+                                <h3>-</h3>
                             </div>
-                            <div class="icon">
-                                <i class="fa fa-warning"></i>
+                            <div class="small-box-footer">
+                                <p></p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-md-3 col-sm-6">
+
+                    <div class="col-lg-4 col-xs-12">
                         <div class="small-box bg-green">
                             <div class="inner">
-                                <h3>{{ number_format($data['total_collected']) }}</h3>
-                                <p>Total Collected</p>
+                                <p style="font-weight: bold;">Paid</p>
+                                <div class="icon">
+                                    <i class="fa fa-usd"></i>
+                                </div>
+                                <h3>0.00</h3>
                             </div>
-                            <div class="icon">
-                                <i class="fa fa-money"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <div class="small-box bg-yellow">
-                            <div class="inner">
-                                <h3>{{ number_format($data['still_uncollected']) }}</h3>
-                                <p>Still Uncollected</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-hourglass-half"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 col-sm-6">
-                        <div class="small-box bg-purple">
-                            <div class="inner">
-                                <h3>{{ number_format($data['given_out']) }}</h3>
-                                <p>Given Out</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-arrow-up"></i>
+                            <div class="small-box-footer">
+                                <p></p>
                             </div>
                         </div>
                     </div>
 
                 </div>
-                {{-- END CARDS --}}
+            @else
+                    <div class="row">
+                        <div class="col-lg-4 col-xs-12">
+                            <p style="text-align: center; font-weight:bold; ">Name: {{$user->first_name}} {{$user->last_name}}</p>
+                        </div>
+                        <div class="col-lg-4 col-xs-12">
+                            <p style="text-align: center; font-weight:bold;">Branch: {{$clientBranch->name}}</p>
+                        </div>
+                        <div class="col-lg-4 col-xs-12">
+                            <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}}
+                                {{$staff->last_name}}</p>
+                        </div>
+                        <?php 
+                $balance = 0;
+                        ;
+                        $in = 0;
+                        $out = 0;
+                ?>
+                        @foreach($clientLoan->transactions as $transaction)
+                                <?php 
+                            if ($transaction->transaction_type != 'specified_due_date_fee') {
+                                        $out = $out + $transaction->debit;
+                                    }
 
-                <hr>
+                                    $in = $in + $transaction->credit;
+                            ?>
+                        @endforeach
+                        <?php 
+                $balance = $out - $in;
+                ?>
 
-            @endif
-        </div>
-    </div>
-
-
-	<!-- <div class="col-lg-4 col-xs-12">
-	<div class="small-box bg-yellow">
-	<div class="inner">
-	<p style="font-weight: bold;">Cycle opening uncollected amount (COUA)</p>
-	<div class="icon">
-	<i class="fa fa-usd"></i>
-	</div>
-	<h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
-	</div>
-	<div class="small-box-footer">
-	    <p></p>
-	</div>
-	</div>
-	</div> -->
-
-
-	<!-- <div class="col-lg-4 col-xs-12">
-	<div class="small-box bg-green">
-	<div class="inner">
-	<p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
-	<div class="icon">
-	<i class="fa fa-usd"></i>
-	</div>
-	<h3>{{number_format($collected_amounts[12],2)}}</h3>
-	</div>
-	<div class="small-box-footer">
-	    <p></p>
-	</div>
-	</div>
-	</div> -->
-
-	<!-- <div class="col-lg-4 col-xs-12">
-	<div class="small-box bg-aqua">
-	<div class="inner">
-	<p style="font-weight: bold;">Still Uncollected Today</p>
-	<div class="icon">
-	<i class="fa fa-usd"></i>
-	</div>
-	<h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
-	</div>
-	<div class="small-box-footer">
-	    <p></p>
-	</div>
-	</div>
-	</div> -->
-
-
-
-
-
-
-	</div>
-	<!--second row-->
-	<?php
-	$tots = ($collected_amounts[12]/$cycle_opening_uncollected_amounts[12])
-	?>
-
-	<div style="margin-bottom:30px; margin-top:30px;">
-	<p style="display: flex;
-	    align-items: center;
-	    justify-content: center; font-size:50px;">PDUA%</p>
-	<div style="display: flex;
-	    align-items: center;
-	    justify-content: center;">
-	    
-	<div class="gauge" style="width: 100%;
-	  max-width: 250px;
-	  font-size: 50px;
-	  color: #004033;">
-	    <div class="gauge__body" style=" width: 100%;
-	  height: 0;
-	  padding-bottom: 50%;
-	  background: #b4c0be;
-	  position: relative;
-	  border-top-left-radius: 100% 200%;
-	  border-top-right-radius: 100% 200%;
-	  overflow: hidden;">
-
-	@if(($tots) < 0.75)
-	 <div class="gauge__fill" style=" position: absolute;
-	  top: 100%;
-	  left: 0;
-	  width: inherit;
-	  height: 100%;
-	  background: red;
-	  transform-origin: center top;
-	  transform: rotate(0.25turn);
-	  transition: transform 0.2s ease-out;"></div>
-
-	@elseif(($tots) >= 0.90)
-	<div class="gauge__fill" style=" position: absolute;
-	  top: 100%;
-	  left: 0;
-	  width: inherit;
-	  height: 100%;
-	  background:#d4af37;
-	  transform-origin: center top;
-	  transform: rotate(0.25turn);
-	  transition: transform 0.2s ease-out;"></div>
-
-	@else
-	<div class="gauge__fill" style=" position: absolute;
-	  top: 100%;
-	  left: 0;
-	  width: inherit;
-	  height: 100%;
-	  background:green;
-	  transform-origin: center top;
-	  transform: rotate(0.25turn);
-	  transition: transform 0.2s ease-out;"></div>
-
-	@endif
-	    <div class="gauge__cover" style="width: 75%;
-	  height: 150%;
-	  background: #f7f7f7;
-	  border-radius: 50%;
-	  position: absolute;
-	  top: 25%;
-	  left: 50%;
-	  transform: translateX(-50%);
-
-	  /* Text */
-	  display: flex;
-	  align-items: center;
-	  justify-content: center;
-	  padding-bottom: 25%;
-	  box-sizing: border-box;"></div>
-
-	    </div>
-	</div>
-
-
-	</div>
-
-	<div style="display:flex; flex-direction:row; justify-content:space-between;
-	    align-items: center;
-	    justify-content: center;">
-	<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-	<div style="background-color: red;  height: 10px;
-	  width: 20px;">
-	</div>
-	<p style="text-align: center; font-weight:bold;">Poor</p>
-	</div>
-
-	<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-	<div style="background-color: green;  height: 10px;
-	  width: 20px;">
-	</div>
-	<p style="text-align: center; font-weight:bold;">Fair</p>
-	</div>
-	<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-	<div style="background-color: #d4af37;  height: 10px;
-	  width: 20px;">
-	</div>
-	<p style="text-align: center; font-weight:bold;">Good</p>
-	</div>
-
-	</div>
-	</div>
-
-	<div style="margin-bottom:30px; margin-top:30px;">
-	<div class="row">
-					<div class="col-md-12">
-					    <div class="text-center">
-						<h2 class=" text-semibold">{{ trans_choice('general.monthly',1) }} {{ trans_choice('general.target',1) }}</h2>
-					    </div>
-					    <div class="progress" data-toggle="tooltip"
-						 title="You're currently at : {{number_format($targets[12],2)}}">
-	<div class="progress-bar progress-bar-success progress-bar-striped active"
-						     style="width: {{($targets[12]/40000)*100}}% ">
-	@if($targets[12] > 40000)
-<span>You've reached your target congratulations!!!</span>
-@else
-<span>{{($targets[12]/40000)*100}} {{ trans_choice('general.complete',1) }}</span>
-@endif
-</div>
-</div>
+                        <div class="col-lg-4 col-xs-12">
+                            <div class="small-box bg-aqua">
+                                <div class="inner">
+                                    <p style="font-weight: bold;">Outstanding balance</p>
+                                    <div class="icon">
+                                        <i class="fa fa-usd"></i>
+                                    </div>
+                                    <h3>{{number_format($balance, 2)}}</h3>
+                                </div>
+                                <div class="small-box-footer">
+                                    <p></p>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="col-lg-4 col-xs-12">
+                            <div class="small-box bg-green">
+                                <div class="inner">
+                                    <p style="font-weight: bold;">Due date</p>
+                                    <div class="icon">
+                                        <i class="fa fa-calendar-o"></i>
+                                    </div>
+                                    <h3>{{date("jS M, Y", strtotime($clientLoan->expected_first_repayment_date))}}</h3>
+                                </div>
+                                <div class="small-box-footer">
+                                    <p></p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-4 col-xs-12">
+                            <div class="small-box bg-red">
+                                <div class="inner">
+                                    <p style="font-weight: bold;">Paid</p>
+                                    <div class="icon">
+                                        <i class="fa fa-usd"></i>
+                                    </div>
+                                    <h3>{{number_format($in, 2)}}</h3>
+                                </div>
+                                <div class="small-box-footer">
+                                    <p></p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+            @endif
+
+
+        </div>
+    @endif
+
+
+    <!-- What Loan Consultants see -->
+    @if($role->role_id == '3')
+
+
+        <div></div>
+
+        <div style="display: flex;
+            align-items: center;
+            justify-content: center; padding-bottom: 10px;">
+
+
+            <a href="{{ url('loan/my_collections') }}" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Collections</span>
+            </a>
+
+            <a href="javascript:;" onmousedown="toggleCOUA();" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">COUA</span>
+                <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
+            </a>
+
+            <a href="javascript:;" onmousedown="toggleTCC();" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">TCC</span>
+            </a>
+            <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
+
+            <a href="{{url('user/' . $userId . '/given_out_today/given_out_stats')}}" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Given out</span>
+            </a>
+
+        </div>
+
+
+        <!-- Default Dashboard -->
+        <div id='mydivon' style="display:block">
+            @if($end == 'NCI')
+                <div style="display: flex;
+                align-items: center;
+                justify-content: center;">
+                    <a href="{{ url('user/cycle') }}" class="btn btn-info btn-sm">
+                        Set your cycle end date
+                    </a>
+                </div>
+            @else
+
+                    <!-- first row -->
+                    <div class="row">
+                        <!-- cycle countdown -->
+                        <?php
+                        $MoneyGivenOut = 0;
+                        $MoneyCollected = 0;
+                        $reloan_amount = 0;
+                        $cycle_opening_uncollected_amount = 0.0001;
+                        $full_payments = 0;
+                        $part_payments = 0;
+                        $reloan_payments = 0;
+
+                ?>
+
+                        <!-- CALCULATING LOAN BALANCES FOR CYCLE OPENING UNCOLLECTED -->
+                        <?php
+                        $today = date('Y-m-d');
+                        $currrent_date = date('Y-m');
+                        $cycle_date = $currrent_date . '-' . $cycle_end;
+                        if ($today > $cycle_date) {
+                            $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                        }
+
+                        $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+                        $cycle_opening_uncollected_amounts = [];
+                        for ($x = 12; $x > -1; $x--) {
+                            $cycle_opening_uncollected_amount = 0;
+                            foreach ($myLoans as $loan) {
+                                $MoneyCollected = 0;
+                                $MoneyGivenOut = 0;
+                                $balance = 0;
+
+
+                                foreach ($loan->transactions as $transaction) {
+                                    if ($transaction->date <= date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->transaction_type != 'specified_due_date_fee') {
+                                        $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+                                    }
+
+                                    if ($transaction->date <= date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months'))) {
+                                        $MoneyCollected = $MoneyCollected + $transaction->credit;
+                                    }
+
+
+
+                                }
+
+                                $balance = $MoneyGivenOut - $MoneyCollected;
+                                $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+                            }
+
+                            array_push($cycle_opening_uncollected_amounts, $cycle_opening_uncollected_amount + 0.0001);
+
+                        }
+                ?>
+
+
+                        <!-- CALCULATING 12 MONTHS CYCLE COLLECTED USING TRANSACTIONS -->
+                        <?php
+                        $collected_amounts = [];
+                        $today = date('Y-m-d');
+                        $currrent_date = date('Y-m');
+                        $cycle_date = $currrent_date . $cycle_end;
+                        if ($today > $cycle_date) {
+                            $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                        }
+                        $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+                        $cycle_end_date = date('Y-m-d', strtotime($cycle_start . '+ 1 months'));
+                        $use = date('Y-m-');
+                        $todaysDate = date('Y-m-d');
+                        $targetDate = $use . $cycle_end;
+                        $targetDate = date('Y-m-d', strtotime($targetDate));
+                        if ($todaysDate > $targetDate) {
+                            $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+                        }
+                        $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+
+                        for ($x = 12; $x > -1; $x--) {
+                            foreach ($myTransactions as $transaction) {
+                                if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+                                    $full_payments = $full_payments + $transaction->credit;
+                                }
+
+                                if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+                                    $part_payments = $part_payments + $transaction->credit;
+                                }
+
+                                if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+
+                                    $reloan_amount = $transaction->balance_bf;
+                                    $interest = $transaction->credit / 0.4;
+                                    $reloan_payments = $reloan_payments + $reloan_amount;
+
+                                }
+                            }
+
+                            array_push($collected_amounts, ($full_payments + $part_payments + $reloan_payments));
+                            $full_payments = 0;
+                            $part_payments = 0;
+                            $reloan_payments = 0;
+
+
+                        }
+                 ?>
+
+
+                        <!-- CALCULATING 12 MONTHS GIVEN OUT USING TRANSACTIONS -->
+                        <?php
+                        $new_loan_total = 0;
+                        $reloan_total = 0;
+                        $targets = [];
+                        $transaction_total = 0;
+                        $carry_over = 0;
+                        $today = date('Y-m-d');
+                        $dates = [];
+                        $colors = [];
+                        $currrent_date = date('Y-m');
+                        $cycle_date = date('Y-m', strtotime($today)) . '-' . str_pad($cycle_end, 2, '0', STR_PAD_LEFT);
+                        if (strtotime($today) > strtotime($cycle_date)) {
+                            $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                        }
+                        $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+                        $cycle_end_date = date('Y-m-d', strtotime($cycle_start . '+ 1 months'));
+
+                        $use = date('Y-m-');
+                        $todaysDate = date('Y-m-d');
+                        $targetDate = $use . $cycle_end;
+                        $targetDate = date('Y-m-d', strtotime($targetDate));
+                        if ($todaysDate > $targetDate) {
+                            $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+                        }
+                        $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+
+                        for ($x = 12; $x > -1; $x--) {
+                            foreach ($myTransactions as $transaction) {
+                                if ($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+                                    $new_loan_total = $transaction->debit;
+                                }
+
+                                if ($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+                                    $principal = $transaction->debit / 0.4;
+                                    $reloan_total = $principal;
+                                }
+
+                                if ($transaction_total + $new_loan_total + $reloan_total >= 40000) {
+                                    if ($transaction_total == 40000) {
+                                        $carry_over = $carry_over + $new_loan_total + $reloan_total;
+                                    } else {
+                                        $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
+                                        $transaction_total = 40000;
+                                    }
+
+                                } else {
+                                    $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
+                                    $carry_over = 0;
+                                }
+
+                                $new_loan_total = 0;
+                                $reloan_total = 0;
+                            }
+
+                            array_push($targets, $transaction_total);
+                            if ($transaction_total < 40000) {
+                                array_push($colors, '#ff1c4b');
+                            } else {
+                                array_push($colors, '#57b7fa');
+                            }
+                            array_push($dates, date("jS M, Y", strtotime($cycle_date . '-' . $x . 'months')));
+                            $transaction_total = 0;
+                            $total = $reloan_total + $new_loan_total;
+                        }
+
+                ?>
+
+                        <?php 
+                    $uncollected_amounts = [];
+                        for ($x = 0; $x < 12; $x++) {
+                            array_push($uncollected_amounts, ($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
+                        }
+                    ?>
+
+                        <div class="box box-primary">
+
+
+                            <form method="GET" action="{{ url('dashboard') }}" class="form-horizontal">
+                                <div class="box-body">
+
+                                    {{-- Start Month --}}
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">Cycle Start</label>
+                                        <div class="col-md-3">
+                                            <input type="month" name="start_month" class="form-control"
+                                                value="{{ substr($start, 0, 7) }}">
+                                        </div>
+                                    </div>
+
+                                    {{-- End Month --}}
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">Cycle End</label>
+                                        <div class="col-md-3">
+                                            <input type="month" name="end_month" class="form-control" value="{{ substr($end, 0, 7) }}">
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="box-footer">
+                                    <button type="submit" class="btn btn-primary pull-right">Load</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="box box-success">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Performance Summary {{date("jS M, Y", strtotime($start))}} to
+                                    {{date("jS M, Y", strtotime($end))}}</h3>
                             </div>
 
-<canvas id='graph'></canvas>
-<canvas id='target_graph'></canvas>
+                            <div class="box-body">
+                                @if(!$data)
+                                    <p>No data available or failed to fetch.</p>
+                                @else
 
-@endif
+                                    {{-- SUMMARY CARDS --}}
+                                    <div class="row" style="margin-bottom: 25px;">
 
-</div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="small-box bg-aqua">
+                                                <div class="inner">
+                                                    <h3>{{ number_format($data['total_uncollected']) }}</h3>
+                                                    <p>Cycle Opening Uncollected</p>
+                                                </div>
+                                                <div class="icon">
+                                                    <i class="fa fa-warning"></i>
+                                                </div>
+                                            </div>
+                                        </div>
 
-<div id='coua' style="display:none">
-    <div class="box box-primary">
-    <div  id='mydivon_new' style="display:block" class="box-body table-responsive">
-    <div class="box-header with-border">
-            <h3 class="box-title">Loans at end of last cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
-        </a></h3>
-        </div>
-        <table class="table  table-bordered table-hover table-striped" id="data-table">
-                <thead>
-                <tr>
-                    <th>Loan ID</th>
-                    <th>Name</th>
-                    <th>Balance</th>
-                </tr>
-                </thead>
-                <tbody>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="small-box bg-green">
+                                                <div class="inner">
+                                                    <h3>{{ number_format($data['total_collected']) }}</h3>
+                                                    <p>Total Collected</p>
+                                                </div>
+                                                <div class="icon">
+                                                    <i class="fa fa-money"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="small-box bg-yellow">
+                                                <div class="inner">
+                                                    <h3>{{ number_format($data['still_uncollected']) }}</h3>
+                                                    <p>Still Uncollected</p>
+                                                </div>
+                                                <div class="icon">
+                                                    <i class="fa fa-hourglass-half"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="small-box bg-purple">
+                                                <div class="inner">
+                                                    <h3>{{ number_format($data['given_out']) }}</h3>
+                                                    <p>Given Out</p>
+                                                </div>
+                                                <div class="icon">
+                                                    <i class="fa fa-arrow-up"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    {{-- END CARDS --}}
+
+                                    <hr>
+
+                                @endif
+                            </div>
+                        </div>
+
+
+                        <!-- <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-yellow">
+                    <div class="inner">
+                    <p style="font-weight: bold;">Cycle opening uncollected amount (COUA)</p>
+                    <div class="icon">
+                    <i class="fa fa-usd"></i>
+                    </div>
+                    <h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
+                    </div>
+                    <div class="small-box-footer">
+                        <p></p>
+                    </div>
+                    </div>
+                    </div> -->
+
+
+                        <!-- <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-green">
+                    <div class="inner">
+                    <p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
+                    <div class="icon">
+                    <i class="fa fa-usd"></i>
+                    </div>
+                    <h3>{{number_format($collected_amounts[12],2)}}</h3>
+                    </div>
+                    <div class="small-box-footer">
+                        <p></p>
+                    </div>
+                    </div>
+                    </div> -->
+
+                        <!-- <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-aqua">
+                    <div class="inner">
+                    <p style="font-weight: bold;">Still Uncollected Today</p>
+                    <div class="icon">
+                    <i class="fa fa-usd"></i>
+                    </div>
+                    <h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
+                    </div>
+                    <div class="small-box-footer">
+                        <p></p>
+                    </div>
+                    </div>
+                    </div> -->
+
+
+
+
+
+
+                    </div>
+                    <!--second row-->
                     <?php
-                    $new_out = 0;
-                    $use = date('Y-m-');
-                    $todaysDate = date('Y-m-d');
-                    $targetDate = $use.$cycle_end;
-                    $targetDate = date('Y-m-d',strtotime($targetDate));
-                    if($todaysDate > $targetDate){
-                        $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
-                    }
-                    $compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
+                        $tots = ($collected_amounts[12] / $cycle_opening_uncollected_amounts[12])
                     ?>
-@foreach($myLoans as $loan)
 
+                    <div style="margin-bottom:30px; margin-top:30px;">
+                        <p style="display: flex;
+                        align-items: center;
+                        justify-content: center; font-size:50px;">PDUA%</p>
+                        <div style="display: flex;
+                        align-items: center;
+                        justify-content: center;">
+
+                            <div class="gauge" style="width: 100%;
+                      max-width: 250px;
+                      font-size: 50px;
+                      color: #004033;">
+                                <div class="gauge__body" style=" width: 100%;
+                      height: 0;
+                      padding-bottom: 50%;
+                      background: #b4c0be;
+                      position: relative;
+                      border-top-left-radius: 100% 200%;
+                      border-top-right-radius: 100% 200%;
+                      overflow: hidden;">
+
+                                    @if(($tots) < 0.75)
+                                                        <div class="gauge__fill" style=" position: absolute;
+                                          top: 100%;
+                                          left: 0;
+                                          width: inherit;
+                                          height: 100%;
+                                          background: red;
+                                          transform-origin: center top;
+                                          transform: rotate(0.25turn);
+                                          transition: transform 0.2s ease-out;"></div>
+
+                                    @elseif(($tots) >= 0.90)
+                                                        <div class="gauge__fill" style=" position: absolute;
+                                          top: 100%;
+                                          left: 0;
+                                          width: inherit;
+                                          height: 100%;
+                                          background:#d4af37;
+                                          transform-origin: center top;
+                                          transform: rotate(0.25turn);
+                                          transition: transform 0.2s ease-out;"></div>
+
+                                    @else
+                                                        <div class="gauge__fill" style=" position: absolute;
+                                          top: 100%;
+                                          left: 0;
+                                          width: inherit;
+                                          height: 100%;
+                                          background:green;
+                                          transform-origin: center top;
+                                          transform: rotate(0.25turn);
+                                          transition: transform 0.2s ease-out;"></div>
+
+                                    @endif
+                                    <div class="gauge__cover" style="width: 75%;
+                      height: 150%;
+                      background: #f7f7f7;
+                      border-radius: 50%;
+                      position: absolute;
+                      top: 25%;
+                      left: 50%;
+                      transform: translateX(-50%);
+
+                      /* Text */
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      padding-bottom: 25%;
+                      box-sizing: border-box;"></div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                        <div style="display:flex; flex-direction:row; justify-content:space-between;
+                        align-items: center;
+                        justify-content: center;">
+                            <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                                <div style="background-color: red;  height: 10px;
+                      width: 20px;">
+                                </div>
+                                <p style="text-align: center; font-weight:bold;">Poor</p>
+                            </div>
+
+                            <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                                <div style="background-color: green;  height: 10px;
+                      width: 20px;">
+                                </div>
+                                <p style="text-align: center; font-weight:bold;">Fair</p>
+                            </div>
+                            <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                                <div style="background-color: #d4af37;  height: 10px;
+                      width: 20px;">
+                                </div>
+                                <p style="text-align: center; font-weight:bold;">Good</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:30px; margin-top:30px;">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="text-center">
+                                    <h2 class=" text-semibold">{{ trans_choice('general.monthly', 1) }}
+                                        {{ trans_choice('general.target', 1) }}</h2>
+                                </div>
+                                <div class="progress" data-toggle="tooltip"
+                                    title="You're currently at : {{number_format($targets[12], 2)}}">
+                                    <div class="progress-bar progress-bar-success progress-bar-striped active"
+                                        style="width: {{($targets[12] / 40000) * 100}}% ">
+                                        @if($targets[12] > 40000)
+                                            <span>You've reached your target congratulations!!!</span>
+                                        @else
+                                            <span>{{($targets[12] / 40000) * 100}} {{ trans_choice('general.complete', 1) }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <canvas id='graph'></canvas>
+                    <canvas id='target_graph'></canvas>
+
+            @endif
+
+        </div>
+
+        <div id='coua' style="display:none">
+            <div class="box box-primary">
+                <div id='mydivon_new' style="display:block" class="box-body table-responsive">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Loans at end of last cycle<a href="javascript:;"
+                                onmousedown="toggleLedger('mydiv');">
+                            </a></h3>
+                    </div>
+                    <table class="table  table-bordered table-hover table-striped" id="data-table">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Name</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+            $new_out = 0;
+            $use = date('Y-m-');
+            $todaysDate = date('Y-m-d');
+            $targetDate = $use . $cycle_end;
+            $targetDate = date('Y-m-d', strtotime($targetDate));
+            if ($todaysDate > $targetDate) {
+                $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+            }
+            $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+                            ?>
+                            @foreach($myLoans as $loan)
+
+
+                                                    <?php
+                                        $OutIn = 0;
+                                        $out = 0;
+                                        $in = 0;
+                                ?>
+                                                    @foreach($loan->transactions as $transaction)
+                                                                            <?php
+
+                                                                    if ($transaction->transaction_type != 'specified_due_date_fee') {
+                                                                        $out = $out + $transaction->debit;
+                                                                    }
+
+
+                                                                    // if($transaction->date <= $compareDate && $transaction->transaction_type != 'interest_waiver'){
+                                                        //     $in = $in + $transaction->credit;
+                                                        // }
+
+
+                                                                    $in = $in + $transaction->credit;
+
+                                                                    // if($transaction->date <= $compareDate && $transaction->transaction_type == 'specified_due_date_fee'){
+                                                        //     $newout = $newout + $transaction->debit;
+                                                        // }
+
+                                                        ?>
+                                                    @endforeach
+
+                                                    <?php
+                                        $OutIn = $out - $in;
+                                        //$OutIn = $OutIn - $newout;
+                                // if($OutIn < 0){
+                                //     $OutIn = 0;
+                                // }
+
+                                ?>
+
+                                                    <tr>
+
+
+                                                        <td><a href="{{ url('loan/' . $loan->id . '/show') }}" data-toggle="tooltip"
+                                                                title="Click to view">{{$loan->id}}</a></td>
+                                                        @if(!empty($loan->client->first_name))
+                                                            <td>{{$loan->client->first_name}} {{$loan->client->last_name}}
+                                                                @if($loan->defaulted == 'yes')
+                                                                    <span style="color: red;">(Defaulted)</span>
+                                                                @endif
+                                                            </td>
+                                                            @if($OutIn < 0)
+                                                                <td style="color: red;">{{number_format($OutIn, 2)}}</td>
+                                                            @else
+                                                                <td>{{number_format($OutIn, 2)}}</td>
+                                                            @endif
+                                                        @endif
+                                                    </tr>
+                            @endforeach
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="box box-primary">
+            </div>
+
+        </div>
+
+
+        <div id='tcc' style="display:none" class="box-body table-responsive">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Transactions as at start of cycle<a href="javascript:;"
+                            onmousedown="toggleLedger('mydiv');">
+                        </a></h3>
+                </div>
+                <table class="table  table-bordered table-hover table-striped" id="data-table">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Name</th>
+                            <th>Transaction Type</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($myTransactions as $transaction)
+                            @if($transaction->transaction_type != 'interest_waiver' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->credit)
+                                <tr>
+                                    <td>{{$transaction->loan_id}} {{$targetDate}} {{$compareDate}}</td>
+                                    <td>
+                                        @if(isset($transaction->loan->client))
+                                            {{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td>{{$transaction->payment_apply_to}}</td>
+                                    <td>{{number_format($transaction->credit, 2)}}</td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+
+
+            </div>
+        </div>
+
+
+        <div id='given_out' style="display:none" class="box-body table-responsive">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Given out as at start of cycle<a href="javascript:;"
+                            onmousedown="toggleLedger('mydiv');">
+                        </a></h3>
+                </div>
+                <table class="table  table-bordered table-hover table-striped" id="data-table">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Name</th>
+                            <th>Transaction Type</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($myTransactions as $transaction)
+                            @if(($transaction->transaction_type == 'disbursement' || $transaction->transaction_type == 'interest') && $transaction->date > $compareDate && $transaction->date <= $targetDate)
+                                <tr>
+                                    <td>{{$transaction->loan_id}}</td>
+                                    <td>
+                                        @if(isset($transaction->loan->client))
+                                            {{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    @if($transaction->transaction_type == 'disbursement')
+                                        <td>New Loan</td>
+                                    @elseif($transaction->transaction_type == 'interest')
+                                        <td>Reloan</td>
+                                    @endif
+                                    @if($transaction->transaction_type == 'interest')
+                                        <td>{{number_format(($transaction->debit / 0.4), 2)}}</td>
+                                    @else
+                                        <td>{{number_format($transaction->debit, 2)}}</td>
+                                    @endif
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+
+
+            </div>
+        </div>
+
+
+        <!-- //GOES HERE -->
+        </div>
+
+    @endif
+
+    <!--What managers see-->
+    @if($role->role_id == '4')
+
+        <div style="display: flex;
+            align-items: center;
+            justify-content: center; padding-bottom: 10px; ">
+
+
+            <a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Collections</span>
+            </a>
+
+            <a href="javascript:;" onmousedown="toggleDiv('mydiv');" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">COUA and TCC breakdown</span>
+                <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
+            </a>
+
+            <a href="javascript:;" onmousedown="toggleMyStaff('mydiv');" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Staff information</span>
+                <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
+            </a>
+
+        </div>
+
+        <div id='mydivon' style="display:block">
+            <div class="row">
+                <?php
+            $use = date('Y-m-');
+            $todaysDate = date('Y-m-d');
+            $newTodaysDate = date('Y-m-d', strtotime($todaysDate . ' + 3 months'));
+            $branchtargetDate = $use . '24';
+            $branchtargetDate = date('Y-m-d', strtotime($branchtargetDate));
+            $cycle_opening_uncollected_amount_debit = 0;
+            $cycle_opening_uncollected_amount_credit = 0;
+            $disbursed_amount = 0;
+            $debit = 0;
+            $credit = 0;
+            $branch_total_cycle_collected_amount = 0;
+            $num = 0;
+            $item = 0;
+            $count = 0;
+            $targetCount = 0;
+            $sum = 0;
+            $transac = 0;
+            $firstAmount = 0;
+            $collected_total = 0;
+            $secondAmount = 0;
+
+            //BRANCH CYCLE OPENING UNCOLLECTED VARIABLES
+            $MoneyGivenOut = 0;
+            $MoneyCollected = 0;
+            $charges = 0;
+            $cycle_opening_uncollected_amount = 0.00001;
+
+            //BRANCH COLLECTED TOTAL CALCULATIONS
+            $collected_total = 0;
+            $full_payments = 0;
+            $part_payments = 0;
+            $reloan_payments = 0;
+            $reloan_amount = 0;
+
+            // BRANCH COLLECTED TOTAL CALCULATIONS 1 MONTH AGO
+            $collected_total_1_months = 0;
+            $reloan_amount_1_months = 0;
+            $full_payments_1_months = 0;
+            $part_payments_1_months = 0;
+            $reloan_payments_1_months = 0;
+
+            //BRANCH COLLECTED TOTAL CALCULATIONS 2 MONTHS AGO
+            $collected_total_2_months = 0;
+            $reloan_amount_2_months = 0;
+            $full_payments_2_months = 0;
+            $part_payments_2_months = 0;
+            $reloan_payments_2_months = 0;
+
+            //STAFF CALCULATIONS
+            $staff_count = 0;
+
+            //BRANCH TARGET CALCULATIONS
+            $target_monthly = 0;
+            $target_reloan = 0;
+            $target_total = 0;
+
+            if ($todaysDate > $branchtargetDate) {
+                $branchtargetDate = date('Y-m-d', strtotime($branchtargetDate . ' + 1 months'));
+            }
+            $branchcompareDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
+            $branchzeroDate = date('Y-m-d', strtotime($branchtargetDate . ' - 3 months'));
+            $branchfirstDate = date('Y-m-d', strtotime($branchtargetDate . ' - 2 months'));
+            $branchsecondDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
+            $testcompareDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
+            $testtargetDate
+        ?>
+
+                <!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
+                @foreach($newBranchLoans as $loan)
+                            <?php
+                            $MoneyCollected = 0;
+                            $MoneyGivenOut = 0;
+                            $charges = 0;
+                            $balance = 0;
+                    ?>
+                            @foreach($loan->transactions as $transaction)
+
+                                        <?php
+                                            if ($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee') {
+                                                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+                                            }
+
+                                            if ($transaction->date <= $branchcompareDate) {
+                                                $MoneyCollected = $MoneyCollected + $transaction->credit;
+                                            }
+
+                                ?>
+                            @endforeach
+                            <?php 
+                    $balance = $MoneyGivenOut - $MoneyCollected;
+
+
+                            $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+                            if ($cycle_opening_uncollected_amount == 0) {
+                                $cycle_opening_uncollected_amount = 1;
+                            }
+                    ?>
+                @endforeach
+
+                <!-- CALCULATING BRANCH CURRENT CYCLE COLLECTED USING TRANSACTIONS -->
+                @foreach($branchTransactions as $transaction)
+                            <?php 
+                    if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
+                                $full_payments = $full_payments + $transaction->credit;
+                            }
+
+                            if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
+                                $part_payments = $part_payments + $transaction->credit;
+                            }
+
+                            if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
+
+                                $reloan_amount = $transaction->balance_bf;
+                                $interest = $transaction->credit / 0.4;
+                                $reloan_payments = $reloan_payments + $reloan_amount;
+                            }
+
+
+                            //COLLECTIONS 1 MONTH AGO
+                            if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
+                                $full_payments_1_months = $full_payments_1_months + $transaction->credit;
+                            }
+
+                            if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
+                                $part_payments_1_months = $part_payments_1_months + $transaction->credit;
+                            }
+
+                            if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
+
+                                $reloan_amount_1_months = $transaction->credit;
+                                +($transaction->credit / 0.4);
+                                $interest = $transaction->credit / 0.4;
+                                $reloan_payments_1_months = $reloan_payments_1_months + $reloan_amount_1_months + $interest;
+                            }
+
+                            //COLLECTIONS 2 MONTHS AGO
+                            if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
+                                $full_payments_2_months = $full_payments_2_months + $transaction->credit;
+                            }
+
+                            if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
+                                $part_payments_2_months = $part_payments_2_months + $transaction->credit;
+                            }
+
+                            if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
+                                $reloan_amount_2_months = $transaction->credit;
+                                +($transaction->credit / 0.4);
+                                $interest = $transaction->credit / 0.4;
+                                $reloan_payments_2_months = $reloan_payments_2_months + $reloan_amount_2_months + $interest;
+                            }
+
+                    ?>
+                @endforeach
 
                 <?php
- $OutIn = 0;
- $out = 0;
- $in = 0;
-?>
-@foreach($loan->transactions as $transaction)
-<?php
-
-if($transaction->transaction_type != 'specified_due_date_fee'){
-    $out = $out + $transaction->debit;
-}
+            $collected_total = $reloan_payments + $part_payments + $full_payments;
+            $collected_total_1_months = $reloan_payments_1_months + $part_payments_1_months + $full_payments_1_months;
+            $collected_total_2_months = $reloan_payments_2_months + $part_payments_2_months + $full_payments_2_months;
+        ?>
 
 
-// if($transaction->date <= $compareDate && $transaction->transaction_type != 'interest_waiver'){
-//     $in = $in + $transaction->credit;
-// }
+                @foreach($branchUsers as $branchUser)
+                            <?php
+                            $target_total = 0;
+                            $target_monthly = 0;
+                            $target_reloan = 0;
+
+                            if ($branchUser->role->role_id != 1) {
+                                $staff_count = $staff_count + 1;
+                            }
+
+                            if ($branchUser->cycle_dates != null) {
+                                $end = $branchUser->cycle_dates->cycle_end_date;
+                            } else {
+                                $end = 1;
+                            }
+
+                            $branchReferenceTargetDate = $use . '24';
+                            $branchReferenceTargetDate = date('Y-m-d', strtotime($branchReferenceTargetDate));
+                            $targetDate = $use . $end;
+                            $targetDate = date('Y-m-d', strtotime($targetDate));
+
+                            if ($todaysDate > $branchReferenceTargetDate) {
+                                $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+                            }
+
+                            $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+                    ?>
+
+                            @foreach($newBranchLoans as $loan)
+                                @foreach($loan->transactions as $transaction)
+                                            <?php 
+                                    //branch transactions
+                                                    if ($loan->loan_officer_id == $branchUser->id) {
+                                                        if ($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id) {
+                                                            $target_monthly = $target_monthly + $transaction->debit;
+                                                        }
+                                                    }
+
+                                                    if ($loan->loan_officer_id == $branchUser->id) {
+                                                        if ($transaction->transaction_type == 'interest' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id) {
+                                                            $principal = $transaction->debit / 0.4;
+                                                            $target_reloan = $target_reloan + $principal;
+                                                        }
+                                                    }
+                                    ?>
+
+                                @endforeach
+                            @endforeach
+
+                            <?php
+                            $target_total = $target_monthly + $target_reloan;
+                            if ($target_total > 40000) {
+                                $targetCount = $targetCount + 1;
+                            }
+                    ?>
+                @endforeach
 
 
-    $in = $in + $transaction->credit;
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-aqua">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Branch cycle ends on</p>
+                            <div class="icon">
+                                <i class="fa fa-clock-o"></i>
+                            </div>
+                            <h3 id='branchCycle'></h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
 
-// if($transaction->date <= $compareDate && $transaction->transaction_type == 'specified_due_date_fee'){
-//     $newout = $newout + $transaction->debit;
-// }
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-yellow">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Branch cycle opening uncollected amount</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3>{{number_format($cycle_opening_uncollected_amount, 2)}}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
 
-?>
-@endforeach
-
-<?php
-$OutIn = $out - $in;
-//$OutIn = $OutIn - $newout;
-// if($OutIn < 0){
-//     $OutIn = 0;
-// }
-
-?>
-
-<tr>
-
-
-    <td><a href="{{ url('loan/'.$loan->id.'/show') }}" data-toggle="tooltip" title="Click to view">{{$loan->id}}</a></td>
-    @if(!empty($loan->client->first_name))
-    <td>{{$loan->client->first_name}} {{$loan->client->last_name}}
-        @if($loan->defaulted == 'yes')
-        <span style="color: red;">(Defaulted)</span>
-        @endif
-    </td>
-    @if($OutIn < 0)
-    <td style="color: red;">{{number_format($OutIn,2)}}</td>
-    @else
-    <td>{{number_format($OutIn,2)}}</td>
-    @endif
-    @endif
-</tr>
-@endforeach
-
-                </tbody>
-            </table>
-    </div>
-    </div>
-    <div class="box box-primary">
-    </div>
-
-</div>
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-green">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Branch total cycle collected amount (TCC)</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3>{{number_format($collected_total, 2)}}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
 
 
-<div id='tcc' style="display:none"  class="box-body table-responsive" >
-<div class="box box-primary">
-    <div class="box-header with-border">
-            <h3 class="box-title">Transactions as at start of cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
-        </a></h3>
+
+                <!-- 
+        <div class="col-lg-4 col-xs-12">
+        <div class="small-box bg-purple">
+        <div class="inner">
+        <p style="font-weight: bold;"># of staff</p>
+        <div class="icon">
+        <i class="fa fa-users"></i>
         </div>
-        <table class="table  table-bordered table-hover table-striped" id="data-table">
-                <thead>
-                <tr>
-                    <th>Loan ID</th>
-                    <th>Name</th>
-                    <th>Transaction Type</th>
-                    <th>Amount</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($myTransactions as $transaction)
-            @if($transaction->transaction_type != 'interest_waiver' && $transaction->date > $compareDate &&  $transaction->date <= $targetDate && $transaction->credit)
-         <tr>
-    <td>{{$transaction->loan_id}} {{$targetDate}} {{$compareDate}}</td> 
-    <td>{{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}</td>
-    <td>{{$transaction->payment_apply_to}}</td>
-    <td>{{number_format($transaction->credit,2)}}</td>
-</tr>
-@endif
-@endforeach
-</tbody>
-            </table>
-
-
+        <h3>{{$staff_count}}</h3>
         </div>
+        <div class="small-box-footer">
+            <p></p>
         </div>
-
-
-        <div id='given_out' style="display:none"  class="box-body table-responsive" >
-<div class="box box-primary">
-    <div class="box-header with-border">
-            <h3 class="box-title">Given out as at start of cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
-        </a></h3>
-        </div>
-        <table class="table  table-bordered table-hover table-striped" id="data-table">
-                <thead>
-                <tr>
-                    <th>Loan ID</th>
-                    <th>Name</th>
-                    <th>Transaction Type</th>
-                    <th>Amount</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($myTransactions as $transaction)
-            @if(($transaction->transaction_type == 'disbursement' || $transaction->transaction_type == 'interest') && $transaction->date > $compareDate &&  $transaction->date <= $targetDate)
-            <tr>
-    <td>{{$transaction->loan_id}}</td>
-    <td>{{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}</td>
-    @if($transaction->transaction_type == 'disbursement')
-    <td>New Loan</td>
-    @elseif($transaction->transaction_type == 'interest')
-    <td>Reloan</td>
-    @endif
-    @if($transaction->transaction_type == 'interest')
-    <td>{{number_format(($transaction->debit/0.4),2)}}</td>
-    @else
-    <td>{{number_format($transaction->debit,2)}}</td>
-    @endif
-</tr>
-@endif
-@endforeach
-</tbody>
-            </table>
-
-
         </div>
         </div>
 
 
-<!-- //GOES HERE -->
-</div>
-
-@endif
-
-<!--What managers see-->
-@if($role->role_id == '4')
-
-<div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px; ">
-    
-
-<a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Collections</span>
-</a>
-   
-<a href="javascript:;" onmousedown="toggleDiv('mydiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">COUA and TCC breakdown</span>
-<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-</a>
-
-<a href="javascript:;" onmousedown="toggleMyStaff('mydiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">Staff information</span>
-<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-</a>
-
-</div>
-
-<div id='mydivon' style="display:block">
-<div class="row">
-<?php
-$use = date('Y-m-');
-$todaysDate = date('Y-m-d');
-$newTodaysDate =  date('Y-m-d', strtotime($todaysDate. ' + 3 months'));
-$branchtargetDate = $use.'24';
-$branchtargetDate = date('Y-m-d',strtotime($branchtargetDate));
-$cycle_opening_uncollected_amount_debit = 0;
-$cycle_opening_uncollected_amount_credit = 0;
-$disbursed_amount = 0;
-$debit = 0; 
-$credit = 0;
-$branch_total_cycle_collected_amount = 0;
-$num = 0;
-$item = 0;
-$count = 0;
-$targetCount = 0;
-$sum = 0;
-$transac = 0;
-$firstAmount = 0;
-$collected_total = 0;
-$secondAmount = 0;
-
-//BRANCH CYCLE OPENING UNCOLLECTED VARIABLES
-$MoneyGivenOut = 0;
-$MoneyCollected = 0;
-$charges = 0;
-$cycle_opening_uncollected_amount = 0.00001;
-
-//BRANCH COLLECTED TOTAL CALCULATIONS
-$collected_total = 0;
-$full_payments = 0;
-$part_payments = 0;
-$reloan_payments = 0;
-$reloan_amount = 0;
-
-// BRANCH COLLECTED TOTAL CALCULATIONS 1 MONTH AGO
-$collected_total_1_months = 0;
-$reloan_amount_1_months = 0;
-$full_payments_1_months  = 0;
-$part_payments_1_months  = 0;
-$reloan_payments_1_months  = 0;
-
-//BRANCH COLLECTED TOTAL CALCULATIONS 2 MONTHS AGO
-$collected_total_2_months = 0;
-$reloan_amount_2_months = 0;
-$full_payments_2_months  = 0;
-$part_payments_2_months  = 0;
-$reloan_payments_2_months  = 0;
-
-//STAFF CALCULATIONS
-$staff_count = 0;
-
-//BRANCH TARGET CALCULATIONS
-$target_monthly = 0;
-$target_reloan = 0;
-$target_total = 0;
-
-if($todaysDate > $branchtargetDate){
-    $branchtargetDate = date('Y-m-d',strtotime($branchtargetDate. ' + 1 months'));
-}
-$branchcompareDate = date('Y-m-d',strtotime($branchtargetDate. ' - 1 months'));
-$branchzeroDate = date('Y-m-d', strtotime($branchtargetDate. ' - 3 months'));
-$branchfirstDate = date('Y-m-d', strtotime($branchtargetDate. ' - 2 months'));
-$branchsecondDate = date('Y-m-d', strtotime($branchtargetDate. ' - 1 months'));
-$testcompareDate = date('Y-m-d',strtotime($branchtargetDate. ' - 1 months'));
-$testtargetDate
-?>
-
-<!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
-@foreach($newBranchLoans as $loan)
-<?php
-$MoneyCollected = 0;
-$MoneyGivenOut = 0;
-$charges = 0;
-$balance = 0;
-?>
-@foreach($loan->transactions as $transaction)
-
-<?php
-if($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee'){
-    $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
-}
-
-if($transaction->date <= $branchcompareDate){
-    $MoneyCollected = $MoneyCollected + $transaction->credit;
-}
-
-?>
-@endforeach
-<?php 
-$balance = $MoneyGivenOut - $MoneyCollected;
-
-
-$cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
-if($cycle_opening_uncollected_amount == 0){
-    $cycle_opening_uncollected_amount = 1;
-}
-?>
-@endforeach
-
-<!-- CALCULATING BRANCH CURRENT CYCLE COLLECTED USING TRANSACTIONS -->
-@foreach($branchTransactions as $transaction)
-<?php 
-if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate){
-    $full_payments = $full_payments + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate){
-    $part_payments = $part_payments + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate){
-
-    $reloan_amount = $transaction->balance_bf;
-    $interest = $transaction->credit/0.4;
-    $reloan_payments = $reloan_payments + $reloan_amount; 
-}
-
-
-//COLLECTIONS 1 MONTH AGO
-if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate){
-    $full_payments_1_months = $full_payments_1_months + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate){
-    $part_payments_1_months = $part_payments_1_months + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate){
-
-    $reloan_amount_1_months = $transaction->credit; + ($transaction->credit/0.4);
-    $interest = $transaction->credit/0.4;
-    $reloan_payments_1_months = $reloan_payments_1_months + $reloan_amount_1_months + $interest;  
-}
-
-//COLLECTIONS 2 MONTHS AGO
-if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate){
-    $full_payments_2_months = $full_payments_2_months + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate){
-    $part_payments_2_months = $part_payments_2_months + $transaction->credit;
-}
-
-if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate){
-    $reloan_amount_2_months = $transaction->credit; + ($transaction->credit/0.4);
-    $interest = $transaction->credit/0.4;
-    $reloan_payments_2_months = $reloan_payments_2_months + $reloan_amount_2_months + $interest;  
-}
-
-?>
-@endforeach
-
-<?php
-$collected_total = $reloan_payments + $part_payments + $full_payments;
-$collected_total_1_months = $reloan_payments_1_months + $part_payments_1_months + $full_payments_1_months;
-$collected_total_2_months = $reloan_payments_2_months + $part_payments_2_months + $full_payments_2_months;
-?>
-
-
-@foreach($branchUsers as $branchUser)
-<?php
-$target_total = 0;
-$target_monthly = 0;
-$target_reloan = 0;
-
-if($branchUser->role->role_id != 1){
-    $staff_count = $staff_count + 1;
-}
-
-if($branchUser->cycle_dates != null){
-    $end = $branchUser->cycle_dates->cycle_end_date;
-}else{
-    $end = 1;
-}
-
-$branchReferenceTargetDate = $use.'24';
-$branchReferenceTargetDate = date('Y-m-d',strtotime($branchReferenceTargetDate));
-$targetDate = $use.$end;
-$targetDate = date('Y-m-d',strtotime($targetDate));
-
-if($todaysDate > $branchReferenceTargetDate){
-    $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
-}
-
-$compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
-?>
-
-@foreach($newBranchLoans as $loan)
-@foreach($loan->transactions as $transaction)
-<?php 
-//branch transactions
-if($loan->loan_officer_id == $branchUser->id){
-    if($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id){
-        $target_monthly = $target_monthly + $transaction->debit;
-    }
-}
-
-if($loan->loan_officer_id == $branchUser->id){
-    if($transaction->transaction_type == 'interest' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id ){
-        $principal = $transaction->debit/0.4;
-        $target_reloan = $target_reloan + $principal;
-    }
-}
-?>
-
-@endforeach
-@endforeach
-
-<?php
-$target_total = $target_monthly + $target_reloan;
-if($target_total > 40000){
-    $targetCount = $targetCount + 1;
-}
-?>
-@endforeach
-
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-aqua">
-<div class="inner">
-<p style="font-weight: bold;">Branch cycle ends on</p>
-<div class="icon">
-<i class="fa fa-clock-o"></i>
-</div>
-<h3 id='branchCycle'></h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-yellow">
-<div class="inner">
-<p style="font-weight: bold;">Branch cycle opening uncollected amount</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($cycle_opening_uncollected_amount,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-green">
-<div class="inner">
-<p style="font-weight: bold;">Branch total cycle collected amount (TCC)</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($collected_total,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-
-
-<!-- 
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-purple">
-<div class="inner">
-<p style="font-weight: bold;"># of staff</p>
-<div class="icon">
-<i class="fa fa-users"></i>
-</div>
-<h3>{{$staff_count}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-red">
-<div class="inner">
-<p style="font-weight: bold;">Targets met</p>
-<div class="icon">
-<i class="fa fa-trophy"></i>
-</div>
-<h3>{{$targetCount}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-blue">
-<div class="inner">
-<p style="font-weight: bold;">Branch efficiency</p>
-<div class="icon">
-<i class="fa fa-line-chart"></i>
-</div>
-<h3>{{number_format(($targetCount/$staff_count)*100)}}%</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div> -->
-</div> 
-
-
-<div style="margin-bottom:30px; margin-top:30px;">
-<p style="display: flex;
-    align-items: center;
-    justify-content: center; font-size:50px;">PDUA%</p>
-<div style="display: flex;
-    align-items: center;
-    justify-content: center;">
-    
-<div class="gauge" style="width: 100%;
-  max-width: 250px;
-  font-size: 50px;
-  color: #004033;">
-    <div class="gauge__body" style=" width: 100%;
-  height: 0;
-  padding-bottom: 50%;
-  background: #b4c0be;
-  position: relative;
-  border-top-left-radius: 100% 200%;
-  border-top-right-radius: 100% 200%;
-  overflow: hidden;">
-
-@if(($collected_total/$cycle_opening_uncollected_amount) < 0.75)
- <div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background: red;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@elseif(($collected_total/$cycle_opening_uncollected_amount) >= 0.90)
-<div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background:#d4af37;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@else
-<div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background:green;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@endif
-    <div class="gauge__cover" style="width: 75%;
-  height: 150%;
-  background: #f7f7f7;
-  border-radius: 50%;
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  transform: translateX(-50%);
-
-  /* Text */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 25%;
-  box-sizing: border-box;"></div>
-
-    </div>
-</div>
-
-
-</div>
-
-<div style="display:flex; flex-direction:row; justify-content:space-between;
-    align-items: center;
-    justify-content: center;">
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: red;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Poor</p>
-</div>
-
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: green;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Fair</p>
-</div>
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: #d4af37;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Good</p>
-</div>
-
-</div>
-</div>
-
-<canvas id='branchgraph'></canvas>
-
-</div>
-
-
-<div id='mydivstaff' style="display:none">
-@foreach($branchUsers as $branchUser)
-<a href="{{url('user/'.$branchUser->id.'/staff_info')}}">
-<div class="col-md-3 col-sm-6 col-xs-12">
-<div class="info-box bg-purple">
-<span class="info-box-icon"><i class="fa fa-user-o"></i></span>
-<div class="info-box-content">
-<span class="info-box-text">{{$branchUser->first_name}} {{$branchUser->last_name}}</span>
-@if($branchUser->role->role_id == '3')
-<p style="font-size: 15px;">Loan Consultant</p>
-@elseif($branchUser->role->role_id == '4')
-<p>Branch Manager</p>
-@else
-<p></p>
-@endif
-</div>
-</div>
-</div>
-</a>
-@endforeach
-</div>
-
-
-
-<div id='mydivoff' style="display:none">
-<div class="box box-primary">
-<div id='mydivon_new' style="display:block" class="box-body table-responsive">
-<div class="box-header with-border">
-<h3 class="box-title">Loans at end of last cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
-            <span style="font-size: 15px; padding-left: 10px;">TCC breakdown</span>
-        </a></h3>
-</div>
-<table class="table  table-bordered table-hover table-striped" id="data-table">
-<thead>
-    <tr>
-    <th>Loan ID</th>
-    <th>Name</th>
-    <th>Balance</th>
-    </tr>
-</thead>
-<tbody>
-@foreach($newBranchLoans as $loan)
-<?php
-$OutIn = 0;
-$out = 0;
-$in = 0;
-$newout = 0;
-?>
-@foreach($loan->transactions as $transaction)
-<?php
-
-if($transaction->transaction_type != 'specified_due_date_fee'){
-    $out = $out + $transaction->debit;
-}
-
-$in = $in + $transaction->credit;
-?>
-@endforeach
-<?php
-$OutIn = $out - $in;
-$OutIn = $OutIn - $newout;
-?>
-<tr>
-   @if($OutIn != 0)
-    <td>{{$loan->id}}</td>
-    <td>
-    @if(!empty($loan->client->first_name))
-        {{$loan->client->first_name}} 
-    @endif
-    @if(!empty($loan->client->last_name))
-        {{$loan->client->last_name}}
-    @endif
-        @if($loan->defaulted == 'yes')
-        <span style="color: red;">(Defaulted)</span>
-        @endif
-    </td>
-    @if($OutIn < 0)
-    <td style="color: red;">{{number_format($OutIn,2)}}</td>
-    @else
-    <td>{{number_format($OutIn,2)}}</td>
-    @endif
-    @endif
-</tr>
-@endforeach
-</tbody>
-</table>
-</div>
-</div>
-
-<div class="box box-primary">
-<div id='mydivoff_new' style="display:none"  class="box-body table-responsive" >
-<div class="box-header with-border">
-            <h3 class="box-title">Transactions as at start of cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
-            <span style="font-size: 15px; padding-left: 10px;">COUA breakdown</span>
-        </a></h3>
+        <div class="col-lg-4 col-xs-12">
+        <div class="small-box bg-red">
+        <div class="inner">
+        <p style="font-weight: bold;">Targets met</p>
+        <div class="icon">
+        <i class="fa fa-trophy"></i>
         </div>
-        <table class="table  table-bordered table-hover table-striped" id="data-table">
-            <thead>
-                <tr>
-                <th>Loan ID</th>
-                    <th>Name</th>
-                    <th>Transaction Type</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach($branchTransactions as $transaction)
-            @if($transaction->transaction_type != 'interest_waiver' && $transaction->date > $branchcompareDate &&  $transaction->date <= $branchtargetDate && $transaction->credit)
-         <tr>
-    <td>{{$transaction->loan_id}}</td>
-    <td>{{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}</td>
-    <td>{{$transaction->payment_apply_to}}</td>
-    <td>{{number_format($transaction->credit,2)}}</td>
-</tr>       
-@endif
-@endforeach
-            </tbody>
-        </table>
-</div>
-</div>
-</div>
-
- <?php
-                                            $office_id = Sentinel::getUser()->office_id;
-?>
-<div id="pendingWidget" style="
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 350px;
-    background: #fefefe;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    overflow: hidden;
-    z-index: 9999;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    cursor: move;
-    transition: transform 0.2s ease;
-">
-    <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
-        <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
-        <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
-        <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
-        <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
-        <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
-        <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
-        <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Advance::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
-        <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\TopUp::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
-        <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{
-             \App\Models\Leave::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-</div>
-@endif
+        <h3>{{$targetCount}}</h3>
+        </div>
+        <div class="small-box-footer">
+            <p></p>
+        </div>
+        </div>
+        </div>
 
 
-<!-- What PMs see -->
-@if($role->role_id == '6')
-   <div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px; ">
-
-<a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Collections</span>
-</a>
-
-<a href="javascript:;" onmousedown="toggleMyStaff('mydiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">Branches</span>
-<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-</a>
-
-
-
-</div>
-<div id='mydivon' style="display:block">
-<div class="row">
-<?php
-$use = date('Y-m-');
-$todaysDate = date('Y-m-d');
-$newTodaysDate =  date('Y-m-d', strtotime($todaysDate. ' + 3 months'));
-$branchtargetDate = $use.'24';
-$branchtargetDate = date('Y-m-d',strtotime($branchtargetDate));
-
-if($todaysDate > $branchtargetDate){
-    $branchtargetDate = date('Y-m-d',strtotime($branchtargetDate. ' + 1 months'));
-}
-$branchcompareDate = date('Y-m-d',strtotime($branchtargetDate. ' - 1 months'));
-$branchzeroDate = date('Y-m-d', strtotime($branchtargetDate. ' - 3 months'));
-$branchfirstDate = date('Y-m-d', strtotime($branchtargetDate. ' - 2 months'));
-$provincefirstDate = date('Y-m-d', strtotime($branchtargetDate. ' - 2 months'));
-$branchsecondDate = date('Y-m-d', strtotime($branchtargetDate. ' - 1 months'));
+        <div class="col-lg-4 col-xs-12">
+        <div class="small-box bg-blue">
+        <div class="inner">
+        <p style="font-weight: bold;">Branch efficiency</p>
+        <div class="icon">
+        <i class="fa fa-line-chart"></i>
+        </div>
+        <h3>{{number_format(($targetCount/$staff_count)*100)}}%</h3>
+        </div>
+        <div class="small-box-footer">
+            <p></p>
+        </div>
+        </div> -->
+            </div>
 
 
-//BRANCH CYCLE OPENING UNCOLLECTED VARIABLES
-$MoneyGivenOut = 0;
-$MoneyCollected = 0;
-$charges = 0;
-$cycle_opening_uncollected_amount = 0.0001;
+            <div style="margin-bottom:30px; margin-top:30px;">
+                <p style="display: flex;
+            align-items: center;
+            justify-content: center; font-size:50px;">PDUA%</p>
+                <div style="display: flex;
+            align-items: center;
+            justify-content: center;">
+
+                    <div class="gauge" style="width: 100%;
+          max-width: 250px;
+          font-size: 50px;
+          color: #004033;">
+                        <div class="gauge__body" style=" width: 100%;
+          height: 0;
+          padding-bottom: 50%;
+          background: #b4c0be;
+          position: relative;
+          border-top-left-radius: 100% 200%;
+          border-top-right-radius: 100% 200%;
+          overflow: hidden;">
+
+                            @if(($collected_total / $cycle_opening_uncollected_amount) < 0.75)
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background: red;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @elseif(($collected_total / $cycle_opening_uncollected_amount) >= 0.90)
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background:#d4af37;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @else
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background:green;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @endif
+                            <div class="gauge__cover" style="width: 75%;
+          height: 150%;
+          background: #f7f7f7;
+          border-radius: 50%;
+          position: absolute;
+          top: 25%;
+          left: 50%;
+          transform: translateX(-50%);
+
+          /* Text */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding-bottom: 25%;
+          box-sizing: border-box;"></div>
+
+                        </div>
+                    </div>
 
 
-//BRANCH COLLECTED TOTAL CALCULATIONS
-$collected_total = 0;
-$full_payments = 0;
-$part_payments = 0;
-$reloan_payments = 0;
-$reloan_amount = 0;
+                </div>
 
-// BRANCH COLLECTED TOTAL CALCULATIONS 1 MONTH AGO
-$collected_total_1_months = 0;
-$reloan_amount_1_months = 0;
-$full_payments_1_months  = 0;
-$part_payments_1_months  = 0;
-$reloan_payments_1_months  = 0;
+                <div style="display:flex; flex-direction:row; justify-content:space-between;
+            align-items: center;
+            justify-content: center;">
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: red;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Poor</p>
+                    </div>
 
-//BRANCH COLLECTED TOTAL CALCULATIONS 2 MONTHS AGO
-$collected_total_2_months = 0;
-$reloan_amount_2_months = 0;
-$full_payments_2_months  = 0;
-$part_payments_2_months  = 0;
-$reloan_payments_2_months  = 0;
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: green;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Fair</p>
+                    </div>
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: #d4af37;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Good</p>
+                    </div>
 
-//GIVEN OUT AMOUNTS
-$given_out_total = 0;
-$new_loans_given_out = 0;
-$reloans_given_out = 0;
+                </div>
+            </div>
 
-//COUNTS
-$bar_chart_count = 0;
-$collections_count_fullpayment = 0;
-$collections_count_reloan = 0;
-$collections_count_partpayment = 0;
-$givenout_count_newloan = 0;
-$givenout_count_reloan = 0;
-$trans_id = 0;
-$trans_id_int = 0;
-$cycle_opening_uncollected_amounts = [];
+            <canvas id='branchgraph'></canvas>
 
-// foreach($province_loans as $province_loan){
-//     foreach($province_loan->transactions as $transaction){
-//         array_push($province_transactions, $transaction);
-//     }
-// }
-?>
-
-<?php
-$today = date('Y-m-d');
-$currrent_date = date('Y-m');
-$cycle_date = $currrent_date.'-'.'24';
-if($today > $cycle_date){
-    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
-}
-
-$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
-for($x=12; $x>-1; $x--){
-    $cycle_opening_uncollected_amount = 0;
-    foreach($province_loans as $loan){
-        $MoneyCollected = 0;
-$MoneyGivenOut = 0;
-$balance = 0;
+        </div>
 
 
-        foreach($loan->transactions as $transaction){
-            if($transaction->date <= date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->transaction_type != 'specified_due_date_fee'){
-                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+        <div id='mydivstaff' style="display:none">
+            @foreach($branchUsers as $branchUser)
+                <a href="{{url('user/' . $branchUser->id . '/staff_info')}}">
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box bg-purple">
+                            <span class="info-box-icon"><i class="fa fa-user-o"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">{{$branchUser->first_name}} {{$branchUser->last_name}}</span>
+                                @if($branchUser->role->role_id == '3')
+                                    <p style="font-size: 15px;">Loan Consultant</p>
+                                @elseif($branchUser->role->role_id == '4')
+                                    <p>Branch Manager</p>
+                                @else
+                                    <p></p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+
+
+
+        <div id='mydivoff' style="display:none">
+            <div class="box box-primary">
+                <div id='mydivon_new' style="display:block" class="box-body table-responsive">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Loans at end of last cycle<a href="javascript:;"
+                                onmousedown="toggleLedger('mydiv');">
+                                <span style="font-size: 15px; padding-left: 10px;">TCC breakdown</span>
+                            </a></h3>
+                    </div>
+                    <table class="table  table-bordered table-hover table-striped" id="data-table">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Name</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($newBranchLoans as $loan)
+                                                    <?php
+                                        $OutIn = 0;
+                                        $out = 0;
+                                        $in = 0;
+                                        $newout = 0;
+                                ?>
+                                                    @foreach($loan->transactions as $transaction)
+                                                                            <?php
+
+                                                                    if ($transaction->transaction_type != 'specified_due_date_fee') {
+                                                                        $out = $out + $transaction->debit;
+                                                                    }
+
+                                                                    $in = $in + $transaction->credit;
+                                                        ?>
+                                                    @endforeach
+                                                    <?php
+                                        $OutIn = $out - $in;
+                                        $OutIn = $OutIn - $newout;
+                                ?>
+                                                    <tr>
+                                                        @if($OutIn != 0)
+                                                            <td>{{$loan->id}}</td>
+                                                            <td>
+                                                                @if(!empty($loan->client->first_name))
+                                                                    {{$loan->client->first_name}}
+                                                                @endif
+                                                                @if(!empty($loan->client->last_name))
+                                                                    {{$loan->client->last_name}}
+                                                                @endif
+                                                                @if($loan->defaulted == 'yes')
+                                                                    <span style="color: red;">(Defaulted)</span>
+                                                                @endif
+                                                            </td>
+                                                            @if($OutIn < 0)
+                                                                <td style="color: red;">{{number_format($OutIn, 2)}}</td>
+                                                            @else
+                                                                <td>{{number_format($OutIn, 2)}}</td>
+                                                            @endif
+                                                        @endif
+                                                    </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="box box-primary">
+                <div id='mydivoff_new' style="display:none" class="box-body table-responsive">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Transactions as at start of cycle<a href="javascript:;"
+                                onmousedown="toggleLedger('mydiv');">
+                                <span style="font-size: 15px; padding-left: 10px;">COUA breakdown</span>
+                            </a></h3>
+                    </div>
+                    <table class="table  table-bordered table-hover table-striped" id="data-table">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Name</th>
+                                <th>Transaction Type</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($branchTransactions as $transaction)
+                                @if($transaction->transaction_type != 'interest_waiver' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate && $transaction->credit)
+                                    <tr>
+                                        <td>{{$transaction->loan_id}}</td>
+                                        <td>
+                                            @if(isset($transaction->loan->client))
+                                                {{$transaction->loan->client->first_name}} {{$transaction->loan->client->last_name}}
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                        <td>{{$transaction->payment_apply_to}}</td>
+                                        <td>{{number_format($transaction->credit, 2)}}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <?php
+            $office_id = Sentinel::getUser()->office_id;
+        ?>
+        <div id="pendingWidget" style="
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 350px;
+            background: #fefefe;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            overflow: hidden;
+            z-index: 9999;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            cursor: move;
+            transition: transform 0.2s ease;
+        ">
+            <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
+                <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id', $office_id)->count() }}
+                </p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
+                <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\LoanTransactionUnapproved::where('office_id', $office_id)->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
+                <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\LoanTransactionsPending::where('office_id', $office_id)->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
+                <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\WaiverTransactionUnapproved::where('status', 'pending')->where('office_id', $office_id)->count() }}
+                </p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
+                <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\ChargeTransactionUnapproved::where('status', 'pending')->where('office_id', $office_id)->count() }}
+                </p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
+                <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\Client::where('status', 'pending')->where('office_id', $office_id)->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
+                <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Advance::where('status', 'pending')
+                ->where('office_id', $office_id)
+                ->count()}}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
+                <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\TopUp::where('status', 'pending')
+                ->where('office_id', $office_id)
+                ->count()}}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
+                <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{
+                \App\Models\Leave::where('status', 'pending')
+                    ->where('office_id', $office_id)
+                    ->count()}}</p>
+            </div>
+        </div>
+    @endif
+
+
+    <!-- What PMs see -->
+    @if($role->role_id == '6')
+        <div style="display: flex;
+            align-items: center;
+            justify-content: center; padding-bottom: 10px; ">
+
+            <a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Collections</span>
+            </a>
+
+            <a href="javascript:;" onmousedown="toggleMyStaff('mydiv');" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Branches</span>
+                <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
+            </a>
+
+
+
+        </div>
+        <div id='mydivon' style="display:block">
+            <div class="row">
+                <?php
+            $use = date('Y-m-');
+            $todaysDate = date('Y-m-d');
+            $newTodaysDate = date('Y-m-d', strtotime($todaysDate . ' + 3 months'));
+            $branchtargetDate = $use . '24';
+            $branchtargetDate = date('Y-m-d', strtotime($branchtargetDate));
+
+            if ($todaysDate > $branchtargetDate) {
+                $branchtargetDate = date('Y-m-d', strtotime($branchtargetDate . ' + 1 months'));
             }
-            
-            if($transaction->date <= date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months'))){
-                $MoneyCollected = $MoneyCollected + $transaction->credit;
+            $branchcompareDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
+            $branchzeroDate = date('Y-m-d', strtotime($branchtargetDate . ' - 3 months'));
+            $branchfirstDate = date('Y-m-d', strtotime($branchtargetDate . ' - 2 months'));
+            $provincefirstDate = date('Y-m-d', strtotime($branchtargetDate . ' - 2 months'));
+            $branchsecondDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
+
+
+            //BRANCH CYCLE OPENING UNCOLLECTED VARIABLES
+            $MoneyGivenOut = 0;
+            $MoneyCollected = 0;
+            $charges = 0;
+            $cycle_opening_uncollected_amount = 0.0001;
+
+
+            //BRANCH COLLECTED TOTAL CALCULATIONS
+            $collected_total = 0;
+            $full_payments = 0;
+            $part_payments = 0;
+            $reloan_payments = 0;
+            $reloan_amount = 0;
+
+            // BRANCH COLLECTED TOTAL CALCULATIONS 1 MONTH AGO
+            $collected_total_1_months = 0;
+            $reloan_amount_1_months = 0;
+            $full_payments_1_months = 0;
+            $part_payments_1_months = 0;
+            $reloan_payments_1_months = 0;
+
+            //BRANCH COLLECTED TOTAL CALCULATIONS 2 MONTHS AGO
+            $collected_total_2_months = 0;
+            $reloan_amount_2_months = 0;
+            $full_payments_2_months = 0;
+            $part_payments_2_months = 0;
+            $reloan_payments_2_months = 0;
+
+            //GIVEN OUT AMOUNTS
+            $given_out_total = 0;
+            $new_loans_given_out = 0;
+            $reloans_given_out = 0;
+
+            //COUNTS
+            $bar_chart_count = 0;
+            $collections_count_fullpayment = 0;
+            $collections_count_reloan = 0;
+            $collections_count_partpayment = 0;
+            $givenout_count_newloan = 0;
+            $givenout_count_reloan = 0;
+            $trans_id = 0;
+            $trans_id_int = 0;
+            $cycle_opening_uncollected_amounts = [];
+
+            // foreach($province_loans as $province_loan){
+        //     foreach($province_loan->transactions as $transaction){
+        //         array_push($province_transactions, $transaction);
+        //     }
+        // }
+        ?>
+
+                <?php
+            $today = date('Y-m-d');
+            $currrent_date = date('Y-m');
+            $cycle_date = $currrent_date . '-' . '24';
+            if ($today > $cycle_date) {
+                $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
             }
-            
-            
-         
-        }
 
-        $balance = $MoneyGivenOut - $MoneyCollected;
-        $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
-    }
-
-array_push($cycle_opening_uncollected_amounts ,$cycle_opening_uncollected_amount + 0.0001);
-
-}
-?>
-
-<?php
-$collected_amounts = [];
-$today = date('Y-m-d');
-$currrent_date = date('Y-m');
-$cycle_date = $currrent_date.'-'.'24';
-if($today > $cycle_date){
-    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
-}
-$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
+            $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+            for ($x = 12; $x > -1; $x--) {
+                $cycle_opening_uncollected_amount = 0;
+                foreach ($province_loans as $loan) {
+                    $MoneyCollected = 0;
+                    $MoneyGivenOut = 0;
+                    $balance = 0;
 
 
-for($x=12; $x>-1; $x--){
-    foreach($province_transactions as $transaction){
-        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
-            $full_payments = $full_payments + $transaction->credit;
-        }
+                    foreach ($loan->transactions as $transaction) {
+                        if ($transaction->date <= date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->transaction_type != 'specified_due_date_fee') {
+                            $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+                        }
 
-        if($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
-            $part_payments = $part_payments + $transaction->credit;
-        }
-
-        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
-
-            $reloan_amount = $transaction->balance_bf; //+ ($transaction->credit/0.4);
-            $interest = $transaction->credit/0.4;
-            $reloan_payments = $reloan_payments + $reloan_amount;
-        
-        }
-    }
-
-    array_push($collected_amounts,($full_payments + $part_payments + $reloan_payments));
-    $full_payments = 0;
-    $part_payments = 0;
-    $reloan_payments = 0;
-
-
- }
- ?>
+                        if ($transaction->date <= date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months'))) {
+                            $MoneyCollected = $MoneyCollected + $transaction->credit;
+                        }
 
 
 
-<?php 
-$collections = [];
-$given_out = [];
-$target_dates = [];
-while($bar_chart_count < 5){
+                    }
 
+                    $balance = $MoneyGivenOut - $MoneyCollected;
+                    $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+                }
 
-    $branchtargetDateAlgo = date('Y-m-d',strtotime($branchtargetDate. ' - '. $bar_chart_count.'months'));
-    $branchcompareDateAlgo = date('Y-m-d',strtotime($branchcompareDate. ' - '. $bar_chart_count.'months'));
-    $reloan_payments = 0;
-    $reloan_amount = 0;
-    $full_payments = 0;
-    $part_payments = 0;
-    $new_loans_given_out = 0;
-    $reloans_given_out = 0;
-    $interest = 0;
-    $principal = 0;
-   // {{date("jS M, Y", strtotime($compareDate))}} 
-    array_push($target_dates,date("jS M, Y",strtotime($branchtargetDateAlgo)));
+                array_push($cycle_opening_uncollected_amounts, $cycle_opening_uncollected_amount + 0.0001);
 
-    foreach($province_transactions as $transaction){
-        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
-            $full_payments = $full_payments + $transaction->credit;
-            if($bar_chart_count == 4){
-                $collections_count_fullpayment = $collections_count_fullpayment + 1;
             }
-        }
-        
-        if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
-            $part_payments = $part_payments + $transaction->credit;
-            if($bar_chart_count == 4){
-                $collections_count_partpayment = $collections_count_partpayment + 1;
+        ?>
+
+                <?php
+            $collected_amounts = [];
+            $today = date('Y-m-d');
+            $currrent_date = date('Y-m');
+            $cycle_date = $currrent_date . '-' . '24';
+            if ($today > $cycle_date) {
+                $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
             }
-        }
-        
-        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
-        
-            $reloan_amount = $transaction->balance_bf;
-            $interest = $transaction->credit/0.4;
-            $reloan_payments = $reloan_payments + $reloan_amount;
-            if($bar_chart_count == 4){
-                $collections_count_reloan = $collections_count_reloan + 1;
+            $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+
+
+            for ($x = 12; $x > -1; $x--) {
+                foreach ($province_transactions as $transaction) {
+                    if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($cycle_date . '-' . $x . 'months'))) {
+                        $full_payments = $full_payments + $transaction->credit;
+                    }
+
+                    if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($cycle_date . '-' . $x . 'months'))) {
+                        $part_payments = $part_payments + $transaction->credit;
+                    }
+
+                    if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($cycle_date . '-' . $x . 'months'))) {
+
+                        $reloan_amount = $transaction->balance_bf; //+ ($transaction->credit/0.4);
+                        $interest = $transaction->credit / 0.4;
+                        $reloan_payments = $reloan_payments + $reloan_amount;
+
+                    }
+                }
+
+                array_push($collected_amounts, ($full_payments + $part_payments + $reloan_payments));
+                $full_payments = 0;
+                $part_payments = 0;
+                $reloan_payments = 0;
+
+
             }
-        }
+         ?>
 
-        if($transaction->transaction_type == 'disbursement' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
-            $new_loans_given_out = $new_loans_given_out + $transaction->debit;
-            if($bar_chart_count == 4){
-                $givenout_count_newloan = $givenout_count_newloan + 1;
+
+
+                <?php 
+        $collections = [];
+            $given_out = [];
+            $target_dates = [];
+            while ($bar_chart_count < 5) {
+
+
+                $branchtargetDateAlgo = date('Y-m-d', strtotime($branchtargetDate . ' - ' . $bar_chart_count . 'months'));
+                $branchcompareDateAlgo = date('Y-m-d', strtotime($branchcompareDate . ' - ' . $bar_chart_count . 'months'));
+                $reloan_payments = 0;
+                $reloan_amount = 0;
+                $full_payments = 0;
+                $part_payments = 0;
+                $new_loans_given_out = 0;
+                $reloans_given_out = 0;
+                $interest = 0;
+                $principal = 0;
+                // {{date("jS M, Y", strtotime($compareDate))}} 
+                array_push($target_dates, date("jS M, Y", strtotime($branchtargetDateAlgo)));
+
+                foreach ($province_transactions as $transaction) {
+                    if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+                        $full_payments = $full_payments + $transaction->credit;
+                        if ($bar_chart_count == 4) {
+                            $collections_count_fullpayment = $collections_count_fullpayment + 1;
+                        }
+                    }
+
+                    if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+                        $part_payments = $part_payments + $transaction->credit;
+                        if ($bar_chart_count == 4) {
+                            $collections_count_partpayment = $collections_count_partpayment + 1;
+                        }
+                    }
+
+                    if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+
+                        $reloan_amount = $transaction->balance_bf;
+                        $interest = $transaction->credit / 0.4;
+                        $reloan_payments = $reloan_payments + $reloan_amount;
+                        if ($bar_chart_count == 4) {
+                            $collections_count_reloan = $collections_count_reloan + 1;
+                        }
+                    }
+
+                    if ($transaction->transaction_type == 'disbursement' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+                        $new_loans_given_out = $new_loans_given_out + $transaction->debit;
+                        if ($bar_chart_count == 4) {
+                            $givenout_count_newloan = $givenout_count_newloan + 1;
+                        }
+                    }
+
+                    if ($transaction->transaction_type == 'interest' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+                        $principal = $transaction->debit / 0.4;
+                        $reloans_given_out = $reloans_given_out + $principal;
+                        if ($bar_chart_count == 4) {
+                            $givenout_count_reloan = $givenout_count_reloan + 1;
+                        }
+                    }
+                }
+                $collected_total = $reloan_payments + $part_payments + $full_payments;
+                $given_out_total = $new_loans_given_out + $reloans_given_out;
+                array_push($collections, $collected_total);
+                array_push($given_out, $given_out_total);
+                // $collections = array_reverse($collections);
+                // $given_out = array_reverse($given_out);
+                $bar_chart_count = $bar_chart_count + 1;
+
+
             }
-        }
-        
-        if($transaction->transaction_type == 'interest' && $transaction->date > $branchcompareDateAlgo  && $transaction->date <= $branchtargetDateAlgo){
-            $principal = $transaction->debit/0.4;
-            $reloans_given_out = $reloans_given_out + $principal;
-            if($bar_chart_count == 4){
-                $givenout_count_reloan = $givenout_count_reloan + 1;
-            }
-        }
-    }
-    $collected_total = $reloan_payments + $part_payments + $full_payments;
-    $given_out_total = $new_loans_given_out + $reloans_given_out;
-    array_push($collections,$collected_total);
-    array_push($given_out,$given_out_total);
-    // $collections = array_reverse($collections);
-    // $given_out = array_reverse($given_out);
-    $bar_chart_count = $bar_chart_count + 1;
+        ?>
 
-
-}
-?>
-
-<?php
-$new_loan_total = 0;
-$reloan_total = 0;
-$targets = [];
-$transaction_total = 0;
-$carry_over = 0;
-$today = date('Y-m-d');
-$dates = [];
-$colors = [];
-$currrent_date = date('Y-m');
-$cycle_date = $currrent_date.'-'.'24';
-if($today > $cycle_date){
-    $cycle_date = date('Y-m-d',strtotime($cycle_date. '+ 1 months'));
-}
-$cycle_start = date('Y-m-d',strtotime($cycle_date. '- 1 months'));
-for($x=12; $x>-1; $x--){
-    foreach($province_transactions as $transaction){
-        if($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
-            $new_loan_total = $transaction->debit;
-        }
-
-        if($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d',strtotime($cycle_start. '-' .$x. 'months')) && $transaction->date <= date('Y-m-d',strtotime($cycle_date.  '-' .$x. 'months'))){
-            $principal = $transaction->debit/0.4;
-            $reloan_total = $principal;
-        }
-
-        if($transaction_total + $new_loan_total + $reloan_total >= 40000 ){
-            if($transaction_total == 40000){
-                $carry_over = $carry_over + $new_loan_total + $reloan_total;
-            }else{
-                $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
-                $transaction_total = 40000;
-            }
-           
-        }else{
-            $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
+                <?php
+            $new_loan_total = 0;
+            $reloan_total = 0;
+            $targets = [];
+            $transaction_total = 0;
             $carry_over = 0;
-        }
-      
-        $new_loan_total = 0;
-        $reloan_total = 0;
-    }
-
-    array_push($targets,$transaction_total);
-    if($transaction_total < 40000){
-        array_push($colors,'#ff1c4b');
-    }else{
-        array_push($colors,'#57b7fa');
-    }
-    array_push($dates,date("jS M, Y", strtotime($cycle_date. '-' .$x. 'months')));
-    $transaction_total = 0;
-    $total = $reloan_total + $new_loan_total;
-}
-
-?>
-
-<?php 
-$uncollected_amounts = [];
-for($x=0; $x<12; $x++){
-    array_push($uncollected_amounts,($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
-}
-?>
-
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-yellow">
-<div class="inner">
-<p style="font-weight: bold;">Province cycle opening uncollected amount</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($cycle_opening_uncollected_amounts[12],2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-aqua">
-<div class="inner">
-<p style="font-weight: bold;">Still Uncollected Today</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-green">
-<div class="inner">
-<p style="font-weight: bold;">Province total cycle collected amount (TCC)</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($collected_amounts[12],2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
-
-
-
-
-</div>
-
-
-<?php
-$tots = ($collected_amounts[12]/$cycle_opening_uncollected_amounts[12]) + 0.00001
-?>
-<div style="margin-bottom:30px; margin-top:30px;">
-<p style="display: flex;
-    align-items: center;
-    justify-content: center; font-size:50px;">PDUA%</p>
-<div style="display: flex;
-    align-items: center;
-    justify-content: center;">
-    
-<div class="gauge" style="width: 100%;
-  max-width: 250px;
-  font-size: 50px;
-  color: #004033;">
-    <div class="gauge__body" style=" width: 100%;
-  height: 0;
-  padding-bottom: 50%;
-  background: #b4c0be;
-  position: relative;
-  border-top-left-radius: 100% 200%;
-  border-top-right-radius: 100% 200%;
-  overflow: hidden;">
-
-@if(($tots) < 0.75)
- <div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background: red;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@elseif(($tots) >= 0.90)
-<div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background:#d4af37;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@else
-<div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background:green;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@endif
-    <div class="gauge__cover" style="width: 75%;
-  height: 150%;
-  background: #f7f7f7;
-  border-radius: 50%;
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  transform: translateX(-50%);
-
-  /* Text */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 25%;
-  box-sizing: border-box;"></div>
-
-    </div>
-</div>
-
-
-</div>
-
-<div style="display:flex; flex-direction:row; justify-content:space-between;
-    align-items: center;
-    justify-content: center;">
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: red;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Poor</p>
-</div>
-
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: green;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Fair</p>
-</div>
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: #d4af37;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Good</p>
-</div>
-
-</div>
-</div>
-
-<canvas id='province_graph'></canvas>
-<canvas id='province_target_graph'></canvas>
-
-
-<div>
-
-</div>
-
-
-</div>
-
-
-
-
-
-<div id='mydivoff' style="display:none">
-@foreach($province_branches as $branch)
-<a href="{{url('user/'.$branch->id.'/branch_page')}}">
-<div class="col-md-3 col-sm-6 col-xs-12">
-<div class="info-box bg-purple">
-<span class="info-box-icon"><i class="fa fa-user-o"></i></span>
-<div class="info-box-content">
-<span class="info-box-text">{{$branch->name}}</span>
-</div>
-</div>
-</div>
-</a>
-@endforeach
-</div>
-
-@endif
-
-
-<!-- What Admins see -->
-@if($role->role_id == '1' || $role->role_id == '10')
-<div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px; ">
-
- <a href="{{ url('user/detailed_dashboard')}}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Detailed Dashboard</span>
-</a>
-
-<a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Collections</span>
-</a>
-
-<a href="javascript:;" onmousedown="toggleMyStaff('mydiv');" style="margin: 10px;">
-<span class="label label-primary" style="font-size: 15px;">Provinces</span>
-<!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-</a>
-
-<a href="{{ url('user/daily_figures')}}" style="margin: 10px;">
-   <span class="label label-primary" style="font-size: 15px;">Daily figures</span>
-</a>
-
-</div>
-
-<div style="display: flex;
-    align-items: center;
-    justify-content: center; padding-bottom: 10px; ">
-<p style="font-weight: bold;">Data based on loans created in the last 3 months</p>
-</div>
-
-<div id='mydivon' style="display:block">
-<div class="row">
-<?php
-$use = date('Y-m-');
-$todaysDate = date('Y-m-d');
-$newTodaysDate =  date('Y-m-d', strtotime($todaysDate. ' + 3 months'));
-$branchtargetDate = $use.'24';
-$branchtargetDate = date('Y-m-d',strtotime($branchtargetDate));
-
-if($todaysDate > $branchtargetDate){
-    $branchtargetDate = date('Y-m-d',strtotime($branchtargetDate. ' + 1 months'));
-}
-$branchcompareDate = date('Y-m-d',strtotime($branchtargetDate. ' - 1 months'));
-$branchzeroDate = date('Y-m-d', strtotime($branchtargetDate. ' - 3 months'));
-$branchfirstDate = date('Y-m-d', strtotime($branchtargetDate. ' - 2 months'));
-$provincefirstDate = date('Y-m-d', strtotime($branchtargetDate. ' - 2 months'));
-$branchsecondDate = date('Y-m-d', strtotime($branchtargetDate. ' - 1 months'));
-
-
-//BRANCH CYCLE OPENING UNCOLLECTED VARIABLES
-$MoneyGivenOut = 0;
-$MoneyCollected = 0;
-$charges = 0;
-$cycle_opening_uncollected_amount = 0.0001;
-
-
-//BRANCH COLLECTED TOTAL CALCULATIONS
-$collected_total = 0;
-$full_payments = 0;
-$part_payments = 0;
-$reloan_payments = 0;
-$reloan_amount = 0;
-
-// BRANCH COLLECTED TOTAL CALCULATIONS 1 MONTH AGO
-$collected_total_1_months = 0;
-$reloan_amount_1_months = 0;
-$full_payments_1_months  = 0;
-$part_payments_1_months  = 0;
-$reloan_payments_1_months  = 0;
-
-//BRANCH COLLECTED TOTAL CALCULATIONS 2 MONTHS AGO
-$collected_total_2_months = 0;
-$reloan_amount_2_months = 0;
-$full_payments_2_months  = 0;
-$part_payments_2_months  = 0;
-$reloan_payments_2_months  = 0;
-
-//GIVEN OUT AMOUNTS
-$given_out_total = 0;
-$new_loans_given_out = 0;
-$reloans_given_out = 0;
-$reloans_given_out_not_exp = 0;
-$new_loans_given_out_not_exp = 0;
-$given_out_total_not_exp = 0;
-
-//COUNTS
-$bar_chart_count = 0;
-$collections_count_fullpayment = 0;
-$collections_count_reloan = 0;
-$collections_count_partpayment = 0;
-$givenout_count_newloan = 0;
-$givenout_count_reloan = 0;
-$given_out_count_total = 0;
-$trans_id = 0;
-$trans_id_int = 0;
-
-//COLLECTIONS TODAY
-$full_payments_today = 0;
-$part_payments_today = 0;
-$reloan_payments_today = 0;
-$add = 0;
-
-$trans = []
-// foreach($province_loans as $province_loan){
-//     foreach($province_loan->transactions as $transaction){
-//         array_push($province_transactions, $transaction);
-//     }
-// }
-?>
-
-<!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
-@foreach($allLoans as $loan)
-<?php
-$MoneyCollected = 0;
-$MoneyGivenOut = 0;
-$charges = 0;
-$balance = 0;
-?>
-@foreach($loan->transactions as $transaction)
-
-<?php
-
-if($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee'){
-    $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
-}
-
-if($transaction->date <= $branchcompareDate){
-    $MoneyCollected = $MoneyCollected + $transaction->credit;
-}
-
-
-if($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $branchcompareDate){
-    $charges = $charges + $transaction->debit;
-}
-
-
-
-?>
-@endforeach
-<?php 
-$balance = ($MoneyGivenOut - $MoneyCollected);
-if($balance < 0){
-    $balance = 0;
-}
-$cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
-if($cycle_opening_uncollected_amount == 0){
-    $cycle_opening_uncollected_amount = 1;
-}
-?>
-@endforeach
-
-<?php 
-$collections = [];
-$given_out = [];
-$given_out_not_exp = [];
-$target_dates = [];
-while($bar_chart_count < 3){
-
-
-    $branchtargetDateAlgo = date('Y-m-d',strtotime($branchtargetDate. ' - '. $bar_chart_count.'months'));
-    $branchcompareDateAlgo = date('Y-m-d',strtotime($branchcompareDate. ' - '. $bar_chart_count.'months'));
-    $reloan_payments = 0;
-    $reloan_amount = 0;
-    $full_payments = 0;
-    $part_payments = 0;
-    $new_loans_given_out = 0;
-    $reloans_given_out = 0;
-    $interest = 0;
-    $disbursement_interest = 0;
-    $interest_today = 0;
-    $reloan_amount_today = 0;
-    $principal = 0;
-    $reloans_given_out_not_exp = 0;
-    $new_loans_given_out_not_exp = 0;
-    $full_payments_today = 0;
-    $part_payments_today = 0;
-    $reloan_payments_today = 0;
-   // {{date("jS M, Y", strtotime($compareDate))}} 
-    array_push($target_dates,date("jS M, Y",strtotime($branchtargetDateAlgo)));
-
-    foreach($allTransactions as $transaction){
-        
-        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
-            $full_payments = $full_payments + $transaction->credit;
-            
-            if($bar_chart_count == 4){
-                $collections_count_fullpayment = $collections_count_fullpayment + 1;
+            $today = date('Y-m-d');
+            $dates = [];
+            $colors = [];
+            $currrent_date = date('Y-m');
+            $cycle_date = $currrent_date . '-' . '24';
+            if ($today > $cycle_date) {
+                $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
             }
-        }
-        
-        if($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
-            $part_payments = $part_payments + $transaction->credit;
-          
-            if($bar_chart_count == 4){
-                $collections_count_partpayment = $collections_count_partpayment + 1;
+            $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+            for ($x = 12; $x > -1; $x--) {
+                foreach ($province_transactions as $transaction) {
+                    if ($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($cycle_date . '-' . $x . 'months'))) {
+                        $new_loan_total = $transaction->debit;
+                    }
+
+                    if ($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($cycle_date . '-' . $x . 'months'))) {
+                        $principal = $transaction->debit / 0.4;
+                        $reloan_total = $principal;
+                    }
+
+                    if ($transaction_total + $new_loan_total + $reloan_total >= 40000) {
+                        if ($transaction_total == 40000) {
+                            $carry_over = $carry_over + $new_loan_total + $reloan_total;
+                        } else {
+                            $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
+                            $transaction_total = 40000;
+                        }
+
+                    } else {
+                        $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
+                        $carry_over = 0;
+                    }
+
+                    $new_loan_total = 0;
+                    $reloan_total = 0;
+                }
+
+                array_push($targets, $transaction_total);
+                if ($transaction_total < 40000) {
+                    array_push($colors, '#ff1c4b');
+                } else {
+                    array_push($colors, '#57b7fa');
+                }
+                array_push($dates, date("jS M, Y", strtotime($cycle_date . '-' . $x . 'months')));
+                $transaction_total = 0;
+                $total = $reloan_total + $new_loan_total;
             }
-        }
-        
-        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
-        
-            $reloan_amount = $transaction->credit; + ($transaction->credit/0.4);
-            $interest = $transaction->credit/0.4;
-            $reloan_payments = $reloan_payments + $reloan_amount ; 
-            array_push($trans,$transaction);
-            if($bar_chart_count == 4){
-                $collections_count_reloan = $collections_count_reloan + 1;
+
+        ?>
+
+                <?php 
+        $uncollected_amounts = [];
+            for ($x = 0; $x < 12; $x++) {
+                array_push($uncollected_amounts, ($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
             }
-        }
+        ?>
 
-        if($transaction->transaction_type == 'disbursement' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo){
-            $disbursement_interest = $transaction->debit/0.4;
-            $new_loans_given_out = $new_loans_given_out + $transaction->debit + $disbursement_interest;
-            $new_loans_given_out_not_exp = $new_loans_given_out_not_exp + $transaction->debit;
 
-            if($bar_chart_count == 4){
-                $givenout_count_newloan = $givenout_count_newloan + 1;
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-yellow">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Province cycle opening uncollected amount</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3>{{number_format($cycle_opening_uncollected_amounts[12], 2)}}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-aqua">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Still Uncollected Today</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12], 2)}}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-green">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Province total cycle collected amount (TCC)</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3>{{number_format($collected_amounts[12], 2)}}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+            </div>
+
+
+            <?php
+            $tots = ($collected_amounts[12] / $cycle_opening_uncollected_amounts[12]) + 0.00001
+        ?>
+            <div style="margin-bottom:30px; margin-top:30px;">
+                <p style="display: flex;
+            align-items: center;
+            justify-content: center; font-size:50px;">PDUA%</p>
+                <div style="display: flex;
+            align-items: center;
+            justify-content: center;">
+
+                    <div class="gauge" style="width: 100%;
+          max-width: 250px;
+          font-size: 50px;
+          color: #004033;">
+                        <div class="gauge__body" style=" width: 100%;
+          height: 0;
+          padding-bottom: 50%;
+          background: #b4c0be;
+          position: relative;
+          border-top-left-radius: 100% 200%;
+          border-top-right-radius: 100% 200%;
+          overflow: hidden;">
+
+                            @if(($tots) < 0.75)
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background: red;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @elseif(($tots) >= 0.90)
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background:#d4af37;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @else
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background:green;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @endif
+                            <div class="gauge__cover" style="width: 75%;
+          height: 150%;
+          background: #f7f7f7;
+          border-radius: 50%;
+          position: absolute;
+          top: 25%;
+          left: 50%;
+          transform: translateX(-50%);
+
+          /* Text */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding-bottom: 25%;
+          box-sizing: border-box;"></div>
+
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div style="display:flex; flex-direction:row; justify-content:space-between;
+            align-items: center;
+            justify-content: center;">
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: red;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Poor</p>
+                    </div>
+
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: green;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Fair</p>
+                    </div>
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: #d4af37;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Good</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <canvas id='province_graph'></canvas>
+            <canvas id='province_target_graph'></canvas>
+
+
+            <div>
+
+            </div>
+
+
+        </div>
+
+
+
+
+
+        <div id='mydivoff' style="display:none">
+            @foreach($province_branches as $branch)
+                <a href="{{url('user/' . $branch->id . '/branch_page')}}">
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box bg-purple">
+                            <span class="info-box-icon"><i class="fa fa-user-o"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">{{$branch->name}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+
+    @endif
+
+
+    <!-- What Admins see -->
+    @if($role->role_id == '1' || $role->role_id == '10')
+        <div style="display: flex;
+            align-items: center;
+            justify-content: center; padding-bottom: 10px; ">
+
+            <a href="{{ url('user/detailed_dashboard')}}" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Detailed Dashboard</span>
+            </a>
+
+            <a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Collections</span>
+            </a>
+
+            <a href="javascript:;" onmousedown="toggleMyStaff('mydiv');" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Provinces</span>
+                <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
+            </a>
+
+            <a href="{{ url('user/daily_figures')}}" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Daily figures</span>
+            </a>
+
+        </div>
+
+        <div style="display: flex;
+            align-items: center;
+            justify-content: center; padding-bottom: 10px; ">
+            <p style="font-weight: bold;">Data based on loans created in the last 3 months</p>
+        </div>
+
+        <div id='mydivon' style="display:block">
+            <div class="row">
+                <?php
+            $use = date('Y-m-');
+            $todaysDate = date('Y-m-d');
+            $newTodaysDate = date('Y-m-d', strtotime($todaysDate . ' + 3 months'));
+            $branchtargetDate = $use . '24';
+            $branchtargetDate = date('Y-m-d', strtotime($branchtargetDate));
+
+            if ($todaysDate > $branchtargetDate) {
+                $branchtargetDate = date('Y-m-d', strtotime($branchtargetDate . ' + 1 months'));
             }
-        }
-        
-        if($transaction->transaction_type == 'interest' && $transaction->date > $branchcompareDateAlgo  && $transaction->date <= $branchtargetDateAlgo){
-            $principal = $transaction->debit/0.4;
-            $reloans_given_out = $reloans_given_out + $principal + $transaction->debit;
-            $reloans_given_out_not_exp = $reloans_given_out_not_exp + $principal;
-            if($bar_chart_count == 4){
-                $givenout_count_reloan = $givenout_count_reloan + 1;
+            $branchcompareDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
+            $branchzeroDate = date('Y-m-d', strtotime($branchtargetDate . ' - 3 months'));
+            $branchfirstDate = date('Y-m-d', strtotime($branchtargetDate . ' - 2 months'));
+            $provincefirstDate = date('Y-m-d', strtotime($branchtargetDate . ' - 2 months'));
+            $branchsecondDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
+
+
+            //BRANCH CYCLE OPENING UNCOLLECTED VARIABLES
+            $MoneyGivenOut = 0;
+            $MoneyCollected = 0;
+            $charges = 0;
+            $cycle_opening_uncollected_amount = 0.0001;
+
+
+            //BRANCH COLLECTED TOTAL CALCULATIONS
+            $collected_total = 0;
+            $full_payments = 0;
+            $part_payments = 0;
+            $reloan_payments = 0;
+            $reloan_amount = 0;
+
+            // BRANCH COLLECTED TOTAL CALCULATIONS 1 MONTH AGO
+            $collected_total_1_months = 0;
+            $reloan_amount_1_months = 0;
+            $full_payments_1_months = 0;
+            $part_payments_1_months = 0;
+            $reloan_payments_1_months = 0;
+
+            //BRANCH COLLECTED TOTAL CALCULATIONS 2 MONTHS AGO
+            $collected_total_2_months = 0;
+            $reloan_amount_2_months = 0;
+            $full_payments_2_months = 0;
+            $part_payments_2_months = 0;
+            $reloan_payments_2_months = 0;
+
+            //GIVEN OUT AMOUNTS
+            $given_out_total = 0;
+            $new_loans_given_out = 0;
+            $reloans_given_out = 0;
+            $reloans_given_out_not_exp = 0;
+            $new_loans_given_out_not_exp = 0;
+            $given_out_total_not_exp = 0;
+
+            //COUNTS
+            $bar_chart_count = 0;
+            $collections_count_fullpayment = 0;
+            $collections_count_reloan = 0;
+            $collections_count_partpayment = 0;
+            $givenout_count_newloan = 0;
+            $givenout_count_reloan = 0;
+            $given_out_count_total = 0;
+            $trans_id = 0;
+            $trans_id_int = 0;
+
+            //COLLECTIONS TODAY
+            $full_payments_today = 0;
+            $part_payments_today = 0;
+            $reloan_payments_today = 0;
+            $add = 0;
+
+            $trans = []
+                // foreach($province_loans as $province_loan){
+        //     foreach($province_loan->transactions as $transaction){
+        //         array_push($province_transactions, $transaction);
+        //     }
+        // }
+        ?>
+
+                <!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
+                @foreach($allLoans as $loan)
+                            <?php
+                            $MoneyCollected = 0;
+                            $MoneyGivenOut = 0;
+                            $charges = 0;
+                            $balance = 0;
+                    ?>
+                            @foreach($loan->transactions as $transaction)
+
+                                        <?php
+
+                                            if ($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee') {
+                                                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+                                            }
+
+                                            if ($transaction->date <= $branchcompareDate) {
+                                                $MoneyCollected = $MoneyCollected + $transaction->credit;
+                                            }
+
+
+                                            if ($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $branchcompareDate) {
+                                                $charges = $charges + $transaction->debit;
+                                            }
+
+
+
+                                ?>
+                            @endforeach
+                            <?php 
+                    $balance = ($MoneyGivenOut - $MoneyCollected);
+                            if ($balance < 0) {
+                                $balance = 0;
+                            }
+                            $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+                            if ($cycle_opening_uncollected_amount == 0) {
+                                $cycle_opening_uncollected_amount = 1;
+                            }
+                    ?>
+                @endforeach
+
+                <?php 
+        $collections = [];
+            $given_out = [];
+            $given_out_not_exp = [];
+            $target_dates = [];
+            while ($bar_chart_count < 3) {
+
+
+                $branchtargetDateAlgo = date('Y-m-d', strtotime($branchtargetDate . ' - ' . $bar_chart_count . 'months'));
+                $branchcompareDateAlgo = date('Y-m-d', strtotime($branchcompareDate . ' - ' . $bar_chart_count . 'months'));
+                $reloan_payments = 0;
+                $reloan_amount = 0;
+                $full_payments = 0;
+                $part_payments = 0;
+                $new_loans_given_out = 0;
+                $reloans_given_out = 0;
+                $interest = 0;
+                $disbursement_interest = 0;
+                $interest_today = 0;
+                $reloan_amount_today = 0;
+                $principal = 0;
+                $reloans_given_out_not_exp = 0;
+                $new_loans_given_out_not_exp = 0;
+                $full_payments_today = 0;
+                $part_payments_today = 0;
+                $reloan_payments_today = 0;
+                // {{date("jS M, Y", strtotime($compareDate))}} 
+                array_push($target_dates, date("jS M, Y", strtotime($branchtargetDateAlgo)));
+
+                foreach ($allTransactions as $transaction) {
+
+                    if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+                        $full_payments = $full_payments + $transaction->credit;
+
+                        if ($bar_chart_count == 4) {
+                            $collections_count_fullpayment = $collections_count_fullpayment + 1;
+                        }
+                    }
+
+                    if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+                        $part_payments = $part_payments + $transaction->credit;
+
+                        if ($bar_chart_count == 4) {
+                            $collections_count_partpayment = $collections_count_partpayment + 1;
+                        }
+                    }
+
+                    if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+
+                        $reloan_amount = $transaction->credit;
+                        +($transaction->credit / 0.4);
+                        $interest = $transaction->credit / 0.4;
+                        $reloan_payments = $reloan_payments + $reloan_amount;
+                        array_push($trans, $transaction);
+                        if ($bar_chart_count == 4) {
+                            $collections_count_reloan = $collections_count_reloan + 1;
+                        }
+                    }
+
+                    if ($transaction->transaction_type == 'disbursement' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+                        $disbursement_interest = $transaction->debit / 0.4;
+                        $new_loans_given_out = $new_loans_given_out + $transaction->debit + $disbursement_interest;
+                        $new_loans_given_out_not_exp = $new_loans_given_out_not_exp + $transaction->debit;
+
+                        if ($bar_chart_count == 4) {
+                            $givenout_count_newloan = $givenout_count_newloan + 1;
+                        }
+                    }
+
+                    if ($transaction->transaction_type == 'interest' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo) {
+                        $principal = $transaction->debit / 0.4;
+                        $reloans_given_out = $reloans_given_out + $principal + $transaction->debit;
+                        $reloans_given_out_not_exp = $reloans_given_out_not_exp + $principal;
+                        if ($bar_chart_count == 4) {
+                            $givenout_count_reloan = $givenout_count_reloan + 1;
+                        }
+                    }
+
+
+                    if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date == $todaysDate) {
+                        $full_payments_today = $full_payments_today + $transaction->credit;
+                    }
+
+                    if ($transaction->payment_apply_to == 'part_payment' && $transaction->date == $todaysDate) {
+                        $part_payments_today = $part_payments_today + $transaction->credit;
+                    }
+
+
+                    if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date == $todaysDate) {
+                        $reloan_amount_today = $transaction->credit;
+                        +($transaction->credit / 0.4);
+                        $interest_today = $transaction->credit / 0.4;
+                        $reloan_payments_today = $reloan_payments_today + $reloan_amount_today + $interest_today;
+
+                    }
+
+
+
+                }
+                $given_out_total_not_exp = $new_loans_given_out_not_exp + $reloans_given_out_not_exp;
+                $collected_total = $reloan_payments + $part_payments + $full_payments;
+                $given_out_total = $new_loans_given_out + $reloans_given_out;
+                array_push($given_out_not_exp, $given_out_total_not_exp);
+                array_push($collections, $collected_total);
+                array_push($given_out, $given_out_total);
+                $bar_chart_count = $bar_chart_count + 1;
+
             }
-        }
+        ?>
+                <?php 
+         foreach ($allTransactions as $transaction) {
+
+                if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date == $todaysDate) {
+                    $full_payments_today = $full_payments_today + $transaction->credit;
+                }
+
+                if ($transaction->payment_apply_to == 'part_payment' && $transaction->date == $todaysDate) {
+                    $part_payments_today = $part_payments_today + $transaction->credit;
+                }
 
 
-        if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date == $todaysDate){
-            $full_payments_today = $full_payments_today + $transaction->credit;
-        }
-        
-        if($transaction->payment_apply_to == 'part_payment' && $transaction->date == $todaysDate){
-            $part_payments_today = $part_payments_today + $transaction->credit;
-        }
+                if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date == $todaysDate) {
+                    $reloan_amount_today = $transaction->credit;
+                    +($transaction->credit / 0.4);
+                    $interest_today = $transaction->credit / 0.4;
+                    $reloan_payments_today = $reloan_payments_today + $reloan_amount_today;
+                }
+            }
 
 
-        if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date == $todaysDate){
-            $reloan_amount_today = $transaction->credit; + ($transaction->credit/0.4);
-            $interest_today = $transaction->credit/0.4;
-            $reloan_payments_today = $reloan_payments_today + $reloan_amount_today + $interest_today; 
-            
-        }
+            $pdua = ($collections[0] / $cycle_opening_uncollected_amount)
+        ?>
+
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-red">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Total collected today</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3>{{number_format($full_payments_today + $part_payments_today + $reloan_payments_today, 2)}}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-yellow">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Part and Full payments collected today</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3>{{number_format($full_payments_today + $part_payments_today, 2)}}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-green">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Reloans collected today</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3>{{number_format($reloan_payments_today, 2)}}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
 
 
-
-    }
-    $given_out_total_not_exp = $new_loans_given_out_not_exp + $reloans_given_out_not_exp;
-    $collected_total = $reloan_payments + $part_payments + $full_payments;
-    $given_out_total = $new_loans_given_out + $reloans_given_out;
-    array_push($given_out_not_exp,$given_out_total_not_exp);
-    array_push($collections,$collected_total);
-    array_push($given_out,$given_out_total);
-    $bar_chart_count = $bar_chart_count + 1;
-
-}
-?>
-<?php 
- foreach($allTransactions as $transaction){
-    
-    if($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date == $todaysDate){
-        $full_payments_today = $full_payments_today + $transaction->credit;
-    }
-    
-    if($transaction->payment_apply_to == 'part_payment' && $transaction->date == $todaysDate){
-        $part_payments_today = $part_payments_today + $transaction->credit;
-    }
+            </div>
 
 
-    if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date == $todaysDate){
-        $reloan_amount_today = $transaction->credit; + ($transaction->credit/0.4);
-        $interest_today = $transaction->credit/0.4;
-        $reloan_payments_today = $reloan_payments_today + $reloan_amount_today; 
-    }
- }
+            <div style="margin-bottom:30px; margin-top:30px;">
+                <p style="display: flex;
+            align-items: center;
+            justify-content: center; font-size:50px;">PDUA%</p>
+                <div style="display: flex;
+            align-items: center;
+            justify-content: center;">
+
+                    <div class="gauge" style="width: 100%;
+          max-width: 250px;
+          font-size: 50px;
+          color: #004033;">
+                        <div class="gauge__body" style=" width: 100%;
+          height: 0;
+          padding-bottom: 50%;
+          background: #b4c0be;
+          position: relative;
+          border-top-left-radius: 100% 200%;
+          border-top-right-radius: 100% 200%;
+          overflow: hidden;">
+
+                            @if(($pdua) < 0.75)
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background: red;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @elseif(($pdua) >= 0.90)
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background:#d4af37;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @else
+                                                    <div class="gauge__fill" style=" position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  width: inherit;
+                                  height: 100%;
+                                  background:green;
+                                  transform-origin: center top;
+                                  transform: rotate(0.25turn);
+                                  transition: transform 0.2s ease-out;"></div>
+
+                            @endif
+                            <div class="gauge__cover" style="width: 75%;
+          height: 150%;
+          background: #f7f7f7;
+          border-radius: 50%;
+          position: absolute;
+          top: 25%;
+          left: 50%;
+          transform: translateX(-50%);
+
+          /* Text */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding-bottom: 25%;
+          box-sizing: border-box;"></div>
+
+                        </div>
+                    </div>
 
 
- $pdua = ($collections[0]/$cycle_opening_uncollected_amount)
-?>
+                </div>
 
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-red">
-<div class="inner">
-<p style="font-weight: bold;">Total collected today</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($full_payments_today + $part_payments_today + $reloan_payments_today,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
+                <div style="display:flex; flex-direction:row; justify-content:space-between;
+            align-items: center;
+            justify-content: center;">
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: red;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Poor</p>
+                    </div>
 
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-yellow">
-<div class="inner">
-<p style="font-weight: bold;">Part and Full payments collected today</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($full_payments_today + $part_payments_today,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: green;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Fair</p>
+                    </div>
+                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                        <div style="background-color: #d4af37;  height: 10px;
+          width: 20px;">
+                        </div>
+                        <p style="text-align: center; font-weight:bold;">Good</p>
+                    </div>
 
-<div class="col-lg-4 col-xs-12">
-<div class="small-box bg-green">
-<div class="inner">
-<p style="font-weight: bold;">Reloans collected today</p>
-<div class="icon">
-<i class="fa fa-usd"></i>
-</div>
-<h3>{{number_format($reloan_payments_today,2)}}</h3>
-</div>
-<div class="small-box-footer">
-    <p></p>
-</div>
-</div>
-</div>
+                </div>
+            </div>
 
 
-</div>
+            <canvas id='companygraph'></canvas>
 
-
-<div style="margin-bottom:30px; margin-top:30px;">
-<p style="display: flex;
-    align-items: center;
-    justify-content: center; font-size:50px;">PDUA%</p>
-<div style="display: flex;
-    align-items: center;
-    justify-content: center;">
-    
-<div class="gauge" style="width: 100%;
-  max-width: 250px;
-  font-size: 50px;
-  color: #004033;">
-    <div class="gauge__body" style=" width: 100%;
-  height: 0;
-  padding-bottom: 50%;
-  background: #b4c0be;
-  position: relative;
-  border-top-left-radius: 100% 200%;
-  border-top-right-radius: 100% 200%;
-  overflow: hidden;">
-
-@if(($pdua) < 0.75)
- <div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background: red;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@elseif(($pdua) >= 0.90)
-<div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background:#d4af37;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@else
-<div class="gauge__fill" style=" position: absolute;
-  top: 100%;
-  left: 0;
-  width: inherit;
-  height: 100%;
-  background:green;
-  transform-origin: center top;
-  transform: rotate(0.25turn);
-  transition: transform 0.2s ease-out;"></div>
-
-@endif
-    <div class="gauge__cover" style="width: 75%;
-  height: 150%;
-  background: #f7f7f7;
-  border-radius: 50%;
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  transform: translateX(-50%);
-
-  /* Text */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 25%;
-  box-sizing: border-box;"></div>
-
-    </div>
-</div>
-
-
-</div>
-
-<div style="display:flex; flex-direction:row; justify-content:space-between;
-    align-items: center;
-    justify-content: center;">
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: red;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Poor</p>
-</div>
-
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: green;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Fair</p>
-</div>
-<div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-<div style="background-color: #d4af37;  height: 10px;
-  width: 20px;">
-</div>
-<p style="text-align: center; font-weight:bold;">Good</p>
-</div>
-
-</div>
-</div>
-
-
-<canvas id='companygraph'></canvas>
-
-<div class="row" style="padding-top: 20px;">
+            <div class="row" style="padding-top: 20px;">
 
 
 
-<div class="col-md-6">
+                <div class="col-md-6">
                     <div class="box box-primary">
                         <div class="box-header with-border">
                             <h3 class="box-title">Money collected</h3>
@@ -2428,7 +2462,7 @@ while($bar_chart_count < 3){
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body" id="">
-                        <canvas id="myChart"></canvas>
+                            <canvas id="myChart"></canvas>
                         </div>
                         <!-- /.box-body -->
                     </div>
@@ -2442,881 +2476,859 @@ while($bar_chart_count < 3){
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body" id="">
-                        <canvas id="myOtherChart"></canvas>
+                            <canvas id="myOtherChart"></canvas>
                         </div>
                         <!-- /.box-body -->
                     </div>
                 </div>
 
 
-</div>
+            </div>
 
 
 
-<div>
+            <div>
 
-</div>
-
-
-</div>
-
-
-
-<div id='mydivoff' style="display:none">
-@foreach($provinces as $province)
-<a href="{{url('user/'.$province->id.'/province_page')}}">
-<div class="col-md-3 col-sm-6 col-xs-12">
-<div class="info-box bg-purple">
-<span class="info-box-icon"><i class="fa fa-user-o"></i></span>
-<div class="info-box-content">
-<span class="info-box-text">{{$province->name}}</span>
-</div>
-</div>
-</div>
-</a>
-@endforeach
-</div>
-
-<div id='mydivofff' style="display: none;">
-<div class="box box-primary">
-    <div id='mydivoff_new'  class="box-body table-responsive" >
-    <div class="box-header with-border">
-            <h3 class="box-title">Transactions as at start of cycle<a href="javascript:;" onmousedown="toggleLedger('mydiv');">
-            <span style="font-size: 15px; padding-left: 10px;">COUA breakdown</span>
-        </a></h3>
-        </div>
-        <table class="table  table-bordered table-hover table-striped" id="data-table">
-                <thead>
-                <tr>
-                    <th>Loan ID</th>
-                    <th>Name</th>
-                    <th>Transaction Type</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($allTransactions as $transaction)
-            @if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDateAlgo &&  $transaction->date <= $branchtargetDateAlgo && $transaction->credit)
-         <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td>{{number_format($transaction->credit,2)}}</td>
-    <td></td>
-    <td></td>
-</tr>       
-@endif
-@endforeach
-</tbody>
-            </table>
+            </div>
 
 
         </div>
-    </div>
-</div>
-
-<div id="pendingWidget" style="
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 350px;
-    background: #fefefe;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    overflow: hidden;
-    z-index: 9999;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    cursor: move;
-    transition: transform 0.2s ease;
-">
-    <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
-        <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
-        <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionUnapproved::count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
-        <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionsPending::count() }}</p>
-    </div>
-
-      <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
-        <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\WaiverTransactionUnapproved::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
-        <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\ChargeTransactionUnapproved::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
-        <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Client::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
-        <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Advance::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
-        <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\TopUp::where('status','pending')->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
-        <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Leave::where('status','pending')->count() }}</p>
-    </div>
-</div>
 
 
-@endif
+
+        <div id='mydivoff' style="display:none">
+            @foreach($provinces as $province)
+                <a href="{{url('user/' . $province->id . '/province_page')}}">
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box bg-purple">
+                            <span class="info-box-icon"><i class="fa fa-user-o"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">{{$province->name}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+
+        <div id='mydivofff' style="display: none;">
+            <div class="box box-primary">
+                <div id='mydivoff_new' class="box-body table-responsive">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Transactions as at start of cycle<a href="javascript:;"
+                                onmousedown="toggleLedger('mydiv');">
+                                <span style="font-size: 15px; padding-left: 10px;">COUA breakdown</span>
+                            </a></h3>
+                    </div>
+                    <table class="table  table-bordered table-hover table-striped" id="data-table">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Name</th>
+                                <th>Transaction Type</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($allTransactions as $transaction)
+                                @if($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDateAlgo && $transaction->date <= $branchtargetDateAlgo && $transaction->credit)
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>{{number_format($transaction->credit, 2)}}</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        </tbody>
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+
+        <div id="pendingWidget" style="
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 350px;
+            background: #fefefe;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            overflow: hidden;
+            z-index: 9999;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            cursor: move;
+            transition: transform 0.2s ease;
+        ">
+            <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
+                <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
+                <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionUnapproved::count() }}
+                </p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
+                <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionsPending::count() }}</p>
+            </div>
+
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
+                <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{ \App\Models\WaiverTransactionUnapproved::where('status', 'pending')->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
+                <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{ \App\Models\ChargeTransactionUnapproved::where('status', 'pending')->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
+                <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{ \App\Models\Client::where('status', 'pending')->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
+                <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{ \App\Models\Advance::where('status', 'pending')->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
+                <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{ \App\Models\TopUp::where('status', 'pending')->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
+                <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{ \App\Models\Leave::where('status', 'pending')->count() }}</p>
+            </div>
+        </div>
+
+
+    @endif
 
 
 @endsection
 @section('footer-scripts')
-    <script src="{{ asset('assets/plugins/amcharts/amcharts.js') }}"
-            type="text/javascript"></script>
-    <script src="{{ asset('assets/plugins/amcharts/serial.js') }}"
-            type="text/javascript"></script>
-    <script src="{{ asset('assets/plugins/amcharts/pie.js') }}"
-            type="text/javascript"></script>
-    <script src="{{ asset('assets/plugins/amcharts/gauge.js') }}"
-            type="text/javascript"></script>
-    <script src="{{ asset('assets/plugins/amcharts/funnel.js') }}"
-            type="text/javascript"></script>
-    <script src="{{ asset('assets/plugins/amcharts/themes/light.js') }}"
-            type="text/javascript"></script>
-    <script src="{{ asset('assets/plugins/amcharts/plugins/export/export.min.js') }}"
-            type="text/javascript"></script>
+    <script src="{{ asset('assets/plugins/amcharts/amcharts.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/plugins/amcharts/serial.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/plugins/amcharts/pie.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/plugins/amcharts/gauge.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/plugins/amcharts/funnel.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/plugins/amcharts/themes/light.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/plugins/amcharts/plugins/export/export.min.js') }}" type="text/javascript"></script>
     @if(!Sentinel::inRole('client'))
         <script>
-         
-            
+
+
         </script>
-        @endif
-@if($role->role_id == '1')
-<script>
-
-  // Auto-slideshow
-    const slides = document.querySelectorAll('#pendingWidget .slide');
-    let currentSlide = 0;
-
-    function showSlide(index){
-        slides.forEach((slide, i) => slide.style.display = i === index ? 'block' : 'none');
-    }
-
-    setInterval(() => {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
-    }, 5000);
-
-    showSlide(currentSlide);
-
-   // Drag functionality (mouse & touch)
-const widget = document.getElementById('pendingWidget');
-let isDragging = false, offsetX = 0, offsetY = 0;
-
-// Mouse events
-widget.addEventListener('mousedown', e => {
-    isDragging = true;
-    offsetX = e.clientX - widget.getBoundingClientRect().left;
-    offsetY = e.clientY - widget.getBoundingClientRect().top;
-    widget.style.transform = 'none';
-});
-document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    widget.style.left = e.clientX - offsetX + 'px';
-    widget.style.top = e.clientY - offsetY + 'px';
-});
-document.addEventListener('mouseup', () => { isDragging = false; });
-
-// Touch events
-widget.addEventListener('touchstart', e => {
-    isDragging = true;
-    const touch = e.touches[0];
-    offsetX = touch.clientX - widget.getBoundingClientRect().left;
-    offsetY = touch.clientY - widget.getBoundingClientRect().top;
-    widget.style.transform = 'none';
-});
-widget.addEventListener('touchmove', e => {
-    if (!isDragging) return;
-    e.preventDefault(); // <-- prevent page scroll
-    const touch = e.touches[0];
-    widget.style.left = touch.clientX - offsetX + 'px';
-    widget.style.top = touch.clientY - offsetY + 'px';
-}, { passive: false });
-widget.addEventListener('touchend', () => { isDragging = false; });
-
-
-const gaugeElementAdmin = document.querySelector(".gauge");
-
-function setGaugeValue(gauge, value) {
-  if (value < 0 || value > 1) {
-    return;
-  }
-
-  gauge.querySelector(".gauge__fill").style.transform = `rotate(${
-    value / 2
-  }turn)`;
-  gauge.querySelector(".gauge__cover").textContent = `${Math.round(
-    value * 100
-  )}%`;
-}
-
-setGaugeValue(gaugeElementAdmin, '{{($pdua)}}');
-
-    function toggleMyStaff(divid){
-    varon = divid + 'on';
-    varoff = divid + 'off';
- 
-    if(document.getElementById(varon).style.display == 'block')
-    {
-    document.getElementById(varon).style.display = 'none';
-    document.getElementById(varoff).style.display = 'block';
-    }
-   
-    else
-    {  
-    document.getElementById(varoff).style.display = 'none';
-    document.getElementById(varon).style.display = 'block'
-    }
-} 
-
-function toggleCollections(divid){
-    console.log('hello')
-    varon = divid + 'on';
-    varoff = divid + 'offf';
- 
-    if(document.getElementById(varon).style.display == 'block')
-    {
-    document.getElementById(varon).style.display = 'none';
-    document.getElementById(varoff).style.display = 'block';
-    }
-   
-    else
-    {  
-    document.getElementById(varoff).style.display = 'none';
-    document.getElementById(varon).style.display = 'block'
-    }
-}
-
-
-const companymonths = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-let companytargetDateName = companymonths[new Date('{{$branchtargetDate}}').getMonth()]
-let companyfirstDateName = companymonths[new Date('{{$branchfirstDate}}').getMonth()];
-let companysecondDateName = companymonths[new Date('{{$branchsecondDate}}').getMonth()]
-
-var collections =  
-    <?php echo json_encode($collections); ?>; 
-    var given_out =  
-    <?php echo json_encode($given_out); ?>; 
-    console.log(collections.reverse())
-    console.log(given_out.reverse())
-
-    var dates =  
-    <?php echo json_encode($target_dates); ?>; 
-    console.log(dates.reverse())
-
-    const allchrt = document.getElementById('companygraph');
-
-
-var chartId = new Chart(allchrt, {
-         type: 'line',
-         data: {
-            labels: dates,
-            datasets: [{
-               label: "Actual Collections",
-               data: collections,
-               borderWidth: 1,
-            },
-            {
-               label: "Expected Collections",
-               data: given_out,
-               borderWidth: 1,
-            },
-        ],
-         },
-         options: {
-            scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
-         },
-      });
- 
-
-
-
-var given_out_total = "{{($collections_count_reloan/(0.001 + $collections_count_partpayment + $collections_count_fullpayment + $collections_count_reloan))*100}}"
-console.log(given_out_total)
-
-var xValues = ["Monthly Full and Part Payments %", "Monthly Reloans %"];
-var yValues = ['{{(($collections_count_partpayment + $collections_count_fullpayment)/(0.001 + $collections_count_partpayment + $collections_count_fullpayment + $collections_count_reloan))*100}}','{{($collections_count_reloan/(0.001 + $collections_count_partpayment + $collections_count_fullpayment + $collections_count_reloan))*100}}'];
-var barColors = [
-  "#F77FBE",
-  "#87CEEB",
-];
-var otherxValues = ["Monthly New Loans %", "Monthly Reloans %"];
-var otheryValues = ['{{($givenout_count_newloan/(0.001 + $givenout_count_newloan + $givenout_count_reloan))*100}}','{{($givenout_count_reloan/(0.001 + $givenout_count_newloan + $givenout_count_reloan))*100}}'];
-
-new Chart("myChart", {
-  type: "pie",
-  data: {
-    labels: xValues,
-    datasets: [{
-      backgroundColor: barColors,
-      data: yValues
-    }]
-  },
-  options: {
-    title: {
-      display: true,
-    }
-  }
-});
-
-new Chart("myOtherChart", {
-  type: "pie",
-  data: {
-    labels: otherxValues,
-    datasets: [{
-      backgroundColor: barColors,
-      data: otheryValues
-    }]
-  },
-  options: {
-    title: {
-      display: true,
-    }
-  }
-});
-
-
-
-</script>
-
-@endif
-
-@if($role->role_id == '6')
-<script>
-
-function toggleMyStaff(divid){
-    varon = divid + 'on';
-    varoff = divid + 'off';
- 
-    if(document.getElementById(varon).style.display == 'block')
-    {
-    document.getElementById(varon).style.display = 'none';
-    document.getElementById(varoff).style.display = 'block';
-    }
-   
-    else
-    {  
-    document.getElementById(varoff).style.display = 'none';
-    document.getElementById(varon).style.display = 'block'
-    }
-}    
-  //console.log($trans)
-
-  var collections = <?php echo json_encode($collected_amounts); ?>;
-var uncollections = <?php echo json_encode($uncollected_amounts); ?>;
-var dates = <?php echo json_encode($dates); ?>;
-
-var targets = <?php echo json_encode($targets); ?>;
-var colors = <?php echo json_encode($colors); ?>;
-
-    
-const chrt = document.getElementById('province_graph');
-const chrt_new = document.getElementById('province_target_graph');
-
-var Chart2 = new Chart(chrt_new,{
-    type:'bar',
-    data: {
-        labels: dates,
-        datasets: [{
-             label:'Cycle given out for last 12 months',
-             data:targets,
-             backgroundColor:colors,
-             borderWidth:1
-            }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero:true
-            }
-        },
-    }
-});
-
-
-var chartId = new Chart(chrt, {
-         type: 'bar',
-         data: {
-            labels: dates,
-            datasets: [{
-               label: "uncollected as at end of cycle",
-               data: uncollections,
-               borderWidth: 1,
-            backgroundColor:'#ff1c4b'
-            },
-            {
-               label: "collected as at end of cycle date",
-               data: collections,
-               borderWidth: 1,
-                backgroundColor:'#57b7fa'
-            },
-        ],
-         },
-         options: {
-            scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
-         },
-      });
-
-
-const gaugeElement = document.querySelector(".gauge");
-
-function setGaugeValue(gauge, value) {
-  if (value < 0 || value > 1) {
-    return;
-  }
-
-  gauge.querySelector(".gauge__fill").style.transform = `rotate(${
-    value / 2
-  }turn)`;
-  gauge.querySelector(".gauge__cover").textContent = `${Math.round(
-    value * 100
-  )}%`;
-}
-
-
-
-setGaugeValue(gaugeElement, '{{($collected_amounts[12]/$cycle_opening_uncollected_amounts[12])}}');
-
-</script>
-@endif
-
-@if($role->role_id == '4') 
-	 <script>
-const slidesdm = document.querySelectorAll('#pendingWidget .slide');
-let currentSlidedm = 0;
-
-function showSlidedm(indexdm){
-    slidesdm.forEach((slidedm, idm) => slidedm.style.display = idm === indexdm ? 'block' : 'none');
-}
-
-setInterval(() => {
-    currentSlidedm = (currentSlidedm + 1) % slidesdm.length;
-    showSlidedm(currentSlidedm);
-}, 5000);
-
-showSlidedm(currentSlidedm);
-
-// Drag functionality (mouse & touch)
-const widgetdm = document.getElementById('pendingWidget');
-let isDraggingdm = false, offsetXdm = 0, offsetYdm = 0;
-
-// Mouse events
-widgetdm.addEventListener('mousedown', e => {
-    isDraggingdm = true;
-    offsetXdm = e.clientX - widgetdm.getBoundingClientRect().left;
-    offsetYdm = e.clientY - widgetdm.getBoundingClientRect().top;
-    widgetdm.style.transform = 'none';
-});
-document.addEventListener('mousemove', e => {
-    if (!isDraggingdm) return;
-    widgetdm.style.left = e.clientX - offsetXdm + 'px';
-    widgetdm.style.top = e.clientY - offsetYdm + 'px';
-});
-document.addEventListener('mouseup', () => { isDraggingdm = false; });
-
-// Touch events
-widgetdm.addEventListener('touchstart', e => {
-    isDraggingdm = true;
-    const touchdm = e.touches[0];
-    offsetXdm = touchdm.clientX - widgetdm.getBoundingClientRect().left;
-    offsetYdm = touchdm.clientY - widgetdm.getBoundingClientRect().top;
-    widgetdm.style.transform = 'none';
-});
-widgetdm.addEventListener('touchmove', e => {
-    if (!isDraggingdm) return;
-    e.preventDefault(); // prevent page scroll
-    const touchdm = e.touches[0];
-    widgetdm.style.left = touchdm.clientX - offsetXdm + 'px';
-    widgetdm.style.top = touchdm.clientY - offsetYdm + 'px';
-}, { passive: false });
-widgetdm.addEventListener('touchend', () => { isDraggingdm = false; });
-function toggleDiv(divid)
-  {
- 
-    varon = divid + 'on';
-    varoff = divid + 'off';
-    varoff2 = divid + 'staff';
- 
-    if(document.getElementById(varon).style.display == 'block')
-    {
-    document.getElementById(varon).style.display = 'none';
-    document.getElementById(varoff2).style.display = 'none';
-    document.getElementById(varoff).style.display = 'block';
-    }
-   
-    else
-    {  
-    document.getElementById(varoff).style.display = 'none';
-    document.getElementById(varon).style.display = 'block'
-    }
-} 
-
-
-function toggleMyStaff(divid){
-    varon = divid + 'on';
-    varoff = divid + 'staff';
-    varoff2 = divid + 'off'
-
-    if(document.getElementById(varon).style.display == 'block')
-    {
-    document.getElementById(varon).style.display = 'none';
-    document.getElementById(varoff2).style.display = 'none';
-    document.getElementById(varoff).style.display = 'block';
-    }
-   
-    else
-    {  
-    document.getElementById(varoff).style.display = 'none';
-    document.getElementById(varon).style.display = 'block'
-    }
-}
-
-function toggleLedger(divid)
-  {
- 
-    varon = divid + 'on_new';
-    varoff = divid + 'off_new';
- 
-    if(document.getElementById(varon).style.display == 'block')
-    {
-    document.getElementById(varon).style.display = 'none';
-    document.getElementById(varoff).style.display = 'block';
-    }
-   
-    else
-    {  
-    document.getElementById(varoff).style.display = 'none';
-    document.getElementById(varon).style.display = 'block'
-    }
-} 
-
-    
-const branchmonths = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-let branchtargetDateName = branchmonths[new Date('{{$branchtargetDate}}').getMonth()]
- var branchCycleDate = document.getElementById('branchCycle').innerHTML = '24th ' + branchtargetDateName
- let branchfirstDateName = branchmonths[new Date('{{$branchfirstDate}}').getMonth()];
- let branchsecondDateName = branchmonths[new Date('{{$branchsecondDate}}').getMonth()]
-
-const gaugeElementBranch = document.querySelector(".gauge");
-
-function setGaugeValue(gauge, value) {
-  if (value < 0 || value > 1) {
-    return;
-  }
-
-  gauge.querySelector(".gauge__fill").style.transform = `rotate(${
-    value / 2
-  }turn)`;
-  gauge.querySelector(".gauge__cover").textContent = `${Math.round(
-    value * 100
-  )}%`;
-}
-
-setGaugeValue(gaugeElementBranch, '{{($collected_total/$cycle_opening_uncollected_amount)}}');
-
-
-const cty = document.getElementById('branchgraph');
-
-new Chart(cty, {
-  type: 'bar',
-  data: {
-    labels: ['24 ' + branchfirstDateName, '24 ' + branchsecondDateName, '24 ' + branchtargetDateName,],
-    datasets: [{
-      label: 'Branch collections as at end of cycle date',
-      data: ['{{$collected_total_1_months}}','{{$collected_total_2_months}}','{{$collected_total}}'],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
-  }
-});
-</script>  
-@endif 
-
-@if($role->role_id == '3')
-@if($end !== 'NCI')
+    @endif
+    @if($role->role_id == '1')
         <script>
-          //  console.log('hello')
-            //Setting up the cycle count down
+
+            // Auto-slideshow
+            const slides = document.querySelectorAll('#pendingWidget .slide');
+            let currentSlide = 0;
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => slide.style.display = i === index ? 'block' : 'none');
+            }
+
+            setInterval(() => {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            }, 5000);
+
+            showSlide(currentSlide);
+
+            // Drag functionality (mouse & touch)
+            const widget = document.getElementById('pendingWidget');
+            let isDragging = false, offsetX = 0, offsetY = 0;
+
+            // Mouse events
+            widget.addEventListener('mousedown', e => {
+                isDragging = true;
+                offsetX = e.clientX - widget.getBoundingClientRect().left;
+                offsetY = e.clientY - widget.getBoundingClientRect().top;
+                widget.style.transform = 'none';
+            });
+            document.addEventListener('mousemove', e => {
+                if (!isDragging) return;
+                widget.style.left = e.clientX - offsetX + 'px';
+                widget.style.top = e.clientY - offsetY + 'px';
+            });
+            document.addEventListener('mouseup', () => { isDragging = false; });
+
+            // Touch events
+            widget.addEventListener('touchstart', e => {
+                isDragging = true;
+                const touch = e.touches[0];
+                offsetX = touch.clientX - widget.getBoundingClientRect().left;
+                offsetY = touch.clientY - widget.getBoundingClientRect().top;
+                widget.style.transform = 'none';
+            });
+            widget.addEventListener('touchmove', e => {
+                if (!isDragging) return;
+                e.preventDefault(); // <-- prevent page scroll
+                const touch = e.touches[0];
+                widget.style.left = touch.clientX - offsetX + 'px';
+                widget.style.top = touch.clientY - offsetY + 'px';
+            }, { passive: false });
+            widget.addEventListener('touchend', () => { isDragging = false; });
 
 
-var COUA = document.getElementById('coua');
-var TCC = document.getElementById('tcc');
-var given_out = document.getElementById('given_out')
-var mainDiv = document.getElementById('mydivon')
+            const gaugeElementAdmin = document.querySelector(".gauge");
 
-function toggleCOUA(){
-    if(COUA.style.display == 'none'){
-            TCC.style.display = 'none'
-            mainDiv.style.display = 'none'
-            given_out.style.display = 'none'
-            COUA.style.display = 'block'  
-    }else{
-        COUA.style.display = 'none'
-            mainDiv.style.display = 'block'
-            TCC.style.display = 'none'
-            given_out.style.display = 'none'
-    }
-}
+            function setGaugeValue(gauge, value) {
+                if (value < 0 || value > 1) {
+                    return;
+                }
 
-function toggleTCC(){
-    if(TCC.style.display == 'none'){
-            COUA.style.display = 'none'
-            mainDiv.style.display = 'none'
-            given_out.style.display = 'none'
-            TCC.style.display = 'block'  
-           
-    }else{
-        COUA.style.display = 'none'
-            mainDiv.style.display = 'block'
-            TCC.style.display = 'none'
-            given_out.style.display = 'none'
-    }
+                gauge.querySelector(".gauge__fill").style.transform = `rotate(${value / 2
+                    }turn)`;
+                gauge.querySelector(".gauge__cover").textContent = `${Math.round(
+                    value * 100
+                )}%`;
+            }
 
-}
+            setGaugeValue(gaugeElementAdmin, '{{($pdua)}}');
 
+            function toggleMyStaff(divid) {
+                varon = divid + 'on';
+                varoff = divid + 'off';
 
-function toggleGivenOut(){
-    if(given_out.style.display == 'none'){
-            COUA.style.display = 'none'
-            mainDiv.style.display = 'none'
-            TCC.style.display = 'none'
-            given_out.style.display = 'block'
-    }else{
-            COUA.style.display = 'none'
-            mainDiv.style.display = 'block'
-            TCC.style.display = 'none'
-            given_out.style.display = 'none'
-    }
+                if (document.getElementById(varon).style.display == 'block') {
+                    document.getElementById(varon).style.display = 'none';
+                    document.getElementById(varoff).style.display = 'block';
+                }
 
-}
+                else {
+                    document.getElementById(varoff).style.display = 'none';
+                    document.getElementById(varon).style.display = 'block'
+                }
+            }
 
-	 
-function toggleDiv(divid)
-  {
- 
-    varon = divid + 'on';
-    varoff = divid + 'off';
+            function toggleCollections(divid) {
+                console.log('hello')
+                varon = divid + 'on';
+                varoff = divid + 'offf';
 
- 
-    if(document.getElementById(varon).style.display == 'block')
-    {
-    document.getElementById(varon).style.display = 'none';
-    document.getElementById(varoff).style.display = 'block';
-    }
-   
-    else
-    {  
-    document.getElementById(varoff).style.display = 'none';
-    document.getElementById(varon).style.display = 'block'
-    }
-} 
+                if (document.getElementById(varon).style.display == 'block') {
+                    document.getElementById(varon).style.display = 'none';
+                    document.getElementById(varoff).style.display = 'block';
+                }
+
+                else {
+                    document.getElementById(varoff).style.display = 'none';
+                    document.getElementById(varon).style.display = 'block'
+                }
+            }
 
 
+            const companymonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            let companytargetDateName = companymonths[new Date('{{$branchtargetDate}}').getMonth()]
+            let companyfirstDateName = companymonths[new Date('{{$branchfirstDate}}').getMonth()];
+            let companysecondDateName = companymonths[new Date('{{$branchsecondDate}}').getMonth()]
+
+            var collections =
+                <?php    echo json_encode($collections); ?>;
+            var given_out =
+                <?php    echo json_encode($given_out); ?>;
+            console.log(collections.reverse())
+            console.log(given_out.reverse())
+
+            var dates =
+                <?php    echo json_encode($target_dates); ?>;
+            console.log(dates.reverse())
+
+            const allchrt = document.getElementById('companygraph');
 
 
-function toggleLedger(divid)
-  {
- 
-    varon = divid + 'on_new';
-    varoff = divid + 'off_new';
- 
-    if(document.getElementById(varon).style.display == 'block')
-    {
-    document.getElementById(varon).style.display = 'none';
-    document.getElementById(varoff).style.display = 'block';
-    }
-   
-    else
-    {  
-    document.getElementById(varoff).style.display = 'none';
-    document.getElementById(varon).style.display = 'block'
-    }
-} 
+            var chartId = new Chart(allchrt, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: "Actual Collections",
+                        data: collections,
+                        borderWidth: 1,
+                    },
+                    {
+                        label: "Expected Collections",
+                        data: given_out,
+                        borderWidth: 1,
+                    },
+                    ],
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                },
+            });
+
+
+
+
+            var given_out_total = "{{($collections_count_reloan / (0.001 + $collections_count_partpayment + $collections_count_fullpayment + $collections_count_reloan)) * 100}}"
+            console.log(given_out_total)
+
+            var xValues = ["Monthly Full and Part Payments %", "Monthly Reloans %"];
+            var yValues = ['{{(($collections_count_partpayment + $collections_count_fullpayment) / (0.001 + $collections_count_partpayment + $collections_count_fullpayment + $collections_count_reloan)) * 100}}', '{{($collections_count_reloan / (0.001 + $collections_count_partpayment + $collections_count_fullpayment + $collections_count_reloan)) * 100}}'];
+            var barColors = [
+                "#F77FBE",
+                "#87CEEB",
+            ];
+            var otherxValues = ["Monthly New Loans %", "Monthly Reloans %"];
+            var otheryValues = ['{{($givenout_count_newloan / (0.001 + $givenout_count_newloan + $givenout_count_reloan)) * 100}}', '{{($givenout_count_reloan / (0.001 + $givenout_count_newloan + $givenout_count_reloan)) * 100}}'];
+
+            new Chart("myChart", {
+                type: "pie",
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        backgroundColor: barColors,
+                        data: yValues
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                    }
+                }
+            });
+
+            new Chart("myOtherChart", {
+                type: "pie",
+                data: {
+                    labels: otherxValues,
+                    datasets: [{
+                        backgroundColor: barColors,
+                        data: otheryValues
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                    }
+                }
+            });
+
+
+
+        </script>
+
+    @endif
+
+    @if($role->role_id == '6')
+        <script>
+
+            function toggleMyStaff(divid) {
+                varon = divid + 'on';
+                varoff = divid + 'off';
+
+                if (document.getElementById(varon).style.display == 'block') {
+                    document.getElementById(varon).style.display = 'none';
+                    document.getElementById(varoff).style.display = 'block';
+                }
+
+                else {
+                    document.getElementById(varoff).style.display = 'none';
+                    document.getElementById(varon).style.display = 'block'
+                }
+            }
+            //console.log($trans)
+
+            var collections = <?php    echo json_encode($collected_amounts); ?>;
+            var uncollections = <?php    echo json_encode($uncollected_amounts); ?>;
+            var dates = <?php    echo json_encode($dates); ?>;
+
+            var targets = <?php    echo json_encode($targets); ?>;
+            var colors = <?php    echo json_encode($colors); ?>;
+
+
+            const chrt = document.getElementById('province_graph');
+            const chrt_new = document.getElementById('province_target_graph');
+
+            var Chart2 = new Chart(chrt_new, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Cycle given out for last 12 months',
+                        data: targets,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                }
+            });
+
+
+            var chartId = new Chart(chrt, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: "uncollected as at end of cycle",
+                        data: uncollections,
+                        borderWidth: 1,
+                        backgroundColor: '#ff1c4b'
+                    },
+                    {
+                        label: "collected as at end of cycle date",
+                        data: collections,
+                        borderWidth: 1,
+                        backgroundColor: '#57b7fa'
+                    },
+                    ],
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                },
+            });
+
+
+            const gaugeElement = document.querySelector(".gauge");
+
+            function setGaugeValue(gauge, value) {
+                if (value < 0 || value > 1) {
+                    return;
+                }
+
+                gauge.querySelector(".gauge__fill").style.transform = `rotate(${value / 2
+                    }turn)`;
+                gauge.querySelector(".gauge__cover").textContent = `${Math.round(
+                    value * 100
+                )}%`;
+            }
+
+
+
+            setGaugeValue(gaugeElement, '{{($collected_amounts[12] / $cycle_opening_uncollected_amounts[12])}}');
+
+        </script>
+    @endif
+
+    @if($role->role_id == '4')
+        <script>
+            const slidesdm = document.querySelectorAll('#pendingWidget .slide');
+            let currentSlidedm = 0;
+
+            function showSlidedm(indexdm) {
+                slidesdm.forEach((slidedm, idm) => slidedm.style.display = idm === indexdm ? 'block' : 'none');
+            }
+
+            setInterval(() => {
+                currentSlidedm = (currentSlidedm + 1) % slidesdm.length;
+                showSlidedm(currentSlidedm);
+            }, 5000);
+
+            showSlidedm(currentSlidedm);
+
+            // Drag functionality (mouse & touch)
+            const widgetdm = document.getElementById('pendingWidget');
+            let isDraggingdm = false, offsetXdm = 0, offsetYdm = 0;
+
+            // Mouse events
+            widgetdm.addEventListener('mousedown', e => {
+                isDraggingdm = true;
+                offsetXdm = e.clientX - widgetdm.getBoundingClientRect().left;
+                offsetYdm = e.clientY - widgetdm.getBoundingClientRect().top;
+                widgetdm.style.transform = 'none';
+            });
+            document.addEventListener('mousemove', e => {
+                if (!isDraggingdm) return;
+                widgetdm.style.left = e.clientX - offsetXdm + 'px';
+                widgetdm.style.top = e.clientY - offsetYdm + 'px';
+            });
+            document.addEventListener('mouseup', () => { isDraggingdm = false; });
+
+            // Touch events
+            widgetdm.addEventListener('touchstart', e => {
+                isDraggingdm = true;
+                const touchdm = e.touches[0];
+                offsetXdm = touchdm.clientX - widgetdm.getBoundingClientRect().left;
+                offsetYdm = touchdm.clientY - widgetdm.getBoundingClientRect().top;
+                widgetdm.style.transform = 'none';
+            });
+            widgetdm.addEventListener('touchmove', e => {
+                if (!isDraggingdm) return;
+                e.preventDefault(); // prevent page scroll
+                const touchdm = e.touches[0];
+                widgetdm.style.left = touchdm.clientX - offsetXdm + 'px';
+                widgetdm.style.top = touchdm.clientY - offsetYdm + 'px';
+            }, { passive: false });
+            widgetdm.addEventListener('touchend', () => { isDraggingdm = false; });
+            function toggleDiv(divid) {
+
+                varon = divid + 'on';
+                varoff = divid + 'off';
+                varoff2 = divid + 'staff';
+
+                if (document.getElementById(varon).style.display == 'block') {
+                    document.getElementById(varon).style.display = 'none';
+                    document.getElementById(varoff2).style.display = 'none';
+                    document.getElementById(varoff).style.display = 'block';
+                }
+
+                else {
+                    document.getElementById(varoff).style.display = 'none';
+                    document.getElementById(varon).style.display = 'block'
+                }
+            }
+
+
+            function toggleMyStaff(divid) {
+                varon = divid + 'on';
+                varoff = divid + 'staff';
+                varoff2 = divid + 'off'
+
+                if (document.getElementById(varon).style.display == 'block') {
+                    document.getElementById(varon).style.display = 'none';
+                    document.getElementById(varoff2).style.display = 'none';
+                    document.getElementById(varoff).style.display = 'block';
+                }
+
+                else {
+                    document.getElementById(varoff).style.display = 'none';
+                    document.getElementById(varon).style.display = 'block'
+                }
+            }
+
+            function toggleLedger(divid) {
+
+                varon = divid + 'on_new';
+                varoff = divid + 'off_new';
+
+                if (document.getElementById(varon).style.display == 'block') {
+                    document.getElementById(varon).style.display = 'none';
+                    document.getElementById(varoff).style.display = 'block';
+                }
+
+                else {
+                    document.getElementById(varoff).style.display = 'none';
+                    document.getElementById(varon).style.display = 'block'
+                }
+            }
+
+
+            const branchmonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            let branchtargetDateName = branchmonths[new Date('{{$branchtargetDate}}').getMonth()]
+            var branchCycleDate = document.getElementById('branchCycle').innerHTML = '24th ' + branchtargetDateName
+            let branchfirstDateName = branchmonths[new Date('{{$branchfirstDate}}').getMonth()];
+            let branchsecondDateName = branchmonths[new Date('{{$branchsecondDate}}').getMonth()]
+
+            const gaugeElementBranch = document.querySelector(".gauge");
+
+            function setGaugeValue(gauge, value) {
+                if (value < 0 || value > 1) {
+                    return;
+                }
+
+                gauge.querySelector(".gauge__fill").style.transform = `rotate(${value / 2
+                    }turn)`;
+                gauge.querySelector(".gauge__cover").textContent = `${Math.round(
+                    value * 100
+                )}%`;
+            }
+
+            setGaugeValue(gaugeElementBranch, '{{($collected_total / $cycle_opening_uncollected_amount)}}');
+
+
+            const cty = document.getElementById('branchgraph');
+
+            new Chart(cty, {
+                type: 'bar',
+                data: {
+                    labels: ['24 ' + branchfirstDateName, '24 ' + branchsecondDateName, '24 ' + branchtargetDateName,],
+                    datasets: [{
+                        label: 'Branch collections as at end of cycle date',
+                        data: ['{{$collected_total_1_months}}', '{{$collected_total_2_months}}', '{{$collected_total}}'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+    @endif
+
+    @if($role->role_id == '3')
+        @if($end !== 'NCI')
+            <script>
+                //  console.log('hello')
+                //Setting up the cycle count down
+
+
+                var COUA = document.getElementById('coua');
+                var TCC = document.getElementById('tcc');
+                var given_out = document.getElementById('given_out')
+                var mainDiv = document.getElementById('mydivon')
+
+                function toggleCOUA() {
+                    if (COUA.style.display == 'none') {
+                        TCC.style.display = 'none'
+                        mainDiv.style.display = 'none'
+                        given_out.style.display = 'none'
+                        COUA.style.display = 'block'
+                    } else {
+                        COUA.style.display = 'none'
+                        mainDiv.style.display = 'block'
+                        TCC.style.display = 'none'
+                        given_out.style.display = 'none'
+                    }
+                }
+
+                function toggleTCC() {
+                    if (TCC.style.display == 'none') {
+                        COUA.style.display = 'none'
+                        mainDiv.style.display = 'none'
+                        given_out.style.display = 'none'
+                        TCC.style.display = 'block'
+
+                    } else {
+                        COUA.style.display = 'none'
+                        mainDiv.style.display = 'block'
+                        TCC.style.display = 'none'
+                        given_out.style.display = 'none'
+                    }
+
+                }
+
+
+                function toggleGivenOut() {
+                    if (given_out.style.display == 'none') {
+                        COUA.style.display = 'none'
+                        mainDiv.style.display = 'none'
+                        TCC.style.display = 'none'
+                        given_out.style.display = 'block'
+                    } else {
+                        COUA.style.display = 'none'
+                        mainDiv.style.display = 'block'
+                        TCC.style.display = 'none'
+                        given_out.style.display = 'none'
+                    }
+
+                }
+
+
+                function toggleDiv(divid) {
+
+                    varon = divid + 'on';
+                    varoff = divid + 'off';
+
+
+                    if (document.getElementById(varon).style.display == 'block') {
+                        document.getElementById(varon).style.display = 'none';
+                        document.getElementById(varoff).style.display = 'block';
+                    }
+
+                    else {
+                        document.getElementById(varoff).style.display = 'none';
+                        document.getElementById(varon).style.display = 'block'
+                    }
+                }
+
+
+
+
+                function toggleLedger(divid) {
+
+                    varon = divid + 'on_new';
+                    varoff = divid + 'off_new';
+
+                    if (document.getElementById(varon).style.display == 'block') {
+                        document.getElementById(varon).style.display = 'none';
+                        document.getElementById(varoff).style.display = 'block';
+                    }
+
+                    else {
+                        document.getElementById(varoff).style.display = 'none';
+                        document.getElementById(varon).style.display = 'block'
+                    }
+                }
 
 
                 const d = new Date();
-let month = d.getMonth() + 1;
-let year = d.getFullYear();
-let day = d.getDate();
-let todayDate = year + '-' + month + '-' + day;
-let countDownEndDate = year + '-' + month + '-' + '{{$end}}'
-if(todayDate >= countDownEndDate){
-    countDownEndDate = year + '-' + (month + 1) + '-' + '{{$end}}'
-}
-const NewCountDownEndDate = new Date(countDownEndDate);
-var BrandNewCountDownEndDate = new Date(NewCountDownEndDate).getTime();
-
-var x = setInterval(function(){
-    var now = new Date().getTime();
-    var distance = BrandNewCountDownEndDate - now;
-    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    document.getElementById("demo").innerHTML = days + "d " + hours + "h "
-  + minutes + "m " + seconds + "s";
-
-});
-
-
-
-// var layout = { width: 400, height: 300, margin: { t: 0, b: 0 },  paper_bgcolor: "transparent", };
-// Plotly.newPlot('pdua', data, layout);
-// var dateTarget = document.getElementById("target").innerHTML = '24 ' + targetDateName;
-const ctx = document.getElementById('graph');
-const ctx_new = document.getElementById('target_graph');
-var collections = <?php echo json_encode($collected_amounts); ?>;
-var uncollections = <?php echo json_encode($uncollected_amounts); ?>;
-var dates = <?php echo json_encode($dates); ?>;
-var coua = <?php echo json_encode($cycle_opening_uncollected_amounts[11]); ?>;
-for (let i = 0; i < coua.length; i++) {
-    console.log("Index:", i, "Value:", coua[i]);
-}
-
-console.log('HELLOOOO');
-
-
-new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: dates,
-    datasets: [
-        {
-    label: 'Your uncollected as at end of cycle',
-      data:uncollections,
-      borderWidth: 1,
-      backgroundColor:'#ff1c4b'
-
-},
-        {
-      label: 'Your collected as at end of cycle',
-      data: collections,
-      borderWidth: 1,
-      backgroundColor:'#57b7fa'
-
-    }
-]
-  },
-  options: {
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
-  }
-});
-
-var targets = <?php echo json_encode($targets); ?>;
-var colors = <?php echo json_encode($colors); ?>;
-
-new Chart(ctx_new,{
-    type:'bar',
-    data: {
-        labels: dates,
-        datasets: [{
-             label:'Cycle given out for last 12 months',
-             data:targets,
-             backgroundColor:colors,
-             borderWidth:1
-            }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero:true
-            }
-        },
-    }
-});
-
-
-const gaugeElement = document.querySelector(".gauge");
-
-function setGaugeValue(gauge, value) {
-  if (value < 0 || value > 1) {
-    return;
-  }
-
-  gauge.querySelector(".gauge__fill").style.transform = `rotate(${
-    value / 2
-  }turn)`;
-  gauge.querySelector(".gauge__cover").textContent = `${Math.round(
-    value * 100
-  )}%`;
-}
-
-var test1 = <?php echo json_encode($collected_amounts[12]/$cycle_opening_uncollected_amounts[12]); ?>;
-var test2 = <?php echo json_encode($collected_amounts[12]); ?>;
-var coua = <?php echo json_encode($cycle_opening_uncollected_amounts); ?>;
-for (var i = 0; i < coua.length; i++) {
-    console.log(coua[i]);
-}
-console.log(test1)
-console.log(test2)
-setGaugeValue(gaugeElement, '{{($tots)}}');
-
-$('#data-table').DataTable({
-            dom: 'frtip',
-            "paging": true,
-            "lengthChange": true,
-            "displayLength": 15,
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "autoWidth": true,
-            "order": [[5, "desc"]],
-            "columnDefs": [
-                {"orderable": false, "targets": []}
-            ],
-            "language": {
-                "lengthMenu": "{{ trans('general.lengthMenu') }}",
-                "zeroRecords": "{{ trans('general.zeroRecords') }}",
-                "info": "{{ trans('general.info') }}",
-                "infoEmpty": "{{ trans('general.infoEmpty') }}",
-                "search": "{{ trans('general.search') }}",
-                "infoFiltered": "{{ trans('general.infoFiltered') }}",
-                "paginate": {
-                    "first": "{{ trans('general.first') }}",
-                    "last": "{{ trans('general.last') }}",
-                    "next": "{{ trans('general.next') }}",
-                    "previous": "{{ trans('general.previous') }}"
+                let month = d.getMonth() + 1;
+                let year = d.getFullYear();
+                let day = d.getDate();
+                let todayDate = year + '-' + month + '-' + day;
+                let countDownEndDate = year + '-' + month + '-' + '{{$end}}'
+                if (todayDate >= countDownEndDate) {
+                    countDownEndDate = year + '-' + (month + 1) + '-' + '{{$end}}'
                 }
-            },
-            responsive: false
-        });            
+                const NewCountDownEndDate = new Date(countDownEndDate);
+                var BrandNewCountDownEndDate = new Date(NewCountDownEndDate).getTime();
+
+                var x = setInterval(function () {
+                    var now = new Date().getTime();
+                    var distance = BrandNewCountDownEndDate - now;
+                    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    document.getElementById("demo").innerHTML = days + "d " + hours + "h "
+                        + minutes + "m " + seconds + "s";
+
+                });
 
 
-        </script>
+
+                // var layout = { width: 400, height: 300, margin: { t: 0, b: 0 },  paper_bgcolor: "transparent", };
+                // Plotly.newPlot('pdua', data, layout);
+                // var dateTarget = document.getElementById("target").innerHTML = '24 ' + targetDateName;
+                const ctx = document.getElementById('graph');
+                const ctx_new = document.getElementById('target_graph');
+                var collections = <?php        echo json_encode($collected_amounts); ?>;
+                var uncollections = <?php        echo json_encode($uncollected_amounts); ?>;
+                var dates = <?php        echo json_encode($dates); ?>;
+                var coua = <?php        echo json_encode($cycle_opening_uncollected_amounts[11]); ?>;
+                for (let i = 0; i < coua.length; i++) {
+                    console.log("Index:", i, "Value:", coua[i]);
+                }
+
+                console.log('HELLOOOO');
+
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: 'Your uncollected as at end of cycle',
+                                data: uncollections,
+                                borderWidth: 1,
+                                backgroundColor: '#ff1c4b'
+
+                            },
+                            {
+                                label: 'Your collected as at end of cycle',
+                                data: collections,
+                                borderWidth: 1,
+                                backgroundColor: '#57b7fa'
+
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                var targets = <?php        echo json_encode($targets); ?>;
+                var colors = <?php        echo json_encode($colors); ?>;
+
+                new Chart(ctx_new, {
+                    type: 'bar',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Cycle given out for last 12 months',
+                            data: targets,
+                            backgroundColor: colors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                    }
+                });
+
+
+                const gaugeElement = document.querySelector(".gauge");
+
+                function setGaugeValue(gauge, value) {
+                    if (value < 0 || value > 1) {
+                        return;
+                    }
+
+                    gauge.querySelector(".gauge__fill").style.transform = `rotate(${value / 2
+                        }turn)`;
+                    gauge.querySelector(".gauge__cover").textContent = `${Math.round(
+                        value * 100
+                    )}%`;
+                }
+
+                var test1 = <?php        echo json_encode($collected_amounts[12] / $cycle_opening_uncollected_amounts[12]); ?>;
+                var test2 = <?php        echo json_encode($collected_amounts[12]); ?>;
+                var coua = <?php        echo json_encode($cycle_opening_uncollected_amounts); ?>;
+                for (var i = 0; i < coua.length; i++) {
+                    console.log(coua[i]);
+                }
+                console.log(test1)
+                console.log(test2)
+                setGaugeValue(gaugeElement, '{{($tots)}}');
+
+                $('#data-table').DataTable({
+                    dom: 'frtip',
+                    "paging": true,
+                    "lengthChange": true,
+                    "displayLength": 15,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": true,
+                    "order": [[5, "desc"]],
+                    "columnDefs": [
+                        { "orderable": false, "targets": [] }
+                    ],
+                    "language": {
+                        "lengthMenu": "{{ trans('general.lengthMenu') }}",
+                        "zeroRecords": "{{ trans('general.zeroRecords') }}",
+                        "info": "{{ trans('general.info') }}",
+                        "infoEmpty": "{{ trans('general.infoEmpty') }}",
+                        "search": "{{ trans('general.search') }}",
+                        "infoFiltered": "{{ trans('general.infoFiltered') }}",
+                        "paginate": {
+                            "first": "{{ trans('general.first') }}",
+                            "last": "{{ trans('general.last') }}",
+                            "next": "{{ trans('general.next') }}",
+                            "previous": "{{ trans('general.previous') }}"
+                        }
+                    },
+                    responsive: false
+                });
+
+
+            </script>
         @endif
-        @endif
+    @endif
 @endsection
