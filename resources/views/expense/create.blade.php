@@ -42,16 +42,16 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="gl_account_id"
                            class="control-label col-md-2">GL Account</label>
                     <div class="col-md-3">
                         <select name="gl_account_id" class="form-control select2" id="gl_account_id" 
-                                required>
+                                >
                             <option></option>
                         </select>
                     </div>
-                </div>
+                </div> -->
                 <div class="form-group">
                     <label for="name"
                            class="control-label col-md-2">{{trans_choice('general.name',1)}}</label>
