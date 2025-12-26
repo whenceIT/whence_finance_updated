@@ -393,11 +393,14 @@
                       $op_bal_dr = 0;
                       $op_bal_cr = 0;
                       $toffice = \App\Models\Office::find($office_id);
-                      $journals = \App\Models\GlJournalEntry::where('gl_account_id', $gl_account_id)->where('office_id', $office_id)->where('date','>=',$toffice->opening_date)->first();
-                      $op_bal_dr = $op_bal_dr + $journals->op_balance_dr;
-                      $op_bal_cr = $op_bal_cr + $journals->op_balance_cr;
+                      $opening_date = $toffice ? $toffice->opening_date : ($start_date ?? '2000-01-01');
+                      $journals = \App\Models\GlJournalEntry::where('gl_account_id', $gl_account_id)->where('office_id', $office_id)->where('date','>=',$opening_date)->first();
+                      if($journals) {
+                          $op_bal_dr = $op_bal_dr + $journals->op_balance_dr;
+                          $op_bal_cr = $op_bal_cr + $journals->op_balance_cr;
+                      }
                       $opening_balance = $op_bal_dr - $op_bal_cr;
-                      $balancebf = $opening_balance + $current_balance;
+                      $balancebf = $opening_balance + ($current_balance ?? 0);
                       
                       
                       
