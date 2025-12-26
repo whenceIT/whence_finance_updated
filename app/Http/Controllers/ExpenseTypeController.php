@@ -67,6 +67,9 @@ class ExpenseTypeController extends Controller
         $expense_type->gl_account_id = $request->gl_account_id;
         $expense_type->notes = $request->notes;
         $expense_type->save();
+        if ($request->gl_account_ids) {
+            $expense_type->gl_accounts()->sync($request->gl_account_ids);
+        }
         Flash::success(trans('general.successfully_saved'));
         return redirect('expense/type/data');
     }
@@ -111,6 +114,9 @@ class ExpenseTypeController extends Controller
         $expense_type->gl_account_id = $request->gl_account_id;
         $expense_type->notes = $request->notes;
         $expense_type->save();
+        if ($request->gl_account_ids) {
+            $expense_type->gl_accounts()->sync($request->gl_account_ids);
+        }
         Flash::success(trans('general.successfully_saved'));
         return redirect('expense/type/data');
     }
@@ -130,6 +136,21 @@ class ExpenseTypeController extends Controller
         ExpenseType::destroy($id);
         Flash::success(trans('general.successfully_deleted'));
         return redirect()->back();
+    }
+
+    public function get_gl_accounts($id)
+    {
+        $type = ExpenseType::find($id);
+        $accounts = [];
+        if (!empty($type)) {
+            foreach ($type->gl_accounts as $account) {
+                $accounts[] = [
+                    'id' => $account->id,
+                    'name' => $account->gl_code . ' | ' . $account->name
+                ];
+            }
+        }
+        return response()->json($accounts);
     }
 
 }

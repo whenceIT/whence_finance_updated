@@ -36,14 +36,19 @@
                             <option></option>
                             @foreach(\App\Models\ExpenseType::all() as $key)
                                 <option value="{{$key->id}}">
-                                    @if(!empty($key->gl_account))
-                                        {{$key->gl_account->gl_code}}
-                                         <!-- {{$key->gl_account->name}}  -->
-                                         -
-                                    @endif
                                     {{$key->name}}
                                 </option>
                             @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="gl_account_id"
+                           class="control-label col-md-2">GL Account</label>
+                    <div class="col-md-3">
+                        <select name="gl_account_id" class="form-control select2" id="gl_account_id" 
+                                required>
+                            <option></option>
                         </select>
                     </div>
                 </div>
@@ -245,6 +250,28 @@
                     $('#recur_frequency').removeAttr('required');
                     $('#recur_start_date').removeAttr('required');
                     $('#recur_type').removeAttr('required');
+                }
+            });
+
+            // Dynamic GL accounts
+            $('#expense_type_id').change(function () {
+                var id = $(this).val();
+                if (id) {
+                    $.ajax({
+                        url: "{{ url('expense/type') }}/" + id + "/get_gl_accounts",
+                        type: "GET",
+                        dataType: "json",
+                        success: function (data) {
+                            $('#gl_account_id').empty();
+                            $('#gl_account_id').append('<option></option>');
+                            $.each(data, function (key, value) {
+                                $('#gl_account_id').append('<option value="' + value.id + '">' + value.name + '</option>');
+                            });
+                        }
+                    });
+                } else {
+                    $('#gl_account_id').empty();
+                    $('#gl_account_id').append('<option></option>');
                 }
             });
 

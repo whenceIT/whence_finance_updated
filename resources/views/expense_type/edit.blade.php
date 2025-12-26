@@ -29,9 +29,11 @@
                     <div class="col-md-3">
                         <select name="distribution_cost" class="form-control select2" id="distribution_cost" required>
                             <option value="0" @if($expense_type->distribution_cost == 0) selected @endif>
-                                {{trans_choice('general.no', 1)}}</option>
+                                {{trans_choice('general.no', 1)}}
+                            </option>
                             <option value="1" @if($expense_type->distribution_cost == 1) selected @endif>
-                                {{trans_choice('general.yes', 1)}}</option>
+                                {{trans_choice('general.yes', 1)}}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -70,13 +72,13 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="gl_account_id" class="control-label col-md-3">GL Account
+                    <label for="gl_account_id" class="control-label col-md-3">GL Accounts
                     </label>
                     <div class="col-md-9">
-                        <select name="gl_account_id" class="form-control select2" id="gl_account_id">
-                            <option></option>
+                        <select name="gl_account_ids[]" class="form-control select2" id="gl_account_id" multiple>
                             @foreach(\App\Models\GlAccount::where('account_type', "expense")->where('active', 1)->get() as $key)
-                                <option value="{{$key->id}}" @if($expense_type->gl_account_id == $key->id) selected @endif>
+                                <option value="{{$key->id}}" @if($expense_type->gl_accounts->contains($key->id)) selected
+                                @endif>
                                     {{$key->gl_code . ' | ' . $key->name}}
                                 </option>
                             @endforeach

@@ -21,7 +21,7 @@
                     <tr>
                         <th>{{ trans_choice('general.name', 1) }}</th>
                         <!-- <th>{{ trans_choice('general.asset', 1) }} {{ trans_choice('general.account', 1) }}</th>
-                        <th>{{ trans_choice('general.expense', 1) }} {{ trans_choice('general.account', 1) }}</th> -->
+                            <th>{{ trans_choice('general.expense', 1) }} {{ trans_choice('general.account', 1) }}</th> -->
                         <th>GL Account</th>
                         <th>{{ trans_choice('general.note', 2) }}</th>
                         <th>{{ trans_choice('general.action', 1) }}</th>
@@ -32,19 +32,19 @@
                         <tr>
                             <td>{{ $key->name }}</td>
                             <!-- <td>
-                                @if(!empty($key->gl_account_asset))
-                                    {{$key->gl_account_asset->name}}
-                                @endif
-                            </td>
+                                        @if(!empty($key->gl_account_asset))
+                                            {{$key->gl_account_asset->name}}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if(!empty($key->gl_account_expense))
+                                            {{$key->gl_account_expense->name}}
+                                        @endif
+                                    </td> -->
                             <td>
-                                @if(!empty($key->gl_account_expense))
-                                    {{$key->gl_account_expense->name}}
-                                @endif
-                            </td> -->
-                            <td>
-                                @if(!empty($key->gl_account))
-                                    {{$key->gl_account->name . " | " . $key->gl_account->gl_code}}
-                                @endif
+                                @foreach($key->gl_accounts as $account)
+                                    <span class="label label-info">{{$account->name . " | " . $account->gl_code}}</span><br>
+                                @endforeach
                             </td>
                             <td>{{ $key->notes }}</td>
                             <td>
