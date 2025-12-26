@@ -35,7 +35,12 @@
                                 required>
                             <option></option>
                             @foreach(\App\Models\ExpenseType::all() as $key)
-                                <option value="{{$key->id}}" @if($expense->expense_type_id==$key->id) selected @endif>{{$key->name}}</option>
+                                <option value="{{$key->id}}" @if($expense->expense_type_id==$key->id) selected @endif>
+                                    @if(!empty($key->gl_account))
+                                        {{$key->gl_account->gl_code}} |
+                                    @endif
+                                    {{$key->name}}
+                                </option>
                             @endforeach
                         </select>
                     </div>

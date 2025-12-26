@@ -86,6 +86,10 @@
                             <td>
                                 @if(!empty($key->type))
                                     {{$key->type->name}}
+                                    @if(!empty($key->type->gl_account))
+                                        <br>
+                                        <small>{{$key->type->gl_account->gl_code}}</small>
+                                    @endif
                                 @endif
                             </td>
                             <td>{{ number_format($key->amount,2) }}</td>

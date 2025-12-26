@@ -35,7 +35,14 @@
                                 required>
                             <option></option>
                             @foreach(\App\Models\ExpenseType::all() as $key)
-                                <option value="{{$key->id}}">{{$key->name}}</option>
+                                <option value="{{$key->id}}">
+                                    @if(!empty($key->gl_account))
+                                        {{$key->gl_account->gl_code}}
+                                         <!-- {{$key->gl_account->name}}  -->
+                                         -
+                                    @endif
+                                    {{$key->name}}
+                                </option>
                             @endforeach
                         </select>
                     </div>

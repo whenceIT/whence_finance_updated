@@ -17,4 +17,9 @@ class ExpenseType extends Model
     {
         return $this->hasOne(GlAccount::class, 'id', 'gl_account_expense_id');
     }
+
+    public function gl_account()
+    {
+        return $this->hasOne(GlAccount::class, 'id', 'gl_account_id');
+    }
 }
