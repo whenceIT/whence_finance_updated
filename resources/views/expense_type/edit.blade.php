@@ -5,7 +5,7 @@
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">{{ trans_choice('general.edit', 1) }} {{ trans_choice('general.branch', 1) }}</h3>
+            <h3 class="box-title">{{ trans_choice('general.edit', 1) }} Expense Type </h3>
 
             <div class="box-tools pull-right">
                 <button onclick="window.history.back()" class="btn btn-info btn-sm">
