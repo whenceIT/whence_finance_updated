@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-    {{ trans_choice('general.edit', 1) }} {{ trans_choice('general.branch', 1) }}
+    {{ trans_choice('general.edit', 1) }} {{ trans_choice('general.type', 1) }}
 @endsection
 @section('content')
     <div class="box box-primary">

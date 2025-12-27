@@ -53,7 +53,7 @@ class ExpenseController extends Controller
         if (!empty($office_id) && $office_id != 0) {
             $query->where('office_id', $office_id);
         }
-        $data = $query->get();
+        $data = $query->paginate(15);
 
         return view('expense.data', compact('data', 'start_date', 'end_date', 'office_id', 'offices'));
     }

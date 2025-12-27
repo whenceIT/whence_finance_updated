@@ -3,15 +3,14 @@
     {{trans_choice('general.expense',2)}}
 @endsection
 
-<style>
-    .thumbnail {
-        width: 100px; 
-        height: auto; 
-        cursor: pointer; 
-    }
-</style>
-
 @section('content')
+    <style>
+        .thumbnail {
+            width: 100px; 
+            height: auto; 
+            cursor: pointer; 
+        }
+    </style>
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">{{trans_choice('general.expense',2)}}</h3>
@@ -151,6 +150,9 @@
                     @endforeach
                     </tbody>
                 </table>
+            </div>
+            <div class="text-center">
+                {{ $data->appends(request()->query())->links() }}
             </div>
         </div>
         <!-- /.box-body -->
