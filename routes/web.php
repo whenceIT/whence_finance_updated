@@ -336,6 +336,7 @@ Route::group(['prefix' => 'group'], function () {
 Route::group(['prefix' => 'accounting'], function () {
     //gl account
     Route::any('gl_account/data', 'GlAccountController@index');
+    Route::get('gl_account/export', 'GlAccountController@export');
     Route::get('gl_account/create', 'GlAccountController@create');
     Route::post('gl_account/store', 'GlAccountController@store');
     Route::get('gl_account/{gl_account}/edit', 'GlAccountController@edit');
