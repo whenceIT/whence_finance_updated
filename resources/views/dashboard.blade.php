@@ -17,7 +17,8 @@
                     </div>
                     <div class="col-lg-4 col-xs-12">
                         <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}}
-                            {{$staff->last_name}}</p>
+                            {{$staff->last_name}}
+                        </p>
                     </div>
 
                     <div class="col-lg-4 col-xs-12">
@@ -68,83 +69,84 @@
 
                 </div>
             @else
-                    <div class="row">
-                        <div class="col-lg-4 col-xs-12">
-                            <p style="text-align: center; font-weight:bold; ">Name: {{$user->first_name}} {{$user->last_name}}</p>
-                        </div>
-                        <div class="col-lg-4 col-xs-12">
-                            <p style="text-align: center; font-weight:bold;">Branch: {{$clientBranch->name}}</p>
-                        </div>
-                        <div class="col-lg-4 col-xs-12">
-                            <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}}
-                                {{$staff->last_name}}</p>
-                        </div>
-                        <?php 
-                $balance = 0;
-                        ;
-                        $in = 0;
-                        $out = 0;
-                ?>
-                        @foreach($clientLoan->transactions as $transaction)
-                                <?php 
-                            if ($transaction->transaction_type != 'specified_due_date_fee') {
-                                        $out = $out + $transaction->debit;
-                                    }
-
-                                    $in = $in + $transaction->credit;
-                            ?>
-                        @endforeach
-                        <?php 
-                $balance = $out - $in;
-                ?>
-
-                        <div class="col-lg-4 col-xs-12">
-                            <div class="small-box bg-aqua">
-                                <div class="inner">
-                                    <p style="font-weight: bold;">Outstanding balance</p>
-                                    <div class="icon">
-                                        <i class="fa fa-usd"></i>
-                                    </div>
-                                    <h3>{{number_format($balance, 2)}}</h3>
-                                </div>
-                                <div class="small-box-footer">
-                                    <p></p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-4 col-xs-12">
-                            <div class="small-box bg-green">
-                                <div class="inner">
-                                    <p style="font-weight: bold;">Due date</p>
-                                    <div class="icon">
-                                        <i class="fa fa-calendar-o"></i>
-                                    </div>
-                                    <h3>{{date("jS M, Y", strtotime($clientLoan->expected_first_repayment_date))}}</h3>
-                                </div>
-                                <div class="small-box-footer">
-                                    <p></p>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div class="col-lg-4 col-xs-12">
-                            <div class="small-box bg-red">
-                                <div class="inner">
-                                    <p style="font-weight: bold;">Paid</p>
-                                    <div class="icon">
-                                        <i class="fa fa-usd"></i>
-                                    </div>
-                                    <h3>{{number_format($in, 2)}}</h3>
-                                </div>
-                                <div class="small-box-footer">
-                                    <p></p>
-                                </div>
-                            </div>
-                        </div>
-
+                <div class="row">
+                    <div class="col-lg-4 col-xs-12">
+                        <p style="text-align: center; font-weight:bold; ">Name: {{$user->first_name}} {{$user->last_name}}</p>
                     </div>
+                    <div class="col-lg-4 col-xs-12">
+                        <p style="text-align: center; font-weight:bold;">Branch: {{$clientBranch->name}}</p>
+                    </div>
+                    <div class="col-lg-4 col-xs-12">
+                        <p style="text-align: center; font-weight:bold;">Loan Consultant: {{$staff->first_name}}
+                            {{$staff->last_name}}
+                        </p>
+                    </div>
+                    <?php 
+                                                                                                                                        $balance = 0;
+                    ;
+                    $in = 0;
+                    $out = 0;
+                                                                                                                                        ?>
+                    @foreach($clientLoan->transactions as $transaction)
+                        <?php 
+                                                                                                                                                                                            if ($transaction->transaction_type != 'specified_due_date_fee') {
+                                $out = $out + $transaction->debit;
+                            }
+
+                            $in = $in + $transaction->credit;
+                                                                                                                                                                                            ?>
+                    @endforeach
+                    <?php 
+                                                                                                                                        $balance = $out - $in;
+                                                                                                                                        ?>
+
+                    <div class="col-lg-4 col-xs-12">
+                        <div class="small-box bg-aqua">
+                            <div class="inner">
+                                <p style="font-weight: bold;">Outstanding balance</p>
+                                <div class="icon">
+                                    <i class="fa fa-usd"></i>
+                                </div>
+                                <h3>{{number_format($balance, 2)}}</h3>
+                            </div>
+                            <div class="small-box-footer">
+                                <p></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-xs-12">
+                        <div class="small-box bg-green">
+                            <div class="inner">
+                                <p style="font-weight: bold;">Due date</p>
+                                <div class="icon">
+                                    <i class="fa fa-calendar-o"></i>
+                                </div>
+                                <h3>{{date("jS M, Y", strtotime($clientLoan->expected_first_repayment_date))}}</h3>
+                            </div>
+                            <div class="small-box-footer">
+                                <p></p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-lg-4 col-xs-12">
+                        <div class="small-box bg-red">
+                            <div class="inner">
+                                <p style="font-weight: bold;">Paid</p>
+                                <div class="icon">
+                                    <i class="fa fa-usd"></i>
+                                </div>
+                                <h3>{{number_format($in, 2)}}</h3>
+                            </div>
+                            <div class="small-box-footer">
+                                <p></p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
 
             @endif
 
@@ -159,9 +161,10 @@
 
         <div></div>
 
-        <div style="display: flex;
-            align-items: center;
-            justify-content: center; padding-bottom: 10px;">
+        <div
+            style="display: flex;
+                                                                                            align-items: center;
+                                                                                            justify-content: center; padding-bottom: 10px;">
 
 
             <a href="{{ url('loan/my_collections') }}" style="margin: 10px;">
@@ -188,482 +191,503 @@
         <!-- Default Dashboard -->
         <div id='mydivon' style="display:block">
             @if($end == 'NCI')
-                <div style="display: flex;
-                align-items: center;
-                justify-content: center;">
+                <div
+                    style="display: flex;
+                                                                                                                                        align-items: center;
+                                                                                                                                        justify-content: center;">
                     <a href="{{ url('user/cycle') }}" class="btn btn-info btn-sm">
                         Set your cycle end date
                     </a>
                 </div>
             @else
 
-                    <!-- first row -->
-                    <div class="row">
-                        <!-- cycle countdown -->
-                        <?php
-                        $MoneyGivenOut = 0;
-                        $MoneyCollected = 0;
-                        $reloan_amount = 0;
-                        $cycle_opening_uncollected_amount = 0.0001;
+                <!-- first row -->
+                <div class="row">
+                    <!-- cycle countdown -->
+                    <?php
+                    $MoneyGivenOut = 0;
+                    $MoneyCollected = 0;
+                    $reloan_amount = 0;
+                    $cycle_opening_uncollected_amount = 0.0001;
+                    $full_payments = 0;
+                    $part_payments = 0;
+                    $reloan_payments = 0;
+
+                                                                                                                                        ?>
+
+                    <!-- CALCULATING LOAN BALANCES FOR CYCLE OPENING UNCOLLECTED -->
+                    <?php
+                    $today = date('Y-m-d');
+                    $currrent_date = date('Y-m');
+                    $cycle_date = $currrent_date . '-' . $cycle_end;
+                    if ($today > $cycle_date) {
+                        $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                    }
+
+                    $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+                    $cycle_opening_uncollected_amounts = [];
+                    for ($x = 12; $x > -1; $x--) {
+                        $cycle_opening_uncollected_amount = 0;
+                        foreach ($myLoans as $loan) {
+                            $MoneyCollected = 0;
+                            $MoneyGivenOut = 0;
+                            $balance = 0;
+
+
+                            foreach ($loan->transactions as $transaction) {
+                                if ($transaction->date <= date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->transaction_type != 'specified_due_date_fee') {
+                                    $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
+                                }
+
+                                if ($transaction->date <= date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months'))) {
+                                    $MoneyCollected = $MoneyCollected + $transaction->credit;
+                                }
+
+
+
+                            }
+
+                            $balance = $MoneyGivenOut - $MoneyCollected;
+                            $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+                        }
+
+                        array_push($cycle_opening_uncollected_amounts, $cycle_opening_uncollected_amount + 0.0001);
+
+                    }
+                                                                                                                                        ?>
+
+
+                    <!-- CALCULATING 12 MONTHS CYCLE COLLECTED USING TRANSACTIONS -->
+                    <?php
+                    $collected_amounts = [];
+                    $today = date('Y-m-d');
+                    $currrent_date = date('Y-m');
+                    $cycle_date = $currrent_date . $cycle_end;
+                    if ($today > $cycle_date) {
+                        $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                    }
+                    $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+                    $cycle_end_date = date('Y-m-d', strtotime($cycle_start . '+ 1 months'));
+                    $use = date('Y-m-');
+                    $todaysDate = date('Y-m-d');
+                    $targetDate = $use . $cycle_end;
+                    $targetDate = date('Y-m-d', strtotime($targetDate));
+                    if ($todaysDate > $targetDate) {
+                        $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+                    }
+                    $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+
+                    for ($x = 12; $x > -1; $x--) {
+                        foreach ($myTransactions as $transaction) {
+                            if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+                                $full_payments = $full_payments + $transaction->credit;
+                            }
+
+                            if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+                                $part_payments = $part_payments + $transaction->credit;
+                            }
+
+                            if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+
+                                $reloan_amount = $transaction->balance_bf;
+                                $interest = $transaction->credit / 0.4;
+                                $reloan_payments = $reloan_payments + $reloan_amount;
+
+                            }
+                        }
+
+                        array_push($collected_amounts, ($full_payments + $part_payments + $reloan_payments));
                         $full_payments = 0;
                         $part_payments = 0;
                         $reloan_payments = 0;
 
-                ?>
 
-                        <!-- CALCULATING LOAN BALANCES FOR CYCLE OPENING UNCOLLECTED -->
-                        <?php
-                        $today = date('Y-m-d');
-                        $currrent_date = date('Y-m');
-                        $cycle_date = $currrent_date . '-' . $cycle_end;
-                        if ($today > $cycle_date) {
-                            $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
-                        }
-
-                        $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
-                        $cycle_opening_uncollected_amounts = [];
-                        for ($x = 12; $x > -1; $x--) {
-                            $cycle_opening_uncollected_amount = 0;
-                            foreach ($myLoans as $loan) {
-                                $MoneyCollected = 0;
-                                $MoneyGivenOut = 0;
-                                $balance = 0;
+                    }
+                                                                                                                                         ?>
 
 
-                                foreach ($loan->transactions as $transaction) {
-                                    if ($transaction->date <= date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months')) && $transaction->transaction_type != 'specified_due_date_fee') {
-                                        $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
-                                    }
+                    <!-- CALCULATING 12 MONTHS GIVEN OUT USING TRANSACTIONS -->
+                    <?php
+                    $new_loan_total = 0;
+                    $reloan_total = 0;
+                    $targets = [];
+                    $transaction_total = 0;
+                    $carry_over = 0;
+                    $today = date('Y-m-d');
+                    $dates = [];
+                    $colors = [];
+                    $currrent_date = date('Y-m');
+                    $cycle_date = date('Y-m', strtotime($today)) . '-' . str_pad($cycle_end, 2, '0', STR_PAD_LEFT);
+                    if (strtotime($today) > strtotime($cycle_date)) {
+                        $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                    }
+                    $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
+                    $cycle_end_date = date('Y-m-d', strtotime($cycle_start . '+ 1 months'));
 
-                                    if ($transaction->date <= date('Y-m-d', strtotime($cycle_start . '-' . $x . 'months'))) {
-                                        $MoneyCollected = $MoneyCollected + $transaction->credit;
-                                    }
+                    $use = date('Y-m-');
+                    $todaysDate = date('Y-m-d');
+                    $targetDate = $use . $cycle_end;
+                    $targetDate = date('Y-m-d', strtotime($targetDate));
+                    if ($todaysDate > $targetDate) {
+                        $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+                    }
+                    $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
 
-
-
-                                }
-
-                                $balance = $MoneyGivenOut - $MoneyCollected;
-                                $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+                    for ($x = 12; $x > -1; $x--) {
+                        foreach ($myTransactions as $transaction) {
+                            if ($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+                                $new_loan_total = $transaction->debit;
                             }
 
-                            array_push($cycle_opening_uncollected_amounts, $cycle_opening_uncollected_amount + 0.0001);
-
-                        }
-                ?>
-
-
-                        <!-- CALCULATING 12 MONTHS CYCLE COLLECTED USING TRANSACTIONS -->
-                        <?php
-                        $collected_amounts = [];
-                        $today = date('Y-m-d');
-                        $currrent_date = date('Y-m');
-                        $cycle_date = $currrent_date . $cycle_end;
-                        if ($today > $cycle_date) {
-                            $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
-                        }
-                        $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
-                        $cycle_end_date = date('Y-m-d', strtotime($cycle_start . '+ 1 months'));
-                        $use = date('Y-m-');
-                        $todaysDate = date('Y-m-d');
-                        $targetDate = $use . $cycle_end;
-                        $targetDate = date('Y-m-d', strtotime($targetDate));
-                        if ($todaysDate > $targetDate) {
-                            $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
-                        }
-                        $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
-
-                        for ($x = 12; $x > -1; $x--) {
-                            foreach ($myTransactions as $transaction) {
-                                if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
-                                    $full_payments = $full_payments + $transaction->credit;
-                                }
-
-                                if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
-                                    $part_payments = $part_payments + $transaction->credit;
-                                }
-
-                                if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
-
-                                    $reloan_amount = $transaction->balance_bf;
-                                    $interest = $transaction->credit / 0.4;
-                                    $reloan_payments = $reloan_payments + $reloan_amount;
-
-                                }
+                            if ($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
+                                $principal = $transaction->debit / 0.4;
+                                $reloan_total = $principal;
                             }
 
-                            array_push($collected_amounts, ($full_payments + $part_payments + $reloan_payments));
-                            $full_payments = 0;
-                            $part_payments = 0;
-                            $reloan_payments = 0;
-
-
-                        }
-                 ?>
-
-
-                        <!-- CALCULATING 12 MONTHS GIVEN OUT USING TRANSACTIONS -->
-                        <?php
-                        $new_loan_total = 0;
-                        $reloan_total = 0;
-                        $targets = [];
-                        $transaction_total = 0;
-                        $carry_over = 0;
-                        $today = date('Y-m-d');
-                        $dates = [];
-                        $colors = [];
-                        $currrent_date = date('Y-m');
-                        $cycle_date = date('Y-m', strtotime($today)) . '-' . str_pad($cycle_end, 2, '0', STR_PAD_LEFT);
-                        if (strtotime($today) > strtotime($cycle_date)) {
-                            $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
-                        }
-                        $cycle_start = date('Y-m-d', strtotime($cycle_date . '- 1 months'));
-                        $cycle_end_date = date('Y-m-d', strtotime($cycle_start . '+ 1 months'));
-
-                        $use = date('Y-m-');
-                        $todaysDate = date('Y-m-d');
-                        $targetDate = $use . $cycle_end;
-                        $targetDate = date('Y-m-d', strtotime($targetDate));
-                        if ($todaysDate > $targetDate) {
-                            $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
-                        }
-                        $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
-
-                        for ($x = 12; $x > -1; $x--) {
-                            foreach ($myTransactions as $transaction) {
-                                if ($transaction->transaction_type == 'disbursement' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
-                                    $new_loan_total = $transaction->debit;
-                                }
-
-                                if ($transaction->transaction_type == 'interest' && $transaction->date > date('Y-m-d', strtotime($compareDate . '-' . $x . 'months')) && $transaction->date <= date('Y-m-d', strtotime($targetDate . '-' . $x . 'months'))) {
-                                    $principal = $transaction->debit / 0.4;
-                                    $reloan_total = $principal;
-                                }
-
-                                if ($transaction_total + $new_loan_total + $reloan_total >= 40000) {
-                                    if ($transaction_total == 40000) {
-                                        $carry_over = $carry_over + $new_loan_total + $reloan_total;
-                                    } else {
-                                        $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
-                                        $transaction_total = 40000;
-                                    }
-
+                            if ($transaction_total + $new_loan_total + $reloan_total >= 40000) {
+                                if ($transaction_total == 40000) {
+                                    $carry_over = $carry_over + $new_loan_total + $reloan_total;
                                 } else {
-                                    $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
-                                    $carry_over = 0;
+                                    $carry_over = 40000 - ($transaction_total + $new_loan_total + $reloan_total);
+                                    $transaction_total = 40000;
                                 }
 
-                                $new_loan_total = 0;
-                                $reloan_total = 0;
-                            }
-
-                            array_push($targets, $transaction_total);
-                            if ($transaction_total < 40000) {
-                                array_push($colors, '#ff1c4b');
                             } else {
-                                array_push($colors, '#57b7fa');
+                                $transaction_total = $transaction_total + $new_loan_total + $reloan_total; //+ $carry_over;
+                                $carry_over = 0;
                             }
-                            array_push($dates, date("jS M, Y", strtotime($cycle_date . '-' . $x . 'months')));
-                            $transaction_total = 0;
-                            $total = $reloan_total + $new_loan_total;
+
+                            $new_loan_total = 0;
+                            $reloan_total = 0;
                         }
 
-                ?>
-
-                        <?php 
-                    $uncollected_amounts = [];
-                        for ($x = 0; $x < 12; $x++) {
-                            array_push($uncollected_amounts, ($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
+                        array_push($targets, $transaction_total);
+                        if ($transaction_total < 40000) {
+                            array_push($colors, '#ff1c4b');
+                        } else {
+                            array_push($colors, '#57b7fa');
                         }
-                    ?>
+                        array_push($dates, date("jS M, Y", strtotime($cycle_date . '-' . $x . 'months')));
+                        $transaction_total = 0;
+                        $total = $reloan_total + $new_loan_total;
+                    }
 
-                        <div class="box box-primary">
+                                                                                                                                        ?>
+
+                    <?php 
+                                                                                                                                            $uncollected_amounts = [];
+                    for ($x = 0; $x < 12; $x++) {
+                        array_push($uncollected_amounts, ($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
+                    }
+                                                                                                                                            ?>
+
+                    <div class="box box-primary">
 
 
-                            <form method="GET" action="{{ url('dashboard') }}" class="form-horizontal">
-                                <div class="box-body">
+                        <form method="GET" action="{{ url('dashboard') }}" class="form-horizontal">
+                            <div class="box-body">
 
-                                    {{-- Start Month --}}
-                                    <div class="form-group">
-                                        <label class="control-label col-md-2">Cycle Start</label>
-                                        <div class="col-md-3">
-                                            <input type="month" name="start_month" class="form-control"
-                                                value="{{ substr($start, 0, 7) }}">
-                                        </div>
+                                {{-- Start Month --}}
+                                <div class="form-group">
+                                    <label class="control-label col-md-2">Cycle Start</label>
+                                    <div class="col-md-3">
+                                        <input type="month" name="start_month" class="form-control"
+                                            value="{{ substr($start, 0, 7) }}">
                                     </div>
-
-                                    {{-- End Month --}}
-                                    <div class="form-group">
-                                        <label class="control-label col-md-2">Cycle End</label>
-                                        <div class="col-md-3">
-                                            <input type="month" name="end_month" class="form-control" value="{{ substr($end, 0, 7) }}">
-                                        </div>
-                                    </div>
-
                                 </div>
 
-                                <div class="box-footer">
-                                    <button type="submit" class="btn btn-primary pull-right">Load</button>
+                                {{-- End Month --}}
+                                <div class="form-group">
+                                    <label class="control-label col-md-2">Cycle End</label>
+                                    <div class="col-md-3">
+                                        <input type="month" name="end_month" class="form-control" value="{{ substr($end, 0, 7) }}">
+                                    </div>
                                 </div>
-                            </form>
-                        </div>
 
-                        <div class="box box-success">
-                            <div class="box-header with-border">
-                                <h3 class="box-title">Performance Summary {{date("jS M, Y", strtotime($start))}} to
-                                    {{date("jS M, Y", strtotime($end))}}</h3>
                             </div>
 
-                            <div class="box-body">
-                                @if(!$data)
-                                    <p>No data available or failed to fetch.</p>
-                                @else
+                            <div class="box-footer">
+                                <button type="submit" class="btn btn-primary pull-right">Load</button>
+                            </div>
+                        </form>
+                    </div>
 
-                                    {{-- SUMMARY CARDS --}}
-                                    <div class="row" style="margin-bottom: 25px;">
+                    <div class="box box-success">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Performance Summary {{date("jS M, Y", strtotime($start))}} to
+                                {{date("jS M, Y", strtotime($end))}}
+                            </h3>
+                        </div>
 
-                                        <div class="col-md-3 col-sm-6">
-                                            <div class="small-box bg-aqua">
-                                                <div class="inner">
-                                                    <h3>{{ number_format($data['total_uncollected']) }}</h3>
-                                                    <p>Cycle Opening Uncollected</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa fa-warning"></i>
-                                                </div>
+                        <div class="box-body">
+                            @if(!$data)
+                                <p>No data available or failed to fetch.</p>
+                            @else
+
+                                {{-- SUMMARY CARDS --}}
+                                <div class="row" style="margin-bottom: 25px;">
+
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="small-box bg-aqua">
+                                            <div class="inner">
+                                                <h3>{{ number_format($data['total_uncollected']) }}</h3>
+                                                <p>Cycle Opening Uncollected</p>
+                                            </div>
+                                            <div class="icon">
+                                                <i class="fa fa-warning"></i>
                                             </div>
                                         </div>
-
-                                        <div class="col-md-3 col-sm-6">
-                                            <div class="small-box bg-green">
-                                                <div class="inner">
-                                                    <h3>{{ number_format($data['total_collected']) }}</h3>
-                                                    <p>Total Collected</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa fa-money"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-3 col-sm-6">
-                                            <div class="small-box bg-yellow">
-                                                <div class="inner">
-                                                    <h3>{{ number_format($data['still_uncollected']) }}</h3>
-                                                    <p>Still Uncollected</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa fa-hourglass-half"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-3 col-sm-6">
-                                            <div class="small-box bg-purple">
-                                                <div class="inner">
-                                                    <h3>{{ number_format($data['given_out']) }}</h3>
-                                                    <p>Given Out</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa fa-arrow-up"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-
                                     </div>
-                                    {{-- END CARDS --}}
 
-                                    <hr>
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="small-box bg-green">
+                                            <div class="inner">
+                                                <h3>{{ number_format($data['total_collected']) }}</h3>
+                                                <p>Total Collected</p>
+                                            </div>
+                                            <div class="icon">
+                                                <i class="fa fa-money"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="small-box bg-yellow">
+                                            <div class="inner">
+                                                <h3>{{ number_format($data['still_uncollected']) }}</h3>
+                                                <p>Still Uncollected</p>
+                                            </div>
+                                            <div class="icon">
+                                                <i class="fa fa-hourglass-half"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="small-box bg-purple">
+                                            <div class="inner">
+                                                <h3>{{ number_format($data['given_out']) }}</h3>
+                                                <p>Given Out</p>
+                                            </div>
+                                            <div class="icon">
+                                                <i class="fa fa-arrow-up"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                {{-- END CARDS --}}
+
+                                <hr>
+
+                            @endif
+                        </div>
+                    </div>
+
+
+                    <!-- <div class="col-lg-4 col-xs-12">
+                                                                                                                                            <div class="small-box bg-yellow">
+                                                                                                                                            <div class="inner">
+                                                                                                                                            <p style="font-weight: bold;">Cycle opening uncollected amount (COUA)</p>
+                                                                                                                                            <div class="icon">
+                                                                                                                                            <i class="fa fa-usd"></i>
+                                                                                                                                            </div>
+                                                                                                                                            <h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
+                                                                                                                                            </div>
+                                                                                                                                            <div class="small-box-footer">
+                                                                                                                                                <p></p>
+                                                                                                                                            </div>
+                                                                                                                                            </div>
+                                                                                                                                            </div> -->
+
+
+                    <!-- <div class="col-lg-4 col-xs-12">
+                                                                                                                                            <div class="small-box bg-green">
+                                                                                                                                            <div class="inner">
+                                                                                                                                            <p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
+                                                                                                                                            <div class="icon">
+                                                                                                                                            <i class="fa fa-usd"></i>
+                                                                                                                                            </div>
+                                                                                                                                            <h3>{{number_format($collected_amounts[12],2)}}</h3>
+                                                                                                                                            </div>
+                                                                                                                                            <div class="small-box-footer">
+                                                                                                                                                <p></p>
+                                                                                                                                            </div>
+                                                                                                                                            </div>
+                                                                                                                                            </div> -->
+
+                    <!-- <div class="col-lg-4 col-xs-12">
+                                                                                                                                            <div class="small-box bg-aqua">
+                                                                                                                                            <div class="inner">
+                                                                                                                                            <p style="font-weight: bold;">Still Uncollected Today</p>
+                                                                                                                                            <div class="icon">
+                                                                                                                                            <i class="fa fa-usd"></i>
+                                                                                                                                            </div>
+                                                                                                                                            <h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
+                                                                                                                                            </div>
+                                                                                                                                            <div class="small-box-footer">
+                                                                                                                                                <p></p>
+                                                                                                                                            </div>
+                                                                                                                                            </div>
+                                                                                                                                            </div> -->
+
+
+
+
+
+
+                </div>
+                <!--second row-->
+                <?php
+                    $tots = ($collected_amounts[12] / $cycle_opening_uncollected_amounts[12])
+                                                                                                                                            ?>
+
+                <div style="margin-bottom:30px; margin-top:30px;">
+                    <p
+                        style="display: flex;
+                                                                                                                                                align-items: center;
+                                                                                                                                                justify-content: center; font-size:50px;">
+                        PDUA%
+                    </p>
+                    <div
+                        style="display: flex;
+                                                                                                                                                align-items: center;
+                                                                                                                                                justify-content: center;">
+
+                        <div class="gauge"
+                            style="width: 100%;
+                                                                                                                                              max-width: 250px;
+                                                                                                                                              font-size: 50px;
+                                                                                                                                              color: #004033;">
+                            <div class="gauge__body"
+                                style=" width: 100%;
+                                                                                                                                              height: 0;
+                                                                                                                                              padding-bottom: 50%;
+                                                                                                                                              background: #b4c0be;
+                                                                                                                                              position: relative;
+                                                                                                                                              border-top-left-radius: 100% 200%;
+                                                                                                                                              border-top-right-radius: 100% 200%;
+                                                                                                                                              overflow: hidden;">
+
+                                @if(($tots) < 0.75)
+                                    <div class="gauge__fill"
+                                        style=" position: absolute;
+                                                                                                                                                                                                          top: 100%;
+                                                                                                                                                                                                          left: 0;
+                                                                                                                                                                                                          width: inherit;
+                                                                                                                                                                                                          height: 100%;
+                                                                                                                                                                                                          background: red;
+                                                                                                                                                                                                          transform-origin: center top;
+                                                                                                                                                                                                          transform: rotate(0.25turn);
+                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
+                                    </div>
+
+                                @elseif(($tots) >= 0.90)
+                                    <div class="gauge__fill"
+                                        style=" position: absolute;
+                                                                                                                                                                                                          top: 100%;
+                                                                                                                                                                                                          left: 0;
+                                                                                                                                                                                                          width: inherit;
+                                                                                                                                                                                                          height: 100%;
+                                                                                                                                                                                                          background:#d4af37;
+                                                                                                                                                                                                          transform-origin: center top;
+                                                                                                                                                                                                          transform: rotate(0.25turn);
+                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
+                                    </div>
+
+                                @else
+                                    <div class="gauge__fill"
+                                        style=" position: absolute;
+                                                                                                                                                                                                          top: 100%;
+                                                                                                                                                                                                          left: 0;
+                                                                                                                                                                                                          width: inherit;
+                                                                                                                                                                                                          height: 100%;
+                                                                                                                                                                                                          background:green;
+                                                                                                                                                                                                          transform-origin: center top;
+                                                                                                                                                                                                          transform: rotate(0.25turn);
+                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
+                                    </div>
 
                                 @endif
+                                <div class="gauge__cover"
+                                    style="width: 75%;
+                                                                                                                                              height: 150%;
+                                                                                                                                              background: #f7f7f7;
+                                                                                                                                              border-radius: 50%;
+                                                                                                                                              position: absolute;
+                                                                                                                                              top: 25%;
+                                                                                                                                              left: 50%;
+                                                                                                                                              transform: translateX(-50%);
+
+                                                                                                                                              /* Text */
+                                                                                                                                              display: flex;
+                                                                                                                                              align-items: center;
+                                                                                                                                              justify-content: center;
+                                                                                                                                              padding-bottom: 25%;
+                                                                                                                                              box-sizing: border-box;">
+                                </div>
+
                             </div>
                         </div>
 
 
-                        <!-- <div class="col-lg-4 col-xs-12">
-                    <div class="small-box bg-yellow">
-                    <div class="inner">
-                    <p style="font-weight: bold;">Cycle opening uncollected amount (COUA)</p>
-                    <div class="icon">
-                    <i class="fa fa-usd"></i>
                     </div>
-                    <h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
-                    </div>
-                    <div class="small-box-footer">
-                        <p></p>
-                    </div>
-                    </div>
-                    </div> -->
 
+                    <div
+                        style="display:flex; flex-direction:row; justify-content:space-between;
+                                                                                                                                                align-items: center;
+                                                                                                                                                justify-content: center;">
+                        <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                            <div
+                                style="background-color: red;  height: 10px;
+                                                                                                                                              width: 20px;">
+                            </div>
+                            <p style="text-align: center; font-weight:bold;">Poor</p>
+                        </div>
 
-                        <!-- <div class="col-lg-4 col-xs-12">
-                    <div class="small-box bg-green">
-                    <div class="inner">
-                    <p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
-                    <div class="icon">
-                    <i class="fa fa-usd"></i>
-                    </div>
-                    <h3>{{number_format($collected_amounts[12],2)}}</h3>
-                    </div>
-                    <div class="small-box-footer">
-                        <p></p>
-                    </div>
-                    </div>
-                    </div> -->
-
-                        <!-- <div class="col-lg-4 col-xs-12">
-                    <div class="small-box bg-aqua">
-                    <div class="inner">
-                    <p style="font-weight: bold;">Still Uncollected Today</p>
-                    <div class="icon">
-                    <i class="fa fa-usd"></i>
-                    </div>
-                    <h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
-                    </div>
-                    <div class="small-box-footer">
-                        <p></p>
-                    </div>
-                    </div>
-                    </div> -->
-
-
-
-
-
+                        <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                            <div
+                                style="background-color: green;  height: 10px;
+                                                                                                                                              width: 20px;">
+                            </div>
+                            <p style="text-align: center; font-weight:bold;">Fair</p>
+                        </div>
+                        <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                            <div
+                                style="background-color: #d4af37;  height: 10px;
+                                                                                                                                              width: 20px;">
+                            </div>
+                            <p style="text-align: center; font-weight:bold;">Good</p>
+                        </div>
 
                     </div>
-                    <!--second row-->
-                    <?php
-                        $tots = ($collected_amounts[12] / $cycle_opening_uncollected_amounts[12])
-                    ?>
+                </div>
 
-                    <div style="margin-bottom:30px; margin-top:30px;">
-                        <p style="display: flex;
-                        align-items: center;
-                        justify-content: center; font-size:50px;">PDUA%</p>
-                        <div style="display: flex;
-                        align-items: center;
-                        justify-content: center;">
-
-                            <div class="gauge" style="width: 100%;
-                      max-width: 250px;
-                      font-size: 50px;
-                      color: #004033;">
-                                <div class="gauge__body" style=" width: 100%;
-                      height: 0;
-                      padding-bottom: 50%;
-                      background: #b4c0be;
-                      position: relative;
-                      border-top-left-radius: 100% 200%;
-                      border-top-right-radius: 100% 200%;
-                      overflow: hidden;">
-
-                                    @if(($tots) < 0.75)
-                                                        <div class="gauge__fill" style=" position: absolute;
-                                          top: 100%;
-                                          left: 0;
-                                          width: inherit;
-                                          height: 100%;
-                                          background: red;
-                                          transform-origin: center top;
-                                          transform: rotate(0.25turn);
-                                          transition: transform 0.2s ease-out;"></div>
-
-                                    @elseif(($tots) >= 0.90)
-                                                        <div class="gauge__fill" style=" position: absolute;
-                                          top: 100%;
-                                          left: 0;
-                                          width: inherit;
-                                          height: 100%;
-                                          background:#d4af37;
-                                          transform-origin: center top;
-                                          transform: rotate(0.25turn);
-                                          transition: transform 0.2s ease-out;"></div>
-
+                <div style="margin-bottom:30px; margin-top:30px;">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="text-center">
+                                <h2 class=" text-semibold">{{ trans_choice('general.monthly', 1) }}
+                                    {{ trans_choice('general.target', 1) }}
+                                </h2>
+                            </div>
+                            <div class="progress" data-toggle="tooltip"
+                                title="You're currently at : {{number_format($targets[12], 2)}}">
+                                <div class="progress-bar progress-bar-success progress-bar-striped active"
+                                    style="width: {{($targets[12] / 40000) * 100}}% ">
+                                    @if($targets[12] > 40000)
+                                        <span>You've reached your target congratulations!!!</span>
                                     @else
-                                                        <div class="gauge__fill" style=" position: absolute;
-                                          top: 100%;
-                                          left: 0;
-                                          width: inherit;
-                                          height: 100%;
-                                          background:green;
-                                          transform-origin: center top;
-                                          transform: rotate(0.25turn);
-                                          transition: transform 0.2s ease-out;"></div>
-
+                                        <span>{{($targets[12] / 40000) * 100}} {{ trans_choice('general.complete', 1) }}</span>
                                     @endif
-                                    <div class="gauge__cover" style="width: 75%;
-                      height: 150%;
-                      background: #f7f7f7;
-                      border-radius: 50%;
-                      position: absolute;
-                      top: 25%;
-                      left: 50%;
-                      transform: translateX(-50%);
-
-                      /* Text */
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      padding-bottom: 25%;
-                      box-sizing: border-box;"></div>
-
-                                </div>
-                            </div>
-
-
-                        </div>
-
-                        <div style="display:flex; flex-direction:row; justify-content:space-between;
-                        align-items: center;
-                        justify-content: center;">
-                            <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-                                <div style="background-color: red;  height: 10px;
-                      width: 20px;">
-                                </div>
-                                <p style="text-align: center; font-weight:bold;">Poor</p>
-                            </div>
-
-                            <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-                                <div style="background-color: green;  height: 10px;
-                      width: 20px;">
-                                </div>
-                                <p style="text-align: center; font-weight:bold;">Fair</p>
-                            </div>
-                            <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-                                <div style="background-color: #d4af37;  height: 10px;
-                      width: 20px;">
-                                </div>
-                                <p style="text-align: center; font-weight:bold;">Good</p>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom:30px; margin-top:30px;">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="text-center">
-                                    <h2 class=" text-semibold">{{ trans_choice('general.monthly', 1) }}
-                                        {{ trans_choice('general.target', 1) }}</h2>
-                                </div>
-                                <div class="progress" data-toggle="tooltip"
-                                    title="You're currently at : {{number_format($targets[12], 2)}}">
-                                    <div class="progress-bar progress-bar-success progress-bar-striped active"
-                                        style="width: {{($targets[12] / 40000) * 100}}% ">
-                                        @if($targets[12] > 40000)
-                                            <span>You've reached your target congratulations!!!</span>
-                                        @else
-                                            <span>{{($targets[12] / 40000) * 100}} {{ trans_choice('general.complete', 1) }}</span>
-                                        @endif
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <canvas id='graph'></canvas>
-                    <canvas id='target_graph'></canvas>
+                <canvas id='graph'></canvas>
+                <canvas id='target_graph'></canvas>
 
             @endif
 
@@ -696,64 +720,64 @@
                 $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
             }
             $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
-                            ?>
+                                                                                                            ?>
                             @foreach($myLoans as $loan)
 
 
-                                                    <?php
-                                        $OutIn = 0;
-                                        $out = 0;
-                                        $in = 0;
-                                ?>
-                                                    @foreach($loan->transactions as $transaction)
-                                                                            <?php
+                                            <?php
+                                $OutIn = 0;
+                                $out = 0;
+                                $in = 0;
+                                                                                                                                                                                                                                                                                ?>
+                                            @foreach($loan->transactions as $transaction)
+                                                        <?php
 
-                                                                    if ($transaction->transaction_type != 'specified_due_date_fee') {
-                                                                        $out = $out + $transaction->debit;
-                                                                    }
-
-
-                                                                    // if($transaction->date <= $compareDate && $transaction->transaction_type != 'interest_waiver'){
-                                                        //     $in = $in + $transaction->credit;
-                                                        // }
+                                                if ($transaction->transaction_type != 'specified_due_date_fee') {
+                                                    $out = $out + $transaction->debit;
+                                                }
 
 
-                                                                    $in = $in + $transaction->credit;
+                                                // if($transaction->date <= $compareDate && $transaction->transaction_type != 'interest_waiver'){
+                                                //     $in = $in + $transaction->credit;
+                                                // }
 
-                                                                    // if($transaction->date <= $compareDate && $transaction->transaction_type == 'specified_due_date_fee'){
-                                                        //     $newout = $newout + $transaction->debit;
-                                                        // }
 
-                                                        ?>
-                                                    @endforeach
+                                                $in = $in + $transaction->credit;
 
-                                                    <?php
-                                        $OutIn = $out - $in;
-                                        //$OutIn = $OutIn - $newout;
+                                                // if($transaction->date <= $compareDate && $transaction->transaction_type == 'specified_due_date_fee'){
+                                                //     $newout = $newout + $transaction->debit;
+                                                // }
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                ?>
+                                            @endforeach
+
+                                            <?php
+                                $OutIn = $out - $in;
+                                //$OutIn = $OutIn - $newout;
                                 // if($OutIn < 0){
                                 //     $OutIn = 0;
                                 // }
 
-                                ?>
+                                                                                                                                                                                                                                                                                ?>
 
-                                                    <tr>
+                                            <tr>
 
 
-                                                        <td><a href="{{ url('loan/' . $loan->id . '/show') }}" data-toggle="tooltip"
-                                                                title="Click to view">{{$loan->id}}</a></td>
-                                                        @if(!empty($loan->client->first_name))
-                                                            <td>{{$loan->client->first_name}} {{$loan->client->last_name}}
-                                                                @if($loan->defaulted == 'yes')
-                                                                    <span style="color: red;">(Defaulted)</span>
-                                                                @endif
-                                                            </td>
-                                                            @if($OutIn < 0)
-                                                                <td style="color: red;">{{number_format($OutIn, 2)}}</td>
-                                                            @else
-                                                                <td>{{number_format($OutIn, 2)}}</td>
-                                                            @endif
+                                                <td><a href="{{ url('loan/' . $loan->id . '/show') }}" data-toggle="tooltip"
+                                                        title="Click to view">{{$loan->id}}</a></td>
+                                                @if(!empty($loan->client->first_name))
+                                                    <td>{{$loan->client->first_name}} {{$loan->client->last_name}}
+                                                        @if($loan->defaulted == 'yes')
+                                                            <span style="color: red;">(Defaulted)</span>
                                                         @endif
-                                                    </tr>
+                                                    </td>
+                                                    @if($OutIn < 0)
+                                                        <td style="color: red;">{{number_format($OutIn, 2)}}</td>
+                                                    @else
+                                                        <td>{{number_format($OutIn, 2)}}</td>
+                                                    @endif
+                                                @endif
+                                            </tr>
                             @endforeach
 
                         </tbody>
@@ -864,9 +888,10 @@
     <!--What managers see-->
     @if($role->role_id == '4')
 
-        <div style="display: flex;
-            align-items: center;
-            justify-content: center; padding-bottom: 10px; ">
+        <div
+            style="display: flex;
+                                                                                            align-items: center;
+                                                                                            justify-content: center; padding-bottom: 10px; ">
 
 
             <a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
@@ -953,157 +978,157 @@
             $branchsecondDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
             $testcompareDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
             $testtargetDate
-        ?>
+                                                                                        ?>
 
                 <!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
                 @foreach($newBranchLoans as $loan)
-                            <?php
-                            $MoneyCollected = 0;
-                            $MoneyGivenOut = 0;
-                            $charges = 0;
-                            $balance = 0;
-                    ?>
-                            @foreach($loan->transactions as $transaction)
+                    <?php
+                    $MoneyCollected = 0;
+                    $MoneyGivenOut = 0;
+                    $charges = 0;
+                    $balance = 0;
+                                                                                                                                            ?>
+                    @foreach($loan->transactions as $transaction)
 
-                                        <?php
-                                            if ($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee') {
-                                                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
-                                            }
-
-                                            if ($transaction->date <= $branchcompareDate) {
-                                                $MoneyCollected = $MoneyCollected + $transaction->credit;
-                                            }
-
-                                ?>
-                            @endforeach
-                            <?php 
-                    $balance = $MoneyGivenOut - $MoneyCollected;
-
-
-                            $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
-                            if ($cycle_opening_uncollected_amount == 0) {
-                                $cycle_opening_uncollected_amount = 1;
+                        <?php
+                            if ($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee') {
+                                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
                             }
-                    ?>
+
+                            if ($transaction->date <= $branchcompareDate) {
+                                $MoneyCollected = $MoneyCollected + $transaction->credit;
+                            }
+
+                                                                                                                                                                                                ?>
+                    @endforeach
+                    <?php 
+                                                                                                                                            $balance = $MoneyGivenOut - $MoneyCollected;
+
+
+                    $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+                    if ($cycle_opening_uncollected_amount == 0) {
+                        $cycle_opening_uncollected_amount = 1;
+                    }
+                                                                                                                                            ?>
                 @endforeach
 
                 <!-- CALCULATING BRANCH CURRENT CYCLE COLLECTED USING TRANSACTIONS -->
                 @foreach($branchTransactions as $transaction)
-                            <?php 
-                    if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
-                                $full_payments = $full_payments + $transaction->credit;
-                            }
+                    <?php 
+                                                                                                                                            if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
+                        $full_payments = $full_payments + $transaction->credit;
+                    }
 
-                            if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
-                                $part_payments = $part_payments + $transaction->credit;
-                            }
+                    if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
+                        $part_payments = $part_payments + $transaction->credit;
+                    }
 
-                            if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
+                    if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
 
-                                $reloan_amount = $transaction->balance_bf;
-                                $interest = $transaction->credit / 0.4;
-                                $reloan_payments = $reloan_payments + $reloan_amount;
-                            }
+                        $reloan_amount = $transaction->balance_bf;
+                        $interest = $transaction->credit / 0.4;
+                        $reloan_payments = $reloan_payments + $reloan_amount;
+                    }
 
 
-                            //COLLECTIONS 1 MONTH AGO
-                            if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
-                                $full_payments_1_months = $full_payments_1_months + $transaction->credit;
-                            }
+                    //COLLECTIONS 1 MONTH AGO
+                    if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
+                        $full_payments_1_months = $full_payments_1_months + $transaction->credit;
+                    }
 
-                            if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
-                                $part_payments_1_months = $part_payments_1_months + $transaction->credit;
-                            }
+                    if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
+                        $part_payments_1_months = $part_payments_1_months + $transaction->credit;
+                    }
 
-                            if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
+                    if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchzeroDate && $transaction->date <= $branchfirstDate) {
 
-                                $reloan_amount_1_months = $transaction->credit;
-                                +($transaction->credit / 0.4);
-                                $interest = $transaction->credit / 0.4;
-                                $reloan_payments_1_months = $reloan_payments_1_months + $reloan_amount_1_months + $interest;
-                            }
+                        $reloan_amount_1_months = $transaction->credit;
+                        +($transaction->credit / 0.4);
+                        $interest = $transaction->credit / 0.4;
+                        $reloan_payments_1_months = $reloan_payments_1_months + $reloan_amount_1_months + $interest;
+                    }
 
-                            //COLLECTIONS 2 MONTHS AGO
-                            if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
-                                $full_payments_2_months = $full_payments_2_months + $transaction->credit;
-                            }
+                    //COLLECTIONS 2 MONTHS AGO
+                    if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
+                        $full_payments_2_months = $full_payments_2_months + $transaction->credit;
+                    }
 
-                            if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
-                                $part_payments_2_months = $part_payments_2_months + $transaction->credit;
-                            }
+                    if ($transaction->payment_apply_to == 'part_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
+                        $part_payments_2_months = $part_payments_2_months + $transaction->credit;
+                    }
 
-                            if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
-                                $reloan_amount_2_months = $transaction->credit;
-                                +($transaction->credit / 0.4);
-                                $interest = $transaction->credit / 0.4;
-                                $reloan_payments_2_months = $reloan_payments_2_months + $reloan_amount_2_months + $interest;
-                            }
+                    if ($transaction->payment_apply_to == 'reloan_payment' && $transaction->date > $branchfirstDate && $transaction->date <= $branchsecondDate) {
+                        $reloan_amount_2_months = $transaction->credit;
+                        +($transaction->credit / 0.4);
+                        $interest = $transaction->credit / 0.4;
+                        $reloan_payments_2_months = $reloan_payments_2_months + $reloan_amount_2_months + $interest;
+                    }
 
-                    ?>
+                                                                                                                                            ?>
                 @endforeach
 
                 <?php
             $collected_total = $reloan_payments + $part_payments + $full_payments;
             $collected_total_1_months = $reloan_payments_1_months + $part_payments_1_months + $full_payments_1_months;
             $collected_total_2_months = $reloan_payments_2_months + $part_payments_2_months + $full_payments_2_months;
-        ?>
+                                                                                        ?>
 
 
                 @foreach($branchUsers as $branchUser)
-                            <?php
-                            $target_total = 0;
-                            $target_monthly = 0;
-                            $target_reloan = 0;
+                    <?php
+                    $target_total = 0;
+                    $target_monthly = 0;
+                    $target_reloan = 0;
 
-                            if ($branchUser->role->role_id != 1) {
-                                $staff_count = $staff_count + 1;
-                            }
+                    if ($branchUser->role->role_id != 1) {
+                        $staff_count = $staff_count + 1;
+                    }
 
-                            if ($branchUser->cycle_dates != null) {
-                                $end = $branchUser->cycle_dates->cycle_end_date;
-                            } else {
-                                $end = 1;
-                            }
+                    if ($branchUser->cycle_dates != null) {
+                        $end = $branchUser->cycle_dates->cycle_end_date;
+                    } else {
+                        $end = 1;
+                    }
 
-                            $branchReferenceTargetDate = $use . '24';
-                            $branchReferenceTargetDate = date('Y-m-d', strtotime($branchReferenceTargetDate));
-                            $targetDate = $use . $end;
-                            $targetDate = date('Y-m-d', strtotime($targetDate));
+                    $branchReferenceTargetDate = $use . '24';
+                    $branchReferenceTargetDate = date('Y-m-d', strtotime($branchReferenceTargetDate));
+                    $targetDate = $use . $end;
+                    $targetDate = date('Y-m-d', strtotime($targetDate));
 
-                            if ($todaysDate > $branchReferenceTargetDate) {
-                                $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
-                            }
+                    if ($todaysDate > $branchReferenceTargetDate) {
+                        $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+                    }
 
-                            $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
-                    ?>
+                    $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+                                                                                                                                            ?>
 
-                            @foreach($newBranchLoans as $loan)
-                                @foreach($loan->transactions as $transaction)
-                                            <?php 
-                                    //branch transactions
-                                                    if ($loan->loan_officer_id == $branchUser->id) {
-                                                        if ($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id) {
-                                                            $target_monthly = $target_monthly + $transaction->debit;
-                                                        }
-                                                    }
+                    @foreach($newBranchLoans as $loan)
+                        @foreach($loan->transactions as $transaction)
+                            <?php 
+                                                                                                                                                                                                                                            //branch transactions
+                                    if ($loan->loan_officer_id == $branchUser->id) {
+                                        if ($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id) {
+                                            $target_monthly = $target_monthly + $transaction->debit;
+                                        }
+                                    }
 
-                                                    if ($loan->loan_officer_id == $branchUser->id) {
-                                                        if ($transaction->transaction_type == 'interest' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id) {
-                                                            $principal = $transaction->debit / 0.4;
-                                                            $target_reloan = $target_reloan + $principal;
-                                                        }
-                                                    }
-                                    ?>
+                                    if ($loan->loan_officer_id == $branchUser->id) {
+                                        if ($transaction->transaction_type == 'interest' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id) {
+                                            $principal = $transaction->debit / 0.4;
+                                            $target_reloan = $target_reloan + $principal;
+                                        }
+                                    }
+                                                                                                                                                                                                                                            ?>
 
-                                @endforeach
-                            @endforeach
+                        @endforeach
+                    @endforeach
 
-                            <?php
-                            $target_total = $target_monthly + $target_reloan;
-                            if ($target_total > 40000) {
-                                $targetCount = $targetCount + 1;
-                            }
-                    ?>
+                    <?php
+                    $target_total = $target_monthly + $target_reloan;
+                    if ($target_total > 40000) {
+                        $targetCount = $targetCount + 1;
+                    }
+                                                                                                                                            ?>
                 @endforeach
 
 
@@ -1154,125 +1179,87 @@
 
 
 
-                <!-- 
-        <div class="col-lg-4 col-xs-12">
-        <div class="small-box bg-purple">
-        <div class="inner">
-        <p style="font-weight: bold;"># of staff</p>
-        <div class="icon">
-        <i class="fa fa-users"></i>
-        </div>
-        <h3>{{$staff_count}}</h3>
-        </div>
-        <div class="small-box-footer">
-            <p></p>
-        </div>
-        </div>
-        </div>
-
-
-        <div class="col-lg-4 col-xs-12">
-        <div class="small-box bg-red">
-        <div class="inner">
-        <p style="font-weight: bold;">Targets met</p>
-        <div class="icon">
-        <i class="fa fa-trophy"></i>
-        </div>
-        <h3>{{$targetCount}}</h3>
-        </div>
-        <div class="small-box-footer">
-            <p></p>
-        </div>
-        </div>
-        </div>
-
-
-        <div class="col-lg-4 col-xs-12">
-        <div class="small-box bg-blue">
-        <div class="inner">
-        <p style="font-weight: bold;">Branch efficiency</p>
-        <div class="icon">
-        <i class="fa fa-line-chart"></i>
-        </div>
-        <h3>{{number_format(($targetCount/$staff_count)*100)}}%</h3>
-        </div>
-        <div class="small-box-footer">
-            <p></p>
-        </div>
-        </div> -->
             </div>
 
 
             <div style="margin-bottom:30px; margin-top:30px;">
-                <p style="display: flex;
-            align-items: center;
-            justify-content: center; font-size:50px;">PDUA%</p>
+                <p
+                    style="display: flex;
+                                                                                            align-items: center;
+                                                                                            justify-content: center; font-size:50px;">
+                    PDUA%</p>
                 <div style="display: flex;
-            align-items: center;
-            justify-content: center;">
+                                                                                            align-items: center;
+                                                                                            justify-content: center;">
 
                     <div class="gauge" style="width: 100%;
-          max-width: 250px;
-          font-size: 50px;
-          color: #004033;">
+                                                                                          max-width: 250px;
+                                                                                          font-size: 50px;
+                                                                                          color: #004033;">
                         <div class="gauge__body" style=" width: 100%;
-          height: 0;
-          padding-bottom: 50%;
-          background: #b4c0be;
-          position: relative;
-          border-top-left-radius: 100% 200%;
-          border-top-right-radius: 100% 200%;
-          overflow: hidden;">
+                                                                                          height: 0;
+                                                                                          padding-bottom: 50%;
+                                                                                          background: #b4c0be;
+                                                                                          position: relative;
+                                                                                          border-top-left-radius: 100% 200%;
+                                                                                          border-top-right-radius: 100% 200%;
+                                                                                          overflow: hidden;">
 
                             @if(($collected_total / $cycle_opening_uncollected_amount) < 0.75)
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background: red;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                                <div class="gauge__fill"
+                                    style=" position: absolute;
+                                                                                                                                                      top: 100%;
+                                                                                                                                                      left: 0;
+                                                                                                                                                      width: inherit;
+                                                                                                                                                      height: 100%;
+                                                                                                                                                      background: red;
+                                                                                                                                                      transform-origin: center top;
+                                                                                                                                                      transform: rotate(0.25turn);
+                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                </div>
 
                             @elseif(($collected_total / $cycle_opening_uncollected_amount) >= 0.90)
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background:#d4af37;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                                <div class="gauge__fill"
+                                    style=" position: absolute;
+                                                                                                                                                      top: 100%;
+                                                                                                                                                      left: 0;
+                                                                                                                                                      width: inherit;
+                                                                                                                                                      height: 100%;
+                                                                                                                                                      background:#d4af37;
+                                                                                                                                                      transform-origin: center top;
+                                                                                                                                                      transform: rotate(0.25turn);
+                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                </div>
 
                             @else
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background:green;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                                <div class="gauge__fill"
+                                    style=" position: absolute;
+                                                                                                                                                      top: 100%;
+                                                                                                                                                      left: 0;
+                                                                                                                                                      width: inherit;
+                                                                                                                                                      height: 100%;
+                                                                                                                                                      background:green;
+                                                                                                                                                      transform-origin: center top;
+                                                                                                                                                      transform: rotate(0.25turn);
+                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                </div>
 
                             @endif
                             <div class="gauge__cover" style="width: 75%;
-          height: 150%;
-          background: #f7f7f7;
-          border-radius: 50%;
-          position: absolute;
-          top: 25%;
-          left: 50%;
-          transform: translateX(-50%);
+                                                                                          height: 150%;
+                                                                                          background: #f7f7f7;
+                                                                                          border-radius: 50%;
+                                                                                          position: absolute;
+                                                                                          top: 25%;
+                                                                                          left: 50%;
+                                                                                          transform: translateX(-50%);
 
-          /* Text */
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding-bottom: 25%;
-          box-sizing: border-box;"></div>
+                                                                                          /* Text */
+                                                                                          display: flex;
+                                                                                          align-items: center;
+                                                                                          justify-content: center;
+                                                                                          padding-bottom: 25%;
+                                                                                          box-sizing: border-box;"></div>
 
                         </div>
                     </div>
@@ -1281,24 +1268,24 @@
                 </div>
 
                 <div style="display:flex; flex-direction:row; justify-content:space-between;
-            align-items: center;
-            justify-content: center;">
+                                                                                            align-items: center;
+                                                                                            justify-content: center;">
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div style="background-color: red;  height: 10px;
-          width: 20px;">
+                                                                                          width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Poor</p>
                     </div>
 
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div style="background-color: green;  height: 10px;
-          width: 20px;">
+                                                                                          width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Fair</p>
                     </div>
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div style="background-color: #d4af37;  height: 10px;
-          width: 20px;">
+                                                                                          width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Good</p>
                     </div>
@@ -1354,47 +1341,47 @@
                         </thead>
                         <tbody>
                             @foreach($newBranchLoans as $loan)
-                                                    <?php
-                                        $OutIn = 0;
-                                        $out = 0;
-                                        $in = 0;
-                                        $newout = 0;
-                                ?>
-                                                    @foreach($loan->transactions as $transaction)
-                                                                            <?php
+                                            <?php
+                                $OutIn = 0;
+                                $out = 0;
+                                $in = 0;
+                                $newout = 0;
+                                                                                                                                                                                                                                                                                        ?>
+                                            @foreach($loan->transactions as $transaction)
+                                                        <?php
 
-                                                                    if ($transaction->transaction_type != 'specified_due_date_fee') {
-                                                                        $out = $out + $transaction->debit;
-                                                                    }
+                                                if ($transaction->transaction_type != 'specified_due_date_fee') {
+                                                    $out = $out + $transaction->debit;
+                                                }
 
-                                                                    $in = $in + $transaction->credit;
-                                                        ?>
-                                                    @endforeach
-                                                    <?php
-                                        $OutIn = $out - $in;
-                                        $OutIn = $OutIn - $newout;
-                                ?>
-                                                    <tr>
-                                                        @if($OutIn != 0)
-                                                            <td>{{$loan->id}}</td>
-                                                            <td>
-                                                                @if(!empty($loan->client->first_name))
-                                                                    {{$loan->client->first_name}}
-                                                                @endif
-                                                                @if(!empty($loan->client->last_name))
-                                                                    {{$loan->client->last_name}}
-                                                                @endif
-                                                                @if($loan->defaulted == 'yes')
-                                                                    <span style="color: red;">(Defaulted)</span>
-                                                                @endif
-                                                            </td>
-                                                            @if($OutIn < 0)
-                                                                <td style="color: red;">{{number_format($OutIn, 2)}}</td>
-                                                            @else
-                                                                <td>{{number_format($OutIn, 2)}}</td>
-                                                            @endif
+                                                $in = $in + $transaction->credit;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                ?>
+                                            @endforeach
+                                            <?php
+                                $OutIn = $out - $in;
+                                $OutIn = $OutIn - $newout;
+                                                                                                                                                                                                                                                                                        ?>
+                                            <tr>
+                                                @if($OutIn != 0)
+                                                    <td>{{$loan->id}}</td>
+                                                    <td>
+                                                        @if(!empty($loan->client->first_name))
+                                                            {{$loan->client->first_name}}
                                                         @endif
-                                                    </tr>
+                                                        @if(!empty($loan->client->last_name))
+                                                            {{$loan->client->last_name}}
+                                                        @endif
+                                                        @if($loan->defaulted == 'yes')
+                                                            <span style="color: red;">(Defaulted)</span>
+                                                        @endif
+                                                    </td>
+                                                    @if($OutIn < 0)
+                                                        <td style="color: red;">{{number_format($OutIn, 2)}}</td>
+                                                    @else
+                                                        <td>{{number_format($OutIn, 2)}}</td>
+                                                    @endif
+                                                @endif
+                                            </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -1443,23 +1430,23 @@
 
         <?php
             $office_id = Sentinel::getUser()->office_id;
-        ?>
+                                                                                        ?>
         <div id="pendingWidget" style="
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 350px;
-            background: #fefefe;
-            border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-            overflow: hidden;
-            z-index: 9999;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            cursor: move;
-            transition: transform 0.2s ease;
-        ">
+                                                                                            position: fixed;
+                                                                                            top: 20px;
+                                                                                            left: 50%;
+                                                                                            transform: translateX(-50%);
+                                                                                            width: 90%;
+                                                                                            max-width: 350px;
+                                                                                            background: #fefefe;
+                                                                                            border-radius: 15px;
+                                                                                            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                                                                                            overflow: hidden;
+                                                                                            z-index: 9999;
+                                                                                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                                                                            cursor: move;
+                                                                                            transition: transform 0.2s ease;
+                                                                                        ">
             <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
                 <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
@@ -1469,12 +1456,14 @@
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
                 <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\LoanTransactionUnapproved::where('office_id', $office_id)->count() }}</p>
+                    {{\App\Models\LoanTransactionUnapproved::where('office_id', $office_id)->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
                 <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\LoanTransactionsPending::where('office_id', $office_id)->count() }}</p>
+                    {{\App\Models\LoanTransactionsPending::where('office_id', $office_id)->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
                 <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
@@ -1491,7 +1480,8 @@
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
                 <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\Client::where('status', 'pending')->where('office_id', $office_id)->count() }}</p>
+                    {{\App\Models\Client::where('status', 'pending')->where('office_id', $office_id)->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
                 <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
@@ -1518,9 +1508,10 @@
 
     <!-- What PMs see -->
     @if($role->role_id == '6')
-        <div style="display: flex;
-            align-items: center;
-            justify-content: center; padding-bottom: 10px; ">
+        <div
+            style="display: flex;
+                                                                                            align-items: center;
+                                                                                            justify-content: center; padding-bottom: 10px; ">
 
             <a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Collections</span>
@@ -1598,11 +1589,11 @@
             $cycle_opening_uncollected_amounts = [];
 
             // foreach($province_loans as $province_loan){
-        //     foreach($province_loan->transactions as $transaction){
-        //         array_push($province_transactions, $transaction);
-        //     }
-        // }
-        ?>
+            //     foreach($province_loan->transactions as $transaction){
+            //         array_push($province_transactions, $transaction);
+            //     }
+            // }
+                                                                                        ?>
 
                 <?php
             $today = date('Y-m-d');
@@ -1641,7 +1632,7 @@
                 array_push($cycle_opening_uncollected_amounts, $cycle_opening_uncollected_amount + 0.0001);
 
             }
-        ?>
+                                                                                        ?>
 
                 <?php
             $collected_amounts = [];
@@ -1680,12 +1671,12 @@
 
 
             }
-         ?>
+                                                                                         ?>
 
 
 
                 <?php 
-        $collections = [];
+                                                                                        $collections = [];
             $given_out = [];
             $target_dates = [];
             while ($bar_chart_count < 5) {
@@ -1754,7 +1745,7 @@
 
 
             }
-        ?>
+                                                                                        ?>
 
                 <?php
             $new_loan_total = 0;
@@ -1810,14 +1801,14 @@
                 $total = $reloan_total + $new_loan_total;
             }
 
-        ?>
+                                                                                        ?>
 
                 <?php 
-        $uncollected_amounts = [];
+                                                                                        $uncollected_amounts = [];
             for ($x = 0; $x < 12; $x++) {
                 array_push($uncollected_amounts, ($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
             }
-        ?>
+                                                                                        ?>
 
 
                 <div class="col-lg-4 col-xs-12">
@@ -1871,119 +1862,130 @@
             </div>
 
 
-            <?php
+        </div>
+
+
+        <?php
             $tots = ($collected_amounts[12] / $cycle_opening_uncollected_amounts[12]) + 0.00001
-        ?>
-            <div style="margin-bottom:30px; margin-top:30px;">
-                <p style="display: flex;
-            align-items: center;
-            justify-content: center; font-size:50px;">PDUA%</p>
-                <div style="display: flex;
-            align-items: center;
-            justify-content: center;">
+                                                                                        ?>
+        <div style="margin-bottom:30px; margin-top:30px;">
+            <p
+                style="display: flex;
+                                                                                            align-items: center;
+                                                                                            justify-content: center; font-size:50px;">
+                PDUA%</p>
+            <div style="display: flex;
+                                                                                            align-items: center;
+                                                                                            justify-content: center;">
 
-                    <div class="gauge" style="width: 100%;
-          max-width: 250px;
-          font-size: 50px;
-          color: #004033;">
-                        <div class="gauge__body" style=" width: 100%;
-          height: 0;
-          padding-bottom: 50%;
-          background: #b4c0be;
-          position: relative;
-          border-top-left-radius: 100% 200%;
-          border-top-right-radius: 100% 200%;
-          overflow: hidden;">
+                <div class="gauge" style="width: 100%;
+                                                                                          max-width: 250px;
+                                                                                          font-size: 50px;
+                                                                                          color: #004033;">
+                    <div class="gauge__body" style=" width: 100%;
+                                                                                          height: 0;
+                                                                                          padding-bottom: 50%;
+                                                                                          background: #b4c0be;
+                                                                                          position: relative;
+                                                                                          border-top-left-radius: 100% 200%;
+                                                                                          border-top-right-radius: 100% 200%;
+                                                                                          overflow: hidden;">
 
-                            @if(($tots) < 0.75)
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background: red;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                        @if(($tots) < 0.75)
+                            <div class="gauge__fill"
+                                style=" position: absolute;
+                                                                                                                                                  top: 100%;
+                                                                                                                                                  left: 0;
+                                                                                                                                                  width: inherit;
+                                                                                                                                                  height: 100%;
+                                                                                                                                                  background: red;
+                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                  transition: transform 0.2s ease-out;">
+                            </div>
 
-                            @elseif(($tots) >= 0.90)
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background:#d4af37;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                        @elseif(($tots) >= 0.90)
+                            <div class="gauge__fill"
+                                style=" position: absolute;
+                                                                                                                                                  top: 100%;
+                                                                                                                                                  left: 0;
+                                                                                                                                                  width: inherit;
+                                                                                                                                                  height: 100%;
+                                                                                                                                                  background:#d4af37;
+                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                  transition: transform 0.2s ease-out;">
+                            </div>
 
-                            @else
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background:green;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                        @else
+                            <div class="gauge__fill"
+                                style=" position: absolute;
+                                                                                                                                                  top: 100%;
+                                                                                                                                                  left: 0;
+                                                                                                                                                  width: inherit;
+                                                                                                                                                  height: 100%;
+                                                                                                                                                  background:green;
+                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                  transition: transform 0.2s ease-out;">
+                            </div>
 
-                            @endif
-                            <div class="gauge__cover" style="width: 75%;
-          height: 150%;
-          background: #f7f7f7;
-          border-radius: 50%;
-          position: absolute;
-          top: 25%;
-          left: 50%;
-          transform: translateX(-50%);
+                        @endif
+                        <div class="gauge__cover" style="width: 75%;
+                                                                                          height: 150%;
+                                                                                          background: #f7f7f7;
+                                                                                          border-radius: 50%;
+                                                                                          position: absolute;
+                                                                                          top: 25%;
+                                                                                          left: 50%;
+                                                                                          transform: translateX(-50%);
 
-          /* Text */
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding-bottom: 25%;
-          box-sizing: border-box;"></div>
+                                                                                          /* Text */
+                                                                                          display: flex;
+                                                                                          align-items: center;
+                                                                                          justify-content: center;
+                                                                                          padding-bottom: 25%;
+                                                                                          box-sizing: border-box;"></div>
 
-                        </div>
                     </div>
-
-
                 </div>
 
-                <div style="display:flex; flex-direction:row; justify-content:space-between;
-            align-items: center;
-            justify-content: center;">
-                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-                        <div style="background-color: red;  height: 10px;
-          width: 20px;">
-                        </div>
-                        <p style="text-align: center; font-weight:bold;">Poor</p>
-                    </div>
 
-                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-                        <div style="background-color: green;  height: 10px;
-          width: 20px;">
-                        </div>
-                        <p style="text-align: center; font-weight:bold;">Fair</p>
-                    </div>
-                    <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
-                        <div style="background-color: #d4af37;  height: 10px;
-          width: 20px;">
-                        </div>
-                        <p style="text-align: center; font-weight:bold;">Good</p>
-                    </div>
+            </div>
 
+            <div style="display:flex; flex-direction:row; justify-content:space-between;
+                                                                                            align-items: center;
+                                                                                            justify-content: center;">
+                <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                    <div style="background-color: red;  height: 10px;
+                                                                                          width: 20px;">
+                    </div>
+                    <p style="text-align: center; font-weight:bold;">Poor</p>
                 </div>
+
+                <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                    <div style="background-color: green;  height: 10px;
+                                                                                          width: 20px;">
+                    </div>
+                    <p style="text-align: center; font-weight:bold;">Fair</p>
+                </div>
+                <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
+                    <div style="background-color: #d4af37;  height: 10px;
+                                                                                          width: 20px;">
+                    </div>
+                    <p style="text-align: center; font-weight:bold;">Good</p>
+                </div>
+
             </div>
+        </div>
 
-            <canvas id='province_graph'></canvas>
-            <canvas id='province_target_graph'></canvas>
+        <canvas id='province_graph'></canvas>
+        <canvas id='province_target_graph'></canvas>
 
 
-            <div>
+        <div>
 
-            </div>
+        </div>
 
 
         </div>
@@ -2012,9 +2014,10 @@
 
     <!-- What Admins see -->
     @if($role->role_id == '1' || $role->role_id == '10')
-        <div style="display: flex;
-            align-items: center;
-            justify-content: center; padding-bottom: 10px; ">
+        <div
+            style="display: flex;
+                                                                                                align-items: center;
+                                                                                                justify-content: center; padding-bottom: 10px; ">
 
             <a href="{{ url('user/detailed_dashboard')}}" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Detailed Dashboard</span>
@@ -2033,11 +2036,16 @@
                 <span class="label label-primary" style="font-size: 15px;">Daily figures</span>
             </a>
 
+            <a href="#" data-toggle="modal" data-target="#institutionMetricsModal" style="margin: 10px;">
+                <span class="label label-primary" style="font-size: 15px;">Institution Metrics</span>
+            </a>
+
         </div>
 
-        <div style="display: flex;
-            align-items: center;
-            justify-content: center; padding-bottom: 10px; ">
+        <div
+            style="display: flex;
+                                                                                                align-items: center;
+                                                                                                justify-content: center; padding-bottom: 10px; ">
             <p style="font-weight: bold;">Data based on loans created in the last 3 months</p>
         </div>
 
@@ -2115,55 +2123,55 @@
 
             $trans = []
                 // foreach($province_loans as $province_loan){
-        //     foreach($province_loan->transactions as $transaction){
-        //         array_push($province_transactions, $transaction);
-        //     }
-        // }
-        ?>
+                //     foreach($province_loan->transactions as $transaction){
+                //         array_push($province_transactions, $transaction);
+                //     }
+                // }
+                                                                                            ?>
 
                 <!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
                 @foreach($allLoans as $loan)
-                            <?php
-                            $MoneyCollected = 0;
-                            $MoneyGivenOut = 0;
-                            $charges = 0;
-                            $balance = 0;
-                    ?>
-                            @foreach($loan->transactions as $transaction)
+                    <?php
+                    $MoneyCollected = 0;
+                    $MoneyGivenOut = 0;
+                    $charges = 0;
+                    $balance = 0;
+                                                                                                                                                                        ?>
+                    @foreach($loan->transactions as $transaction)
 
-                                        <?php
+                        <?php
 
-                                            if ($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee') {
-                                                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
-                                            }
-
-                                            if ($transaction->date <= $branchcompareDate) {
-                                                $MoneyCollected = $MoneyCollected + $transaction->credit;
-                                            }
-
-
-                                            if ($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $branchcompareDate) {
-                                                $charges = $charges + $transaction->debit;
-                                            }
-
-
-
-                                ?>
-                            @endforeach
-                            <?php 
-                    $balance = ($MoneyGivenOut - $MoneyCollected);
-                            if ($balance < 0) {
-                                $balance = 0;
+                            if ($transaction->date <= $branchcompareDate && $transaction->transaction_type != 'specified_due_date_fee') {
+                                $MoneyGivenOut = $MoneyGivenOut + $transaction->debit;
                             }
-                            $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
-                            if ($cycle_opening_uncollected_amount == 0) {
-                                $cycle_opening_uncollected_amount = 1;
+
+                            if ($transaction->date <= $branchcompareDate) {
+                                $MoneyCollected = $MoneyCollected + $transaction->credit;
                             }
-                    ?>
+
+
+                            if ($transaction->transaction_type == 'specified_due_date_fee' && $transaction->date <= $branchcompareDate) {
+                                $charges = $charges + $transaction->debit;
+                            }
+
+
+
+                                                                                                                                                                                                                                                                ?>
+                    @endforeach
+                    <?php 
+                                                                                                                                                                        $balance = ($MoneyGivenOut - $MoneyCollected);
+                    if ($balance < 0) {
+                        $balance = 0;
+                    }
+                    $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
+                    if ($cycle_opening_uncollected_amount == 0) {
+                        $cycle_opening_uncollected_amount = 1;
+                    }
+                                                                                                                                                                        ?>
                 @endforeach
 
                 <?php 
-        $collections = [];
+                                                                                            $collections = [];
             $given_out = [];
             $given_out_not_exp = [];
             $target_dates = [];
@@ -2270,9 +2278,9 @@
                 $bar_chart_count = $bar_chart_count + 1;
 
             }
-        ?>
+                                                                                            ?>
                 <?php 
-         foreach ($allTransactions as $transaction) {
+                                                                                             foreach ($allTransactions as $transaction) {
 
                 if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date == $todaysDate) {
                     $full_payments_today = $full_payments_today + $transaction->credit;
@@ -2293,7 +2301,7 @@
 
 
             $pdua = ($collections[0] / $cycle_opening_uncollected_amount)
-        ?>
+                                                                                            ?>
 
                 <div class="col-lg-4 col-xs-12">
                     <div class="small-box bg-red">
@@ -2345,75 +2353,84 @@
 
 
             <div style="margin-bottom:30px; margin-top:30px;">
-                <p style="display: flex;
-            align-items: center;
-            justify-content: center; font-size:50px;">PDUA%</p>
+                <p
+                    style="display: flex;
+                                                                                                align-items: center;
+                                                                                                justify-content: center; font-size:50px;">
+                    PDUA%
+                </p>
                 <div style="display: flex;
-            align-items: center;
-            justify-content: center;">
+                                                                                                align-items: center;
+                                                                                                justify-content: center;">
 
                     <div class="gauge" style="width: 100%;
-          max-width: 250px;
-          font-size: 50px;
-          color: #004033;">
+                                                                                              max-width: 250px;
+                                                                                              font-size: 50px;
+                                                                                              color: #004033;">
                         <div class="gauge__body" style=" width: 100%;
-          height: 0;
-          padding-bottom: 50%;
-          background: #b4c0be;
-          position: relative;
-          border-top-left-radius: 100% 200%;
-          border-top-right-radius: 100% 200%;
-          overflow: hidden;">
+                                                                                              height: 0;
+                                                                                              padding-bottom: 50%;
+                                                                                              background: #b4c0be;
+                                                                                              position: relative;
+                                                                                              border-top-left-radius: 100% 200%;
+                                                                                              border-top-right-radius: 100% 200%;
+                                                                                              overflow: hidden;">
 
                             @if(($pdua) < 0.75)
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background: red;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                                <div class="gauge__fill"
+                                    style=" position: absolute;
+                                                                                                                                                      top: 100%;
+                                                                                                                                                      left: 0;
+                                                                                                                                                      width: inherit;
+                                                                                                                                                      height: 100%;
+                                                                                                                                                      background: red;
+                                                                                                                                                      transform-origin: center top;
+                                                                                                                                                      transform: rotate(0.25turn);
+                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                </div>
 
                             @elseif(($pdua) >= 0.90)
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background:#d4af37;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                                <div class="gauge__fill"
+                                    style=" position: absolute;
+                                                                                                                                                      top: 100%;
+                                                                                                                                                      left: 0;
+                                                                                                                                                      width: inherit;
+                                                                                                                                                      height: 100%;
+                                                                                                                                                      background:#d4af37;
+                                                                                                                                                      transform-origin: center top;
+                                                                                                                                                      transform: rotate(0.25turn);
+                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                </div>
 
                             @else
-                                                    <div class="gauge__fill" style=" position: absolute;
-                                  top: 100%;
-                                  left: 0;
-                                  width: inherit;
-                                  height: 100%;
-                                  background:green;
-                                  transform-origin: center top;
-                                  transform: rotate(0.25turn);
-                                  transition: transform 0.2s ease-out;"></div>
+                                <div class="gauge__fill"
+                                    style=" position: absolute;
+                                                                                                                                                      top: 100%;
+                                                                                                                                                      left: 0;
+                                                                                                                                                      width: inherit;
+                                                                                                                                                      height: 100%;
+                                                                                                                                                      background:green;
+                                                                                                                                                      transform-origin: center top;
+                                                                                                                                                      transform: rotate(0.25turn);
+                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                </div>
 
                             @endif
                             <div class="gauge__cover" style="width: 75%;
-          height: 150%;
-          background: #f7f7f7;
-          border-radius: 50%;
-          position: absolute;
-          top: 25%;
-          left: 50%;
-          transform: translateX(-50%);
+                                                                                              height: 150%;
+                                                                                              background: #f7f7f7;
+                                                                                              border-radius: 50%;
+                                                                                              position: absolute;
+                                                                                              top: 25%;
+                                                                                              left: 50%;
+                                                                                              transform: translateX(-50%);
 
-          /* Text */
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding-bottom: 25%;
-          box-sizing: border-box;"></div>
+                                                                                              /* Text */
+                                                                                              display: flex;
+                                                                                              align-items: center;
+                                                                                              justify-content: center;
+                                                                                              padding-bottom: 25%;
+                                                                                              box-sizing: border-box;"></div>
 
                         </div>
                     </div>
@@ -2422,24 +2439,24 @@
                 </div>
 
                 <div style="display:flex; flex-direction:row; justify-content:space-between;
-            align-items: center;
-            justify-content: center;">
+                                                                                                align-items: center;
+                                                                                                justify-content: center;">
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div style="background-color: red;  height: 10px;
-          width: 20px;">
+                                                                                              width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Poor</p>
                     </div>
 
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div style="background-color: green;  height: 10px;
-          width: 20px;">
+                                                                                              width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Fair</p>
                     </div>
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div style="background-color: #d4af37;  height: 10px;
-          width: 20px;">
+                                                                                              width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Good</p>
                     </div>
@@ -2552,25 +2569,26 @@
         </div>
 
         <div id="pendingWidget" style="
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 350px;
-            background: #fefefe;
-            border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-            overflow: hidden;
-            z-index: 9999;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            cursor: move;
-            transition: transform 0.2s ease;
-        ">
+                                                                                                position: fixed;
+                                                                                                top: 20px;
+                                                                                                left: 50%;
+                                                                                                transform: translateX(-50%);
+                                                                                                width: 90%;
+                                                                                                max-width: 350px;
+                                                                                                background: #fefefe;
+                                                                                                border-radius: 15px;
+                                                                                                box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                                                                                                overflow: hidden;
+                                                                                                z-index: 9999;
+                                                                                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                                                                                cursor: move;
+                                                                                                transition: transform 0.2s ease;
+                                                                                            ">
             <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
                 <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</p>
+                    {{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
                 <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
@@ -2585,32 +2603,38 @@
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
                 <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{ \App\Models\WaiverTransactionUnapproved::where('status', 'pending')->count() }}</p>
+                    {{ \App\Models\WaiverTransactionUnapproved::where('status', 'pending')->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
                 <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{ \App\Models\ChargeTransactionUnapproved::where('status', 'pending')->count() }}</p>
+                    {{ \App\Models\ChargeTransactionUnapproved::where('status', 'pending')->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
                 <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{ \App\Models\Client::where('status', 'pending')->count() }}</p>
+                    {{ \App\Models\Client::where('status', 'pending')->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
                 <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{ \App\Models\Advance::where('status', 'pending')->count() }}</p>
+                    {{ \App\Models\Advance::where('status', 'pending')->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
                 <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{ \App\Models\TopUp::where('status', 'pending')->count() }}</p>
+                    {{ \App\Models\TopUp::where('status', 'pending')->count() }}
+                </p>
             </div>
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
                 <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
                 <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{ \App\Models\Leave::where('status', 'pending')->count() }}</p>
+                    {{ \App\Models\Leave::where('status', 'pending')->count() }}
+                </p>
             </div>
         </div>
 
@@ -2832,10 +2856,286 @@
 
     @endif
 
+    <!-- Institution Metrics Modal for Admin -->
+    @if($role->role_id == '1' || $role->role_id == '10')
+        <div class="modal fade" id="institutionMetricsModal" tabindex="-1" role="dialog"
+            aria-labelledby="institutionMetricsModalLabel">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="institutionMetricsModalLabel">Institution Metrics</h4>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Tabs Nav -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#tab_branch_efficiency"
+                                    aria-controls="tab_branch_efficiency" role="tab" data-toggle="tab">Branch Efficiency
+                                    Rates</a></li>
+                            <li role="presentation"><a href="#tab_pdua" aria-controls="tab_pdua" role="tab"
+                                    data-toggle="tab">Institutional PDUA & Default Rate</a></li>
+                        </ul>
+                        <div class="tab-content" style="padding-top: 20px;">
+                            <div role="tabpanel" class="tab-pane active" id="tab_branch_efficiency">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <!-- Table 1: Branch Efficiency Rates -->
+                                        <h4 style="font-weight: bold; margin-bottom: 15px;">Branch Efficiency Rates</h4>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped text-center">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align: center;">Branch Name</th>
+                                                        <th style="text-align: center;">Total Staff</th>
+                                                        <th style="text-align: center;">Staff Meeting Targets</th>
+                                                        <th style="text-align: center;">Efficiency %</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+            // Prepare Branch Efficiency Data
+            $offices = \App\Models\Office::get();
+
+            // 1. Calculate ACTUAL Collections per Staff (Grouped Sum of Credits in Period)
+            // Using 'loans' join to identify the officer
+            $start_date_sql = date('Y-m-d', strtotime($branchcompareDate));
+            $end_date_sql = date('Y-m-d', strtotime($branchtargetDate));
+
+            $staff_actuals = \App\Models\LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
+                ->where('loan_transactions.date', '>', $start_date_sql)
+                ->where('loan_transactions.date', '<=', $end_date_sql)
+                ->whereIn('loan_transactions.payment_apply_to', ['full_payment', 'part_payment', 'reloan_payment'])
+                ->selectRaw('loans.loan_officer_id, sum(loan_transactions.credit) as total_collected')
+                ->groupBy('loans.loan_officer_id')
+                ->pluck('total_collected', 'loans.loan_officer_id')
+                ->all();
+
+            // 2. Calculate TARGET (Expected) per Staff
+            // Definition: Sum of OPENING BALANCES of all loans that have a 'first_repayment_date' within the cycle.
+            // Logic derived from 'new_collection.blade.php' (Loans due) + 'dashboard' (Opening Balance logic).
+
+            $staff_targets = [];
+
+            // Get all loans due in this period
+            // Eager load transactions filtered to strictly BEFORE the cycle starts to calc Opening Balance
+            $due_loans = \App\Models\Loan::whereBetween('first_repayment_date', [$start_date_sql, $end_date_sql])
+                ->with([
+                    'transactions' => function ($q) use ($start_date_sql) {
+                        $q->where('date', '<=', $start_date_sql);
+                    }
+                ])
+                ->get();
+
+            foreach ($due_loans as $loan) {
+                if (!$loan->loan_officer_id)
+                    continue;
+                $oid = $loan->loan_officer_id;
+
+                // Calculate Opening Balance for this loan
+                $l_debit = 0;
+                $l_credit = 0;
+                foreach ($loan->transactions as $trans) {
+                    // Consistent with Dashboard COUA logic
+                    if ($trans->transaction_type != 'specified_due_date_fee') {
+                        $l_debit += $trans->debit;
+                    }
+                    $l_credit += $trans->credit;
+                }
+
+                $l_bal = $l_debit - $l_credit;
+                if ($l_bal < 0)
+                    $l_bal = 0;
+
+                if (!isset($staff_targets[$oid]))
+                    $staff_targets[$oid] = 0;
+                $staff_targets[$oid] += $l_bal;
+            }
+
+            // Render Table
+            foreach ($offices as $office):
+                // Get branch staff (Role 3=Consultant, 4=Manager)
+                $branch_staff = \App\Models\User::where('office_id', $office->id)
+                    ->whereHas('role', function ($q) {
+                        $q->whereIn('role_id', [3, 4]);
+                    })->where('status', 'Active')->get();
+
+                $b_total_staff = $branch_staff->count();
+                $b_met_target = 0;
+                $b_total_efficiency_accum = 0; // To calculate average efficiency? 
+                // Wait, "Efficiency %" column is usually "Branch Efficiency" implies Average of Staff? 
+                // Or (Total Branch Actual / Total Branch Target)?
+                // Formula: ($b_met_target / $b_total_staff) * 100 was previous.
+                // It asks for "Staff Meeting Targets Efficiency %".
+                // Let's stick to the column header: "Efficiency %". 
+                // Previously it was "% of staff meeting targets".
+                // New logic: "Staff Meeting Targets" is a count.
+                // "Efficiency %" is the % of staff who met target? Or the Branch's financial efficiency?
+                // Given the column is "Efficiency %" and calculated as ($b_met_target / $b_total_staff), it is "Staff Success Rate".
+                // I will maintain this definition logic derived from user prompt "Staff Meeting Targets Efficiency %".
+
+                foreach ($branch_staff as $staff) {
+                    $s_id = $staff->id;
+                    $s_target = isset($staff_targets[$s_id]) ? $staff_targets[$s_id] : 0;
+                    $s_actual = isset($staff_actuals[$s_id]) ? $staff_actuals[$s_id] : 0;
+
+                    // Determine if target met
+                    // Threshold: 100% collection of what was due?
+                    // Usually 100% is the goal.
+
+                    if ($s_target > 0) {
+                        $s_eff = ($s_actual / $s_target);
+                        if ($s_eff >= 1.0) { // 100%
+                            $b_met_target++;
+                        }
+                    } elseif ($s_target == 0 && $s_actual > 0) {
+                        // If target 0 (no loans due) but collected money?
+                        // Bonus? Does it count as meeting target?
+                        // Let's assume yes, they did good work.
+                        $b_met_target++;
+                    } else {
+                        // Target 0, Actual 0 -> N/A. Does not contribute to "Met".
+                        // Logic: If they had no target, they couldn't "Meet" it? Or they automatically met it?
+                        // "Met Target" usually implies Active participation.
+                        // I will count them as NOT met if they had nothing to do, OR filter them out of 'Total Staff'?
+                        // Previous logic counted ALL Active staff.
+                        // I'll stick to: Met if Actual >= Target (and Target > 0).
+                    }
+                }
+
+                // If staff count is 0, avoid div by zero
+                $b_efficiency_rate = ($b_total_staff > 0) ? ($b_met_target / $b_total_staff) * 100 : 0;
+
+                if ($b_total_staff > 0): 
+                    ?>
+                                                    <tr>
+                                                        <td>{{ $office->name }}</td>
+                                                        <td>{{ $b_total_staff }}</td>
+                                                        <td>{{ $b_met_target }}</td>
+                                                        <td>{{ number_format($b_efficiency_rate, 2) }}%</td>
+                                                    </tr>
+                                                    <?php        endif;
+            endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="tab_pdua">
+                                <div class="row" style="margin-top: 20px;">
+                                    <div class="col-md-12">
+                                        <!-- Table 2: Institutional PDUA & Default Rate -->
+                                        <h4 style="font-weight: bold; margin-bottom: 15px;">Institutional PDUA & Default Rate
+                                            (Monthly)
+                                        </h4>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped text-center">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align: center;">Month</th>
+                                                        <th style="text-align: center;">Cycle Opening Uncollected (ZMW)</th>
+                                                        <th style="text-align: center;">Total Collected (ZMW)</th>
+                                                        <th style="text-align: center;">Monthly PDUA %</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php 
+                                                                                            // The dashboard already calculates these arrays for the chart:
+            // $dates: Labels (e.g., "Jan 24")
+            // $collected_amounts: Array of collections
+            // $cycle_opening_uncollected_amounts: Array of COUA (calculated earlier in your view)
+            // Ensure arrays are initialized
+            $tbl_dates = [];
+            $tbl_collections = [];
+            $tbl_coua = [];
+
+            // Loop for 12 months history
+            for ($m = 0; $m < 12; $m++) {
+                // Calculate dates for this month iteration
+                // Corresponds to dashboard: targetDate - m months
+                $tbl_target = date('Y-m-d', strtotime($branchtargetDate . ' - ' . $m . 'months'));
+                $tbl_compare = date('Y-m-d', strtotime($branchcompareDate . ' - ' . $m . 'months'));
+
+                array_push($tbl_dates, date("M Y", strtotime($tbl_target)));
+
+                // 1. Calculate Collections (Consistent with dashboard sum of credits logic)
+                // Dashboard logic relies on 'repayment' (full/part) and 'reloan_payment' credits.
+                // Efficiently query DB:
+                $m_collected = \App\Models\LoanTransaction::where('date', '>', $tbl_compare)
+                    ->where('date', '<=', $tbl_target)
+                    ->whereIn('payment_apply_to', ['full_payment', 'part_payment', 'reloan_payment'])
+                    ->sum('credit');
+                array_push($tbl_collections, $m_collected);
+
+                // 2. Calculate COUA (Consistent with dashboard "Per Loan Floor" logic)
+                // Dashboard logic: Sum of (Max(0, LoanBalance at start date))
+                // Balance = Debits - Credits.
+                // Must iterate allLoans to apply the Max(0) floor per loan.
+
+                $m_coua_sum = 0;
+                foreach ($allLoans as $loan) {
+                    // Optimization: Use the loaded transactions collection
+                    if (!$loan->transactions)
+                        continue;
+
+                    $l_given = 0;
+                    $l_collected = 0;
+
+                    foreach ($loan->transactions as $trans) {
+                        if ($trans->date <= $tbl_compare) {
+                            if ($trans->transaction_type != 'specified_due_date_fee') {
+                                $l_given += $trans->debit;
+                            }
+                            $l_collected += $trans->credit;
+                        }
+                    }
+
+                    $bal = $l_given - $l_collected;
+                    if ($bal < 0)
+                        $bal = 0;
+
+                    $m_coua_sum += $bal;
+                }
+
+                if ($m_coua_sum <= 0)
+                    $m_coua_sum = 0.0001; // Avoid div by zero
+                array_push($tbl_coua, $m_coua_sum);
+            }
+
+            // Render Table with PDUA Cap
+            for ($i = 0; $i < 12; $i++):
+                $pdua_percent = ($tbl_coua[$i] > 0) ? ($tbl_collections[$i] / $tbl_coua[$i]) * 100 : 0;
+
+                // CAP PDUA at 100%
+                if ($pdua_percent > 100)
+                    $pdua_percent = 100;
+                                                            ?>
+                                                    <tr>
+                                                        <td>{{ isset($tbl_dates[$i]) ? $tbl_dates[$i] : '-' }}</td>
+                                                        <td>{{ number_format($tbl_coua[$i], 2) }}</td>
+                                                        <td>{{ number_format($tbl_collections[$i], 2) }}</td>
+                                                        <td>{{ number_format($pdua_percent, 2) }}%</td>
+                                                    </tr>
+                                                    <?php    endfor; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    @endif
+
     @if($role->role_id == '6')
         <script>
 
-            function toggleMyStaff(divid) {
+            function toggleMyStaf                   f(divid) {
                 varon = divid + 'on';
                 varoff = divid + 'off';
 
