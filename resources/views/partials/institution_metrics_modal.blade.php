@@ -44,60 +44,34 @@
         // Prepare Branch Efficiency Data
         $offices = \App\Models\Office::get();
 
-        // 1. Calculate ACTUAL Collections per Staff (Grouped Sum of Credits in Period)
-        // Using 'loans' join to identify the officer
+        // 1. Calculate Total Loans Given Out per Staff (Disbursements + Reloans)
+        // Logic from 'lc_information.blade.php':
+        // New Loans = Sum of 'disbursement' debit
+        // Reloans = Sum of 'interest' debit / 0.4
+
         $start_date_sql = date('Y-m-d', strtotime($branchcompareDate));
         $end_date_sql = date('Y-m-d', strtotime($branchtargetDate));
 
-        $staff_actuals = \App\Models\LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
+        // Get Disbursement Sums per Staff
+        // Join loans to get loan_officer_id
+        $staff_disbursements = \App\Models\LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
             ->where('loan_transactions.date', '>', $start_date_sql)
             ->where('loan_transactions.date', '<=', $end_date_sql)
-            ->whereIn('loan_transactions.payment_apply_to', ['full_payment', 'part_payment', 'reloan_payment'])
-            ->selectRaw('loans.loan_officer_id, sum(loan_transactions.credit) as total_collected')
+            ->where('loan_transactions.transaction_type', 'disbursement')
+            ->selectRaw('loans.loan_officer_id, sum(loan_transactions.debit) as total_disbursed')
             ->groupBy('loans.loan_officer_id')
-            ->pluck('total_collected', 'loans.loan_officer_id')
+            ->pluck('total_disbursed', 'loans.loan_officer_id')
             ->all();
 
-        // 2. Calculate TARGET (Expected) per Staff
-        // Definition: Sum of OPENING BALANCES of all loans that have a 'first_repayment_date' within the cycle.
-        // Logic derived from 'new_collection.blade.php' (Loans due) + 'dashboard' (Opening Balance logic).
-
-        $staff_targets = [];
-
-        // Get all loans due in this period
-        // Eager load transactions filtered to strictly BEFORE the cycle starts to calc Opening Balance
-        $due_loans = \App\Models\Loan::whereBetween('first_repayment_date', [$start_date_sql, $end_date_sql])
-            ->with([
-                'transactions' => function ($q) use ($start_date_sql) {
-                    $q->where('date', '<=', $start_date_sql);
-                }
-            ])
-            ->get();
-
-        foreach ($due_loans as $loan) {
-            if (!$loan->loan_officer_id)
-                continue;
-            $oid = $loan->loan_officer_id;
-
-            // Calculate Opening Balance for this loan
-            $l_debit = 0;
-            $l_credit = 0;
-            foreach ($loan->transactions as $trans) {
-                // Consistent with Dashboard COUA logic
-                if ($trans->transaction_type != 'specified_due_date_fee') {
-                    $l_debit += $trans->debit;
-                }
-                $l_credit += $trans->credit;
-            }
-
-            $l_bal = $l_debit - $l_credit;
-            if ($l_bal < 0)
-                $l_bal = 0;
-
-            if (!isset($staff_targets[$oid]))
-                $staff_targets[$oid] = 0;
-            $staff_targets[$oid] += $l_bal;
-        }
+        // Get Interest Sums per Staff (to calculate Reloans)
+        $staff_interests = \App\Models\LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
+            ->where('loan_transactions.date', '>', $start_date_sql)
+            ->where('loan_transactions.date', '<=', $end_date_sql)
+            ->where('loan_transactions.transaction_type', 'interest')
+            ->selectRaw('loans.loan_officer_id, sum(loan_transactions.debit) as total_interest')
+            ->groupBy('loans.loan_officer_id')
+            ->pluck('total_interest', 'loans.loan_officer_id')
+            ->all();
 
         // Render Table
         foreach ($offices as $office):
@@ -112,29 +86,26 @@
 
             foreach ($branch_staff as $staff) {
                 $s_id = $staff->id;
-                $s_target = isset($staff_targets[$s_id]) ? $staff_targets[$s_id] : 0;
-                $s_actual = isset($staff_actuals[$s_id]) ? $staff_actuals[$s_id] : 0;
 
-                // Determine if target met
-                // Threshold: 100% collection of what was due?
-                // Usually 100% is the goal.
+                $s_disbursed = isset($staff_disbursements[$s_id]) ? $staff_disbursements[$s_id] : 0;
+                $s_interest = isset($staff_interests[$s_id]) ? $staff_interests[$s_id] : 0;
 
-                if ($s_target > 0) {
-                    $s_eff = ($s_actual / $s_target);
-                    if ($s_eff >= 1.0) { // 100%
-                        $b_met_target++;
-                    }
-                } elseif ($s_target == 0 && $s_actual > 0) {
-                    // If target 0 (no loans due) but collected money?
+                // Calculate Derived Reloan Principal
+                $s_reloans = $s_interest / 0.4;
+
+                $s_total_given = $s_disbursed + $s_reloans;
+
+                // Target Logic: >= 40,000
+                if ($s_total_given >= 40000) {
                     $b_met_target++;
                 }
             }
 
-            // If staff count is 0, avoid div by zero
+            // Efficiency Rate: % of staff who met the target
             $b_efficiency_rate = ($b_total_staff > 0) ? ($b_met_target / $b_total_staff) * 100 : 0;
 
             if ($b_total_staff > 0): 
-                    ?>
+                                    ?>
                                                 <tr>
                                                     <td>{{ $office->name }}</td>
                                                     <td>{{ $b_total_staff }}</td>
@@ -149,9 +120,18 @@
                                 </div>
                             </div>
                         </div>
+
+
+
+
+                        <!-- **************************** AVG PDUA % ************************************* -->
+
+
+
+
                         <div role="tabpanel" class="tab-pane" id="tab_pdua">
                             <?php 
-                                // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
+                                                // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
         $tbl_data = [];
         $total_default_rate_sum = 0;
 
@@ -260,7 +240,7 @@
 
         // Average Default Rate
         $avg_default_rate = $total_default_rate_sum / 12;
-                                ?>
+                                                ?>
 
                             <div class="row" style="margin-top: 20px;">
                                 <div class="col-md-12">
@@ -268,19 +248,26 @@
                                     <!-- Average Summary Box -->
                                     <div class="callout callout-info"
                                         style="background-color: #00c0ef !important; border-color: #0097bc !important; color: #fff !important; margin-bottom: 20px; text-align: center;">
-                                        <h4 style="font-weight: bold;">Average Institutional Default Rate (Last 12 Months)
+                                        <h4 style="font-weight: bold;" id="pdua_summary_text">Average Institutional Default
+                                            Rate (Last 12 Months)
                                         </h4>
-                                        <p style="font-size: 32px; font-weight: bold; margin-top: 10px;">
+                                        <p style="font-size: 32px; font-weight: bold; margin-top: 10px;"
+                                            id="pdua_summary_value">
                                             {{ number_format($avg_default_rate, 2) }}%
                                         </p>
                                     </div>
 
                                     <!-- Table 2: Institutional PDUA & Default Rate -->
-                                    <h4 style="font-weight: bold; margin-bottom: 15px;">Institutional PDUA & Default Rate
-                                        (Monthly)
-                                    </h4>
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                        <h4 style="font-weight: bold; margin: 0;">Institutional PDUA & Default Rate
+                                            (Monthly)</h4>
+                                        <button class="btn btn-success btn-sm" type="button" onclick="exportPDUATable()">
+                                            <i class="fa fa-file-excel-o"></i> Export to Excel
+                                        </button>
+                                    </div>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-striped text-center">
+                                        <table class="table table-bordered table-striped text-center" id="pdua_table">
                                             <thead>
                                                 <tr>
                                                     <th style="text-align: center;">Month</th>
@@ -315,3 +302,54 @@
         </div>
     </div>
 @endif
+
+<script>
+    function exportPDUATable() {
+        // 1. Get the table and summary text
+        var table = document.getElementById('pdua_table');
+        var summaryText = document.getElementById('pdua_summary_text').innerText;
+        var summaryValue = document.getElementById('pdua_summary_value').innerText;
+        // Clean up summary text
+        summaryText = summaryText.replace(/\s+/g, ' ').trim();
+        summaryValue = summaryValue.trim();
+
+        var fullSummary = summaryText + ": " + summaryValue;
+
+        // 2. Clone table to modify for export
+        var exportTable = table.cloneNode(true);
+
+        // 3. Insert Summary Row at top
+        var thead = exportTable.querySelector('thead');
+        var summaryRow = document.createElement('tr');
+        var summaryCell = document.createElement('th');
+        summaryCell.colSpan = 6;
+        summaryCell.style.textAlign = 'center';
+        summaryCell.style.fontSize = '16px';
+        summaryCell.style.backgroundColor = '#00c0ef';
+        summaryCell.style.color = '#ffffff';
+        summaryCell.innerText = fullSummary;
+        summaryRow.appendChild(summaryCell);
+
+        if (thead) {
+            thead.insertBefore(summaryRow, thead.firstChild);
+        } else {
+            // In case no thead (unlikely but safe)
+            var tbody = exportTable.querySelector('tbody');
+            tbody.insertBefore(summaryRow, tbody.firstChild);
+        }
+
+        // 4. Trigger Download
+        var html = exportTable.outerHTML;
+        // Use Blob for better browser compatibility
+        var blob = new Blob(['\ufeff', html], { // \ufeff for BOM to handle UTF-8 correctly in Excel
+            type: 'application/vnd.ms-excel'
+        });
+        var url = URL.createObjectURL(blob);
+        var downloadLink = document.createElement("a");
+        downloadLink.href = url;
+        downloadLink.download = 'institutional_pdua_metrics.xls';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
+</script>
