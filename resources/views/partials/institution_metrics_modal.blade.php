@@ -11,7 +11,8 @@
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-warning text-center" style="margin-bottom: 15px;">
-                        <i class="fa fa-exclamation-triangle"></i> <strong>Note:</strong> This feature is currently under development
+                        <i class="fa fa-exclamation-triangle"></i> <strong>Note:</strong> This feature is currently under
+                        development
                         and testing.
                     </div>
                     <!-- Tabs Nav -->
@@ -133,7 +134,7 @@
             $b_efficiency_rate = ($b_total_staff > 0) ? ($b_met_target / $b_total_staff) * 100 : 0;
 
             if ($b_total_staff > 0): 
-                ?>
+                    ?>
                                                 <tr>
                                                     <td>{{ $office->name }}</td>
                                                     <td>{{ $b_total_staff }}</td>
@@ -150,73 +151,116 @@
                         </div>
                         <div role="tabpanel" class="tab-pane" id="tab_pdua">
                             <?php 
-                // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
-        $tbl_dates = [];
-        $tbl_collections = [];
-        $tbl_coua = [];
-        $tbl_pdua_percents = [];
+                                // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
+        $tbl_data = [];
         $total_default_rate_sum = 0;
 
         // Loop for 12 months history
         for ($m = 0; $m < 12; $m++) {
             // Calculate dates for this month iteration
-            // Corresponds to dashboard: targetDate - m months
             $tbl_target = date('Y-m-d', strtotime($branchtargetDate . ' - ' . $m . 'months'));
-            $tbl_compare = date('Y-m-d', strtotime($branchcompareDate . ' - ' . $m . 'months'));
+            $tbl_compare = date('Y-m-d', strtotime($branchcompareDate . ' - ' . $m . 'months')); // Start of Cycle
 
-            array_push($tbl_dates, date("M Y", strtotime($tbl_target)));
+            $month_name = date("M Y", strtotime($tbl_target));
 
-            // 1. Calculate Collections (Consistent with dashboard sum of credits logic)
-            $m_collected = \App\Models\LoanTransaction::where('date', '>', $tbl_compare)
-                ->where('date', '<=', $tbl_target)
-                ->whereIn('payment_apply_to', ['full_payment', 'part_payment', 'reloan_payment'])
+            // --- 1. COUA (Cycle Opening Uncollected Amount) ---
+            // Logic from lc_information: Sum of (Debit - Credit) for all transactions <= Start Date
+            // Note: lc_information aggregates everything.
+
+            // We can use DB queries for efficiency instead of iterating objects in Blade.
+
+            // Money Given Out (Lifetime until start of cycle)
+            // lc_information: transaction_type != 'specified_due_date_fee'
+            $life_given = \App\Models\LoanTransaction::where('date', '<=', $tbl_compare)
+                ->where('transaction_type', '!=', 'specified_due_date_fee')
+                ->sum('debit');
+
+            // Money Collected (Lifetime until start of cycle)
+            // lc_information: all credits
+            $life_collected = \App\Models\LoanTransaction::where('date', '<=', $tbl_compare)
                 ->sum('credit');
-            array_push($tbl_collections, $m_collected);
 
-            // 2. Calculate COUA (Consistent with dashboard "Per Loan Floor" logic)
-            // Must iterate allLoans to apply the Max(0) floor per loan.
-            $m_coua_sum = 0;
-            foreach ($allLoans as $loan) {
-                if (!$loan->transactions)
-                    continue;
+            $coua = $life_given - $life_collected;
+            // Note: lc_information does NOT floor at 0 for the whole user, allowing negative if collected > given?
+            // Usually COUA (Opening Balance) should be positive or usually 0. 
+            // We will stick to the raw calculation as per "exact logic" unless it produces weird results.
+            // However, checking lc_information line 256: number_format($balance), where balance = given - collected.
 
-                $l_given = 0;
-                $l_collected = 0;
+            // --- 2. Cycle Stats (Between Compare and Target) ---
 
-                foreach ($loan->transactions as $trans) {
-                    if ($trans->date <= $tbl_compare) {
-                        if ($trans->transaction_type != 'specified_due_date_fee') {
-                            $l_given += $trans->debit;
-                        }
-                        $l_collected += $trans->credit;
-                    }
-                }
+            // A. Total Loans Given Out This Cycle
+            // lc_information: 
+            // if disbursement: +debit
+            // if interest: +(debit / 0.4)  <-- Principal component of reloan?
 
-                $bal = $l_given - $l_collected;
-                if ($bal < 0)
-                    $bal = 0;
+            $cycle_disbursements = \App\Models\LoanTransaction::where('date', '>', $tbl_compare)
+                ->where('date', '<=', $tbl_target)
+                ->where('transaction_type', 'disbursement')
+                ->sum('debit');
 
-                $m_coua_sum += $bal;
-            }
+            $cycle_interest_debits = \App\Models\LoanTransaction::where('date', '>', $tbl_compare)
+                ->where('date', '<=', $tbl_target)
+                ->where('transaction_type', 'interest')
+                ->sum('debit');
 
-            if ($m_coua_sum <= 0)
-                $m_coua_sum = 0.0001; // Avoid div by zero
-            array_push($tbl_coua, $m_coua_sum);
+            // Logic: $new_reloans_cycle = $principal = $transaction->debit / 0.4;
+            $cycle_reloans_derived = $cycle_interest_debits / 0.4;
 
-            // Start Calculation for PDUA and Default Rate
-            $pdua_percent = ($m_coua_sum > 0) ? ($m_collected / $m_coua_sum) * 100 : 0;
+            $total_given_out = $cycle_disbursements + $cycle_reloans_derived;
+
+
+            // B. Total Cash Collected This Cycle
+            // lc_information LOGIC:
+            // full_payment: credit
+            // part_payment: credit
+            // reloan_payment: balance_bf  <--- CRITICAL
+
+            $cycle_full_part = \App\Models\LoanTransaction::where('date', '>', $tbl_compare)
+                ->where('date', '<=', $tbl_target)
+                ->whereIn('payment_apply_to', ['full_payment', 'part_payment'])
+                ->sum('credit');
+
+            $cycle_reloan_payments = \App\Models\LoanTransaction::where('date', '>', $tbl_compare)
+                ->where('date', '<=', $tbl_target)
+                ->where('payment_apply_to', 'reloan_payment')
+                ->sum('balance_bf');
+
+            $total_collected = $cycle_full_part + $cycle_reloan_payments;
+
+            // --- 3. Derived Metrics ---
+
+            // Total Cash Still Uncollected
+            // lc_information: $balance (COUA) - $cycle_collected_total
+            $still_uncollected = $coua - $total_collected;
+
+            // PDUA
+            // dashboard.blade.php: Collected / COUA
+            // Prevent Div/0
+            $denom = $coua;
+            if ($denom <= 0)
+                $denom = 0.0001;
+
+            $pdua_percent = ($total_collected / $denom) * 100;
             if ($pdua_percent > 100)
-                $pdua_percent = 100;
-            array_push($tbl_pdua_percents, $pdua_percent);
+                $pdua_percent = 100; // Cap at 100? dashboard logic sometimes caps.
 
-            // Default Rate = 100 - Collection Rate (PDUA)
-            $monthly_default = 100 - $pdua_percent;
-            $total_default_rate_sum += $monthly_default;
+            // Default Rate
+            $default_rate = 100 - $pdua_percent;
+            $total_default_rate_sum += $default_rate;
+
+            $tbl_data[] = [
+                'month' => $month_name,
+                'coua' => $coua,
+                'collected' => $total_collected,
+                'given_out' => $total_given_out,
+                'still_uncollected' => $still_uncollected,
+                'pdua' => $pdua_percent
+            ];
         }
 
-        // Calculate Average Default Rate
+        // Average Default Rate
         $avg_default_rate = $total_default_rate_sum / 12;
-                                    ?>
+                                ?>
 
                             <div class="row" style="margin-top: 20px;">
                                 <div class="col-md-12">
@@ -227,7 +271,8 @@
                                         <h4 style="font-weight: bold;">Average Institutional Default Rate (Last 12 Months)
                                         </h4>
                                         <p style="font-size: 32px; font-weight: bold; margin-top: 10px;">
-                                            {{ number_format($avg_default_rate, 2) }}%</p>
+                                            {{ number_format($avg_default_rate, 2) }}%
+                                        </p>
                                     </div>
 
                                     <!-- Table 2: Institutional PDUA & Default Rate -->
@@ -240,22 +285,24 @@
                                                 <tr>
                                                     <th style="text-align: center;">Month</th>
                                                     <th style="text-align: center;">Cycle Opening Uncollected (ZMW)</th>
-                                                    <th style="text-align: center;">Total Collected (ZMW)</th>
+                                                    <th style="text-align: center;">Total Cash Collected (ZMW)</th>
+                                                    <th style="text-align: center;">Total Cash Still Uncollected (ZMW)</th>
+                                                    <th style="text-align: center;">Total loans Given out this cycle (ZMW)
+                                                    </th>
                                                     <th style="text-align: center;">Monthly PDUA %</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php 
-                                                // Render Table using Pre-calculated Data
-                                                    for ($i = 0; $i < 12; $i++):
-                                                                ?>
+                                                <?php    foreach ($tbl_data as $row): ?>
                                                 <tr>
-                                                    <td>{{ isset($tbl_dates[$i]) ? $tbl_dates[$i] : '-' }}</td>
-                                                    <td>{{ number_format($tbl_coua[$i], 2) }}</td>
-                                                    <td>{{ number_format($tbl_collections[$i], 2) }}</td>
-                                                    <td>{{ number_format($tbl_pdua_percents[$i], 2) }}%</td>
+                                                    <td>{{ $row['month'] }}</td>
+                                                    <td>{{ number_format($row['coua']) }}</td>
+                                                    <td>{{ number_format($row['collected']) }}</td>
+                                                    <td>{{ number_format($row['still_uncollected']) }}</td>
+                                                    <td>{{ number_format($row['given_out']) }}</td>
+                                                    <td>{{ number_format($row['pdua'], 2) }}%</td>
                                                 </tr>
-                                                <?php    endfor; ?>
+                                                <?php    endforeach; ?>
                                             </tbody>
                                         </table>
                                     </div>
