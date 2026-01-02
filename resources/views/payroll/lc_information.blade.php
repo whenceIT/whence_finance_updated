@@ -141,7 +141,7 @@
                     </thead>
                     <tbody>
                         @foreach($loanConsultants as $user)
-                                            <?php
+                        <?php
                             $new_loans_cycle = 0;
                             $new_reloans_cycle = 0;
                             $target_total_cycle = 0;

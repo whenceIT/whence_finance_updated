@@ -138,7 +138,7 @@
             $b_efficiency_rate = ($total_possible_hits > 0) ? ($b_total_hits / $total_possible_hits) * 100 : 0;
 
             if ($b_total_staff > 0): 
-                                            ?>
+                                                ?>
                                                 <tr>
                                                     <td>{{ $office->name }}</td>
                                                     <td>{{ $b_total_staff }}</td>
@@ -164,7 +164,7 @@
 
                         <div role="tabpanel" class="tab-pane" id="tab_pdua">
                             <?php 
-                                                        // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
+                                                            // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
         $tbl_data = [];
         $total_default_rate_sum = 0;
 
@@ -274,7 +274,7 @@
 
         // Average Default Rate
         $avg_default_rate = $total_default_rate_sum / 12;
-                                                        ?>
+                                                            ?>
 
                             <div class="row" style="margin-top: 20px;">
                                 <div class="col-md-12">

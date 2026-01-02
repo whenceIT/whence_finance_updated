@@ -40,17 +40,21 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="office_id" class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
-                    <div class="col-md-3">
-                        <select name="office_id" class="form-control select2" id="office_id" required>
-                            <option value="0" @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                            @foreach($offices as $office)
-                                <option value="{{ $office->id }}" @if($office_id==$office->id) selected @endif>{{ $office->name }}</option>
-                            @endforeach
-                        </select>
+                @if(Sentinel::getUser()->roles->first()->id == 1)
+                    <div class="form-group">
+                        <label for="office_id" class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
+                        <div class="col-md-3">
+                            <select name="office_id" class="form-control select2" id="office_id" required>
+                                <option value="0" @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                                @foreach($offices as $office)
+                                    <option value="{{ $office->id }}" @if($office_id==$office->id) selected @endif>{{ $office->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                </div>
+                @else
+                    <input type="hidden" name="office_id" value="{{ Sentinel::getUser()->office_id }}" id="office_id">
+                @endif
 
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-3 text-center">
@@ -152,7 +156,6 @@
                 </table>
             </div>
             <div class="text-center">
-                {{ $data->appends(request()->query())->links() }}
             </div>
         </div>
         <!-- /.box-body -->
