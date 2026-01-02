@@ -48,8 +48,9 @@
 
         // Pre-calculate date ranges for 12 cycles
         $cycles = [];
-        for ($m = 0; $m < 12; $m++) {
-            $cycles[$m] = [
+        $start_m_offset = (date('d') < 25) ? 1 : 0;
+        for ($m = $start_m_offset; $m < $start_m_offset + 12; $m++) {
+            $cycles[] = [
                 'target' => date('Y-m-d', strtotime($base_target . " - $m months")),
                 'compare' => date('Y-m-d', strtotime($base_compare . " - $m months"))
             ];
@@ -137,7 +138,7 @@
             $b_efficiency_rate = ($total_possible_hits > 0) ? ($b_total_hits / $total_possible_hits) * 100 : 0;
 
             if ($b_total_staff > 0): 
-                                        ?>
+                                            ?>
                                                 <tr>
                                                     <td>{{ $office->name }}</td>
                                                     <td>{{ $b_total_staff }}</td>
@@ -163,12 +164,13 @@
 
                         <div role="tabpanel" class="tab-pane" id="tab_pdua">
                             <?php 
-                                                    // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
+                                                        // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
         $tbl_data = [];
         $total_default_rate_sum = 0;
 
         // Loop for 12 months history
-        for ($m = 0; $m < 13; ++$m) {
+        $pdua_start_m = (date('d') < 25) ? 1 : 0;
+        for ($m = $pdua_start_m; $m < $pdua_start_m + 12; ++$m) {
             // Calculate dates for this month iteration
             $tbl_target = date('Y-m-d', strtotime($branchtargetDate . ' - ' . $m . 'months'));
             $tbl_compare = date('Y-m-d', strtotime($branchcompareDate . ' - ' . $m . 'months')); // Start of Cycle
@@ -272,7 +274,7 @@
 
         // Average Default Rate
         $avg_default_rate = $total_default_rate_sum / 12;
-                                                    ?>
+                                                        ?>
 
                             <div class="row" style="margin-top: 20px;">
                                 <div class="col-md-12">
