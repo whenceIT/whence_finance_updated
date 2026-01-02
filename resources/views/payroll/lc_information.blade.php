@@ -26,7 +26,7 @@
         array_push($compare_dates, $startDate);
     }
 
-    ?>
+        ?>
     <div class="box box-primary">
         <div class="box-body">
             <form method="post" action="{{Request::url()}}" class="form-horizontal" enctype="multipart/form-data">
@@ -41,7 +41,7 @@
                             <select name="office_id" class="form-control select2" id="office_id" required>
                                 <option></option>
                                 @foreach(\App\Models\Office::all() as $key)
-                                    <option value="{{$key->id}}">{{$key->name}}</option>
+                                    <option value="{{$key->id}}" @if($branch == $key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -50,7 +50,7 @@
                             <select name="office_id" class="form-control select2" id="office_id" required>
                                 <option></option>
                                 @foreach(\App\Models\Office::where('id', $user_branch)->get() as $key)
-                                    <option value="{{$key->id}}">{{$key->name}}</option>
+                                    <option value="{{$key->id}}" @if($branch == $key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -59,7 +59,7 @@
                             <select name="office_id" class="form-control select2" id="office_id" required>
                                 <option></option>
                                 @foreach(\App\Models\Office::where('province_id', $user_province)->get() as $key)
-                                    <option value="{{$key->id}}">{{$key->name}}</option>
+                                    <option value="{{$key->id}}" @if($branch == $key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -70,8 +70,10 @@
                         <select name="cycle" class="form-control select2" id="cycle" required>
                             <option></option>
                             @foreach($dates as $date)
-                                <option value="{{$target_dates[$date]}}">{{date("jS M Y", strtotime($compare_dates[$date]))}} -
-                                    {{date("jS M Y", strtotime($target_dates[$date]))}}</option>
+                                <option value="{{$target_dates[$date]}}" @if($targetDate == $target_dates[$date]) selected @endif>
+                                    {{date("jS M Y", strtotime($compare_dates[$date]))}} -
+                                    {{date("jS M Y", strtotime($target_dates[$date]))}}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -102,11 +104,12 @@
     $reloans = 0;
     $target_count = 0;
     $month_count = 0;
-                ?>
+                    ?>
             @if(!empty($branch))
                 <div>
                     <p style="font-weight: bold;">{{\App\Models\Office::where('id', $branch)->first()->name}} |
-                        {{date("jS M", strtotime($compareDate))}} - {{date("jS M", strtotime($targetDate))}}</p>
+                        {{date("jS M", strtotime($compareDate))}} - {{date("jS M", strtotime($targetDate))}}
+                    </p>
                 </div>
 
             @endif
@@ -141,7 +144,7 @@
                     </thead>
                     <tbody>
                         @foreach($loanConsultants as $user)
-                        <?php
+                                            <?php
                             $new_loans_cycle = 0;
                             $new_reloans_cycle = 0;
                             $target_total_cycle = 0;
@@ -249,7 +252,7 @@
                                 }
                             }
 
-                                        ?>
+                                                                ?>
                                             <tr>
 
                                                 <td>{{$user->first_name}} {{$user->last_name}}</td>
@@ -264,7 +267,8 @@
                                                             aria-expanded="false"><i class="fa fa-navicon"></i></button>
                                                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                                                             <li>
-                                                                <a href="{{url('user/' . $user->id . '/staff_info')}}"><i class="fa fa-search"></i>
+                                                                <a href="{{url('user/' . $user->id . '/staff_info')}}"><i
+                                                                        class="fa fa-search"></i>
                                                                     {{ trans_choice('general.detail', 2) }}</a>
                                                             </li>
                                                         </ul>
