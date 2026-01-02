@@ -41,37 +41,64 @@
                                             </thead>
                                             <tbody>
                                                 <?php
-        // Prepare Branch Efficiency Data
+        // Prepare Branch Efficiency Data (Last 12 Months)
         $offices = \App\Models\Office::get();
+        $base_target = $branchtargetDate;
+        $base_compare = $branchcompareDate;
 
-        // 1. Calculate Total Loans Given Out per Staff (Disbursements + Reloans)
-        // Logic from 'lc_information.blade.php':
-        // New Loans = Sum of 'disbursement' debit
-        // Reloans = Sum of 'interest' debit / 0.4
+        // Pre-calculate date ranges for 12 cycles
+        $cycles = [];
+        for ($m = 0; $m < 12; $m++) {
+            $cycles[$m] = [
+                'target' => date('Y-m-d', strtotime($base_target . " - $m months")),
+                'compare' => date('Y-m-d', strtotime($base_compare . " - $m months"))
+            ];
+        }
 
-        $start_date_sql = date('Y-m-d', strtotime($branchcompareDate));
-        $end_date_sql = date('Y-m-d', strtotime($branchtargetDate));
+        $earliest_date = $cycles[11]['compare'];
+        $latest_date = $cycles[0]['target'];
 
-        // Get Disbursement Sums per Staff
-        // Join loans to get loan_officer_id
-        $staff_disbursements = \App\Models\LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
-            ->where('loan_transactions.date', '>', $start_date_sql)
-            ->where('loan_transactions.date', '<=', $end_date_sql)
+        // 1. Fetch ALL relevant transactions for the 12-month period for efficient processing
+        $all_disbursements = \App\Models\LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
+            ->where('loan_transactions.date', '>', $earliest_date)
+            ->where('loan_transactions.date', '<=', $latest_date)
             ->where('loan_transactions.transaction_type', 'disbursement')
-            ->selectRaw('loans.loan_officer_id, sum(loan_transactions.debit) as total_disbursed')
-            ->groupBy('loans.loan_officer_id')
-            ->pluck('total_disbursed', 'loans.loan_officer_id')
-            ->all();
+            ->select('loans.loan_officer_id', 'loan_transactions.debit', 'loan_transactions.date')
+            ->get();
 
-        // Get Interest Sums per Staff (to calculate Reloans)
-        $staff_interests = \App\Models\LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
-            ->where('loan_transactions.date', '>', $start_date_sql)
-            ->where('loan_transactions.date', '<=', $end_date_sql)
+        $all_interests = \App\Models\LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
+            ->where('loan_transactions.date', '>', $earliest_date)
+            ->where('loan_transactions.date', '<=', $latest_date)
             ->where('loan_transactions.transaction_type', 'interest')
-            ->selectRaw('loans.loan_officer_id, sum(loan_transactions.debit) as total_interest')
-            ->groupBy('loans.loan_officer_id')
-            ->pluck('total_interest', 'loans.loan_officer_id')
-            ->all();
+            ->select('loans.loan_officer_id', 'loan_transactions.debit', 'loan_transactions.date')
+            ->get();
+
+        // 2. Map transactions to staff and cycles
+        $staff_cycle_data = []; // [staff_id][cycle_index] => ['disbursed' => X, 'interest' => Y]
+
+        foreach ($all_disbursements as $trans) {
+            $s_id = $trans->loan_officer_id;
+            $d = $trans->date;
+            foreach ($cycles as $idx => $c) {
+                if ($d > $c['compare'] && $d <= $c['target']) {
+                    if (!isset($staff_cycle_data[$s_id][$idx])) $staff_cycle_data[$s_id][$idx] = ['disbursed' => 0, 'interest' => 0];
+                    $staff_cycle_data[$s_id][$idx]['disbursed'] += $trans->debit;
+                    break;
+                }
+            }
+        }
+
+        foreach ($all_interests as $trans) {
+            $s_id = $trans->loan_officer_id;
+            $d = $trans->date;
+            foreach ($cycles as $idx => $c) {
+                if ($d > $c['compare'] && $d <= $c['target']) {
+                    if (!isset($staff_cycle_data[$s_id][$idx])) $staff_cycle_data[$s_id][$idx] = ['disbursed' => 0, 'interest' => 0];
+                    $staff_cycle_data[$s_id][$idx]['interest'] += $trans->debit;
+                    break;
+                }
+            }
+        }
 
         // Render Table
         foreach ($offices as $office):
@@ -82,34 +109,37 @@
                 })->where('status', 'Active')->get();
 
             $b_total_staff = $branch_staff->count();
-            $b_met_target = 0;
+            $b_total_hits = 0; // Total times any staff met target in last 12 months
 
             foreach ($branch_staff as $staff) {
                 $s_id = $staff->id;
+                
+                for ($m = 0; $m < 12; $m++) {
+                    $s_disbursed = isset($staff_cycle_data[$s_id][$m]['disbursed']) ? $staff_cycle_data[$s_id][$m]['disbursed'] : 0;
+                    $s_interest = isset($staff_cycle_data[$s_id][$m]['interest']) ? $staff_cycle_data[$s_id][$m]['interest'] : 0;
+                    
+                    // Calculate Derived Reloan Principal
+                    $s_reloans = $s_interest / 0.4;
+                    $s_total_given = $s_disbursed + $s_reloans;
 
-                $s_disbursed = isset($staff_disbursements[$s_id]) ? $staff_disbursements[$s_id] : 0;
-                $s_interest = isset($staff_interests[$s_id]) ? $staff_interests[$s_id] : 0;
-
-                // Calculate Derived Reloan Principal
-                $s_reloans = $s_interest / 0.4;
-
-                $s_total_given = $s_disbursed + $s_reloans;
-
-                // Target Logic: >= 40,000
-                if ($s_total_given >= 40000) {
-                    $b_met_target++;
+                    // Target Logic: >= 40,000
+                    if ($s_total_given >= 40000) {
+                        $b_total_hits++;
+                    }
                 }
             }
 
-            // Efficiency Rate: % of staff who met the target
-            $b_efficiency_rate = ($b_total_staff > 0) ? ($b_met_target / $b_total_staff) * 100 : 0;
+            // Efficiency Rate: (Total Hits) / (Total Possible Hits)
+            // Total Possible Hits = Staff Count * 12 Months
+            $total_possible_hits = $b_total_staff * 12;
+            $b_efficiency_rate = ($total_possible_hits > 0) ? ($b_total_hits / $total_possible_hits) * 100 : 0;
 
             if ($b_total_staff > 0): 
                                     ?>
                                                 <tr>
                                                     <td>{{ $office->name }}</td>
                                                     <td>{{ $b_total_staff }}</td>
-                                                    <td>{{ $b_met_target }}</td>
+                                                    <td>{{ $b_total_hits }}</td>
                                                     <td>{{ number_format($b_efficiency_rate, 2) }}%</td>
                                                 </tr>
                                                 <?php        endif;
