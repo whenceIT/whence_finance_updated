@@ -81,7 +81,8 @@
             $d = $trans->date;
             foreach ($cycles as $idx => $c) {
                 if ($d > $c['compare'] && $d <= $c['target']) {
-                    if (!isset($staff_cycle_data[$s_id][$idx])) $staff_cycle_data[$s_id][$idx] = ['disbursed' => 0, 'interest' => 0];
+                    if (!isset($staff_cycle_data[$s_id][$idx]))
+                        $staff_cycle_data[$s_id][$idx] = ['disbursed' => 0, 'interest' => 0];
                     $staff_cycle_data[$s_id][$idx]['disbursed'] += $trans->debit;
                     break;
                 }
@@ -93,7 +94,8 @@
             $d = $trans->date;
             foreach ($cycles as $idx => $c) {
                 if ($d > $c['compare'] && $d <= $c['target']) {
-                    if (!isset($staff_cycle_data[$s_id][$idx])) $staff_cycle_data[$s_id][$idx] = ['disbursed' => 0, 'interest' => 0];
+                    if (!isset($staff_cycle_data[$s_id][$idx]))
+                        $staff_cycle_data[$s_id][$idx] = ['disbursed' => 0, 'interest' => 0];
                     $staff_cycle_data[$s_id][$idx]['interest'] += $trans->debit;
                     break;
                 }
@@ -113,11 +115,11 @@
 
             foreach ($branch_staff as $staff) {
                 $s_id = $staff->id;
-                
+
                 for ($m = 0; $m < 12; $m++) {
                     $s_disbursed = isset($staff_cycle_data[$s_id][$m]['disbursed']) ? $staff_cycle_data[$s_id][$m]['disbursed'] : 0;
                     $s_interest = isset($staff_cycle_data[$s_id][$m]['interest']) ? $staff_cycle_data[$s_id][$m]['interest'] : 0;
-                    
+
                     // Calculate Derived Reloan Principal
                     $s_reloans = $s_interest / 0.4;
                     $s_total_given = $s_disbursed + $s_reloans;
@@ -135,7 +137,7 @@
             $b_efficiency_rate = ($total_possible_hits > 0) ? ($b_total_hits / $total_possible_hits) * 100 : 0;
 
             if ($b_total_staff > 0): 
-                                    ?>
+                                        ?>
                                                 <tr>
                                                     <td>{{ $office->name }}</td>
                                                     <td>{{ $b_total_staff }}</td>
@@ -161,12 +163,12 @@
 
                         <div role="tabpanel" class="tab-pane" id="tab_pdua">
                             <?php 
-                                                // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
+                                                    // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
         $tbl_data = [];
         $total_default_rate_sum = 0;
 
         // Loop for 12 months history
-        for ($m = 0; $m < 12; $m++) {
+        for ($m = 0; $m < 13; ++$m) {
             // Calculate dates for this month iteration
             $tbl_target = date('Y-m-d', strtotime($branchtargetDate . ' - ' . $m . 'months'));
             $tbl_compare = date('Y-m-d', strtotime($branchcompareDate . ' - ' . $m . 'months')); // Start of Cycle
@@ -270,7 +272,7 @@
 
         // Average Default Rate
         $avg_default_rate = $total_default_rate_sum / 12;
-                                                ?>
+                                                    ?>
 
                             <div class="row" style="margin-top: 20px;">
                                 <div class="col-md-12">
