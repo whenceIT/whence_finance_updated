@@ -289,9 +289,7 @@ if ($user) {
                             $showInductionModal = true;
                         } else {
                             // Policy Check
-                            $totalPolicies = \App\Models\Policy::count();
-                            $userResponses = \App\Models\UserPolicyResponse::where('user_id', $user->id)->count();
-                            $showPolicyModal = $userResponses < $totalPolicies;
+                            $showPolicyModal = !\App\Models\InductionChecklist::hasCompletedPolicies($user->id);
                         }
                     }
                 @endphp
@@ -323,6 +321,7 @@ if ($user) {
                     </script>
                 @endif
                 @yield('content')
+                @include('partials.induction_checklist_popup')
             </section>
             <!-- /.content -->
             <div id="loader-wrapper">
@@ -451,46 +450,46 @@ if ($user) {
                 // Create the container div
                 const div = document.createElement('div');
                 div.style.cssText = `
-                position: fixed;
-                top: 25px;
-                right: 25px;
-                width: 320px;
-                background: #ffffff;
-                border-radius: 12px;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-                overflow: hidden;
-                z-index: 9999;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                color: #333;
-                transform: translateX(150%);
-                opacity: 0;
-                transition: all 0.5s ease;
-            `;
+                    position: fixed;
+                    top: 25px;
+                    right: 25px;
+                    width: 320px;
+                    background: #ffffff;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                    overflow: hidden;
+                    z-index: 9999;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: #333;
+                    transform: translateX(150%);
+                    opacity: 0;
+                    transition: all 0.5s ease;
+                `;
 
                 // Inner content
                 div.innerHTML = `
-                <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
-                    <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
-                        TRANSACTION ALERT 🔔
-                    </h4>
-                    <p style="margin: 3px 0; font-size: 14px;"><strong>Type:</strong> ${data.type || 'N/A'}</p>
-                    <p style="margin: 3px 0; font-size: 14px;"><strong>Amount:</strong> ${data.amount || 'N/A'}</p>
-                    <p style="margin: 3px 0; font-size: 14px;"><strong>Client:</strong> ${data.client || 'N/A'}</p>
-                    <p style="margin: 3px 0; font-size: 14px;"><strong>Added by:</strong> ${data.created_by || 'N/A'}</p>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                        <button style="
-                            background: #007bff;
-                            color: #fff;
-                            border: none;
-                            border-radius: 6px;
-                            padding: 6px 14px;
-                            font-size: 13px;
-                            cursor: pointer;
-                            transition: background 0.3s ease;
-                        ">Close</button>
+                    <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
+                            TRANSACTION ALERT 🔔
+                        </h4>
+                        <p style="margin: 3px 0; font-size: 14px;"><strong>Type:</strong> ${data.type || 'N/A'}</p>
+                        <p style="margin: 3px 0; font-size: 14px;"><strong>Amount:</strong> ${data.amount || 'N/A'}</p>
+                        <p style="margin: 3px 0; font-size: 14px;"><strong>Client:</strong> ${data.client || 'N/A'}</p>
+                        <p style="margin: 3px 0; font-size: 14px;"><strong>Added by:</strong> ${data.created_by || 'N/A'}</p>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                            <button style="
+                                background: #007bff;
+                                color: #fff;
+                                border: none;
+                                border-radius: 6px;
+                                padding: 6px 14px;
+                                font-size: 13px;
+                                cursor: pointer;
+                                transition: background 0.3s ease;
+                            ">Close</button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
                 // Add to document
                 document.body.appendChild(div);
@@ -518,42 +517,42 @@ if ($user) {
                 // Create the container div
                 const div = document.createElement('div');
                 div.style.cssText = `
-                position: fixed;
-                top: 25px;
-                right: 25px;
-                width: 320px;
-                background: #ffffff;
-                border-radius: 12px;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-                overflow: hidden;
-                z-index: 9999;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                color: #333;
-                transform: translateX(150%);
-                opacity: 0;
-                transition: all 0.5s ease;
-            `;
+                    position: fixed;
+                    top: 25px;
+                    right: 25px;
+                    width: 320px;
+                    background: #ffffff;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                    overflow: hidden;
+                    z-index: 9999;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: #333;
+                    transform: translateX(150%);
+                    opacity: 0;
+                    transition: all 0.5s ease;
+                `;
 
                 // Inner content
                 div.innerHTML = `
-                <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
-                    <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
-                        NOTIFICATION TEST 🔔
-                    </h4>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                        <button style="
-                            background: #007bff;
-                            color: #fff;
-                            border: none;
-                            border-radius: 6px;
-                            padding: 6px 14px;
-                            font-size: 13px;
-                            cursor: pointer;
-                            transition: background 0.3s ease;
-                        ">Close</button>
+                    <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
+                            NOTIFICATION TEST 🔔
+                        </h4>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                            <button style="
+                                background: #007bff;
+                                color: #fff;
+                                border: none;
+                                border-radius: 6px;
+                                padding: 6px 14px;
+                                font-size: 13px;
+                                cursor: pointer;
+                                transition: background 0.3s ease;
+                            ">Close</button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
                 // Add to document
                 document.body.appendChild(div);

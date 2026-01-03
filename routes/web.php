@@ -137,6 +137,7 @@ Route::get('dashboard', [UserController::class, 'dashboard']);
 Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');
 Route::post('induction/mark_as_seen', [InductionController::class, 'markAsSeen']);
+Route::post('induction/toggle_checklist_item', [InductionController::class, 'toggleChecklistItem']);
 
 //route for users
 Route::group(['prefix' => 'user'], function () {
@@ -1412,6 +1413,7 @@ Route::group(['prefix' => 'hybrid'], function () {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@new_collections');
     });
 
+    Route::get('institution_metrics', 'PerformanceMetricsController@institutionMetrics')->name('performance.institution_metrics');
 
 });
 

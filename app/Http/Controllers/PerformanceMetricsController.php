@@ -6,8 +6,8 @@ use Carbon\Carbon;
 use App\Helpers\GeneralHelper;
 use App\Exports\ExportReport;
 use App\Models\Loan;
-use App\Models\Office; 
-use App\Models\Client; 
+use App\Models\Office;
+use App\Models\Client;
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Support\Facades\View;
@@ -29,29 +29,30 @@ class PerformanceMetricsController extends Controller
         $cycles = 2; // Last 12 months (1 year)
         $newClientsData = [];
         $labels = [];
+        /** @var \App\Models\User $user */
         $user = Sentinel::getUser();
         $user_role = $user->role->role_id;
         $user_branch = $user->office_id;
         $user_province = $user->office->province_id;
         $branch = $request->office_id;
-        $offices = Office::all(); 
+        $offices = Office::all();
         $officeId = $request->input('office_id');
 
         if (!empty($branch)) {
             $loanConsultants = User::where('office_id', $branch)
-                ->whereHas('role', function($query) {
+                ->whereHas('role', function ($query) {
                     $query->whereIn('role_id', [3, 4, 6]);
                 })
                 ->with(['office', 'loan.transactions'])
                 ->get();
         } else {
-            $loanConsultants = User::whereHas('role', function($query) {
+            $loanConsultants = User::whereHas('role', function ($query) {
                 $query->whereIn('role_id', [3, 4, 6]);
             })
-            ->with(['office', 'loan.transactions'])
-            ->get();
+                ->with(['office', 'loan.transactions'])
+                ->get();
         }
-        
+
 
         $dates = [];
         $target_dates = [];
@@ -94,31 +95,32 @@ class PerformanceMetricsController extends Controller
             // Query to fetch new clients within the date range for the cycle
             $newClientsCount = Client::whereBetween('created_at', [$compareDate->startOfDay(), $targetDate->endOfDay()])
                 ->count();
-        
+
             // Add data to the arrays
             $newClientsData[] = $newClientsCount;
             $labels[] = $targetDate->format('M Y');
         }*/
 
-    return view('performance_metrics.index', compact('offices', 'officeId', 'loanConsultants', 'branch', 'user_role', 'user_branch', 'user_province', 'dates', 'target_dates', 'compare_dates', 'newClientsData', 'labels'));
+        return view('performance_metrics.index', compact('offices', 'officeId', 'loanConsultants', 'branch', 'user_role', 'user_branch', 'user_province', 'dates', 'target_dates', 'compare_dates', 'newClientsData', 'labels'));
     }
 
-    public function targets( Request $request)
+    public function targets(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Sentinel::getUser();
         $user_role = $user->role->role_id;
         $user_branch = $user->office_id;
         $user_province = $user->office->province_id;
         $branch = $request->office_id;
-        $offices = Office::all(); 
+        $offices = Office::all();
         $officeId = $request->input('office_id');
 
         if (!empty($branch)) {
-            $loanConsultants = User::where('office_id', $branch)->whereHas('role', function($query) {
+            $loanConsultants = User::where('office_id', $branch)->whereHas('role', function ($query) {
                 $query->where('role_id', 3);
             })->with(['office', 'loan.transactions'])->get();
         } else {
-            $loanConsultants = User::whereHas('role', function($query) {
+            $loanConsultants = User::whereHas('role', function ($query) {
                 $query->where('role_id', 3);
             })->with(['office', 'loan.transactions'])->get();
         }
@@ -150,20 +152,21 @@ class PerformanceMetricsController extends Controller
 
     public function uncollected(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Sentinel::getUser();
         $user_role = $user->role->role_id;
         $user_branch = $user->office_id;
         $user_province = $user->office->province_id;
         $branch = $request->office_id;
-        $offices = Office::all(); 
+        $offices = Office::all();
         $officeId = $request->input('office_id');
 
         if (!empty($branch)) {
-            $loanConsultants = User::where('office_id', $branch)->whereHas('role', function($query) {
+            $loanConsultants = User::where('office_id', $branch)->whereHas('role', function ($query) {
                 $query->where('role_id', 3);
             })->with(['office', 'loan.transactions'])->get();
         } else {
-            $loanConsultants = User::whereHas('role', function($query) {
+            $loanConsultants = User::whereHas('role', function ($query) {
                 $query->where('role_id', 3);
             })->with(['office', 'loan.transactions'])->get();
         }
@@ -180,7 +183,7 @@ class PerformanceMetricsController extends Controller
             $endDate = date('Y-m-d', strtotime($endDate . ' + 1 months'));
         }
         $startDate = date('Y-m-d', strtotime($endDate . ' - 1 months'));
-        for ($x = 0; $x < 2; $x++) { 
+        for ($x = 0; $x < 2; $x++) {
             if ($x != 0) {
                 $endDate = date('Y-m-d', strtotime($endDate . ' - 1 months'));
                 $startDate = date('Y-m-d', strtotime($startDate . ' - 1 months'));
@@ -197,12 +200,13 @@ class PerformanceMetricsController extends Controller
 
     public function lowPerformance(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Sentinel::getUser();
         $user_role = $user->role->role_id;
         $user_branch = $user->office_id;
         $user_province = $user->office->province_id;
         $branch = $request->office_id;
-        $offices = Office::all(); 
+        $offices = Office::all();
         $officeId = $request->input('office_id');
         $dates = [];
         $new_loans_cycle = 0;
@@ -213,26 +217,26 @@ class PerformanceMetricsController extends Controller
         $use = date('Y-m-');
         $num = 24;
         $targetDate = $use . $num;
-        $targetDate = date('Y-m-d',strtotime($targetDate));
-            if($todaysDate > $targetDate){
-                $targetDate = date('Y-m-d',strtotime($targetDate. ' + 1 months'));
-            }
-            $compareDate = date('Y-m-d',strtotime($targetDate. ' - 1 months'));
+        $targetDate = date('Y-m-d', strtotime($targetDate));
+        if ($todaysDate > $targetDate) {
+            $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+        }
+        $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
 
         if (!empty($branch)) {
-            $loanConsultants = User::where('office_id', $branch)->whereHas('role', function($query) {
+            $loanConsultants = User::where('office_id', $branch)->whereHas('role', function ($query) {
                 $query->where('role_id', 3);
             })->with(['office', 'loan.transactions'])->get();
         } else {
-            $loanConsultants = User::whereHas('role', function($query) {
+            $loanConsultants = User::whereHas('role', function ($query) {
                 $query->where('role_id', 3);
             })->with(['office', 'loan.transactions'])->get();
         }
         /*$filteredLoans = [];
 
-	foreach ($loanConsultants as $user) {
-	$new_loans_cycle = 0;
-	$cycle_reloan_payments = 0;
+    foreach ($loanConsultants as $user) {
+    $new_loans_cycle = 0;
+    $cycle_reloan_payments = 0;
 
         foreach ($user->loan as $loan) {
             foreach ($loan->transactions as $transaction) {
@@ -256,7 +260,7 @@ class PerformanceMetricsController extends Controller
             ];
         }
     }*/
-    
+
 
 
         return view('performance_metrics.low_performance', compact('new_loans_cycle', 'cycle_reloan_payments', 'offices', 'officeId', 'loanConsultants', 'branch', 'user_role', 'user_branch', 'user_province', 'dates', 'target_dates', 'compare_dates'));
@@ -265,36 +269,68 @@ class PerformanceMetricsController extends Controller
 
     public function defaulted(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Sentinel::getUser();
         $user_role = $user->role->role_id;
         $user_branch = $user->office_id;
         $user_province = $user->office->province_id;
         $branch = $request->office_id;
-        $offices = Office::all(); 
+        $offices = Office::all();
         $officeId = $request->input('office_id');
-    
-        
+
+
         if (!empty($branch)) {
             $loanConsultants = User::where('office_id', $branch)
-                ->whereHas('role', function($query) {
-                    $query->where('role_id', 3); 
+                ->whereHas('role', function ($query) {
+                    $query->where('role_id', 3);
                 })
-                ->with(['loan' => function($query) {
-                    $query->where('defaulted', 'yes');
-                }, 'loan.client'])
+                ->with([
+                    'loan' => function ($query) {
+                        $query->where('defaulted', 'yes');
+                    },
+                    'loan.client'
+                ])
                 ->get();
         } else {
-            $loanConsultants = User::whereHas('role', function($query) {
-                $query->where('role_id', 3); 
+            $loanConsultants = User::whereHas('role', function ($query) {
+                $query->where('role_id', 3);
             })
-            ->with(['loan' => function($query) {
-                $query->where('defaulted', 'yes');
-            }, 'loan.client'])
-            ->get();
+                ->with([
+                    'loan' => function ($query) {
+                        $query->where('defaulted', 'yes');
+                    },
+                    'loan.client'
+                ])
+                ->get();
         }
-    
-        return view('performance_metrics.defaulted', compact('loanConsultants', 'offices', 'officeId', 'user_role', 'user_branch', 'user_province'));
+
     }
-       
-        
+
+    public function institutionMetrics(Request $request)
+    {
+        $user = Sentinel::getUser();
+        $user_role = $user->role->role_id;
+
+        if ($user_role != '1' && $user_role != '10') {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        $user_branch = $user->office_id;
+        $user_province = $user->office->province_id;
+        $offices = Office::all();
+
+        $use = date('Y-m-');
+        $todaysDate = date('Y-m-d');
+        $branchtargetDate = $use . '24';
+        $branchtargetDate = date('Y-m-d', strtotime($branchtargetDate));
+
+        if ($todaysDate > $branchtargetDate) {
+            $branchtargetDate = date('Y-m-d', strtotime($branchtargetDate . ' + 1 months'));
+        }
+        $branchcompareDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
+
+        $allLoans = Loan::with('transactions')->get();
+
+        return view('performance_metrics.institution_metrics', compact('offices', 'user_role', 'user_branch', 'user_province', 'allLoans', 'branchtargetDate', 'branchcompareDate', 'todaysDate'));
+    }
 }

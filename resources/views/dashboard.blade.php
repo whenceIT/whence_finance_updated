@@ -2052,7 +2052,7 @@
                 <span class="label label-primary" style="font-size: 15px;">Daily figures</span>
             </a>
 
-            <a href="#" data-toggle="modal" data-target="#institutionMetricsModal" style="margin: 10px;">
+            <a href="{{ route('performance.institution_metrics') }}" target="_blank" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Institution Metrics</span>
             </a>
 
@@ -2883,7 +2883,6 @@
 
     <!-- Institution Metrics Modal for Admin -->
     @if($role->role_id == '1' || $role->role_id == '10')
-        @include('partials.institution_metrics_modal')
     @endif
 
     @if($role->role_id == '6')
