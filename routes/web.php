@@ -902,6 +902,17 @@ Route::group(['prefix' => 'custom_field'], function () {
     Route::get('{id}/delete', 'CustomFieldController@delete');
 
 });
+
+//route for tickets
+Route::group(['prefix' => 'ticket'], function () {
+    Route::get('/', 'TicketController@index');
+    Route::get('create', 'TicketController@create');
+    Route::post('store', 'TicketController@store');
+    Route::post('{id}/update', 'TicketController@update');
+    Route::get('users', 'TicketController@usersByOfficeRole');
+    Route::get('offices', 'TicketController@officesByParent');
+});
+
 //route for communication campaigns
 Route::group(['prefix' => 'communication'], function () {
 

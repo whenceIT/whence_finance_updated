@@ -128,14 +128,14 @@
     {{--End Page level scripts--}}
 </head>
 <?php
-$user = Sentinel::getUser();
-if ($user) {
-    $role = $user->role->role_id;
-    $office = $user->office->id;
-} else {
-    $role = null;
-    $office = null;
-}
+    $user = Sentinel::getUser();
+    if ($user) {
+        $role = $user->role->role_id;
+        $office = $user->office->id;
+    } else {
+        $role = null;
+        $office = null;
+    }
 ?>
 
 <div class="modal fade" id="announcementModal" tabindex="-2" role="dialog">

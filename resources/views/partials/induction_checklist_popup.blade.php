@@ -165,6 +165,20 @@
             }
         </script>
 
+        <script>
+            (function(){
+                var popup = document.getElementById('inductionChecklistPopup');
+                if(popup){
+                    var closeTimer = setTimeout(function(){
+                        popup.style.display = 'none';
+                    }, 15000);
+                    // pause auto-close while user is interacting
+                    popup.addEventListener('mouseenter', function(){ clearTimeout(closeTimer); });
+                    popup.addEventListener('mouseleave', function(){ closeTimer = setTimeout(function(){ popup.style.display = 'none'; }, 3000); });
+                }
+            })();
+        </script>
+
         @if($completedCount < $totalCount)
             <div style="margin-top: 15px; text-align: center;">
                 <a href="{{ route('policies.view_policies') }}" style="
