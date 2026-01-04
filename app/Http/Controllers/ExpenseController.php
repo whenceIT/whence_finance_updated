@@ -45,8 +45,9 @@ class ExpenseController extends Controller
         $end_date = $request->end_date;
         $office_id = $request->office_id;
 
-        // If office_id is not provided, use the logged-in user's office_id
-        if (empty($office_id)) {
+        // dd($office_id, $start_date, $end_date);
+
+        if (empty($office_id) && $office_id !== '0' && $office_id !== 0) {
             $office_id = Sentinel::getUser()->office_id;
         }
 
@@ -59,7 +60,8 @@ class ExpenseController extends Controller
         if (!empty($office_id) && $office_id != 0) {
             $query->where('office_id', $office_id);
         }
-        $data = $query->paginate(15);
+
+        $data = $query->get();
 
         return view('expense.data', compact('data', 'start_date', 'end_date', 'office_id', 'offices'));
     }
