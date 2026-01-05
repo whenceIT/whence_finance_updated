@@ -216,9 +216,21 @@
                                 }
                             });
    
-                            // show fullscreen loader on form submit
-                            $('form').on('submit', function(){
-                                $('#fullscreen-loader').show();
+                            // show fullscreen loader on form submit if all required fields are filled
+                            $('form').on('submit', function(e){
+                                var name = $('#name').val().trim();
+                                var priority = $('#priority').val();
+                                var office = $('#assigned_office').val();
+                                var role = $('#assigned_role').val();
+                                var assignedTo = $('#assigned_to').val();
+   
+                                if(name && priority && office && role && assignedTo){
+                                    $('#fullscreen-loader').show();
+                                } else {
+                                    e.preventDefault();
+                                    alert('Please fill in all required fields.');
+                                    return false;
+                                }
                             });
                         })(jQuery);
                     </script>
