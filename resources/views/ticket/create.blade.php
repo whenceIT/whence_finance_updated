@@ -6,13 +6,10 @@
 <style>
     #fullscreen-loader {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         display: none;
-        justify-content: center;
-        align-items: center;
         background-color: white;
         transition: opacity 0.75s, visibility 0.75s;
         z-index: 99999;
