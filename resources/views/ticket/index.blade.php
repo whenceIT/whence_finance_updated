@@ -7,10 +7,10 @@
     <div class="box-header with-border">
         <h3 class="box-title">Tickets</h3>
         <div class="box-tools pull-right">
-            @if($openCount >= 3)
-                <button class="btn btn-success btn-sm" disabled title="You have reached the maximum of 3 open tickets">New Ticket</button>
+            @if($openCount >= 5)
+                <a href="#" class="btn btn-success btn-sm" title="You have reached the maximum of 5 open tickets">New Ticket</a>
             @else
-                <button type="button" class="btn btn-success btn-sm" id="newTicketBtn" onclick="goToCreate()">New Ticket</button>
+                <a href="{{ url('ticket/create') }}" class="btn btn-success btn-sm" id="newTicketLink" onclick="return goToCreate(event)">New Ticket</a>
             @endif
         </div>
     </div>
@@ -410,11 +410,13 @@
                                 } catch(e){ }
                                 applyFilter();
                             });
-                            function goToCreate() {
-                                var btn = document.getElementById('newTicketBtn');
-                                btn.disabled = true;
-                                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading...';
+                            function goToCreate(event) {
+                                event.preventDefault();
+                                var link = document.getElementById('newTicketLink');
+                                link.style.pointerEvents = 'none';
+                                link.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading...';
                                 window.location.href = '{{ url('ticket/create') }}';
+                                return false;
                             }
                         })(jQuery);
                     </script>
