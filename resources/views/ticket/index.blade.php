@@ -8,7 +8,7 @@
         <h3 class="box-title">Tickets</h3>
         <div class="box-tools pull-right">
             @if($openCount >= 3)
-                <button class="btn btn-success btn-sm" disabled>New Ticket</button>
+                <button class="btn btn-success btn-sm" disabled title="You have reached the maximum of 3 open tickets">New Ticket</button>
             @else
                 <button type="button" class="btn btn-success btn-sm" id="newTicketBtn" onclick="goToCreate()">New Ticket</button>
             @endif
