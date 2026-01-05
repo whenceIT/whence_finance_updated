@@ -763,15 +763,38 @@
             refreshAssignUsers();
         });
 
-        // submit handler: ensure a user selected
+        // submit handler: ensure a user selected, then AJAX submit
         $('#assignTicketForm').on('submit', function(e){
+            e.preventDefault();
             var assigned = $('#assign_to').val();
             if(!assigned){
-                e.preventDefault();
                 alert('Please select a user to assign the ticket to.');
-                return false;
+                return;
             }
-            // allow normal submit (post) to server; controller will handle saving and redirecting
+            var formData = $(this).serialize();
+            var action = $(this).attr('action');
+            $.post(action, formData)
+                .done(function(response){
+                    // close modal
+                    $('#assignTicketModal').modal('hide');
+                    // update the table row
+                    var id = action.split('/')[2]; // /ticket/1/update
+                    $('#manage_all tbody tr').each(function(){
+                        if($(this).find('td:first').text().trim() == id){
+                            var selectedText = $('#assign_to option:selected').text();
+                            var displayText = selectedText === '-- Unassigned --' ? '—' : selectedText;
+                            $(this).find('td:nth-child(4)').text(displayText);
+                            return false;
+                        }
+                    });
+                    // reset form
+                    $('#assign_office').val('');
+                    $('#assign_role').val('');
+                    $('#assign_to').html('<option value="">-- Select User --</option>').attr('disabled', true);
+                })
+                .fail(function(xhr){
+                    alert('Error assigning ticket: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+                });
         });
     })(jQuery);
 </script>

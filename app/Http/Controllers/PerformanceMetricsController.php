@@ -329,8 +329,6 @@ class PerformanceMetricsController extends Controller
         }
         $branchcompareDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
 
-        $allLoans = Loan::with('transactions')->get();
-
-        return view('performance_metrics.institution_metrics', compact('offices', 'user_role', 'user_branch', 'user_province', 'allLoans', 'branchtargetDate', 'branchcompareDate', 'todaysDate'));
+        return view('performance_metrics.institution_metrics', compact('offices', 'user_role', 'user_branch', 'user_province', 'branchtargetDate', 'branchcompareDate', 'todaysDate'));
     }
 }
