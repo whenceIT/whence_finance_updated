@@ -1433,7 +1433,7 @@ $OutIn = $OutIn - $newout;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     overflow: hidden;
-    z-index: 9999;
+    z-index: 9998;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     cursor: move;
     transition: transform 0.2s ease;
@@ -2527,7 +2527,7 @@ while($bar_chart_count < 3){
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     overflow: hidden;
-    z-index: 9999;
+    z-index: 9998;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     cursor: move;
     transition: transform 0.2s ease;

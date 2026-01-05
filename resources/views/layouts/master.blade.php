@@ -124,7 +124,7 @@ if ($user) {
 }
 ?>
 
-<div class="modal fade" id="announcementModal" tabindex="-2" role="dialog">
+<div class="modal fade" id="announcementModal" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       
@@ -145,6 +145,13 @@ if ($user) {
     </div>
   </div>
 </div>
+
+<style>
+  #announcementModal {
+    z-index: 9999;
+  }
+</style>
+
 
 
 
