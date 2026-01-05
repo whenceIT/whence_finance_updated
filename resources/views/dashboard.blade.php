@@ -2866,15 +2866,11 @@
 
     @endif
 
-    <!-- Institution Metrics Modal for Admin -->
-    @if($role->role_id == '1' || $role->role_id == '10')
-        @include('partials.institution_metrics_modal')
-    @endif
 
     @if($role->role_id == '6')
         <script>
 
-            function toggleMyStaf                   f(divid) {
+            function toggleMyStaff(divid) {
                 varon = divid + 'on';
                 varoff = divid + 'off';
 
