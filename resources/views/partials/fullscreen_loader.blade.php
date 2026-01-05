@@ -1,13 +1,25 @@
 <style>
     #fullscreen-loader {
         position: fixed;
-        top: 100%;
-        left: 100%;
-        transform: translate(-50%, -50%);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
         display: none;
-        background-color: white;
-        transition: opacity 0.75s, visibility 0.75s;
         z-index: 99999;
+        transition: opacity 0.75s, visibility 0.75s;
+    }
+
+    #fullscreen-loader .spinner-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     #fullscreen-loader .spinner {
@@ -42,5 +54,7 @@
     }
 </style>
 <div id="fullscreen-loader">
-    <div class="spinner"></div>
+    <div class="spinner-container">
+        <div class="spinner"></div>
+    </div>
 </div>
