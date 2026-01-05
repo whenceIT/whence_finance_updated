@@ -10,10 +10,7 @@
                     <h3 class="box-title">Institution Metrics</h3>
                 </div>
                 <div class="box-body">
-                    <div class="alert alert-warning text-center" style="margin-bottom: 15px;">
-                        <i class="fa fa-exclamation-triangle"></i> <strong>Note:</strong> This feature is currently under
-                        development and testing.
-                    </div>
+                    
                     <!-- Tabs Nav -->
                     <ul class="nav nav-tabs" role="tablist">
                         <li role="presentation" class="active"><a href="#tab_branch_efficiency"
