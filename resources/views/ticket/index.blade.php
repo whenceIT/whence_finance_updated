@@ -71,17 +71,16 @@
 
             <ul class="nav nav-tabs">
                 @if($isAdmin == 1)
+                    <li class="active"><a href="#manage_all" data-toggle="tab">All Tickets <span class="badge">{{ $allTickets->count() }}</span></a></li>
+                @endif
+                @if($isAdmin == 1)
                     <li class="tab-summary"><a href="#summary_report" data-toggle="tab">Summary Report <span class="badge" id="summaryBadge">{{ $assignedClosedTickets->pluck('id')->merge($myClosedTickets->pluck('id'))->unique()->count() }}</span></a></li>
                     <li class="tab-special"><a href="#assigned" data-toggle="tab">Tickets Assigned to Me <span class="badge">{{ $assignedTickets->count() }}</span></a></li>
                 @else
                     <li class="tab-special active"><a href="#assigned" data-toggle="tab">Tickets Assigned to Me <span class="badge">{{ $assignedTickets->count() }}</span></a></li>
                 @endif
-                @if($isAdmin == 1)
-                    <li class="active"><a href="#manage_all" data-toggle="tab">All Tickets <span class="badge">{{ $allTickets->count() }}</span></a></li>
-                @else
-                    <li class="active"><a href="#requested" data-toggle="tab">My Ticket Requests <span class="badge">{{ $myTickets->count() }}</span></a></li>
-                @endif
                 <li class="tab-special"><a href="#resolved_by_me" data-toggle="tab">Tickets I Resolved <span class="badge">{{ $assignedClosedTickets->count() }}</span></a></li>
+                <li><a href="#requested" data-toggle="tab">My Ticket Requests <span class="badge">{{ $myTickets->count() }}</span></a></li>
                 <li><a href="#closed_requests" data-toggle="tab">My Requested Closed Issues <span class="badge">{{ $myClosedTickets->count() }}</span></a></li>
 
             </ul>
