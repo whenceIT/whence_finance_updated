@@ -6,44 +6,51 @@
 <style>
     #fullscreen-loader {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(255, 255, 255, 0.5);
-        backdrop-filter: blur(8px);
-        z-index: 9999;
-        display: none;
-        color: #333;
-        font-size: 18px;
-        font-weight: 500;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: white;
+        transition: opacity 0.75s, visibility 0.75s;
+        z-index: 99999;
     }
-    #fullscreen-loader .content {
-        text-align: center;
-        background: rgba(255, 255, 255, 0.95);
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-    }
+
     #fullscreen-loader .spinner {
-        border: 2px solid #e0e0e0;
-        border-top: 2px solid #007bff;
+        border: 16px solid #f3f3f3;
         border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 10px;
+        border-top: 16px solid #3498db;
+        width: 120px;
+        height: 120px;
+        -webkit-animation: spin 2s linear infinite;
+        animation: spin 2s linear infinite;
     }
+
+    /* Safari */
+    @-webkit-keyframes spin {
+        0% {
+            -webkit-transform: rotate(0deg);
+        }
+
+        100% {
+            -webkit-transform: rotate(360deg);
+        }
+    }
+
     @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
     }
 </style>
 <div id="fullscreen-loader">
-    <div class="content">
-        <div class="spinner"></div>
-        <div>Creating Ticket...</div>
-    </div>
+    <div class="spinner"></div>
 </div>
 <div class="box box-primary">
     <div class="box-header with-border">
