@@ -3,6 +3,41 @@
 @section('title', 'Create Ticket')
 
 @section('content')
+<style>
+    #fullscreen-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 24px;
+    }
+    #fullscreen-loader .spinner {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+        margin-right: 20px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+<div id="fullscreen-loader">
+    <div style="text-align: center;">
+        <div class="spinner"></div>
+        <div>Creating Ticket...</div>
+    </div>
+</div>
 <div class="box box-primary">
     <div class="box-header with-border">
         <h3 class="box-title">Issue New Ticket</h3>
@@ -162,12 +197,17 @@
                             }
 
                             // if old category set, trigger change to pre-fill fields
-                            if($('#issue_category_id').val()){
-                                $('#issue_category_id').trigger('change');
-                            }
-                        });
-                    })(jQuery);
-                </script>
+                                if($('#issue_category_id').val()){
+                                    $('#issue_category_id').trigger('change');
+                                }
+                            });
+   
+                            // show fullscreen loader on form submit
+                            $('form').on('submit', function(){
+                                $('#fullscreen-loader').show();
+                            });
+                        })(jQuery);
+                    </script>
                 <div class="form-group">
                     <label for="assigned_to">Assign To</label>
                     <select name="assigned_to" id="assigned_to" class="form-control" disabled>
