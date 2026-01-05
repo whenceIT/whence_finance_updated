@@ -10,8 +10,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(5px);
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(8px);
         z-index: 9999;
         display: none;
         justify-content: center;
@@ -22,10 +22,11 @@
     }
     #fullscreen-loader .content {
         text-align: center;
-        background: rgba(255, 255, 255, 0.9);
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.95);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
     #fullscreen-loader .spinner {
         border: 3px solid #f3f3f3;
