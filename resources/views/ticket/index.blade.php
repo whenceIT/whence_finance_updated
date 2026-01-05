@@ -10,7 +10,7 @@
             @if($openCount >= 3)
                 <button class="btn btn-success btn-sm" disabled>New Ticket</button>
             @else
-                <a href="{{ url('ticket/create') }}" class="btn btn-success btn-sm">New Ticket</a>
+                <button type="button" class="btn btn-success btn-sm" id="newTicketBtn" onclick="goToCreate()">New Ticket</button>
             @endif
         </div>
     </div>
@@ -113,8 +113,9 @@
                                 <td>{{ $ticket->id }}</td>
                                 <td>{{ $ticket->name }}</td>
                                 <td>{{ ucfirst($ticket->priority) }}</td>
+                                <td>{{ $ticket->stage ?? '—' }}</td>
                                 <td>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</td>
-                                <td>{{ $ticket->date_raised ? date('d M Y H:i', strtotime($ticket->date_raised)) : ($ticket->datetime_open ? date('d M Y H:i', strtotime($ticket->datetime_open)) : '—') }}</td>
+                                <td>{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</td>
                                 <td>—</td>
                                 <td>—</td>
                                 <td>{{ $ticket->sla_days ?? '—' }}</td>
@@ -153,6 +154,7 @@
                                 <th>#</th>
                                 <th>Name</th>
                                 <th>Priority</th>
+                                <th>Stage</th>
                                 <th>Assigned To</th>
                                 <th>Opened At</th>
                                 <th>Closed At</th>
@@ -172,8 +174,9 @@
                                 <td>{{ $ticket->id }}</td>
                                 <td>{{ $ticket->name }}</td>
                                 <td>{{ ucfirst($ticket->priority) }}</td>
+                                <td>{{ $ticket->stage ?? '—' }}</td>
                                 <td>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</td>
-                                <td>{{ $ticket->date_raised ? date('d M Y H:i', strtotime($ticket->date_raised)) : ($ticket->datetime_open ? date('d M Y H:i', strtotime($ticket->datetime_open)) : '—') }}</td>
+                                <td>{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</td>
                                 <td>{{ $ticket->date_closed ? date('d M Y H:i', strtotime($ticket->date_closed)) : ($ticket->datetime_close ? date('d M Y H:i', strtotime($ticket->datetime_close)) : '—') }}</td>
                                 <td>{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffForHumans(\Carbon\Carbon::parse($ticket->date_closed), true) : '—' }}</td>
                                 <td>{{ $ticket->sla_days ?? '—' }}</td>
@@ -407,6 +410,12 @@
                                 } catch(e){ }
                                 applyFilter();
                             });
+                            function goToCreate() {
+                                var btn = document.getElementById('newTicketBtn');
+                                btn.disabled = true;
+                                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading...';
+                                window.location.href = '{{ url('ticket/create') }}';
+                            }
                         })(jQuery);
                     </script>
                 </div>
@@ -421,6 +430,7 @@
                                 <th>#</th>
                                 <th>Name</th>
                                 <th>Priority</th>
+                                <th>Stage</th>
                                 <th>Assigned To</th>
                                 <th>Opened At</th>
                                 <th>Closed At</th>
@@ -440,8 +450,9 @@
                                 <td>{{ $ticket->id }}</td>
                                 <td>{{ $ticket->name }}</td>
                                 <td>{{ ucfirst($ticket->priority) }}</td>
+                                <td>{{ $ticket->stage ?? '—' }}</td>
                                 <td>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</td>
-                                <td>{{ $ticket->date_raised ? date('d M Y H:i', strtotime($ticket->date_raised)) : '—' }}</td>
+                                <td>{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : '—' }}</td>
                                 <td>{{ $ticket->date_closed ? date('d M Y H:i', strtotime($ticket->date_closed)) : ($ticket->datetime_close ? date('d M Y H:i', strtotime($ticket->datetime_close)) : '—') }}</td>
                                 <td>{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffForHumans(\Carbon\Carbon::parse($ticket->date_closed), true) : '—' }}</td>
                                 <td>{{ $ticket->sla_days ?? '—' }}</td>
@@ -458,7 +469,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="14" class="text-center">No tickets available.</td>
+                                <td colspan="15" class="text-center">No tickets available.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -474,6 +485,7 @@
                                 <th>#</th>
                                 <th>Name</th>
                                 <th>Priority</th>
+                                <th>Stage</th>
                                 <th>Assigned To</th>
                                 <th>Opened At</th>
                                 <th>Closed At</th>
@@ -493,8 +505,9 @@
                                 <td>{{ $ticket->id }}</td>
                                 <td>{{ $ticket->name }}</td>
                                 <td>{{ ucfirst($ticket->priority) }}</td>
+                                <td>{{ $ticket->stage ?? '—' }}</td>
                                 <td>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</td>
-                                <td>{{ $ticket->date_raised ? date('d M Y H:i', strtotime($ticket->date_raised)) : ($ticket->datetime_open ? date('d M Y H:i', strtotime($ticket->datetime_open)) : '—') }}</td>
+                                <td>{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</td>
                                 <td>—</td>
                                 <td>—</td>
                                 <td>{{ $ticket->sla_days ?? '—' }}</td>
@@ -527,6 +540,7 @@
                                 <th>#</th>
                                 <th>Name</th>
                                 <th>Priority</th>
+                                <th>Stage</th>
                                 <th>Assigned To</th>
                                 <th>Opened At</th>
                                 <th>Closed At</th>
@@ -546,8 +560,9 @@
                                 <td>{{ $ticket->id }}</td>
                                 <td>{{ $ticket->name }}</td>
                                 <td>{{ ucfirst($ticket->priority) }}</td>
+                                <td>{{ $ticket->stage ?? '—' }}</td>
                                 <td>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</td>
-                                <td>{{ $ticket->date_raised ? date('d M Y H:i', strtotime($ticket->date_raised)) : ($ticket->datetime_open ? date('d M Y H:i', strtotime($ticket->datetime_open)) : '—') }}</td>
+                                <td>{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</td>
                                 <td>{{ $ticket->date_closed ? date('d M Y H:i', strtotime($ticket->date_closed)) : ($ticket->datetime_close ? date('d M Y H:i', strtotime($ticket->datetime_close)) : '—') }}</td>
                                 <td>{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffForHumans(\Carbon\Carbon::parse($ticket->date_closed), true) : '—' }}</td>
                                 <td>{{ $ticket->sla_days ?? '—' }}</td>

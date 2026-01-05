@@ -130,6 +130,7 @@ class TicketController extends Controller
         $ticket->opened_by = $user->id;
         $ticket->datetime_open = now();
         $ticket->date_raised = now();
+        $ticket->stage = 'Not started';
         $ticket->status = 'open';
 
         // compute due_date if sla_days present and due_date not manually provided
@@ -206,6 +207,7 @@ class TicketController extends Controller
         if ($request->has('assigned_to')) {
             $ticket->assigned_to = $request->assigned_to;
             $ticket->assigned_by = Sentinel::getUser()->id;
+            $ticket->stage = 'Started';
         }
 
         $ticket->save();
