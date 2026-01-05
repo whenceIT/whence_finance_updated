@@ -165,7 +165,6 @@ class TicketController extends Controller
     public function update(Request $request, $id)
     {
 
-        dd($request, $id);
         $ticket = Ticket::findOrFail($id);
 
         if ($request->has('status')) {
@@ -205,38 +204,6 @@ class TicketController extends Controller
 
         // also allow updating assigned_to from store form (if provided)
         if ($request->has('assigned_to')) {
-            // Only admins may assign tickets via this endpoint
-            $currentUser = Sentinel::getUser();
-            $isAdmin = false;
-            try{ $isAdmin = $currentUser && $currentUser->roles()->pluck('id')->contains(1); } catch(\Exception $e){ }
-            if(!$isAdmin){
-                Flash::error('Only administrators can assign tickets.');
-                return redirect()->back();
-            }
-
-            $assignedTo = $request->assigned_to ?: null;
-            if($assignedTo){
-                $u = User::find($assignedTo);
-                if(!$u){
-                    Flash::error('Selected user not found.');
-                    return redirect()->back();
-                }
-                // basic validation: if office/role provided, ensure the user matches
-                if($request->has('assign_office') && $request->assign_office){
-                    if($u->office_id != $request->assign_office){
-                        Flash::error('Selected user does not belong to the chosen office.');
-                        return redirect()->back();
-                    }
-                }
-                if($request->has('assign_role') && $request->assign_role){
-                    $hasRole = \DB::table('role_users')->where('user_id',$u->id)->where('role_id',$request->assign_role)->exists();
-                    if(!$hasRole){
-                        Flash::error('Selected user does not have the chosen role.');
-                        return redirect()->back();
-                    }
-                }
-            }
-
             $ticket->assigned_to = $assignedTo;
         }
 
