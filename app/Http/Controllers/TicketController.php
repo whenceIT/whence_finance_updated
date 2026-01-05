@@ -159,7 +159,7 @@ class TicketController extends Controller
         // }
 
         Flash::success(trans('general.successfully_saved'));
-        return redirect()->back();
+        return redirect('/ticket');
     }
 
     public function update(Request $request, $id)
