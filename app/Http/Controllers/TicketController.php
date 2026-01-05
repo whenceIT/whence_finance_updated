@@ -8,6 +8,7 @@ use App\Mail\SendSingleEmail;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Laracasts\Flash\Flash;
 
 class TicketController extends Controller
@@ -31,7 +32,7 @@ class TicketController extends Controller
         $users = User::all();
         $offices = \App\Models\Office::all();
         $roles = \DB::table('roles')->select('id','name')->get();
-        $categories = \App\Models\TicketCategory::all();
+        $categories = Schema::hasTable('ticket_categories') ? \App\Models\TicketCategory::all() : collect();
 
         return view('ticket.create', compact('users', 'offices', 'roles', 'categories', 'openCount'));
     }
@@ -68,7 +69,7 @@ class TicketController extends Controller
         $users = User::all();
         $offices = \App\Models\Office::all();
         $roles = \DB::table('roles')->select('id','name')->get();
-        $categories = \App\Models\TicketCategory::all();
+        $categories = Schema::hasTable('ticket_categories') ? \App\Models\TicketCategory::all() : collect();
 
         // count open tickets created by this user
         $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
