@@ -239,6 +239,15 @@
                 {{csrf_field()}}
                 
                 <div class="form-group">
+                    <label for="start_date"
+                           class="control-label col-md-2">{{trans_choice('general.start',1)}} {{trans_choice('general.date',1)}}</label>
+                    <div class="col-md-3">
+                        <input type="text" name="start_date" class="form-control date-picker"
+                               value="{{$start_date}}"
+                               required id="start_date">
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="end_date"
                            class="control-label col-md-2">{{trans_choice('general.end',1)}} {{trans_choice('general.date',1)}}</label>
                     <div class="col-md-3">
@@ -356,6 +365,7 @@
              </tr>
                     <?php
                     $office = \App\Models\Office::find($office_id);
+                    $opening_date = $office ? $office->opening_date : $start_date;
                     $total_debit_balance = 0;
                     $total_credit_balance = 0;
                     $total_opening_balance = 0;
@@ -383,7 +393,7 @@
                                 $query->where('office_id', '=', $office_id);
                             }
                         })->whereBetween('date',
-                        [$office->opening_date, $end_date])->get();
+                        [$opening_date, $end_date])->get();
 
                         foreach ($journals as $journal) {
                             $cr = $cr + $journal->credit;

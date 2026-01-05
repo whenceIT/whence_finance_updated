@@ -49,7 +49,7 @@ class ExpenseTypeController extends Controller
             return redirect()->back();
         }
         //get custom fields
-        return view('expense_type.create' );
+        return view('expense_type.create');
     }
 
 
@@ -60,12 +60,16 @@ class ExpenseTypeController extends Controller
             return redirect()->back();
         }
         $expense_type = new ExpenseType();
-	$expense_type->name = $request->name;
-	$expense_type->distribution_cost = $request->distribution_cost;
+        $expense_type->name = $request->name;
+        $expense_type->distribution_cost = $request->distribution_cost;
         $expense_type->gl_account_asset_id = $request->gl_account_asset_id;
         $expense_type->gl_account_expense_id = $request->gl_account_expense_id;
+        $expense_type->gl_account_id = $request->gl_account_id;
         $expense_type->notes = $request->notes;
         $expense_type->save();
+        if ($request->gl_account_ids) {
+            $expense_type->gl_accounts()->sync($request->gl_account_ids);
+        }
         Flash::success(trans('general.successfully_saved'));
         return redirect('expense/type/data');
     }
@@ -107,8 +111,12 @@ class ExpenseTypeController extends Controller
         $expense_type->name = $request->name;
         $expense_type->gl_account_asset_id = $request->gl_account_asset_id;
         $expense_type->gl_account_expense_id = $request->gl_account_expense_id;
+        $expense_type->gl_account_id = $request->gl_account_id;
         $expense_type->notes = $request->notes;
         $expense_type->save();
+        if ($request->gl_account_ids) {
+            $expense_type->gl_accounts()->sync($request->gl_account_ids);
+        }
         Flash::success(trans('general.successfully_saved'));
         return redirect('expense/type/data');
     }
@@ -128,6 +136,21 @@ class ExpenseTypeController extends Controller
         ExpenseType::destroy($id);
         Flash::success(trans('general.successfully_deleted'));
         return redirect()->back();
+    }
+
+    public function get_gl_accounts($id)
+    {
+        $type = ExpenseType::find($id);
+        $accounts = [];
+        if (!empty($type)) {
+            foreach ($type->gl_accounts as $account) {
+                $accounts[] = [
+                    'id' => $account->id,
+                    'name' => $account->gl_code . ' | ' . $account->name
+                ];
+            }
+        }
+        return response()->json($accounts);
     }
 
 }

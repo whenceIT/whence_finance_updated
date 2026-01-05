@@ -45,7 +45,7 @@ class GlAccountController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        return view('gl_account.create' );
+        return view('gl_account.create');
     }
 
     /**
@@ -139,6 +139,91 @@ class GlAccountController extends Controller
         $gl_account->save();
         Flash::success(trans('general.successfully_saved'));
         return redirect('accounting/gl_account/data');
+    }
+
+    /**
+     * Export GL Accounts to CSV
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function export()
+    {
+        if (!Sentinel::hasAccess('accounting.gl_accounts.view')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+        $data = GlAccount::all();
+
+        // Set headers for CSV download
+        $filename = 'chart_of_accounts_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($data) {
+            $file = fopen('php://output', 'w');
+
+            // Add CSV headers
+            fputcsv($file, [
+                'GL Code',
+                'Name',
+                'Type',
+                'Balance',
+                'Unreconciled Balance',
+                'Notes'
+            ]);
+
+            // Add data rows
+            foreach ($data as $account) {
+                $transactions = \App\Helpers\GeneralHelper::gl_account_balance($account->id);
+                $unreconciled_transactions = \App\Helpers\GeneralHelper::gl_account_unreconciled_balance($account->id);
+                $balance = 0;
+                $unreconciled_balance = 0;
+
+                if (!empty($transactions)) {
+                    if ($account->account_type == "asset" || $account->account_type == "expense") {
+                        $balance = $transactions->debit - $transactions->credit;
+                    }
+                    if ($account->account_type == "liability" || $account->account_type == "income" || $account->account_type == "equity") {
+                        $balance = $transactions->credit - $transactions->debit;
+                    }
+                }
+
+                if (!empty($unreconciled_transactions)) {
+                    if ($account->account_type == "asset" || $account->account_type == "expense") {
+                        $unreconciled_balance = $unreconciled_transactions->debit - $unreconciled_transactions->credit;
+                    }
+                    if ($account->account_type == "liability" || $account->account_type == "income" || $account->account_type == "equity") {
+                        $unreconciled_balance = $unreconciled_transactions->credit - $unreconciled_transactions->debit;
+                    }
+                }
+
+                // Map account type to readable format
+                $type_map = [
+                    'expense' => trans_choice('general.expense', 1),
+                    'asset' => trans_choice('general.asset', 1),
+                    'equity' => trans_choice('general.equity', 1),
+                    'liability' => trans_choice('general.liability', 1),
+                    'income' => trans_choice('general.income', 1),
+                ];
+                $account_type = isset($type_map[$account->account_type]) ? $type_map[$account->account_type] : $account->account_type;
+
+                fputcsv($file, [
+                    $account->gl_code,
+                    $account->name,
+                    $account_type,
+                    number_format($balance, 2),
+                    number_format($unreconciled_balance, 2),
+                    strip_tags($account->notes)
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**

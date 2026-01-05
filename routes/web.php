@@ -85,7 +85,7 @@ Route::get('clear_cache', function () {
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
-Route::post('/nextjs-login', function(Request $request) {
+Route::post('/nextjs-login', function (Request $request) {
     $credentials = $request->only('email', 'password');
 
     // Find user
@@ -118,7 +118,7 @@ Route::get('/', [HomeController::class, 'index']);
 Route::get('login', 'HomeController@login');
 Route::get('create_account', 'HomeController@create_account');
 Route::get('signup', 'HomeController@signup');
-Route::post('create_client_user','HomeController@create_client_account');
+Route::post('create_client_user', 'HomeController@create_client_account');
 Route::post('login', 'HomeController@process_login');
 Route::post('register', 'HomeController@register');
 //Route::post('create_Profile', 'HomeController@create_Profile');
@@ -128,9 +128,9 @@ Route::get('password_reset', 'HomeController@password_reset');
 Route::post('password_reset', 'HomeController@process_password_reset');
 Route::get('confirm_password_reset/{id}/{code}', 'HomeController@confirm_password_reset');
 Route::post('confirm_password_reset/{id}/{code}', 'HomeController@process_confirm_password_reset');
-Route::get('payroll_loan','HomeController@payroll_loan');
+Route::get('payroll_loan', 'HomeController@payroll_loan');
 //Route::get('payroll_loan/create-step-one','HomeController@createStepOne');
-Route::any('create_payroll_loan_application','HomeController@create_payroll_loan_application');
+Route::any('create_payroll_loan_application', 'HomeController@create_payroll_loan_application');
 Route::get('dashboard', [UserController::class, 'dashboard']);
 Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');
@@ -141,11 +141,11 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('{id}/branch_page', 'UserController@branch_page');
     Route::get('{id}/province_page', 'UserController@province_page');
     Route::get('client_users/data', 'UserController@client_users_index');
-    Route::get('daily_figures','UserController@daily_figures');
+    Route::get('daily_figures', 'UserController@daily_figures');
     Route::get('create', 'UserController@create');
     Route::post('store', 'UserController@store');
-      Route::get('detailed_dashboard','UserController@detailed_dashboard');
- //   Route::post('create_client_user','UserController@create_client_account');
+    Route::get('detailed_dashboard', 'UserController@detailed_dashboard');
+    //   Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
     //active-inactive users
@@ -154,16 +154,16 @@ Route::group(['prefix' => 'user'], function () {
     Route::post('{id}/update', 'UserController@update');
     Route::get('{id}/delete', 'UserController@delete');
     Route::get('edit_profile', 'UserController@edit_profile');
-    Route::post('update_my_details','UserController@update_my_details');
-    Route::get('my_details','UserController@my_details');
-    Route::get('edit_my_details','UserController@edit_my_details');
+    Route::post('update_my_details', 'UserController@update_my_details');
+    Route::get('my_details', 'UserController@my_details');
+    Route::get('edit_my_details', 'UserController@edit_my_details');
     Route::get('profile', 'UserController@profile');
     Route::post('update_profile', 'UserController@profile_update');
-    Route::get('{user}/staff_info','UserController@user_info');
-    Route::any('{user}/{collection_type}/collections_stats','UserController@collections_stats');
-    Route::any('{user}/{given_out_type}/given_out_stats','UserController@given_out_stats');
-    Route::any('{user}/{uncollected_type}/uncollected_stats','UserController@uncollected_stats');
-    Route::any('/leaderboard','UserController@leaderboard');
+    Route::get('{user}/staff_info', 'UserController@user_info');
+    Route::any('{user}/{collection_type}/collections_stats', 'UserController@collections_stats');
+    Route::any('{user}/{given_out_type}/given_out_stats', 'UserController@given_out_stats');
+    Route::any('{user}/{uncollected_type}/uncollected_stats', 'UserController@uncollected_stats');
+    Route::any('/leaderboard', 'UserController@leaderboard');
     //manage permissions
     Route::get('permission/data', 'UserController@indexPermission');
     Route::get('permission/create', 'UserController@createPermission');
@@ -180,21 +180,21 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('role/{id}/delete', 'UserController@deleteRole');
 
 
-     //appraisals
-    Route::any('appraisal_forms','UserController@appraisal_forms');
-    Route::any('my_appraisal_forms','UserController@my_appraisal_forms');
-        Route::any('appraisal_results','UserController@appraisal_results');
-    Route::any('{id}/{form}/appraisal_result','UserController@appraisal_result');
-    Route::any('{id}/appraisal_form','UserController@appraisal_form');
-    Route::any('{id}/my_appraisal','UserController@my_appraisal');
-    Route::any('{id}/submit_appraisal','UserController@submit_appraisal');
-    Route::any('create_form','UserController@create_form');
-    Route::any('{id}/add_section','UserController@add_section');
-    Route::any('{section_id}/{id}/add_question','UserController@add_question');
+    //appraisals
+    Route::any('appraisal_forms', 'UserController@appraisal_forms');
+    Route::any('my_appraisal_forms', 'UserController@my_appraisal_forms');
+    Route::any('appraisal_results', 'UserController@appraisal_results');
+    Route::any('{id}/{form}/appraisal_result', 'UserController@appraisal_result');
+    Route::any('{id}/appraisal_form', 'UserController@appraisal_form');
+    Route::any('{id}/my_appraisal', 'UserController@my_appraisal');
+    Route::any('{id}/submit_appraisal', 'UserController@submit_appraisal');
+    Route::any('create_form', 'UserController@create_form');
+    Route::any('{id}/add_section', 'UserController@add_section');
+    Route::any('{section_id}/{id}/add_question', 'UserController@add_question');
 
     //LC Cycle information
-    Route::get('cycle','UserController@cycle');
-    Route::post('addcycle','UserController@addCycle');
+    Route::get('cycle', 'UserController@cycle');
+    Route::post('addcycle', 'UserController@addCycle');
 });
 //route for offices
 Route::group(['prefix' => 'office'], function () {
@@ -208,7 +208,7 @@ Route::group(['prefix' => 'office'], function () {
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {
-	Route::get('data', 'ClientController@index')->name('client.data');
+    Route::get('data', 'ClientController@index')->name('client.data');
     Route::get('my_clients', 'ClientController@my_index');
     Route::get('branch_clients', 'ClientController@branch_index');
     Route::get('declined', 'ClientController@declined');
@@ -336,6 +336,7 @@ Route::group(['prefix' => 'group'], function () {
 Route::group(['prefix' => 'accounting'], function () {
     //gl account
     Route::any('gl_account/data', 'GlAccountController@index');
+    Route::get('gl_account/export', 'GlAccountController@export');
     Route::get('gl_account/create', 'GlAccountController@create');
     Route::post('gl_account/store', 'GlAccountController@store');
     Route::get('gl_account/{gl_account}/edit', 'GlAccountController@edit');
@@ -385,7 +386,7 @@ Route::group(['prefix' => 'setting'], function () {
     Route::post('general/update', 'SettingController@update_general');
     Route::get('organisation', 'SettingController@organisation');
     Route::get('system', 'SettingController@system');
-     Route::get('fail_safe','SettingController@fail_safe');
+    Route::get('fail_safe', 'SettingController@fail_safe');
 
 
 });
@@ -434,12 +435,12 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('data', 'LoanController@index')->name('loan.data');
     Route::get('my_loans', 'LoanController@my_index');
     Route::get('my_app_loans', 'LoanController@my_index_approved');
-    Route::any('branch_uncollected','LoanController@branch_uncollected');
+    Route::any('branch_uncollected', 'LoanController@branch_uncollected');
     Route::get('branch_app_loans', 'LoanController@branch_index_approved');
     Route::get('branch_loans', 'LoanController@branch_index');
-    Route::get('reloan_approvals','LoanController@reloan_approvals');
-    Route::get('transaction_approvals','LoanController@transaction_approvals');
-     Route::get('top_up_approvals','LoanController@top_up_approvals');
+    Route::get('reloan_approvals', 'LoanController@reloan_approvals');
+    Route::get('transaction_approvals', 'LoanController@transaction_approvals');
+    Route::get('top_up_approvals', 'LoanController@top_up_approvals');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
     Route::get('loan/waiver-approvals', 'LoanController@showWaiver')->name('waiver.approvals');
@@ -454,9 +455,9 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('loans_closed', 'LoanController@loans_closed')->name('loan.loans_closed');
     Route::get('loans_rescheduled', 'LoanController@loans_rescheduled');
     Route::get('{id}/{trans_id}/create_reloan', 'LoanController@new_reschedule_loan');
-    Route::get('{id}/{trans_id}/create_transactiontt','LoanController@store_repayment');
-    Route::get('{trans_id}/delete_pending_transaction','LoanController@delete_pending_transactions');
-    Route::get('{trans_id}/delete_pending_transaction_fp_pp','LoanController@delete_pending_transactions_fp_pp');
+    Route::get('{id}/{trans_id}/create_transactiontt', 'LoanController@store_repayment');
+    Route::get('{trans_id}/delete_pending_transaction', 'LoanController@delete_pending_transactions');
+    Route::get('{trans_id}/delete_pending_transaction_fp_pp', 'LoanController@delete_pending_transactions_fp_pp');
     Route::get('create', 'LoanController@create');
     Route::get('create_client_loan/{client}/{loan_product}', 'LoanController@create_client_loan');
     Route::get('create_group_loan/{group}/{loan_product}', 'LoanController@create_group_loan');
@@ -468,28 +469,28 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('{loan}/activate', 'LoanController@activate');
     Route::get('{loan}/show', 'LoanController@show');
     Route::post('{id}/topup/update', 'LoanController@add_top_up_request');
-    Route::any('{id}/{trans_id}/approve_top_up','LoanController@approve_top_up');
-    Route::any('{id}/decline_top_up','LoanController@decline_top_up');
+    Route::any('{id}/{trans_id}/approve_top_up', 'LoanController@approve_top_up');
+    Route::any('{id}/decline_top_up', 'LoanController@decline_top_up');
     Route::post('client_loan/{id}/update', 'LoanController@update_client_loan');
     Route::post('group_loan/{id}/update', 'LoanController@update_group_loan');
     Route::get('{id}/delete', 'LoanController@delete');
     Route::post('{id}/approve', 'LoanController@approve_loan');
-    Route::get('collections','LoanController@collections');
-    Route::any('new_collections','LoanController@new_collections');
-     Route::any('expected_collections','LoanController@expected_collections');
-    Route::any('my_collections','LoanController@my_collections');
-     Route::any('my_expected_collections','LoanController@my_expected_collections');
-    Route::any('{id}/detailed_collections','LoanController@detailed_collections');
-    Route::any('adjust_next_repayment','LoanController@adjust_next_repayment');
-     Route::any('notification_test','LoanController@notification_test');
-    Route::get('payroll_loan/pending_list','LoanController@pending_list');
-        Route::get('payroll_loan/approved_list','LoanController@approved_list');
-    Route::get('payroll_loan/declined_list','LoanController@declined_list');
-    Route::get('payroll_loan/{id}/payroll_applicant','LoanController@payroll_applicant');
-       Route::get('payroll_loan/{id}/approve_applicant','LoanController@approve_applicant');
-    Route::get('payroll_loan/{id}/decline_applicant','LoanController@decline_applicant');
-    Route::get('branch_graph','LoanController@branch_graph');
-     Route::get('lusaka_graph','LoanController@lusaka_graph');
+    Route::get('collections', 'LoanController@collections');
+    Route::any('new_collections', 'LoanController@new_collections');
+    Route::any('expected_collections', 'LoanController@expected_collections');
+    Route::any('my_collections', 'LoanController@my_collections');
+    Route::any('my_expected_collections', 'LoanController@my_expected_collections');
+    Route::any('{id}/detailed_collections', 'LoanController@detailed_collections');
+    Route::any('adjust_next_repayment', 'LoanController@adjust_next_repayment');
+    Route::any('notification_test', 'LoanController@notification_test');
+    Route::get('payroll_loan/pending_list', 'LoanController@pending_list');
+    Route::get('payroll_loan/approved_list', 'LoanController@approved_list');
+    Route::get('payroll_loan/declined_list', 'LoanController@declined_list');
+    Route::get('payroll_loan/{id}/payroll_applicant', 'LoanController@payroll_applicant');
+    Route::get('payroll_loan/{id}/approve_applicant', 'LoanController@approve_applicant');
+    Route::get('payroll_loan/{id}/decline_applicant', 'LoanController@decline_applicant');
+    Route::get('branch_graph', 'LoanController@branch_graph');
+    Route::get('lusaka_graph', 'LoanController@lusaka_graph');
     //Make defaulted
     Route::get('{id}/set_defaulted', 'LoanController@set_defaulted');
     Route::post('{id}/decline', 'LoanController@decline_loan');
@@ -612,7 +613,7 @@ Route::group(['prefix' => 'report'], function () {
     Route::any('company_report', 'ReportController@company_report');
     Route::any('savings_report', 'ReportController@savings_report');
     Route::group(['prefix' => 'report_scheduler'], function () {
-    Route::get('data', 'ReportSchedulerController@index');
+        Route::get('data', 'ReportSchedulerController@index');
         Route::get('create', 'ReportSchedulerController@create');
         Route::post('store', 'ReportSchedulerController@store');
         Route::get('{report_scheduler}/edit', 'ReportSchedulerController@edit');
@@ -636,10 +637,10 @@ Route::group(['prefix' => 'report'], function () {
         Route::any('income_statement/pdf', 'ReportController@income_statement_pdf');
         Route::any('income_statement/excel', 'ReportController@income_statement_excel');
         Route::any('income_statement/csv', 'ReportController@income_statement_csv');
-	Route::any('balance_sheet', 'ReportController@balance_sheet');
-	Route::any('workings', 'ReportController@workings');
-	Route::any('statement_of_comp_income','ReportController@statement_of_comp_income');
-	Route::any('statement_of_financial_position','ReportController@statement_of_financial_position');
+        Route::any('balance_sheet', 'ReportController@balance_sheet');
+        Route::any('workings', 'ReportController@workings');
+        Route::any('statement_of_comp_income', 'ReportController@statement_of_comp_income');
+        Route::any('statement_of_financial_position', 'ReportController@statement_of_financial_position');
         Route::any('balance_sheet_conso', 'ReportController@balance_sheet_consolidated');
         Route::any('balance_sheet/pdf', 'ReportController@balance_sheet_pdf');
         Route::any('balance_sheet/excel', 'ReportController@balance_sheet_excel');
@@ -672,11 +673,11 @@ Route::group(['prefix' => 'report'], function () {
         Route::any('full_repayments_report/csv', 'ReportController@full_repayments_report_csv');
         Route::any('part_repayments_report/pdf', 'ReportController@part_repayments_report_pdf');
         Route::any('part_repayments_report/excel', 'ReportController@part_repayments_report_excel');
-	Route::any('part_repayments_report/csv', 'ReportController@part_repayments_report_csv');
-	Route::any('collections_report/pdf', 'ReportController@collections_report_pdf');
-	Route::any('collections_report/excel', 'ReportController@collections_report_excel');
-	  Route::any('expected_collections_report/pdf','ReportController@expected_collections_report_pdf');
-        Route::any('expected_collections_report/excel','ReportController@expected_collections_report_excel');
+        Route::any('part_repayments_report/csv', 'ReportController@part_repayments_report_csv');
+        Route::any('collections_report/pdf', 'ReportController@collections_report_pdf');
+        Route::any('collections_report/excel', 'ReportController@collections_report_excel');
+        Route::any('expected_collections_report/pdf', 'ReportController@expected_collections_report_pdf');
+        Route::any('expected_collections_report/excel', 'ReportController@expected_collections_report_excel');
         Route::any('reloans_report/pdf', 'ReportController@reloans_report_pdf');
         Route::any('reloans_report/pdf', 'ReportController@reloans_report_pdf');
         Route::any('reloans_report/pdf', 'ReportController@reloans_report_pdf');
@@ -684,8 +685,8 @@ Route::group(['prefix' => 'report'], function () {
         Route::any('reloans_report/csv', 'ReportController@reloans_report_csv');
         Route::any('new_loans_report/pdf', 'ReportController@new_loans_report_pdf');
         Route::any('new_loans_report/excel', 'ReportController@new_loans_report_excel');
-	Route::any('new_loans_report/csv', 'ReportController@new_loans_report_csv');
-	//added route
+        Route::any('new_loans_report/csv', 'ReportController@new_loans_report_csv');
+        //added route
         Route::get('expense_report/pdf', 'ReportController@expense_report_pdf');
         Route::get('expense_report/excel', 'ReportController@expense_report_excel');
         Route::get('expense_report/csv', 'ReportController@expense_report_csv');
@@ -987,7 +988,7 @@ Route::group(['prefix' => 'leave'], function () {
 });
 
 Route::group(['prefix' => 'ledger'], function () {
-   // Route::get('general', 'GeneralLedgerController@index')->name('ledger.general');
+    // Route::get('general', 'GeneralLedgerController@index')->name('ledger.general');
     Route::post('/store/{officeName}', 'GeneralLedgerController@store')->name('ledger.store');
     Route::get('summary', 'GeneralLedgerController@summary')->name('ledger.summary');
     Route::get('transactions', 'GeneralLedgerController@transactions')->name('ledger.transactions');
@@ -1056,6 +1057,7 @@ Route::group(['prefix' => 'expense'], function () {
     Route::get('type/{expense_type}/show', 'ExpenseTypeController@show');
     Route::post('type/{id}/update', 'ExpenseTypeController@update');
     Route::get('type/{id}/delete', 'ExpenseTypeController@delete');
+    Route::get('type/{id}/get_gl_accounts', 'ExpenseTypeController@get_gl_accounts');
     //expense budgets
     Route::get('budget/data', 'ExpenseBudgetController@index');
     Route::get('budget/create', 'ExpenseBudgetController@create');
@@ -1071,13 +1073,13 @@ Route::group(['prefix' => 'expense'], function () {
 });
 //route for payroll
 Route::group(['prefix' => 'payroll'], function () {
-	Route::get('data', 'PayrollController@index');
-	Route::any('lc_information','PayrollController@lc_information');
-	  Route::any('{user}/lc_information','PayrollController@lc_info');
+    Route::get('data', 'PayrollController@index');
+    Route::any('lc_information', 'PayrollController@lc_information');
+    Route::any('{user}/lc_information', 'PayrollController@lc_info');
     Route::get('create', 'PayrollController@create');
-	Route::post('store', 'PayrollController@store');
-	   Route::any('create_wage_bill','PayrollController@create_wage_bill');
-    Route::post('create_new_payroll','PayrollController@create_new_payroll');
+    Route::post('store', 'PayrollController@store');
+    Route::any('create_wage_bill', 'PayrollController@create_wage_bill');
+    Route::post('create_new_payroll', 'PayrollController@create_new_payroll');
     Route::get('{payroll}/show', 'PayrollController@show');
     Route::get('{payroll}/edit', 'PayrollController@edit');
     Route::post('{id}/update', 'PayrollController@update');
@@ -1085,37 +1087,37 @@ Route::group(['prefix' => 'payroll'], function () {
     Route::get('getUser/{id}', 'PayrollController@getUser');
     Route::get('{id}/payslip', 'PayrollController@pdfPayslip');
     Route::get('{user}/data', 'PayrollController@staffPayroll');
-    Route::get('mypayslips','PayrollController@myPayslips');
-    Route::get('mypayslips_old','PayrollController@myPayslipsOld');
-    Route::get('payroll_list','PayrollController@payroll_list');
-    Route::get('my_payroll_information','PayrollController@my_payroll_information');
-    Route::post('add_payroll_information','PayrollController@add_payroll_information');
-    Route::get('{id}/edit_payroll','PayrollController@edit_payroll');
-    Route::get('{user}/user_payslip','PayrollController@user_payslip');
-    Route::post('{id}/save_user_payslip','PayrollController@edit_payroll_information_manager');
-    Route::post('{id}/save_payroll','PayrollController@save_payroll');
-    Route::get('create_payroll','PayrollController@create_payroll');
-        Route::any('store_new_payroll','PayrollController@storeNewPayroll');
-    Route::any('{id}/edit_new_payroll','PayrollController@edit_new_payroll');
-    Route::any('{id}/save_edit_new_payroll','PayrollController@save_edit_new_payroll');
+    Route::get('mypayslips', 'PayrollController@myPayslips');
+    Route::get('mypayslips_old', 'PayrollController@myPayslipsOld');
+    Route::get('payroll_list', 'PayrollController@payroll_list');
+    Route::get('my_payroll_information', 'PayrollController@my_payroll_information');
+    Route::post('add_payroll_information', 'PayrollController@add_payroll_information');
+    Route::get('{id}/edit_payroll', 'PayrollController@edit_payroll');
+    Route::get('{user}/user_payslip', 'PayrollController@user_payslip');
+    Route::post('{id}/save_user_payslip', 'PayrollController@edit_payroll_information_manager');
+    Route::post('{id}/save_payroll', 'PayrollController@save_payroll');
+    Route::get('create_payroll', 'PayrollController@create_payroll');
+    Route::any('store_new_payroll', 'PayrollController@storeNewPayroll');
+    Route::any('{id}/edit_new_payroll', 'PayrollController@edit_new_payroll');
+    Route::any('{id}/save_edit_new_payroll', 'PayrollController@save_edit_new_payroll');
     Route::any('download_payroll_excel_report', 'PayrollController@payroll_report_excel');
-    Route::any('payroll_query','PayrollController@payroll_query');
+    Route::any('payroll_query', 'PayrollController@payroll_query');
     Route::get('{payroll}/payslip_old', 'PayrollController@pdfPayslipOld');
-       Route::any('submit_payroll','PayrollController@submit_payroll');
-    Route::any('{id}/submit_payroll','PayrollController@submit_single_payroll');
-    Route::any('payroll_pending_approval','PayrollController@payroll_pending_approval');
-    Route::any('{id}/payroll_pending_approval','PayrollController@single_payroll_pending_approval');
-    Route::any('{id}/approve_payroll','PayrollController@approve_payroll');
-    Route::any('{id}/approve_single_payroll','PayrollController@approve_single_payroll');
-        Route::any('{id}/submit_single_payroll','PayrollController@submit_single_payroll');
+    Route::any('submit_payroll', 'PayrollController@submit_payroll');
+    Route::any('{id}/submit_payroll', 'PayrollController@submit_single_payroll');
+    Route::any('payroll_pending_approval', 'PayrollController@payroll_pending_approval');
+    Route::any('{id}/payroll_pending_approval', 'PayrollController@single_payroll_pending_approval');
+    Route::any('{id}/approve_payroll', 'PayrollController@approve_payroll');
+    Route::any('{id}/approve_single_payroll', 'PayrollController@approve_single_payroll');
+    Route::any('{id}/submit_single_payroll', 'PayrollController@submit_single_payroll');
 
-//template
+    //template
     Route::any('template', 'PayrollTemplateController@index');
     Route::get('template/{id}/edit', 'PayrollTemplateController@edit');
     Route::post('template/{id}/update', 'PayrollTemplateController@update');
     Route::get('template/{id}/delete_meta', 'PayrollTemplateController@delete_meta');
     Route::post('template/{id}/add_row', 'PayrollTemplateController@add_row');
-        Route::post('template/{id}/add_row_deduction', 'PayrollTemplateController@add_row_deduction');
+    Route::post('template/{id}/add_row_deduction', 'PayrollTemplateController@add_row_deduction');
 });
 //route for client portal
 Route::group(['prefix' => 'portal'], function () {
@@ -1140,255 +1142,255 @@ Route::group(['prefix' => 'portal'], function () {
 Route::group(['prefix' => 'hybrid'], function () {
 
     // Expected Collections
-    Route::any('expected_collections', function(Request $request) {
+    Route::any('expected_collections', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@expected_collections');
     });
 
     // My Collections
-    Route::any('my_collections', function(Request $request) {
+    Route::any('my_collections', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@my_collections');
     });
 
     // My Expected Collections
-    Route::any('my_expected_collections', function(Request $request) {
+    Route::any('my_expected_collections', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@my_expected_collections');
     });
 
     // Branch Uncollected
-    Route::any('branch_uncollected', function(Request $request) {
+    Route::any('branch_uncollected', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@branch_uncollected');
     });
 
     // Appraisal Forms
-    Route::any('appraisal_forms', function(Request $request) {
+    Route::any('appraisal_forms', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@appraisal_forms');
     });
 
     // My Appraisal Forms
-    Route::any('my_appraisal_forms', function(Request $request) {
+    Route::any('my_appraisal_forms', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@my_appraisal_forms');
     });
 
 
-  Route::any('payroll_loan/pending_list', function(Request $request) {
+    Route::any('payroll_loan/pending_list', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@pending_list');
     });
 
-    Route::any('payroll_loan/approved_list', function(Request $request) {
+    Route::any('payroll_loan/approved_list', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@approved_list');
     });
 
 
-    Route::any('payroll_loan/declined_list', function(Request $request) {
+    Route::any('payroll_loan/declined_list', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@declined_list');
     });
 
 
-    
-    Route::any('my_applications/data', function(Request $request) {
+
+    Route::any('my_applications/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@my_applications');
     });
 
 
-    Route::any('client/closed', function(Request $request) {
+    Route::any('client/closed', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ClientController@closed');
     });
 
-    Route::any('client/clients_inactive', function(Request $request) {
+    Route::any('client/clients_inactive', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ClientController@clients_inactive');
     });
 
-    Route::any('client/clients_blacklisted', function(Request $request) {
+    Route::any('client/clients_blacklisted', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ClientController@clients_blacklisted');
     });
 
-    Route::any('client/declined', function(Request $request) {
+    Route::any('client/declined', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ClientController@declined');
     });
 
 
-    Route::any('gl_account/data', function(Request $request) {
+    Route::any('gl_account/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\GlAccountController@index');
     });
 
 
-    Route::any('journal/data', function(Request $request) {
+    Route::any('journal/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\JournalController@index');
     });
 
-    
-    Route::any('journal/create', function(Request $request) {
+
+    Route::any('journal/create', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\JournalController@create');
     });
 
 
-    Route::any('reconciliation/data', function(Request $request) {
+    Route::any('reconciliation/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\JournalController@reconciliation');
     });
 
-    Route::any('period/data', function(Request $request) {
+    Route::any('period/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\JournalController@period');
     });
 
 
-    Route::any('loan_report', function(Request $request) {
+    Route::any('loan_report', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ReportController@loan_report');
     });
 
-    Route::any('financial_report', function(Request $request) {
+    Route::any('financial_report', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ReportController@financial_report');
     });
 
 
-    Route::any('savings_report', function(Request $request) {
+    Route::any('savings_report', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ReportController@savings_report');
     });
 
 
-    Route::any('communication/data', function(Request $request) {
+    Route::any('communication/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\CommunicationController@index');
     });
 
-    Route::any('communication/create', function(Request $request) {
+    Route::any('communication/create', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\CommunicationController@create');
     });
 
 
-    Route::any('asset/data', function(Request $request) {
+    Route::any('asset/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\AssetController@index');
     });
 
-    Route::any('asset/create', function(Request $request) {
+    Route::any('asset/create', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\AssetController@create');
     });
 
-    Route::any('asset/type/data', function(Request $request) {
+    Route::any('asset/type/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\AssetTypeController@index');
     });
 
 
-    Route::any('expenses/type/data', function(Request $request) {
+    Route::any('expenses/type/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ExpenseTypeController@index');
     });
 
-    Route::any('expenses/budget/data', function(Request $request) {
+    Route::any('expenses/budget/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ExpenseBudgetController@index');
     });
 
-    Route::any('expenses/budget/report', function(Request $request) {
+    Route::any('expenses/budget/report', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ExpenseBudgetController@report');
     });
 
-    Route::any('other_income/data', function(Request $request) {
+    Route::any('other_income/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\OtherIncomeController@index');
     });
 
-    Route::any('other_income/create', function(Request $request) {
+    Route::any('other_income/create', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\OtherIncomeController@create');
     });
 
-    Route::any('other_income/type/data', function(Request $request) {
+    Route::any('other_income/type/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\OtherIncomeTypeController@index');
     });
 
 
-    Route::any('create_wage_bill', function(Request $request) {
+    Route::any('create_wage_bill', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@create_wage_bill');
     });
 
-    
-    Route::any('payroll_list', function(Request $request) {
+
+    Route::any('payroll_list', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@payroll_list');
     });
 
-    Route::any('payroll_pending_approval', function(Request $request) {
+    Route::any('payroll_pending_approval', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@payroll_pending_approval');
     });
 
-    Route::any('template', function(Request $request) {
+    Route::any('template', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\PayrollTemplateController@index');
     });
 
-    Route::any('lc_information', function(Request $request) {
+    Route::any('lc_information', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@lc_information');
     });
 
 
-    Route::any('custom_fields/data', function(Request $request) {
+    Route::any('custom_fields/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\CustomFieldController@index');
     });
 
 
-    Route::any('custom_fields/create', function(Request $request) {
+    Route::any('custom_fields/create', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\CustomFieldController@create');
     });
 
 
-    Route::any('mypayslips', function(Request $request) {
+    Route::any('mypayslips', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\PayrollController@myPayslips');
     });
 
 
-    Route::any('users/data', function(Request $request) {
+    Route::any('users/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@index');
     });
 
 
-    Route::any('client_users/data', function(Request $request) {
+    Route::any('client_users/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@client_users_index');
     });
 
 
-    Route::any('role/data', function(Request $request) {
+    Route::any('role/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@indexRole');
     });
 
 
-    Route::any('users/create', function(Request $request) {
+    Route::any('users/create', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@create');
     });
 
-    Route::any('audit_trail/data', function(Request $request) {
+    Route::any('audit_trail/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\AuditTrailController@index');
     });
 
-    Route::any('settings/general', function(Request $request) {
+    Route::any('settings/general', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\SettingController@general');
     });
-    
 
-    Route::any('settings/organisation', function(Request $request) {
+
+    Route::any('settings/organisation', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\SettingController@organisation');
     });
 
 
-    Route::any('settings/fail_safe', function(Request $request) {
+    Route::any('settings/fail_safe', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\SettingController@fail_safe');
     });
 
-       Route::any('/dashboard', function(Request $request) {
+    Route::any('/dashboard', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@dashboard');
-       });
+    });
 
-        Route::any('/whatsapp_clients', function(Request $request) {
+    Route::any('/whatsapp_clients', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\ClientController@whatsapp_clients');
     });
 
-    Route::any('detailed_dashboard',function(Request $request){
+    Route::any('detailed_dashboard', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@detailed_dashboard');
     });
 
 
-    Route::any('provinces_dashboard',function(Request $request){
+    Route::any('provinces_dashboard', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@provinces_dashboard');
     });
 
 
-    Route::any('daily_figures',function(Request $request){
+    Route::any('daily_figures', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\UserController@daily_figures');
     });
 
-    Route::any('new_collections',function(Request $request){
+    Route::any('new_collections', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@new_collections');
     });
 
@@ -1408,7 +1410,7 @@ function handleHybridRoute(Request $request, $controllerMethod)
     try {
         $payload = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
     } catch (\Exception $e) {
-        return response()->json(['success' => false, 'message' => 'Invalid token: '.$e->getMessage()], 401);
+        return response()->json(['success' => false, 'message' => 'Invalid token: ' . $e->getMessage()], 401);
     }
 
     $user = Sentinel::findById($payload->id);

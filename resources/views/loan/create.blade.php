@@ -55,7 +55,7 @@
                             </option>
                         @endforeach
                         @elseif($role->role_id == '4')
-                        @foreach(\App\Models\Client::where('status', 'active')->where('office_id',$userBranch)->where('blacklisted', 0)->get() as $key)
+                        @foreach(\App\Models\Client::where('status', 'active')->where('office_id', $userBranch)->where('blacklisted', 0)->get() as $key)
                             <option value="{{$key->id}}">
                                 @if($key->client_type=="individual")
                                     {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
