@@ -164,7 +164,6 @@ class TicketController extends Controller
 
     public function update(Request $request, $id)
     {
-        dd($request->all(), $id);
 
         $ticket = Ticket::findOrFail($id);
 

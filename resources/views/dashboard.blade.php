@@ -1449,7 +1449,7 @@
                                                                                                                             border-radius: 15px;
                                                                                                                             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
                                                                                                                             overflow: hidden;
-                                                                                                                            z-index: 9998;
+                                                                                                                            z-index: 9999;
                                                                                                                             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                                                                                                                             cursor: move;
                                                                                                                             transition: transform 0.2s ease;
@@ -2032,8 +2032,8 @@
     @if($role->role_id == '1' || $role->role_id == '10')
         <div
             style="display: flex;
-                    align-items: center;
-                        justify-content: center; padding-bottom: 10px; ">
+                                    align-items: center;
+                                        justify-content: center; padding-bottom: 10px; ">
 
             <a target="_blank" href="https://erp.whencefinancesystem.com" style="margin: 10px;">
                 <span class="label label-warning" style="font-size: 15px;"><i class="fa fa-external-link"></i> ERP Dashboard</span>
@@ -2607,7 +2607,7 @@
                                                                         border-radius: 15px;
                                                                         box-shadow: 0 8px 20px rgba(0,0,0,0.25);
                                                                         overflow: hidden;
-                                                                        z-index: 9998;
+                                                                        z-index: 9999;
                                                                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                                                                         cursor: move;
                                                                         transition: transform 0.2s ease;
