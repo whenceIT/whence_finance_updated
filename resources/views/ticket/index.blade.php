@@ -86,7 +86,7 @@
             </ul>
 
             <div class="tab-content" style="margin-top:15px">
-                <div class="{{ $isAdmin ? 'tab-pane' : 'tab-pane active' }}" id="assigned">
+                <div class="{{ $isAdmin == 1 ? 'tab-pane' : 'tab-pane active' }}" id="assigned">
                     @if($assignedTickets->count())
                     <table class="table table-bordered table-striped">
                         <thead>
