@@ -3,6 +3,7 @@
 @section('title', 'Tickets')
 
 @section('content')
+@include('partials.fullscreen_loader')
 <div class="box box-primary">
     <div class="box-header with-border">
         <h3 class="box-title">Tickets</h3>
@@ -412,9 +413,7 @@
                             });
                             function goToCreate(event) {
                                 event.preventDefault();
-                                var link = document.getElementById('newTicketLink');
-                                link.style.pointerEvents = 'none';
-                                link.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading...';
+                                $('#fullscreen-loader').show();
                                 window.location.href = '{{ url('ticket/create') }}';
                                 return false;
                             }
