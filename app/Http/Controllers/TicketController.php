@@ -24,10 +24,10 @@ class TicketController extends Controller
 
         // enforce max 3 open tickets per user
         $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
-        if ($openCount >= 3) {
-            Flash::error('You already have 3 open tickets. Please resolve or close an existing ticket before creating a new one.');
-            return redirect()->route('ticket.index');
-        }
+        // if ($openCount >= 3) {
+        //     Flash::error('You already have 3 open tickets. Please resolve or close an existing ticket before creating a new one.');
+        //     return redirect()->route('ticket.index');
+        // }
 
         $users = User::all();
         $offices = \App\Models\Office::all();
