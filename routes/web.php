@@ -906,6 +906,7 @@ Route::group(['prefix' => 'custom_field'], function () {
 //route for tickets
 Route::group(['prefix' => 'ticket'], function () {
     Route::get('/', 'TicketController@index');
+    Route::get('index', 'TicketController@index');
     Route::get('create', 'TicketController@create');
     Route::post('store', 'TicketController@store');
     Route::match(['post', 'put'], '{id}/update', 'TicketController@update');
