@@ -21,9 +21,9 @@
         <h3 class="box-title">Issue New Ticket</h3>
     </div>
     <div class="box-body">
-        @if($openCount >= 3)
-            <div class="alert alert-warning">You already have 3 open tickets. Resolve or close an existing ticket before creating a new one.</div>
-        @else
+        @if($openCount >= 5)
+            <div class="alert alert-warning">You already have 5 open tickets. Resolve or close an existing ticket before creating a new one. <a href="{{ url('ticket') }}" class="btn btn-sm btn-default">Back to Tickets</a></div>
+        @endif
             <form method="post" action="{{ url('ticket/store') }}">
                 @csrf
                 <div class="form-group">
@@ -212,7 +212,6 @@
                     <a href="{{ url('ticket') }}" class="btn btn-default">Cancel</a>
                 </div>
             </form>
-        @endif
     </div>
 </div>
 @endsection
