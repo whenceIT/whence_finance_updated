@@ -468,7 +468,7 @@
                                 <td><button type="button" class="btn btn-xs btn-info view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" title="View details"><i class="fa fa-info-circle"></i></button></td>
                                 <td>
                                     @if($isAdmin == 1)
-                                        @if($ticket->stage == 'Started')
+                                        @if($ticket->stage != 'Started')
                                         <button type="button" class="btn btn-sm btn-primary open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">Assign</button>
                                         @else
                                         <i>Working...</i>
