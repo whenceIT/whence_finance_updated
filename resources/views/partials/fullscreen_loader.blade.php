@@ -1,8 +1,8 @@
 <style>
     #fullscreen-loader {
         position: fixed;
-        top: 50%;
-        left: 50%;
+        top: 100%;
+        left: 100%;
         transform: translate(-50%, -50%);
         display: none;
         background-color: white;
