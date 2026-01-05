@@ -8,11 +8,7 @@
     <div class="box-header with-border">
         <h3 class="box-title">Tickets</h3>
         <div class="box-tools pull-right">
-            @if($openCount >= 5)
-                            <a href="#" class="btn btn-success btn-sm" title="You have reached the maximum of 5 open tickets">New Ticket</a>
-                        @else
-                            <a href="{{ url('ticket/create') }}" class="btn btn-success btn-sm" onclick="event.preventDefault(); $('#fullscreen-loader').show(); window.location.href = '{{ url('ticket/create') }}';">New Ticket</a>
-                        @endif
+            <a href="{{ url('ticket/create') }}" class="btn btn-success btn-sm" onclick="event.preventDefault(); $('#fullscreen-loader').show(); window.location.href = '{{ url('ticket/create') }}';">New Ticket</a>
         </div>
     </div>
     <div class="box-body">
