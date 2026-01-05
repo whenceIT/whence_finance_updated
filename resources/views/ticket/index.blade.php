@@ -192,7 +192,7 @@
                     @endif
                 </div>
 
-                @if($isAdmin)
+                @if($isAdmin == 1)
                 <div class="tab-pane" id="summary_report">
                     <h4>Summary Report</h4>
 
@@ -412,6 +412,7 @@
                 </div>
                 @endif
 
+                @if($isAdmin == 1)
                 <div class="tab-pane active" id="manage_all">
                     <h4>All Tickets</h4>
                     <table class="table table-bordered table-striped">
@@ -450,7 +451,7 @@
                                 <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $ticket->remarks ?? '—' }}</td>
                                 <td><button type="button" class="btn btn-xs btn-info view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" title="View details"><i class="fa fa-info-circle"></i></button></td>
                                 <td>
-                                    @if($isAdmin)
+                                    @if($isAdmin == 1)
                                     <button type="button" class="btn btn-sm btn-primary open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">Assign</button>
                                     @endif
                                 </td>
@@ -463,6 +464,7 @@
                         </tbody>
                     </table>
                 </div>
+                @endif
 
                 <div class="tab-pane" id="requested">
                     @if($myTickets->count())
