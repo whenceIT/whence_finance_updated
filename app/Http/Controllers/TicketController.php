@@ -124,7 +124,6 @@ class TicketController extends Controller
         }
         $ticket->priority = $priority ?? 'medium';
         $ticket->department = $request->department ?? 'Administration';
-        $ticket->assigned_to = $request->assigned_to;
         $ticket->issue_category_id = $request->issue_category_id ?: null;
         $ticket->sla_days = $request->sla_days ?: ($cat->sla_days ?? null);
         $ticket->opened_by = $user->id;
@@ -132,6 +131,13 @@ class TicketController extends Controller
         $ticket->date_raised = now();
         $ticket->stage = 'Not started';
         $ticket->status = 'open';
+
+        // also allow updating assigned_to from store form (if provided)
+        if ($request->has('assigned_to')) {
+            $ticket->assigned_to = $request->assigned_to;
+            $ticket->assigned_by = Sentinel::getUser()->id;
+            $ticket->stage = 'Started';
+        }
 
         // compute due_date if sla_days present and due_date not manually provided
         if($ticket->sla_days && !$request->due_date){
