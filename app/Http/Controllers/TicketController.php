@@ -204,7 +204,8 @@ class TicketController extends Controller
 
         // also allow updating assigned_to from store form (if provided)
         if ($request->has('assigned_to')) {
-            $ticket->assigned_to = $assignedTo;
+            $ticket->assigned_to = $request->assigned_to;
+            $ticket->assigned_by = Sentinel::getUser()->id;
         }
 
         $ticket->save();
