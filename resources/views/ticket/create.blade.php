@@ -6,9 +6,9 @@
 <style>
     #fullscreen-loader {
         position: fixed;
-        top: 0;
+        top: 10;
         left: 0;
-        width: 100%;
+        width: 30%;
         height: 100%;
         background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(5px);
