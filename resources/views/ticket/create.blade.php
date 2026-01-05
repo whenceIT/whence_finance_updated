@@ -6,16 +6,13 @@
 <style>
     #fullscreen-loader {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         background: rgba(255, 255, 255, 0.5);
         backdrop-filter: blur(8px);
         z-index: 9999;
         display: none;
-        justify-content: center;
-        align-items: center;
         color: #333;
         font-size: 18px;
         font-weight: 500;
