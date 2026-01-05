@@ -22,7 +22,7 @@ class TicketController extends Controller
         $user = Sentinel::getUser();
 
         // enforce max 3 open tickets per user
-        $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
+        $openCount = Ticket::where('created_by', $user->id)->where('status', 'open')->count();
         if ($openCount >= 3) {
             Flash::error('You already have 3 open tickets. Please resolve or close an existing ticket before creating a new one.');
             return redirect()->route('tickets.index');
@@ -40,27 +40,27 @@ class TicketController extends Controller
     {
         $user = Sentinel::getUser();
 
-        $assignedTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy'])
+        $assignedTickets = Ticket::with(['createdBy', 'assignedTo', 'closedBy', 'issueCategory'])
             ->where('assigned_to', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
         // tickets assigned to this user that are closed (resolved by this user)
-        $assignedClosedTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy'])
+        $assignedClosedTickets = Ticket::with(['createdBy', 'assignedTo', 'closedBy', 'issueCategory'])
             ->where('assigned_to', $user->id)
             ->where('status', 'closed')
             ->orderBy('datetime_close', 'desc')
             ->get();
 
-        $myTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy'])
-            ->where('opened_by', $user->id)
+        $myTickets = Ticket::with(['createdBy', 'assignedTo', 'closedBy', 'issueCategory'])
+            ->where('created_by', $user->id)
             ->where('status', 'open')
             ->orderBy('created_at', 'desc')
             ->get();
 
         // tickets opened by this user that are already closed
-        $myClosedTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy'])
-            ->where('opened_by', $user->id)
+        $myClosedTickets = Ticket::with(['createdBy', 'assignedTo', 'closedBy', 'issueCategory'])
+            ->where('created_by', $user->id)
             ->where('status', 'closed')
             ->orderBy('datetime_close', 'desc')
             ->get();
@@ -71,7 +71,7 @@ class TicketController extends Controller
         $categories = \App\Models\TicketCategory::all();
 
         // count open tickets created by this user
-        $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
+        $openCount = Ticket::where('created_by', $user->id)->where('status', 'open')->count();
 
         // Dashboard metrics (site-wide)
         $totalTickets = Ticket::count();
@@ -107,7 +107,7 @@ class TicketController extends Controller
 
         // enforce max 3 open tickets per user
         $user = Sentinel::getUser();
-        $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
+        $openCount = Ticket::where('created_by', $user->id)->where('status', 'open')->count();
         if ($openCount >= 3) {
             Flash::error('You already have 3 open tickets. Please resolve or close an existing ticket before creating a new one.');
             return redirect()->back()->withInput();
@@ -125,8 +125,8 @@ class TicketController extends Controller
         $ticket->priority = $priority ?? 'medium';
         $ticket->department = $request->department ?? 'Administration';
         $ticket->issue_category_id = $request->issue_category_id ?: null;
-        $ticket->sla_days = $request->sla_days ?: ($cat->sla_days ?? null);
-        $ticket->opened_by = $user->id;
+        $ticket->sla_days = $request->sla_days ?: ($cat->sla_days ?? 7);
+        $ticket->created_by = $user->id;
         $ticket->datetime_open = now();
         $ticket->date_raised = now();
         $ticket->stage = 'Not started';

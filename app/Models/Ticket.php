@@ -16,7 +16,7 @@ class Ticket extends Model
         'datetime_close',
         'date_raised',
         'date_closed',
-        'opened_by',
+        'created_by',
         'assigned_to',
         'closed_by',
         'status',
@@ -37,9 +37,9 @@ class Ticket extends Model
         'sla_met' => 'boolean',
     ];
 
-    public function openedBy()
+    public function createdBy()
     {
-        return $this->belongsTo(User::class, 'opened_by', 'id');
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 
     public function assignedTo()
