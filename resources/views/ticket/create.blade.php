@@ -10,7 +10,7 @@
         left: 0;
         width: 100vw;
         height: 100vh;
-        display: flex;
+        display: none;
         justify-content: center;
         align-items: center;
         background-color: white;
