@@ -125,7 +125,7 @@ class TicketController extends Controller
         $ticket->priority = $priority ?? 'medium';
         $ticket->department = $request->department ?? 'Administration';
         $ticket->issue_category_id = $request->issue_category_id ?: null;
-        $ticket->sla_days = $request->sla_days ?: ($cat->sla_days ?? 7);
+        $ticket->sla_days = $request->sla_days;
         $ticket->opened_by = $user->id;
         $ticket->datetime_open = now();
         $ticket->date_raised = now();

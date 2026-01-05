@@ -4,6 +4,18 @@
 
 @section('content')
 @include('partials.fullscreen_loader')
+<?php
+    $user = Sentinel::getUser();
+    if ($user) {
+        $role = $user->role->role_id;
+        $office = $user->office->id;
+        $isAdmin = $role;
+    } else {
+        $role = null;
+        $office = null;
+        $isAdmin = $role;
+    }
+?>
 <div class="box box-primary">
     <div class="box-header with-border">
         <h3 class="box-title">Issue New Ticket</h3>
@@ -48,13 +60,14 @@
 
                 <div class="form-group">
                     <label for="sla_days">SLA (Days)</label>
-                    <input disabled type="number" min="0" class="form-control" name="sla_days" id="sla_days" value="">
+                    <input readonly type="number" min="0" class="form-control" name="sla_days" id="sla_days" value="">
                 </div>
-
+                @if($isAdmin == 1)
                 <div class="form-group">
                     <label for="due_date">Due Date (optional)</label>
                     <input type="date" class="form-control" name="due_date" id="due_date" value="">
                 </div>
+                @endif
                 <div class="form-group">
                     <label for="assigned_office">Office</label>
                     <select name="assigned_office" id="assigned_office" class="form-control text-dark">
