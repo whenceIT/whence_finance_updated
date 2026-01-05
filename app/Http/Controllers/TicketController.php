@@ -99,7 +99,7 @@ class TicketController extends Controller
         $request->validate([
             'name' => 'required',
             'priority' => 'required',
-            'department' => 'required',
+            'department' => 'nullable|string',
             'issue_category_id' => 'nullable|exists:ticket_categories,id',
             'sla_days' => 'nullable|integer|min:0',
             'due_date' => 'nullable|date',
@@ -123,7 +123,7 @@ class TicketController extends Controller
             if($cat && $cat->priority_default) $priority = strtolower($cat->priority_default);
         }
         $ticket->priority = $priority ?? 'medium';
-        $ticket->department = $request->department;
+        $ticket->department = $request->department ?? 'Administration';
         $ticket->assigned_to = $request->assigned_to;
         $ticket->issue_category_id = $request->issue_category_id ?: null;
         $ticket->sla_days = $request->sla_days ?: ($cat->sla_days ?? null);
