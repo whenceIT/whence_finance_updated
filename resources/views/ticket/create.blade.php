@@ -20,19 +20,19 @@
     #fullscreen-loader .content {
         text-align: center;
         background: rgba(255, 255, 255, 0.95);
-        padding: 5px;
-        border-radius: 15px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.4);
     }
     #fullscreen-loader .spinner {
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #007bff;
+        border: 2px solid #e0e0e0;
+        border-top: 2px solid #007bff;
         border-radius: 50%;
-        width: 30px;
-        height: 30px;
+        width: 24px;
+        height: 24px;
         animation: spin 1s linear infinite;
-        margin: 0 auto 15px;
+        margin: 0 auto 10px;
     }
     @keyframes spin {
         0% { transform: rotate(0deg); }
