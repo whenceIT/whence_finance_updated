@@ -26,7 +26,7 @@ class TicketController extends Controller
         $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
         if ($openCount >= 3) {
             Flash::error('You already have 3 open tickets. Please resolve or close an existing ticket before creating a new one.');
-            return redirect()->route('tickets.index');
+            return redirect()->route('ticket.index');
         }
 
         $users = User::all();
