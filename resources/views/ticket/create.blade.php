@@ -128,6 +128,7 @@
                             console.log('refreshUsers called', { office: office, role: role });
                             $('#assigned_to').attr('disabled', true).html('<option value="">Loading...</option>');
                             if(!office || !role){
+                                +
                                 $('#assigned_to').attr('disabled', true).html('<option value="">-- Select User --</option>');
                                 return;
                             }
