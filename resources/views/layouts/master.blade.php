@@ -160,6 +160,12 @@
     </div>
 </div>
 
+<style>
+  #announcementModal {
+    z-index: 9999;
+  }
+</style>
+
 
 
 
