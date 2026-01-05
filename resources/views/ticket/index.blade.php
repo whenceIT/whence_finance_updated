@@ -533,7 +533,7 @@
                                     @if($ticket->status != 'closed')
                                     <button type="button" class="btn btn-sm btn-danger open-close-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">Close</button>
                                     @else
-                                        <span class="text-muted">Closed</span>
+                                        <button type="button" class="btn btn-sm btn-warning open-close-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}" data-mode="rate">Rate</button>
                                     @endif
                                 </td>
                             </tr>
@@ -726,8 +726,16 @@
         $(document).on('click', '.open-close-modal', function(){
             var id = $(this).data('ticket-id');
             var name = $(this).data('ticket-name');
+            var mode = $(this).data('mode') || 'close';
             $('#closeTicketName').text(name);
             $('#closeTicketForm').attr('action', '{{ url('ticket') }}' + '/' + id + '/update');
+            if(mode === 'rate'){
+                $('#closeTicketModalLabel').text('Rate Ticket: ' + name);
+                $('#closeTicketForm button[type="submit"]').text('Submit Rating');
+            } else {
+                $('#closeTicketModalLabel').text('Close Ticket: ' + name);
+                $('#closeTicketForm button[type="submit"]').text('Close Ticket');
+            }
             $('#closeTicketModal').modal('show');
         });
 
