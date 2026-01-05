@@ -10,22 +10,31 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(5px);
         z-index: 9999;
         display: none;
         justify-content: center;
         align-items: center;
-        color: white;
-        font-size: 24px;
+        color: #333;
+        font-size: 18px;
+        font-weight: 500;
+    }
+    #fullscreen-loader .content {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
     #fullscreen-loader .spinner {
-        border: 8px solid #f3f3f3;
-        border-top: 8px solid #3498db;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007bff;
         border-radius: 50%;
-        width: 60px;
-        height: 60px;
+        width: 30px;
+        height: 30px;
         animation: spin 1s linear infinite;
-        margin-right: 20px;
+        margin: 0 auto 15px;
     }
     @keyframes spin {
         0% { transform: rotate(0deg); }
@@ -33,7 +42,7 @@
     }
 </style>
 <div id="fullscreen-loader">
-    <div style="text-align: center;">
+    <div class="content">
         <div class="spinner"></div>
         <div>Creating Ticket...</div>
     </div>
