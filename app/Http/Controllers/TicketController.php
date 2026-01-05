@@ -125,7 +125,7 @@ class TicketController extends Controller
         $ticket->priority = $priority ?? 'medium';
         $ticket->department = $request->department ?? 'Administration';
         $ticket->issue_category_id = $request->issue_category_id ?: null;
-        $ticket->sla_days = $request->sla_days;
+        $ticket->sla_days = $request->filled('sla_days') ? intval($request->sla_days) : null;
         $ticket->opened_by = $user->id;
         $ticket->datetime_open = now();
         $ticket->date_raised = now();
@@ -140,9 +140,9 @@ class TicketController extends Controller
         }
 
         // compute due_date if sla_days present and due_date not manually provided
-        if($ticket->sla_days && !$request->due_date){
+        if($ticket->sla_days && !$request->filled('due_date')){
             $ticket->due_date = now()->addDays(intval($ticket->sla_days));
-        } else if($request->due_date){
+        } else if($request->filled('due_date')){
             $ticket->due_date = $request->due_date;
         }
 

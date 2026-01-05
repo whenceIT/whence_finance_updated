@@ -188,12 +188,13 @@
                                 var office = $('#assigned_office').val();
                                 var role = $('#assigned_role').val();
                                 var assignedTo = $('#assigned_to').val();
-   
-                                if(name && priority && office && role && assignedTo){
+                                var slaDays = $('#sla_days').val();
+
+                                if(name && priority && office && role && assignedTo && slaDays){
                                     $('#fullscreen-loader').show();
                                 } else {
                                     e.preventDefault();
-                                    alert('Please fill in all required fields.');
+                                    alert('Please fill in all required fields, including selecting an issue category.');
                                     return false;
                                 }
                             });
