@@ -52,6 +52,34 @@
                     box-shadow: 0 0 6px rgba(241,196,15,0.25);
                     border-color: #f39c12;
                 }
+
+                /* Cool UI for ticket status conditions */
+                .ticket-status-done {
+                    background: linear-gradient(135deg, #28a745, #20c997);
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    text-align: center;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+
+                .ticket-status-working {
+                    background: linear-gradient(135deg, #ffc107, #fd7e14);
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    text-align: center;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    animation: pulse 2s infinite;
+                }
+
+                @keyframes pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.7; }
+                    100% { opacity: 1; }
+                }
             </style>
             <?php
                 $user = Sentinel::getUser();
@@ -471,9 +499,9 @@
                                         @if($ticket->stage != 'Started')
                                         <button type="button" class="btn btn-sm btn-primary open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">Assign</button>
                                         @elseif($ticket->status == 'resolved')
-                                        <p>DONE</p>
+                                        <div class="ticket-status-done">DONE</div>
                                         @else
-                                        <i>Working...</i>
+                                        <div class="ticket-status-working"><i class="fa fa-spinner fa-spin"></i> Working...</div>
                                         @endif
                                     @endif
                                 </td>
