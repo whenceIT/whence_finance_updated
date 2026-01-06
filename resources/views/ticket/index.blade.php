@@ -324,9 +324,9 @@
                         <button id="resetAnalysis" class="btn btn-default" style="margin-left:6px;">Reset</button>
                     </form>
 
-                    <div id="analysisResults" style="display:none; margin-top:20px;">
+                    <div id="analysisResults" style="display:none; margin-top:10px;">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-6" style="padding: 5px;">
                                 <h6>Performance Leaderboard</h6>
                                 <div id="leaderboardContainer">
                                     <table class="table table-sm table-bordered">
@@ -343,19 +343,19 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" style="padding: 5px;">
                                 <h6>Issue Category Analysis</h6>
-                                <canvas id="categoryChart" height="200"></canvas>
+                                <canvas id="categoryChart" height="150"></canvas>
                             </div>
                         </div>
-                        <div class="row" style="margin-top:20px;">
-                            <div class="col-md-6">
+                        <div class="row" style="margin-top:10px;">
+                            <div class="col-md-6" style="padding: 5px;">
                                 <h6>SLA Compliance by Category</h6>
-                                <canvas id="slaChart" height="200"></canvas>
+                                <canvas id="slaChart" height="150"></canvas>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" style="padding: 5px;">
                                 <h6>Resolution Time Distribution</h6>
-                                <canvas id="timeChart" height="200"></canvas>
+                                <canvas id="timeChart" height="150"></canvas>
                             </div>
                         </div>
                     </div>
@@ -372,9 +372,9 @@
                         <div class="col-md-3"><div class="well text-center"><strong id="closedPercent">—</strong><div>% Closed (in dataset)</div></div></div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-8"><canvas id="resolvedChart" height="140"></canvas></div>
-                        <div class="col-md-4"><canvas id="priorityChart" height="140"></canvas></div>
+                    <div class="row" style="margin-top:5px;">
+                        <div class="col-md-8" style="padding: 5px;"><canvas id="resolvedChart" height="100"></canvas></div>
+                        <div class="col-md-4" style="padding: 5px;"><canvas id="priorityChart" height="100"></canvas></div>
                     </div>
 
                     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
