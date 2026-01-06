@@ -231,6 +231,73 @@ class TicketController extends Controller
 
         $ticket->save();
 
+        // Send notification emails after operation
+        $currentUser = Sentinel::getUser();
+        $operation = '';
+
+        if ($request->has('assigned_to')) {
+            $operation = 'assignment';
+            $assignee = User::find($ticket->assigned_to);
+            $assigner = $currentUser;
+
+            // Email to assignee
+            if ($assignee && $assignee->email) {
+                try {
+                    Mail::to($assignee->email)->send(new SendSingleEmail(
+                        'Ticket Assigned to You',
+                        'You have been assigned a ticket: "' . $ticket->name . '" by ' . $assigner->first_name . ' ' . $assigner->last_name . '. Please check your ticket dashboard.'
+                    ));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send assignment email to assignee: ' . $e->getMessage());
+                }
+            }
+
+            // Email to assigner
+            if ($assigner && $assigner->email) {
+                try {
+                    Mail::to($assigner->email)->send(new SendSingleEmail(
+                        'Ticket Assignment Confirmation',
+                        'You have assigned ticket "' . $ticket->name . '" to ' . ($assignee ? $assignee->first_name . ' ' . $assignee->last_name : 'Unknown User') . '.'
+                    ));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send assignment email to assigner: ' . $e->getMessage());
+                }
+            }
+        } elseif ($request->has('status')) {
+            $operation = 'status_change';
+            $creator = User::find($ticket->opened_by);
+            $performer = $currentUser;
+            $statusText = ucfirst($request->status);
+
+            // Email to ticket creator
+            if ($creator && $creator->email) {
+                $message = 'Your ticket "' . $ticket->name . '" has been ' . strtolower($statusText) . ' by ' . $performer->first_name . ' ' . $performer->last_name . '.';
+                if ($request->status == 'closed' && $ticket->rating) {
+                    $message .= ' Rating: ' . $ticket->rating . '/5.';
+                }
+                try {
+                    Mail::to($creator->email)->send(new SendSingleEmail(
+                        'Ticket Status Update',
+                        $message
+                    ));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send status update email to creator: ' . $e->getMessage());
+                }
+            }
+
+            // Email to performer
+            if ($performer && $performer->email) {
+                try {
+                    Mail::to($performer->email)->send(new SendSingleEmail(
+                        'Ticket Status Update Confirmation',
+                        'You have ' . strtolower($statusText) . ' ticket "' . $ticket->name . '" for ' . ($creator ? $creator->first_name . ' ' . $creator->last_name : 'Unknown User') . '.'
+                    ));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send status update email to performer: ' . $e->getMessage());
+                }
+            }
+        }
+
         Flash::success(trans('general.successfully_saved'));
         return redirect()->back();
     }

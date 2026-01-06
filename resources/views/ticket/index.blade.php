@@ -87,6 +87,49 @@
                     font-weight: bold;
                     color: #333;
                 }
+
+                /* Pro UI for ticket actions */
+                .ticket-action {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-weight: 500;
+                    font-size: 0.9em;
+                    text-align: center;
+                    transition: all 0.2s ease;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+
+                .action-assign {
+                    background: linear-gradient(135deg, #007bff, #0056b3);
+                    color: white;
+                    border: none;
+                }
+
+                .action-assign:hover {
+                    background: linear-gradient(135deg, #0056b3, #004085);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                }
+
+                .action-resolved {
+                    background: linear-gradient(135deg, #28a745, #1e7e34);
+                    color: white;
+                }
+
+                .action-working {
+                    background: linear-gradient(135deg, #ffc107, #e0a800);
+                    color: white;
+                    animation: pulse-working 2s infinite;
+                }
+
+                @keyframes pulse-working {
+                    0% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.8; transform: scale(1.02); }
+                    100% { opacity: 1; transform: scale(1); }
+                }
             </style>
             <?php
                 $user = Sentinel::getUser();
@@ -149,7 +192,6 @@
                                 <td>{{ $ticket->name }}</td>
                                 <td>{{ ucfirst($ticket->priority) }}</td>
                                 <td>{{ $ticket->stage ?? '—' }}</td>
-                                <!-- <td>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</td> -->
                                 <td>Me</td>
                                 <td>{{ optional($ticket->createdBy)->first_name ?? optional($ticket->createdBy)->name ?? '—' }}</td>
                                 <td>{{ optional($ticket->issueCategory)->name ?? '—' }}</td>
@@ -725,12 +767,18 @@
                                 <td>
                                     @if($isAdmin == 1)
                                        @if($ticket->stage != 'Started')
-                                       <button type="button" class="btn btn-sm btn-primary open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">Assign</button>
-                                       @elseif($ticket->status == 'closed')
-                                       <p>DONE</p>
-                                       @else
-                                       <i>Working...</i>
-                                       @endif
+                                      <button type="button" class="ticket-action action-assign open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">
+                                          <i class="fa fa-user-plus"></i> Assign
+                                      </button>
+                                      @elseif($ticket->status == 'resolved')
+                                      <div class="ticket-action action-resolved">
+                                          <i class="fa fa-check-circle"></i> Resolved
+                                      </div>
+                                      @else
+                                      <div class="ticket-action action-working">
+                                          <i class="fa fa-cog fa-spin"></i> Working...
+                                      </div>
+                                      @endif
                                    @endif
                                 </td>
                             </tr>
