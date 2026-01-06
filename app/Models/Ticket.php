@@ -56,4 +56,9 @@ class Ticket extends Model
     {
         return $this->belongsTo(\App\Models\TicketCategory::class, 'issue_category_id', 'id');
     }
+
+    public function getTicketNumberAttribute()
+    {
+        return 'TICKT-' . $this->created_at->year . '-' . $this->id;
+    }
 }
