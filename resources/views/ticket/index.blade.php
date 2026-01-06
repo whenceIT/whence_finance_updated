@@ -326,24 +326,7 @@
 
                     <div id="analysisResults" style="display:none; margin-top:10px;">
                         <div class="row">
-                            <div class="col-md-6" style="padding: 5px;">
-                                <h6>Performance Leaderboard</h6>
-                                <div id="leaderboardContainer">
-                                    <table class="table table-sm table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>User</th>
-                                                <th>Tickets Resolved</th>
-                                                <th>Avg Resolution Time</th>
-                                                <th>SLA Compliance</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="leaderboardBody">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="col-md-6" style="padding: 5px;">
+                            <div class="col-md-12" style="padding: 5px;">
                                 <h6>Issue Category Analysis</h6>
                                 <canvas id="categoryChart" height="150"></canvas>
                             </div>
@@ -673,33 +656,7 @@
                             }
 
                             function renderAnalysis(tickets){
-                                // Leaderboard
-                                var userStats = {};
-                                tickets.forEach(function(t){
-                                    var userId = t.assigned_to;
-                                    var userName = t.assigned_to_name || 'Unknown';
-                                    if(!userStats[userId]){
-                                        userStats[userId] = { name: userName, resolved: 0, times: [], slaMet: 0, total: 0 };
-                                    }
-                                    userStats[userId].resolved++;
-                                    if(t.datetime_close && t.datetime_open){
-                                        var time = (new Date(t.datetime_close) - new Date(t.datetime_open)) / (1000 * 60 * 60); // hours
-                                        userStats[userId].times.push(time);
-                                    }
-                                    if(t.sla_met) userStats[userId].slaMet++;
-                                    userStats[userId].total++;
-                                });
-
-                                var leaderboard = Object.values(userStats).sort(function(a,b){ return b.resolved - a.resolved; });
-                                var tbody = '';
-                                leaderboard.forEach(function(stat){
-                                    var avgTime = stat.times.length ? (stat.times.reduce((a,b)=>a+b,0)/stat.times.length).toFixed(1) + 'h' : '—';
-                                    var slaPercent = stat.total ? Math.round((stat.slaMet/stat.total)*100) + '%' : '—';
-                                    tbody += '<tr><td>'+stat.name+'</td><td>'+stat.resolved+'</td><td>'+avgTime+'</td><td>'+slaPercent+'</td></tr>';
-                                });
-                                $('#leaderboardBody').html(tbody);
-
-                                // Category Chart
+                                 // Category Chart
                                 var categoryCounts = {};
                                 tickets.forEach(function(t){
                                     var cat = t.issue_category_name || 'Uncategorized';
