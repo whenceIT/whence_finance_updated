@@ -111,6 +111,16 @@
                             </li>
 			    @endif
 
+                @if(Sentinel::hasAccess('settings'))
+                                              <li>
+                                <a href="{{ url('user/performance_information') }}"><i
+                                            class="fa fa-circle-o"></i>Performance Information
+                                    <span class="pull-right-container">
+                                    </span>
+                                </a>
+                            </li>
+@endif
+
 			          @if(Sentinel::hasAccess('expenses'))
                             <li>
                                 <a href="{{ url('loan/top_up_approvals') }}"><i
