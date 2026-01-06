@@ -313,7 +313,7 @@
                     <div id="filteredResults" style="display:none;">
                         <h5>Filtered Tickets</h5>
                         <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                            <table class="table table-bordered table-striped table-condensed">
+                            <table id="filteredTable" class="table table-bordered table-striped table-condensed">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -380,6 +380,8 @@
                         <div class="col-md-4" style="padding: 5px;"><canvas id="priorityChart" height="100"></canvas></div>
                     </div>
 
+                    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+                    <script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
                     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                     <script>
                         (function($){
@@ -579,6 +581,11 @@
                                     $('#filteredResults .table-responsive').show();
                                     $('#noFilteredResults').hide();
                                     $('#filteredResults').show();
+                                    $('#filteredTable').DataTable({
+                                        pageLength: 20,
+                                        lengthMenu: [10, 20, 50, 100],
+                                        destroy: true
+                                    });
                                 } else {
                                     $('#filteredResults .table-responsive').hide();
                                     $('#noFilteredResults').show();
@@ -1158,6 +1165,26 @@
         $('#assign_role').on('change', function(){
             refreshAssignUsers();
         });
+
+        // Initialize DataTables for ticket tables with pagination
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            var target = $(e.target).attr('href');
+            if ($(target + ' table').length && !$.fn.DataTable.isDataTable(target + ' table')) {
+                $(target + ' table').DataTable({
+                    pageLength: 20,
+                    lengthMenu: [10, 20, 50, 100]
+                });
+            }
+        });
+
+        // Initialize the active tab's table on page load
+        var activeTab = $('.nav-tabs li.active a').attr('href');
+        if ($(activeTab + ' table').length) {
+            $(activeTab + ' table').DataTable({
+                pageLength: 20,
+                lengthMenu: [10, 20, 50, 100]
+            });
+        }
 
     })(jQuery);
 </script>
