@@ -52,7 +52,13 @@ class TicketController extends Controller
             ->where('assigned_to', $user->id)
             ->whereIn('status', ['resolved', 'closed'])
             ->orderBy('datetime_close', 'desc')
-            ->get();
+            ->get()
+            ->map(function($ticket){
+                $ticket->opened_by_office_id = $ticket->openedBy->office_id ?? null;
+                $ticket->assigned_to_name = $ticket->assignedTo ? ($ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name) : 'Unassigned';
+                $ticket->issue_category_name = $ticket->issueCategory->name ?? 'Uncategorized';
+                return $ticket;
+            });
 
         $myTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy', 'issueCategory'])
             ->where('opened_by', $user->id)
@@ -65,7 +71,13 @@ class TicketController extends Controller
             ->where('opened_by', $user->id)
             ->where('status', 'closed')
             ->orderBy('datetime_close', 'desc')
-            ->get();
+            ->get()
+            ->map(function($ticket){
+                $ticket->opened_by_office_id = $ticket->openedBy->office_id ?? null;
+                $ticket->assigned_to_name = $ticket->assignedTo ? ($ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name) : 'Unassigned';
+                $ticket->issue_category_name = $ticket->issueCategory->name ?? 'Uncategorized';
+                return $ticket;
+            });
 
         $users = User::all();
         $offices = \App\Models\Office::all();

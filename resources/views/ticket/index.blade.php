@@ -249,6 +249,9 @@
                         <div class="col-md-3"><div class="well text-center"><strong id="dashboardSlaPercent">{{ $dashboardTotals['slaCompliancePercent'] }}</strong><div>SLA compliance</div></div></div>
                     </div>
 
+                    <hr>
+
+                    <!-- Ticket Dashboard Search -->
                     <form id="summaryFilter" class="form-inline" onsubmit="return false;">
                         <div class="form-group">
                             <label for="summaryFrom">From</label>
@@ -261,6 +264,66 @@
                         <button id="applySummary" class="btn btn-primary" style="margin-left:10px;">Apply</button>
                         <button id="resetSummary" class="btn btn-default" style="margin-left:6px;">Reset</button>
                     </form>
+
+                    <hr>
+
+                    <!-- Advanced Ticket Analysis -->
+                    <h5>Advanced Analysis</h5>
+                    <form id="analysisFilter" class="form-inline" onsubmit="return false;">
+                        <div class="form-group">
+                            <label for="analysisBranch">Branch</label>
+                            <select id="analysisBranch" class="form-control">
+                                <option value="">All Branches</option>
+                                @foreach($offices as $office)
+                                    <option value="{{ $office->id }}">{{ $office->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-left:10px;">
+                            <label for="analysisUser">User</label>
+                            <select id="analysisUser" class="form-control" disabled>
+                                <option value="">All Users</option>
+                            </select>
+                        </div>
+                        <button id="applyAnalysis" class="btn btn-success" style="margin-left:10px;">Analyze</button>
+                        <button id="resetAnalysis" class="btn btn-default" style="margin-left:6px;">Reset</button>
+                    </form>
+
+                    <div id="analysisResults" style="display:none; margin-top:20px;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Performance Leaderboard</h6>
+                                <div id="leaderboardContainer">
+                                    <table class="table table-sm table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Tickets Resolved</th>
+                                                <th>Avg Resolution Time</th>
+                                                <th>SLA Compliance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="leaderboardBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Issue Category Analysis</h6>
+                                <canvas id="categoryChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top:20px;">
+                            <div class="col-md-6">
+                                <h6>SLA Compliance by Category</h6>
+                                <canvas id="slaChart" height="200"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Resolution Time Distribution</h6>
+                                <canvas id="timeChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Display chosen range as a prominent human-readable title -->
                     <div style="margin-top:8px; margin-bottom:6px;">
@@ -441,6 +504,173 @@
 
                             $('#applySummary').on('click', function(){ applyFilter(); });
                             $('#resetSummary').on('click', function(){ $('#summaryFrom, #summaryTo').val(''); try{ localStorage.removeItem('ticketSummaryFrom'); localStorage.removeItem('ticketSummaryTo'); }catch(e){} applyFilter(); });
+
+                            // Advanced Analysis
+                            var categoryChart, slaChart, timeChart;
+
+                            $('#analysisBranch').on('change', function(){
+                                loadUsersForBranch();
+                            });
+
+                            function loadUsersForBranch(){
+                                var branchId = $('#analysisBranch').val();
+                                $('#analysisUser').attr('disabled', true).html('<option value="">Loading...</option>');
+                                if(!branchId){
+                                    $('#analysisUser').html('<option value="">All Users</option>').attr('disabled', true);
+                                    return;
+                                }
+                                $.get('{{ url("ticket/users") }}', { office_id: branchId, type: 'analysis' })
+                                 .done(function(resp){
+                                     if(resp.success){
+                                         var opts = '<option value="">All Users</option>';
+                                         resp.users.forEach(function(u){
+                                             opts += '<option value="'+u.id+'">'+u.display+'</option>';
+                                         });
+                                         $('#analysisUser').html(opts).attr('disabled', false);
+                                     } else {
+                                         $('#analysisUser').html('<option value="">No users</option>').attr('disabled', true);
+                                     }
+                                 })
+                                 .fail(function(){
+                                     $('#analysisUser').html('<option value="">Error loading</option>').attr('disabled', true);
+                                 });
+                            }
+
+                            $('#applyAnalysis').on('click', function(){
+                                applyAnalysis();
+                            });
+
+                            $('#resetAnalysis').on('click', function(){
+                                $('#analysisBranch, #analysisUser').val('');
+                                $('#analysisUser').attr('disabled', true);
+                                $('#analysisResults').hide();
+                            });
+
+                            function applyAnalysis(){
+                                var branchId = $('#analysisBranch').val();
+                                var userId = $('#analysisUser').val();
+                                var from = $('#summaryFrom').val();
+                                var to = $('#summaryTo').val();
+
+                                var fromDate = from ? new Date(from+'T00:00:00') : null;
+                                var toDate = to ? new Date(to+'T23:59:59') : null;
+
+                                // Filter tickets
+                                var filtered = closedTickets.filter(function(t){
+                                    var d = parseDateStr(t.datetime_close || t.updated_at || t.datetime_open || t.created_at);
+                                    if(!d) return false;
+                                    if(fromDate && d < fromDate) return false;
+                                    if(toDate && d > toDate) return false;
+                                    if(branchId && t.opened_by_office_id != branchId) return false;
+                                    if(userId && t.assigned_to != userId) return false;
+                                    return true;
+                                });
+
+                                renderAnalysis(filtered);
+                                $('#analysisResults').show();
+                            }
+
+                            function renderAnalysis(tickets){
+                                // Leaderboard
+                                var userStats = {};
+                                tickets.forEach(function(t){
+                                    var userId = t.assigned_to;
+                                    var userName = t.assigned_to_name || 'Unknown';
+                                    if(!userStats[userId]){
+                                        userStats[userId] = { name: userName, resolved: 0, times: [], slaMet: 0, total: 0 };
+                                    }
+                                    userStats[userId].resolved++;
+                                    if(t.datetime_close && t.datetime_open){
+                                        var time = (new Date(t.datetime_close) - new Date(t.datetime_open)) / (1000 * 60 * 60); // hours
+                                        userStats[userId].times.push(time);
+                                    }
+                                    if(t.sla_met) userStats[userId].slaMet++;
+                                    userStats[userId].total++;
+                                });
+
+                                var leaderboard = Object.values(userStats).sort(function(a,b){ return b.resolved - a.resolved; });
+                                var tbody = '';
+                                leaderboard.forEach(function(stat){
+                                    var avgTime = stat.times.length ? (stat.times.reduce((a,b)=>a+b,0)/stat.times.length).toFixed(1) + 'h' : '—';
+                                    var slaPercent = stat.total ? Math.round((stat.slaMet/stat.total)*100) + '%' : '—';
+                                    tbody += '<tr><td>'+stat.name+'</td><td>'+stat.resolved+'</td><td>'+avgTime+'</td><td>'+slaPercent+'</td></tr>';
+                                });
+                                $('#leaderboardBody').html(tbody);
+
+                                // Category Chart
+                                var categoryCounts = {};
+                                tickets.forEach(function(t){
+                                    var cat = t.issue_category_name || 'Uncategorized';
+                                    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                                });
+                                var labels = Object.keys(categoryCounts);
+                                var data = labels.map(function(l){ return categoryCounts[l]; });
+
+                                if(!categoryChart){
+                                    var ctx = document.getElementById('categoryChart').getContext('2d');
+                                    categoryChart = new Chart(ctx, {
+                                        type: 'pie',
+                                        data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#ff6384','#36a2eb','#ffcd56','#4bc0c0','#9966ff','#ff9f40'] }] },
+                                        options: { responsive: true, maintainAspectRatio: false }
+                                    });
+                                } else {
+                                    categoryChart.data.labels = labels;
+                                    categoryChart.data.datasets[0].data = data;
+                                    categoryChart.update();
+                                }
+
+                                // SLA Chart
+                                var slaStats = {};
+                                tickets.forEach(function(t){
+                                    var cat = t.issue_category_name || 'Uncategorized';
+                                    if(!slaStats[cat]) slaStats[cat] = { met: 0, total: 0 };
+                                    slaStats[cat].total++;
+                                    if(t.sla_met) slaStats[cat].met++;
+                                });
+                                var slaLabels = Object.keys(slaStats);
+                                var slaData = slaLabels.map(function(l){ return Math.round((slaStats[l].met / slaStats[l].total) * 100); });
+
+                                if(!slaChart){
+                                    var ctx = document.getElementById('slaChart').getContext('2d');
+                                    slaChart = new Chart(ctx, {
+                                        type: 'bar',
+                                        data: { labels: slaLabels, datasets: [{ label: 'SLA Compliance %', data: slaData, backgroundColor: '#28a745' }] },
+                                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+                                    });
+                                } else {
+                                    slaChart.data.labels = slaLabels;
+                                    slaChart.data.datasets[0].data = slaData;
+                                    slaChart.update();
+                                }
+
+                                // Time Chart
+                                var timeBuckets = { '0-1h': 0, '1-4h': 0, '4-24h': 0, '1-7d': 0, '7d+': 0 };
+                                tickets.forEach(function(t){
+                                    if(t.datetime_close && t.datetime_open){
+                                        var hours = (new Date(t.datetime_close) - new Date(t.datetime_open)) / (1000 * 60 * 60);
+                                        if(hours <= 1) timeBuckets['0-1h']++;
+                                        else if(hours <= 4) timeBuckets['1-4h']++;
+                                        else if(hours <= 24) timeBuckets['4-24h']++;
+                                        else if(hours <= 168) timeBuckets['1-7d']++;
+                                        else timeBuckets['7d+']++;
+                                    }
+                                });
+                                var timeLabels = Object.keys(timeBuckets);
+                                var timeData = timeLabels.map(function(l){ return timeBuckets[l]; });
+
+                                if(!timeChart){
+                                    var ctx = document.getElementById('timeChart').getContext('2d');
+                                    timeChart = new Chart(ctx, {
+                                        type: 'doughnut',
+                                        data: { labels: timeLabels, datasets: [{ data: timeData, backgroundColor: ['#e74c3c','#f39c12','#f1c40f','#27ae60','#3498db'] }] },
+                                        options: { responsive: true, maintainAspectRatio: false }
+                                    });
+                                } else {
+                                    timeChart.data.labels = timeLabels;
+                                    timeChart.data.datasets[0].data = timeData;
+                                    timeChart.update();
+                                }
+                            }
 
                             $(document).ready(function(){
                                 // restore stored values if present
@@ -733,10 +963,10 @@
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="viewTicketModalLabel"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ticket-perforated-fill" viewBox="0 0 16 16">
+            <h5 class="modal-title" id="viewTicketModalLabel"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" class="bi bi-ticket-perforated-fill" viewBox="0 0 16 16">
                 <path d="M0 4.5A1.5 1.5 0 0 1 1.5 3h13A1.5 1.5 0 0 1 16 4.5V6a.5.5 0 0 1-.5.5 1.5 1.5 0 0 0 0 3 .5.5 0 0 1 .5.5v1.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 11.5V10a.5.5 0 0 1 .5-.5 1.5 1.5 0 1 0 0-3A.5.5 0 0 1 0 6zm4-1v1h1v-1zm1 3v-1H4v1zm7 0v-1h-1v1zm-1-2h1v-1h-1zm-6 3H4v1h1zm7 1v-1h-1v1zm-7 1H4v1h1zm7 1v-1h-1v1zm-8 1v1h1v-1zm7 1h1v-1h-1z"/>
                 </svg><span id="viewTicketName"></span>
-            </h4>
+            </h5>
         </div>
         <div class="modal-body">
             <div class="form-group">
