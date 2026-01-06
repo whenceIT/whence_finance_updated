@@ -59,6 +59,6 @@ class Ticket extends Model
 
     public function getTicketNumberAttribute()
     {
-        return 'TICKT-' . $this->created_at->year . '-' . $this->id;
+        return 'TICKT-' . $this->created_at->year . '' . $this->id;
     }
 }
