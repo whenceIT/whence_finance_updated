@@ -266,7 +266,7 @@ class TicketController extends Controller
         try {
 
             // Optional: restrict to predefined allowed user ids (set in config/ticket.php)
-            $configKey = $type === 'assign' ? 'allowed_assigning_ids' : 'allowed_user_ids';
+            $configKey = $type === 'new' ? 'allowed_user_ids' : 'allowed_assigning_ids';
             $allowedUserIds = config('ticket.' . $configKey, []);
 
             $query = \DB::table('users')
