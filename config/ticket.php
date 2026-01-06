@@ -5,5 +5,5 @@ return [
     'allowed_user_ids' => [19],
     'allowed_assigning_ids' => [],
     // Emails to notify when ticket is created
-    'notification_emails' => ['admin@whence.com'],
+    'notification_emails' => ['nyeleti.br3mah@gmail.com'],
 ];
