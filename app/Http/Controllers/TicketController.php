@@ -138,7 +138,6 @@ class TicketController extends Controller
         if ($request->has('assigned_to')) {
             $ticket->assigned_to = $request->assigned_to;
             $ticket->assigned_by = Sentinel::getUser()->id;
-            $ticket->stage = 'Started';
         }
 
         // compute due_date if sla_days present and due_date not manually provided
