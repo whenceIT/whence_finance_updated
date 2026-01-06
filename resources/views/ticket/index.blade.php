@@ -470,6 +470,8 @@
                                     @if($isAdmin == 1)
                                         @if($ticket->stage != 'Started')
                                         <button type="button" class="btn btn-sm btn-primary open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">Assign</button>
+                                        @elseif($ticket->status == 'closed')
+                                        <p>DONE</p>
                                         @else
                                         <i>Working...</i>
                                         @endif
