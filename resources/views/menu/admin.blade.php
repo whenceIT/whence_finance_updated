@@ -42,6 +42,12 @@
                 </a>
 	        </li>
 
+            <li class="@if(Request::is('ticket*')) active @endif">
+                <a href="{{ url('ticket') }}">
+                    <i class="fa fa-ticket"></i> <span>Tickets</span>
+                </a>
+            </li>
+            
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/cycle') }}">
                     <i class="fa fa-dashboard"></i> <span>My Cycle</span>
@@ -1156,8 +1162,6 @@
                     </ul>
                 </li>
             @endif
-
-
 
 
             @if(Sentinel::hasAccess('communication'))

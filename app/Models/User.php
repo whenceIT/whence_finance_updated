@@ -26,8 +26,8 @@ class User extends EloquentUser
         'from_time',
         'to_time',
         'access_days',
-	'picture',
-	'status',
+        'picture',
+        'status',
     ];
     public function payroll()
     {
@@ -48,18 +48,19 @@ class User extends EloquentUser
 
     public function cycle_dates()
     {
-        return $this->hasOne(CycleDates::class, 'loan_officer_id','id');
+        return $this->hasOne(CycleDates::class, 'loan_officer_id', 'id');
     }
 
     public function loan()
     {
-        return $this->hasMany(Loan::class,'loan_officer_id','id');
+        return $this->hasMany(Loan::class, 'loan_officer_id', 'id');
     }
 
-    public function role(){
-        return $this->hasOne(UserRole::class,'user_id','id','role_id');
+    public function role()
+    {
+        return $this->hasOne(UserRole::class, 'user_id', 'id', 'role_id');
     }
-     public function advances()
+    public function advances()
     {
         return $this->hasMany(Advance::class, 'user_id', 'id');
     }
@@ -70,13 +71,19 @@ class User extends EloquentUser
     }
 
 
-    public function dual_role(){
-        return $this->hasOne(DualRole::class,'user_id','id','role_id');
+    public function dual_role()
+    {
+        return $this->hasOne(DualRole::class, 'user_id', 'id', 'role_id');
     }
 
     public function userPolicyResponses()
     {
         return $this->hasMany(UserPolicyResponse::class);
+    }
+
+    public function inductionChecklist()
+    {
+        return $this->hasMany(InductionChecklist::class);
     }
 
 

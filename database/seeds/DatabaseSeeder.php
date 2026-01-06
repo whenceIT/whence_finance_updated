@@ -22,5 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call(LoanProvisioningCriteriaTableSeeder::class);
         $this->call(OfficeTableSeeder::class);
         $this->call(PayrollTemplateTableSeeder::class);
+        // Ticket categories
+        $this->call(TicketCategoriesSeeder::class);
     }
 }

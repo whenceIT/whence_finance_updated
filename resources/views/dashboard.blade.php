@@ -2020,9 +2020,12 @@
     @if($role->role_id == '1' || $role->role_id == '10')
         <div
             style="display: flex;
-                                                                                                                                align-items: center;
-                                                                                                                                justify-content: center; padding-bottom: 10px; ">
+                                    align-items: center;
+                                        justify-content: center; padding-bottom: 10px; ">
 
+            <a target="_blank" href="https://erp.whencefinancesystem.com" style="margin: 10px;">
+                <span class="label label-warning" style="font-size: 15px;"><i class="fa fa-external-link"></i> ERP Dashboard</span>
+            </a>
             <a href="{{ url('user/detailed_dashboard')}}" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Detailed Dashboard</span>
             </a>
@@ -2040,7 +2043,7 @@
                 <span class="label label-primary" style="font-size: 15px;">Daily figures</span>
             </a>
 
-            <a href="#" data-toggle="modal" data-target="#institutionMetricsModal" style="margin: 10px;">
+            <a href="{{ route('performance.institution_metrics') }}" target="_blank" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Institution Metrics</span>
             </a>
 

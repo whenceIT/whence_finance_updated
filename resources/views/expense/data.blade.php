@@ -195,40 +195,6 @@
             responsive: false
         });
     </script>
-    <script>
-        $(document).ready(function() {
-            
-            $('#search-button').click(function() {
-                var startDate = $('#start_date').val();
-                var endDate = $('#end_date').val();
-                var officeId = $('#office_id').val();
-        
-                $.ajax({
-                    url: '{{ url()->current() }}',
-                    method: 'GET',
-                    data: {
-                        start_date: startDate,
-                        end_date: endDate,
-                        office_id: officeId
-                    },
-                    success: function(response) {
-                        $('#data-table tbody').html(response);
-                    }
-                });
-            });
-
-            $('#reset-button').click(function() {
-                $('form')[0].reset();
-                $.ajax({
-                    url: '{{ url()->current() }}',
-                    method: 'GET',
-                    success: function(response) {
-                        $('#data-table tbody').html(response);
-                    }
-                });
-            });
-        });
-    </script>
 @endsection
 
 
