@@ -333,18 +333,6 @@
                         </div>
                     </div>
 
-                    <!-- Display chosen range as a prominent human-readable title -->
-                    <div style="margin-top:8px; margin-bottom:6px;">
-                        <h3 id="summaryRange" class="text-bold" style="font-weight:700;margin:0;">Tickets — All time</h3>
-                    </div>
-
-                    <div class="row" style="margin-top:10px;">
-                        <div class="col-md-3"><div class="well text-center"><strong id="totalResolved">0</strong><div>Resolved Tickets</div></div></div>
-                        <div class="col-md-3"><div class="well text-center"><strong id="avgRating">—</strong><div>Avg Rating</div></div></div>
-                        <div class="col-md-3"><div class="well text-center"><strong id="avgTime">—</strong><div>Avg Resolution Time</div></div></div>
-                        <div class="col-md-3"><div class="well text-center"><strong id="closedPercent">—</strong><div>% Closed (in dataset)</div></div></div>
-                    </div>
-
                     <div class="row" style="margin-top:5px;">
                         <div class="col-md-8" style="padding: 5px;"><canvas id="resolvedChart" height="100"></canvas></div>
                         <div class="col-md-4" style="padding: 5px;"><canvas id="priorityChart" height="100"></canvas></div>
