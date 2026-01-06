@@ -500,7 +500,7 @@
                                 <td>{!! is_null($ticket->sla_met) ? '&#8212;' : ($ticket->sla_met ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>') !!}</td>
                                 <td>{{ $ticket->rating ?? '—' }}</td>
                                 <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $ticket->remarks ?? '—' }}</td>
-                                <td><button type="button" class="btn btn-xs btn-info view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" title="View details"><i class="fa fa-info-circle"></i></button></td>
+                                <td><button type="button" class="btn btn-xs btn-info view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" title="View details"><i class="fa fa-info-circle"></i></button></td>
                                 <td>
                                     @if($isAdmin == 1)
                                         @if($ticket->stage != 'Started')
@@ -745,6 +745,14 @@
                 <div id="ticketOpenedBy">&mdash;</div>
             </div>
             <div class="form-group">
+                <label>Phone</label>
+                <div id="ticketOpenedPhone">&mdash;</div>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <div id="ticketOpenedEmail">&mdash;</div>
+            </div>
+            <div class="form-group">
                 <label>Time ago Opened</label>
                 <div id="ticketOpenedAt">&mdash;</div>
             </div>
@@ -799,11 +807,15 @@
             var description = $(this).data('ticket-description') || '';
             var days = $(this).data('ticket-days') || '—';
             var openedBy = $(this).data('opened-by') || '—';
+            var openedPhone = $(this).data('opened-phone') || '—';
+            var openedEmail = $(this).data('opened-email') || '—';
             var openedAt = $(this).data('opened-at') || '—';
 
             $('#viewTicketName').text(name);
             $('#ticketNumber').text(ticketNumber);
             $('#ticketOpenedBy').text(openedBy);
+            $('#ticketOpenedPhone').text(openedPhone);
+            $('#ticketOpenedEmail').text(openedEmail);
             $('#ticketOpenedAt').text(openedAt);
             $('#ticketDescription').text(description ? description : 'No description provided.');
             $('#ticketDays').text(days);
