@@ -117,6 +117,8 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <!-- jQuery 2.2.3 -->
+
+    
     <script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/jqueryui/jquery-ui.min.js') }}" type="text/javascript"></script>
     <!-- Bootstrap 3.3.6 -->
@@ -138,17 +140,23 @@
     }
 ?>
 
-<div class="modal fade" id="announcementModal" tabindex="-2" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
+<div class="modal fade" id="announcementModal" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-header bg-primary">
+        <h4 class="modal-title text-white" id="announcementTitle"></h4>
+      </div>
 
-            <div class="modal-header bg-primary">
-                <h4 class="modal-title text-white" id="announcementTitle"></h4>
-            </div>
+      <div class="modal-body">
+        <p id="announcementMessage"></p>
+      </div>
 
-            <div class="modal-body">
-                <p id="announcementMessage"></p>
-            </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="closeAnnouncement">
+          Close
+        </button>
+      </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" id="closeAnnouncement">
@@ -165,6 +173,7 @@
     z-index: 9999;
   }
 </style>
+
 
 
 

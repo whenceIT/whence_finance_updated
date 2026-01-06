@@ -256,6 +256,12 @@ class UserController extends Controller
     }
 
 
+    public function performance_information(){
+        $offices = Office::get();
+        return view('user.performance_information',compact('offices'));
+    }
+
+
 
     public function submit_appraisal(Request $request, $id)
     {

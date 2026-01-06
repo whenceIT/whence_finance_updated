@@ -1435,82 +1435,70 @@
             </div>
         </div>
 
-        <?php
-            $office_id = Sentinel::getUser()->office_id;
-                                                                                                                        ?>
-        <div id="pendingWidget" style="
-                                                                                                                            position: fixed;
-                                                                                                                            top: 20px;
-                                                                                                                            left: 50%;
-                                                                                                                            transform: translateX(-50%);
-                                                                                                                            width: 90%;
-                                                                                                                            max-width: 350px;
-                                                                                                                            background: #fefefe;
-                                                                                                                            border-radius: 15px;
-                                                                                                                            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-                                                                                                                            overflow: hidden;
-                                                                                                                            z-index: 9999;
-                                                                                                                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                                                                                                            cursor: move;
-                                                                                                                            transition: transform 0.2s ease;
-                                                                                                                        ">
-            <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
-                <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id', $office_id)->count() }}
-                </p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
-                <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\LoanTransactionUnapproved::where('office_id', $office_id)->count() }}
-                </p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
-                <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\LoanTransactionsPending::where('office_id', $office_id)->count() }}
-                </p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
-                <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\WaiverTransactionUnapproved::where('status', 'pending')->where('office_id', $office_id)->count() }}
-                </p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
-                <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\ChargeTransactionUnapproved::where('status', 'pending')->where('office_id', $office_id)->count() }}
-                </p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
-                <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{\App\Models\Client::where('status', 'pending')->where('office_id', $office_id)->count() }}
-                </p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
-                <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Advance::where('status', 'pending')
-                ->where('office_id', $office_id)
-                ->count()}}</p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
-                <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\TopUp::where('status', 'pending')
-                ->where('office_id', $office_id)
-                ->count()}}</p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
-                <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{
-                \App\Models\Leave::where('status', 'pending')
-                    ->where('office_id', $office_id)
-                    ->count()}}</p>
-            </div>
-        </div>
-    @endif
+ <?php
+                                            $office_id = Sentinel::getUser()->office_id;
+?>
+<div id="pendingWidget" style="
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 350px;
+    background: #fefefe;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    overflow: hidden;
+    z-index: 9998;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    cursor: move;
+    transition: transform 0.2s ease;
+">
+    <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
+        <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
+        <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
+        <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
+        <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
+        <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
+        <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
+        <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Advance::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count()}}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
+        <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\TopUp::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count()}}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
+        <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{
+             \App\Models\Leave::where('status', 'pending')
+                                            ->where('office_id', $office_id)
+                                            ->count()}}</p>
+    </div>
+</div>
+@endif
 
 
     <!-- What PMs see -->
@@ -2596,37 +2584,34 @@
             </div>
         </div>
 
-        <div id="pendingWidget" style="
-                                                                        position: fixed;
-                                                                        top: 20px;
-                                                                        left: 50%;
-                                                                        transform: translateX(-50%);
-                                                                        width: 90%;
-                                                                        max-width: 350px;
-                                                                        background: #fefefe;
-                                                                        border-radius: 15px;
-                                                                        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-                                                                        overflow: hidden;
-                                                                        z-index: 9999;
-                                                                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                                                        cursor: move;
-                                                                        transition: transform 0.2s ease;
-                                                                                                                            ">
-            <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
-                <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">
-                    {{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}
-                </p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
-                <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionUnapproved::count() }}
-                </p>
-            </div>
-            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
-                <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
-                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionsPending::count() }}</p>
-            </div>
+<div id="pendingWidget" style="
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 350px;
+    background: #fefefe;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    overflow: hidden;
+    z-index: 9998;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    cursor: move;
+    transition: transform 0.2s ease;
+">
+    <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
+        <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
+        <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionUnapproved::count() }}</p>
+    </div>
+    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
+        <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
+        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionsPending::count() }}</p>
+    </div>
 
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
                 <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
@@ -2884,14 +2869,11 @@
 
     @endif
 
-    <!-- Institution Metrics Modal for Admin -->
-    @if($role->role_id == '1' || $role->role_id == '10')
-    @endif
 
     @if($role->role_id == '6')
         <script>
 
-            function toggleMyStaf                   f(divid) {
+            function toggleMyStaff(divid) {
                 varon = divid + 'on';
                 varoff = divid + 'off';
 
