@@ -267,6 +267,41 @@
 
                     <hr>
 
+                    <!-- Filtered Tickets Results -->
+                    <div id="filteredResults" style="display:none;">
+                        <h5>Filtered Tickets</h5>
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-bordered table-striped table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Priority</th>
+                                        <th>Stage</th>
+                                        <th>Assigned To</th>
+                                        <th>Created By</th>
+                                        <th>Issue Category</th>
+                                        <th>Opened At</th>
+                                        <th>Closed At</th>
+                                        <th>Time to Close</th>
+                                        <th>SLA (Days)</th>
+                                        <th>Due Date</th>
+                                        <th>SLA Met</th>
+                                        <th>Rating</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="filteredTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="noFilteredResults" style="display:none; text-align:center; padding:20px;">
+                            <p>No tickets found for the selected date range.</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
                     <!-- Advanced Ticket Analysis -->
                     <h5>Advanced Analysis</h5>
                     <form id="analysisFilter" class="form-inline" onsubmit="return false;">
@@ -486,6 +521,68 @@
                                 $('#summaryRange').text(title);
                             }
 
+                            function renderFilteredTable(filtered){
+                                var tbody = '';
+                                filtered.forEach(function(t){
+                                    var slaMet = t.sla_met === null ? '—' : (t.sla_met ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>');
+                                    var openedAt = '—';
+                                    if(t.date_raised){
+                                        var d = new Date(t.date_raised);
+                                        openedAt = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+                                    } else if(t.datetime_open){
+                                        var d = new Date(t.datetime_open);
+                                        openedAt = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+                                    }
+                                    var closedAt = '—';
+                                    if(t.date_closed){
+                                        var d = new Date(t.date_closed);
+                                        closedAt = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+                                    } else if(t.datetime_close){
+                                        var d = new Date(t.datetime_close);
+                                        closedAt = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+                                    }
+                                    var timeToClose = '—';
+                                    if(t.date_closed){
+                                        var openDate = t.date_raised ? new Date(t.date_raised) : new Date(t.datetime_open);
+                                        var closeDate = new Date(t.date_closed);
+                                        var diffMs = closeDate - openDate;
+                                        timeToClose = secondsToHMS(Math.floor(diffMs / 1000));
+                                    }
+                                    var priority = t.priority ? t.priority.charAt(0).toUpperCase() + t.priority.slice(1).toLowerCase() : '—';
+                                    var assignedTo = t.assignedTo ? (t.assignedTo.first_name || t.assignedTo.name || '—') : '—';
+                                    var createdBy = t.createdBy ? (t.createdBy.first_name || t.createdBy.name || '—') : '—';
+                                    var issueCategory = t.issueCategory ? t.issueCategory.name : '—';
+                                    var dueDate = t.due_date ? new Date(t.due_date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) : '—';
+                                    tbody += '<tr>' +
+                                        '<td>' + (t.id || '—') + '</td>' +
+                                        '<td>' + (t.name || '—') + '</td>' +
+                                        '<td>' + priority + '</td>' +
+                                        '<td>' + (t.stage || '—') + '</td>' +
+                                        '<td>' + assignedTo + '</td>' +
+                                        '<td>' + createdBy + '</td>' +
+                                        '<td>' + issueCategory + '</td>' +
+                                        '<td>' + openedAt + '</td>' +
+                                        '<td>' + closedAt + '</td>' +
+                                        '<td>' + timeToClose + '</td>' +
+                                        '<td>' + (t.sla_days || '—') + '</td>' +
+                                        '<td>' + dueDate + '</td>' +
+                                        '<td>' + slaMet + '</td>' +
+                                        '<td>' + (t.rating || '—') + '</td>' +
+                                        '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (t.remarks || '—') + '</td>' +
+                                        '</tr>';
+                                });
+                                if(filtered.length > 0){
+                                    $('#filteredTableBody').html(tbody);
+                                    $('#filteredResults .table-responsive').show();
+                                    $('#noFilteredResults').hide();
+                                    $('#filteredResults').show();
+                                } else {
+                                    $('#filteredResults .table-responsive').hide();
+                                    $('#noFilteredResults').show();
+                                    $('#filteredResults').show();
+                                }
+                            }
+
                             function applyFilter(){
                                 var from = $('#summaryFrom').val();
                                 var to = $('#summaryTo').val();
@@ -500,6 +597,11 @@
                                 var toDate = to ? new Date(to+'T23:59:59') : null;
                                 var stats = computeStats(closedTickets, fromDate, toDate);
                                 updateUI(stats);
+                                if(from || to){
+                                    renderFilteredTable(stats.filtered);
+                                } else {
+                                    $('#filteredResults').hide();
+                                }
                             }
 
                             $('#applySummary').on('click', function(){ applyFilter(); });
