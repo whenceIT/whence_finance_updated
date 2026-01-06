@@ -43,13 +43,14 @@ class TicketController extends Controller
 
         $assignedTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy', 'issueCategory'])
             ->where('assigned_to', $user->id)
+            ->whereNotIn('status', ['resolved', 'closed'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // tickets assigned to this user that are closed (resolved by this user)
+        // tickets assigned to this user that are resolved or closed
         $assignedClosedTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy', 'issueCategory'])
             ->where('assigned_to', $user->id)
-            ->where('status', 'closed')
+            ->whereIn('status', ['resolved', 'closed'])
             ->orderBy('datetime_close', 'desc')
             ->get();
 
