@@ -584,7 +584,8 @@
                                     $('#filteredTable').DataTable({
                                         pageLength: 20,
                                         lengthMenu: [10, 20, 50, 100],
-                                        destroy: true
+                                        destroy: true,
+                                        order: [[0, 'desc']]
                                     });
                                 } else {
                                     $('#filteredResults .table-responsive').hide();
@@ -1172,7 +1173,8 @@
             if ($(target + ' table').length && !$.fn.DataTable.isDataTable(target + ' table')) {
                 $(target + ' table').DataTable({
                     pageLength: 20,
-                    lengthMenu: [10, 20, 50, 100]
+                    lengthMenu: [10, 20, 50, 100],
+                    order: [[0, 'desc']]
                 });
             }
         });
@@ -1182,7 +1184,8 @@
         if ($(activeTab + ' table').length) {
             $(activeTab + ' table').DataTable({
                 pageLength: 20,
-                lengthMenu: [10, 20, 50, 100]
+                lengthMenu: [10, 20, 50, 100],
+                order: [[0, 'desc']]
             });
         }
 
