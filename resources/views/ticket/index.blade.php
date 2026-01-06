@@ -320,8 +320,8 @@
                                 <option value="">All Users</option>
                             </select>
                         </div>
-                        <button id="applyAnalysis" class="btn btn-success" style="margin-left:10px;">Analyze</button>
-                        <button id="resetAnalysis" class="btn btn-default" style="margin-left:6px;">Reset</button>
+                        <!-- <button id="applyAnalysis" class="btn btn-success" style="margin-left:10px;">Analyze</button>
+                        <button id="resetAnalysis" class="btn btn-default" style="margin-left:6px;">Reset</button> -->
                     </form>
 
                     <div id="analysisResults" style="display:none; margin-top:10px;">
