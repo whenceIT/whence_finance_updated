@@ -583,7 +583,8 @@
                                     $('#filteredResults').show();
                                     $('#filteredTable').DataTable({
                                         pageLength: 20,
-                                        lengthMenu: [10, 20, 50, 100],
+                                        searching: false,
+                                        lengthChange: false,
                                         destroy: true,
                                         order: [[0, 'desc']]
                                     });
@@ -1173,7 +1174,8 @@
             if ($(target + ' table').length && !$.fn.DataTable.isDataTable(target + ' table')) {
                 $(target + ' table').DataTable({
                     pageLength: 20,
-                    lengthMenu: [10, 20, 50, 100],
+                    searching: false,
+                    lengthChange: false,
                     order: [[0, 'desc']]
                 });
             }
@@ -1184,7 +1186,8 @@
         if ($(activeTab + ' table').length) {
             $(activeTab + ' table').DataTable({
                 pageLength: 20,
-                lengthMenu: [10, 20, 50, 100],
+                searching: false,
+                lengthChange: false,
                 order: [[0, 'desc']]
             });
         }
