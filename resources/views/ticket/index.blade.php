@@ -326,11 +326,7 @@
 
                     <div id="analysisResults" style="display:none; margin-top:10px;">
                         <div class="row">
-                            <div class="col-md-6" style="padding: 5px;">
-                                <h6>SLA Compliance by Category</h6>
-                                <canvas id="slaChart" height="150"></canvas>
-                            </div>
-                            <div class="col-md-6" style="padding: 5px;">
+                            <div class="col-md-12" style="padding: 5px;">
                                 <h6>Resolution Time Distribution</h6>
                                 <canvas id="timeChart" height="150"></canvas>
                             </div>
@@ -650,31 +646,7 @@
                             }
 
                             function renderAnalysis(tickets){
-                                 // SLA Chart
-                                var slaStats = {};
-                                tickets.forEach(function(t){
-                                    var cat = t.issue_category_name || 'Uncategorized';
-                                    if(!slaStats[cat]) slaStats[cat] = { met: 0, total: 0 };
-                                    slaStats[cat].total++;
-                                    if(t.sla_met) slaStats[cat].met++;
-                                });
-                                var slaLabels = Object.keys(slaStats);
-                                var slaData = slaLabels.map(function(l){ return Math.round((slaStats[l].met / slaStats[l].total) * 100); });
-
-                                if(!slaChart){
-                                    var ctx = document.getElementById('slaChart').getContext('2d');
-                                    slaChart = new Chart(ctx, {
-                                        type: 'bar',
-                                        data: { labels: slaLabels, datasets: [{ label: 'SLA Compliance %', data: slaData, backgroundColor: '#28a745' }] },
-                                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
-                                    });
-                                } else {
-                                    slaChart.data.labels = slaLabels;
-                                    slaChart.data.datasets[0].data = slaData;
-                                    slaChart.update();
-                                }
-
-                                // Time Chart
+                                 // Time Chart
                                 var timeBuckets = { '0-1h': 0, '1-4h': 0, '4-24h': 0, '1-7d': 0, '7d+': 0 };
                                 tickets.forEach(function(t){
                                     if(t.datetime_close && t.datetime_open){
