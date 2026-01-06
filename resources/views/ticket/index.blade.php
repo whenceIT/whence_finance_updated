@@ -326,12 +326,6 @@
 
                     <div id="analysisResults" style="display:none; margin-top:10px;">
                         <div class="row">
-                            <div class="col-md-12" style="padding: 5px;">
-                                <h6>Issue Category Analysis</h6>
-                                <canvas id="categoryChart" height="150"></canvas>
-                            </div>
-                        </div>
-                        <div class="row" style="margin-top:10px;">
                             <div class="col-md-6" style="padding: 5px;">
                                 <h6>SLA Compliance by Category</h6>
                                 <canvas id="slaChart" height="150"></canvas>
@@ -656,29 +650,7 @@
                             }
 
                             function renderAnalysis(tickets){
-                                 // Category Chart
-                                var categoryCounts = {};
-                                tickets.forEach(function(t){
-                                    var cat = t.issue_category_name || 'Uncategorized';
-                                    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-                                });
-                                var labels = Object.keys(categoryCounts);
-                                var data = labels.map(function(l){ return categoryCounts[l]; });
-
-                                if(!categoryChart){
-                                    var ctx = document.getElementById('categoryChart').getContext('2d');
-                                    categoryChart = new Chart(ctx, {
-                                        type: 'pie',
-                                        data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#ff6384','#36a2eb','#ffcd56','#4bc0c0','#9966ff','#ff9f40'] }] },
-                                        options: { responsive: true, maintainAspectRatio: false }
-                                    });
-                                } else {
-                                    categoryChart.data.labels = labels;
-                                    categoryChart.data.datasets[0].data = data;
-                                    categoryChart.update();
-                                }
-
-                                // SLA Chart
+                                 // SLA Chart
                                 var slaStats = {};
                                 tickets.forEach(function(t){
                                     var cat = t.issue_category_name || 'Uncategorized';
