@@ -1440,8 +1440,8 @@
 ?>
 <div id="pendingWidget" style="
     position: fixed;
-    top: 50px;
-    left: 54%;
+    top: 80%;
+    left: 55%;
     transform: translateX(-50%);
     width: 90%;
     max-width: 350px;
@@ -2586,8 +2586,8 @@
 
 <div id="pendingWidget" style="
     position: fixed;
-    top: 50px;
-    left: 54%;
+    top: 80%;
+    left: 55%;
     transform: translateX(-50%);
     width: 90%;
     max-width: 350px;

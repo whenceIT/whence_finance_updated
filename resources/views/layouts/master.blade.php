@@ -204,8 +204,11 @@
                 @if($role && in_array($role, ['1']))
                 <!-- Search Bar -->
                 <div class="navbar-search" style="flex: 1; display: flex; justify-content: center; position: relative;">
-                    <input type="text" id="user-search" placeholder="Search users..." style="width: 300px; padding: 5px; border-radius: 4px; border: none;">
-                    <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ccc; width: 300px; max-height: 200px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
+                    <div style="position: relative;">
+                        <input type="text" id="user-search" placeholder="Search for staff..." style="width: 300px; padding: 8px 35px 8px 15px; border-radius: 25px; border: 2px solid #ddd; background: white; color: #333; font-size: 14px; outline: none; transition: border-color 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <i class="fa fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    </div>
+                    <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ddd; width: 300px; max-height: 250px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; margin-top: 5px;"></div>
                 </div>
                 @endif
 
@@ -634,8 +637,9 @@
                             results.empty();
                             if (data.length > 0) {
                                 data.forEach(function(user) {
-                                    var item = $('<div class="search-item" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;"></div>');
-                                    item.text(user.first_name + ' ' + user.last_name + ' (' + user.email + ')');
+                                    var item = $('<div class="search-item" style="padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; color: #333; font-size: 14px;"></div>');
+                                    item.html('<strong>' + user.first_name + ' ' + user.last_name + '</strong><br><small style="color: #666;">' + user.email + ' | ' + (user.office ? user.office.name : 'No Office') + '</small>');
+                                    item.hover(function() { $(this).css('background', '#f8f9fa'); }, function() { $(this).css('background', 'transparent'); });
                                     item.on('click', function() {
                                         window.location.href = '/user/' + user.id + '/staff_info';
                                     });
