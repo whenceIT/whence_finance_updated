@@ -1322,6 +1322,50 @@ $total_loans = 0;
 </div>
 
 
+<div class="panel box box-info">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapsePerformance">
+                Targets
+            </a>
+        </h4>
+    </div>
+
+    <div id="collapsePerformance" class="panel-collapse collapse">
+        <div class="box-body table-responsive">
+
+            <p class="text-info">
+                <i class="fa fa-filter"></i>
+                <i class="fa fa-calendar"></i>
+                Reporting Period:
+                <b><span id="cycleDates"></span></b>
+            </p>
+
+            <table class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>Consultant</th>
+                    <th>Office</th>
+                    <th class="text-right">Given Out</th>
+                    <th class="text-right">Still Uncollected</th>
+                </tr>
+                </thead>
+                <tbody id="performanceTableBody">
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        Expand to load performance data
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+
+
+
 
 
             </div>
@@ -1330,50 +1374,151 @@ $total_loans = 0;
 
 
 
-
-
-
-
-
-
-
-   
-
-      
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                           
-               
+              
               
     @endif
 @endsection
 @section('footer-scripts')
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const tableBody = document.getElementById('performanceTableBody');
+    let loaded = false;
+
+    function formatMoney(amount) {
+        return Number(amount || 0).toLocaleString();
+    }
+
+    // ✅ CURRENT ACTIVE CYCLE: 24th → 24th
+    function get24thTo24thRange() {
+        const today = new Date();
+
+        let start, end;
+
+        if (today.getDate() >= 24) {
+            start = new Date(today.getFullYear(), today.getMonth(), 24);
+            end   = new Date(today.getFullYear(), today.getMonth() + 1, 24);
+        } else {
+            start = new Date(today.getFullYear(), today.getMonth() - 1, 24);
+            end   = new Date(today.getFullYear(), today.getMonth(), 24);
+        }
+
+        function formatLocalDate(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        return {
+            start_date: formatLocalDate(start),
+            end_date: formatLocalDate(end)
+        };
+    }
+
+    async function loadPerformance() {
+        if (loaded) return;
+        loaded = true;
+
+        const officeId = "{{ $office_id }}";
+        const { start_date, end_date } = get24thTo24thRange();
+
+        document.getElementById('cycleDates').innerText =
+            `${start_date} to ${end_date}`;
+
+        let url = `https://lms2backend.whencefinancesystem.com/loan-consultant-performance-new`
+                + `?start_date=${start_date}&end_date=${end_date}`;
+
+        if (officeId && officeId !== "0") {
+            url += `&office_id=${officeId}`;
+        }
+
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    <i class="fa fa-spinner fa-spin"></i> Loading performance data...
+                </td>
+            </tr>
+        `;
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+
+            // 🎯 Base filter
+            const filtered = data.filter(row =>
+                Number(row.still_uncollected) < 5000 &&
+                Number(row.given_out) >= 40000
+            );
+
+            if (!filtered.length) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No consultants meet the criteria
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // 🔽 Sort highest performers first
+            filtered.sort((a, b) => Number(b.given_out) - Number(a.given_out));
+
+            tableBody.innerHTML = '';
+
+            let currentSection = null;
+
+            filtered.forEach(row => {
+                const givenOut = Number(row.given_out);
+
+                let section;
+                if (givenOut >= 120000) {
+                    section = '120,000+';
+                } else if (givenOut >= 80000) {
+                    section = '80,000+';
+                } else if (givenOut >= 50000) {
+                    section = '50,000+';
+                } else {
+                    section = '40,000+';
+                }
+
+                // 🔹 Insert section header only once
+                if (section !== currentSection) {
+                    currentSection = section;
+                    tableBody.innerHTML += `
+                        <tr class="bg-light-blue">
+                            <th colspan="6">Given Out ${section}</th>
+                        </tr>
+                    `;
+                }
+
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${row.name}</td>
+                        <td>${row.office}</td>
+                        <td class="text-right">${formatMoney(row.given_out)}</td>
+                        <td class="text-right text-danger">${formatMoney(row.still_uncollected)}</td>
+                    </tr>
+                `;
+            });
+
+        } catch (error) {
+            console.error(error);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Failed to load performance data
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    $('#collapsePerformance').on('shown.bs.collapse', loadPerformance);
+});
+</script>
+
 
 @endsection
