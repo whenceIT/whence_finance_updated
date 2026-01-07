@@ -210,6 +210,8 @@
                     </div>
                     <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ddd; width: 300px; max-height: 250px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; margin-top: 5px;"></div>
                 </div>
+                @else
+                <div class="col-md-10"></div>
                 @endif
 
                 <!-- Navbar Right Menu -->
@@ -247,7 +249,7 @@
                                                 <span style="font-size: 12px;">ERPNext</span>
                                             </a>
                                             @endif
-                                            
+
                                             @if($role && in_array($role, ['1','4','6','3','5','10']))
                                             <a href="#" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
                                                 <i class="fa fa-graduation-cap" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
