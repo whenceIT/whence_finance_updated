@@ -1,15 +1,22 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-$app = require_once __DIR__ . '/bootstrap/app.php';
+require 'vendor/autoload.php';
+$app = require_once 'bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-$db = Illuminate\Support\Facades\DB::connection();
-$results = $db->select('DESCRIBE migrations');
-print_r($results);
+$tables = ['users', 'role_users', 'activations', 'audit_trail', 'persistences', 'reminders', 'throttle'];
 
-$count = $db->table('migrations')->where('id', 0)->count();
-echo "\nCount of migrations with id 0: $count\n";
-
-$maxId = $db->table('migrations')->max('id');
-echo "Max migration id: $maxId\n";
+foreach ($tables as $table) {
+    try {
+        $res = DB::select("SHOW CREATE TABLE $table");
+        $create = (array) $res[0];
+        $sql = array_values($create)[1];
+        $has_ai = (strpos($sql, 'AUTO_INCREMENT') !== false);
+        echo "Table $table: " . ($has_ai ? "HAS AUTO_INCREMENT" : "NO AUTO_INCREMENT") . "\n";
+        if (!$has_ai) {
+            echo "SQL: $sql\n";
+        }
+    } catch (\Exception $e) {
+        echo "Table $table: Error - " . $e->getMessage() . "\n";
+    }
+}

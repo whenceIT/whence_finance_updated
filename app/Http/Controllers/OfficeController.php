@@ -53,7 +53,7 @@ class OfficeController extends Controller
             return redirect()->back();
         }
         //get custom fields
-        return view('office.create' );
+        return view('office.create');
     }
 
 
@@ -74,6 +74,7 @@ class OfficeController extends Controller
         $office->parent_id = $request->parent_id;
         $office->external_id = $request->external_id;
         $office->opening_date = $request->opening_date;
+        $office->branch_capacity = $request->branch_capacity;
         $office->save();
         GeneralHelper::audit_trail("Create", "Branches", $office->id);
         Flash::success(trans('general.successfully_saved'));
@@ -119,6 +120,7 @@ class OfficeController extends Controller
         $office->parent_id = $request->parent_id;
         $office->external_id = $request->external_id;
         $office->opening_date = $request->opening_date;
+        $office->branch_capacity = $request->branch_capacity;
         $office->notes = $request->notes;
         $office->save();
         GeneralHelper::audit_trail("Update", "Branches", $office->id);

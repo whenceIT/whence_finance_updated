@@ -63,6 +63,10 @@ class ExpenseController extends Controller
 
         $data = $query->get();
 
+        if ($request->ajax()) {
+            return response()->json($data);
+        }
+
         return view('expense.data', compact('data', 'start_date', 'end_date', 'office_id', 'offices'));
     }
 

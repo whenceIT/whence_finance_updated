@@ -1,4 +1,5 @@
 <?php
+// I'll wait for view_file result to find the exact line.
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,7 @@ use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
+use App\Http\Controllers\InductionController;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -134,6 +136,8 @@ Route::any('create_payroll_loan_application', 'HomeController@create_payroll_loa
 Route::get('dashboard', [UserController::class, 'dashboard']);
 Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');
+Route::post('induction/mark_as_seen', [InductionController::class, 'markAsSeen']);
+Route::post('induction/toggle_checklist_item', [InductionController::class, 'toggleChecklistItem']);
 
 //route for users
 Route::group(['prefix' => 'user'], function () {
@@ -145,7 +149,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('create', 'UserController@create');
     Route::post('store', 'UserController@store');
     Route::get('detailed_dashboard', 'UserController@detailed_dashboard');
-    //   Route::post('create_client_user','UserController@create_client_account');
+    // Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
     //active-inactive users
@@ -160,6 +164,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('profile', 'UserController@profile');
     Route::post('update_profile', 'UserController@profile_update');
     Route::get('{user}/staff_info', 'UserController@user_info');
+    Route::get('search', 'UserController@search');
     Route::any('{user}/{collection_type}/collections_stats', 'UserController@collections_stats');
     Route::any('{user}/{given_out_type}/given_out_stats', 'UserController@given_out_stats');
     Route::any('{user}/{uncollected_type}/uncollected_stats', 'UserController@uncollected_stats');
@@ -691,9 +696,12 @@ Route::group(['prefix' => 'report'], function () {
         Route::get('expense_report/pdf', 'ReportController@expense_report_pdf');
         Route::get('expense_report/excel', 'ReportController@expense_report_excel');
         Route::get('expense_report/csv', 'ReportController@expense_report_csv');
-        Route::get('/expense/expense-by-transaction-type', 'ExpenseController@expenseByTransactionType')->name('expense.expenseByTransactionType');
+        Route::get(
+            '/expense/expense-by-transaction-type',
+            'ExpenseController@expenseByTransactionType'
+        )->name('expense.expenseByTransactionType');
         //Route::post('expense_report/pdf', 'ExpenseController@expense_report_pdf');
-        //Route::get('expense/data', 'ExpenseController@filter')->name('expenses.index');
+//Route::get('expense/data', 'ExpenseController@filter')->name('expenses.index');
         Route::get('advance_report/pdf', 'ReportController@advance_report_pdf');
         Route::get('advance_report/excel', 'ReportController@advance_report_excel');
         Route::get('advance_report/csv', 'ReportController@advance_report_csv');
@@ -896,6 +904,18 @@ Route::group(['prefix' => 'custom_field'], function () {
     Route::get('{id}/delete', 'CustomFieldController@delete');
 
 });
+
+//route for tickets
+Route::group(['prefix' => 'ticket'], function () {
+    Route::get('/', 'TicketController@index');
+    Route::get('index', 'TicketController@index');
+    Route::get('create', 'TicketController@create');
+    Route::post('store', 'TicketController@store');
+    Route::match(['post', 'put'], '{id}/update', 'TicketController@update');
+    Route::get('users', 'TicketController@usersByOfficeRole');
+    Route::get('offices', 'TicketController@officesByParent');
+});
+
 //route for communication campaigns
 Route::group(['prefix' => 'communication'], function () {
 
@@ -970,8 +990,14 @@ Route::group(['prefix' => 'advance'], function () {
     Route::post('submit-top-up/{id}', 'AdvanceController@submitTopUp')->name('advances.submitTopUp');
     Route::post('approve/{id}', 'AdvanceController@approveTopUp')->name('topups.approve');
     Route::post('decline/{id}', 'AdvanceController@declineTopUp')->name('topups.decline');
-    Route::get('/topups_pending_approval', 'AdvanceController@topupPendingApprovals')->name('advances.topups_pending_approval');
-    Route::get('/active_advances_province_manager/{id}', 'AdvanceController@showAdvancesForProvinceManager')->name('advances.active_advances_province_managers');
+    Route::get(
+        '/topups_pending_approval',
+        'AdvanceController@topupPendingApprovals'
+    )->name('advances.topups_pending_approval');
+    Route::get(
+        '/active_advances_province_manager/{id}',
+        'AdvanceController@showAdvancesForProvinceManager'
+    )->name('advances.active_advances_province_managers');
 });
 
 //annual leave
@@ -1003,8 +1029,14 @@ Route::group(['prefix' => 'ledger'], function () {
 Route::group(['prefix' => 'performance_metrics'], function () {
     Route::get('/', [PerformanceMetricsController::class, 'index'])->name('performance_metrics.index');
     Route::get('/targets', [PerformanceMetricsController::class, 'targets'])->name('performance_metrics.targets');
-    Route::get('/uncollected', [PerformanceMetricsController::class, 'uncollected'])->name('performance_metrics.uncollected');
-    Route::get('/low_performance', [PerformanceMetricsController::class, 'lowPerformance'])->name('performance_metrics.low_performance');
+    Route::get('/uncollected', [
+        PerformanceMetricsController::class,
+        'uncollected'
+    ])->name('performance_metrics.uncollected');
+    Route::get('/low_performance', [
+        PerformanceMetricsController::class,
+        'lowPerformance'
+    ])->name('performance_metrics.low_performance');
     Route::get('/defaulted', [PerformanceMetricsController::class, 'defaulted'])->name('performance_metrics.defaulted');
 });
 
@@ -1395,6 +1427,7 @@ Route::group(['prefix' => 'hybrid'], function () {
         return handleHybridRoute($request, 'App\Http\Controllers\LoanController@new_collections');
     });
 
+    Route::get('institution_metrics', 'PerformanceMetricsController@institutionMetrics')->name('performance.institution_metrics');
 
 });
 
@@ -1424,10 +1457,3 @@ function handleHybridRoute(Request $request, $controllerMethod)
     // Call the controller method with the current request
     return app()->call($controllerMethod, ['request' => $request]);
 }
-
-
-
-
-
-
-
