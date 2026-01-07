@@ -238,6 +238,35 @@
                                         </p>
                                     </li>
 
+                                    <!-- External System Links -->
+                                    <li class="user-body" style="padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                            @if($role && in_array($role, ['1','4','6','9','10']))
+                                            <a href="https://erp.whencefinancesystem.com/app" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                                <i class="fa fa-cogs" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                                <span style="font-size: 12px;">ERPNext</span>
+                                            </a>
+                                            @endif
+                                            
+                                            @if($role && in_array($role, ['1','4','6','3','5','10']))
+                                            <a href="#" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                                <i class="fa fa-graduation-cap" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                                <span style="font-size: 12px;">365Training</span>
+                                            </a>
+                                            @endif
+
+                                            <a href="https://meet.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                                <i class="fa fa-video-camera" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                                <span style="font-size: 12px;">Google Meet</span>
+                                            </a>
+
+                                            <a href="https://mail.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                                <i class="fa fa-envelope" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                                <span style="font-size: 12px;">Gmail</span>
+                                            </a>
+                                        </div>
+                                    </li>
+
                                     <!-- Menu Footer-->
                                     <li class="user-footer">
                                         <div class="pull-left">
@@ -641,7 +670,10 @@
                                     item.html('<strong>' + user.first_name + ' ' + user.last_name + '</strong><br><small style="color: #666;">' + user.email + ' | ' + (user.office ? user.office.name : 'No Office') + '</small>');
                                     item.hover(function() { $(this).css('background', '#f8f9fa'); }, function() { $(this).css('background', 'transparent'); });
                                     item.on('click', function() {
-                                        window.location.href = '/user/' + user.id + '/staff_info';
+                                        $('#fullscreen-loader').fadeIn(200);
+                                        setTimeout(function() {
+                                            window.location.href = '/user/' + user.id + '/staff_info';
+                                        }, 100);
                                     });
                                     results.append(item);
                                 });
