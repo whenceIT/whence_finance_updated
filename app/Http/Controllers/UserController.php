@@ -1850,4 +1850,16 @@ class UserController extends Controller
         Flash::success("Successfully Saved");
         return redirect('user/role/data');
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->get('q');
+        $users = User::where('first_name', 'like', '%' . $query . '%')
+            ->orWhere('last_name', 'like', '%' . $query . '%')
+            ->orWhere('email', 'like', '%' . $query . '%')
+            ->with('office')
+            ->limit(10)
+            ->get();
+        return response()->json($users);
+    }
 }

@@ -193,13 +193,21 @@
             </a>
 
             <!-- Header Navbar: style can be found in header.less -->
-            <nav class="navbar navbar-static-top" style="background-color:#00a04a;">
+            <nav class="navbar navbar-static-top" style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
                 <!-- Sidebar toggle button-->
                 <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" style="color: #ffffff">
                     <span class="sr-only">
                         Toggle navigation
                     </span>
                 </a>
+
+                @if($role && in_array($role, ['1']))
+                <!-- Search Bar -->
+                <div class="navbar-search" style="flex: 1; display: flex; justify-content: center; position: relative;">
+                    <input type="text" id="user-search" placeholder="Search users..." style="width: 300px; padding: 5px; border-radius: 4px; border: none;">
+                    <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ccc; width: 300px; max-height: 200px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
+                </div>
+                @endif
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
@@ -609,7 +617,48 @@
     @yield('footer-scripts')
     <!-- ChartJS 1.0.1 -->
     <script src="{{ asset('assets/themes/adminlte/js/custom.js') }}">
+
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#user-search').on('input', function() {
+                var query = $(this).val();
+                if (query.length > 2) {
+                    $.ajax({
+                        url: '/user/search',
+                        method: 'GET',
+                        data: { q: query },
+                        success: function(data) {
+                            var results = $('#search-results');
+                            results.empty();
+                            if (data.length > 0) {
+                                data.forEach(function(user) {
+                                    var item = $('<div class="search-item" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;"></div>');
+                                    item.text(user.first_name + ' ' + user.last_name + ' (' + user.email + ')');
+                                    item.on('click', function() {
+                                        window.location.href = '/user/' + user.id + '/staff_info';
+                                    });
+                                    results.append(item);
+                                });
+                                results.show();
+                            } else {
+                                results.hide();
+                            }
+                        }
+                    });
+                } else {
+                    $('#search-results').hide();
+                }
+            });
+
+            // Hide results when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.navbar-search').length) {
+                    $('#search-results').hide();
+                }
+            });
+        });
     </script>
 </body>
-
 </html>

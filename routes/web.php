@@ -164,6 +164,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('profile', 'UserController@profile');
     Route::post('update_profile', 'UserController@profile_update');
     Route::get('{user}/staff_info', 'UserController@user_info');
+    Route::get('search', 'UserController@search');
     Route::any('{user}/{collection_type}/collections_stats', 'UserController@collections_stats');
     Route::any('{user}/{given_out_type}/given_out_stats', 'UserController@given_out_stats');
     Route::any('{user}/{uncollected_type}/uncollected_stats', 'UserController@uncollected_stats');

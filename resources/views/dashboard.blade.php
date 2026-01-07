@@ -1440,12 +1440,12 @@
 ?>
 <div id="pendingWidget" style="
     position: fixed;
-    top: 20px;
-    left: 50%;
+    top: 50px;
+    left: 54%;
     transform: translateX(-50%);
     width: 90%;
     max-width: 350px;
-    background: #fefefe;
+    background: #fefefeee;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     overflow: hidden;
@@ -2586,12 +2586,12 @@
 
 <div id="pendingWidget" style="
     position: fixed;
-    top: 20px;
-    left: 50%;
+    top: 50px;
+    left: 54%;
     transform: translateX(-50%);
     width: 90%;
     max-width: 350px;
-    background: #fefefe;
+    background: #fefefeee;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     overflow: hidden;
