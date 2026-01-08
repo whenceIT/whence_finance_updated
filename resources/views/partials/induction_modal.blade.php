@@ -157,6 +157,9 @@
                         <div id="audioStatus" style="margin-top: 20px; font-size: 14px; color: #000041; display: none; align-items: center; gap: 10px;">
                             <i class="fa fa-volume-up"></i> <span>Audio introduction playing... The Next button will appear once the audio finishes.</span>
                         </div>
+                        <div id="nextHintStep2" style="margin-top: 10px; font-size: 13px; color: #666; display: none;">
+                            <i class="fa fa-info-circle"></i> The Next button will appear once the audio finishes playing.
+                        </div>
                     </div>
                     <div style="flex: 1;" class="animate-slide-right delay-2 wizard-step-img">
                         <img src="{{ asset('images/induction/who_we_are.png') }}" alt="Who We Are Illustration"
