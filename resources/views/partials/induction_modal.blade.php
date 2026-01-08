@@ -155,7 +155,7 @@
                             </p>
                         </div>
                         <div id="audioStatus" style="margin-top: 20px; font-size: 14px; color: #000041; display: none; align-items: center; gap: 10px;">
-                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing...</span>
+                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing... The Next button will appear once the audio finishes.</span>
                         </div>
                     </div>
                     <div style="flex: 1;" class="animate-slide-right delay-2 wizard-step-img">
@@ -209,7 +209,7 @@
                             institution.
                         </p>
                         <div id="audioStatusStep3" style="margin-top: 20px; font-size: 14px; color: #000041; display: none; align-items: center; gap: 10px;">
-                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing...</span>
+                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing... The Next button will appear once the audio finishes.</span>
                         </div>
                     </div>
                     <div style="flex: 0.8;" class="animate-slide-right delay-2 wizard-step-img">
@@ -268,7 +268,7 @@
                             </p>
                         </div>
                         <div id="audioStatusStep4" style="margin-top: 20px; font-size: 14px; color: #000041; display: none; align-items: center; gap: 10px;">
-                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing...</span>
+                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing... The Next button will appear once the audio finishes.</span>
                         </div>
                     </div>
                     <div style="flex: 0.7;" class="animate-slide-right delay-2 wizard-step-img">
@@ -314,7 +314,7 @@
                             We believe in high performance, honest feedback, and continuous improvement.
                         </p>
                         <div id="audioStatusStep5" style="margin-top: 20px; font-size: 14px; color: #000041; display: none; align-items: center; gap: 10px;">
-                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing...</span>
+                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing... The Next button will appear once the audio finishes.</span>
                         </div>
                     </div>
                     <div style="flex: 0.8;" class="animate-slide-right delay-2 wizard-step-img">
@@ -379,7 +379,7 @@
                             engagement with management.
                         </p>
                         <div id="audioStatusStep6" style="margin-top: 20px; font-size: 14px; color: #000041; display: none; align-items: center; gap: 10px;">
-                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing...</span>
+                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing... The Next button will appear once the audio finishes.</span>
                         </div>
                     </div>
                     <div style="flex: 0.6;" class="animate-slide-right delay-2 wizard-step-img">
@@ -430,7 +430,7 @@
                             A calm and respectful environment is mandatory, especially when clients are present.
                         </p>
                         <div id="audioStatusStep7" style="margin-top: 20px; font-size: 14px; color: #000041; display: none; align-items: center; gap: 10px;">
-                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing...</span>
+                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing... The Next button will appear once the audio finishes.</span>
                         </div>
                     </div>
                     <div style="flex: 0.8;" class="animate-slide-right delay-2 wizard-step-img">
@@ -463,7 +463,7 @@
                             </p>
                         </div>
                         <div id="audioStatusStep8" style="margin-top: 20px; font-size: 14px; color: #000041; display: none; align-items: center; gap: 10px;">
-                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing...</span>
+                            <i class="fa fa-volume-up"></i> <span>Audio introduction playing... The Next button will appear once the audio finishes.</span>
                         </div>
                     </div>
                     <div style="flex: 0.8;" class="animate-slide-right delay-2 wizard-step-img">
@@ -535,33 +535,40 @@
 </div>
 
 <script>
-    (function () {
-        var currentStep = 1;
-        var totalSteps = 9;
-        var btnNext = document.getElementById('btnNext');
-        var btnPrev = document.getElementById('btnPrev');
-        var btnFinish = document.getElementById('btnFinish');
-        var stepNumber = document.getElementById('stepNumber');
-        var wizardTitle = document.getElementById('wizardTitle');
-        var step2Audio = document.getElementById('step2Audio');
-        var audioStatus = document.getElementById('audioStatus');
-        var step3Audio = document.getElementById('step3Audio');
-        var audioStatusStep3 = document.getElementById('audioStatusStep3');
-        var step4Audio = document.getElementById('step4Audio');
-        var audioStatusStep4 = document.getElementById('audioStatusStep4');
-        var step5Audio = document.getElementById('step5Audio');
-        var audioStatusStep5 = document.getElementById('audioStatusStep5');
-        var step6Audio = document.getElementById('step6Audio');
-        var audioStatusStep6 = document.getElementById('audioStatusStep6');
-        var step7Audio = document.getElementById('step7Audio');
-        var audioStatusStep7 = document.getElementById('audioStatusStep7');
-        var step8Audio = document.getElementById('step8Audio');
-        var audioStatusStep8 = document.getElementById('audioStatusStep8');
+(function () {
+    var currentStep = parseInt(localStorage.getItem('inductionCurrentStep') || '1');
+    var totalSteps = 9;
+    var btnNext = document.getElementById('btnNext');
+    var btnPrev = document.getElementById('btnPrev');
+    var btnFinish = document.getElementById('btnFinish');
+    var stepNumber = document.getElementById('stepNumber');
+    var wizardTitle = document.getElementById('wizardTitle');
+    var step2Audio = document.getElementById('step2Audio');
+    var audioStatus = document.getElementById('audioStatus');
+    var step3Audio = document.getElementById('step3Audio');
+    var audioStatusStep3 = document.getElementById('audioStatusStep3');
+    var step4Audio = document.getElementById('step4Audio');
+    var audioStatusStep4 = document.getElementById('audioStatusStep4');
+    var step5Audio = document.getElementById('step5Audio');
+    var audioStatusStep5 = document.getElementById('audioStatusStep5');
+    var step6Audio = document.getElementById('step6Audio');
+    var audioStatusStep6 = document.getElementById('audioStatusStep6');
+    var step7Audio = document.getElementById('step7Audio');
+    var audioStatusStep7 = document.getElementById('audioStatusStep7');
+    var step8Audio = document.getElementById('step8Audio');
+    var audioStatusStep8 = document.getElementById('audioStatusStep8');
+    var completedSteps = new Set(JSON.parse(localStorage.getItem('inductionCompletedSteps') || '[]'));
+
+    function saveCurrentStep() {
+        localStorage.setItem('inductionCurrentStep', currentStep);
+    }
 
         step2Audio.addEventListener('ended', function () {
             if (currentStep === 2) {
                 btnNext.style.display = 'block';
                 if (audioStatus) audioStatus.style.display = 'none';
+                completedSteps.add(2);
+                localStorage.setItem('inductionCompletedSteps', JSON.stringify([...completedSteps]));
             }
         });
 
@@ -573,6 +580,8 @@
             if (currentStep === 3) {
                 btnNext.style.display = 'block';
                 if (audioStatusStep3) audioStatusStep3.style.display = 'none';
+                completedSteps.add(3);
+                localStorage.setItem('inductionCompletedSteps', JSON.stringify([...completedSteps]));
             }
         });
 
@@ -584,6 +593,8 @@
             if (currentStep === 4) {
                 btnNext.style.display = 'block';
                 if (audioStatusStep4) audioStatusStep4.style.display = 'none';
+                completedSteps.add(4);
+                localStorage.setItem('inductionCompletedSteps', JSON.stringify([...completedSteps]));
             }
         });
 
@@ -595,6 +606,8 @@
             if (currentStep === 5) {
                 btnNext.style.display = 'block';
                 if (audioStatusStep5) audioStatusStep5.style.display = 'none';
+                completedSteps.add(5);
+                localStorage.setItem('inductionCompletedSteps', JSON.stringify([...completedSteps]));
             }
         });
 
@@ -606,6 +619,8 @@
             if (currentStep === 6) {
                 btnNext.style.display = 'block';
                 if (audioStatusStep6) audioStatusStep6.style.display = 'none';
+                completedSteps.add(6);
+                localStorage.setItem('inductionCompletedSteps', JSON.stringify([...completedSteps]));
             }
         });
 
@@ -617,6 +632,8 @@
             if (currentStep === 7) {
                 btnNext.style.display = 'block';
                 if (audioStatusStep7) audioStatusStep7.style.display = 'none';
+                completedSteps.add(7);
+                localStorage.setItem('inductionCompletedSteps', JSON.stringify([...completedSteps]));
             }
         });
 
@@ -628,6 +645,8 @@
             if (currentStep === 8) {
                 btnNext.style.display = 'block';
                 if (audioStatusStep8) audioStatusStep8.style.display = 'none';
+                completedSteps.add(8);
+                localStorage.setItem('inductionCompletedSteps', JSON.stringify([...completedSteps]));
             }
         });
 
@@ -721,100 +740,135 @@
             } else if (currentStep === 2) {
                 wizardTitle.textContent = 'Who We Are';
                 btnPrev.style.display = 'block';
-                btnNext.style.display = 'none'; // Hide until audio ends
                 btnFinish.style.display = 'none';
 
-                if (step2Audio) {
-                    step2Audio.currentTime = 0;
-                    step2Audio.play().catch(function(error) {
-                        console.log("Audio play failed:", error);
-                        // Fallback: show button if audio can't play
-                        btnNext.style.display = 'block';
-                    });
+                if (completedSteps.has(2)) {
+                    btnNext.style.display = 'block';
+                } else {
+                    btnNext.style.display = 'none'; // Hide until audio ends
+
+                    if (step2Audio) {
+                        step2Audio.currentTime = 0;
+                        step2Audio.play().catch(function(error) {
+                            console.log("Audio play failed:", error);
+                            // Fallback: show button if audio can't play
+                            btnNext.style.display = 'block';
+                        });
+                    }
                 }
             } else if (currentStep === 3) {
                 wizardTitle.textContent = 'Your Role as a Loan Consultant';
                 btnPrev.style.display = 'block';
-                btnNext.style.display = 'none'; // Hide until audio ends
                 btnFinish.style.display = 'none';
 
-                if (step3Audio) {
-                    step3Audio.currentTime = 0;
-                    step3Audio.play().catch(function(error) {
-                        console.log("Audio play failed:", error);
-                        // Fallback: show button if audio can't play
-                        btnNext.style.display = 'block';
-                    });
+                if (completedSteps.has(3)) {
+                    btnNext.style.display = 'block';
+                } else {
+                    btnNext.style.display = 'none'; // Hide until audio ends
+
+                    if (step3Audio) {
+                        step3Audio.currentTime = 0;
+                        step3Audio.play().catch(function(error) {
+                            console.log("Audio play failed:", error);
+                            // Fallback: show button if audio can't play
+                            btnNext.style.display = 'block';
+                        });
+                    }
                 }
             } else if (currentStep === 4) {
                 wizardTitle.textContent = 'Our Culture';
                 btnPrev.style.display = 'block';
-                btnNext.style.display = 'none'; // Hide until audio ends
                 btnFinish.style.display = 'none';
 
-                if (step4Audio) {
-                    step4Audio.currentTime = 0;
-                    step4Audio.play().catch(function(error) {
-                        console.log("Audio play failed:", error);
-                        // Fallback: show button if audio can't play
-                        btnNext.style.display = 'block';
-                    });
+                if (completedSteps.has(4)) {
+                    btnNext.style.display = 'block';
+                } else {
+                    btnNext.style.display = 'none'; // Hide until audio ends
+
+                    if (step4Audio) {
+                        step4Audio.currentTime = 0;
+                        step4Audio.play().catch(function(error) {
+                            console.log("Audio play failed:", error);
+                            // Fallback: show button if audio can't play
+                            btnNext.style.display = 'block';
+                        });
+                    }
                 }
             } else if (currentStep === 5) {
                 wizardTitle.textContent = 'What Success Looks Like';
                 btnPrev.style.display = 'block';
-                btnNext.style.display = 'none'; // Hide until audio ends
                 btnFinish.style.display = 'none';
 
-                if (step5Audio) {
-                    step5Audio.currentTime = 0;
-                    step5Audio.play().catch(function(error) {
-                        console.log("Audio play failed:", error);
-                        // Fallback: show button if audio can't play
-                        btnNext.style.display = 'block';
-                    });
+                if (completedSteps.has(5)) {
+                    btnNext.style.display = 'block';
+                } else {
+                    btnNext.style.display = 'none'; // Hide until audio ends
+
+                    if (step5Audio) {
+                        step5Audio.currentTime = 0;
+                        step5Audio.play().catch(function(error) {
+                            console.log("Audio play failed:", error);
+                            // Fallback: show button if audio can't play
+                            btnNext.style.display = 'block';
+                        });
+                    }
                 }
             } else if (currentStep === 6) {
                 wizardTitle.textContent = 'Dress Code';
                 btnPrev.style.display = 'block';
-                btnNext.style.display = 'none'; // Hide until audio ends
                 btnFinish.style.display = 'none';
 
-                if (step6Audio) {
-                    step6Audio.currentTime = 0;
-                    step6Audio.play().catch(function(error) {
-                        console.log("Audio play failed:", error);
-                        // Fallback: show button if audio can't play
-                        btnNext.style.display = 'block';
-                    });
+                if (completedSteps.has(6)) {
+                    btnNext.style.display = 'block';
+                } else {
+                    btnNext.style.display = 'none'; // Hide until audio ends
+
+                    if (step6Audio) {
+                        step6Audio.currentTime = 0;
+                        step6Audio.play().catch(function(error) {
+                            console.log("Audio play failed:", error);
+                            // Fallback: show button if audio can't play
+                            btnNext.style.display = 'block';
+                        });
+                    }
                 }
             } else if (currentStep === 7) {
                 wizardTitle.textContent = 'Office Etiquette';
                 btnPrev.style.display = 'block';
-                btnNext.style.display = 'none'; // Hide until audio ends
                 btnFinish.style.display = 'none';
 
-                if (step7Audio) {
-                    step7Audio.currentTime = 0;
-                    step7Audio.play().catch(function(error) {
-                        console.log("Audio play failed:", error);
-                        // Fallback: show button if audio can't play
-                        btnNext.style.display = 'block';
-                    });
+                if (completedSteps.has(7)) {
+                    btnNext.style.display = 'block';
+                } else {
+                    btnNext.style.display = 'none'; // Hide until audio ends
+
+                    if (step7Audio) {
+                        step7Audio.currentTime = 0;
+                        step7Audio.play().catch(function(error) {
+                            console.log("Audio play failed:", error);
+                            // Fallback: show button if audio can't play
+                            btnNext.style.display = 'block';
+                        });
+                    }
                 }
             } else if (currentStep === 8) {
                 wizardTitle.textContent = 'A Final Word';
                 btnPrev.style.display = 'block';
-                btnNext.style.display = 'none'; // Hide until audio ends
                 btnFinish.style.display = 'none';
 
-                if (step8Audio) {
-                    step8Audio.currentTime = 0;
-                    step8Audio.play().catch(function(error) {
-                        console.log("Audio play failed:", error);
-                        // Fallback: show button if audio can't play
-                        btnNext.style.display = 'block';
-                    });
+                if (completedSteps.has(8)) {
+                    btnNext.style.display = 'block';
+                } else {
+                    btnNext.style.display = 'none'; // Hide until audio ends
+
+                    if (step8Audio) {
+                        step8Audio.currentTime = 0;
+                        step8Audio.play().catch(function(error) {
+                            console.log("Audio play failed:", error);
+                            // Fallback: show button if audio can't play
+                            btnNext.style.display = 'block';
+                        });
+                    }
                 }
             } else { // currentStep === 9
                 wizardTitle.textContent = 'Induction Final Step';
@@ -822,6 +876,8 @@
                 btnNext.style.display = 'none';
                 btnFinish.style.display = 'block';
             }
+
+            saveCurrentStep();
         }
 
         btnFinish.addEventListener('click', function () {
@@ -862,6 +918,7 @@
             if (modal) {
                 modal.style.display = 'flex';
             }
+            updateWizard();
         }, 5000);
     })();
 </script>
