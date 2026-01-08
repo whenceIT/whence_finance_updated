@@ -19,6 +19,7 @@ class User extends EloquentUser
         'notes',
         'phone',
         'gender',
+        'nrc_id',
         'enable_google2fa',
         'blocked',
         'google2fa_secret',
