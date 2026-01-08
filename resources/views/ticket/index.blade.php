@@ -433,7 +433,10 @@
         // Initialize DataTables for ticket tables with pagination
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             var target = $(e.target).attr('href');
-            if ($(target + ' table').length && !$.fn.DataTable.isDataTable(target + ' table')) {
+            if ($(target + ' table').length) {
+                if ($.fn.DataTable.isDataTable(target + ' table')) {
+                    $(target + ' table').DataTable().destroy();
+                }
                 $(target + ' table').DataTable({
                     pageLength: 20,
                     searching: false,
