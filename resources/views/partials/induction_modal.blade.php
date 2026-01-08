@@ -517,18 +517,18 @@
 
         <!-- Wizard Footer -->
         <div
-            style="padding: 20px 30px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 15px; background: #fafafa;">
+            style="padding: 8px 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa;">
             <button id="btnPrev"
-                style="display: none; padding: 12px 28px; border: 2px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-weight: 700; color: #555; transition: all 0.2s ease;">
-                <i class="fa fa-arrow-left" style="margin-right: 8px;"></i> Previous
+                style="display: none; padding: 8px 20px; border: 2px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-weight: 600; color: #555; transition: all 0.2s ease; font-size: 14px;">
+                <i class="fa fa-arrow-left" style="margin-right: 6px;"></i> Previous
             </button>
             <button id="btnNext"
-                style="padding: 12px 35px; border: none; background: #00a04a; color: white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 16px; box-shadow: 0 5px 15px rgba(0,160,74,0.3); transition: all 0.2s ease;">
-                Next <i class="fa fa-arrow-right" style="margin-left: 8px;"></i>
+                style="padding: 8px 24px; border: none; background: #00a04a; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
+                Next <i class="fa fa-arrow-right" style="margin-left: 6px;"></i>
             </button>
             <button id="btnFinish"
-                style="display: none; padding: 12px 40px; border: none; background: #000041; color: white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 16px; box-shadow: 0 5px 15px rgba(0,0,65,0.3); transition: all 0.2s ease;">
-                Review company policies <i class="fa fa-check" style="margin-left: 8px;"></i>
+                style="display: none; padding: 8px 24px; border: none; background: #000041; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
+                Review company policies <i class="fa fa-check" style="margin-left: 6px;"></i>
             </button>
         </div>
     </div>
