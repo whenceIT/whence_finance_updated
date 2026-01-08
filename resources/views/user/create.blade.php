@@ -46,6 +46,13 @@
                            value="{{old('phone')}}"
                            id="phone">
                 </div>
+                <div class="form-group">
+                    <label for="nrc_id">NRC ID</label>
+                    <input type="text" name="nrc_id" class="form-control"
+                           placeholder="NRC ID"
+                           value="{{old('nrc_id')}}"
+                           id="nrc_id">
+                </div>
                 <div class="form-group ">
                     <label for="email"
                            class="">{{trans_choice('general.email',1)}}</label>

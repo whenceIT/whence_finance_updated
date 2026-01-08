@@ -86,6 +86,10 @@
             .wizard-step-img {
                 display: none;
             }
+            #inductionModal > div {
+                width: 100% !important;
+                max-width: none !important;
+            }
         }
     </style>
 
