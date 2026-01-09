@@ -13,14 +13,14 @@
                     
                     <!-- Tabs Nav -->
                     <ul class="nav nav-tabs" role="tablist">
-                        <li role="presentation" class="active"><a href="#tab_branch_efficiency"
+                        <!-- <li role="presentation"><a href="#tab_branch_efficiency"
                                 aria-controls="tab_branch_efficiency" role="tab" data-toggle="tab">Branch Efficiency
-                                Rates</a></li>
-                        <li role="presentation"><a href="#tab_pdua" aria-controls="tab_pdua" role="tab"
+                                Rates</a></li> -->
+                        <li role="presentation" class="active"><a href="#tab_pdua" aria-controls="tab_pdua" role="tab"
                                 data-toggle="tab">Institutional PDUA & Default Rate</a></li>
                     </ul>
                     <div class="tab-content" style="padding-top: 20px;">
-                        <div role="tabpanel" class="tab-pane active" id="tab_branch_efficiency">
+                        <div role="tabpanel" class="tab-pane" id="tab_branch_efficiency">
                             <div class="row">
                                 <div class="col-md-12">
                                     <!-- Table 1: Branch Efficiency Rates -->
@@ -150,7 +150,7 @@
                             </div>
                         </div>
 
-                        <div role="tabpanel" class="tab-pane" id="tab_pdua">
+                        <div role="tabpanel" class="tab-pane active" id="tab_pdua">
                             <?php 
                                                         // PRE-CALCULATE PDUA DATA FOR TABLE AND SUMMARY
     $tbl_data = [];
