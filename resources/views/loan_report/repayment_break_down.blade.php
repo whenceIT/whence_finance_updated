@@ -1422,6 +1422,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const officeId = "{{ $office_id }}";
         const { start_date, end_date } = get24thTo24thRange();
+        console.log(officeId)
 
         document.getElementById('cycleDates').innerText =
             `${start_date} to ${end_date}`;
