@@ -1335,7 +1335,6 @@ $total_loans = 0;
         <div class="box-body table-responsive">
 
             <p class="text-info">
-                <i class="fa fa-filter"></i>
                 <i class="fa fa-calendar"></i>
                 Reporting Period:
                 <b><span id="cycleDates"></span></b>
@@ -1445,6 +1444,7 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const res = await fetch(url);
             const data = await res.json();
+            console.log(data)
 
             // 🎯 Base filter
             const filtered = data.filter(row =>
