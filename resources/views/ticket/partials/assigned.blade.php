@@ -1,10 +1,10 @@
                 <div class="{{ $isAdmin == 1 ? 'tab-pane' : 'tab-pane active' }}" id="assigned">
                     <div class="view-toggle mb-3">
-                        <button id="table-view-btn" class="btn btn-primary">Table View</button>
-                        <button id="grid-view-btn" class="btn btn-secondary">Grid View</button>
+                        <button id="table-view-btn" class="btn btn-secondary">Table View</button>
+                        <button id="grid-view-btn" class="btn btn-primary">Grid View</button>
                     </div>
                     @if($assignedTickets->count())
-                    <div id="table-view">
+                    <div id="table-view" style="display:none;">
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
@@ -55,7 +55,7 @@
                         </tbody>
                     </table>
                     </div>
-                    <div id="grid-view" style="display:none;">
+                    <div id="grid-view">
                         <style>
                         .ticket-card {
                             position: relative;
@@ -71,6 +71,10 @@
                         .ticket-card:hover {
                             transform: translateY(-5px);
                             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                        }
+                        .ticket-card.clicked {
+                            background-color: #f0f8ff;
+                            border-color: #007bff;
                         }
                         .ticket-card-body {
                             position: absolute;
@@ -129,44 +133,36 @@
                         <div class="row">
                             @foreach($assignedTickets as $ticket)
                             <div class="col-12 col-md-6 col-lg-3 mb-3">
-                                <div class="card shadow-none ticket-card">
+                                <div class="card shadow-none ticket-card view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}">
                                     <div class="ticket-card-body">
                                         <h5 class="ticket-title">
-                                            {{ \Illuminate\Support\Str::limit($ticket->name, 30, '…') }}
+                                            <i class="fa fa-ticket-alt"></i> {{ \Illuminate\Support\Str::limit($ticket->name, 30, '…') }}
                                         </h5>
                                         <div class="ticket-info">
                                             <div class="ticket-info-row">
-                                                <span class="ticket-info-label">Priority:</span>
+                                                <span class="ticket-info-label"><i class="fa fa-exclamation-triangle"></i> Priority:</span>
                                                 <span class="ticket-info-value">{{ ucfirst($ticket->priority) }}</span>
                                             </div>
                                             <div class="ticket-info-row">
-                                                <span class="ticket-info-label">Stage:</span>
-                                                <span class="ticket-info-value">{{ $ticket->stage ?? '—' }}</span>
-                                            </div>
-                                            <div class="ticket-info-row">
-                                                <span class="ticket-info-label">Assigned To:</span>
-                                                <span class="ticket-info-value">Me</span>
-                                            </div>
-                                            <div class="ticket-info-row">
-                                                <span class="ticket-info-label">Created By:</span>
+                                                <span class="ticket-info-label"><i class="fa fa-user-plus"></i> Created By:</span>
                                                 <span class="ticket-info-value">{{ optional($ticket->openedBy)->first_name && optional($ticket->openedBy)->last_name ? optional($ticket->openedBy)->first_name . ' ' . optional($ticket->openedBy)->last_name : '—' }}</span>
                                             </div>
                                             <div class="ticket-info-row">
-                                                <span class="ticket-info-label">Issue Category:</span>
+                                                <span class="ticket-info-label"><i class="fa fa-tag"></i> Issue Category:</span>
                                                 <span class="ticket-info-value">{{ optional($ticket->issueCategory)->name ?? '—' }}</span>
                                             </div>
                                             <div class="ticket-info-row">
-                                                <span class="ticket-info-label">Opened At:</span>
+                                                <span class="ticket-info-label"><i class="fa fa-calendar"></i> Opened At:</span>
                                                 <span class="ticket-info-value">{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</span>
                                             </div>
                                         </div>
                                         <div class="ticket-actions">
-                                            <button type="button" class="btn btn-outline-info ticket-btn view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" title="View details"><i class="fa fa-info-circle"></i></button>
+                                            <button type="button" class="btn btn-outline-info ticket-btn view-ticket-info" onclick="event.stopPropagation()" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" title="View details"><i class="fa fa-info-circle"></i></button>
                                             @if($ticket->status != 'resolved')
-                                            <form method="post" action="{{ url('ticket/'.$ticket->id.'/update') }}" style="display:inline-block">
+                                            <form method="post" action="{{ url('ticket/'.$ticket->id.'/update') }}" style="display:inline-block" onclick="event.stopPropagation()">
                                                 @csrf
                                                 <input type="hidden" name="status" value="resolved">
-                                                <button class="btn btn-outline-info ticket-btn" onclick="return confirm('Mark ticket as resolved?')">Resolve</button>
+                                                <button class="btn btn-success ticket-btn" style="font-size: 0.9em; padding: 0.4rem 0.8rem;" onclick="event.stopPropagation(); return confirm('Mark ticket as resolved?')"><i class="fa fa-check"></i> Resolve</button>
                                             </form>
                                             @endif
                                         </div>
@@ -193,6 +189,11 @@
                             $(this).addClass('btn-primary').removeClass('btn-secondary');
                             $('#table-view-btn').addClass('btn-secondary').removeClass('btn-primary');
                         });
+                        $(document).on('click', '.view-ticket-info', function(){
+                            $('.ticket-card').removeClass('clicked');
+                            $(this).closest('.ticket-card').addClass('clicked');
+                        });
                     });
                     </script>
                 </div>
+                @include('ticket.partials.view_ticket_modal')
