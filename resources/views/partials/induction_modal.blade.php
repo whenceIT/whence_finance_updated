@@ -90,6 +90,26 @@
                 width: 100% !important;
                 max-width: none !important;
             }
+            #step9 > div {
+                padding: 30px 20px !important;
+            }
+            #step9 h2 {
+                font-size: 24px !important;
+            }
+            #step9 p {
+                font-size: 16px !important;
+            }
+            #step9 > div > div[style*="background: #f1f8e9"] {
+                padding: 15px !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+            }
+            #step9 table {
+                font-size: 13px !important;
+            }
+            #step9 td {
+                padding: 3px 5px !important;
+            }
         }
     </style>
 
