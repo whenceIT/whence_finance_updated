@@ -125,10 +125,12 @@
                             font-size: 1.3rem;
                         }
                         .ticket-actions {
-                            margin-top: auto;
+                            margin-top: -1px;
                             display: flex;
-                            gap: 0.5rem;
                             flex-wrap: wrap;
+                            background-color: #f8f9fa;
+                            padding: 0.5rem;
+                            border-top: 1px solid #dee2e6;
                         }
                         .ticket-btn {
                             font-size: 0.75rem;
@@ -179,25 +181,24 @@
                                                 <span class="ticket-info-value">{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : '—' }}</span>
                                             </div>
                                         </div>
-                                        <div class="ticket-actions">
-                                            <button type="button" class="btn btn-outline-info ticket-btn view-ticket-info" onclick="event.stopPropagation()" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : '—' }}" title="View details"><i class="fa fa-info-circle"></i></button>
-                                            @if($isAdmin == 1)
-                                               @if($ticket->stage != 'Started')
-                                               <button type="button" class="ticket-action action-assign open-assign-modal" onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">
-                                                   <i class="fa fa-user-plus"></i> Assign
-                                               </button>
-                                               @elseif($ticket->status == 'resolved')
-                                               <div class="ticket-action action-resolved">
-                                                   <i class="fa fa-check-circle"></i> Resolved
-                                               </div>
-                                               @else
-                                               <div class="ticket-action action-working">
-                                                   <i class="fa fa-cog fa-spin"></i> Working...
-                                               </div>
-                                               @endif
-                                            @endif
-                                        </div>
                                     </div>
+                                </div>
+                                <div class="ticket-actions" style="margin-top: -8px; margin-left: 5%;">
+                                    @if($isAdmin == 1)
+                                        @if($ticket->stage != 'Started')
+                                        <button type="button" class="ticket-action action-assign open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">
+                                            <i class="fa fa-user-plus"></i> Assign
+                                        </button>
+                                        @elseif($ticket->status == 'resolved')
+                                        <div class="ticket-action action-resolved">
+                                            <i class="fa fa-check-circle"></i> Resolved
+                                        </div>
+                                        @else
+                                        <div class="ticket-action action-working">
+                                            <i class="fa fa-cog fa-spin"></i> Working...
+                                        </div>
+                                        @endif
+                                    @endif
                                 </div>
                             </div>
                             @empty

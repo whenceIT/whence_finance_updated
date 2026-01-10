@@ -150,7 +150,7 @@
                                             </div>
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-user-plus"></i> Created By:</span>
-                                                <span class="ticket-info-value">{{ optional($ticket->createdBy)->first_name ?? optional($ticket->createdBy)->name ?? '—' }}</span>
+                                                <span class="ticket-info-value">{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->last_name ?? '—' }}</span>
                                             </div>
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-tag"></i> Issue Category:</span>
