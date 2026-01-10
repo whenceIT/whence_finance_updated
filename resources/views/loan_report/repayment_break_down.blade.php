@@ -1420,8 +1420,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (loaded) return;
         loaded = true;
 
-        const officeId = "{{ $office_id }}";
+        const officeId = "0";
         const { start_date, end_date } = get24thTo24thRange();
+        console.log(officeId)
 
         document.getElementById('cycleDates').innerText =
             `${start_date} to ${end_date}`;
