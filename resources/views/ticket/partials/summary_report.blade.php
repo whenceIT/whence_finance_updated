@@ -1,4 +1,6 @@
                 <div class="tab-pane" id="summary_report">
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts/dist/apexcharts.css">
+                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
                     <div class="row">
                         <div class="col-md-12">
                             <h3 class="box-title" style="margin-bottom: 20px; font-weight: bold; color: #333;">
@@ -53,8 +55,11 @@
                                 <div class="box-header with-border">
                                     <h4 class="box-title">SLA Compliance</h4>
                                 </div>
-                                <div class="box-body">
+                                <div class="box-body" style="position: relative;">
                                     <div id="slaChart" style="min-height: 300px;"></div>
+                                    <div id="slaChartPlaceholder" class="text-muted text-center" style="display:none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);">
+                                        <i class="fa fa-info-circle"></i> No SLA data available
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -63,8 +68,11 @@
                                 <div class="box-header with-border">
                                     <h4 class="box-title">Tickets by Status</h4>
                                 </div>
-                                <div class="box-body">
+                                <div class="box-body" style="position: relative;">
                                     <div id="statusChart" style="min-height: 300px;"></div>
+                                    <div id="statusChartPlaceholder" class="text-muted text-center" style="display:none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);">
+                                        <i class="fa fa-info-circle"></i> No status data available
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -73,8 +81,11 @@
                                 <div class="box-header with-border">
                                     <h4 class="box-title">Tickets by Office</h4>
                                 </div>
-                                <div class="box-body">
+                                <div class="box-body" style="position: relative;">
                                     <div id="officeChart" style="min-height: 300px;"></div>
+                                    <div id="officeChartPlaceholder" class="text-muted text-center" style="display:none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);">
+                                        <i class="fa fa-info-circle"></i> No office data available
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -86,8 +97,11 @@
                                 <div class="box-header with-border">
                                     <h4 class="box-title">Tickets by Issue Category</h4>
                                 </div>
-                                <div class="box-body">
+                                <div class="box-body" style="position: relative;">
                                     <div id="categoryChart" style="min-height: 350px;"></div>
+                                    <div id="categoryChartPlaceholder" class="text-muted text-center" style="display:none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);">
+                                        <i class="fa fa-info-circle"></i> No category data available
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -96,8 +110,11 @@
                                 <div class="box-header with-border">
                                     <h4 class="box-title">Tickets Opened Over Time</h4>
                                 </div>
-                                <div class="box-body">
+                                <div class="box-body" style="position: relative;">
                                     <div id="openChart" style="min-height: 350px;"></div>
+                                    <div id="openChartPlaceholder" class="text-muted text-center" style="display:none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);">
+                                        <i class="fa fa-info-circle"></i> No ticketing history available
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -109,8 +126,11 @@
                                 <div class="box-header with-border">
                                     <h4 class="box-title">Efficiency: Average Days to Close by Office</h4>
                                 </div>
-                                <div class="box-body">
+                                <div class="box-body" style="position: relative;">
                                     <div id="closeChart" style="min-height: 400px;"></div>
+                                    <div id="closeChartPlaceholder" class="text-muted text-center" style="display:none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);">
+                                        <i class="fa fa-info-circle"></i> No efficiency data available
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -121,99 +141,121 @@
 
                         function renderSummaryCharts() {
                             if (chartsInitialized) {
-                                // Just resize/update if already exists
                                 return;
                             }
                             
                             if (typeof ApexCharts === 'undefined') {
-                                console.error('ApexCharts is not loaded yet.');
+                                console.warn('ApexCharts is not loaded. Retrying in 1s...');
+                                setTimeout(renderSummaryCharts, 1000);
                                 return;
                             }
 
                             chartsInitialized = true;
 
-                            // SLA Polar Area Chart
-                            var optionsSla = {
-                                series: [{{ $slaData['met'] }}, {{ $slaData['not_met'] }}],
-                                chart: { type: 'polarArea', height: 300 },
-                                labels: ['Met', 'Not Met'],
-                                colors: ['#28a745', '#dc3545'],
-                                stroke: { colors: ['#fff'] },
-                                fill: { opacity: 0.8 },
-                                legend: { position: 'bottom' }
-                            };
-                            new ApexCharts(document.querySelector("#slaChart"), optionsSla).render();
+                            // Helper to check for data
+                            function hasData(array) {
+                                return array && array.length > 0 && array.some(val => val > 0);
+                            }
 
-                            // Status Pie Chart
-                            var optionsStatus = {
-                                series: {!! json_encode(array_values($statusData->toArray())) !!},
-                                chart: { type: 'pie', height: 300 },
-                                labels: {!! json_encode(array_keys($statusData->toArray())) !!},
-                                colors: ['#00c0ef', '#f39c12', '#00a65a', '#dd4b39', '#605ca8'],
-                                legend: { position: 'bottom' }
-                            };
-                            new ApexCharts(document.querySelector("#statusChart"), optionsStatus).render();
+                            // 1. SLA Polar Area Chart
+                            var slaSeries = [{{ isset($slaData['met']) ? $slaData['met'] : 0 }}, {{ isset($slaData['not_met']) ? $slaData['not_met'] : 0 }}];
+                            if (hasData(slaSeries)) {
+                                var optionsSla = {
+                                    series: slaSeries,
+                                    chart: { type: 'polarArea', height: 300 },
+                                    labels: ['Met', 'Not Met'],
+                                    colors: ['#28a745', '#dc3545'],
+                                    stroke: { colors: ['#fff'] },
+                                    fill: { opacity: 0.8 },
+                                    legend: { position: 'bottom' }
+                                };
+                                new ApexCharts(document.querySelector("#slaChart"), optionsSla).render();
+                            } else {
+                                document.getElementById('slaChartPlaceholder').style.display = 'block';
+                            }
 
-                            // Office Bar Chart
-                            var optionsOffice = {
-                                series: [{
-                                    name: 'Tickets',
-                                    data: {!! json_encode(array_values($officeData->toArray())) !!}
-                                }],
-                                chart: { type: 'bar', height: 300 },
-                                plotOptions: { bar: { borderRadius: 4, horizontal: true } },
-                                dataLabels: { enabled: true },
-                                xaxis: { categories: {!! json_encode(array_keys($officeData->toArray())) !!} },
-                                colors: ['#f39c12']
-                            };
-                            new ApexCharts(document.querySelector("#officeChart"), optionsOffice).render();
+                            // 2. Status Pie Chart
+                            var statusSeries = {!! isset($statusData) ? json_encode(array_values($statusData->toArray())) : '[]' !!};
+                            if (hasData(statusSeries)) {
+                                var optionsStatus = {
+                                    series: statusSeries,
+                                    chart: { type: 'pie', height: 300 },
+                                    labels: {!! isset($statusData) ? json_encode(array_keys($statusData->toArray())) : '[]' !!},
+                                    colors: ['#00c0ef', '#f39c12', '#00a65a', '#dd4b39', '#605ca8'],
+                                    legend: { position: 'bottom' }
+                                };
+                                new ApexCharts(document.querySelector("#statusChart"), optionsStatus).render();
+                            } else {
+                                document.getElementById('statusChartPlaceholder').style.display = 'block';
+                            }
 
-                            // Category Polar Area Chart
-                            var optionsCategory = {
-                                series: {!! json_encode(array_values($categoryData->toArray())) !!},
-                                chart: { type: 'polarArea', height: 350 },
-                                labels: {!! json_encode(array_keys($categoryData->toArray())) !!},
-                                colors: ['#605ca8', '#36a2eb', '#cc65fe', '#ffce56', '#ff9f40', '#4bc0c0'],
-                                fill: { opacity: 0.8 },
-                                responsive: [{
-                                    breakpoint: 480,
-                                    options: { chart: { width: 200 }, legend: { position: 'bottom' } }
-                                }]
-                            };
-                            new ApexCharts(document.querySelector("#categoryChart"), optionsCategory).render();
+                            // 3. Office Bar Chart
+                            var officeSeries = {!! isset($officeData) ? json_encode(array_values($officeData->toArray())) : '[]' !!};
+                            if (hasData(officeSeries)) {
+                                var optionsOffice = {
+                                    series: [{ name: 'Tickets', data: officeSeries }],
+                                    chart: { type: 'bar', height: 300 },
+                                    plotOptions: { bar: { borderRadius: 4, horizontal: true } },
+                                    dataLabels: { enabled: true },
+                                    xaxis: { categories: {!! isset($officeData) ? json_encode(array_keys($officeData->toArray())) : '[]' !!} },
+                                    colors: ['#f39c12']
+                                };
+                                new ApexCharts(document.querySelector("#officeChart"), optionsOffice).render();
+                            } else {
+                                document.getElementById('officeChartPlaceholder').style.display = 'block';
+                            }
 
-                            // Open Time Line Chart
-                            var optionsOpen = {
-                                series: [{
-                                    name: 'Tickets Opened',
-                                    data: {!! json_encode(array_values($openData->toArray())) !!}
-                                }],
-                                chart: { height: 350, type: 'area', zoom: { enabled: false } },
-                                dataLabels: { enabled: false },
-                                stroke: { curve: 'smooth' },
-                                xaxis: { categories: {!! json_encode(array_keys($openData->toArray())) !!} },
-                                colors: ['#00a65a'],
-                                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.3, stops: [0, 90, 100] } }
-                            };
-                            new ApexCharts(document.querySelector("#openChart"), optionsOpen).render();
+                            // 4. Category Polar Area Chart
+                            var categorySeries = {!! isset($categoryData) ? json_encode(array_values($categoryData->toArray())) : '[]' !!};
+                            if (hasData(categorySeries)) {
+                                var optionsCategory = {
+                                    series: categorySeries,
+                                    chart: { type: 'polarArea', height: 350 },
+                                    labels: {!! isset($categoryData) ? json_encode(array_keys($categoryData->toArray())) : '[]' !!},
+                                    colors: ['#605ca8', '#36a2eb', '#cc65fe', '#ffce56', '#ff9f40', '#4bc0c0'],
+                                    fill: { opacity: 0.8 },
+                                    legend: { position: 'bottom' }
+                                };
+                                new ApexCharts(document.querySelector("#categoryChart"), optionsCategory).render();
+                            } else {
+                                document.getElementById('categoryChartPlaceholder').style.display = 'block';
+                            }
 
-                            // Close Bar Chart
-                            var optionsClose = {
-                                series: [{
-                                    name: 'Avg Days to Close',
-                                    data: {!! json_encode(array_values($closeData->toArray())) !!}
-                                }],
-                                chart: { type: 'bar', height: 400 },
-                                plotOptions: { bar: { columnWidth: '45%', distributed: true } },
-                                dataLabels: { enabled: true, formatter: function (val) { return val + " days"; } },
-                                legend: { show: false },
-                                xaxis: { 
-                                    categories: {!! json_encode(array_keys($closeData->toArray())) !!},
-                                    labels: { rotate: -45, style: { fontSize: '12px' } }
-                                }
-                            };
-                            new ApexCharts(document.querySelector("#closeChart"), optionsClose).render();
+                            // 5. Open Time Line Chart
+                            var openSeries = {!! isset($openData) ? json_encode(array_values($openData->toArray())) : '[]' !!};
+                            if (hasData(openSeries)) {
+                                var optionsOpen = {
+                                    series: [{ name: 'Tickets Opened', data: openSeries }],
+                                    chart: { height: 350, type: 'area', zoom: { enabled: false } },
+                                    dataLabels: { enabled: false },
+                                    stroke: { curve: 'smooth' },
+                                    xaxis: { categories: {!! isset($openData) ? json_encode(array_keys($openData->toArray())) : '[]' !!} },
+                                    colors: ['#00a65a'],
+                                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.3, stops: [0, 90, 100] } }
+                                };
+                                new ApexCharts(document.querySelector("#openChart"), optionsOpen).render();
+                            } else {
+                                document.getElementById('openChartPlaceholder').style.display = 'block';
+                            }
+
+                            // 6. Close Bar Chart
+                            var closeSeries = {!! isset($closeData) ? json_encode(array_values($closeData->toArray())) : '[]' !!};
+                            if (hasData(closeSeries)) {
+                                var optionsClose = {
+                                    series: [{ name: 'Avg Days to Close', data: closeSeries }],
+                                    chart: { type: 'bar', height: 400 },
+                                    plotOptions: { bar: { columnWidth: '45%', distributed: true } },
+                                    dataLabels: { enabled: true, formatter: function (val) { return val + " days"; } },
+                                    legend: { show: false },
+                                    xaxis: { 
+                                        categories: {!! isset($closeData) ? json_encode(array_keys($closeData->toArray())) : '[]' !!},
+                                        labels: { rotate: -45, style: { fontSize: '12px' } }
+                                    }
+                                };
+                                new ApexCharts(document.querySelector("#closeChart"), optionsClose).render();
+                            } else {
+                                document.getElementById('closeChartPlaceholder').style.display = 'block';
+                            }
                         }
                     </script>
-
                 </div>

@@ -4,6 +4,7 @@
 
 @section('content')
     @include('partials.fullscreen_loader')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts/dist/apexcharts.css">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <div class="box box-primary">
         <div class="box-header with-border">
@@ -169,7 +170,7 @@
         $office = null;
         $isAdmin = $role;
     }
-                ?>
+                    ?>
 
                 <ul class="nav nav-tabs">
                     @if($isAdmin == 1)
