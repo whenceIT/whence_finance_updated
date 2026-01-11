@@ -12,112 +12,128 @@
                     <div class="row" style="margin-bottom:12px;">
                         <div class="col-md-6">
                             <h4>SLA Compliance</h4>
-                            <canvas id="slaChart"></canvas>
+                            <div id="slaChart"></div>
                         </div>
                         <div class="col-md-6">
                             <h4>Tickets by Office</h4>
-                            <canvas id="officeChart"></canvas>
+                            <div id="officeChart"></div>
                         </div>
                     </div>
 
                     <div class="row" style="margin-bottom:12px;">
                         <div class="col-md-6">
                             <h4>Tickets by Issue Category</h4>
-                            <canvas id="categoryChart"></canvas>
+                            <div id="categoryChart"></div>
                         </div>
                         <div class="col-md-6">
                             <h4>Tickets Opened Over Time</h4>
-                            <canvas id="openChart"></canvas>
+                            <div id="openChart"></div>
                         </div>
                     </div>
 
                     <div class="row" style="margin-bottom:12px;">
                         <div class="col-md-6">
                             <h4>Average Days to Close by Office</h4>
-                            <canvas id="closeChart"></canvas>
+                            <div id="closeChart"></div>
                         </div>
                     </div>
 
-                    <script src="{{ asset('assets/plugins/chart.js/Chart.min.js') }}"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
                     <script>
-                        // SLA Pie Chart
-                        if(!window.slaChart){
-                            var ctx = document.getElementById('slaChart').getContext('2d');
-                            window.slaChart = new Chart(ctx, {
-                                type: 'pie',
-                                data: {
-                                    labels: ['Met', 'Not Met'],
-                                    datasets: [{
-                                        data: [{{ $slaData['met'] }}, {{ $slaData['not_met'] }}],
-                                        backgroundColor: ['#28a745', '#dc3545']
-                                    }]
-                                }
-                            });
-                        }
+                        // SLA Polar Area Chart
+                        var optionsSla = {
+                            series: [{{ $slaData['met'] }}, {{ $slaData['not_met'] }}],
+                            chart: {
+                                type: 'polarArea',
+                                height: 350
+                            },
+                            labels: ['Met', 'Not Met'],
+                            colors: ['#28a745', '#dc3545']
+                        };
+                        var slaChart = new ApexCharts(document.querySelector("#slaChart"), optionsSla);
+                        slaChart.render();
 
                         // Office Bar Chart
-                        if(!window.officeChart){
-                            var ctx2 = document.getElementById('officeChart').getContext('2d');
-                            window.officeChart = new Chart(ctx2, {
+                        var optionsOffice = {
+                            series: [{
+                                data: {!! json_encode(array_values($officeData->toArray())) !!}
+                            }],
+                            chart: {
                                 type: 'bar',
-                                data: {
-                                    labels: {!! json_encode(array_keys($officeData->toArray())) !!},
-                                    datasets: [{
-                                        label: 'Tickets',
-                                        data: {!! json_encode(array_values($officeData->toArray())) !!},
-                                        backgroundColor: '#007bff'
-                                    }]
+                                height: 350
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
                                 }
-                            });
-                        }
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            xaxis: {
+                                categories: {!! json_encode(array_keys($officeData->toArray())) !!},
+                            }
+                        };
+                        var officeChart = new ApexCharts(document.querySelector("#officeChart"), optionsOffice);
+                        officeChart.render();
 
-                        // Category Pie Chart
-                        if(!window.categoryChart){
-                            var ctx3 = document.getElementById('categoryChart').getContext('2d');
-                            window.categoryChart = new Chart(ctx3, {
-                                type: 'pie',
-                                data: {
-                                    labels: {!! json_encode(array_keys($categoryData->toArray())) !!},
-                                    datasets: [{
-                                        data: {!! json_encode(array_values($categoryData->toArray())) !!},
-                                        backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56', '#ff9f40', '#4bc0c0']
-                                    }]
-                                }
-                            });
-                        }
+                        // Category Polar Area Chart
+                        var optionsCategory = {
+                            series: {!! json_encode(array_values($categoryData->toArray())) !!},
+                            chart: {
+                                type: 'polarArea',
+                                height: 350
+                            },
+                            labels: {!! json_encode(array_keys($categoryData->toArray())) !!},
+                            colors: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56', '#ff9f40', '#4bc0c0']
+                        };
+                        var categoryChart = new ApexCharts(document.querySelector("#categoryChart"), optionsCategory);
+                        categoryChart.render();
 
                         // Open Time Line Chart
-                        if(!window.openChart){
-                            var ctx4 = document.getElementById('openChart').getContext('2d');
-                            window.openChart = new Chart(ctx4, {
+                        var optionsOpen = {
+                            series: [{
+                                name: 'Tickets Opened',
+                                data: {!! json_encode(array_values($openData->toArray())) !!}
+                            }],
+                            chart: {
+                                height: 350,
                                 type: 'line',
-                                data: {
-                                    labels: {!! json_encode(array_keys($openData->toArray())) !!},
-                                    datasets: [{
-                                        label: 'Tickets Opened',
-                                        data: {!! json_encode(array_values($openData->toArray())) !!},
-                                        borderColor: '#28a745',
-                                        fill: false
-                                    }]
-                                }
-                            });
-                        }
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            xaxis: {
+                                categories: {!! json_encode(array_keys($openData->toArray())) !!},
+                            }
+                        };
+                        var openChart = new ApexCharts(document.querySelector("#openChart"), optionsOpen);
+                        openChart.render();
 
                         // Close Bar Chart
-                        if(!window.closeChart){
-                            var ctx5 = document.getElementById('closeChart').getContext('2d');
-                            window.closeChart = new Chart(ctx5, {
+                        var optionsClose = {
+                            series: [{
+                                name: 'Average Days',
+                                data: {!! json_encode(array_values($closeData->toArray())) !!}
+                            }],
+                            chart: {
                                 type: 'bar',
-                                data: {
-                                    labels: {!! json_encode(array_keys($closeData->toArray())) !!},
-                                    datasets: [{
-                                        label: 'Average Days',
-                                        data: {!! json_encode(array_values($closeData->toArray())) !!},
-                                        backgroundColor: '#ffc107'
-                                    }]
+                                height: 350
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
                                 }
-                            });
-                        }
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            xaxis: {
+                                categories: {!! json_encode(array_keys($closeData->toArray())) !!},
+                            }
+                        };
+                        var closeChart = new ApexCharts(document.querySelector("#closeChart"), optionsClose);
+                        closeChart.render();
                     </script>
 
                 </div>

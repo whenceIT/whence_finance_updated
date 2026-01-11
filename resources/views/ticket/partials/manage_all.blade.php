@@ -56,7 +56,7 @@
                                        </div>
                                        @else
                                        <div class="ticket-action action-working">
-                                           <i class="fa fa-cog fa-spin"></i> Working on it...
+                                           <i class="fa fa-cog fa-spin"></i> Working...
                                        </div>
                                        @endif
                                     @endif
