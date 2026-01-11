@@ -166,7 +166,7 @@
                 @endif
 
                 @if($isAdmin == 1)
-                @include('ticket.partials.summary_report')
+                @include('ticket.partials.summary_report', ['slaData' => $slaData, 'officeData' => $officeData, 'categoryData' => $categoryData, 'openData' => $openData, 'closeData' => $closeData])
                 @endif
 
                 @include('ticket.partials.assigned')

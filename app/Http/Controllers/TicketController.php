@@ -97,7 +97,39 @@ class TicketController extends Controller
         $dashboardTotals = compact('totalTickets', 'openTicketsCount', 'closedTicketsCount', 'slaCompliancePercent');
 
         // include all tickets for all users
-        $allTickets = Ticket::with(['openedBy','assignedTo','closedBy','issueCategory'])->orderBy('created_at','desc')->get();
+        $allTickets = Ticket::with(['openedBy.office','assignedTo','closedBy','issueCategory'])->orderBy('created_at','desc')->get();
+
+        $slaData = [
+            'met' => $allTickets->where('status', 'closed')->where('sla_met', true)->count(),
+            'not_met' => $allTickets->where('status', 'closed')->where('sla_met', false)->count(),
+        ];
+
+        $officeData = $allTickets->groupBy(function($ticket){
+            return $ticket->openedBy && $ticket->openedBy->office ? $ticket->openedBy->office->name : 'Unknown';
+        })->map(function($group){
+            return $group->count();
+        });
+
+        $categoryData = $allTickets->groupBy(function($ticket){
+            return $ticket->issueCategory->name ?? 'Uncategorized';
+        })->map(function($group){
+            return $group->count();
+        });
+
+        $openData = $allTickets->groupBy(function($ticket){
+            return \Carbon\Carbon::parse($ticket->datetime_open)->format('Y-m');
+        })->map(function($group){
+            return $group->count();
+        })->sortKeys();
+
+        $closeData = $allTickets->where('status', 'closed')->whereNotNull('datetime_close')->groupBy(function($ticket){
+            return $ticket->openedBy->office->name ?? 'Unknown';
+        })->map(function($group){
+            $totalDays = $group->sum(function($ticket){
+                return \Carbon\Carbon::parse($ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->datetime_close));
+            });
+            return $group->count() > 0 ? round($totalDays / $group->count(), 1) : 0;
+        });
 
         // check if admin
         $isAdmin = false;
@@ -105,7 +137,7 @@ class TicketController extends Controller
             $isAdmin = $user && $user->roles()->pluck('id')->contains(1);
         } catch(\Exception $e){ }
 
-        return view('ticket.index', compact('assignedTickets', 'assignedClosedTickets', 'myTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin'));
+        return view('ticket.index', compact('assignedTickets', 'assignedClosedTickets', 'myTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData'));
     }
 
     public function store(Request $request)

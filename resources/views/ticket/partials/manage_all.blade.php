@@ -56,7 +56,7 @@
                                        </div>
                                        @else
                                        <div class="ticket-action action-working">
-                                           <i class="fa fa-cog fa-spin"></i> Working...
+                                           <i class="fa fa-cog fa-spin"></i> Working on it...
                                        </div>
                                        @endif
                                     @endif
@@ -195,7 +195,7 @@
                                         </div>
                                         @else
                                         <div class="ticket-action action-working">
-                                            <i class="fa fa-cog fa-spin"></i> Working...
+                                            <i class="fa fa-cog fa-spin"></i> Working on it...
                                         </div>
                                         @endif
                                     @endif
@@ -208,6 +208,107 @@
                             @endforelse
                         </div>
                     </div>
+
+                    <div class="row" style="margin-bottom:12px;">
+                        <div class="col-md-6">
+                            <h4>SLA Compliance</h4>
+                            <canvas id="slaChart"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Tickets by Office</h4>
+                            <canvas id="officeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:12px;">
+                        <div class="col-md-6">
+                            <h4>Tickets by Issue Category</h4>
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Tickets Opened Over Time</h4>
+                            <canvas id="openChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:12px;">
+                        <div class="col-md-6">
+                            <h4>Average Days to Close by Office</h4>
+                            <canvas id="closeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <script src="{{ asset('assets/plugins/chart.js/Chart.min.js') }}"></script>
+                    <script>
+                        // SLA Pie Chart
+                        var ctx = document.getElementById('slaChart').getContext('2d');
+                        var slaChart = new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: ['Met', 'Not Met'],
+                                datasets: [{
+                                    data: [{{ $slaData['met'] }}, {{ $slaData['not_met'] }}],
+                                    backgroundColor: ['#28a745', '#dc3545']
+                                }]
+                            }
+                        });
+
+                        // Office Bar Chart
+                        var ctx2 = document.getElementById('officeChart').getContext('2d');
+                        var officeChart = new Chart(ctx2, {
+                            type: 'bar',
+                            data: {
+                                labels: {!! json_encode(array_keys($officeData->toArray())) !!},
+                                datasets: [{
+                                    label: 'Tickets',
+                                    data: {!! json_encode(array_values($officeData->toArray())) !!},
+                                    backgroundColor: '#007bff'
+                                }]
+                            }
+                        });
+
+                        // Category Pie Chart
+                        var ctx3 = document.getElementById('categoryChart').getContext('2d');
+                        var categoryChart = new Chart(ctx3, {
+                            type: 'pie',
+                            data: {
+                                labels: {!! json_encode(array_keys($categoryData->toArray())) !!},
+                                datasets: [{
+                                    data: {!! json_encode(array_values($categoryData->toArray())) !!},
+                                    backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56', '#ff9f40', '#4bc0c0']
+                                }]
+                            }
+                        });
+
+                        // Open Time Line Chart
+                        var ctx4 = document.getElementById('openChart').getContext('2d');
+                        var openChart = new Chart(ctx4, {
+                            type: 'line',
+                            data: {
+                                labels: {!! json_encode(array_keys($openData->toArray())) !!},
+                                datasets: [{
+                                    label: 'Tickets Opened',
+                                    data: {!! json_encode(array_values($openData->toArray())) !!},
+                                    borderColor: '#28a745',
+                                    fill: false
+                                }]
+                            }
+                        });
+
+                        // Close Bar Chart
+                        var ctx5 = document.getElementById('closeChart').getContext('2d');
+                        var closeChart = new Chart(ctx5, {
+                            type: 'bar',
+                            data: {
+                                labels: {!! json_encode(array_keys($closeData->toArray())) !!},
+                                datasets: [{
+                                    label: 'Average Days',
+                                    data: {!! json_encode(array_values($closeData->toArray())) !!},
+                                    backgroundColor: '#ffc107'
+                                }]
+                            }
+                        });
+                    </script>
                     <script>
                     $(document).ready(function(){
                         $('#table-view-btn-manage').click(function(){

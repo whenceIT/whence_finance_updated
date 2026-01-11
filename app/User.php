@@ -26,4 +26,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function office()
+    {
+        return $this->belongsTo(\App\Models\Office::class, 'office_id', 'id');
+    }
 }
