@@ -11,7 +11,7 @@
 
                     <!-- Ticket Dashboard (Auto-Calculating) -->
                     <div class="row" style="margin-bottom:20px;">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="small-box bg-aqua shadow-sm" style="border-radius: 8px;">
                                 <div class="inner">
                                     <h3 id="dashboardTotal">{{ $dashboardTotals['totalTickets'] }}</h3>
@@ -20,7 +20,7 @@
                                 <div class="icon"><i class="fa fa-ticket"></i></div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="small-box bg-yellow shadow-sm" style="border-radius: 8px;">
                                 <div class="inner">
                                     <h3 id="dashboardOpen">{{ $dashboardTotals['openTicketsCount'] }}</h3>
@@ -29,7 +29,16 @@
                                 <div class="icon"><i class="fa fa-folder-open"></i></div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <div class="small-box bg-teal shadow-sm" style="border-radius: 8px;">
+                                <div class="inner">
+                                    <h3 id="dashboardResolved">{{ $dashboardTotals['resolvedTicketsCount'] }}</h3>
+                                    <p>Resolved Tickets</p>
+                                </div>
+                                <div class="icon"><i class="fa fa-check-square-o"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
                             <div class="small-box bg-green shadow-sm" style="border-radius: 8px;">
                                 <div class="inner">
                                     <h3 id="dashboardClosed">{{ $dashboardTotals['closedTicketsCount'] }}</h3>
@@ -38,7 +47,7 @@
                                 <div class="icon"><i class="fa fa-check-circle"></i></div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="small-box bg-purple shadow-sm" style="border-radius: 8px;">
                                 <div class="inner">
                                     <h3 id="dashboardSlaPercent">{{ $dashboardTotals['slaCompliancePercent'] }}</h3>

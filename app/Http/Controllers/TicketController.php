@@ -90,11 +90,12 @@ class TicketController extends Controller
         // Dashboard metrics (site-wide)
         $totalTickets = Ticket::count();
         $openTicketsCount = Ticket::where('status', 'open')->count();
+        $resolvedTicketsCount = Ticket::where('status', 'resolved')->count();
         $closedTicketsCount = Ticket::where('status', 'closed')->count();
         $slaMetCount = Ticket::where('status', 'closed')->where('sla_met', true)->count();
         $slaCompliancePercent = $closedTicketsCount ? round(($slaMetCount / $closedTicketsCount) * 100) . '%' : '—';
 
-        $dashboardTotals = compact('totalTickets', 'openTicketsCount', 'closedTicketsCount', 'slaCompliancePercent');
+        $dashboardTotals = compact('totalTickets', 'openTicketsCount', 'resolvedTicketsCount', 'closedTicketsCount', 'slaCompliancePercent');
 
         // include all tickets for all users
         $allTickets = Ticket::with(['openedBy.office', 'assignedTo', 'closedBy', 'issueCategory'])->orderBy('created_at', 'desc')->get();
