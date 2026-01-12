@@ -505,7 +505,7 @@ class LoanController extends Controller
         $newDate = date('Y-m-d',strtotime($todaysDate. '- 13 months'));
         $offices = Office::where('province_id',1)->get();
         foreach($offices as $office){
-            $loans =  Loan::with('transactions')->whereBetween('created_date',['2024-01-01','2024-12-31'])->where('office_id',$office->id)->get();
+            $loans =  Loan::with('transactions')->whereBetween('created_date',['2025-01-01','2025-12-31'])->where('office_id',$office->id)->get();
             array_push($office_loans,$loans);
             array_push($office_names,$office->name);
         }
