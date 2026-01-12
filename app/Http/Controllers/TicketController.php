@@ -66,6 +66,19 @@ class TicketController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // tickets opened by this user that are resolved
+        $myResolvedTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy', 'issueCategory'])
+            ->where('opened_by', $user->id)
+            ->where('status', 'resolved')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($ticket) {
+                $ticket->opened_by_office_id = $ticket->openedBy->office_id ?? null;
+                $ticket->assigned_to_name = $ticket->assignedTo ? ($ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name) : 'Unassigned';
+                $ticket->issue_category_name = $ticket->issueCategory->name ?? 'Uncategorized';
+                return $ticket;
+            });
+
         // tickets opened by this user that are already closed
         $myClosedTickets = Ticket::with(['openedBy', 'assignedTo', 'closedBy', 'issueCategory'])
             ->where('opened_by', $user->id)
@@ -143,7 +156,7 @@ class TicketController extends Controller
         } catch (\Exception $e) {
         }
 
-        return view('ticket.index', compact('assignedTickets', 'assignedClosedTickets', 'myTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData'));
+        return view('ticket.index', compact('assignedTickets', 'assignedClosedTickets', 'myTickets', 'myResolvedTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData'));
     }
 
     public function store(Request $request)

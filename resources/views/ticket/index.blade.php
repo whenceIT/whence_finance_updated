@@ -40,6 +40,21 @@
                         margin-left: 6px;
                     }
 
+                    /* 🟢 Highlight: Summary Report tab */
+                    .nav-tabs>li.tab-summary>a {
+                        background: linear-gradient(135deg, #28a745, #1e7e34);
+                        color: #ffffff;
+                        border-radius: 4px 4px 0 0;
+                        margin-right: 6px;
+                    }
+
+                    .nav-tabs>li.tab-summary.active>a,
+                    .nav-tabs>li.tab-summary>a:hover {
+                        background: linear-gradient(135deg, #1e7e34, #155d27) !important;
+                        color: #fff !important;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                    }
+
                     /* keep transitions smooth */
                     .nav-tabs>li>a {
                         transition: all .12s ease;
@@ -170,7 +185,7 @@
         $office = null;
         $isAdmin = $role;
     }
-                    ?>
+                        ?>
 
                 <ul class="nav nav-tabs">
                     @if($isAdmin == 1)
@@ -178,20 +193,25 @@
                                     class="badge">{{ $allTickets->count() }}</span></a></li>
                     @endif
                     @if($isAdmin == 1)
-                        <li class="tab-summary"><a href="#summary_report" data-toggle="tab">Summary Report <span class="badge"
-                                    id="summaryBadge">{{ $assignedClosedTickets->pluck('id')->merge($myClosedTickets->pluck('id'))->unique()->count() }}</span></a>
+                        <li class="tab-summary"><a href="#summary_report" data-toggle="tab">Summary Report</a>
                         </li>
                         <li class="tab-special"><a href="#assigned" data-toggle="tab">Tickets Assigned to Me <span
-                                    class="badge">{{ $assignedTickets->count() }}</span></a></li>
+                            class="badge">{{ $assignedTickets->count() }}</span></a>
+                        </li>
                     @else
                         <li class="tab-special active"><a href="#assigned" data-toggle="tab">Tickets Assigned to Me <span
-                                    class="badge">{{ $assignedTickets->count() }}</span></a></li>
+                            class="badge">{{ $assignedTickets->count() }}</span></a>
+                        </li>
                     @endif
                     <li class="tab-special"><a href="#resolved_by_me" data-toggle="tab">Tickets I Resolved <span
-                                class="badge">{{ $assignedClosedTickets->count() }}</span></a></li>
+                        class="badge">{{ $assignedClosedTickets->count() }}</span></a>
+                    </li>
                     <li><a href="#requested" data-toggle="tab">My Ticket Requests <span
-                                class="badge">{{ $myTickets->count() }}</span></a></li>
-                    <li><a href="#closed_requests" data-toggle="tab">My Requested Closed Issues <span
+                        class="badge">{{ $myTickets->count() }}</span></a>
+                    </li>
+                    <li><a href="#my_requested_resolved" data-toggle="tab">My Requested Resolved Tickets <span
+                                class="badge">{{ $myResolvedTickets->count() }}</span></a></li>
+                    <li><a href="#closed_requests" data-toggle="tab">My Closed Issues <span
                                 class="badge">{{ $myClosedTickets->count() }}</span></a></li>
 
                 </ul>
@@ -210,6 +230,8 @@
                     @include('ticket.partials.resolved_by_me')
 
                     @include('ticket.partials.requested')
+
+                    @include('ticket.partials.my_requested_resolved')
 
                     @include('ticket.partials.closed_requests')
                 </div>
