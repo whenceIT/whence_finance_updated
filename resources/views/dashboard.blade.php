@@ -1508,19 +1508,16 @@
                                                                                                                             align-items: center;
                                                                                                                             justify-content: center; padding-bottom: 10px; ">
 
-            <a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
+            <a id="collectionsLink" href="{{ url('loan/new_collections') }}" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Collections</span>
             </a>
 
             <a href="javascript:;" onmousedown="toggleMyStaff('mydiv');" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Branches</span>
-                <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
             </a>
 
-
-
         </div>
-        <div id='mydivon' style="display:block">
+        <div id='mydivon' style="display:block" class="row">
             <div class="row">
                 <?php
             $use = date('Y-m-');
@@ -1855,9 +1852,6 @@
 
 
             </div>
-
-
-        </div>
 
 
         <?php
