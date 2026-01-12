@@ -31,7 +31,7 @@ class TicketController extends Controller
 
         $users = User::all();
         $offices = \App\Models\Office::all();
-        $roles = \DB::table('roles')->select('id','name')->get();
+        $roles = \DB::table('roles')->select('id', 'name')->get();
         $categories = Schema::hasTable('ticket_categories') ? \App\Models\TicketCategory::all() : collect();
 
         return view('ticket.create', compact('users', 'offices', 'roles', 'categories', 'openCount'));
@@ -53,7 +53,7 @@ class TicketController extends Controller
             ->whereIn('status', ['resolved', 'closed'])
             ->orderBy('datetime_close', 'desc')
             ->get()
-            ->map(function($ticket){
+            ->map(function ($ticket) {
                 $ticket->opened_by_office_id = $ticket->openedBy->office_id ?? null;
                 $ticket->assigned_to_name = $ticket->assignedTo ? ($ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name) : 'Unassigned';
                 $ticket->issue_category_name = $ticket->issueCategory->name ?? 'Uncategorized';
@@ -72,7 +72,7 @@ class TicketController extends Controller
             ->where('status', 'closed')
             ->orderBy('datetime_close', 'desc')
             ->get()
-            ->map(function($ticket){
+            ->map(function ($ticket) {
                 $ticket->opened_by_office_id = $ticket->openedBy->office_id ?? null;
                 $ticket->assigned_to_name = $ticket->assignedTo ? ($ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name) : 'Unassigned';
                 $ticket->issue_category_name = $ticket->issueCategory->name ?? 'Uncategorized';
@@ -81,7 +81,7 @@ class TicketController extends Controller
 
         $users = User::all();
         $offices = \App\Models\Office::all();
-        $roles = \DB::table('roles')->select('id','name')->get();
+        $roles = \DB::table('roles')->select('id', 'name')->get();
         $categories = Schema::hasTable('ticket_categories') ? \App\Models\TicketCategory::all() : collect();
 
         // count open tickets created by this user
@@ -90,96 +90,142 @@ class TicketController extends Controller
         // Dashboard metrics (site-wide)
         $totalTickets = Ticket::count();
         $openTicketsCount = Ticket::where('status', 'open')->count();
+        $resolvedTicketsCount = Ticket::where('status', 'resolved')->count();
         $closedTicketsCount = Ticket::where('status', 'closed')->count();
         $slaMetCount = Ticket::where('status', 'closed')->where('sla_met', true)->count();
         $slaCompliancePercent = $closedTicketsCount ? round(($slaMetCount / $closedTicketsCount) * 100) . '%' : '—';
 
-        $dashboardTotals = compact('totalTickets', 'openTicketsCount', 'closedTicketsCount', 'slaCompliancePercent');
+        $dashboardTotals = compact('totalTickets', 'openTicketsCount', 'resolvedTicketsCount', 'closedTicketsCount', 'slaCompliancePercent');
 
         // include all tickets for all users
-        $allTickets = Ticket::with(['openedBy','assignedTo','closedBy','issueCategory'])->orderBy('created_at','desc')->get();
+        $allTickets = Ticket::with(['openedBy.office', 'assignedTo', 'closedBy', 'issueCategory'])->orderBy('created_at', 'desc')->get();
+
+        $slaData = [
+            'met' => $allTickets->where('status', 'closed')->where('sla_met', true)->count(),
+            'not_met' => $allTickets->where('status', 'closed')->where('sla_met', false)->count(),
+        ];
+
+        $officeData = $allTickets->groupBy(function ($ticket) {
+            return $ticket->openedBy && $ticket->openedBy->office ? $ticket->openedBy->office->name : 'Unknown';
+        })->map(function ($group) {
+            return $group->count();
+        });
+
+        $categoryData = $allTickets->groupBy(function ($ticket) {
+            return $ticket->issueCategory->name ?? 'Uncategorized';
+        })->map(function ($group) {
+            return $group->count();
+        });
+
+        $openData = $allTickets->groupBy(function ($ticket) {
+            return \Carbon\Carbon::parse($ticket->datetime_open)->format('Y-m');
+        })->map(function ($group) {
+            return $group->count();
+        })->sortKeys();
+
+        $closeData = $allTickets->where('status', 'closed')->whereNotNull('datetime_close')->groupBy(function ($ticket) {
+            return $ticket->openedBy->office->name ?? 'Unknown';
+        })->map(function ($group) {
+            $totalDays = $group->sum(function ($ticket) {
+                return \Carbon\Carbon::parse($ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->datetime_close));
+            });
+            return $group->count() > 0 ? round($totalDays / $group->count(), 1) : 0;
+        });
+
+        $statusData = $allTickets->groupBy('status')->map(function ($group) {
+            return $group->count();
+        });
 
         // check if admin
         $isAdmin = false;
-        try{
+        try {
             $isAdmin = $user && $user->roles()->pluck('id')->contains(1);
-        } catch(\Exception $e){ }
+        } catch (\Exception $e) {
+        }
 
-        return view('ticket.index', compact('assignedTickets', 'assignedClosedTickets', 'myTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin'));
+        return view('ticket.index', compact('assignedTickets', 'assignedClosedTickets', 'myTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'priority' => 'required',
-            'department' => 'nullable|string',
-            'issue_category_id' => 'nullable|exists:ticket_categories,id',
-            'sla_days' => 'nullable|integer|min:0',
-            'due_date' => 'nullable|date',
-        ]);
-
-        // enforce max 3 open tickets per user
-        $user = Sentinel::getUser();
-        $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
-        if ($openCount >= 3) {
-            Flash::error('You already have 3 open tickets. Please resolve or close an existing ticket before creating a new one.');
-            return redirect()->back()->withInput();
-        }
-
-        $ticket = new Ticket();
-        $ticket->name = $request->name;
-        $ticket->description = $request->description;
-        // prefer priority from request, otherwise fallback to category default
-        $priority = $request->priority;
-        if(!$priority && $request->issue_category_id){
-            $cat = \App\Models\TicketCategory::find($request->issue_category_id);
-            if($cat && $cat->priority_default) $priority = strtolower($cat->priority_default);
-        }
-        $ticket->priority = $priority ?? 'medium';
-        $ticket->department = $request->department ?? 'Administration';
-        $ticket->issue_category_id = $request->issue_category_id ?: null;
-        $ticket->sla_days = $request->filled('sla_days') ? intval($request->sla_days) : null;
-        $ticket->opened_by = $user->id;
-        $ticket->datetime_open = now();
-        $ticket->date_raised = now();
-        $ticket->stage = 'Not started';
-        $ticket->status = 'open';
-
-        // also allow updating assigned_to from store form (if provided)
-        if ($request->has('assigned_to')) {
-            $ticket->assigned_to = $request->assigned_to;
-            $ticket->assigned_by = Sentinel::getUser()->id;
-        }
-
-        // compute due_date if sla_days present and due_date not manually provided
-        if($ticket->sla_days && !$request->filled('due_date')){
-            $ticket->due_date = now()->addDays(intval($ticket->sla_days));
-        } else if($request->filled('due_date')){
-            $ticket->due_date = $request->due_date;
-        }
-
-        $ticket->save();
-
-        // Send notification emails to admins
-        $notificationEmails = config('ticket.notification_emails', []);
-        foreach ($notificationEmails as $email) {
-            try {
-                Mail::to($email)->send(new SendSingleEmail('New Ticket Created', 'A new ticket has been created: ' . $ticket->ticket_number . ' by ' . $user->first_name . ' ' . $user->last_name));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send admin notification email: ' . $e->getMessage());
-            }
-        }
-
-        // Send confirmation email to user
         try {
-            Mail::to($user->email)->send(new SendSingleEmail('Ticket Submitted Successfully', 'Your ticket "' . $ticket->ticket_number . '" has been submitted successfully.'));
-        } catch (\Exception $e) {
-            \Log::error('Failed to send user confirmation email: ' . $e->getMessage());
-        }
 
-        Flash::success(trans('general.successfully_saved'));
-        return redirect('/ticket');
+            $request->validate([
+                'name' => 'required',
+                'priority' => 'required',
+                'department' => 'nullable|string',
+                'issue_category_id' => 'nullable|exists:ticket_categories,id',
+                'sla_days' => 'nullable|integer|min:0',
+                'due_date' => 'nullable|date',
+            ]);
+
+            // enforce max 3 open tickets per user
+            $user = Sentinel::getUser();
+            $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
+            // if ($openCount >= 3) {
+            //     Flash::error('You already have 3 open tickets. Please resolve or close an existing ticket before creating a new one.');
+            //     return redirect()->back()->withInput();
+            // }
+
+            $ticket = new Ticket();
+            $ticket->name = $request->name;
+            $ticket->description = $request->description;
+            // prefer priority from request, otherwise fallback to category default
+            $priority = $request->priority;
+            if (!$priority && $request->issue_category_id) {
+                $cat = \App\Models\TicketCategory::find($request->issue_category_id);
+                if ($cat && $cat->priority_default)
+                    $priority = strtolower($cat->priority_default);
+            }
+            $ticket->priority = $priority ?? 'medium';
+            $ticket->department = $request->department ?? 'Administration';
+            $ticket->issue_category_id = $request->issue_category_id ?: null;
+            $ticket->sla_days = $request->filled('sla_days') ? intval($request->sla_days) : null;
+            $ticket->opened_by = $user->id;
+            $ticket->datetime_open = now();
+            $ticket->date_raised = now();
+            $ticket->stage = 'Not started';
+            $ticket->status = 'open';
+
+            // also allow updating assigned_to from store form (if provided)
+            if ($request->has('assigned_to')) {
+                $ticket->assigned_to = $request->assigned_to;
+                $ticket->assigned_by = Sentinel::getUser()->id;
+            }
+
+            // compute due_date if sla_days present and due_date not manually provided
+            if ($ticket->sla_days && !$request->filled('due_date')) {
+                $ticket->due_date = now()->addDays(intval($ticket->sla_days));
+            } else if ($request->filled('due_date')) {
+                $ticket->due_date = $request->due_date;
+            }
+
+            $ticket->save();
+
+            // Send notification emails to admins
+            $notificationEmails = config('ticket.notification_emails', []);
+            foreach ($notificationEmails as $email) {
+                // try {
+                Mail::to($email)->send(new SendSingleEmail('New Ticket Created | ' . $ticket->ticket_number, 'A new ticket has been created: ' . $ticket->ticket_number . ' by ' . $user->first_name . ' ' . $user->last_name . '. {link}'));
+                // } catch (\Exception $e) {
+                //     \Log::error('Failed to send admin notification email: ' . $e->getMessage());
+                // }
+            }
+
+            // Send confirmation email to user
+            // try {
+            Mail::to($user->email)->send(new SendSingleEmail('Ticket Submitted Successfully', 'Your ticket "' . $ticket->ticket_number . '" has been submitted successfully. {link}'));
+            // } catch (\Exception $e) {
+            //     \Log::error('Failed to send user confirmation email: ' . $e->getMessage());
+            // }
+
+            Flash::success(trans('general.successfully_saved'));
+            return redirect('/ticket');
+        } catch (\Throwable $th) {
+            dd($th);
+            Flash::success('Error occurred: ' . $th->getMessage());
+            return redirect('/ticket');
+        }
     }
 
     public function update(Request $request, $id)
@@ -203,7 +249,7 @@ class TicketController extends Controller
                 $ticket->remarks = $request->remarks;
 
                 // compute SLA met
-                if($ticket->due_date && $ticket->date_closed){
+                if ($ticket->due_date && $ticket->date_closed) {
                     $ticket->sla_met = \Carbon\Carbon::parse($ticket->date_closed)->lessThanOrEqualTo(\Carbon\Carbon::parse($ticket->due_date));
                 } else {
                     $ticket->sla_met = false;
@@ -214,7 +260,7 @@ class TicketController extends Controller
                 $ticket->date_closed = now();
                 $ticket->closed_by = Sentinel::getUser()->id;
 
-                if($ticket->due_date && $ticket->date_closed){
+                if ($ticket->due_date && $ticket->date_closed) {
                     $ticket->sla_met = \Carbon\Carbon::parse($ticket->date_closed)->lessThanOrEqualTo(\Carbon\Carbon::parse($ticket->due_date));
                 }
             } elseif ($request->status == 'in_progress') {
@@ -245,55 +291,25 @@ class TicketController extends Controller
                 try {
                     Mail::to($assignee->email)->send(new SendSingleEmail(
                         'Ticket Assigned to You',
-                        'You have been assigned a ticket: "' . $ticket->name . '" by ' . $assigner->first_name . ' ' . $assigner->last_name . '. Please check your ticket dashboard.'
+                        'You have been assigned a ticket: "' . $ticket->name . '" (' . $ticket->ticket_number . ') by ' . $assigner->first_name . ' ' . $assigner->last_name . '. Please check your ticket dashboard. {link}'
                     ));
                 } catch (\Exception $e) {
                     \Log::error('Failed to send assignment email to assignee: ' . $e->getMessage());
                 }
             }
+        }
 
-            // Email to assigner
-            if ($assigner && $assigner->email) {
+        if ($request->has('status') && $request->status == 'resolved') {
+            // Email to ticket opener
+            $openedBy = $ticket->openedBy;
+            if ($openedBy && $openedBy->email) {
                 try {
-                    Mail::to($assigner->email)->send(new SendSingleEmail(
-                        'Ticket Assignment Confirmation',
-                        'You have assigned ticket "' . $ticket->name . '" to ' . ($assignee ? $assignee->first_name . ' ' . $assignee->last_name : 'Unknown User') . '.'
+                    Mail::to($openedBy->email)->send(new SendSingleEmail(
+                        'Ticket Resolved',
+                        'Your ticket "' . $ticket->name . '" (' . $ticket->ticket_number . ') has been resolved. {link}'
                     ));
                 } catch (\Exception $e) {
-                    \Log::error('Failed to send assignment email to assigner: ' . $e->getMessage());
-                }
-            }
-        } elseif ($request->has('status')) {
-            $operation = 'status_change';
-            $creator = User::find($ticket->opened_by);
-            $performer = $currentUser;
-            $statusText = ucfirst($request->status);
-
-            // Email to ticket creator
-            if ($creator && $creator->email) {
-                $message = 'Your ticket "' . $ticket->name . '" has been ' . strtolower($statusText) . ' by ' . $performer->first_name . ' ' . $performer->last_name . '.';
-                if ($request->status == 'closed' && $ticket->rating) {
-                    $message .= ' Rating: ' . $ticket->rating . '/5.';
-                }
-                try {
-                    Mail::to($creator->email)->send(new SendSingleEmail(
-                        'Ticket Status Update',
-                        $message
-                    ));
-                } catch (\Exception $e) {
-                    \Log::error('Failed to send status update email to creator: ' . $e->getMessage());
-                }
-            }
-
-            // Email to performer
-            if ($performer && $performer->email) {
-                try {
-                    Mail::to($performer->email)->send(new SendSingleEmail(
-                        'Ticket Status Update Confirmation',
-                        'You have ' . strtolower($statusText) . ' ticket "' . $ticket->name . '" for ' . ($creator ? $creator->first_name . ' ' . $creator->last_name : 'Unknown User') . '.'
-                    ));
-                } catch (\Exception $e) {
-                    \Log::error('Failed to send status update email to performer: ' . $e->getMessage());
+                    \Log::error('Failed to send resolution email to opener: ' . $e->getMessage());
                 }
             }
         }
