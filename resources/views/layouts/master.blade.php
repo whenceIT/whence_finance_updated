@@ -129,16 +129,13 @@
     @yield('page-header-scripts')
     {{--End Page level scripts--}}
 </head>
-<?php
-    $user = Sentinel::getUser();
-    if ($user) {
-        $role = $user->role->role_id;
-        $office = $user->office->id;
-    } else {
-        $role = null;
-        $office = null;
-    }
-?>
+@php
+    $userInfo = \App\Helpers\GeneralHelper::get_user_info();
+    $user = $userInfo->user;
+    $role = $userInfo->role;
+    $office = $userInfo->office;
+
+@endphp
 
 <div class="modal fade" id="announcementModal" role="dialog">
   <div class="modal-dialog" role="document">
@@ -227,17 +224,19 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     <!-- User image -->
-                                    <li class="user-header">
+                                    <li class="user-header" style="height: auto; padding-bottom: 20px;">
                                         <i class="fa fa-user" style="font-size: 60px"></i>
-
-                                        <p style="color: #000000;">
-                                            {{  isset($user->office) ? $user->office->name : ''}}
-                                        </p>
-
-                                        <p style="color: #000000;">
+                                        <p style="color: #000000; margin-bottom: 0;">
                                             {{ $user->first_name }} {{ $user->last_name }}
-                                            <small>Member since {{ $user->created_at }}</small>
                                         </p>
+                                        <p style="color: #444; font-size: 13px; margin-top: 2px; margin-bottom: 5px;">
+                                            <i class="fa fa-briefcase"></i> {{ $user->roles->first() ? $user->roles->first()->name : 'Staff' }}
+                                        </p>
+                                        <p style="color: #000000; font-weight: bold; margin-bottom: 5px;">
+                                            {{  isset($user->office) ? $user->office->name : ''}}
+                                            <small style="color: #00b30fff;">{{ $user->province ? ' ' . $user->province->name : '' }} PROVINCE</small>
+                                        </p>
+                                        <small style="color: #666;">Member since {{ $user->created_at->format('M. Y') }}</small>
                                     </li>
 
                                     <!-- External System Links -->

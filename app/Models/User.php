@@ -16,6 +16,7 @@ class User extends EloquentUser
         'permissions',
         'address',
         'office_id',
+        'province_id',
         'notes',
         'phone',
         'gender',
@@ -45,6 +46,11 @@ class User extends EloquentUser
     public function office()
     {
         return $this->hasOne(Office::class, 'id', 'office_id');
+    }
+
+    public function province()
+    {
+        return $this->hasOne(Province::class, 'id', 'province_id');
     }
 
     public function cycle_dates()

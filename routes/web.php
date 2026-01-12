@@ -200,7 +200,8 @@ Route::group(['prefix' => 'user'], function () {
     //LC Cycle information
     Route::get('cycle', 'UserController@cycle');
     Route::post('addcycle', 'UserController@addCycle');
-    Route::any('performance_information','UserController@performance_information');
+    Route::any('performance_information', 'UserController@performance_information');
+    Route::get('get_offices_by_province/{id}', 'UserController@get_offices_by_province');
 });
 //route for offices
 Route::group(['prefix' => 'office'], function () {

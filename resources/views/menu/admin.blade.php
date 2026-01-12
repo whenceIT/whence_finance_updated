@@ -14,7 +14,12 @@
             </div>
             <div class="pull-left info" style="margin-left: 15px;">
                 <p style="margin: 0; color: #fff; font-weight: bold; font-size: 14px;">{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}</p>
-                <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ substr(Sentinel::getUser()->office->name ?? 'Office', 0, 19) }}</p>
+
+                @if(Sentinel::getUser()->hasAccess('offices'))
+                    <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ substr(Sentinel::getUser()->office->name ?? 'Office', 0, 19) }}</p>
+                @else   
+                    <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ \App\Models\Province::where('id', Sentinel::getUser()->province_id)->first()->name }} PROVINCIAL <br/> MANAGER</p>
+                @endif
                 <!-- <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">
                     @if($role == 1)
                         Admin
@@ -260,8 +265,7 @@
                                             ->where('office_id', $office_id)
                                             ->count();
                                     } else {
-                                        $userOffice = $user->office;
-                                        $provinceId = $userOffice->province_id;
+                                        $provinceId = $user->province_id;
                                         $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
                                         $pendingApprovalsCount = \App\Models\Advance::whereIn('office_id', $provinceOffices)
                                             ->where('status', 'pending')
@@ -289,8 +293,7 @@
                                             ->where('office_id', $office_id)
                                             ->count();
                                     } else {
-                                        $userOffice = $user->office;
-                                        $provinceId = $userOffice->province_id;
+                                        $provinceId = $user->province_id;
                                         $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
                                         $pendingApprovalsCount = \App\Models\TopUp::whereIn('office_id', $provinceOffices)
                                             ->where('status', 'pending')
@@ -320,8 +323,7 @@
                                             ->where('office_id', $office_id)
                                             ->count();
                                     } else {
-                                        $userOffice = $user->office;
-                                        $provinceId = $userOffice->province_id;
+                                        $provinceId = $user->province_id;
                                         $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
                                         $pendingApprovalsCount = \App\Models\Leave::whereIn('office_id', $provinceOffices)
                                             ->where('status', 'pending')
@@ -942,8 +944,7 @@
                                             ->where('office_id', $office_id)
                                             ->count();
                                     } else {
-                                        $userOffice = $user->office;
-                                        $provinceId = $userOffice->province_id;
+                                        $provinceId = $user->province_id;
                                         $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
                                         $activeAdvancesCount = \App\Models\Advance::whereIn('office_id', $provinceOffices)
                                             ->where('status', 'approved')
@@ -971,8 +972,7 @@
                                             ->where('office_id', $office_id)
                                             ->count();
                                     } else {
-                                        $userOffice = $user->office;
-                                        $provinceId = $userOffice->province_id;
+                                        $provinceId = $user->province_id;
                                         $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
                                         $pendingApprovalsCount = \App\Models\Advance::whereIn('office_id', $provinceOffices)
                                             ->where('status', 'pending')
@@ -1000,8 +1000,7 @@
                                             ->where('office_id', $office_id)
                                             ->count();
                                     } else {
-                                        $userOffice = $user->office;
-                                        $provinceId = $userOffice->province_id;
+                                        $provinceId = $user->province_id;
                                         $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
                                         $pendingApprovalsCount = \App\Models\TopUp::whereIn('office_id', $provinceOffices)
                                             ->where('status', 'pending')
@@ -1094,8 +1093,7 @@
                                                 ->where('return_date', '>=', $currentDate)
                                                 ->count();
                                         } else {
-                                            $userOffice = $user->office;
-                                            $provinceId = $userOffice->province_id;
+                                            $provinceId = $user->province_id;
                                             $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
                                             $activeLeaveCount = \App\Models\Leave::whereIn('office_id', $provinceOffices)
                                                 ->where('status', 'approved')
@@ -1127,8 +1125,7 @@
                                             ->where('office_id', $office_id)
                                             ->count();
                                     } else {
-                                        $userOffice = $user->office;
-                                        $provinceId = $userOffice->province_id;
+                                        $provinceId = $user->province_id;
                                         $provinceOffices = \App\Models\Office::where('province_id', $provinceId)->pluck('id');
                                         $pendingApprovalsCount = \App\Models\Leave::whereIn('office_id', $provinceOffices)
                                             ->where('status', 'pending')

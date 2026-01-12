@@ -47,8 +47,11 @@ class UserController extends Controller
 
         $this->middleware('sentinel');
     }
+
+    // Renders on dashboard
     public function dashboard(Request $request)
     {
+
         $role = Sentinel::getUser()->roles->first();
 
 
@@ -65,7 +68,7 @@ class UserController extends Controller
 
 
         if ($role->role_id != '2') {
-            $userProvince = Sentinel::getUser()->office->province_id;
+            $userProvince = Sentinel::getUser()->province_id;
         }
 
         if ($role->role_id == '2') {
@@ -225,7 +228,7 @@ class UserController extends Controller
         //BELOW THIS
         $role = UserRole::where('user_id', $userId)->first();
         $userBranch = Sentinel::getUser()->office_id;
-        $userProvince = Sentinel::getUser()->office->province_id;
+        $userProvince = Sentinel::getUser()->province_id;
         $province_loans = [];
         $province_transactions = [];
         $provinces = Province::get();
@@ -256,9 +259,10 @@ class UserController extends Controller
     }
 
 
-    public function performance_information(){
+    public function performance_information()
+    {
         $offices = Office::get();
-        return view('user.performance_information',compact('offices'));
+        return view('user.performance_information', compact('offices'));
     }
 
 
@@ -277,7 +281,7 @@ class UserController extends Controller
         $users = User::with('role')->where('office_id', '!=', null)->get();
         $userBranch = Sentinel::getUser()->office_id;
         $role = UserRole::where('user_id', $user)->first();
-        $userProvince = Sentinel::getUser()->office->province_id;
+        $userProvince = Sentinel::getUser()->province_id;
         $province_branches = Office::where('province_id', $userProvince)->get();
 
         foreach ($province_branches as $province_branch) {
@@ -465,7 +469,7 @@ class UserController extends Controller
         $role = UserRole::where('user_id', $userId)->first();
         $userBranch = Sentinel::getUser()->office_id;
 
-        $userProvince = Sentinel::getUser()->office->province_id;
+        $userProvince = Sentinel::getUser()->province_id;
 
         if (Sentinel::getUser()->cycle_dates == null) {
             $cycle_end = 24;
@@ -614,7 +618,7 @@ class UserController extends Controller
         $user = Sentinel::getUser()->id;
         $users = User::with('role')->get();
         $userBranch = Sentinel::getUser()->office_id;
-        $userProvince = Sentinel::getUser()->office->province_id;
+        $userProvince = Sentinel::getUser()->province_id;
         $role = UserRole::where('user_id', $user)->first();
         $branch_people = User::where('office_id', $userBranch)->get();
         $users = User::with('role')->with('dual_role')->with('office')->where('status', 'Inactive')->get();
@@ -699,7 +703,7 @@ class UserController extends Controller
         $userId = Sentinel::getUser()->id;
         $role = UserRole::where('user_id', $userId)->first();
         $office_id = $request->office_id;
-        $userProvince = User::where('id', $userId)->first()->office->province_id;
+        $userProvince = User::where('id', $userId)->first()->province_id;
         $userBranch = User::where('id', $userId)->first()->office->id;
 
         if ($office_id == 0) {
@@ -734,7 +738,7 @@ class UserController extends Controller
         $form = AppraisalForm::where('id', $form_id)->first();
         $sections = AppraisalFormSection::where('form_id', $form_id)->get();
         $role = UserRole::where('user_id', $user_id)->first();
-        $userProvince = User::where('id', $id)->first()->office->province_id;
+        $userProvince = User::where('id', $id)->first()->province_id;
         $province_branches = Office::where('province_id', $userProvince)->get();
         $pr_questions = AppraisalQuestion::where('unit', 'p_r')->get();
         $sbr_questions = AppraisalQuestion::where('unit', 'sb_r')->get();
@@ -1199,7 +1203,7 @@ class UserController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = User::with('role')->with('office')->get();
+        $data = User::with('role', 'office', 'province')->get();
         return view('user.data', compact('data'));
     }
 
@@ -1259,8 +1263,8 @@ class UserController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-
-        return view('user.create');
+        $provinces = Province::all();
+        return view('user.create', compact('provinces'));
     }
 
     /**credentials
@@ -1332,6 +1336,7 @@ class UserController extends Controller
     // }
     public function store(Request $request)
     {
+
         if (!Sentinel::hasAccess('users.create')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
@@ -1359,6 +1364,8 @@ class UserController extends Controller
                 'gender' => $request->gender,
                 'phone' => $request->phone,
                 'office_id' => $request->office_id,
+                'province_id' => $request->province_id,
+                'nrc_id' => $request->nrc_id,
                 'permission' => $request->role,
             ];
             $user = Sentinel::registerAndActivate($credentials);
@@ -1436,7 +1443,8 @@ class UserController extends Controller
         foreach ($user->roles as $sel) {
             $selected = $sel->id;
         }
-        return view('user.edit', compact('user', 'selected'));
+        $provinces = Province::all();
+        return view('user.edit', compact('user', 'selected', 'provinces'));
     }
 
     /**
@@ -1462,6 +1470,8 @@ class UserController extends Controller
             'gender' => $request->gender,
             'phone' => $request->phone,
             'office_id' => $request->office_id,
+            'province_id' => $request->province_id,
+            'nrc_id' => $request->nrc_id,
             'external_id' => $request->external_id,
         ];
 
@@ -1862,5 +1872,11 @@ class UserController extends Controller
             ->limit(10)
             ->get();
         return response()->json($users);
+    }
+
+    public function get_offices_by_province($id)
+    {
+        $data = Office::where('province_id', $id)->get();
+        return response()->json($data);
     }
 }
