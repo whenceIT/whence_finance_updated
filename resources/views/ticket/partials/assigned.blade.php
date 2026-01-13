@@ -1,4 +1,5 @@
                 <div class="{{ $isAdmin == 1 ? 'tab-pane' : 'tab-pane active' }}" id="assigned">
+                    <h4>Assigned to Me</h4>
                     <div class="view-toggle mb-3">
                         <button id="table-view-btn" class="btn btn-secondary">Table View</button>
                         <button id="grid-view-btn" class="btn btn-primary">Grid View</button>
@@ -157,7 +158,6 @@
                                             </div>
                                         </div>
                                         <div class="ticket-actions">
-                                            <button type="button" class="btn btn-outline-info ticket-btn view-ticket-info" onclick="event.stopPropagation()" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" title="View details"><i class="fa fa-info-circle"></i></button>
                                             @if($ticket->status != 'resolved')
                                             <form method="post" action="{{ url('ticket/'.$ticket->id.'/update') }}" style="display:inline-block" onclick="event.stopPropagation()">
                                                 @csrf

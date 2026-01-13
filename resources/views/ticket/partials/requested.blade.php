@@ -1,4 +1,5 @@
                 <div class="tab-pane" id="requested">
+                    <h4>My Ticket Requests</h4>
                     <div class="view-toggle mb-3">
                         <button id="table-view-btn-requested" class="btn btn-secondary">Table View</button>
                         <button id="grid-view-btn-requested" class="btn btn-primary">Grid View</button>
@@ -21,9 +22,6 @@
                                 <th>SLA (Days)</th>
                                 <th>Due Date</th>
                                 <th>SLA Met</th>
-                                <th>Rating</th>
-                                <th>Remarks</th>
-                                <th>Details</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -43,9 +41,6 @@
                                 <td>{{ $ticket->sla_days ?? '—' }}</td>
                                 <td>{{ $ticket->due_date ? date('d M Y', strtotime($ticket->due_date)) : '—' }}</td>
                                 <td>{!! is_null($ticket->sla_met) ? '&#8212;' : ($ticket->sla_met ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>') !!}</td>
-                                <td>{{ $ticket->rating ?? '—' }}</td>
-                                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $ticket->remarks ?? '—' }}</td>
-                                <td><button type="button" class="btn btn-xs btn-info view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" title="View details"><i class="fa fa-info-circle"></i></button></td>
                                 <td>
                                     @if($ticket->status == 'resolved')
                                         @if($ticket->status != 'closed')
@@ -168,13 +163,8 @@
                                                 <span class="ticket-info-label"><i class="fa fa-calendar"></i> Opened At:</span>
                                                 <span class="ticket-info-value">{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</span>
                                             </div>
-                                            <div class="ticket-info-row">
-                                                <span class="ticket-info-label"><i class="fa fa-star"></i> Rating:</span>
-                                                <span class="ticket-info-value">{{ $ticket->rating ?? '—' }}</span>
-                                            </div>
                                         </div>
                                         <div class="ticket-actions">
-                                            <button type="button" class="btn btn-outline-info ticket-btn view-ticket-info" onclick="event.stopPropagation()" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" title="View details"><i class="fa fa-info-circle"></i></button>
                                             @if($ticket->status == 'resolved')
                                                 @if($ticket->status != 'closed')
                                                     <button type="button" class="btn btn-success ticket-btn open-close-modal" onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">Completed</button>
