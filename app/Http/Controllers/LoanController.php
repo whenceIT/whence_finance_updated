@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\DB;
 use PDF;
 use App\Models\Office;
 use App\Models\UserRole;
+use App\Models\TargetTracker;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
@@ -2291,6 +2292,12 @@ class LoanController extends Controller
             $loan_transaction->month = $date[1];
             $loan_transaction->debit = $total_interest;
             $loan_transaction->save();
+
+            $target_tracker = TargetTracker::where('status','active')->where('user_id',$loan->loan_officer_id)->first();
+            $target_tracker->given_out = $target_tracker->given_out + $loan->principal;
+            $target_tracker->save();
+
+
             //check for  fees
             $fees_disbursement = 0;
             $fees_installment = 0;
@@ -3641,6 +3648,11 @@ public function new_reschedule_loan(Request $request, $id , $trans_id){
     $loan_transaction->month = $date[1];
     $loan_transaction->debit = $Trans->interest;
     $loan_transaction->save(); 
+
+
+    $target_tracker = TargetTracker::where('status','active')->where('user_id',$loan->loan_officer_id)->first();
+    $target_tracker->given_out = $target_tracker->given_out + $balance;
+    $target_tracker->save();
 
     LoanTransactionsPending::where('id', $trans_id)->delete();
 
