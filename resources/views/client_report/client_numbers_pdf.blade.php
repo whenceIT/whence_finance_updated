@@ -218,90 +218,97 @@
 
         background-color: #cccccc
     }
-
 </style>
 <div>
 
     <table cellspacing="0" cellpadding="0" class="style-0">
 
         <tbody>
-        <tr style="height: 25pt">
-            <td colspan="12" valign="middle"
-                class="style-1">  {{trans_choice('general.client',2)}} {{trans_choice('general.report',1)}}</td>
-        </tr>
-        <tr style="height: 15pt">
-            <td colspan="5" valign="middle"
-                class="style-4">{{trans_choice('general.from',1)}} {{ Carbon\Carbon::parse($start_date)->format('d/m/Y') }}  {{trans_choice('general.to',1)}} {{ Carbon\Carbon::parse($end_date)->format('d/m/Y') }}</td>
-            <td>
-            <td colspan="7" valign="middle" class="style-3">
-            </td>
-        </tr>
-        <tr style="height: 20pt">
-            <td colspan="2" valign="middle" class="style-5">{{trans_choice('general.office',1)}}</td>
-            <td colspan="2" valign="middle"
-                class="style-5">{{trans_choice('general.registered',1)}} {{trans_choice('general.prospect',1)}}</td>
-            <td colspan="2" valign="middle"
-                class="style-5">{{trans_choice('general.total',1)}} {{trans_choice('general.client',2)}}</td>
-            <td colspan="2" valign="middle"
-                class="style-5">{{trans_choice('general.total',1)}} {{trans_choice('general.funded',1)}} {{trans_choice('general.client',2)}}</td>
-            <td colspan="2" valign="middle"
-                class="style-5">{{trans_choice('general.new',1)}} {{trans_choice('general.client',2)}}</td>
-            <td colspan="2" valign="middle"
-                class="style-5">{{trans_choice('general.repeat',1)}} {{trans_choice('general.client',2)}}</td>
-        </tr>
-        <?php
-        $total_registered_prospects = 0;
-        $total_total_clients = 0;
-        $total_new_clients = 0;
-        $total_funded_clients = 0;
-        $total_repeat_clients = 0;
-        ?>
-        @foreach(\App\Models\Office::all() as $key)
-            <?php
-            $dr = 0;
-            $cr = 0;
-            $balance = 0;
-            $registered_prospects = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->whereNOTIn('id', function ($query) {
-                $query->select('client_id')->from('loans');
-            })->count();
-            $total_clients = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->count();
-            $new_clients = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->whereIn('id', function ($query) use ($start_date, $end_date) {
-                $query->select('client_id')->from('loans')->whereBetween('disbursement_date', [$start_date, $end_date]);
-            })->whereNotIn('id', function ($query) use ($start_date, $end_date) {
-                $query->select('client_id')->from('loans')->where('disbursement_date', '<', $start_date);
-            })->count();
-            $repeat_clients = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->whereIn('id', function ($query) use ($start_date, $end_date) {
-                $query->select('client_id')->from('loans')->whereBetween('disbursement_date', [$start_date, $end_date]);
-            })->whereIn('id', function ($query) use ($start_date, $end_date) {
-                $query->select('client_id')->from('loans')->where('disbursement_date', '<', $start_date);
-            })->count();
-            $funded_clients = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->whereIn('id', function ($query) use ($start_date, $end_date) {
-                $query->select('l.client_id')->from('loans as l')->join("loan_repayment_schedules as lr", "l.id", '=', "lr.loan_id")->where('disbursement_date','<=', $end_date)->groupBy("l.id")->havingRaw('(COALESCE(SUM(lr.principal),0)+COALESCE(SUM(lr.interest),0)+COALESCE(SUM(lr.fees),0)+COALESCE(SUM(lr.penalty),0)-COALESCE(SUM(lr.principal_waived),0)-COALESCE(SUM(lr.principal_written_off),0)-COALESCE(SUM(lr.principal_paid),0)-COALESCE(SUM(lr.interest_waived),0)-COALESCE(SUM(lr.interest_written_off),0)-COALESCE(SUM(lr.interest_paid),0)-COALESCE(SUM(lr.fees_waived),0)-COALESCE(SUM(lr.fees_written_off),0)-COALESCE(SUM(lr.fees_paid),0)-COALESCE(SUM(lr.penalty_written_off),0)-COALESCE(SUM(lr.penalty_paid),0)) >0')->distinct();
-            })->count();
-            $total_registered_prospects = $total_registered_prospects + $registered_prospects;
-            $total_total_clients = $total_total_clients + $total_clients;
-            $total_new_clients = $total_new_clients + $new_clients;
-            $total_repeat_clients = $total_repeat_clients + $repeat_clients;
-            $total_funded_clients = $total_funded_clients + $funded_clients;
-
-            ?>
-            <tr style="height: 15pt">
-                <td colspan="2" valign="middle" class="style-3">{{ $key->name }}</td>
-                <td colspan="2" valign="middle" class="style-3">{{ $registered_prospects }}</td>
-                <td colspan="2" valign="middle" class="style-3">{{ $total_clients }}</td>
-                <td colspan="2" valign="middle" class="style-3">{{ $funded_clients }}</td>
-                <td colspan="2" valign="middle" class="style-3">{{ $new_clients }}</td>
-                <td colspan="2" valign="middle" class="style-3">{{ $repeat_clients }}</td>
+            <tr style="height: 25pt">
+                <td colspan="12" valign="middle" class="style-1"> {{trans_choice('general.client', 2)}}
+                    {{trans_choice('general.report', 1)}}</td>
             </tr>
-        @endforeach
-        <tr style="height: 2pt">
-            <td class="style-8" colspan="2"></td>
-            <td class="style-8" colspan="2">{{ $total_registered_prospects }}</td>
-            <td class="style-8" colspan="2">{{ $total_total_clients }}</td>
-            <td class="style-8" colspan="2">{{ $total_funded_clients }}</td>
-            <td class="style-8" colspan="2">{{ $total_new_clients }}</td>
-            <td class="style-8" colspan="2">{{ $total_repeat_clients }}</td>
-        </tr>
+            <tr style="height: 15pt">
+                <td colspan="5" valign="middle" class="style-4">{{trans_choice('general.from', 1)}}
+                    {{ Carbon\Carbon::parse($start_date)->format('d/m/Y') }} {{trans_choice('general.to', 1)}}
+                    {{ Carbon\Carbon::parse($end_date)->format('d/m/Y') }}</td>
+                <td>
+                <td colspan="7" valign="middle" class="style-3">
+                </td>
+            </tr>
+            <tr style="height: 20pt">
+                <td colspan="2" valign="middle" class="style-5">{{trans_choice('general.office', 1)}}</td>
+                <td colspan="2" valign="middle" class="style-5">{{trans_choice('general.registered', 1)}}
+                    {{trans_choice('general.prospect', 1)}}</td>
+                <td colspan="2" valign="middle" class="style-5">{{trans_choice('general.total', 1)}}
+                    {{trans_choice('general.client', 2)}}</td>
+                <td colspan="2" valign="middle" class="style-5">{{trans_choice('general.total', 1)}}
+                    {{trans_choice('general.funded', 1)}} {{trans_choice('general.client', 2)}}</td>
+                <td colspan="2" valign="middle" class="style-5">{{trans_choice('general.new', 1)}}
+                    {{trans_choice('general.client', 2)}}</td>
+                <td colspan="2" valign="middle" class="style-5">{{trans_choice('general.repeat', 1)}}
+                    {{trans_choice('general.client', 2)}}</td>
+            </tr>
+            <?php
+$total_registered_prospects = 0;
+$total_total_clients = 0;
+$total_new_clients = 0;
+$total_funded_clients = 0;
+$total_repeat_clients = 0;
+$user = Sentinel::getUser();
+$user_role = \App\Models\UserRole::where('user_id', $user->id)->first();
+if ($user_role && $user_role->role_id == '6') {
+    $offices = \App\Models\Office::where('province_id', $user->province_id)->get();
+} else {
+    $offices = \App\Models\Office::all();
+}
+        ?>
+            @foreach($offices as $key)
+                        <?php
+                $dr = 0;
+                $cr = 0;
+                $balance = 0;
+                $registered_prospects = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->whereNOTIn('id', function ($query) {
+                    $query->select('client_id')->from('loans');
+                })->count();
+                $total_clients = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->count();
+                $new_clients = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->whereIn('id', function ($query) use ($start_date, $end_date) {
+                    $query->select('client_id')->from('loans')->whereBetween('disbursement_date', [$start_date, $end_date]);
+                })->whereNotIn('id', function ($query) use ($start_date, $end_date) {
+                    $query->select('client_id')->from('loans')->where('disbursement_date', '<', $start_date);
+                })->count();
+                $repeat_clients = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->whereIn('id', function ($query) use ($start_date, $end_date) {
+                    $query->select('client_id')->from('loans')->whereBetween('disbursement_date', [$start_date, $end_date]);
+                })->whereIn('id', function ($query) use ($start_date, $end_date) {
+                    $query->select('client_id')->from('loans')->where('disbursement_date', '<', $start_date);
+                })->count();
+                $funded_clients = \App\Models\Client::where('status', 'active')->where('office_id', $key->id)->whereIn('id', function ($query) use ($start_date, $end_date) {
+                    $query->select('l.client_id')->from('loans as l')->join("loan_repayment_schedules as lr", "l.id", '=', "lr.loan_id")->where('disbursement_date', '<=', $end_date)->groupBy("l.id")->havingRaw('(COALESCE(SUM(lr.principal),0)+COALESCE(SUM(lr.interest),0)+COALESCE(SUM(lr.fees),0)+COALESCE(SUM(lr.penalty),0)-COALESCE(SUM(lr.principal_waived),0)-COALESCE(SUM(lr.principal_written_off),0)-COALESCE(SUM(lr.principal_paid),0)-COALESCE(SUM(lr.interest_waived),0)-COALESCE(SUM(lr.interest_written_off),0)-COALESCE(SUM(lr.interest_paid),0)-COALESCE(SUM(lr.fees_waived),0)-COALESCE(SUM(lr.fees_written_off),0)-COALESCE(SUM(lr.fees_paid),0)-COALESCE(SUM(lr.penalty_written_off),0)-COALESCE(SUM(lr.penalty_paid),0)) >0')->distinct();
+                })->count();
+                $total_registered_prospects = $total_registered_prospects + $registered_prospects;
+                $total_total_clients = $total_total_clients + $total_clients;
+                $total_new_clients = $total_new_clients + $new_clients;
+                $total_repeat_clients = $total_repeat_clients + $repeat_clients;
+                $total_funded_clients = $total_funded_clients + $funded_clients;
+
+                        ?>
+                        <tr style="height: 15pt">
+                            <td colspan="2" valign="middle" class="style-3">{{ $key->name }}</td>
+                            <td colspan="2" valign="middle" class="style-3">{{ $registered_prospects }}</td>
+                            <td colspan="2" valign="middle" class="style-3">{{ $total_clients }}</td>
+                            <td colspan="2" valign="middle" class="style-3">{{ $funded_clients }}</td>
+                            <td colspan="2" valign="middle" class="style-3">{{ $new_clients }}</td>
+                            <td colspan="2" valign="middle" class="style-3">{{ $repeat_clients }}</td>
+                        </tr>
+            @endforeach
+            <tr style="height: 2pt">
+                <td class="style-8" colspan="2"></td>
+                <td class="style-8" colspan="2">{{ $total_registered_prospects }}</td>
+                <td class="style-8" colspan="2">{{ $total_total_clients }}</td>
+                <td class="style-8" colspan="2">{{ $total_funded_clients }}</td>
+                <td class="style-8" colspan="2">{{ $total_new_clients }}</td>
+                <td class="style-8" colspan="2">{{ $total_repeat_clients }}</td>
+            </tr>
         </tbody>
 
     </table>

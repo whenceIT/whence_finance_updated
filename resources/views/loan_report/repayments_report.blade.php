@@ -16,6 +16,7 @@
 
             </div>
         </div>
+        
         <div class="box-body hidden-print">
             <form method="post" action="{{Request::url()}}" class="form-horizontal" enctype="multipart/form-data">
                 {{csrf_field()}}
@@ -44,7 +45,7 @@
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option value="0"
                                     @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\Office::all() as $key)
+                            @foreach($offices as $key)
                                 <option value="{{$key->id}}"
                                         @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                             @endforeach

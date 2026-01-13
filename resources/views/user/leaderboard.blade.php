@@ -3,6 +3,13 @@
 Leaderboard
 @endsection
 @section('content')
+@php
+    $userInfo = \App\Helpers\GeneralHelper::get_user_info();
+    $user = $userInfo->user;
+    $role = $userInfo->role;
+    $office = $userInfo->office;
+
+@endphp
 <div class="box-body hidden-print">
 
 <form method="post" action="{{Request::url()}}" class="form-horizontal" enctype="multipart/form-data">
@@ -35,17 +42,33 @@ Leaderboard
     </div>
 </div>
 
+@if ($role == 6)
 <div class="form-group">
     <label for="office_id" class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
     <div class="col-md-3">
         <select name="office" class="form-control select2" id="office" required>
         <option value="0" @if($office=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-        @foreach(\App\Models\Office::all() as $key)
+            @foreach(\App\Models\Office::where('province_id',$user->province_id)->get() as $key)
                 <option value="{{$key->id}}"  @if($office==$key->id) selected @endif>{{$key->name}}</option>
             @endforeach
         </select>
     </div>
 </div>
+@elseif($role == 1)
+    <div class="form-group">
+        <label for="office_id" class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
+        <div class="col-md-3">
+            <select name="office" class="form-control select2" id="office" required>
+            <option value="0" @if($office=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                @foreach(\App\Models\Office::all() as $key)
+                    <option value="{{$key->id}}"  @if($office==$key->id) selected @endif>{{$key->name}}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+@endif
+
+
 <div class="form-group">
 <label for=""
 class="control-label col-md-2"></label>

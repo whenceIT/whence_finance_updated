@@ -252,7 +252,7 @@ class LoanController extends Controller
 
 
 
-        return view('loan.my_expected_collections', compact('targetDate', 'compareDate', 'role', 'office_id', 'transactionList', 'userBranch'));
+        return view('loan.my_expected_collections', compact('targetDate', 'compareDate', 'role', 'office_id', 'transactionList', 'userBranch', 'userProvince'));
 
     }
 
@@ -491,7 +491,7 @@ class LoanController extends Controller
         }
 
 
-        return view('loan.branch_uncollected', compact('targetDate', 'compareDate', 'role', 'office_id', 'transactionList', 'userBranch', 'LoanArray', 'LoanArrayTwo', 'full_loans', 'part_loans'));
+        return view('loan.branch_uncollected', compact('targetDate', 'compareDate', 'role', 'office_id', 'transactionList', 'userBranch', 'LoanArray', 'LoanArrayTwo', 'full_loans', 'part_loans', 'userProvince'));
     }
 
 
@@ -575,7 +575,7 @@ class LoanController extends Controller
 
 
 
-        return view('loan.expected_collections', compact('targetDate', 'compareDate', 'role', 'office_id', 'transactionList', 'userBranch', 'LoanArray', 'LoanArrayTwo'));
+        return view('loan.expected_collections', compact('targetDate', 'compareDate', 'role', 'office_id', 'transactionList', 'userBranch', 'LoanArray', 'LoanArrayTwo', 'userProvince'));
     }
 
     //PART PAYMENT AND FULL PAYMENT APPROVALS

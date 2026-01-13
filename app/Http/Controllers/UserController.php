@@ -988,8 +988,16 @@ class UserController extends Controller
         $endDate = $request->end_date;
         $todaysDate = date('Y-m-d');
 
+        $userId = Sentinel::getUser()->id;
+        $user = Sentinel::getUser();
+        $userRole = UserRole::where('user_id', $userId)->first();
+
         if ($office == 0) {
-            $LoanConsultants = User::with('role')->with('office')->get();
+            $query = User::with('role')->with('office');
+            if ($userRole->role_id == 6) {
+                $query->where('province_id', $user->province_id);
+            }
+            $LoanConsultants = $query->get();
         } else {
             $LoanConsultants = User::with('role')->with('office')->where('office_id', $office)->get();
         }
