@@ -373,10 +373,17 @@
                         <select name="officer_id" class="form-control select2" id="officer_id" required>
                             <option value="0"
                                     @if($officer_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\User::all() as $key)
-                                <option value="{{$key->id}}"
-                                        @if($officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
-                            @endforeach
+                            @if((Sentinel::getUser()->role_id == 6 || Sentinel::getUser()->inRole(6)))
+                                @foreach(\App\Models\User::whereHas('office', function($q) { $q->where('province_id', Sentinel::getUser()->province_id); })->get() as $key)
+                                    <option value="{{$key->id}}"
+                                            @if($officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                @endforeach
+                            @else
+                                @foreach(\App\Models\User::all() as $key)
+                                    <option value="{{$key->id}}"
+                                            @if($officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                 </div>

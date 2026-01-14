@@ -49,7 +49,11 @@ Daily Loan Activities Breakdown Report
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option value="0"
                                     @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+
                             @foreach(\App\Models\Office::all() as $key)
+                                @if((Sentinel::getUser()->role_id == 6 || Sentinel::getUser()->inRole(6)) && $key->province_id != Sentinel::getUser()->province_id)
+                                    @continue
+                                @endif
                                 <option value="{{$key->id}}"
                                         @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                             @endforeach
@@ -1025,11 +1029,21 @@ $total_loans = 0;
                                 {{$key->date}}
                             </td>
                             <td>{{$key->loan_id}}</td>
-                            <td>  
-                             {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
+                            <td>
+                                @if(!empty($key->loan) && !empty($key->loan->loan_officer))
+                                    {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
+                                @endif
                             </td>
-                            <td>{{$key->loan->client->first_name}} {{$key->loan->client->last_name}}</td>
-                            <td> {{$key->office->name}}</td>
+                            <td>
+                                @if(!empty($key->loan) && !empty($key->loan->client))
+                                    {{$key->loan->client->first_name}} {{$key->loan->client->last_name}}
+                                @endif
+                            </td>
+                            <td>
+                                @if(!empty($key->office))
+                                    {{$key->office->name}}
+                                @endif
+                            </td>
                             <td>{{number_format($key->balance_bf,2)}}</td>
                             <td>{{number_format($key->amount,2)}}</td>
                             <td>{{number_format($key->balance_new,2)}}</td>
@@ -1341,22 +1355,22 @@ $total_loans = 0;
             </p>
 
             <table class="table table-bordered table-striped">
-                <thead>
-                <tr>
-                    <th>Consultant</th>
-                    <th>Office</th>
-                    <th class="text-right">Given Out</th>
-                    <th class="text-right">Still Uncollected</th>
-                </tr>
-                </thead>
-                <tbody id="performanceTableBody">
-                <tr>
-                    <td colspan="6" class="text-center text-muted">
-                        Expand to load performance data
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+    <thead>
+        <tr>
+            <th>Consultant</th>
+            <th class="text-right">Given Out</th>
+            <th class="text-right">Still Uncollected</th>
+        </tr>
+    </thead>
+    <tbody id="performanceTableBody">
+        <tr>
+            <td colspan="3" class="text-center text-muted">
+                Expand to load performance data
+            </td>
+        </tr>
+    </tbody>
+</table>
+
 
         </div>
     </div>
@@ -1389,18 +1403,16 @@ document.addEventListener('DOMContentLoaded', function () {
         return Number(amount || 0).toLocaleString();
     }
 
-    // ✅ CURRENT ACTIVE CYCLE: 24th → 24th
     function get24thTo24thRange() {
         const today = new Date();
-
         let start, end;
 
         if (today.getDate() >= 24) {
             start = new Date(today.getFullYear(), today.getMonth(), 24);
-            end   = new Date(today.getFullYear(), today.getMonth() + 1, 24);
+            end = new Date(today.getFullYear(), today.getMonth() + 1, 24);
         } else {
             start = new Date(today.getFullYear(), today.getMonth() - 1, 24);
-            end   = new Date(today.getFullYear(), today.getMonth(), 24);
+            end = new Date(today.getFullYear(), today.getMonth(), 24);
         }
 
         function formatLocalDate(date) {
@@ -1410,10 +1422,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return `${y}-${m}-${d}`;
         }
 
-        return {
-            start_date: formatLocalDate(start),
-            end_date: formatLocalDate(end)
-        };
+        return { start_date: formatLocalDate(start), end_date: formatLocalDate(end) };
     }
 
     async function loadPerformance() {
@@ -1422,21 +1431,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const officeId = "0";
         const { start_date, end_date } = get24thTo24thRange();
-        console.log(officeId)
+        document.getElementById('cycleDates').innerText = `${start_date} to ${end_date}`;
 
-        document.getElementById('cycleDates').innerText =
-            `${start_date} to ${end_date}`;
-
-        let url = `https://lms2backend.whencefinancesystem.com/loan-consultant-performance-new`
-                + `?start_date=${start_date}&end_date=${end_date}`;
-
-        if (officeId && officeId !== "0") {
-            url += `&office_id=${officeId}`;
-        }
+        let url = `https://lms2backend.whencefinancesystem.com/loan-consultant-performance-new?start_date=${start_date}&end_date=${end_date}`;
+        if (officeId && officeId !== "0") url += `&office_id=${officeId}`;
 
         tableBody.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center">
+                <td colspan="4" class="text-center">
                     <i class="fa fa-spinner fa-spin"></i> Loading performance data...
                 </td>
             </tr>
@@ -1445,9 +1447,8 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const res = await fetch(url);
             const data = await res.json();
-            console.log(data)
 
-            // 🎯 Base filter
+            // 🎯 Filter first
             const filtered = data.filter(row =>
                 Number(row.still_uncollected) < 5000 &&
                 Number(row.given_out) >= 40000
@@ -1456,7 +1457,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!filtered.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center text-muted">
+                        <td colspan="4" class="text-center text-muted">
                             No consultants meet the criteria
                         </td>
                     </tr>
@@ -1464,52 +1465,66 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // 🔽 Sort highest performers first
-            filtered.sort((a, b) => Number(b.given_out) - Number(a.given_out));
+            // 🔹 Group by office
+            const offices = {};
+            filtered.forEach(row => {
+                const officeName = row.office || 'Unknown Office';
+                if (!offices[officeName]) offices[officeName] = [];
+                offices[officeName].push(row);
+            });
 
             tableBody.innerHTML = '';
 
-            let currentSection = null;
+            // 🔹 Loop offices
+            Object.keys(offices).forEach(officeName => {
+                const consultants = offices[officeName];
 
-            filtered.forEach(row => {
-                const givenOut = Number(row.given_out);
-
-                let section;
-                if (givenOut >= 120000) {
-                    section = '120,000+';
-                } else if (givenOut >= 80000) {
-                    section = '80,000+';
-                } else if (givenOut >= 50000) {
-                    section = '50,000+';
-                } else {
-                    section = '40,000+';
-                }
-
-                // 🔹 Insert section header only once
-                if (section !== currentSection) {
-                    currentSection = section;
-                    tableBody.innerHTML += `
-                        <tr class="bg-light-blue">
-                            <th colspan="6">Given Out ${section}</th>
-                        </tr>
-                    `;
-                }
-
+                // Office header
                 tableBody.innerHTML += `
-                    <tr>
-                        <td>${row.name}</td>
-                        <td>${row.office}</td>
-                        <td class="text-right">${formatMoney(row.given_out)}</td>
-                        <td class="text-right text-danger">${formatMoney(row.still_uncollected)}</td>
+                    <tr class="bg-light-gray">
+                        <th colspan="4">Office: ${officeName}</th>
                     </tr>
                 `;
+
+                // 🔹 Group by Given Out sections within office
+                const sections = { '120000+': [], '80000+': [], '50000+': [], '40000+': [] };
+
+                consultants.forEach(c => {
+                    const givenOut = Number(c.given_out);
+                    if (givenOut >= 120000) sections['120000+'].push(c);
+                    else if (givenOut >= 80000) sections['80000+'].push(c);
+                    else if (givenOut >= 50000) sections['50000+'].push(c);
+                    else sections['40000+'].push(c);
+                });
+
+                Object.keys(sections).forEach(section => {
+                    if (!sections[section].length) return;
+
+                    // Section header
+                    tableBody.innerHTML += `
+                        <tr class="bg-light-blue">
+                            <th colspan="4">Given Out ${section}</th>
+                        </tr>
+                    `;
+
+                    // Rows
+                    sections[section].forEach(c => {
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td>${c.name}</td>
+                                <td class="text-right">${formatMoney(c.given_out)}</td>
+                                <td class="text-right text-danger">${formatMoney(c.still_uncollected)}</td>
+                            </tr>
+                        `;
+                    });
+                });
             });
 
         } catch (error) {
             console.error(error);
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center text-danger">
+                    <td colspan="4" class="text-center text-danger">
                         Failed to load performance data
                     </td>
                 </tr>
@@ -1519,6 +1534,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('#collapsePerformance').on('shown.bs.collapse', loadPerformance);
 });
+
 </script>
 
 
