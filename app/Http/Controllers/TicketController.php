@@ -219,7 +219,7 @@ class TicketController extends Controller
             $notificationEmails = config('ticket.notification_emails', []);
             foreach ($notificationEmails as $email) {
                 // try {
-                Mail::to($email)->send(new SendSingleEmail('New Ticket Created | ' . $ticket->ticket_number, 'A new ticket has been created: ' . $ticket->ticket_number . ' by ' . $user->first_name . ' ' . $user->last_name . '. {link}'));
+                // Mail::to($email)->send(new SendSingleEmail('New Ticket Created | ' . $ticket->ticket_number, 'A new ticket has been created: ' . $ticket->ticket_number . ' by ' . $user->first_name . ' ' . $user->last_name . '. {link}'));
                 // } catch (\Exception $e) {
                 //     \Log::error('Failed to send admin notification email: ' . $e->getMessage());
                 // }
@@ -227,7 +227,7 @@ class TicketController extends Controller
 
             // Send confirmation email to user
             // try {
-            Mail::to($user->email)->send(new SendSingleEmail('Ticket Submitted Successfully', 'Your ticket "' . $ticket->ticket_number . '" has been submitted successfully. {link}'));
+            // Mail::to($user->email)->send(new SendSingleEmail('Ticket Submitted Successfully', 'Your ticket "' . $ticket->ticket_number . '" has been submitted successfully. {link}'));
             // } catch (\Exception $e) {
             //     \Log::error('Failed to send user confirmation email: ' . $e->getMessage());
             // }
@@ -302,10 +302,10 @@ class TicketController extends Controller
             // Email to assignee
             if ($assignee && $assignee->email) {
                 try {
-                    Mail::to($assignee->email)->send(new SendSingleEmail(
-                        'Ticket Assigned to You',
-                        'You have been assigned a ticket: "' . $ticket->name . '" (' . $ticket->ticket_number . ') by ' . $assigner->first_name . ' ' . $assigner->last_name . '. Please check your ticket dashboard. {link}'
-                    ));
+                    // Mail::to($assignee->email)->send(new SendSingleEmail(
+                    //     'Ticket Assigned to You',
+                    //     'You have been assigned a ticket: "' . $ticket->name . '" (' . $ticket->ticket_number . ') by ' . $assigner->first_name . ' ' . $assigner->last_name . '. Please check your ticket dashboard. {link}'
+                    // ));
                 } catch (\Exception $e) {
                     \Log::error('Failed to send assignment email to assignee: ' . $e->getMessage());
                 }
@@ -317,10 +317,10 @@ class TicketController extends Controller
             $openedBy = $ticket->openedBy;
             if ($openedBy && $openedBy->email) {
                 try {
-                    Mail::to($openedBy->email)->send(new SendSingleEmail(
-                        'Ticket Resolved',
-                        'Your ticket "' . $ticket->name . '" (' . $ticket->ticket_number . ') has been resolved. {link}'
-                    ));
+                    // Mail::to($openedBy->email)->send(new SendSingleEmail(
+                    //     'Ticket Resolved',
+                    //     'Your ticket "' . $ticket->name . '" (' . $ticket->ticket_number . ') has been resolved. {link}'
+                    // ));
                 } catch (\Exception $e) {
                     \Log::error('Failed to send resolution email to opener: ' . $e->getMessage());
                 }

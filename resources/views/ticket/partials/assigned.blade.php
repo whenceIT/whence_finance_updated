@@ -33,7 +33,7 @@
                                 <td>{{ ucfirst($ticket->priority) }}</td>
                                 <td>{{ $ticket->stage ?? '—' }}</td>
                                 <td>Me</td>
-                                <td>{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->last_name ?? '—' }}</td>
+                                <td>{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->last_name ?? '—' }} ({{ optional($ticket->openedBy)->office->name ?? '—' }})</td>
                                 <td>{{ optional($ticket->issueCategory)->name ?? '—' }}</td>
                                 <td>{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</td>
                                 <td>{{ $ticket->date_closed ? date('d M Y H:i', strtotime($ticket->date_closed)) : ($ticket->datetime_close ? date('d M Y H:i', strtotime($ticket->datetime_close)) : '—') }}</td>
@@ -146,7 +146,7 @@
                                             </div>
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-user-plus"></i> Created By:</span>
-                                                <span class="ticket-info-value">{{ optional($ticket->openedBy)->first_name && optional($ticket->openedBy)->last_name ? optional($ticket->openedBy)->first_name . ' ' . optional($ticket->openedBy)->last_name : '—' }}</span>
+                                                <span class="ticket-info-value">{{ optional($ticket->openedBy)->first_name && optional($ticket->openedBy)->last_name ? optional($ticket->openedBy)->first_name . ' ' . optional($ticket->openedBy)->last_name : '—' }} </span>
                                             </div>
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-tag"></i> Issue Category:</span>
@@ -155,6 +155,10 @@
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-calendar"></i> Opened At:</span>
                                                 <span class="ticket-info-value">{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</span>
+                                            </div>
+
+                                            <div>
+                                                <b>{{ optional($ticket->openedBy)->office->name ?? '—' }}</b>
                                             </div>
                                         </div>
                                         <div class="ticket-actions">

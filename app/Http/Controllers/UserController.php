@@ -38,6 +38,7 @@ use App\Models\AppraisalForm;
 use App\Models\AppraisalFormSection;
 use App\Models\AppraisalQuestion;
 use App\Models\AppraisalAnswer;
+use App\Models\TargetTracker;
 use stdClass;
 
 class UserController extends Controller
@@ -139,6 +140,61 @@ class UserController extends Controller
 
 
         if ($role->role_id == '3') {
+
+               if (Sentinel::getUser()->cycle_dates == null) {
+                $cycle_end = 24;
+            } else {
+                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+            }
+
+
+            $today = date('Y-m-d');
+            $currrent_date = date('Y-m');
+            $cycle_date = $currrent_date . '-' . $cycle_end;
+
+            $target_tracker = TargetTracker::where('status','active')->where('user_id',Sentinel::getUser()->id)->first();
+            if($target_tracker == null){
+                $new_target_tracker = new TargetTracker();
+                $new_target_tracker->user_id = Sentinel::getUser()->id;
+                $new_target_tracker->given_out = 0;
+                $new_target_tracker->brought_f = 0;
+                $new_target_tracker->target = 1;
+                
+                if($today > $cycle_date) {
+                     $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                }
+                $new_target_tracker->cycle_date = $cycle_date;
+                $new_target_tracker->status = 'active';
+                $new_target_tracker->save();
+            }else{
+
+                if($today >= $target_tracker->cycle_date){
+
+                    $target_tracker->status = 'closed';
+                    $target_tracker->save();
+
+                $new_target_tracker = new TargetTracker();
+                $new_target_tracker->user_id = Sentinel::getUser()->id;
+                $new_target_tracker->given_out = 0;
+                $new_target_tracker->brought_f = $target_tracker->given_out;
+                $new_target_tracker->target = $target_tracker->target;
+                
+                if($today > $cycle_date) {
+                     $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                }
+                $new_target_tracker->cycle_date = $cycle_date;
+                $new_target_tracker->status = 'active';
+                $new_target_tracker->save();
+                }
+
+
+            }
+
+
+
+
+
+
             $myLoans = Loan::with('transactions')->where('loan_officer_id', $userId)->get();
             foreach ($myLoans as $myLoan) {
                 foreach ($myLoan->transactions as $Transaction) {
@@ -151,11 +207,7 @@ class UserController extends Controller
             }
 
 
-            if (Sentinel::getUser()->cycle_dates == null) {
-                $cycle_end = 24;
-            } else {
-                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
-            }
+         
 
             $fixedDay = $cycle_end;
             $userId = Sentinel::getUser()->id;
