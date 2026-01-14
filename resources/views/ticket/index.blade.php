@@ -57,7 +57,7 @@
 
                     /* 🟡 Highlight: My Ticket Requests tab */
                     .nav-tabs>li.tab-yellow>a {
-                        background: yellow;
+                        background: orange;
                         color: #000;
                         border-radius: 4px 4px 0 0;
                         margin-right: 6px;
@@ -65,7 +65,7 @@
 
                     .nav-tabs>li.tab-yellow.active>a,
                     .nav-tabs>li.tab-yellow>a:hover {
-                        background: #ff0 !important;
+                        background: rgb(255, 187, 0) !important;
                         color: #000 !important;
                         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
                     }
