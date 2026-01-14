@@ -21,8 +21,6 @@
                                 <th>SLA (Days)</th>
                                 <th>Due Date</th>
                                 <th>SLA Met</th>
-                                <!-- <th>Rating</th>
-                                <th>Remarks</th> -->
                                 <th>Details</th>
                                 <th>Actions</th>
                             </tr>
@@ -180,6 +178,10 @@
                                                 <span class="ticket-info-label"><i class="fa fa-calendar"></i> Opened At:</span>
                                                 <span class="ticket-info-value">{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : '—' }}</span>
                                             </div>
+                                            
+                                            <div>
+                                                <b>{{ optional($ticket->openedBy)->office->name ?? '—' }}</b>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -209,34 +211,7 @@
                         </div>
                     </div>
 
-                    <div class="row" style="margin-bottom:12px;">
-                        <div class="col-md-6">
-                            <h4>SLA Compliance</h4>
-                            <canvas id="slaChart"></canvas>
-                        </div>
-                        <div class="col-md-6">
-                            <h4>Tickets by Office</h4>
-                            <canvas id="officeChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="row" style="margin-bottom:12px;">
-                        <div class="col-md-6">
-                            <h4>Tickets by Issue Category</h4>
-                            <canvas id="categoryChart"></canvas>
-                        </div>
-                        <div class="col-md-6">
-                            <h4>Tickets Opened Over Time</h4>
-                            <canvas id="openChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="row" style="margin-bottom:12px;">
-                        <div class="col-md-6">
-                            <h4>Average Days to Close by Office</h4>
-                            <canvas id="closeChart"></canvas>
-                        </div>
-                    </div>
+                    
 
                     <script src="{{ asset('assets/plugins/chart.js/Chart.min.js') }}"></script>
                     <script>
