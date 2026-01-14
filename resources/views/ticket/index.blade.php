@@ -55,6 +55,21 @@
                         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
                     }
 
+                    /* 🟡 Highlight: My Ticket Requests tab */
+                    .nav-tabs>li.tab-yellow>a {
+                        background: yellow;
+                        color: #000;
+                        border-radius: 4px 4px 0 0;
+                        margin-right: 6px;
+                    }
+
+                    .nav-tabs>li.tab-yellow.active>a,
+                    .nav-tabs>li.tab-yellow>a:hover {
+                        background: #ff0 !important;
+                        color: #000 !important;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                    }
+
                     /* keep transitions smooth */
                     .nav-tabs>li>a {
                         transition: all .12s ease;
@@ -206,7 +221,7 @@
                     <li class="tab-special"><a href="#resolved_by_me" data-toggle="tab">Tickets I Resolved <span
                         class="badge">{{ $assignedClosedTickets->count() }}</span></a>
                     </li>
-                    <li><a href="#requested" data-toggle="tab">My Ticket Requests <span
+                    <li class="tab-yellow"><a href="#requested" data-toggle="tab">My Ticket Requests <span
                         class="badge">{{ $myTickets->count() }}</span></a>
                     </li>
                     <li><a href="#my_requested_resolved" data-toggle="tab">My Requested Resolved Tickets <span
