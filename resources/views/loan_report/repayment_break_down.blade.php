@@ -1029,11 +1029,37 @@ $total_loans = 0;
                                 {{$key->date}}
                             </td>
                             <td>{{$key->loan_id}}</td>
-                            <td>  
-                             {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
+                            <td>
+                                @if(!empty($key->loan))
+                                    @if(!empty($key->loan->loan_officer))
+                                        {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
+                                    @endif
+                                @endif
                             </td>
-                            <td>{{$key->loan->client->first_name}} {{$key->loan->client->last_name}}</td>
-                            <td> {{$key->office->name}}</td>
+                            <td>
+                                @if(!empty($key->loan))
+                                    @if($key->loan->client_type=="client")
+                                        @if(!empty($key->loan->client))
+                                            @if($key->loan->client->client_type=="individual")
+                                                {{$key->loan->client->first_name}} {{$key->loan->client->middle_name}} {{$key->loan->client->last_name}}
+                                            @endif
+                                            @if($key->loan->client->client_type=="business")
+                                                {{$key->loan->client->full_name}}
+                                            @endif
+                                        @endif
+                                    @endif
+                                    @if($key->loan->client_type=="group")
+                                        @if(!empty($key->loan->group))
+                                            {{$key->loan->group->name}}
+                                        @endif
+                                    @endif
+                                @endif
+                            </td>
+                            <td>
+                                @if(!empty($key->office))
+                                    {{$key->office->name}}
+                                @endif
+                            </td>
                             <td>{{number_format($key->balance_bf,2)}}</td>
                             <td>{{number_format($key->amount,2)}}</td>
                             <td>{{number_format($key->balance_new,2)}}</td>
