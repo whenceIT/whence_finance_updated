@@ -151,7 +151,7 @@
                                             </div>
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-user"></i> Assigned To:</span>
-                                                <span class="ticket-info-value text-primary">{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</span>
+                                                <span class="ticket-info-value text-warning">{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</span>
                                             </div>
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-tag"></i> Issue Category:</span>
