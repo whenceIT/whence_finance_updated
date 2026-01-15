@@ -129,14 +129,12 @@
     @yield('page-header-scripts')
     {{--End Page level scripts--}}
 </head>
-@php
+<?php
     $userInfo = \App\Helpers\GeneralHelper::get_user_info();
     $user = $userInfo->user;
     $role = $userInfo->role;
     $office = $userInfo->office;
-
-@endphp
-
+?>
 <div class="modal fade" id="announcementModal" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">

@@ -19,6 +19,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
+use App\Http\Controllers\LoanReportController;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -86,6 +87,10 @@ Route::get('clear_cache', function () {
 // routes/web.php
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+
+Route::get('/get-loan-officers-by-office/{officeId}', [LoanReportController::class, 'getLoanOfficersByOffice']);
+Route::get('/get-loan-officers-by-province/{provinceId}', [LoanReportController::class, 'getLoanOfficersByProvince']);
+Route::get('/get-all-loan-officers', [LoanReportController::class, 'getAllLoanOfficers']);
 
 Route::post('/nextjs-login', function (Request $request) {
     $credentials = $request->only('email', 'password');

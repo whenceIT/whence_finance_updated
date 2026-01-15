@@ -1,19 +1,18 @@
 @extends('layouts.master')
 @section('title')
-    {{trans_choice('general.loan',1)}} {{trans_choice('general.book',1)}} {{trans_choice('general.report',1)}}
+    {{trans_choice('general.loan',1)}} Book {{trans_choice('general.report',1)}}
 @endsection
 @section('content')
 <div class="box box-primary">
     <div class="box-header with-border">
         <h3 class="box-title">
-            {{trans_choice('general.loan',1)}} {{trans_choice('general.book',2)}} {{trans_choice('general.report',2)}}
+            {{trans_choice('general.loan',1)}} Book {{trans_choice('general.report',2)}}
             @if(!empty($start_date))
                 for period: <b>{{$start_date}} to {{$end_date}}</b>
             @endif
         </h3>
 
         <div class="box-tools pull-right">
-
         </div>
     </div>
     <div class="box-body hidden-print">
@@ -42,9 +41,16 @@
                        class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
                 <div class="col-md-3">
                     <select name="office_id" class="form-control select2" id="office_id" required>
+                        @php
+                            $user = Sentinel::getUser();
+                            $offices = \App\Models\Office::all();
+                            if ($user->inRole(6)) {
+                                $offices = \App\Models\Office::where('province_id', $user->province_id)->get();
+                            }
+                        @endphp
                         <option value="0"
                                 @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                        @foreach(\App\Models\Office::all() as $key)
+                        @foreach($offices as $key)
                             <option value="{{$key->id}}"
                                     @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                         @endforeach
@@ -59,12 +65,6 @@
                 <div class="col-md-3">
                     <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
                         <option value="0">{{trans_choice('general.all',1)}}</option>
-                        @foreach(\App\Models\User::all() as $key)
-                            @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                <option value="{{$key->id}}"
-                                        @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
-                            @endif
-                        @endforeach
                     </select>
                 </div>
             </div>
@@ -135,6 +135,55 @@
                     </div>
                 </div>
             </form>
+            <script>
+                $(document).ready(function() {
+                    $('#office_id').change(function() {
+                        var officeId = $(this).val();
+                        var userRole = '{{ $user->inRole(6) ? "provincial_manager" : "admin" }}';
+                        var provinceId = '{{ $user->province_id }}';
+                        
+                        if (officeId == '0') {
+                            if (userRole == 'provincial_manager') {
+                                $.ajax({
+                                    url: '/get-loan-officers-by-province/' + provinceId,
+                                    type: 'GET',
+                                    success: function(data) {
+                                        $('#loan_officer_id').empty();
+                                        $('#loan_officer_id').append('<option value="0">{{ trans_choice('general.all', 1) }}</option>');
+                                        $.each(data, function(key, value) {
+                                            $('#loan_officer_id').append('<option value="' + value.id + '">' + value.first_name + ' ' + value.last_name + '</option>');
+                                        });
+                                    }
+                                });
+                            } else {
+                                $.ajax({
+                                    url: '/get-all-loan-officers',
+                                    type: 'GET',
+                                    success: function(data) {
+                                        $('#loan_officer_id').empty();
+                                        $('#loan_officer_id').append('<option value="0">{{ trans_choice('general.all', 1) }}</option>');
+                                        $.each(data, function(key, value) {
+                                            $('#loan_officer_id').append('<option value="' + value.id + '">' + value.first_name + ' ' + value.last_name + '</option>');
+                                        });
+                                    }
+                                });
+                            }
+                        } else {
+                            $.ajax({
+                                url: '/get-loan-officers-by-office/' + officeId,
+                                type: 'GET',
+                                success: function(data) {
+                                    $('#loan_officer_id').empty();
+                                    $('#loan_officer_id').append('<option value="0">{{ trans_choice('general.all', 1) }}</option>');
+                                    $.each(data, function(key, value) {
+                                        $('#loan_officer_id').append('<option value="' + value.id + '">' + value.first_name + ' ' + value.last_name + '</option>');
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+            </script>
 
         </div>
 

@@ -1,7 +1,11 @@
 <?php
     use App\Models\AppraisalForm;               
-?>
 
+    $userInfo = \App\Helpers\GeneralHelper::get_user_info();
+    $user = $userInfo->user;
+    $role = $userInfo->role;
+    $office = $userInfo->office;
+?>
 <aside class="main-sidebar" style="color: #ffffff">
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar" style="color:#ffffff;">
@@ -17,21 +21,12 @@
 
                 @if(Sentinel::getUser()->hasAccess('offices'))
                     <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ substr(Sentinel::getUser()->office->name ?? 'Office', 0, 19) }}</p>
-                @else   
-                    <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ \App\Models\Province::where('id', Sentinel::getUser()->province_id)->first()->name }} PROVINCIAL <br/> MANAGER</p>
+                @else
+                    @php
+                        $province = \App\Models\Province::where('id', Sentinel::getUser()->province_id)->first();
+                    @endphp
+                    <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">{{ $province ? $province->name : 'Province' }} PROVINCIAL <br/> MANAGER</p>
                 @endif
-                <!-- <p style="margin: 0; color: #fff; font-size: 12px; opacity: 0.9;">
-                    @if($role == 1)
-                        Admin
-                    @elseif($role  == 4)
-                        Manager
-                    @elseif($role  == 3)
-                        Loan Officer
-                    @else
-                        
-                    @endif
-                </p> -->
-
                 <a href="#" style="color: #fff; font-size: 12px;"><i class="fa fa-circle text-success"></i> Online</a>
             </div>
         </div>
