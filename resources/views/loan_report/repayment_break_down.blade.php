@@ -8,7 +8,18 @@ Daily Loan Activities Breakdown Report
     border-top: 2px solid;
 }   
 </style>
+
 @section('content')
+<?php
+    $user = Sentinel::getUser();
+    if ($user) {
+        $role = $user->role->role_id;
+        $office = $user->office->id;
+    } else {
+        $role = null;
+        $office = null;
+    }
+?>
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">
@@ -47,16 +58,17 @@ Daily Loan Activities Breakdown Report
                            class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
-                            <option value="0"
-                                    @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                            <option value="0" @if($office_id == "0") selected @endif>{{trans_choice('general.all',1)}}</option>
 
-                            @foreach(\App\Models\Office::all() as $key)
-                                @if((Sentinel::getUser()->role_id == 6 || Sentinel::getUser()->inRole(6)) && $key->province_id != Sentinel::getUser()->province_id)
-                                    @continue
-                                @endif
-                                <option value="{{$key->id}}"
-                                        @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
-                            @endforeach
+                            @if($role == 6)
+                                @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->office->province_id)->get() as $key)
+                                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @elseif($role_id == 1)
+                                @foreach(\App\Models\Office::all() as $key)
+                                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                 </div>
