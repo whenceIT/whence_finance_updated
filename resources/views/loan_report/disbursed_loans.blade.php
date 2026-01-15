@@ -313,7 +313,7 @@
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option value="0"
                                     @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\Office::all() as $key)
+                            @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->province_id)->get() as $key)
                                 <option value="{{$key->id}}"
                                         @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                             @endforeach
@@ -328,7 +328,7 @@
                     <div class="col-md-3">
                         <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
                             <option value="0">{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\User::all() as $key)
+                            @foreach(\App\Models\User::where('province_id', Sentinel::getUser()->province_id)->get() as $key)
                                 @if(!Sentinel::findUserById($key->id)->inRole('client'))
                                     <option value="{{$key->id}}"
                                             @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
