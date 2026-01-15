@@ -64,7 +64,7 @@ Daily Loan Activities Breakdown Report
                                 @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->office->province_id)->get() as $key)
                                     <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
-                            @elseif($role_id)
+                            @elseif($role == 1)
                                 @foreach(\App\Models\Office::all() as $key)
                                     <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
