@@ -3732,17 +3732,12 @@ class LoanController extends Controller
             return redirect()->back();
         }
 
-<<<<<<< HEAD
+
+        $target_tracker = TargetTracker::where('status','active')->where('user_id',$loan->loan_officer_id)->first();
+        $target_tracker->given_out = $target_tracker->given_out + $balance;
+        $target_tracker->save();
+
         LoanTransactionsPending::where('id', $trans_id)->delete();
-        return redirect('loan/reloan_approvals');
-=======
-
-    $target_tracker = TargetTracker::where('status','active')->where('user_id',$loan->loan_officer_id)->first();
-    $target_tracker->given_out = $target_tracker->given_out + $balance;
-    $target_tracker->save();
-
-    LoanTransactionsPending::where('id', $trans_id)->delete();
->>>>>>> 82760bd89be5ef715225c06777238a1998eff59b
 
     }
 
