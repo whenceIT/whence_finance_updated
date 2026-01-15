@@ -269,6 +269,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::post('{client}/add_user', 'ClientController@add_user');
     Route::get('{id}/delete_user', 'ClientController@delete_user');
 
+    Route::get('get-staffs', 'ClientController@getStaffs');
 });
 //route for client identification types
 Route::group(['prefix' => 'client_identification_type'], function () {

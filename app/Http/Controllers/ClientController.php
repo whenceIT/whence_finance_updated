@@ -62,19 +62,35 @@ class ClientController extends Controller
     
     $query = $request->input('query');
     $data = [];
-
-    if ($query) {
-        $data = Client::where('status', 'active')
-            ->where(function ($q) use ($query) {
-                
-                $q->where('first_name', 'like', "%{$query}%")
-                    ->orWhere('last_name', 'like', "%{$query}%")
-                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"]);
-                    //->orWhere('id', $query);
-            })
-            
-            ->get();
+    
+    $user = Sentinel::getUser();
+    $userInfo = GeneralHelper::get_user_info();
+    
+    $clientQuery = Client::where('status', 'active');
+    
+    // Apply role-based filtering
+    if ($userInfo->role == 6) {
+        // Provincial Manager: Only see clients in their own province
+        $clientQuery->whereHas('office', function ($q) use ($user) {
+            $q->where('province_id', $user->province_id);
+        });
+    } elseif ($userInfo->role == 4) {
+        // Branch Manager: Only see clients in their own office
+        $clientQuery->where('office_id', $user->office_id);
     }
+    // Admin (role == 1) sees all clients by default
+    
+    if ($query) {
+        $data = $clientQuery->where(function ($q) use ($query) {
+            $q->where('first_name', 'like', "%{$query}%")
+                ->orWhere('last_name', 'like', "%{$query}%")
+                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"]);
+        })
+        ->get();
+    } else {
+        $data = $clientQuery->get();
+    }
+    
     return view('client.data', compact('data', 'query'));
 }
 
@@ -125,7 +141,25 @@ class ClientController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = Client::where('status', 'pending')->get();
+        
+        $user = Sentinel::getUser();
+        $userInfo = GeneralHelper::get_user_info();
+        
+        $clientQuery = Client::where('status', 'pending');
+        
+        // Apply role-based filtering
+        if ($userInfo->role == 6) {
+            // Provincial Manager: Only see clients in their own province
+            $clientQuery->whereHas('office', function ($q) use ($user) {
+                $q->where('province_id', $user->province_id);
+            });
+        } elseif ($userInfo->role == 4) {
+            // Branch Manager: Only see clients in their own office
+            $clientQuery->where('office_id', $user->office_id);
+        }
+        // Admin (role == 1) sees all clients by default
+        
+        $data = $clientQuery->get();
 
         return view('client.pending_approval', compact('data'));
     }
@@ -155,7 +189,25 @@ class ClientController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = Client::where('status', 'declined')->get();
+        
+        $user = Sentinel::getUser();
+        $userInfo = GeneralHelper::get_user_info();
+        
+        $clientQuery = Client::where('status', 'declined');
+        
+        // Apply role-based filtering
+        if ($userInfo->role == 6) {
+            // Provincial Manager: Only see clients in their own province
+            $clientQuery->whereHas('office', function ($q) use ($user) {
+                $q->where('province_id', $user->province_id);
+            });
+        } elseif ($userInfo->role == 4) {
+            // Branch Manager: Only see clients in their own office
+            $clientQuery->where('office_id', $user->office_id);
+        }
+        // Admin (role == 1) sees all clients by default
+        
+        $data = $clientQuery->get();
 
         return view('client.declined', compact('data'));
     }
@@ -166,7 +218,25 @@ class ClientController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = Client::where('status', 'closed')->get();
+        
+        $user = Sentinel::getUser();
+        $userInfo = GeneralHelper::get_user_info();
+        
+        $clientQuery = Client::where('status', 'closed');
+        
+        // Apply role-based filtering
+        if ($userInfo->role == 6) {
+            // Provincial Manager: Only see clients in their own province
+            $clientQuery->whereHas('office', function ($q) use ($user) {
+                $q->where('province_id', $user->province_id);
+            });
+        } elseif ($userInfo->role == 4) {
+            // Branch Manager: Only see clients in their own office
+            $clientQuery->where('office_id', $user->office_id);
+        }
+        // Admin (role == 1) sees all clients by default
+        
+        $data = $clientQuery->get();
 
         return view('client.closed', compact('data'));
     }
@@ -177,7 +247,25 @@ class ClientController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = Client::where('status', 'inactive')->get();
+        
+        $user = Sentinel::getUser();
+        $userInfo = GeneralHelper::get_user_info();
+        
+        $clientQuery = Client::where('status', 'inactive');
+        
+        // Apply role-based filtering
+        if ($userInfo->role == 6) {
+            // Provincial Manager: Only see clients in their own province
+            $clientQuery->whereHas('office', function ($q) use ($user) {
+                $q->where('province_id', $user->province_id);
+            });
+        } elseif ($userInfo->role == 4) {
+            // Branch Manager: Only see clients in their own office
+            $clientQuery->where('office_id', $user->office_id);
+        }
+        // Admin (role == 1) sees all clients by default
+        
+        $data = $clientQuery->get();
 
         return view('client.inactive', compact('data'));
     }
@@ -188,7 +276,25 @@ class ClientController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = Client::where('blacklisted', 1)->orderBy('created_at', 'desc')->get();
+        
+        $user = Sentinel::getUser();
+        $userInfo = GeneralHelper::get_user_info();
+        
+        $clientQuery = Client::where('blacklisted', 1)->orderBy('created_at', 'desc');
+        
+        // Apply role-based filtering
+        if ($userInfo->role == 6) {
+            // Provincial Manager: Only see clients in their own province
+            $clientQuery->whereHas('office', function ($q) use ($user) {
+                $q->where('province_id', $user->province_id);
+            });
+        } elseif ($userInfo->role == 4) {
+            // Branch Manager: Only see clients in their own office
+            $clientQuery->where('office_id', $user->office_id);
+        }
+        // Admin (role == 1) sees all clients by default
+        
+        $data = $clientQuery->get();
 
         return view('client.blacklisted', compact('data'));
     }
@@ -1153,5 +1259,18 @@ class ClientController extends Controller
         Flash::success(trans('general.successfully_deleted'));
         return redirect()->back();
 
+    }
+
+    public function getStaffs(Request $request)
+    {
+        $officeId = $request->input('office_id');
+        $staffs = \App\Helpers\GeneralHelper::get_filtered_staffs($officeId);
+        $options = [];
+        foreach ($staffs as $staff) {
+            if (!Sentinel::findUserById($staff->id)->inRole('client')) {
+                $options[$staff->id] = $staff->first_name . ' ' . $staff->last_name;
+            }
+        }
+        return response()->json($options);
     }
 }

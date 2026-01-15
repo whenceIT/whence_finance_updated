@@ -2833,13 +2833,47 @@ class GeneralHelper
             return (object) [
                 'user' => $user,
                 'role' => $user->role ? $user->role->role_id : null,
-                'office' => $user->office ? $user->office->id : null
+                'office' => $user->office ? $user->office->id : null,
+                'province_id' => $user->province_id ?? null
             ];
         }
         return (object) [
             'user' => null,
             'role' => null,
-            'office' => null
+            'office' => null,
+            'province_id' => null
         ];
+    }
+
+    public static function get_filtered_offices()
+    {
+        $user = Sentinel::getUser();
+        if ($user->inRole(1)) {
+            return \App\Models\Office::all();
+        } elseif ($user->inRole(6)) {
+            return \App\Models\Office::where('province_id', $user->province_id)->get();
+        } elseif ($user->inRole(4)) {
+            return \App\Models\Office::where('id', $user->office_id)->get();
+        }
+        return collect();
+    }
+
+    public static function get_filtered_staffs($office_id = null)
+    {
+        $user = Sentinel::getUser();
+        if ($user->inRole(1)) {
+            if ($office_id) {
+                return \App\Models\User::where('office_id', $office_id)->get();
+            }
+            return \App\Models\User::all();
+        } elseif ($user->inRole(6)) {
+            if ($office_id) {
+                return \App\Models\User::where('office_id', $office_id)->where('province_id', $user->province_id)->get();
+            }
+            return \App\Models\User::where('province_id', $user->province_id)->get();
+        } elseif ($user->inRole(4)) {
+            return \App\Models\User::where('office_id', $user->office_id)->get();
+        }
+        return collect();
     }
 }
