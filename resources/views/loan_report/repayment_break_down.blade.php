@@ -60,7 +60,11 @@ Daily Loan Activities Breakdown Report
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option value="0" @if($office_id == "0") selected @endif>{{trans_choice('general.all',1)}}</option>
 
-                            @if($role == 6)
+                            @if($role == 4)
+                                @foreach(\App\Models\Office::where('id', Sentinel::getUser()->office->id)->get() as $key)
+                                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @elseif($role == 6)
                                 @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->office->province_id)->get() as $key)
                                     <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
