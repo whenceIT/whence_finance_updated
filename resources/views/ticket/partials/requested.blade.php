@@ -149,11 +149,7 @@
                                             </div>
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-user"></i> Assigned To:</span>
-                                                <span class="ticket-info-value">{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</span>
-                                            </div>
-                                            <div class="ticket-info-row">
-                                                <span class="ticket-info-label"><i class="fa fa-user-plus"></i> Created By:</span>
-                                                <span class="ticket-info-value">{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->last_name ?? '—' }}</span>
+                                                <span class="ticket-info-value text-warning">{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</span>
                                             </div>
                                             <div class="ticket-info-row">
                                                 <span class="ticket-info-label"><i class="fa fa-tag"></i> Issue Category:</span>
@@ -166,11 +162,13 @@
                                         </div>
                                         <div class="ticket-actions">
                                             @if($ticket->status == 'resolved')
-                                                @if($ticket->status != 'closed')
-                                                    <button type="button" class="btn btn-success ticket-btn open-close-modal" onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">Completed</button>
-                                                @else
-                                                    <button type="button" class="btn btn-warning ticket-btn open-close-modal" onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}" data-mode="rate">Rate</button>
-                                                @endif
+                                            <div class="ticket-action action-resolved">
+                                                <i class="fa fa-check-circle"></i> Resolved
+                                            </div>
+                                            @else
+                                            <div class="ticket-action action-working">
+                                                <i class="fa fa-cog fa-spin"></i> Working on it...
+                                            </div>
                                             @endif
                                         </div>
                                     </div>

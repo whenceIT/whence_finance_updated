@@ -8,7 +8,18 @@ Daily Loan Activities Breakdown Report
     border-top: 2px solid;
 }   
 </style>
+
 @section('content')
+<?php
+    $user = Sentinel::getUser();
+    if ($user) {
+        $role = $user->role->role_id;
+        $office = $user->office->id;
+    } else {
+        $role = null;
+        $office = null;
+    }
+?>
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">
@@ -47,12 +58,21 @@ Daily Loan Activities Breakdown Report
                            class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
-                            <option value="0"
-                                    @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\Office::all() as $key)
-                                <option value="{{$key->id}}"
-                                        @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
-                            @endforeach
+                            <option value="0" @if($office_id == "0") selected @endif>{{trans_choice('general.all',1)}}</option>
+
+                            @if($role == 4)
+                                @foreach(\App\Models\Office::where('id', Sentinel::getUser()->office->id)->get() as $key)
+                                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @elseif($role == 6)
+                                @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->office->province_id)->get() as $key)
+                                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @elseif($role == 1)
+                                @foreach(\App\Models\Office::all() as $key)
+                                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                 </div>
@@ -1025,11 +1045,37 @@ $total_loans = 0;
                                 {{$key->date}}
                             </td>
                             <td>{{$key->loan_id}}</td>
-                            <td>  
-                             {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
+                            <td>
+                                @if(!empty($key->loan))
+                                    @if(!empty($key->loan->loan_officer))
+                                        {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
+                                    @endif
+                                @endif
                             </td>
-                            <td>{{$key->loan->client->first_name}} {{$key->loan->client->last_name}}</td>
-                            <td> {{$key->office->name}}</td>
+                            <td>
+                                @if(!empty($key->loan))
+                                    @if($key->loan->client_type=="client")
+                                        @if(!empty($key->loan->client))
+                                            @if($key->loan->client->client_type=="individual")
+                                                {{$key->loan->client->first_name}} {{$key->loan->client->middle_name}} {{$key->loan->client->last_name}}
+                                            @endif
+                                            @if($key->loan->client->client_type=="business")
+                                                {{$key->loan->client->full_name}}
+                                            @endif
+                                        @endif
+                                    @endif
+                                    @if($key->loan->client_type=="group")
+                                        @if(!empty($key->loan->group))
+                                            {{$key->loan->group->name}}
+                                        @endif
+                                    @endif
+                                @endif
+                            </td>
+                            <td>
+                                @if(!empty($key->office))
+                                    {{$key->office->name}}
+                                @endif
+                            </td>
                             <td>{{number_format($key->balance_bf,2)}}</td>
                             <td>{{number_format($key->amount,2)}}</td>
                             <td>{{number_format($key->balance_new,2)}}</td>
