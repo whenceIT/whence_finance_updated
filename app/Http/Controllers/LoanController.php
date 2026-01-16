@@ -723,7 +723,28 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = Loan::where('status', 'declined')->get();
+        $userId = Sentinel::getUser()->id;
+        $role = UserRole::where('user_id', $userId)->first();
+        $userBranch = Sentinel::getUser()->office_id;
+        $userProvince = Sentinel::getUser()->province_id;
+        $province_branches = Office::where('province_id', $userProvince)->get();
+        $data = [];
+
+        if ($role->role_id == '6') {
+            foreach ($province_branches as $province_branch) {
+                $loans = Loan::where('office_id', $province_branch->id)->where('status', 'declined')->get();
+                foreach ($loans as $loan) {
+                    array_push($data, $loan);
+                }
+            }
+        } elseif ($role->role_id == '4') {
+            $loans = Loan::where('office_id', $userBranch)->where('status', 'declined')->get();
+            foreach ($loans as $loan) {
+                array_push($data, $loan);
+            }
+        } elseif ($role->role_id == '1') {
+            $data = Loan::where('status', 'declined')->get();
+        }
 
         return view('loan.loans_declined', compact('data'));
     }

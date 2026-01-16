@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-    {{ trans_choice('general.active',1) }} {{ trans_choice('general.loan',2) }}
+    My {{ trans_choice('general.loan',2) }}
 @endsection
 @section('content')
     <div class="box box-primary">

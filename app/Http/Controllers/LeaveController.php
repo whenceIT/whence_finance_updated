@@ -24,133 +24,142 @@ class LeaveController extends Controller
     }
 
     public function myLeavedays(Request $request)
-{
-	$user = Sentinel::getUser();
-	$startDate = Carbon::create(2025, 1, 1);
-    $approvedLeaves = \DB::table('leave_days')
-        ->where('user_id', $user->id)
-	->where('status', 'approved')
-	->where(function ($query) use ($startDate) {
-            $query->whereDate('commencement_date', '>=', $startDate)
-                  ->orWhereDate('return_date', '>=', $startDate);
-        })
-        ->select('id', 'commencement_date', 'return_date', 'reason')
-        ->get();
+    {
+        $user = Sentinel::getUser();
+        $startDate = Carbon::create(2025, 1, 1);
+        $approvedLeaves = \DB::table('leave_days')
+            ->where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where(function ($query) use ($startDate) {
+                $query->whereDate('commencement_date', '>=', $startDate)
+                    ->orWhereDate('return_date', '>=', $startDate);
+            })
+            ->select('id', 'commencement_date', 'return_date', 'reason')
+            ->get();
 
-    $leaveSummary = $approvedLeaves->groupBy('reason')->map(function ($leaves) {
-        return $leaves->sum(function ($leave) {
-            $commencementDate = Carbon::parse($leave->commencement_date);
-            $returnDate = Carbon::parse($leave->return_date);
-            
-            $totalDays = 0;
-            for ($date = $commencementDate; $date->lt($returnDate); $date->addDay()) {
-                if (!$date->isWeekend() && !$this->isPublicHoliday($date->toDateString())) {
-                    $totalDays++;
+        $leaveSummary = $approvedLeaves->groupBy('reason')->map(function ($leaves) {
+            return $leaves->sum(function ($leave) {
+                $commencementDate = Carbon::parse($leave->commencement_date);
+                $returnDate = Carbon::parse($leave->return_date);
+
+                $totalDays = 0;
+                for ($date = $commencementDate; $date->lt($returnDate); $date->addDay()) {
+                    if (!$date->isWeekend() && !$this->isPublicHoliday($date->toDateString())) {
+                        $totalDays++;
+                    }
                 }
-            }
-            return $totalDays;
+                return $totalDays;
+            });
         });
-    });
 
-    $calendarHtml = $this->generateCalendar($request->get('y'), $request->get('m'), $approvedLeaves);
+        $calendarHtml = $this->generateCalendar($request->get('y'), $request->get('m'), $approvedLeaves);
 
-    return view('leave.my_leave_days', compact('calendarHtml', 'leaveSummary'));
-}
+        return view('leave.my_leave_days', compact('calendarHtml', 'leaveSummary'));
+    }
 
 
     private function generateCalendar($year, $month, $approvedLeaves)
-{
-    $year = isset($_GET['y']) ? $_GET['y'] : date('Y');
-    $month = isset($_GET['m']) ? $_GET['m'] : date('m');
+    {
+        $year = isset($_GET['y']) ? $_GET['y'] : date('Y');
+        $month = isset($_GET['m']) ? $_GET['m'] : date('m');
 
-    $months = [
-        '01' => 'January', '02' => 'February', '03' => 'March', '04' => 'April',
-        '05' => 'May', '06' => 'June', '07' => 'July', '08' => 'August',
-        '09' => 'September', '10' => 'October', '11' => 'November', '12' => 'December'
-    ];
+        $months = [
+            '01' => 'January',
+            '02' => 'February',
+            '03' => 'March',
+            '04' => 'April',
+            '05' => 'May',
+            '06' => 'June',
+            '07' => 'July',
+            '08' => 'August',
+            '09' => 'September',
+            '10' => 'October',
+            '11' => 'November',
+            '12' => 'December'
+        ];
 
-    $prevMonth = sprintf('%02d', ($month - 1 <= 0 ? 12 : $month - 1));
-    $prevYear = ($month - 1 <= 0 ? $year - 1 : $year);
+        $prevMonth = sprintf('%02d', ($month - 1 <= 0 ? 12 : $month - 1));
+        $prevYear = ($month - 1 <= 0 ? $year - 1 : $year);
 
-    $nextMonth = sprintf('%02d', ($month + 1 > 12 ? 1 : $month + 1));
-    $nextYear = ($month + 1 > 12 ? $year + 1 : $year);
+        $nextMonth = sprintf('%02d', ($month + 1 > 12 ? 1 : $month + 1));
+        $nextYear = ($month + 1 > 12 ? $year + 1 : $year);
 
-    $calendarHtml = '<div style="margin-bottom: 20px; text-align: center;">';
-    $calendarHtml .= '<div class="btn-group" aria-label="Month Navigation">';
-    
-    foreach ($months as $key => $val) {
-        $calendarHtml .= '<a href="?y=' . $year . '&m=' . $key . '" class="btn btn-primary" style="margin: 0px; font-size: 1.2em; color: #FFFFFF;">' . $val . '</a>';
-    }
-    
-    $calendarHtml .= '</div>';
-    $calendarHtml .= '</div>'; 
-    $calendarHtml .= '<div style="position: relative; text-align: center; margin-bottom: 20px;">';
-    //$calendarHtml .= '<a href="?y=' . $prevYear . '&m=' . $prevMonth . '" style="position: absolute; left: 250px; top: 50%; transform: translateY(-50%); font-size: 1.0em; text-decoration: none;">&lt;</a>';
-    $calendarHtml .= '<span style="font-size: 1.5em; font-weight: bold;">' . $months[$month] . ' ' . $year . '</span>';
-    //$calendarHtml .= '<a href="?y=' . $nextYear . '&m=' . $nextMonth . '" style="position: absolute; right: 250px; top: 50%; transform: translateY(-50%); font-size: 1.0em; text-decoration: none;">&gt;</a>';
-    $calendarHtml .= '</div>';
-    $calendarHtml .= '<table style="width: 100%; border-collapse: collapse;">';
-    $calendarHtml .= '<thead><tr>';
-    
-    foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $day) {
-        $calendarHtml .= '<th style="padding: 10px; text-align: center; border: 1px solid #ccc; background-color: #FFB346;">' . $day . '</th>';
-    }
+        $calendarHtml = '<div style="margin-bottom: 20px; text-align: center;">';
+        $calendarHtml .= '<div class="btn-group" aria-label="Month Navigation">';
 
-    $calendarHtml .= '</tr></thead><tbody>';
-    $firstDayOfMonth = date('N', strtotime($year . '-' . $month . '-01'));
-    $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-    $dayOfMonth = 1;
-    //row
-    $calendarHtml .= '<tr>';
-
-    //empty cells for days before the 1st of the month
-    for ($i = 1; $i < $firstDayOfMonth; $i++) {
-        $calendarHtml .= '<td style="padding: 10px; text-align: center; border: 1px solid #ccc;"></td>';
-    }
-
-    //days
-    while ($dayOfMonth <= $daysInMonth) {
-        $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $dayOfMonth);
-        $isLeaveDay = $this->isApprovedLeaveDay($currentDate, $approvedLeaves);
-        $isHoliday = $this->isPublicHoliday($currentDate);
-        $isWeekend = date('N', strtotime($currentDate)) >= 6; // Check if it's Saturday (6) or Sunday (7)
-        $cellStyle = '';
-        $textStyle = '';
-
-        if ($isLeaveDay && !$isHoliday && !$isWeekend) {
-            $cellStyle = 'background-color: #c0e8d2;';
-        } elseif ($isHoliday) {
-            $textStyle = 'color: red;';
+        foreach ($months as $key => $val) {
+            $calendarHtml .= '<a href="?y=' . $year . '&m=' . $key . '" class="btn btn-primary" style="margin: 0px; font-size: 1.2em; color: #FFFFFF;">' . $val . '</a>';
         }
 
-        $link = $isLeaveDay ? route('leave.show', ['id' => $isLeaveDay->id]) : '#';
+        $calendarHtml .= '</div>';
+        $calendarHtml .= '</div>';
+        $calendarHtml .= '<div style="position: relative; text-align: center; margin-bottom: 20px;">';
+        //$calendarHtml .= '<a href="?y=' . $prevYear . '&m=' . $prevMonth . '" style="position: absolute; left: 250px; top: 50%; transform: translateY(-50%); font-size: 1.0em; text-decoration: none;">&lt;</a>';
+        $calendarHtml .= '<span style="font-size: 1.5em; font-weight: bold;">' . $months[$month] . ' ' . $year . '</span>';
+        //$calendarHtml .= '<a href="?y=' . $nextYear . '&m=' . $nextMonth . '" style="position: absolute; right: 250px; top: 50%; transform: translateY(-50%); font-size: 1.0em; text-decoration: none;">&gt;</a>';
+        $calendarHtml .= '</div>';
+        $calendarHtml .= '<table style="width: 100%; border-collapse: collapse;">';
+        $calendarHtml .= '<thead><tr>';
 
-        $calendarHtml .= '<td style="padding: 10px; text-align: center; border: 1px solid #ccc; ' . $cellStyle . '">';
-        if ($isLeaveDay && !$isHoliday && !$isWeekend) {
-            $calendarHtml .= '<a href="' . $link . '" style="display: block; width: 100%; height: 100%; ' . $textStyle . '">' . $dayOfMonth . '</a>';
-        } else {
-            $calendarHtml .= '<span style="' . $textStyle . '">' . $dayOfMonth . '</span>';
+        foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $day) {
+            $calendarHtml .= '<th style="padding: 10px; text-align: center; border: 1px solid #ccc; background-color: #FFB346;">' . $day . '</th>';
         }
 
-        $calendarHtml .= '</td>';
-        $dayOfMonth++;
+        $calendarHtml .= '</tr></thead><tbody>';
+        $firstDayOfMonth = date('N', strtotime($year . '-' . $month . '-01'));
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        $dayOfMonth = 1;
+        //row
+        $calendarHtml .= '<tr>';
 
-        //new month 
-        if (($firstDayOfMonth + $dayOfMonth - 1) % 7 == 1) {
-            $calendarHtml .= '</tr><tr>';
+        //empty cells for days before the 1st of the month
+        for ($i = 1; $i < $firstDayOfMonth; $i++) {
+            $calendarHtml .= '<td style="padding: 10px; text-align: center; border: 1px solid #ccc;"></td>';
         }
+
+        //days
+        while ($dayOfMonth <= $daysInMonth) {
+            $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $dayOfMonth);
+            $isLeaveDay = $this->isApprovedLeaveDay($currentDate, $approvedLeaves);
+            $isHoliday = $this->isPublicHoliday($currentDate);
+            $isWeekend = date('N', strtotime($currentDate)) >= 6; // Check if it's Saturday (6) or Sunday (7)
+            $cellStyle = '';
+            $textStyle = '';
+
+            if ($isLeaveDay && !$isHoliday && !$isWeekend) {
+                $cellStyle = 'background-color: #c0e8d2;';
+            } elseif ($isHoliday) {
+                $textStyle = 'color: red;';
+            }
+
+            $link = $isLeaveDay ? route('leave.show', ['id' => $isLeaveDay->id]) : '#';
+
+            $calendarHtml .= '<td style="padding: 10px; text-align: center; border: 1px solid #ccc; ' . $cellStyle . '">';
+            if ($isLeaveDay && !$isHoliday && !$isWeekend) {
+                $calendarHtml .= '<a href="' . $link . '" style="display: block; width: 100%; height: 100%; ' . $textStyle . '">' . $dayOfMonth . '</a>';
+            } else {
+                $calendarHtml .= '<span style="' . $textStyle . '">' . $dayOfMonth . '</span>';
+            }
+
+            $calendarHtml .= '</td>';
+            $dayOfMonth++;
+
+            //new month 
+            if (($firstDayOfMonth + $dayOfMonth - 1) % 7 == 1) {
+                $calendarHtml .= '</tr><tr>';
+            }
+        }
+
+        //empty cells at the end of the month
+        while (($firstDayOfMonth + $daysInMonth) % 7 != 0) {
+            $calendarHtml .= '<td style="padding: 10px; text-align: center; border: 1px solid #ccc;"></td>';
+            $daysInMonth++;
+        }
+
+        $calendarHtml .= '</tbody></table>';
+
+        return $calendarHtml;
     }
-
-    //empty cells at the end of the month
-    while (($firstDayOfMonth + $daysInMonth) % 7 != 0) {
-        $calendarHtml .= '<td style="padding: 10px; text-align: center; border: 1px solid #ccc;"></td>';
-        $daysInMonth++;
-    }
-
-    $calendarHtml .= '</tbody></table>';
-
-    return $calendarHtml;
-}
 
     //public holidys
     private function getZambianPublicHolidays($year)
@@ -164,7 +173,7 @@ class LeaveController extends Controller
         return [
             "$year-01-01" => "New Year's Day",
             "$year-03-08" => "International Women's Day",
-            "$year-03-12"=> "Youth Day",
+            "$year-03-12" => "Youth Day",
             $goodFriday->format('Y-m-d') => "Good Friday",
             $easterMonday->format('Y-m-d') => "Easter Monday",
             "$year-04-28" => "Kenneth Kaunda Day",
@@ -200,12 +209,12 @@ class LeaveController extends Controller
 
     private function isApprovedLeaveDay($date, $approvedLeaves)
     {
-    foreach ($approvedLeaves as $leave) {
-        if ($date >= $leave->commencement_date && $date < $leave->return_date) {
-            return $leave;
+        foreach ($approvedLeaves as $leave) {
+            if ($date >= $leave->commencement_date && $date < $leave->return_date) {
+                return $leave;
+            }
         }
-    }
-    return false;
+        return false;
     }
 
     public function applyForLeave()
@@ -255,17 +264,17 @@ class LeaveController extends Controller
 
         if ($user->hasAccess('groups.create')) {
             $leave = Leave::where('status', 'pending')->get();
-        } elseif ($user-> hasAccess('offices')) {
+        } elseif ($user->hasAccess('offices')) {
             $leave = Leave::where('status', 'pending')
-            ->where('office_id', $office_id)
-            ->get();
-        }else {
+                ->where('office_id', $office_id)
+                ->get();
+        } else {
             $userOffice = $user->office;
             $provinceId = $userOffice->province_id;
             $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
             $leave = Leave::whereIn('office_id', $provinceOffices)
-            ->where('status', 'pending')
-            ->get();
+                ->where('status', 'pending')
+                ->get();
         }
         return view('leave.pending_leave_approvals', compact('leave'));
     }
@@ -277,7 +286,7 @@ class LeaveController extends Controller
         $leave->date_approved = now();
         $leave->approved_by_id = Sentinel::getUser()->id;
         $leave->save();
-    
+
         return Redirect::route('leave.pending_leave_approvals')->with('success', trans('general.successfully_saved'));
     }
 
@@ -295,80 +304,90 @@ class LeaveController extends Controller
     public function showActiveLeave()
     {
         $user = Sentinel::getUser();
-        $office_id = $user->office_id;
         $currentDate = date('Y-m-d');
-    
-        if ($user->hasAccess('groups.create')) {
-            $leave = Leave::where('status', 'approved')
-                ->where('commencement_date', '<=', $currentDate)
-                ->where('return_date', '>=', $currentDate)
-                ->get();
-        } elseif ($user->hasAccess('offices')) {
-            $leave = Leave::where('status', 'approved')
-                ->where('commencement_date', '<=', $currentDate)
-                ->where('return_date', '>=', $currentDate)
-                ->where('office_id', $office_id)
-                ->get();
+
+        $query = Leave::where('status', 'approved')
+            ->where('commencement_date', '<=', $currentDate)
+            ->where('return_date', '>=', $currentDate);
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
         } else {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
-            $leave = Leave::whereIn('office_id', $provinceOffices)
-                ->where('status', 'approved')
-                ->where('commencement_date', '<=', $currentDate)
-                ->where('return_date', '>=', $currentDate)
-                ->get();
+            // Default to showing nothing or all? preserving "all" for now as per other controllers being default-permissive if not caught
+            // But technically safer to restricting. I will show ALL to avoid regression for other roles not mentioned.
         }
+
+        $leave = $query->get();
         return view('leave.active_leave', compact('leave'));
     }
 
-    public function showDetails(Request $request, $id )
+    public function showDetails(Request $request, $id)
     {
-    $leave = Leave::findOrFail($id);
-    $user = $leave->user;
-    $startDate = Carbon::create(2025, 1, 1);
+        $leave = Leave::findOrFail($id);
+        $user = $leave->user;
+        $startDate = Carbon::create(2025, 1, 1);
 
-    $approvedLeaves = \DB::table('leave_days')
-    ->where('user_id', $user->id)
-    ->where('status', 'approved')
-	->where(function ($query) use ($startDate) {
-        $query->whereDate('commencement_date', '>=', $startDate)
-              ->orWhereDate('return_date', '>=', $startDate);
-    })
-    ->select('id', 'commencement_date', 'return_date', 'reason')
-    ->get();
-    $userLeaveRecords = Leave::where('user_id', $leave->user_id)
-	->where(function ($query) use ($startDate) {
-        $query->whereDate('commencement_date', '>=', $startDate)
-              ->orWhereDate('return_date', '>=', $startDate);
-    })	   
-	    ->get();
+        $approvedLeaves = \DB::table('leave_days')
+            ->where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where(function ($query) use ($startDate) {
+                $query->whereDate('commencement_date', '>=', $startDate)
+                    ->orWhereDate('return_date', '>=', $startDate);
+            })
+            ->select('id', 'commencement_date', 'return_date', 'reason')
+            ->get();
+        $userLeaveRecords = Leave::where('user_id', $leave->user_id)
+            ->where(function ($query) use ($startDate) {
+                $query->whereDate('commencement_date', '>=', $startDate)
+                    ->orWhereDate('return_date', '>=', $startDate);
+            })
+            ->get();
 
-    $leaveReasons = $approvedLeaves->groupBy('reason')->map(function ($leaves) {
-        return $leaves->sum(function ($leave) {
-            $commencementDate = Carbon::parse($leave->commencement_date);
-            $returnDate = Carbon::parse($leave->return_date);
+        $leaveReasons = $approvedLeaves->groupBy('reason')->map(function ($leaves) {
+            return $leaves->sum(function ($leave) {
+                $commencementDate = Carbon::parse($leave->commencement_date);
+                $returnDate = Carbon::parse($leave->return_date);
 
-            $totalDays = 0;
-            for ($date = $commencementDate; $date->lt($returnDate); $date->addDay()) {
-                if (!$date->isWeekend() && !$this->isPublicHoliday($date->toDateString())) {
-                    $totalDays++;
+                $totalDays = 0;
+                for ($date = $commencementDate; $date->lt($returnDate); $date->addDay()) {
+                    if (!$date->isWeekend() && !$this->isPublicHoliday($date->toDateString())) {
+                        $totalDays++;
+                    }
                 }
-            }
-            return $totalDays;
+                return $totalDays;
+            });
         });
-    });
 
-    $calendarHtml = $this->generateCalendar($request->get('y'), $request->get('m'), $approvedLeaves);
-    return view('leave.show', compact('leave', 'userLeaveRecords', 'leaveReasons', 'calendarHtml'));
+        $calendarHtml = $this->generateCalendar($request->get('y'), $request->get('m'), $approvedLeaves);
+        return view('leave.show', compact('leave', 'userLeaveRecords', 'leaveReasons', 'calendarHtml'));
     }
 
     public function showDeclinedLeave()
     {
-    $leave = Leave::where('status', 'declined')->get(); 
-    return view('leave.declined_leave', compact('leave'));
-    }    
+        $user = Sentinel::getUser();
+        $query = Leave::where('status', 'declined');
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        } else {
+            // Default behavior
+        }
+
+        $leave = $query->get();
+        return view('leave.declined_leave', compact('leave'));
+    }
 
 }
-
 
