@@ -165,9 +165,9 @@
                                                     justify-content: center; padding-bottom: 10px;">
 
 
-            <a href="{{ url('loan/my_collections') }}" style="margin: 10px;">
+            <!-- <a href="{{ url('loan/my_collections') }}" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Collections</span>
-            </a>
+            </a> -->
 
             <a href="javascript:;" onmousedown="toggleCOUA();" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">COUA</span>

@@ -246,148 +246,202 @@
             </div>
         </form>
     </div>
-    <div id="reschedule_loan_modal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <!-- Modal content-->
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
-        <h4 class="modal-title">Reloan Options</h4>
-      </div>
-      <div class="modal-body info">
-      <form method="post" id="log"
-                                                              action="{{ url('loan/'.$loan->id.'/reschedule_loan') }}">
-                                                            {{csrf_field()}}
-                                                            <div class="modal-body">
+   <div id="reschedule_loan_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-md">
 
-                                                            <div class="form-group">
-                                                                    <label for="rescheduled_on_date"
-                                                                           class="control-label">
-                                                                        {{ trans_choice('general.transaction',1) }}  {{ trans_choice('general.date',1) }}
-                                                                    </label>
-                                                                    <input type="text" name="submitte_on_date"
-                                                               class="form-control date-picker"
-                                                               value="{{date("Y-m-d")}}"
-                                                               required id="rescheduled_on_date">
+        <div class="modal-content">
 
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label for="rescheduled_on_date"
-                                                                           class="control-label">
-                                                                        {{ trans_choice('general.total',1) }} {{ trans_choice('general.outstanding',1) }}  
-                                                                    </label>
-                                                                    <input type="text" name="outstanding"
-                                                               class="form-control "
-                                                               value="{{$balance}}"
-                                                               required id="outstanding" >
+            <!-- Header -->
+            <div class="modal-header bg-primary">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">
+                    <i class="fa fa-refresh"></i> Reloan Options
+                </h4>
+            </div>
 
-                                                                </div>
+            <!-- Body -->
+            <div class="modal-body info">
+                <form method="post" id="log"
+                      action="{{ url('loan/'.$loan->id.'/reschedule_loan') }}">
+                    {{csrf_field()}}
 
-                                                                <div class="form-group">
-                                                                    <label for="rescheduled_on_date"
-                                                                           class="control-label">
-                                                                        {{trans_choice('general.amount',1) }} {{ trans_choice('general.paid',1) }}  
-                                                                    </label>
-                                                                    <input type="NUMBER" name="paid"
-                                                               class="form-control"
-                                                               value="" 
-                                                               max="{{$payment_amount}}"
-                                                               required id="paid" onkeyup="sum();">
+                    <div class="well well-sm">
 
-                                                                </div>
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ trans_choice('general.transaction',1) }} {{ trans_choice('general.date',1) }}
+                            </label>
+                            <input type="text"
+                                   name="submitte_on_date"
+                                   class="form-control date-picker"
+                                   value="{{date('Y-m-d')}}"
+                                   required
+                                   readonly
+                                   id="rescheduled_on_date">
+                        </div>
 
-                                                                <div class="form-group">
-                                                                    <label for="rescheduled_on_date"
-                                                                           class="control-label">
-                                                                         {{ trans_choice('general.balance',1) }} 
-                                                                    </label>
-                                                                    <input type="text" name="balance"
-                                                               class="form-control "
-                                                               value="{{$balance}}" readonly
-                                                               required id="balance"  onkeyup="sum();">
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ trans_choice('general.total',1) }} {{ trans_choice('general.outstanding',1) }}
+                            </label>
+                            <input type="text"
+                                   name="outstanding"
+                                   class="form-control"
+                                   value="{{$balance}}"
+                                   required
+                                   id="outstanding">
+                        </div>
 
-                                                                </div>
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ trans_choice('general.amount',1) }} {{ trans_choice('general.paid',1) }}
+                            </label>
+                            <input type="number"
+                                   name="paid"
+                                   class="form-control"
+                                   max="{{$payment_amount}}"
+                                   required
+                                   id="paid"
+                                   onkeyup="sum();">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ trans_choice('general.balance',1) }}
+                            </label>
+                            <input type="text"
+                                   name="balance"
+                                   class="form-control"
+                                   value="{{$balance}}"
+                                   readonly
+                                   required
+                                   id="balance"
+                                   onkeyup="sum();">
+                        </div>
+
+                        <hr>
+
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ trans_choice('general.interest',1) }} {{ trans_choice('general.rate',1) }} (%)
+                            </label>
+                            <input type="text"
+                                   name="interest_rate"
+                                   class="form-control"
+                                   value="40"
+                                   readonly
+                                   required
+                                   id="interest_rate"
+                                   onkeyup="sum();">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label">
+                                Adjusted {{ trans_choice('general.interest',1) }}
+                            </label>
+                            <input type="text"
+                                   name="interest"
+                                   class="form-control"
+                                   value=""
+                                   readonly
+                                   required
+                                   id="interest">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ trans_choice('general.next',1) }} {{ trans_choice('general.repayment',1) }}
+                            </label>
+                            <input type="text"
+                                   name="next_repayment"
+                                   class="form-control"
+                                   value="{{$repayment_date}}"
+                                   readonly
+                                   required
+                                   id="rescheduled_on_date">
+                        </div>
 
 
+                          <!-- <div class="form-group">
+                        <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">Cycle Information</h4>
+                            <label class="control-label">
+                                Carry Over to Next Cycle
+                            </label>
+                            <select name="carry_over" class="form-control select2" required>
+                                <option value="" disabled selected>
+                                    -- Select an option --
+                                </option>
+                                <option value="1">No</option>
+                                <option value="2">Yes</option>
+                            </select>
+                        </div> -->
 
+                    </div>
 
-                                                                <div class="form-group">
-                                                                    <label for="rescheduled_on_date"
-                                                                           class="control-label">
-                                                                         {{ trans_choice('general.interest',1) }}  {{ trans_choice('general.rate',1) }} %
-                                                                    </label>
-                                                                    <input type="text" name="interest_rate"
-                                                               class="form-control "
-                                                               value="40"
-                                                               required id="interest_rate" onkeyup="sum();" readonly>
+                    <!-- Footer -->
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-default pull-left"
+                                data-dismiss="modal">
+                            <i class="fa fa-times"></i>
+                            {{ trans_choice('general.close',1) }}
+                        </button>
 
-                                                                </div>
+                        <button type="submit"
+                                class="btn btn-primary"
+                                id="paymentForm1">
+                            <i class="fa fa-save"></i>
+                            {{ trans_choice('general.save',1) }}
+                        </button>
+                    </div>
 
-                                                                <div class="form-group">
-                                                                    <label for="rescheduled_on_date"
-                                                                           class="control-label">
-                                                                        Adjusted {{ trans_choice('general.interest',1) }} 
-                                                                    </label>
-                                                                    <input type="text" name="interest"
-                                                               class="form-control "
-                                                               value=""
-                                                               required id="interest" readonly>
+                </form>
+            </div>
 
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label for="rescheduled_on_date"
-                                                                           class="control-label">
-                                                                        {{ trans_choice('general.next',1) }} {{ trans_choice('general.repayment',1) }} 
-                                                                    </label>
-                                                                    <input type="text" name="next_repayment"
-                                                               class="form-control"
-                                                               value="{{$repayment_date}}"
-                                                               required id="rescheduled_on_date" readonly>
-
-                                                                </div>
-
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button"
-                                                                        class="btn btn-default pull-left"
-                                                                        data-dismiss="modal">
-                                                                    {{ trans_choice('general.close',1) }} 
-                                                                </button>
-                                                                <button type="submit"
-                                                                        class="btn btn-primary"  id='paymentForm1'>{{ trans_choice('general.save',1) }}</button>
-                                                            </div>
-       </form>
-      </div>
-      <div class="modal-footer"></div>
+        </div>
     </div>
-  </div>
 </div>
+
 @endsection
 @section('footer-scripts')
 
 <script>
 
+    // ✅ ADD: validation for carry_over
+    $("#log").validate({
+        ignore: [],
+        rules: {
+            carry_over: {
+                required: true
+            }
+        },
+        messages: {
+            carry_over: {
+                required: "Please select whether to carry over to the next cycle."
+            }
+        }
+    });
 
     $(".form-horizontal").validate();
-		function sum() {
-			  var txtFirstNumberValue = document.getElementById('outstanding').value;
+
+    function sum() {
+        var txtFirstNumberValue = document.getElementById('outstanding').value;
         var txtSecondNumberValue = document.getElementById('paid').value;
-    var inputFirstNumberValue = document.getElementById('balance').value;
-    var inputSecondNumberValue = document.getElementById('interest_rate').value;                   
-    var outputs = (txtFirstNumberValue -  txtSecondNumberValue) * 0.4;
-    if (!isNaN(outputs)) {
-        document.getElementById('interest').value = outputs;
+        var inputFirstNumberValue = document.getElementById('balance').value;
+        var inputSecondNumberValue = document.getElementById('interest_rate').value;
+
+        var outputs = (txtFirstNumberValue - txtSecondNumberValue) * 0.4;
+        if (!isNaN(outputs)) {
+            document.getElementById('interest').value = outputs;
+        }
+
+        var result = parseInt(txtFirstNumberValue) - parseInt(txtSecondNumberValue);
+        if (!isNaN(result)) {
+            document.getElementById('balance').value = result;
+        }
     }
-    
-    var result = parseInt(txtFirstNumberValue) - parseInt(txtSecondNumberValue);
-            if (!isNaN(result)) {
-                document.getElementById('balance').value = result;
-            }
-    
-}
 
-
-$('#paymentForm').click(function(event){
+    $('#paymentForm').click(function(event){
         event.preventDefault();
         swal({
             title: "Are you sure you want to add this transaction?",
@@ -406,9 +460,14 @@ $('#paymentForm').click(function(event){
         });
     });
 
-
     $('#paymentForm1').click(function(event){
         event.preventDefault();
+
+        // ✅ ADD: stop submit if carry_over not selected
+        if (!$('#log').valid()) {
+            return;
+        }
+
         swal({
             title: "Are you sure you want to add this transaction?",
             text: "Double check the transaction to make sure it's correct.",
@@ -426,17 +485,14 @@ $('#paymentForm').click(function(event){
         });
     });
 
+    $("#payment_apply_to").on("change", function() {
+        var sOptionVal = $(this).val();
+        if (/modal/i.test(sOptionVal)) {
+            var $selectedOption = $(sOptionVal);
+            $selectedOption.modal('show');
+        }
+    });
 
+</script>
 
-
-
-
-$("#payment_apply_to").on("change", function() {
-   var sOptionVal = $(this).val();
-   if (/modal/i.test(sOptionVal)) {
-     var $selectedOption = $(sOptionVal);
-     $selectedOption.modal('show');
-   }
- });
-    </script>
 @endsection

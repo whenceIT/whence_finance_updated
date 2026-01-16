@@ -883,6 +883,26 @@ class LoanController extends Controller
                 Flash::warning(trans('general.validation_error'));
                 return redirect()->back()->withInput()->withErrors($validator);
             } else {
+
+
+
+                   if (Sentinel::getUser()->cycle_dates == null) {
+                $cycle_end = 24;
+            } else {
+                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+            }
+
+              $use = date('Y-m-');
+              $todaysDate = date('Y-m-d');
+              $targetDate = $use . $cycle_end;
+              $targetDate = date('Y-m-d', strtotime($targetDate));
+          if ($todaysDate < $targetDate) {
+                $targetDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+            }
+
+            $next_cycle = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+
+
                 $loan = new Loan();
                 $loan->created_by_id = Sentinel::getUser()->id;
                 $loan->created_date = $request->created_date;
@@ -897,6 +917,11 @@ class LoanController extends Controller
 		$loan->external_id = $request->external_id;
 		$loan->vetted_by = $request->vetted_by;
 		  $loan->verified_by = $request->verified_by;
+        //   if($request->carry_over == 1){
+        //     $loan->cycle_date = $targetDate;
+        //   }else{
+        //      $loan->cycle_date = $next_cycle;
+        //   }
                 $loan->principal = $request->principal;
                 $loan->applied_amount = $request->principal;
                 $loan->currency_id = $loan_product->currency_id;
@@ -3522,6 +3547,24 @@ public function declineCharge($id)
             Flash::warning("This loan already has a reloan pending!!");
             return redirect('loan/' . $loan->id . '/show');
         }else{
+
+          if (Sentinel::getUser()->cycle_dates == null) {
+                $cycle_end = 24;
+            } else {
+                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+            }
+
+            $use = date('Y-m-');
+              $todaysDate = date('Y-m-d');
+              $targetDate = $use . $cycle_end;
+              $targetDate = date('Y-m-d', strtotime($targetDate));
+          if ($todaysDate < $targetDate) {
+                $targetDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+            }
+
+            $next_cycle = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+
+
         $loan_transaction = new LoanTransactionsPending();
         $loan_transaction->created_by_id = Sentinel::getUser()->id;
         $loan_transaction->office_id = $loan->office_id;
@@ -3529,6 +3572,11 @@ public function declineCharge($id)
         $loan_transaction->balance_bf = $balance;
         $loan_transaction->transaction_type = "repayment";
         $loan_transaction->payment_apply_to = "reloan_payment";
+        //   if($request->carry_over == 1){
+        //     $loan->cycle_date = $targetDate;
+        //   }else{
+        //      $loan->cycle_date = $next_cycle;
+        //   }
         $loan_transaction->date = $request->submitte_on_date;
         $date = explode('-', $request->submitte_on_date);
         $loan_transaction->year = $date[0];
@@ -3629,6 +3677,7 @@ public function new_reschedule_loan(Request $request, $id , $trans_id){
     $loan_transaction->month = $date[1];
     $loan_transaction->credit = $Trans->credit;//$request->paid;
     $loan_transaction->temp_id = $trans_id;
+   // $loan_transaction->cycle_date = $Trans->cycle_date;
     $loan_transaction->save(); 
     event(new RepaymentCreated($loan_transaction));
     if (GeneralHelper::loan_total_balance($loan->id) <= 0) {

@@ -148,6 +148,13 @@ class UserController extends Controller
             $today = date('Y-m-d');
             $currrent_date = date('Y-m');
             $cycle_date = $currrent_date . '-' . $cycle_end;
+            $cycle_date = date('Y-m-d', strtotime($cycle_date));
+            if($today < $cycle_date){
+                $cycle_date = date('Y-m-d', strtotime($cycle_date . ' - 1 months'));
+            }
+
+             $cycle_close_date = date('Y-m-d', strtotime($cycle_date . ' + 1 months'));
+
 
             $target_tracker = TargetTracker::where('status','active')->where('user_id',Sentinel::getUser()->id)->first();
             if($target_tracker == null){
@@ -209,9 +216,11 @@ class UserController extends Controller
             $fixedDay = $cycle_end;
             $userId = Sentinel::getUser()->id;
 
+            $cycle_date = date('Y-m', strtotime($cycle_date));
+            $cycle_close_date = date('Y-m', strtotime($cycle_close_date));
             // Default dates
-            $start = $request->input('start_month', '2025-11') . "-$fixedDay";
-            $end = $request->input('end_month', '2025-12') . "-$fixedDay";
+            $start = $request->input('start_month', $cycle_date) . "-$fixedDay";
+            $end = $request->input('end_month', $cycle_close_date) . "-$fixedDay";
 
 
             $query = http_build_query([
