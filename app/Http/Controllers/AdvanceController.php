@@ -170,28 +170,24 @@ class AdvanceController extends Controller
 
     public function topupPendingApprovals()
     {
-
         $user = Sentinel::getUser();
-        $office_id = $user->office_id;
+        $query = TopUp::where('status', 'pending');
 
-        if ($user->hasAccess('groups.create')) {
-            $advance_topups = TopUp::where('status', 'pending')->get();
-        } elseif ($user->hasAccess('offices')) {
-            $advance_topups = TopUp::where('status', 'pending')
-                ->where('office_id', $office_id)
-                ->get();
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
         } else {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
-            $advance_topups = TopUp::whereIn('office_id', $provinceOffices)
-                ->where('status', 'pending')
-                ->get();
+            // Default behavior
         }
+
+        $advance_topups = $query->get();
         return view('advances.topups_pending_approval', compact('advance_topups'));
     }
-
-
 
     public function approve(Request $request, $id)
     {
@@ -222,48 +218,45 @@ class AdvanceController extends Controller
     public function showPendingApprovals()
     {
         $user = Sentinel::getUser();
-        $office_id = $user->office_id;
+        $query = Advance::where('status', 'pending');
 
-        if ($user->hasAccess('groups.create')) {
-            $advances = Advance::where('status', 'pending')->get();
-        } elseif ($user->hasAccess('offices')) {
-            $advances = Advance::where('status', 'pending')
-                ->where('office_id', $office_id)
-                ->get();
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
         } else {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
-            $advances = Advance::whereIn('office_id', $provinceOffices)
-                ->where('status', 'pending')
-                ->get();
+            // Default behavior
         }
+
+        $advances = $query->get();
         return view('advances.pending_approvals', compact('advances'));
     }
 
     public function showActiveAdvances()
     {
         $user = Sentinel::getUser();
-        $office_id = $user->office_id;
 
-        if ($user->hasAccess('groups.create')) {
-            $advances = Advance::where('status', 'approved')
-                ->where('remaining_amount', '>', 0)
-                ->get();
-        } elseif ($user->hasAccess('offices')) {
-            $advances = Advance::where('status', 'approved')
-                ->where('office_id', $office_id)
-                ->where('remaining_amount', '>', 0)
-                ->get();
+        $query = Advance::where('status', 'approved')
+            ->where('remaining_amount', '>', 0);
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
         } else {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
-            $advances = Advance::whereIn('office_id', $provinceOffices)
-                ->where('status', 'approved')
-                ->where('remaining_amount', '>', 0)
-                ->get();
+            // Default behavior
         }
+
+        $advances = $query->get();
+
         foreach ($advances as $advance) {
             $expectedRepaymentDate = Carbon::parse($advance->expected_repayment_dates);
 
@@ -329,16 +322,47 @@ class AdvanceController extends Controller
 
     public function showDeclinedAdvances()
     {
-        $advances = Advance::where('status', 'declined')->get();
+        $user = Sentinel::getUser();
+        $query = Advance::where('status', 'declined');
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        } else {
+            // Default behavior
+        }
+
+        $advances = $query->get();
         return view('advances.declined_advances', compact('advances'));
     }
 
     public function storeClosedAdvances()
     {
-        $closedAdvances = Advance::where('status', 'closed')->get();
+        $user = Sentinel::getUser();
+        $query = Advance::where('status', 'closed');
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        } else {
+            // Default behavior
+        }
+
+        $closedAdvances = $query->get();
 
         foreach ($closedAdvances as $advance) {
             $advance->status = 'closed';
+
             $advance->save();
         }
 

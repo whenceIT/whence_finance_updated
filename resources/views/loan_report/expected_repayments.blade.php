@@ -363,18 +363,22 @@
                             id="end_date">
                     </div>
                 </div>
-                
-                
+
+
                 <div class="form-group">
                     <label for="office_id" class="control-label col-md-2">{{trans_choice('general.office', 1)}}</label>
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
-                          
-                                <option value="0" @if($office_id == "0") selected @endif>{{trans_choice('general.all', 1)}}
-                                </option>
-                           
+
+                            <option value="0" @if($office_id == "0") selected @endif>{{trans_choice('general.all', 1)}}
+                            </option>
+
                             @foreach(\App\Models\Office::all() as $key)
-                                @if(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
+                                @if(Sentinel::getUser()->inRole(4))
+                                    @if(Sentinel::getUser()->office_id == $key->id)
+                                        <option value="{{$key->id}}" @if($office_id == $key->id) selected @endif>{{$key->name}}</option>
+                                    @endif
+                                @elseif(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
                                     @if(Sentinel::getUser()->province_id == $key->province_id)
                                         <option value="{{$key->id}}" @if($office_id == $key->id) selected @endif>{{$key->name}}</option>
                                     @endif
@@ -391,11 +395,16 @@
                     </label>
                     <div class="col-md-3">
                         <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
-                            
+
                             <option value="0">{{trans_choice('general.all', 1)}}</option>
                             @foreach(\App\Models\User::all() as $key)
                                 @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                    @if(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
+                                    @if(Sentinel::getUser()->inRole(4))
+                                        @if(Sentinel::getUser()->office_id == $key->office_id)
+                                            <option value="{{$key->id}}" data-office_id="{{$key->office_id}}" @if(isset($loan_officer_id) && $loan_officer_id == $key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}
+                                            </option>
+                                        @endif
+                                    @elseif(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
                                         @if(Sentinel::getUser()->province_id == $key->province_id)
                                             <option value="{{$key->id}}" data-office_id="{{$key->office_id}}" @if(isset($loan_officer_id) && $loan_officer_id == $key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}
                                             </option>
@@ -527,7 +536,7 @@
             $total_actual_penalty = 0;
             $total_actual_fees = 0;
             $total_actual_repayments = 0;
-                                    ?>
+                                            ?>
                         @foreach($data as $key)
                                     <?php
                             $loans = \App\Models\Loan::where('status', 'disbursed')->where('office_id', $key->id)
@@ -537,10 +546,10 @@
                                     }
                                 })
                                 ->with([
-                                    'repayment_schedules' => function ($query) use ($start_date, $end_date) {
-                                        $query->whereBetween('due_date', [$start_date, $end_date]);
-                                    }
-                                ])->get();
+                                        'repayment_schedules' => function ($query) use ($start_date, $end_date) {
+                                            $query->whereBetween('due_date', [$start_date, $end_date]);
+                                        }
+                                    ])->get();
                             $expected_principal = 0;
                             $expected_interest = 0;
                             $expected_penalty = 0;
@@ -576,7 +585,7 @@
                             $total_actual_penalty = $total_actual_penalty + $actual_penalty;
                             $total_actual_fees = $total_actual_fees + $actual_fees;
                             $total_actual_repayments = $total_actual_repayments + $actual_repayments;
-                                                                ?>
+                                                                                    ?>
                                     @if($total_expected_repayments > 0 || $total_actual_repayments > 0)
                                         <tr style="height: 15pt">
                                             <td colspan="3" valign="middle" class="style-12">{{$key->name}}</td>
@@ -643,9 +652,14 @@
         $(document).ready(function () {
             var $loanOfficerSelect = $('#loan_officer_id');
             var $allLoanOfficerOptions = $loanOfficerSelect.find('option').clone();
+            var user_role = "{{Sentinel::getUser()->roles()->first()->id}}";
+            var user_office_id = "{{Sentinel::getUser()->office_id}}";
 
             function filterLoanOfficers() {
                 var officeId = $('#office_id').val();
+                if (user_role == "4" && officeId == "0") {
+                    officeId = user_office_id;
+                }
                 var currentLoanOfficerId = $loanOfficerSelect.val();
 
                 // Clear existing options
@@ -672,7 +686,7 @@
                 } else {
                      $loanOfficerSelect.val("0");
                 }
-                
+
                 $loanOfficerSelect.trigger('change');
             }
 

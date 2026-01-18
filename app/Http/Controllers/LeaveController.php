@@ -222,7 +222,16 @@ class LeaveController extends Controller
         $user = Sentinel::getUser();
         $firstName = $user->first_name;
         $lastName = $user->last_name;
-        $offices = Office::all();
+
+        if ($user->inRole(1)) {
+            $offices = Office::all();
+        } elseif ($user->inRole(6)) {
+            $offices = Office::where('province_id', $user->province_id)->get();
+        } elseif ($user->inRole(4)) {
+            $offices = Office::where('id', $user->office_id)->get();
+        } else {
+            $offices = Office::all();
+        }
 
         return view('leave.apply', compact('firstName', 'lastName', 'offices'));
     }
@@ -260,22 +269,21 @@ class LeaveController extends Controller
     public function showPendingApprovals()
     {
         $user = Sentinel::getUser();
-        $office_id = $user->office_id;
+        $query = Leave::where('status', 'pending');
 
-        if ($user->hasAccess('groups.create')) {
-            $leave = Leave::where('status', 'pending')->get();
-        } elseif ($user->hasAccess('offices')) {
-            $leave = Leave::where('status', 'pending')
-                ->where('office_id', $office_id)
-                ->get();
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
         } else {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
-            $leave = Leave::whereIn('office_id', $provinceOffices)
-                ->where('status', 'pending')
-                ->get();
+            // Default behavior
         }
+
+        $leave = $query->get();
         return view('leave.pending_leave_approvals', compact('leave'));
     }
 

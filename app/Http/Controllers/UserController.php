@@ -141,7 +141,7 @@ class UserController extends Controller
 
         if ($role->role_id == '3') {
 
-               if (Sentinel::getUser()->cycle_dates == null) {
+            if (Sentinel::getUser()->cycle_dates == null) {
                 $cycle_end = 24;
             } else {
                 $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
@@ -152,39 +152,39 @@ class UserController extends Controller
             $currrent_date = date('Y-m');
             $cycle_date = $currrent_date . '-' . $cycle_end;
 
-            $target_tracker = TargetTracker::where('status','active')->where('user_id',Sentinel::getUser()->id)->first();
-            if($target_tracker == null){
+            $target_tracker = TargetTracker::where('status', 'active')->where('user_id', Sentinel::getUser()->id)->first();
+            if ($target_tracker == null) {
                 $new_target_tracker = new TargetTracker();
                 $new_target_tracker->user_id = Sentinel::getUser()->id;
                 $new_target_tracker->given_out = 0;
                 $new_target_tracker->brought_f = 0;
                 $new_target_tracker->target = 1;
-                
-                if($today > $cycle_date) {
-                     $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+
+                if ($today > $cycle_date) {
+                    $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
                 }
                 $new_target_tracker->cycle_date = $cycle_date;
                 $new_target_tracker->status = 'active';
                 $new_target_tracker->save();
-            }else{
+            } else {
 
-                if($today >= $target_tracker->cycle_date){
+                if ($today >= $target_tracker->cycle_date) {
 
                     $target_tracker->status = 'closed';
                     $target_tracker->save();
 
-                $new_target_tracker = new TargetTracker();
-                $new_target_tracker->user_id = Sentinel::getUser()->id;
-                $new_target_tracker->given_out = 0;
-                $new_target_tracker->brought_f = $target_tracker->given_out;
-                $new_target_tracker->target = $target_tracker->target;
-                
-                if($today > $cycle_date) {
-                     $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
-                }
-                $new_target_tracker->cycle_date = $cycle_date;
-                $new_target_tracker->status = 'active';
-                $new_target_tracker->save();
+                    $new_target_tracker = new TargetTracker();
+                    $new_target_tracker->user_id = Sentinel::getUser()->id;
+                    $new_target_tracker->given_out = 0;
+                    $new_target_tracker->brought_f = $target_tracker->given_out;
+                    $new_target_tracker->target = $target_tracker->target;
+
+                    if ($today > $cycle_date) {
+                        $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                    }
+                    $new_target_tracker->cycle_date = $cycle_date;
+                    $new_target_tracker->status = 'active';
+                    $new_target_tracker->save();
                 }
 
 
@@ -207,7 +207,7 @@ class UserController extends Controller
             }
 
 
-         
+
 
             $fixedDay = $cycle_end;
             $userId = Sentinel::getUser()->id;
@@ -256,6 +256,12 @@ class UserController extends Controller
                 }
             }
 
+            $data = [];
+            $start = null;
+            $end = null;
+        }
+
+        if ($role->role_id == '8') {
             $data = [];
             $start = null;
             $end = null;
@@ -1263,7 +1269,21 @@ class UserController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = User::with('role', 'office', 'province')->get();
+
+        $user = Sentinel::getUser();
+        $query = User::with('role', 'office', 'province');
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        }
+
+        $data = $query->get();
         return view('user.data', compact('data'));
     }
 
@@ -1275,12 +1295,23 @@ class UserController extends Controller
             return redirect()->back();
         }
 
-
-        $data = DB::table('users')->select('users.*')
-
+        $user = Sentinel::getUser();
+        $query = DB::table('users')->select('users.*')
             ->join('role_users', 'role_users.user_id', '=', 'users.id')
             ->join('roles', 'roles.id', '=', 'role_users.role_id')
-            ->where('roles.name', 'Client')->get();
+            ->where('roles.name', 'Client');
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        }
+
+        $data = $query->get();
         return view('user.client_users_data', compact('data'));
     }
 

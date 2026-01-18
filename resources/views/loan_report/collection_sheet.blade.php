@@ -164,7 +164,12 @@
                             <option value="0"
                                     @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
                             @foreach(\App\Models\Office::all() as $key)
-                                @if(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
+                                @if(Sentinel::getUser()->inRole(4))
+                                    @if(Sentinel::getUser()->office_id == $key->id)
+                                        <option value="{{$key->id}}"
+                                                @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                    @endif
+                                @elseif(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
                                     @if(Sentinel::getUser()->province_id == $key->province_id)
                                         <option value="{{$key->id}}"
                                                 @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
@@ -187,7 +192,12 @@
                             <option value="0">{{trans_choice('general.all',1)}}</option>
                             @foreach(\App\Models\User::all() as $key)
                                 @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                    @if(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
+                                    @if(Sentinel::getUser()->inRole(4))
+                                        @if(Sentinel::getUser()->office_id == $key->office_id)
+                                            <option value="{{$key->id}}" data-office_id="{{$key->office_id}}"
+                                                    @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                        @endif
+                                    @elseif(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
                                         @if(Sentinel::getUser()->province_id == $key->province_id)
                                             <option value="{{$key->id}}" data-office_id="{{$key->office_id}}"
                                                     @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
@@ -387,9 +397,14 @@
         $(document).ready(function () {
             var loan_officer_id = "{{$loan_officer_id}}";
             var loan_officers = $('#loan_officer_id option').clone();
+            var user_role = "{{Sentinel::getUser()->roles()->first()->id}}";
+            var user_office_id = "{{Sentinel::getUser()->office_id}}";
 
             function filterLoanOfficers() {
                 var office_id = $('#office_id').val();
+                if (user_role == "4" && office_id == "0") {
+                    office_id = user_office_id;
+                }
                 $('#loan_officer_id').empty();
                 if (office_id == "0") {
                     $('#loan_officer_id').append(loan_officers);
