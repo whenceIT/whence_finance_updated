@@ -899,72 +899,97 @@ class LoanController extends Controller
         }
 
 
-        $rules = array(
-            'loan_officer_id' => 'required',
-            'principal' => 'required',
-            'loan_term' => 'required',
-            'loan_term_type' => 'required',
-            'repayment_frequency' => 'required',
-            'repayment_frequency_type' => 'required',
-            'external_id' => 'required',
-            'interest_rate' => 'required',
-            'expected_disbursement_date' => 'required',
-            'expected_first_repayment_date' => 'required|after_or_equal:expected_disbursement_date',
-        );
-        $messages = [
-            'loan_officer_id.required' => 'Loan Officer is required',
-            'principal.required' => 'Principal is required',
-            'loan_term_type.required' => 'Loan term is required',
-            'external_id.required' => 'External ID is required',
-            'repayment_frequency.required' => 'repayment frequency is required',
-            'repayment_frequency_type.required' => 'repayment frequency type is required',
-            'interest_rate.required' => 'interest rate is required',
-            'interest_rate_type.required' => 'interest rate type is required',
-            'expected_disbursement_date.required' => 'Expected disbursement date is required',
-            'expected_first_repayment_date.required' => 'Expected first repayment date is required',
-        ];
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            Flash::warning(trans('general.validation_error'));
-            return redirect()->back()->withInput()->withErrors($validator);
-        } else {
-            $loan = new Loan();
-            $loan->created_by_id = Sentinel::getUser()->id;
-            $loan->created_date = $request->created_date;
-            $loan->client_type = "client";
-            $loan->loan_product_id = $loan_product->id;
-            $loan->client_id = $client->id;
-            $loan->office_id = $client->office_id;
-            $loan->fund_id = $request->fund_id;
-            $loan->decimals = $loan_product->decimals;
-            $loan->loan_officer_id = $request->loan_officer_id;
-            $loan->loan_purpose_id = $request->loan_purpose_id;
-            $loan->external_id = $request->external_id;
-            $loan->vetted_by = $request->vetted_by;
-            $loan->verified_by = $request->verified_by;
-            $loan->principal = $request->principal;
-            $loan->applied_amount = $request->principal;
-            $loan->currency_id = $loan_product->currency_id;
-            $loan->loan_term = $request->loan_term;
-            $loan->loan_term_type = $request->loan_term_type;
-            $loan->repayment_frequency = $request->repayment_frequency;
-            $loan->repayment_frequency_type = $request->repayment_frequency_type;
-            $loan->interest_rate = $request->interest_rate;
-            $loan->interest_rate_type = $loan_product->interest_rate_type;
-            $loan->override_interest = $request->override_interest;
-            $loan->override_interest_rate = $loan_product->override_interest_rate;
-            $loan->expected_disbursement_date = $request->expected_disbursement_date;
-            $todaysDate = date('Y-m-d');
-            $loan->expected_first_repayment_date = date('Y-m-d', strtotime($todaysDate . '+ 1 month'));
-            $loan->interest_method = $loan_product->interest_method;
-            $loan->armotization_method = $loan_product->armotization_method;
-            $loan->grace_on_interest_charged = $loan_product->grace_on_interest_charged;
-            $loan->grace_on_principal = $loan_product->grace_on_principal;
-            $loan->grace_on_interest_payment = $loan_product->grace_on_interest_payment;
-            $date = explode('-', $request->created_date);
-            $loan->month = $date[1];
-            $loan->year = $date[0];
-            $loan->save();
+            $rules = array(
+                'loan_officer_id' => 'required',
+                'principal' => 'required',
+                'loan_term' => 'required',
+                'loan_term_type' => 'required',
+                'repayment_frequency' => 'required',
+                'repayment_frequency_type' => 'required',
+                'external_id' => 'required',
+                'interest_rate' => 'required',
+                'expected_disbursement_date' => 'required',
+                'expected_first_repayment_date' => 'required|after_or_equal:expected_disbursement_date',
+            );
+            $messages = [
+                'loan_officer_id.required' => 'Loan Officer is required',
+                'principal.required' => 'Principal is required',
+                'loan_term_type.required' => 'Loan term is required',
+                'external_id.required' => 'External ID is required',
+                'repayment_frequency.required' => 'repayment frequency is required',
+                'repayment_frequency_type.required' => 'repayment frequency type is required',
+                'interest_rate.required' => 'interest rate is required',
+                'interest_rate_type.required' => 'interest rate type is required',
+                'expected_disbursement_date.required' => 'Expected disbursement date is required',
+                'expected_first_repayment_date.required' => 'Expected first repayment date is required',
+            ];
+            $validator = Validator::make($request->all(), $rules, $messages);
+            if ($validator->fails()) {
+                Flash::warning(trans('general.validation_error'));
+                return redirect()->back()->withInput()->withErrors($validator);
+            } else {
+
+
+
+                   if (Sentinel::getUser()->cycle_dates == null) {
+                $cycle_end = 24;
+            } else {
+                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+            }
+
+              $use = date('Y-m-');
+              $todaysDate = date('Y-m-d');
+              $targetDate = $use . $cycle_end;
+              $targetDate = date('Y-m-d', strtotime($targetDate));
+          if ($todaysDate < $targetDate) {
+                $targetDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+            }
+
+            $next_cycle = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+
+
+                $loan = new Loan();
+                $loan->created_by_id = Sentinel::getUser()->id;
+                $loan->created_date = $request->created_date;
+                $loan->client_type = "client";
+                $loan->loan_product_id = $loan_product->id;
+                $loan->client_id = $client->id;
+                $loan->office_id = $client->office_id;
+                $loan->fund_id = $request->fund_id;
+                $loan->decimals = $loan_product->decimals;
+                $loan->loan_officer_id = $request->loan_officer_id;
+                $loan->loan_purpose_id = $request->loan_purpose_id;
+		$loan->external_id = $request->external_id;
+		$loan->vetted_by = $request->vetted_by;
+		  $loan->verified_by = $request->verified_by;
+        //   if($request->carry_over == 1){
+        //     $loan->cycle_date = $targetDate;
+        //   }else{
+        //      $loan->cycle_date = $next_cycle;
+        //   }
+                $loan->principal = $request->principal;
+                $loan->applied_amount = $request->principal;
+                $loan->currency_id = $loan_product->currency_id;
+                $loan->loan_term = $request->loan_term;
+                $loan->loan_term_type = $request->loan_term_type;
+                $loan->repayment_frequency = $request->repayment_frequency;
+                $loan->repayment_frequency_type = $request->repayment_frequency_type;
+                $loan->interest_rate = $request->interest_rate;
+                $loan->interest_rate_type = $loan_product->interest_rate_type;
+                $loan->override_interest = $request->override_interest;
+                $loan->override_interest_rate = $loan_product->override_interest_rate;
+                $loan->expected_disbursement_date = $request->expected_disbursement_date;
+                 $todaysDate = date('Y-m-d');
+                $loan->expected_first_repayment_date = date('Y-m-d',strtotime($todaysDate. '+ 1 month'));
+                $loan->interest_method = $loan_product->interest_method;
+                $loan->armotization_method = $loan_product->armotization_method;
+                $loan->grace_on_interest_charged = $loan_product->grace_on_interest_charged;
+                $loan->grace_on_principal = $loan_product->grace_on_principal;
+                $loan->grace_on_interest_payment = $loan_product->grace_on_interest_payment;
+                $date = explode('-', $request->created_date);
+                $loan->month = $date[1];
+                $loan->year = $date[0];
+		$loan->save();
 
             Http::post('https://notifications.whencefinancesystem.com/emit', [
                 'event' => 'loan.created',
@@ -3599,23 +3624,46 @@ class LoanController extends Controller
         if (!empty($pending_transaction)) {
             Flash::warning("This loan already has a reloan pending!!");
             return redirect('loan/' . $loan->id . '/show');
-        } else {
-            $loan_transaction = new LoanTransactionsPending();
-            $loan_transaction->created_by_id = Sentinel::getUser()->id;
-            $loan_transaction->office_id = $loan->office_id;
-            $loan_transaction->loan_id = $loan->id;
-            $loan_transaction->balance_bf = $balance;
-            $loan_transaction->transaction_type = "repayment";
-            $loan_transaction->payment_apply_to = "reloan_payment";
-            $loan_transaction->date = $request->submitte_on_date;
-            $date = explode('-', $request->submitte_on_date);
-            $loan_transaction->year = $date[0];
-            $loan_transaction->month = $date[1];
-            $loan_transaction->credit = $request->paid;
-            $loan_transaction->interest = $request->interest;
-            $loan_transaction->save();
-            $client_id = $loan->client_id;
-            $client = \App\Models\Client::find($client_id);
+        }else{
+
+          if (Sentinel::getUser()->cycle_dates == null) {
+                $cycle_end = 24;
+            } else {
+                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+            }
+
+            $use = date('Y-m-');
+              $todaysDate = date('Y-m-d');
+              $targetDate = $use . $cycle_end;
+              $targetDate = date('Y-m-d', strtotime($targetDate));
+          if ($todaysDate < $targetDate) {
+                $targetDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
+            }
+
+            $next_cycle = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
+
+
+        $loan_transaction = new LoanTransactionsPending();
+        $loan_transaction->created_by_id = Sentinel::getUser()->id;
+        $loan_transaction->office_id = $loan->office_id;
+        $loan_transaction->loan_id = $loan->id;
+        $loan_transaction->balance_bf = $balance;
+        $loan_transaction->transaction_type = "repayment";
+        $loan_transaction->payment_apply_to = "reloan_payment";
+        //   if($request->carry_over == 1){
+        //     $loan->cycle_date = $targetDate;
+        //   }else{
+        //      $loan->cycle_date = $next_cycle;
+        //   }
+        $loan_transaction->date = $request->submitte_on_date;
+        $date = explode('-', $request->submitte_on_date);
+        $loan_transaction->year = $date[0];
+        $loan_transaction->month = $date[1];
+        $loan_transaction->credit = $request->paid;
+        $loan_transaction->interest = $request->interest;
+	    $loan_transaction->save();
+             $client_id = $loan->client_id;
+                $client = \App\Models\Client::find($client_id);
             Http::post('https://notifications.whencefinancesystem.com/emit', [
                 'event' => 'loan.created',
                 'data' => [
