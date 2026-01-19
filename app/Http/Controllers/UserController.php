@@ -1530,6 +1530,11 @@ class UserController extends Controller
             return redirect()->back();
         }
 
+        $allowedEditors = config('access.allowed_user_editors');
+        if (!in_array(Sentinel::getUser()->id, $allowedEditors)) {
+            Flash::warning("You are not authorized to edit users");
+            return redirect()->back();
+        }
 
         foreach ($user->roles as $sel) {
             $selected = $sel->id;

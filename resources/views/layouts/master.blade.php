@@ -375,7 +375,7 @@
                     </script>
                 @endif
                 @yield('content')
-                @include('partials.induction_checklist_popup')
+                <!-- @include('partials.induction_checklist_popup') -->
             </section>
             <!-- /.content -->
             <div id="loader-wrapper">
