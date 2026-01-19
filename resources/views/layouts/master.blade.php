@@ -384,7 +384,6 @@
         </div>
         <!-- /.content-wrapper -->
         <footer class="main-footer hidden-print">
-
             <strong>Copyright &copy; {{ date("Y") }}<a href="https://whencegroup.com/" target="_blank">Whence Financial
                     Services</a>.</strong>
             All rights
