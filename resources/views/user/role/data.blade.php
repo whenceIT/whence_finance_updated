@@ -19,6 +19,7 @@
             <table class="table table-bordered table-hover table-striped" id="">
                 <thead>
                 <tr>
+                    <th>{{trans_choice('general.id',1)}}</th>
                     <th>{{trans_choice('general.name',1)}}</th>
                     <th>{{trans('general.slug')}}</th>
                     <th>{{trans('general.time_limit')}}</th>
@@ -30,6 +31,7 @@
                 @foreach($data as $key)
 
                     <tr>
+                        <td>{{ $key->id }}</td>
                         <td>{{ $key->name }}</td>
                         <td>{{ $key->slug}}</td>
                         <td>

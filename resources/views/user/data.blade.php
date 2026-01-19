@@ -21,6 +21,7 @@
                 <tr>
                     <th>{{ trans('general.name') }}</th>
                     <th>{{ trans('general.gender') }}</th>
+                    <th>Province</th>
                     <th>Branch</th>
                     <th>{{ trans('general.phone') }}</th>
                     <th>{{ trans_choice('general.email',1) }}</th>
@@ -48,6 +49,7 @@
                                 {{trans_choice('general.unspecified',1)}}
                             @endif
                         </td>
+                        <td>{{ $key->province->name ?? '' }}</td>
                         <td>{{ $key->office->name ?? '' }}</td>
                         <td>{{ $key->phone }}</td>
                         <td>{{ $key->email }}</td>
@@ -105,7 +107,7 @@ $('#data-table').DataTable({
     "autoWidth": true,
     "order": [[0, "asc"]],
     "columnDefs": [
-        {"orderable": false, "targets": [6]} // fixed index
+        {"orderable": false, "targets": [7]} // fixed index
     ],
     "language": {
         "lengthMenu": "{{ trans('general.lengthMenu') }}",

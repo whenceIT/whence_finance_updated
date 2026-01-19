@@ -313,7 +313,7 @@
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option value="0"
                                     @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\Office::all() as $key)
+                            @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->province_id)->get() as $key)
                                 <option value="{{$key->id}}"
                                         @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                             @endforeach
@@ -328,12 +328,6 @@
                     <div class="col-md-3">
                         <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
                             <option value="0">{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\User::all() as $key)
-                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                    <option value="{{$key->id}}"
-                                            @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
-                                @endif
-                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -873,6 +867,53 @@ $total_loans = 0;
         <script>
             $(document).ready(function () {
                 $("body").addClass('sidebar-xs sidebar-collapse');
+                
+                // Initialize Select2 for office dropdown
+                $('#office_id').select2();
+                
+                // Initialize Select2 for loan officer dropdown
+                $('#loan_officer_id').select2();
+                
+                // Fetch loan officers based on selected office
+                $('#office_id').change(function() {
+                    var officeId = $(this).val();
+                    var provinceId = '{{ Sentinel::getUser()->province_id }}';
+                    
+                    if (officeId == 0) {
+                        // If "All" is selected, fetch all loan officers in the province
+                        $.ajax({
+                            url: '/get-loan-officers-by-province',
+                            type: 'GET',
+                            data: { province_id: provinceId },
+                            success: function(data) {
+                                updateLoanOfficerDropdown(data);
+                            }
+                        });
+                    } else {
+                        // Fetch loan officers for the selected office
+                        $.ajax({
+                            url: '/get-loan-officers-by-office',
+                            type: 'GET',
+                            data: { office_id: officeId },
+                            success: function(data) {
+                                updateLoanOfficerDropdown(data);
+                            }
+                        });
+                    }
+                });
+                
+                // Function to update the loan officer dropdown
+                function updateLoanOfficerDropdown(officers) {
+                    $('#loan_officer_id').empty();
+                    $('#loan_officer_id').append('<option value="0">{{ trans_choice("general.all", 1) }}</option>');
+                    
+                    $.each(officers, function(key, officer) {
+                        $('#loan_officer_id').append('<option value="' + officer.id + '">' + officer.first_name + ' ' + officer.last_name + '</option>');
+                    });
+                }
+                
+                // Trigger change event on page load to populate loan officers based on initial office selection
+                $('#office_id').trigger('change');
             });
         </script>
     @endif

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\AdvanceApproved;
 use App\Models\TopUp;
 use App\Models\AdvanceTransaction;
+use App\Models\UserRole;
 
 class AdvanceController extends Controller
 {
@@ -26,8 +27,18 @@ class AdvanceController extends Controller
 
     public function showApplyForm()
     {
-        $offices = Office::all();
         $user = Sentinel::getUser();
+
+        if ($user->inRole(1)) {
+            $offices = Office::all();
+        } elseif ($user->inRole(6)) {
+            $offices = Office::where('province_id', $user->province_id)->get();
+        } elseif ($user->inRole(4)) {
+            $offices = Office::where('id', $user->office_id)->get();
+        } else {
+            $offices = Office::all();
+        }
+
         $firstName = $user->first_name;
         $lastName = $user->last_name;
         return view('advances.apply', compact('offices', 'firstName', 'lastName'));
@@ -63,24 +74,24 @@ class AdvanceController extends Controller
         $advance->notes = $request->notes;
         $advance->date_requested = now();
         $advance->save();
-    
+
         GeneralHelper::audit_trail("Create", "Advances", $advance->id);
         Flash::success("Advance submitted successfully");
         return Redirect::route('advances.my_advances');
-    
+
     }
 
     public function showMyAdvances()
     {
         $user = Sentinel::getUser();
 
-	$advances = Advance::where('user_id', $user->id)
-	->where('status', 'approved')
-	->get();
+        $advances = Advance::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->get();
 
         return view('advances.my_advances', compact('advances'));
-    
-   }
+
+    }
 
     public function submitTopUp(Request $request, $id)
     {
@@ -92,8 +103,8 @@ class AdvanceController extends Controller
         ]);
 
         $existingTopUp = TopUp::where('advance_id', $id)
-        ->whereIn('status', ['pending', 'approved'])
-        ->first();
+            ->whereIn('status', ['pending', 'approved'])
+            ->first();
 
         if ($existingTopUp) {
 
@@ -102,8 +113,8 @@ class AdvanceController extends Controller
         }
         $advance = Advance::findOrFail($id);
 
-	$user = Sentinel::getUser();
-	$office_id = $user->office_id;
+        $user = Sentinel::getUser();
+        $office_id = $user->office_id;
         //dd($user);
 
         TopUp::create([
@@ -112,8 +123,8 @@ class AdvanceController extends Controller
             'top_up_date' => $request->input('top_up_date'),
             'installments' => $request->input('installments'),
             'first_name' => $user->first_name,
-	    'last_name' => $user->last_name,
-	    'office_id' => $office_id,
+            'last_name' => $user->last_name,
+            'office_id' => $office_id,
             'status' => 'pending'
         ]);
 
@@ -123,7 +134,7 @@ class AdvanceController extends Controller
 
     public function approveTopUp(Request $request, $id)
     {
-	$user = Sentinel::getUser();
+        $user = Sentinel::getUser();
         $office_id = $user->office_id;
         $topUp = TopUp::findOrFail($id);
         $advance = $topUp->advance;
@@ -145,42 +156,38 @@ class AdvanceController extends Controller
 
     public function declineTopUp($id)
     {
-	$user = Sentinel::getUser();
+        $user = Sentinel::getUser();
         $office_id = $user->office_id;
-    $topUp = TopUp::findOrFail($id);
-    $advance = Advance::findOrFail($id);
+        $topUp = TopUp::findOrFail($id);
+        $advance = Advance::findOrFail($id);
 
-    $topUp->status = 'declined';
-    $topUp->save();
+        $topUp->status = 'declined';
+        $topUp->save();
 
-    return redirect()->back()->with('success', 'Advance has been declined.');
-}
+        return redirect()->back()->with('success', 'Advance has been declined.');
+    }
 
 
     public function topupPendingApprovals()
     {
-
         $user = Sentinel::getUser();
-        $office_id = $user->office_id;
+        $query = TopUp::where('status', 'pending');
 
-        if ($user->hasAccess('groups.create')) {
-            $advance_topups = TopUp::where('status', 'pending')->get();
-        } elseif ($user-> hasAccess('offices')) {
-            $advance_topups = TopUp::where('status', 'pending')
-            ->where('office_id', $office_id)
-            ->get();
-        }else {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
-            $advance_topups = TopUp::whereIn('office_id', $provinceOffices)
-            ->where('status', 'pending')
-            ->get();
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        } else {
+            // Default behavior
         }
+
+        $advance_topups = $query->get();
         return view('advances.topups_pending_approval', compact('advance_topups'));
     }
-
-
 
     public function approve(Request $request, $id)
     {
@@ -192,7 +199,7 @@ class AdvanceController extends Controller
         $nextPaymentDate = Carbon::now()->endOfMonth()->addDay();
         $advance->expected_repayment_dates = $nextPaymentDate;
         $advance->save();
-    
+
         return Redirect::route('advances.pending_approvals')->with('success', trans('general.successfully_saved'));
     }
 
@@ -211,80 +218,76 @@ class AdvanceController extends Controller
     public function showPendingApprovals()
     {
         $user = Sentinel::getUser();
-        $office_id = $user->office_id;
+        $query = Advance::where('status', 'pending');
 
-        if ($user->hasAccess('groups.create')) {
-            $advances = Advance::where('status', 'pending')->get();
-        } elseif ($user-> hasAccess('offices')) {
-            $advances = Advance::where('status', 'pending')
-            ->where('office_id', $office_id)
-            ->get();
-        }else {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
-            $advances = Advance::whereIn('office_id', $provinceOffices)
-            ->where('status', 'pending')
-            ->get();
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        } else {
+            // Default behavior
         }
+
+        $advances = $query->get();
         return view('advances.pending_approvals', compact('advances'));
     }
 
     public function showActiveAdvances()
     {
         $user = Sentinel::getUser();
-        $office_id = $user->office_id;
-    
-        if ($user->hasAccess('groups.create')) {
-            $advances = Advance::where('status', 'approved')
-            ->where('remaining_amount', '>', 0) 
-            ->get();
-        } elseif ($user-> hasAccess('offices')) { 
-            $advances = Advance::where('status', 'approved')
-            ->where('office_id', $office_id)
-            ->where('remaining_amount', '>', 0)
-            ->get();
-        } 
-        else {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id');
-            $advances = Advance::whereIn('office_id', $provinceOffices)
-            ->where('status', 'approved')
-            ->where('remaining_amount', '>', 0)
-            ->get();
+
+        $query = Advance::where('status', 'approved')
+            ->where('remaining_amount', '>', 0);
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        } else {
+            // Default behavior
         }
+
+        $advances = $query->get();
+
         foreach ($advances as $advance) {
             $expectedRepaymentDate = Carbon::parse($advance->expected_repayment_dates);
-            
-    
+
+
             if ($expectedRepaymentDate->isToday() && !$advance->processed_today) {
                 $installmentAmount = $advance->installment_amount;
                 $advance->amount_paid += $installmentAmount;
-    
+
                 if ($advance->amount_paid >= $advance->amount) {
                     $advance->amount_paid = $advance->amount;
                 }
                 $advance->remaining_amount = $advance->amount - $advance->amount_paid;
-                
-                $advance->processed_today = true;
-            if ($advance->remaining_amount <= 0.00) {
-                $advance->status = 'closed';
-                
-            }
-		$advance->save();
 
-		//CreateS a new transaction in the advance_transactions table
-            AdvanceTransaction::create([
-                'advance_id' => $advance->id,
-                'amount_paid' => $installmentAmount,
-                'last_update_date' => $advance->expected_repayment_dates,
-            ]);
+                $advance->processed_today = true;
+                if ($advance->remaining_amount <= 0.00) {
+                    $advance->status = 'closed';
+
+                }
+                $advance->save();
+
+                //CreateS a new transaction in the advance_transactions table
+                AdvanceTransaction::create([
+                    'advance_id' => $advance->id,
+                    'amount_paid' => $installmentAmount,
+                    'last_update_date' => $advance->expected_repayment_dates,
+                ]);
             }
         }
         foreach ($advances as $advance) {
             $expectedRepaymentDate = Carbon::parse($advance->expected_repayment_dates);
-    
+
             if ($expectedRepaymentDate->isToday() && !$advance->processed_today) {
                 $advance->expected_repayment_dates = Carbon::now()->endOfMonth();
                 $advance->save();
@@ -296,45 +299,76 @@ class AdvanceController extends Controller
 
     public function showDetails($id)
     {
-    $advance = Advance::findOrFail($id);
-    return view('advances.show', compact('advance'));
+        $advance = Advance::findOrFail($id);
+        return view('advances.show', compact('advance'));
     }
 
     public function closeAdvance(Request $request, $id)
-{
-    $advance = Advance::find($id);
+    {
+        $advance = Advance::find($id);
 
-    if (!$advance) {
-        return redirect()->back()->with('error', 'Advance not found.');
+        if (!$advance) {
+            return redirect()->back()->with('error', 'Advance not found.');
+        }
+        //added closing advance code
+        $advance->remaining_amount = $request->input('remaining_amount');
+        $advance->amount_paid = $request->input('amount_paid');
+        $advance->status = 'closed';
+        $advance->save();
+
+        return redirect()->route('advances.active_advances')->with('success', 'Advance closed successfully.');
     }
-//added closing advance code
-    $advance->remaining_amount = $request->input('remaining_amount');
-    $advance->amount_paid = $request->input('amount_paid');
-    $advance->status = 'closed';
-    $advance->save();
-
-    return redirect()->route('advances.active_advances')->with('success', 'Advance closed successfully.');
-}
 
 
     public function showDeclinedAdvances()
     {
-    $advances = Advance::where('status', 'declined')->get(); 
-    return view('advances.declined_advances', compact('advances'));
+        $user = Sentinel::getUser();
+        $query = Advance::where('status', 'declined');
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        } else {
+            // Default behavior
+        }
+
+        $advances = $query->get();
+        return view('advances.declined_advances', compact('advances'));
     }
 
     public function storeClosedAdvances()
     {
-        $closedAdvances = Advance::where('status', 'closed')->get();
-    
+        $user = Sentinel::getUser();
+        $query = Advance::where('status', 'closed');
+
+        if ($user->inRole(1)) {
+            // Admin sees all
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        } else {
+            // Default behavior
+        }
+
+        $closedAdvances = $query->get();
+
         foreach ($closedAdvances as $advance) {
             $advance->status = 'closed';
+
             $advance->save();
         }
-    
+
         return view('advances.closed_advances', compact('closedAdvances'));
     }
-    
+
 
 
 }

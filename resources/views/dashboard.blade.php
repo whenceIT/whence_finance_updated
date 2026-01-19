@@ -82,23 +82,23 @@
                         </p>
                     </div>
                     <?php 
-                                                                                                                                                                                        $balance = 0;
+                                                                                                                                                                                                    $balance = 0;
                     ;
                     $in = 0;
                     $out = 0;
-                                                                                                                                                                                        ?>
+                                                                                                                                                                                                    ?>
                     @foreach($clientLoan->transactions as $transaction)
                         <?php 
-                                                                                                                                                                                                                                                            if ($transaction->transaction_type != 'specified_due_date_fee') {
+                                                                                                                                                                                                                                                                            if ($transaction->transaction_type != 'specified_due_date_fee') {
                                 $out = $out + $transaction->debit;
                             }
 
                             $in = $in + $transaction->credit;
-                                                                                                                                                                                                                                                            ?>
+                                                                                                                                                                                                                                                                            ?>
                     @endforeach
                     <?php 
-                                                                                                                                                                                        $balance = $out - $in;
-                                                                                                                                                                                        ?>
+                                                                                                                                                                                                    $balance = $out - $in;
+                                                                                                                                                                                                    ?>
 
                     <div class="col-lg-4 col-xs-12">
                         <div class="small-box bg-aqua">
@@ -161,8 +161,8 @@
         <div></div>
 
         <div style="display: flex;
-                                                    align-items: center;
-                                                    justify-content: center; padding-bottom: 10px;">
+                                                            align-items: center;
+                                                            justify-content: center; padding-bottom: 10px;">
 
 
             <!-- <a href="{{ url('loan/my_collections') }}" style="margin: 10px;">
@@ -191,8 +191,8 @@
             @if($end == 'NCI')
                 <div
                     style="display: flex;
-                                                                                                                                                                                        align-items: center;
-                                                                                                                                                                                        justify-content: center;">
+                                                                                                                                                                                                    align-items: center;
+                                                                                                                                                                                                    justify-content: center;">
                     <a href="{{ url('user/cycle') }}" class="btn btn-info btn-sm">
                         Set your cycle end date
                     </a>
@@ -211,7 +211,7 @@
                     $part_payments = 0;
                     $reloan_payments = 0;
 
-                                                                                                                                                                                        ?>
+                                                                                                                                                                                                    ?>
 
                     <!-- CALCULATING LOAN BALANCES FOR CYCLE OPENING UNCOLLECTED -->
                     <?php
@@ -252,7 +252,7 @@
                         array_push($cycle_opening_uncollected_amounts, $cycle_opening_uncollected_amount + 0.0001);
 
                     }
-                                                                                                                                                                                        ?>
+                                                                                                                                                                                                    ?>
 
 
                     <!-- CALCULATING 12 MONTHS CYCLE COLLECTED USING TRANSACTIONS -->
@@ -301,7 +301,7 @@
 
 
                     }
-                                                                                                                                                                                         ?>
+                                                                                                                                                                                                     ?>
 
 
                     <!-- CALCULATING 12 MONTHS GIVEN OUT USING TRANSACTIONS -->
@@ -370,14 +370,14 @@
                         $total = $reloan_total + $new_loan_total;
                     }
 
-                                                                                                                                                                                        ?>
+                                                                                                                                                                                                    ?>
 
                     <?php 
-                                                                                                                                                                                            $uncollected_amounts = [];
+                                                                                                                                                                                                        $uncollected_amounts = [];
                     for ($x = 0; $x < 12; $x++) {
                         array_push($uncollected_amounts, ($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
                     }
-                                                                                                                                                                                            ?>
+                                                                                                                                                                                                        ?>
 
                     <div class="box box-primary">
 
@@ -484,50 +484,50 @@
 
 
                     <!-- <div class="col-lg-4 col-xs-12">
-                                                                                                                                                                                            <div class="small-box bg-yellow">
-                                                                                                                                                                                            <div class="inner">
-                                                                                                                                                                                            <p style="font-weight: bold;">Cycle opening uncollected amount (COUA)</p>
-                                                                                                                                                                                            <div class="icon">
-                                                                                                                                                                                            <i class="fa fa-usd"></i>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            <h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            <div class="small-box-footer">
-                                                                                                                                                                                                <p></p>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            </div> -->
+                                                                                                                                                                                                        <div class="small-box bg-yellow">
+                                                                                                                                                                                                        <div class="inner">
+                                                                                                                                                                                                        <p style="font-weight: bold;">Cycle opening uncollected amount (COUA)</p>
+                                                                                                                                                                                                        <div class="icon">
+                                                                                                                                                                                                        <i class="fa fa-usd"></i>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        <h3>{{number_format($cycle_opening_uncollected_amounts[12] ,2)}}</h3>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        <div class="small-box-footer">
+                                                                                                                                                                                                            <p></p>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        </div> -->
 
 
                     <!-- <div class="col-lg-4 col-xs-12">
-                                                                                                                                                                                            <div class="small-box bg-green">
-                                                                                                                                                                                            <div class="inner">
-                                                                                                                                                                                            <p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
-                                                                                                                                                                                            <div class="icon">
-                                                                                                                                                                                            <i class="fa fa-usd"></i>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            <h3>{{number_format($collected_amounts[12],2)}}</h3>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            <div class="small-box-footer">
-                                                                                                                                                                                                <p></p>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            </div> -->
+                                                                                                                                                                                                        <div class="small-box bg-green">
+                                                                                                                                                                                                        <div class="inner">
+                                                                                                                                                                                                        <p style="font-weight: bold;">Total cycle collected amount (TCC)</p>
+                                                                                                                                                                                                        <div class="icon">
+                                                                                                                                                                                                        <i class="fa fa-usd"></i>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        <h3>{{number_format($collected_amounts[12],2)}}</h3>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        <div class="small-box-footer">
+                                                                                                                                                                                                            <p></p>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        </div> -->
 
                     <!-- <div class="col-lg-4 col-xs-12">
-                                                                                                                                                                                            <div class="small-box bg-aqua">
-                                                                                                                                                                                            <div class="inner">
-                                                                                                                                                                                            <p style="font-weight: bold;">Still Uncollected Today</p>
-                                                                                                                                                                                            <div class="icon">
-                                                                                                                                                                                            <i class="fa fa-usd"></i>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            <h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            <div class="small-box-footer">
-                                                                                                                                                                                                <p></p>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                            </div> -->
+                                                                                                                                                                                                        <div class="small-box bg-aqua">
+                                                                                                                                                                                                        <div class="inner">
+                                                                                                                                                                                                        <p style="font-weight: bold;">Still Uncollected Today</p>
+                                                                                                                                                                                                        <div class="icon">
+                                                                                                                                                                                                        <i class="fa fa-usd"></i>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        <h3>{{number_format($cycle_opening_uncollected_amounts[12] - $collected_amounts[12],2)}}</h3>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        <div class="small-box-footer">
+                                                                                                                                                                                                            <p></p>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        </div> -->
 
 
 
@@ -538,91 +538,91 @@
                 <!--second row-->
                 <?php
                     $tots = ($collected_amounts[12] / $cycle_opening_uncollected_amounts[12])
-                                                                                                                                                                                            ?>
+                                                                                                                                                                                                        ?>
 
                 <div style="margin-bottom:30px; margin-top:30px;">
                     <p
                         style="display: flex;
-                                                                                                                                                                                                align-items: center;
-                                                                                                                                                                                                justify-content: center; font-size:50px;">
+                                                                                                                                                                                                            align-items: center;
+                                                                                                                                                                                                            justify-content: center; font-size:50px;">
                         PDUA%
                     </p>
                     <div
                         style="display: flex;
-                                                                                                                                                                                                align-items: center;
-                                                                                                                                                                                                justify-content: center;">
+                                                                                                                                                                                                            align-items: center;
+                                                                                                                                                                                                            justify-content: center;">
 
                         <div class="gauge"
                             style="width: 100%;
-                                                                                                                                                                                              max-width: 250px;
-                                                                                                                                                                                              font-size: 50px;
-                                                                                                                                                                                              color: #004033;">
+                                                                                                                                                                                                          max-width: 250px;
+                                                                                                                                                                                                          font-size: 50px;
+                                                                                                                                                                                                          color: #004033;">
                             <div class="gauge__body"
                                 style=" width: 100%;
-                                                                                                                                                                                              height: 0;
-                                                                                                                                                                                              padding-bottom: 50%;
-                                                                                                                                                                                              background: #b4c0be;
-                                                                                                                                                                                              position: relative;
-                                                                                                                                                                                              border-top-left-radius: 100% 200%;
-                                                                                                                                                                                              border-top-right-radius: 100% 200%;
-                                                                                                                                                                                              overflow: hidden;">
+                                                                                                                                                                                                          height: 0;
+                                                                                                                                                                                                          padding-bottom: 50%;
+                                                                                                                                                                                                          background: #b4c0be;
+                                                                                                                                                                                                          position: relative;
+                                                                                                                                                                                                          border-top-left-radius: 100% 200%;
+                                                                                                                                                                                                          border-top-right-radius: 100% 200%;
+                                                                                                                                                                                                          overflow: hidden;">
 
                                 @if(($tots) < 0.75)
                                     <div class="gauge__fill"
                                         style=" position: absolute;
-                                                                                                                                                                                                                                                                          top: 100%;
-                                                                                                                                                                                                                                                                          left: 0;
-                                                                                                                                                                                                                                                                          width: inherit;
-                                                                                                                                                                                                                                                                          height: 100%;
-                                                                                                                                                                                                                                                                          background: red;
-                                                                                                                                                                                                                                                                          transform-origin: center top;
-                                                                                                                                                                                                                                                                          transform: rotate(0.25turn);
-                                                                                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                                                                                          top: 100%;
+                                                                                                                                                                                                                                                                                          left: 0;
+                                                                                                                                                                                                                                                                                          width: inherit;
+                                                                                                                                                                                                                                                                                          height: 100%;
+                                                                                                                                                                                                                                                                                          background: red;
+                                                                                                                                                                                                                                                                                          transform-origin: center top;
+                                                                                                                                                                                                                                                                                          transform: rotate(0.25turn);
+                                                                                                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
                                     </div>
 
                                 @elseif(($tots) >= 0.90)
                                     <div class="gauge__fill"
                                         style=" position: absolute;
-                                                                                                                                                                                                                                                                          top: 100%;
-                                                                                                                                                                                                                                                                          left: 0;
-                                                                                                                                                                                                                                                                          width: inherit;
-                                                                                                                                                                                                                                                                          height: 100%;
-                                                                                                                                                                                                                                                                          background:#d4af37;
-                                                                                                                                                                                                                                                                          transform-origin: center top;
-                                                                                                                                                                                                                                                                          transform: rotate(0.25turn);
-                                                                                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                                                                                          top: 100%;
+                                                                                                                                                                                                                                                                                          left: 0;
+                                                                                                                                                                                                                                                                                          width: inherit;
+                                                                                                                                                                                                                                                                                          height: 100%;
+                                                                                                                                                                                                                                                                                          background:#d4af37;
+                                                                                                                                                                                                                                                                                          transform-origin: center top;
+                                                                                                                                                                                                                                                                                          transform: rotate(0.25turn);
+                                                                                                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
                                     </div>
 
                                 @else
                                     <div class="gauge__fill"
                                         style=" position: absolute;
-                                                                                                                                                                                                                                                                          top: 100%;
-                                                                                                                                                                                                                                                                          left: 0;
-                                                                                                                                                                                                                                                                          width: inherit;
-                                                                                                                                                                                                                                                                          height: 100%;
-                                                                                                                                                                                                                                                                          background:green;
-                                                                                                                                                                                                                                                                          transform-origin: center top;
-                                                                                                                                                                                                                                                                          transform: rotate(0.25turn);
-                                                                                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                                                                                          top: 100%;
+                                                                                                                                                                                                                                                                                          left: 0;
+                                                                                                                                                                                                                                                                                          width: inherit;
+                                                                                                                                                                                                                                                                                          height: 100%;
+                                                                                                                                                                                                                                                                                          background:green;
+                                                                                                                                                                                                                                                                                          transform-origin: center top;
+                                                                                                                                                                                                                                                                                          transform: rotate(0.25turn);
+                                                                                                                                                                                                                                                                                          transition: transform 0.2s ease-out;">
                                     </div>
 
                                 @endif
                                 <div class="gauge__cover"
                                     style="width: 75%;
-                                                                                                                                                                                              height: 150%;
-                                                                                                                                                                                              background: #f7f7f7;
-                                                                                                                                                                                              border-radius: 50%;
-                                                                                                                                                                                              position: absolute;
-                                                                                                                                                                                              top: 25%;
-                                                                                                                                                                                              left: 50%;
-                                                                                                                                                                                              transform: translateX(-50%);
+                                                                                                                                                                                                          height: 150%;
+                                                                                                                                                                                                          background: #f7f7f7;
+                                                                                                                                                                                                          border-radius: 50%;
+                                                                                                                                                                                                          position: absolute;
+                                                                                                                                                                                                          top: 25%;
+                                                                                                                                                                                                          left: 50%;
+                                                                                                                                                                                                          transform: translateX(-50%);
 
-                                                                                                                                                                                              /* Text */
-                                                                                                                                                                                              display: flex;
-                                                                                                                                                                                              align-items: center;
-                                                                                                                                                                                              justify-content: center;
-                                                                                                                                                                                              padding-bottom: 25%;
-                                                                                                                                                                                              box-sizing: border-box;">
+                                                                                                                                                                                                          /* Text */
+                                                                                                                                                                                                          display: flex;
+                                                                                                                                                                                                          align-items: center;
+                                                                                                                                                                                                          justify-content: center;
+                                                                                                                                                                                                          padding-bottom: 25%;
+                                                                                                                                                                                                          box-sizing: border-box;">
                                 </div>
 
                             </div>
@@ -633,12 +633,12 @@
 
                     <div
                         style="display:flex; flex-direction:row; justify-content:space-between;
-                                                                                                                                                                                                align-items: center;
-                                                                                                                                                                                                justify-content: center;">
+                                                                                                                                                                                                            align-items: center;
+                                                                                                                                                                                                            justify-content: center;">
                         <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                             <div
                                 style="background-color: red;  height: 10px;
-                                                                                                                                                                                              width: 20px;">
+                                                                                                                                                                                                          width: 20px;">
                             </div>
                             <p style="text-align: center; font-weight:bold;">Poor</p>
                         </div>
@@ -646,14 +646,14 @@
                         <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                             <div
                                 style="background-color: green;  height: 10px;
-                                                                                                                                                                                              width: 20px;">
+                                                                                                                                                                                                          width: 20px;">
                             </div>
                             <p style="text-align: center; font-weight:bold;">Fair</p>
                         </div>
                         <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                             <div
                                 style="background-color: #d4af37;  height: 10px;
-                                                                                                                                                                                              width: 20px;">
+                                                                                                                                                                                                          width: 20px;">
                             </div>
                             <p style="text-align: center; font-weight:bold;">Good</p>
                         </div>
@@ -718,7 +718,7 @@
                 $targetDate = date('Y-m-d', strtotime($targetDate . ' + 1 months'));
             }
             $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
-                                                                                                                                            ?>
+                                                                                                                                                    ?>
                             @foreach($myLoans as $loan)
 
 
@@ -726,7 +726,7 @@
                                 $OutIn = 0;
                                 $out = 0;
                                 $in = 0;
-                                                                                                                                                                                                                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                                                                                                                                                                                        ?>
                                             @foreach($loan->transactions as $transaction)
                                                         <?php
 
@@ -746,7 +746,7 @@
                                                 //     $newout = $newout + $transaction->debit;
                                                 // }
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ?>
                                             @endforeach
 
                                             <?php
@@ -756,7 +756,7 @@
                                 //     $OutIn = 0;
                                 // }
 
-                                                                                                                                                                                                                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                                                                                                                                                                                        ?>
 
                                             <tr>
 
@@ -888,8 +888,8 @@
 
         <div
             style="display: flex;
-                                                                                                                            align-items: center;
-                                                                                                                            justify-content: center; padding-bottom: 10px; ">
+                                                                                                                                    align-items: center;
+                                                                                                                                    justify-content: center; padding-bottom: 10px; ">
 
 
             <a href="{{ url('loan/new_collections') }}" style="margin: 10px;">
@@ -976,7 +976,7 @@
             $branchsecondDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
             $testcompareDate = date('Y-m-d', strtotime($branchtargetDate . ' - 1 months'));
             $testtargetDate
-                                                                                                                        ?>
+                                                                                                                                ?>
 
                 <!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
                 @foreach($newBranchLoans as $loan)
@@ -985,7 +985,7 @@
                     $MoneyGivenOut = 0;
                     $charges = 0;
                     $balance = 0;
-                                                                                                                                                                                            ?>
+                                                                                                                                                                                                        ?>
                     @foreach($loan->transactions as $transaction)
 
                         <?php
@@ -997,23 +997,23 @@
                                 $MoneyCollected = $MoneyCollected + $transaction->credit;
                             }
 
-                                                                                                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                                                                ?>
                     @endforeach
                     <?php 
-                                                                                                                                                                                            $balance = $MoneyGivenOut - $MoneyCollected;
+                                                                                                                                                                                                        $balance = $MoneyGivenOut - $MoneyCollected;
 
 
                     $cycle_opening_uncollected_amount = $cycle_opening_uncollected_amount + $balance;
                     if ($cycle_opening_uncollected_amount == 0) {
                         $cycle_opening_uncollected_amount = 1;
                     }
-                                                                                                                                                                                            ?>
+                                                                                                                                                                                                        ?>
                 @endforeach
 
                 <!-- CALCULATING BRANCH CURRENT CYCLE COLLECTED USING TRANSACTIONS -->
                 @foreach($branchTransactions as $transaction)
                     <?php 
-                                                                                                                                                                                            if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
+                                                                                                                                                                                                        if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date > $branchcompareDate && $transaction->date <= $branchtargetDate) {
                         $full_payments = $full_payments + $transaction->credit;
                     }
 
@@ -1062,14 +1062,14 @@
                         $reloan_payments_2_months = $reloan_payments_2_months + $reloan_amount_2_months + $interest;
                     }
 
-                                                                                                                                                                                            ?>
+                                                                                                                                                                                                        ?>
                 @endforeach
 
                 <?php
             $collected_total = $reloan_payments + $part_payments + $full_payments;
             $collected_total_1_months = $reloan_payments_1_months + $part_payments_1_months + $full_payments_1_months;
             $collected_total_2_months = $reloan_payments_2_months + $part_payments_2_months + $full_payments_2_months;
-                                                                                                                        ?>
+                                                                                                                                ?>
 
 
                 @foreach($branchUsers as $branchUser)
@@ -1098,12 +1098,12 @@
                     }
 
                     $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
-                                                                                                                                                                                            ?>
+                                                                                                                                                                                                        ?>
 
                     @foreach($newBranchLoans as $loan)
                         @foreach($loan->transactions as $transaction)
                             <?php 
-                                                                                                                                                                                                                                                                                                                            //branch transactions
+                                                                                                                                                                                                                                                                                                                                                //branch transactions
                                     if ($loan->loan_officer_id == $branchUser->id) {
                                         if ($transaction->transaction_type == 'disbursement' && $transaction->date > $compareDate && $transaction->date <= $targetDate && $transaction->loan_id == $loan->id) {
                                             $target_monthly = $target_monthly + $transaction->debit;
@@ -1116,7 +1116,7 @@
                                             $target_reloan = $target_reloan + $principal;
                                         }
                                     }
-                                                                                                                                                                                                                                                                                                                            ?>
+                                                                                                                                                                                                                                                                                                                                                ?>
 
                         @endforeach
                     @endforeach
@@ -1126,7 +1126,7 @@
                     if ($target_total > 40000) {
                         $targetCount = $targetCount + 1;
                     }
-                                                                                                                                                                                            ?>
+                                                                                                                                                                                                        ?>
                 @endforeach
 
 
@@ -1183,85 +1183,85 @@
             <div style="margin-bottom:30px; margin-top:30px;">
                 <p
                     style="display: flex;
-                                                                                                                            align-items: center;
-                                                                                                                            justify-content: center; font-size:50px;">
+                                                                                                                                    align-items: center;
+                                                                                                                                    justify-content: center; font-size:50px;">
                     PDUA%</p>
                 <div
                     style="display: flex;
-                                                                                                                            align-items: center;
-                                                                                                                            justify-content: center;">
+                                                                                                                                    align-items: center;
+                                                                                                                                    justify-content: center;">
 
                     <div class="gauge"
                         style="width: 100%;
-                                                                                                                          max-width: 250px;
-                                                                                                                          font-size: 50px;
-                                                                                                                          color: #004033;">
+                                                                                                                                  max-width: 250px;
+                                                                                                                                  font-size: 50px;
+                                                                                                                                  color: #004033;">
                         <div class="gauge__body"
                             style=" width: 100%;
-                                                                                                                          height: 0;
-                                                                                                                          padding-bottom: 50%;
-                                                                                                                          background: #b4c0be;
-                                                                                                                          position: relative;
-                                                                                                                          border-top-left-radius: 100% 200%;
-                                                                                                                          border-top-right-radius: 100% 200%;
-                                                                                                                          overflow: hidden;">
+                                                                                                                                  height: 0;
+                                                                                                                                  padding-bottom: 50%;
+                                                                                                                                  background: #b4c0be;
+                                                                                                                                  position: relative;
+                                                                                                                                  border-top-left-radius: 100% 200%;
+                                                                                                                                  border-top-right-radius: 100% 200%;
+                                                                                                                                  overflow: hidden;">
 
                             @if(($collected_total / $cycle_opening_uncollected_amount) < 0.75)
                                 <div class="gauge__fill"
                                     style=" position: absolute;
-                                                                                                                                                                                                      top: 100%;
-                                                                                                                                                                                                      left: 0;
-                                                                                                                                                                                                      width: inherit;
-                                                                                                                                                                                                      height: 100%;
-                                                                                                                                                                                                      background: red;
-                                                                                                                                                                                                      transform-origin: center top;
-                                                                                                                                                                                                      transform: rotate(0.25turn);
-                                                                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                  top: 100%;
+                                                                                                                                                                                                                  left: 0;
+                                                                                                                                                                                                                  width: inherit;
+                                                                                                                                                                                                                  height: 100%;
+                                                                                                                                                                                                                  background: red;
+                                                                                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
                                 </div>
 
                             @elseif(($collected_total / $cycle_opening_uncollected_amount) >= 0.90)
                                 <div class="gauge__fill"
                                     style=" position: absolute;
-                                                                                                                                                                                                      top: 100%;
-                                                                                                                                                                                                      left: 0;
-                                                                                                                                                                                                      width: inherit;
-                                                                                                                                                                                                      height: 100%;
-                                                                                                                                                                                                      background:#d4af37;
-                                                                                                                                                                                                      transform-origin: center top;
-                                                                                                                                                                                                      transform: rotate(0.25turn);
-                                                                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                  top: 100%;
+                                                                                                                                                                                                                  left: 0;
+                                                                                                                                                                                                                  width: inherit;
+                                                                                                                                                                                                                  height: 100%;
+                                                                                                                                                                                                                  background:#d4af37;
+                                                                                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
                                 </div>
 
                             @else
                                 <div class="gauge__fill"
                                     style=" position: absolute;
-                                                                                                                                                                                                      top: 100%;
-                                                                                                                                                                                                      left: 0;
-                                                                                                                                                                                                      width: inherit;
-                                                                                                                                                                                                      height: 100%;
-                                                                                                                                                                                                      background:green;
-                                                                                                                                                                                                      transform-origin: center top;
-                                                                                                                                                                                                      transform: rotate(0.25turn);
-                                                                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                  top: 100%;
+                                                                                                                                                                                                                  left: 0;
+                                                                                                                                                                                                                  width: inherit;
+                                                                                                                                                                                                                  height: 100%;
+                                                                                                                                                                                                                  background:green;
+                                                                                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
                                 </div>
 
                             @endif
                             <div class="gauge__cover"
                                 style="width: 75%;
-                                                                                                                          height: 150%;
-                                                                                                                          background: #f7f7f7;
-                                                                                                                          border-radius: 50%;
-                                                                                                                          position: absolute;
-                                                                                                                          top: 25%;
-                                                                                                                          left: 50%;
-                                                                                                                          transform: translateX(-50%);
+                                                                                                                                  height: 150%;
+                                                                                                                                  background: #f7f7f7;
+                                                                                                                                  border-radius: 50%;
+                                                                                                                                  position: absolute;
+                                                                                                                                  top: 25%;
+                                                                                                                                  left: 50%;
+                                                                                                                                  transform: translateX(-50%);
 
-                                                                                                                          /* Text */
-                                                                                                                          display: flex;
-                                                                                                                          align-items: center;
-                                                                                                                          justify-content: center;
-                                                                                                                          padding-bottom: 25%;
-                                                                                                                          box-sizing: border-box;">
+                                                                                                                                  /* Text */
+                                                                                                                                  display: flex;
+                                                                                                                                  align-items: center;
+                                                                                                                                  justify-content: center;
+                                                                                                                                  padding-bottom: 25%;
+                                                                                                                                  box-sizing: border-box;">
                             </div>
 
                         </div>
@@ -1272,12 +1272,12 @@
 
                 <div
                     style="display:flex; flex-direction:row; justify-content:space-between;
-                                                                                                                            align-items: center;
-                                                                                                                            justify-content: center;">
+                                                                                                                                    align-items: center;
+                                                                                                                                    justify-content: center;">
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div
                             style="background-color: red;  height: 10px;
-                                                                                                                          width: 20px;">
+                                                                                                                                  width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Poor</p>
                     </div>
@@ -1285,14 +1285,14 @@
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div
                             style="background-color: green;  height: 10px;
-                                                                                                                          width: 20px;">
+                                                                                                                                  width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Fair</p>
                     </div>
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div
                             style="background-color: #d4af37;  height: 10px;
-                                                                                                                          width: 20px;">
+                                                                                                                                  width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Good</p>
                     </div>
@@ -1353,7 +1353,7 @@
                                 $out = 0;
                                 $in = 0;
                                 $newout = 0;
-                                                                                                                                                                                                                                                                                                                                                                                        ?>
+                                                                                                                                                                                                                                                                                                                                                                                                                ?>
                                             @foreach($loan->transactions as $transaction)
                                                         <?php
 
@@ -1362,12 +1362,12 @@
                                                 }
 
                                                 $in = $in + $transaction->credit;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ?>
                                             @endforeach
                                             <?php
                                 $OutIn = $out - $in;
                                 $OutIn = $OutIn - $newout;
-                                                                                                                                                                                                                                                                                                                                                                                        ?>
+                                                                                                                                                                                                                                                                                                                                                                                                                ?>
                                             <tr>
                                                 @if($OutIn != 0)
                                                     <td>{{$loan->id}}</td>
@@ -1435,78 +1435,87 @@
             </div>
         </div>
 
- <?php
-                                            $office_id = Sentinel::getUser()->office_id;
-?>
-<div id="pendingWidget" style="
-    position: fixed;
-    top: 80%;
-    left: 55%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 350px;
-    background: #fefefeee;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    overflow: hidden;
-    z-index: 9998;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    cursor: move;
-    transition: transform 0.2s ease;
-">
-    <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
-        <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
-        <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
-        <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
-        <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
-        <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
-        <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
-        <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Advance::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
-        <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\TopUp::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
-        <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{
-             \App\Models\Leave::where('status', 'pending')
-                                            ->where('office_id', $office_id)
-                                            ->count()}}</p>
-    </div>
-</div>
-@endif
+        <?php
+            $office_id = Sentinel::getUser()->office_id;
+        ?>
+        <div id="pendingWidget" style="
+            position: fixed;
+            top: 80%;
+            left: 55%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 350px;
+            background: #fefefeee;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            overflow: hidden;
+            z-index: 9998;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            cursor: move;
+            transition: transform 0.2s ease;
+        ">
+            <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
+                <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id', $office_id)->count() }}
+                </p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
+                <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\LoanTransactionUnapproved::where('office_id', $office_id)->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
+                <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\LoanTransactionsPending::where('office_id', $office_id)->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
+                <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\WaiverTransactionUnapproved::where('status', 'pending')->where('office_id', $office_id)->count() }}
+                </p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #722ed1;">
+                <h4 style="margin:0; font-weight:bold; color:#722ed1;">Charges Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\ChargeTransactionUnapproved::where('status', 'pending')->where('office_id', $office_id)->count() }}
+                </p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa541c;">
+                <h4 style="margin:0; font-weight:bold; color:#fa541c;">Clients Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{\App\Models\Client::where('status', 'pending')->where('office_id', $office_id)->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #13c2c2;">
+                <h4 style="margin:0; font-weight:bold; color:#13c2c2;">Advances Pending Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\Advance::where('status', 'pending')
+                ->where('office_id', $office_id)
+                ->count()}}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #eb2f96;">
+                <h4 style="margin:0; font-weight:bold; color:#eb2f96;">Advance-TopUps Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{\App\Models\TopUp::where('status', 'pending')
+                ->where('office_id', $office_id)
+                ->count()}}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #fa8c16;">
+                <h4 style="margin:0; font-weight:bold; color:#fa8c16;">Pending Leave Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{
+                \App\Models\Leave::where('status', 'pending')
+                    ->where('office_id', $office_id)
+                    ->count()}}</p>
+            </div>
+        </div>
+    @endif
 
 
     <!-- What PMs see -->
     @if($role->role_id == '6')
         <div
             style="display: flex;
-                                                                                                                            align-items: center;
-                                                                                                                            justify-content: center; padding-bottom: 10px; ">
+                                                                                                                                    align-items: center;
+                                                                                                                                    justify-content: center; padding-bottom: 10px; ">
 
             <a id="collectionsLink" href="{{ url('loan/new_collections') }}" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Collections</span>
@@ -1585,7 +1594,7 @@
             //         array_push($province_transactions, $transaction);
             //     }
             // }
-                                                                                                                        ?>
+                                                                                                                                ?>
 
                 <?php
             $today = date('Y-m-d');
@@ -1624,7 +1633,7 @@
                 array_push($cycle_opening_uncollected_amounts, $cycle_opening_uncollected_amount + 0.0001);
 
             }
-                                                                                                                        ?>
+                                                                                                                                ?>
 
                 <?php
             $collected_amounts = [];
@@ -1663,12 +1672,12 @@
 
 
             }
-                                                                                                                         ?>
+                                                                                                                                 ?>
 
 
 
                 <?php 
-                                                                                                                        $collections = [];
+                                                                                                                                $collections = [];
             $given_out = [];
             $target_dates = [];
             while ($bar_chart_count < 5) {
@@ -1737,7 +1746,7 @@
 
 
             }
-                                                                                                                        ?>
+                                                                                                                                ?>
 
                 <?php
             $new_loan_total = 0;
@@ -1793,14 +1802,14 @@
                 $total = $reloan_total + $new_loan_total;
             }
 
-                                                                                                                        ?>
+                                                                                                                                ?>
 
                 <?php 
-                                                                                                                        $uncollected_amounts = [];
+                                                                                                                                $uncollected_amounts = [];
             for ($x = 0; $x < 12; $x++) {
                 array_push($uncollected_amounts, ($cycle_opening_uncollected_amounts[$x] - $collected_amounts[$x]));
             }
-                                                                                                                        ?>
+                                                                                                                                ?>
 
 
                 <div class="col-lg-4 col-xs-12">
@@ -1856,7 +1865,7 @@
 
         <?php
             $tots = ($collected_amounts[12] / $cycle_opening_uncollected_amounts[12]) + 0.00001
-                                                                                                                        ?>
+                                                                                                                                ?>
         <div style="margin-bottom:30px; margin-top:30px;">
             <p
                 style="display: flex;
@@ -1865,80 +1874,80 @@
                 PDUA%</p>
             <div
                 style="display: flex;
-                                                                                                                            align-items: center;
-                                                                                                                            justify-content: center;">
+                                                                                                                                    align-items: center;
+                                                                                                                                    justify-content: center;">
 
                 <div class="gauge"
                     style="width: 100%;
-                                                                                                                          max-width: 250px;
-                                                                                                                          font-size: 50px;
-                                                                                                                          color: #004033;">
+                                                                                                                                  max-width: 250px;
+                                                                                                                                  font-size: 50px;
+                                                                                                                                  color: #004033;">
                     <div class="gauge__body"
                         style=" width: 100%;
-                                                                                                                          height: 0;
-                                                                                                                          padding-bottom: 50%;
-                                                                                                                          background: #b4c0be;
-                                                                                                                          position: relative;
-                                                                                                                          border-top-left-radius: 100% 200%;
-                                                                                                                          border-top-right-radius: 100% 200%;
-                                                                                                                          overflow: hidden;">
+                                                                                                                                  height: 0;
+                                                                                                                                  padding-bottom: 50%;
+                                                                                                                                  background: #b4c0be;
+                                                                                                                                  position: relative;
+                                                                                                                                  border-top-left-radius: 100% 200%;
+                                                                                                                                  border-top-right-radius: 100% 200%;
+                                                                                                                                  overflow: hidden;">
 
                         @if(($tots) < 0.75)
                             <div class="gauge__fill"
                                 style=" position: absolute;
-                                                                                                                                                                                                  top: 100%;
-                                                                                                                                                                                                  left: 0;
-                                                                                                                                                                                                  width: inherit;
-                                                                                                                                                                                                  height: 100%;
-                                                                                                                                                                                                  background: red;
-                                                                                                                                                                                                  transform-origin: center top;
-                                                                                                                                                                                                  transform: rotate(0.25turn);
-                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                              top: 100%;
+                                                                                                                                                                                                              left: 0;
+                                                                                                                                                                                                              width: inherit;
+                                                                                                                                                                                                              height: 100%;
+                                                                                                                                                                                                              background: red;
+                                                                                                                                                                                                              transform-origin: center top;
+                                                                                                                                                                                                              transform: rotate(0.25turn);
+                                                                                                                                                                                                              transition: transform 0.2s ease-out;">
                             </div>
 
                         @elseif(($tots) >= 0.90)
                             <div class="gauge__fill"
                                 style=" position: absolute;
-                                                                                                                                                                                                  top: 100%;
-                                                                                                                                                                                                  left: 0;
-                                                                                                                                                                                                  width: inherit;
-                                                                                                                                                                                                  height: 100%;
-                                                                                                                                                                                                  background:#d4af37;
-                                                                                                                                                                                                  transform-origin: center top;
-                                                                                                                                                                                                  transform: rotate(0.25turn);
-                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                              top: 100%;
+                                                                                                                                                                                                              left: 0;
+                                                                                                                                                                                                              width: inherit;
+                                                                                                                                                                                                              height: 100%;
+                                                                                                                                                                                                              background:#d4af37;
+                                                                                                                                                                                                              transform-origin: center top;
+                                                                                                                                                                                                              transform: rotate(0.25turn);
+                                                                                                                                                                                                              transition: transform 0.2s ease-out;">
                             </div>
 
                         @else
                             <div class="gauge__fill"
                                 style=" position: absolute;
-                                                                                                                                                                                                  top: 100%;
-                                                                                                                                                                                                  left: 0;
-                                                                                                                                                                                                  width: inherit;
-                                                                                                                                                                                                  height: 100%;
-                                                                                                                                                                                                  background:green;
-                                                                                                                                                                                                  transform-origin: center top;
-                                                                                                                                                                                                  transform: rotate(0.25turn);
-                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                              top: 100%;
+                                                                                                                                                                                                              left: 0;
+                                                                                                                                                                                                              width: inherit;
+                                                                                                                                                                                                              height: 100%;
+                                                                                                                                                                                                              background:green;
+                                                                                                                                                                                                              transform-origin: center top;
+                                                                                                                                                                                                              transform: rotate(0.25turn);
+                                                                                                                                                                                                              transition: transform 0.2s ease-out;">
                             </div>
 
                         @endif
                         <div class="gauge__cover"
                             style="width: 75%;
-                                                                                                                          height: 150%;
-                                                                                                                          background: #f7f7f7;
-                                                                                                                          border-radius: 50%;
-                                                                                                                          position: absolute;
-                                                                                                                          top: 25%;
-                                                                                                                          left: 50%;
-                                                                                                                          transform: translateX(-50%);
+                                                                                                                                  height: 150%;
+                                                                                                                                  background: #f7f7f7;
+                                                                                                                                  border-radius: 50%;
+                                                                                                                                  position: absolute;
+                                                                                                                                  top: 25%;
+                                                                                                                                  left: 50%;
+                                                                                                                                  transform: translateX(-50%);
 
-                                                                                                                          /* Text */
-                                                                                                                          display: flex;
-                                                                                                                          align-items: center;
-                                                                                                                          justify-content: center;
-                                                                                                                          padding-bottom: 25%;
-                                                                                                                          box-sizing: border-box;">
+                                                                                                                                  /* Text */
+                                                                                                                                  display: flex;
+                                                                                                                                  align-items: center;
+                                                                                                                                  justify-content: center;
+                                                                                                                                  padding-bottom: 25%;
+                                                                                                                                  box-sizing: border-box;">
                         </div>
 
                     </div>
@@ -1949,12 +1958,12 @@
 
             <div
                 style="display:flex; flex-direction:row; justify-content:space-between;
-                                                                                                                            align-items: center;
-                                                                                                                            justify-content: center;">
+                                                                                                                                    align-items: center;
+                                                                                                                                    justify-content: center;">
                 <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                     <div
                         style="background-color: red;  height: 10px;
-                                                                                                                          width: 20px;">
+                                                                                                                                  width: 20px;">
                     </div>
                     <p style="text-align: center; font-weight:bold;">Poor</p>
                 </div>
@@ -1962,14 +1971,14 @@
                 <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                     <div
                         style="background-color: green;  height: 10px;
-                                                                                                                          width: 20px;">
+                                                                                                                                  width: 20px;">
                     </div>
                     <p style="text-align: center; font-weight:bold;">Fair</p>
                 </div>
                 <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                     <div
                         style="background-color: #d4af37;  height: 10px;
-                                                                                                                          width: 20px;">
+                                                                                                                                  width: 20px;">
                     </div>
                     <p style="text-align: center; font-weight:bold;">Good</p>
                 </div>
@@ -2012,13 +2021,13 @@
 
     <!-- What Admins see -->
     @if($role->role_id == '1' || $role->role_id == '10')
-        <div
-            style="display: flex;
-                                    align-items: center;
-                                        justify-content: center; padding-bottom: 10px; ">
+        <div style="display: flex;
+                                            align-items: center;
+                                                justify-content: center; padding-bottom: 10px; ">
 
             <a target="_blank" href="https://erp.whencefinancesystem.com" style="margin: 10px;">
-                <span class="label label-warning" style="font-size: 15px;"><i class="fa fa-external-link"></i> ERP Dashboard</span>
+                <span class="label label-warning" style="font-size: 15px;"><i class="fa fa-external-link"></i> ERP
+                    Dashboard</span>
             </a>
             <a href="{{ url('user/detailed_dashboard')}}" style="margin: 10px;">
                 <span class="label label-primary" style="font-size: 15px;">Detailed Dashboard</span>
@@ -2045,8 +2054,8 @@
 
         <div
             style="display: flex;
-                                                                                                                                align-items: center;
-                                                                                                                                justify-content: center; padding-bottom: 10px; ">
+                                                                                                                                        align-items: center;
+                                                                                                                                        justify-content: center; padding-bottom: 10px; ">
             <p style="font-weight: bold;">Data based on loans created in the last 3 months</p>
         </div>
 
@@ -2128,7 +2137,7 @@
                 //         array_push($province_transactions, $transaction);
                 //     }
                 // }
-                                                                                                                            ?>
+                                                                                                                                    ?>
 
                 <!-- CALCULATION LOAN BALANCES FOR BRANCH CYCLE OPENING UNCOLLECTED -->
                 @foreach($allLoans as $loan)
@@ -2137,7 +2146,7 @@
                     $MoneyGivenOut = 0;
                     $charges = 0;
                     $balance = 0;
-                                                                                                                                                                                                                        ?>
+                                                                                                                                                                                                                                    ?>
                     @foreach($loan->transactions as $transaction)
 
                         <?php
@@ -2157,10 +2166,10 @@
 
 
 
-                                                                                                                                                                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                                                                                                                                ?>
                     @endforeach
                     <?php 
-                                                                                                                                                                                                                        $balance = ($MoneyGivenOut - $MoneyCollected);
+                                                                                                                                                                                                                                    $balance = ($MoneyGivenOut - $MoneyCollected);
                     if ($balance < 0) {
                         $balance = 0;
                     }
@@ -2168,11 +2177,11 @@
                     if ($cycle_opening_uncollected_amount == 0) {
                         $cycle_opening_uncollected_amount = 1;
                     }
-                                                                                                                                                                                                                        ?>
+                                                                                                                                                                                                                                    ?>
                 @endforeach
 
                 <?php 
-                                                                                                                            $collections = [];
+                                                                                                                                    $collections = [];
             $given_out = [];
             $given_out_not_exp = [];
             $target_dates = [];
@@ -2279,9 +2288,9 @@
                 $bar_chart_count = $bar_chart_count + 1;
 
             }
-                                                                                                                            ?>
+                                                                                                                                    ?>
                 <?php 
-                                                                                                                             foreach ($allTransactions as $transaction) {
+                                                                                                                                     foreach ($allTransactions as $transaction) {
 
                 if ($transaction->transaction_type == 'repayment' && $transaction->payment_apply_to == 'full_payment' && $transaction->date == $todaysDate) {
                     $full_payments_today = $full_payments_today + $transaction->credit;
@@ -2302,7 +2311,7 @@
 
 
             $pdua = ($collections[0] / $cycle_opening_uncollected_amount)
-                                                                                                                            ?>
+                                                                                                                                    ?>
 
                 <div class="col-lg-4 col-xs-12">
                     <div class="small-box bg-red">
@@ -2356,86 +2365,86 @@
             <div style="margin-bottom:30px; margin-top:30px;">
                 <p
                     style="display: flex;
-                                                                                                                                align-items: center;
-                                                                                                                                justify-content: center; font-size:50px;">
+                                                                                                                                        align-items: center;
+                                                                                                                                        justify-content: center; font-size:50px;">
                     PDUA%
                 </p>
                 <div
                     style="display: flex;
-                                                                                                                                align-items: center;
-                                                                                                                                justify-content: center;">
+                                                                                                                                        align-items: center;
+                                                                                                                                        justify-content: center;">
 
                     <div class="gauge"
                         style="width: 100%;
-                                                                                                                              max-width: 250px;
-                                                                                                                              font-size: 50px;
-                                                                                                                              color: #004033;">
+                                                                                                                                      max-width: 250px;
+                                                                                                                                      font-size: 50px;
+                                                                                                                                      color: #004033;">
                         <div class="gauge__body"
                             style=" width: 100%;
-                                                                                                                              height: 0;
-                                                                                                                              padding-bottom: 50%;
-                                                                                                                              background: #b4c0be;
-                                                                                                                              position: relative;
-                                                                                                                              border-top-left-radius: 100% 200%;
-                                                                                                                              border-top-right-radius: 100% 200%;
-                                                                                                                              overflow: hidden;">
+                                                                                                                                      height: 0;
+                                                                                                                                      padding-bottom: 50%;
+                                                                                                                                      background: #b4c0be;
+                                                                                                                                      position: relative;
+                                                                                                                                      border-top-left-radius: 100% 200%;
+                                                                                                                                      border-top-right-radius: 100% 200%;
+                                                                                                                                      overflow: hidden;">
 
                             @if(($pdua) < 0.75)
                                 <div class="gauge__fill"
                                     style=" position: absolute;
-                                                                                                                                                                                                      top: 100%;
-                                                                                                                                                                                                      left: 0;
-                                                                                                                                                                                                      width: inherit;
-                                                                                                                                                                                                      height: 100%;
-                                                                                                                                                                                                      background: red;
-                                                                                                                                                                                                      transform-origin: center top;
-                                                                                                                                                                                                      transform: rotate(0.25turn);
-                                                                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                  top: 100%;
+                                                                                                                                                                                                                  left: 0;
+                                                                                                                                                                                                                  width: inherit;
+                                                                                                                                                                                                                  height: 100%;
+                                                                                                                                                                                                                  background: red;
+                                                                                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
                                 </div>
 
                             @elseif(($pdua) >= 0.90)
                                 <div class="gauge__fill"
                                     style=" position: absolute;
-                                                                                                                                                                                                      top: 100%;
-                                                                                                                                                                                                      left: 0;
-                                                                                                                                                                                                      width: inherit;
-                                                                                                                                                                                                      height: 100%;
-                                                                                                                                                                                                      background:#d4af37;
-                                                                                                                                                                                                      transform-origin: center top;
-                                                                                                                                                                                                      transform: rotate(0.25turn);
-                                                                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                  top: 100%;
+                                                                                                                                                                                                                  left: 0;
+                                                                                                                                                                                                                  width: inherit;
+                                                                                                                                                                                                                  height: 100%;
+                                                                                                                                                                                                                  background:#d4af37;
+                                                                                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
                                 </div>
 
                             @else
                                 <div class="gauge__fill"
                                     style=" position: absolute;
-                                                                                                                                                                                                      top: 100%;
-                                                                                                                                                                                                      left: 0;
-                                                                                                                                                                                                      width: inherit;
-                                                                                                                                                                                                      height: 100%;
-                                                                                                                                                                                                      background:green;
-                                                                                                                                                                                                      transform-origin: center top;
-                                                                                                                                                                                                      transform: rotate(0.25turn);
-                                                                                                                                                                                                      transition: transform 0.2s ease-out;">
+                                                                                                                                                                                                                  top: 100%;
+                                                                                                                                                                                                                  left: 0;
+                                                                                                                                                                                                                  width: inherit;
+                                                                                                                                                                                                                  height: 100%;
+                                                                                                                                                                                                                  background:green;
+                                                                                                                                                                                                                  transform-origin: center top;
+                                                                                                                                                                                                                  transform: rotate(0.25turn);
+                                                                                                                                                                                                                  transition: transform 0.2s ease-out;">
                                 </div>
 
                             @endif
                             <div class="gauge__cover"
                                 style="width: 75%;
-                                                                                                                              height: 150%;
-                                                                                                                              background: #f7f7f7;
-                                                                                                                              border-radius: 50%;
-                                                                                                                              position: absolute;
-                                                                                                                              top: 25%;
-                                                                                                                              left: 50%;
-                                                                                                                              transform: translateX(-50%);
+                                                                                                                                      height: 150%;
+                                                                                                                                      background: #f7f7f7;
+                                                                                                                                      border-radius: 50%;
+                                                                                                                                      position: absolute;
+                                                                                                                                      top: 25%;
+                                                                                                                                      left: 50%;
+                                                                                                                                      transform: translateX(-50%);
 
-                                                                                                                              /* Text */
-                                                                                                                              display: flex;
-                                                                                                                              align-items: center;
-                                                                                                                              justify-content: center;
-                                                                                                                              padding-bottom: 25%;
-                                                                                                                              box-sizing: border-box;">
+                                                                                                                                      /* Text */
+                                                                                                                                      display: flex;
+                                                                                                                                      align-items: center;
+                                                                                                                                      justify-content: center;
+                                                                                                                                      padding-bottom: 25%;
+                                                                                                                                      box-sizing: border-box;">
                             </div>
 
                         </div>
@@ -2446,12 +2455,12 @@
 
                 <div
                     style="display:flex; flex-direction:row; justify-content:space-between;
-                                                                                                                                align-items: center;
-                                                                                                                                justify-content: center;">
+                                                                                                                                        align-items: center;
+                                                                                                                                        justify-content: center;">
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div
                             style="background-color: red;  height: 10px;
-                                                                                                                              width: 20px;">
+                                                                                                                                      width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Poor</p>
                     </div>
@@ -2459,14 +2468,14 @@
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div
                             style="background-color: green;  height: 10px;
-                                                                                                                              width: 20px;">
+                                                                                                                                      width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Fair</p>
                     </div>
                     <div style="margin-top: 30px; margin-left: 40px; margin-right: 40px;">
                         <div
                             style="background-color: #d4af37;  height: 10px;
-                                                                                                                              width: 20px;">
+                                                                                                                                      width: 20px;">
                         </div>
                         <p style="text-align: center; font-weight:bold;">Good</p>
                     </div>
@@ -2578,34 +2587,36 @@
             </div>
         </div>
 
-<div id="pendingWidget" style="
-    position: fixed;
-    top: 80%;
-    left: 55%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 350px;
-    background: #fefefeee;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    overflow: hidden;
-    z-index: 9998;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    cursor: move;
-    transition: transform 0.2s ease;
-">
-    <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
-        <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
-        <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionUnapproved::count() }}</p>
-    </div>
-    <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
-        <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
-        <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionsPending::count() }}</p>
-    </div>
+        <div id="pendingWidget" style="
+            position: fixed;
+            top: 80%;
+            left: 55%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 350px;
+            background: #fefefeee;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            overflow: hidden;
+            z-index: 9998;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            cursor: move;
+            transition: transform 0.2s ease;
+        ">
+            <div class="slide active" style="display:block; padding:15px; border-left: 6px solid #ff4d4f;">
+                <h4 style="margin:0; font-weight:bold; color:#ff4d4f;">Loans Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">
+                    {{ \App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #ffa940;">
+                <h4 style="margin:0; font-weight:bold; color:#ffa940;">Transactions Pending Approvals</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionUnapproved::count() }}
+                </p>
+            </div>
+            <div class="slide" style="display:none; padding:15px; border-left: 6px solid #52c41a;">
+                <h4 style="margin:0; font-weight:bold; color:#52c41a;">Reloans Pending Approval</h4>
+                <p style="font-size:20px; margin:5px 0; font-weight:600;">{{ \App\Models\LoanTransactionsPending::count() }}</p>
+            </div>
 
             <div class="slide" style="display:none; padding:15px; border-left: 6px solid #1890ff;">
                 <h4 style="margin:0; font-weight:bold; color:#1890ff;">Waivers Pending Approval</h4>

@@ -22,7 +22,10 @@
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option></option>
-                            @foreach(\App\Models\Office::all() as $key)
+                            @php
+                                $offices = \App\Helpers\GeneralHelper::get_filtered_offices();
+                            @endphp
+                            @foreach($offices as $key)
                                 <option value="{{$key->id}}">{{$key->name}}</option>
                             @endforeach
                         </select>
@@ -32,11 +35,6 @@
                     <div class="col-md-3">
                         <select name="staff_id" class="form-control select2" id="staff_id" required>
                             <option></option>
-                            @foreach(\App\Models\User::all() as $key)
-                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                    <option value="{{$key->id}}">{{$key->first_name}} {{$key->last_name}}</option>
-                                @endif
-                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -219,7 +217,7 @@
                            class="control-label col-md-2">{{trans_choice('general.registration',1)}} {{trans_choice('general.date',1)}}</label>
                     <div class="col-md-3">
                         <input type="text" name="joined_date" class="form-control date-picker"
-                               value="{{date("Y-m-d")}}"
+                               value="{{date('Y-m-d')}}"
                                id="joined_date">
                     </div>
 
@@ -359,6 +357,22 @@
                 $("#marital_status").removeAttr("required");
                 $("#full_name").attr("required", "required");
             }
+        });
+
+        $("#office_id").change(function () {
+            var officeId = $(this).val();
+            $.ajax({
+                url: '{{ url("client/get-staffs") }}',
+                type: 'GET',
+                data: { office_id: officeId },
+                success: function (data) {
+                    $("#staff_id").empty();
+                    $("#staff_id").append('<option></option>');
+                    $.each(data, function (key, value) {
+                        $("#staff_id").append('<option value="' + key + '">' + value + '</option>');
+                    });
+                }
+            });
         });
         $(".form-horizontal").validate({
             rules: {

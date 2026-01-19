@@ -19,6 +19,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
+use App\Http\Controllers\LoanReportController;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -86,6 +87,10 @@ Route::get('clear_cache', function () {
 // routes/web.php
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+
+Route::get('/get-loan-officers-by-office/{officeId}', [LoanReportController::class, 'getLoanOfficersByOffice']);
+Route::get('/get-loan-officers-by-province/{provinceId}', [LoanReportController::class, 'getLoanOfficersByProvince']);
+Route::get('/get-all-loan-officers', [LoanReportController::class, 'getAllLoanOfficers']);
 
 Route::post('/nextjs-login', function (Request $request) {
     $credentials = $request->only('email', 'password');
@@ -200,7 +205,8 @@ Route::group(['prefix' => 'user'], function () {
     //LC Cycle information
     Route::get('cycle', 'UserController@cycle');
     Route::post('addcycle', 'UserController@addCycle');
-    Route::any('performance_information','UserController@performance_information');
+    Route::any('performance_information', 'UserController@performance_information');
+    Route::get('get_offices_by_province/{id}', 'UserController@get_offices_by_province');
 });
 //route for offices
 Route::group(['prefix' => 'office'], function () {
@@ -263,6 +269,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::post('{client}/add_user', 'ClientController@add_user');
     Route::get('{id}/delete_user', 'ClientController@delete_user');
 
+    Route::get('get-staffs', 'ClientController@getStaffs');
 });
 //route for client identification types
 Route::group(['prefix' => 'client_identification_type'], function () {

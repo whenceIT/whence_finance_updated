@@ -850,7 +850,7 @@ class ReportController extends Controller
     }
 
 
-    ///--optimizing--//////////////////////////////////////////////////////////////////////HEREREREE/////////////////////////////////////
+    ///--optimized--//////////////////////////////////////////////////////////////////////HEREREREE/////////////////////////////////////
     public function repayments_report_details(Request $request)
     {
         // Increase memory limit and execution time for large data processing
@@ -1379,38 +1379,47 @@ class ReportController extends Controller
         $end_date = $request->end_date;
         $office_id = $request->office_id;
         $data = [];
+        $user = Sentinel::getUser();
+
+        // Filter offices for Provincial Manager (Role 6)
+        if ($user->inRole(6)) {
+            $offices = Office::where('province_id', $user->province_id)->get();
+        } else {
+            $offices = Office::all();
+        }
+
         if (!empty($start_date)) {
+            $query = LoanTransaction::where('transaction_type', 'repayment')
+                ->where('reversed', 0)
+                ->whereBetween('date', [$start_date, $end_date])
+                ->with('loan');
+
             if ($office_id != 0) {
-                $data = LoanTransaction::where(
-                    'transaction_type',
-                    'repayment'
-                )->where('reversed', 0)->where(
-                        'office_id',
-                        $office_id
-                    )->whereBetween(
-                        'date',
-                        [$start_date, $end_date]
-                    )->with('loan')->get();
-            } else {
-                $data = LoanTransaction::where(
-                    'transaction_type',
-                    'repayment'
-                )->where('reversed', 0)->whereBetween(
-                        'date',
-                        [$start_date, $end_date]
-                    )->with('loan')->get();
+                $query->where('office_id', $office_id);
             }
 
+            // Enforce province filter for Role 6
+            if ($user->inRole(6)) {
+                $province_id = $user->province_id;
+                $query->whereHas('office', function ($q) use ($province_id) {
+                    $q->where('province_id', $province_id);
+                });
+            }
+
+            $data = $query->get();
         }
+
         return view(
             'loan_report.repayments_report',
             compact(
                 'start_date',
                 'end_date',
                 'data',
-                'office_id'
+                'office_id',
+                'offices'
             )
         );
+
     }
 
     public function repayments_report_pdf(Request $request)
@@ -1430,6 +1439,11 @@ class ReportController extends Controller
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
+            })->when(Sentinel::getUser()->inRole(6), function ($query) {
+                $province_id = Sentinel::getUser()->province_id;
+                $query->whereHas('office', function ($q) use ($province_id) {
+                    $q->where('province_id', $province_id);
+                });
             })->whereBetween(
                     'date',
                     [$start_date, $end_date]
@@ -2387,6 +2401,11 @@ class ReportController extends Controller
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
+            })->when(Sentinel::getUser()->inRole(6), function ($query) {
+                $province_id = Sentinel::getUser()->province_id;
+                $query->whereHas('office', function ($q) use ($province_id) {
+                    $q->where('province_id', $province_id);
+                });
             })->whereBetween(
                     'date',
                     [$start_date, $end_date]
@@ -2423,6 +2442,11 @@ class ReportController extends Controller
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
+            })->when(Sentinel::getUser()->inRole(6), function ($query) {
+                $province_id = Sentinel::getUser()->province_id;
+                $query->whereHas('office', function ($q) use ($province_id) {
+                    $q->where('province_id', $province_id);
+                });
             })->whereBetween(
                     'date',
                     [$start_date, $end_date]

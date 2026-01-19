@@ -33,12 +33,25 @@
                            class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
-                            <option value="0"
-                                    @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\Office::all() as $key)
-                                <option value="{{$key->id}}"
-                                        @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
-                            @endforeach
+                            @if(Sentinel::getUser()->inRole('admin') || Sentinel::getUser()->id == 1)
+                                <option value="0"
+                                        @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                                @foreach(\App\Models\Office::all() as $key)
+                                    <option value="{{$key->id}}"
+                                            @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @else
+                                @php
+                                    $user = Sentinel::getUser();
+                                    $offices = \App\Models\Office::where('province_id', $user->province_id)->get();
+                                @endphp
+                                <option value="0"
+                                        @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                                @foreach($offices as $key)
+                                    <option value="{{$key->id}}"
+                                            @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                 </div>
@@ -49,13 +62,29 @@
                     </label>
                     <div class="col-md-3">
                         <select name="loan_officer_id" class="form-control select2" id="loan_officer_id" required>
-                            <option value="0">{{trans_choice('general.all',1)}}</option>
-                            @foreach(\App\Models\User::all() as $key)
-                                @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                            @if(Sentinel::getUser()->inRole('admin') || Sentinel::getUser()->id == 1)
+                                <option value="0">{{trans_choice('general.all',1)}}</option>
+                                @foreach(\App\Models\User::all() as $key)
+                                    @if(!Sentinel::findUserById($key->id)->inRole('client'))
+                                        <option value="{{$key->id}}"
+                                                @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                    @endif
+                                @endforeach
+                            @else
+                                @php
+                                    $user = Sentinel::getUser();
+                                    $loanOfficers = \App\Models\User::where('province_id', $user->province_id)
+                                        ->whereDoesntHave('roles', function ($query) {
+                                            $query->where('name', 'client');
+                                        })
+                                        ->get();
+                                @endphp
+                                <option value="0">{{trans_choice('general.all',1)}}</option>
+                                @foreach($loanOfficers as $key)
                                     <option value="{{$key->id}}"
                                             @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
-                                @endif
-                            @endforeach
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                 </div>

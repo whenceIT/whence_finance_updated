@@ -331,8 +331,15 @@
                     $total_new_clients = 0;
                     $total_funded_clients = 0;
                     $total_repeat_clients = 0;
+                    $user = Sentinel::getUser();
+                    $user_role = \App\Models\UserRole::where('user_id', $user->id)->first();
+                    if ($user_role && $user_role->role_id == '6') {
+                        $offices = \App\Models\Office::where('province_id', $user->province_id)->get();
+                    } else {
+                        $offices = \App\Models\Office::all();
+                    }
                     ?>
-                    @foreach(\App\Models\Office::all() as $key)
+                    @foreach($offices as $key)
                         <?php
                         $dr = 0;
                         $cr = 0;

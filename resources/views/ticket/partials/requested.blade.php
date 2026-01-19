@@ -32,7 +32,7 @@
                                 <td>{{ $ticket->name }}</td>
                                 <td>{{ ucfirst($ticket->priority) }}</td>
                                 <td>{{ $ticket->stage ?? '—' }}</td>
-                                <td>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</td>
+                                <td style="background-color:#000;"><b>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</b></td>
                                 <td>{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}</td>
                                 <td>{{ optional($ticket->issueCategory)->name ?? '—' }}</td>
                                 <td>{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</td>
@@ -43,11 +43,13 @@
                                 <td>{!! is_null($ticket->sla_met) ? '&#8212;' : ($ticket->sla_met ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>') !!}</td>
                                 <td>
                                     @if($ticket->status == 'resolved')
-                                        @if($ticket->status != 'closed')
-                                            <button type="button" class="btn btn-sm btn-success open-close-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">Completed</button>
-                                        @else
-                                            <button type="button" class="btn btn-sm btn-warning open-close-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}" data-mode="rate">Rate</button>
-                                        @endif
+                                    <div class="ticket-action action-resolved">
+                                        <i class="fa fa-check-circle"></i> Resolved
+                                    </div>
+                                    @else
+                                    <div class="ticket-action action-working">
+                                        <i class="fa fa-cog fa-spin"></i> Working...
+                                    </div>
                                     @endif
                                 </td>
                             </tr>
@@ -160,7 +162,7 @@
                                                 <span class="ticket-info-value">{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</span>
                                             </div>
                                         </div>
-                                        <div class="ticket-actions">
+                                        <div class="ticket-actions">                                
                                             @if($ticket->status == 'resolved')
                                             <div class="ticket-action action-resolved">
                                                 <i class="fa fa-check-circle"></i> Resolved

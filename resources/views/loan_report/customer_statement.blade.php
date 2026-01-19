@@ -268,28 +268,48 @@
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option></option>
-                            @foreach(\App\Models\Office::all() as $key)
+                            <?php
+                            $user = Sentinel::getUser();
+                            $offices = \App\Models\Office::all();
+                            
+                            // Check if the user is a Provincial Manager (role == 6)
+                            if ($user && $user->inRole(6)) {
+                                // Add an "All" option for Provincial Managers
+                                echo '<option value="all" @if($office_id == "all") selected @endif>All Offices (Province)</option>';
+                                // Filter offices by the user's province
+                                $offices = $offices->where('province_id', $user->province_id);
+                            }
+                            
+                            // Admin can see all offices
+                            if ($user && $user->inRole(1)) {
+                                $offices = \App\Models\Office::all();
+                            }
+                            
+                            foreach ($offices as $key) {
+                                ?>
                                 <option value="{{$key->id}}"
                                         @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
-                            @endforeach
+                            <?php }
+                            ?>
                         </select>
                     </div>
                 </div>
                 <?php
-                        $office_id = Sentinel::getUser()->office_id;
+                        $user = Sentinel::getUser();
+                        $office_id = $user ? $user->office_id : null;
                         ?>
-                <div class="form-group">
-                    <label for="loan_id"
-                           class="control-label col-md-2">{{trans_choice('general.account',1)}}</label>
-                    <div class="col-md-3">
-                    <select name="loan_id" class="form-control select2" style="width:250px">
-                    <option value="">--- Select Loan ---</option>
-                    @foreach(\App\Models\Loan::where('office_id',$office_id)->whereHas('client')->with('loan_product','client')->get() as $key)
-                                <option value= "{{$key->id}}" @if($loan_id == $key->id) selected @endif> Loan # {{$key->id}}---{{$key->client->external_id}}--- {{$key->client->first_name}} {{$key->client->middle_name}} {{$key->client->last_name}}--- {{$key->loan_product->name}} </option>
-                            @endforeach
-                </select>
-                    </div>
-                </div>
+               <div class="form-group">
+                   <label for="loan_id"
+                          class="control-label col-md-2">{{trans_choice('general.account',1)}}</label>
+                   <div class="col-md-3">
+                   <select name="loan_id" class="form-control select2" style="width:250px">
+                       <option value="">--- Select Loan ---</option>
+                           @foreach(\App\Models\Loan::where('office_id', request('office_id', $office_id))->whereHas('client')->with('loan_product','client')->get() as $key)
+                               <option value= "{{$key->id}}" @if($loan_id == $key->id) selected @endif> Loan # {{$key->id}}---{{$key->client->external_id}}--- {{$key->client->first_name}} {{$key->client->middle_name}} {{$key->client->last_name}}--- {{$key->loan_product->name}} </option>
+                           @endforeach
+                   </select>
+                   </div>
+               </div>
                 <div class="form-group">
                     <label for=""
                            class="control-label col-md-2"></label>

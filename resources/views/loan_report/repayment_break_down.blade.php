@@ -1046,10 +1046,8 @@ $total_loans = 0;
                             </td>
                             <td>{{$key->loan_id}}</td>
                             <td>
-                                @if(!empty($key->loan))
-                                    @if(!empty($key->loan->loan_officer))
-                                        {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
-                                    @endif
+                                @if(!empty($key->loan) && !empty($key->loan->loan_officer))
+                                    {{$key->loan->loan_officer->first_name}}  {{$key->loan->loan_officer->last_name}}
                                 @endif
                             </td>
                             <td>

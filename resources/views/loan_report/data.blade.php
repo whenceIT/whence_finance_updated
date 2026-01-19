@@ -111,7 +111,7 @@
 
                 <tr>
                     <td>
-                        <a href="{{url('report/loan_report/age_analysis_principle')}}">{{trans_choice('general.age',1)}} {{trans_choice('general.analysis',1)}} Principle Balances</a>
+                        <a href="{{url('report/loan_report/age_analysis_principle')}}">{{trans_choice('general.age',1)}} Analysis Principle Balances</a>
                     </td>
                     <td>
                         {{trans_choice('general.age_analysis_report_description',1)}}
@@ -123,7 +123,7 @@
 
                 <tr>
                     <td>
-                        <a href="{{url('report/loan_report/age_analysis')}}">{{trans_choice('general.age',1)}} {{trans_choice('general.analysis',1)}} Outstanding Balances</a>
+                        <a href="{{url('report/loan_report/age_analysis')}}">{{trans_choice('general.age',1)}} Analysis Outstanding Balances</a>
                     </td>
                     <td>
                         {{trans_choice('general.age_analysis_report_description',1)}}

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -48,9 +48,14 @@ class ReportController extends Controller
 
         $data = LoanProduct::all();
 
-        return view('report.loan_product',
-            compact('data', 'start_date',
-                'end_date'));
+        return view(
+            'report.loan_product',
+            compact(
+                'data',
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
 
@@ -70,8 +75,10 @@ class ReportController extends Controller
             //get loans in that period
             $payments = 0;
             $payments_due = 0;
-            foreach (LoanSchedule::where('branch_id', session('branch_id'))->where('year', $d[0])->where('month',
-                $d[1])->get() as $key) {
+            foreach (LoanSchedule::where('branch_id', session('branch_id'))->where('year', $d[0])->where(
+                'month',
+                $d[1]
+            )->get() as $key) {
                 if (!empty($key->loan)) {
                     if ($key->loan->status == 'disbursed' || $key->loan->status == 'written_off' || $key->loan->status == 'closed') {
                         $payments_due = $payments_due + $key->principal + $key->fees + $key->interest + $key->penalty;
@@ -81,20 +88,31 @@ class ReportController extends Controller
             $payments_due = round($payments_due, 2);
             $ext = ' ' . $d[0];
             array_push($monthly_collections, array(
-                'month' => date_format(date_create($start_date1),
-                    'M' . $ext),
+                'month' => date_format(
+                    date_create($start_date1),
+                    'M' . $ext
+                ),
                 'due' => $payments_due
 
             ));
             //add 1 month to start date
-            $start_date1 = date_format(date_add(date_create($start_date1),
-                date_interval_create_from_date_string('1 months')),
-                'Y-m-d');
+            $start_date1 = date_format(
+                date_add(
+                    date_create($start_date1),
+                    date_interval_create_from_date_string('1 months')
+                ),
+                'Y-m-d'
+            );
         }
         $monthly_collections = json_encode($monthly_collections);
-        return view('report.loan_projection',
-            compact('monthly_collections', 'start_date',
-                'end_date'));
+        return view(
+            'report.loan_projection',
+            compact(
+                'monthly_collections',
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
 
@@ -107,9 +125,13 @@ class ReportController extends Controller
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        return view('financial_report.data',
-            compact('start_date',
-                'end_date'));
+        return view(
+            'financial_report.data',
+            compact(
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
     public function loan_report(Request $request)
@@ -121,9 +143,13 @@ class ReportController extends Controller
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        return view('loan_report.data',
-            compact('start_date',
-                'end_date'));
+        return view(
+            'loan_report.data',
+            compact(
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
     public function client_report(Request $request)
@@ -135,9 +161,13 @@ class ReportController extends Controller
         $end_date = $request->end_date;
         $office_id = $request->office_id;
 
-        return view('client_report.data',
-            compact('start_date',
-                'end_date'));
+        return view(
+            'client_report.data',
+            compact(
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
 
@@ -150,9 +180,13 @@ class ReportController extends Controller
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        return view('company_report.data',
-            compact('start_date',
-                'end_date'));
+        return view(
+            'company_report.data',
+            compact(
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
     public function savings_report(Request $request)
@@ -164,12 +198,16 @@ class ReportController extends Controller
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        return view('savings_report.data',
-            compact('start_date',
-                'end_date'));
+        return view(
+            'savings_report.data',
+            compact(
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
-      public function trial_balance(Request $request)
+    public function trial_balance(Request $request)
     {
         if (!Sentinel::hasAccess('reports.trial_balance')) {
             Flash::warning("Permission Denied");
@@ -182,26 +220,30 @@ class ReportController extends Controller
             //get disbursed loans within specified period and officer
             $data = GlAccount::orderBy('gl_code', 'asc')->get();
         }
-        return view('financial_report.trial_balance',
-            compact('end_date', 'data', 'office_id'));
+        return view(
+            'financial_report.trial_balance',
+            compact('end_date', 'data', 'office_id')
+        );
     }
 
-////// Consolidate Trial Balance
-public function trial_balance_consolidated(Request $request)
-{
-    if (!Sentinel::hasAccess('reports.trial_balance')) {
-        Flash::warning("Permission Denied");
-        return redirect()->back();
+    ////// Consolidate Trial Balance
+    public function trial_balance_consolidated(Request $request)
+    {
+        if (!Sentinel::hasAccess('reports.trial_balance')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+        $end_date = $request->end_date;
+        $data = [];
+        if (!empty($end_date)) {
+            //get disbursed loans within specified period and officer
+            $data = GlAccount::orderBy('gl_code', 'asc')->get();
+        }
+        return view(
+            'financial_report.trial_balance_conso',
+            compact('end_date', 'data')
+        );
     }
-    $end_date = $request->end_date;
-    $data = [];
-    if (!empty($end_date)) {
-        //get disbursed loans within specified period and officer
-        $data = GlAccount::orderBy('gl_code', 'asc')->get();
-    }
-    return view('financial_report.trial_balance_conso',
-        compact('end_date', 'data'));
-}
 
 
 
@@ -295,31 +337,35 @@ public function trial_balance_consolidated(Request $request)
         if (!empty($start_date)) {
             //get disbursed loans within specified period and officer
         }
-        return view('financial_report.income_statement',
-            compact('end_date', 'data', 'office_id'));
+        return view(
+            'financial_report.income_statement',
+            compact('end_date', 'data', 'office_id')
+        );
 
     }
 
-/////////////// consolidated income statement
+    /////////////// consolidated income statement
 
-public function income_statement_consolidated(Request $request)
-{
-    if (!Sentinel::hasAccess('reports.income_statement')) {
-        Flash::warning("Permission Denied");
-        return redirect()->back();
+    public function income_statement_consolidated(Request $request)
+    {
+        if (!Sentinel::hasAccess('reports.income_statement')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+        $end_date = $request->end_date;
+        $data = [];
+        if (!empty($start_date)) {
+            //get disbursed loans within specified period and officer
+        }
+        return view(
+            'financial_report.income_statement_conso',
+            compact('end_date', 'data')
+        );
+
     }
-    $end_date = $request->end_date;
-    $data = [];
-    if (!empty($start_date)) {
-        //get disbursed loans within specified period and officer
-    }
-    return view('financial_report.income_statement_conso',
-        compact('end_date', 'data'));
-
-}
 
 
-public function GetCustomerStatmentReport(Request $request , Loan $loan)
+    public function GetCustomerStatmentReport(Request $request, Loan $loan)
     {
         if (!Sentinel::hasAccess('reports.daily_transactions_reports')) {
             Flash::warning("Permission Denied");
@@ -329,20 +375,20 @@ public function GetCustomerStatmentReport(Request $request , Loan $loan)
         $end_date = $request->end_date;
         $office_id = $request->office_id;
         $loan_id = $request->loan_id;
-        $credit=0;
-        $debit=0;
-        $current_balance=0;
+        $credit = 0;
+        $debit = 0;
+        $current_balance = 0;
         $data = [];
         if (!empty($start_date)) {
-     
+
             $transactions = LoanTransaction::where('loan_id', $loan_id)
-            ->where('office_id', $office_id)
-            ->whereDate('date','<',$start_date)
-            ->get();
+                ->where('office_id', $office_id)
+                ->whereDate('date', '<', $start_date)
+                ->get();
 
 
-            
-          
+
+
             $data = LoanTransaction::where('reversed', 0)->where('reversed', 0)->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
@@ -351,17 +397,30 @@ public function GetCustomerStatmentReport(Request $request , Loan $loan)
                 if ($loan_id != 0) {
                     $query->where('loan_id', '=', $loan_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->orderBy('date', 'asc')->get();
-                
-             $credit = $transactions->sum('credit');
-$debit = $transactions->sum('debit');
-$current_balance = $debit - $credit;   
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->orderBy('date', 'asc')->get();
+
+            $credit = $transactions->sum('credit');
+            $debit = $transactions->sum('debit');
+            $current_balance = $debit - $credit;
         }
 
-        return view('loan_report.customer_statement',
-            compact('start_date',
-                'end_date', 'data','credit','debit','current_balance','office_id', 'loan_id','loan'));
+        return view(
+            'loan_report.customer_statement',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'credit',
+                'debit',
+                'current_balance',
+                'office_id',
+                'loan_id',
+                'loan'
+            )
+        );
     }
 
 
@@ -394,10 +453,16 @@ $current_balance = $debit - $credit;
         if (!empty($start_date)) {
             //get disbursed loans within specified period and officer
 
-            $pdf = PDF::loadView('financial_report.income_statement_pdf', compact('start_date',
-                'end_date', 'data', 'office_id'));
-            return $pdf->download(trans_choice('general.income', 1) . ' ' . trans_choice('general.statement',
-                    1) . ' : ' . $request->end_date . ".pdf");
+            $pdf = PDF::loadView('financial_report.income_statement_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id'
+            ));
+            return $pdf->download(trans_choice('general.income', 1) . ' ' . trans_choice(
+                'general.statement',
+                1
+            ) . ' : ' . $request->end_date . ".pdf");
         }
 
     }
@@ -421,8 +486,10 @@ $current_balance = $debit - $credit;
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("financial_report.income_statement_pdf", $data), trans_choice('general.statement',
-                    1) . ' : ' . $request->end_date . '.xlsx');
+            return Excel::download(new ExportReport("financial_report.income_statement_pdf", $data), trans_choice(
+                'general.statement',
+                1
+            ) . ' : ' . $request->end_date . '.xlsx');
 
         }
     }
@@ -446,8 +513,10 @@ $current_balance = $debit - $credit;
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("financial_report.income_statement_pdf", $data), trans_choice('general.statement',
-                    1) . ' : ' . $request->end_date . '.csv');
+            return Excel::download(new ExportReport("financial_report.income_statement_pdf", $data), trans_choice(
+                'general.statement',
+                1
+            ) . ' : ' . $request->end_date . '.csv');
 
         }
     }
@@ -463,26 +532,33 @@ $current_balance = $debit - $credit;
         $office_id = $request->office_id;
         $data = [];
 
-        return view('financial_report.balance_sheet',
-            compact('start_date',
-                'end_date', 'office_id'));
+        return view(
+            'financial_report.balance_sheet',
+            compact(
+                'start_date',
+                'end_date',
+                'office_id'
+            )
+        );
     }
 
 
 
-//// consolidated Balance sheet
-public function balance_sheet_consolidated(Request $request)
-{
-    if (!Sentinel::hasAccess('reports.balance_sheet')) {
-        Flash::warning("Permission Denied");
-        return redirect()->back();
-    }
-    $end_date = $request->end_date;
-    $data = [];
+    //// consolidated Balance sheet
+    public function balance_sheet_consolidated(Request $request)
+    {
+        if (!Sentinel::hasAccess('reports.balance_sheet')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+        $end_date = $request->end_date;
+        $data = [];
 
-    return view('financial_report.balance_sheet_conso',
-        compact('end_date'));
-}
+        return view(
+            'financial_report.balance_sheet_conso',
+            compact('end_date')
+        );
+    }
 
 
 
@@ -505,10 +581,15 @@ public function balance_sheet_consolidated(Request $request)
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $office_id = $request->office_id;
-        $pdf = PDF::loadView('financial_report.balance_sheet_pdf', compact('start_date',
-            'end_date', 'office_id'));
-        return $pdf->download(trans_choice('general.balance', 1) . ' ' . trans_choice('general.sheet',
-                1) . ' : ' . $request->end_date . ".pdf");
+        $pdf = PDF::loadView('financial_report.balance_sheet_pdf', compact(
+            'start_date',
+            'end_date',
+            'office_id'
+        ));
+        return $pdf->download(trans_choice('general.balance', 1) . ' ' . trans_choice(
+            'general.sheet',
+            1
+        ) . ' : ' . $request->end_date . ".pdf");
     }
 
     public function balance_sheet_excel(Request $request)
@@ -527,8 +608,10 @@ public function balance_sheet_consolidated(Request $request)
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("financial_report.balance_sheet_pdf", $data), trans_choice('general.balance', 1) . ' ' . trans_choice('general.sheet',
-                    1) . ' as at ' . $request->end_date . '.xlsx');
+            return Excel::download(new ExportReport("financial_report.balance_sheet_pdf", $data), trans_choice('general.balance', 1) . ' ' . trans_choice(
+                'general.sheet',
+                1
+            ) . ' as at ' . $request->end_date . '.xlsx');
         }
     }
 
@@ -548,8 +631,10 @@ public function balance_sheet_consolidated(Request $request)
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("financial_report.balance_sheet_pdf", $data), trans_choice('general.balance', 1) . ' ' . trans_choice('general.sheet',
-                    1) . ' as at ' . $request->end_date . '.csv');
+            return Excel::download(new ExportReport("financial_report.balance_sheet_pdf", $data), trans_choice('general.balance', 1) . ' ' . trans_choice(
+                'general.sheet',
+                1
+            ) . ' as at ' . $request->end_date . '.csv');
         }
     }
 
@@ -562,6 +647,7 @@ public function balance_sheet_consolidated(Request $request)
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $office_id = $request->office_id;
+        $loan_officer_id = $request->loan_officer_id;
         $data = [];
         if (!empty($start_date)) {
             //get disbursed loans within specified period and officer
@@ -569,11 +655,20 @@ public function balance_sheet_consolidated(Request $request)
                 if ($office_id != 0) {
                     $query->where('id', '=', $office_id);
                 }
+            })->when(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6), function ($query) {
+                $query->where('province_id', Sentinel::getUser()->province_id);
             })->get();
         }
-        return view('loan_report.expected_repayments',
-            compact('start_date',
-                'end_date', 'data', 'office_id'));
+        return view(
+            'loan_report.expected_repayments',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'loan_officer_id'
+            )
+        );
 
     }
 
@@ -589,7 +684,7 @@ public function balance_sheet_consolidated(Request $request)
         }
         $start_date = $request->start_date;
         $end_date = $request->end_date;
-        $officer_id= $request->officer_id;
+        $officer_id = $request->officer_id;
         $data = [];
         if (!empty($start_date)) {
             //get disbursed loans within specified period and officer
@@ -599,9 +694,15 @@ public function balance_sheet_consolidated(Request $request)
                 }
             })->get();
         }
-        return view('loan_report.expected_repayments_cro',
-            compact('start_date',
-                'end_date', 'data', 'officer_id'));
+        return view(
+            'loan_report.expected_repayments_cro',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'officer_id'
+            )
+        );
 
     }
 
@@ -614,6 +715,7 @@ public function balance_sheet_consolidated(Request $request)
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $office_id = $request->office_id;
+        $loan_officer_id = $request->loan_officer_id;
         $data = [];
         if (!empty($start_date)) {
             //get disbursed loans within specified period and officer
@@ -621,12 +723,21 @@ public function balance_sheet_consolidated(Request $request)
                 if ($office_id != 0) {
                     $query->where('id', '=', $office_id);
                 }
+            })->when(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6), function ($query) {
+                $query->where('province_id', Sentinel::getUser()->province_id);
             })->get();
-            $pdf = PDF::loadView('loan_report.expected_repayments_pdf', compact('start_date',
-                'end_date', 'data', 'office_id'));
+            $pdf = PDF::loadView('loan_report.expected_repayments_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'loan_officer_id'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.expected', 1) . ' ' . trans_choice('general.repayment',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.expected', 1) . ' ' . trans_choice(
+                'general.repayment',
+                2
+            ) . ".pdf");
         }
 
     }
@@ -640,6 +751,7 @@ public function balance_sheet_consolidated(Request $request)
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $office_id = $request->office_id;
+        $loan_officer_id = $request->loan_officer_id;
         $data = [];
         if (!empty($start_date)) {
             $data = Office::when($office_id, function ($query) use ($office_id) {
@@ -652,10 +764,13 @@ public function balance_sheet_consolidated(Request $request)
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'office_id' => $office_id,
+                'loan_officer_id' => $loan_officer_id,
 
             ];
-            return Excel::download(new ExportReport("loan_report.expected_repayments_pdf", $data), trans_choice('general.expected', 1) . ' ' . trans_choice('general.repayment',
-                    2) . '.xlsx');
+            return Excel::download(new ExportReport("loan_report.expected_repayments_pdf", $data), trans_choice('general.expected', 1) . ' ' . trans_choice(
+                'general.repayment',
+                2
+            ) . '.xlsx');
         }
     }
 
@@ -668,6 +783,7 @@ public function balance_sheet_consolidated(Request $request)
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $office_id = $request->office_id;
+        $loan_officer_id = $request->loan_officer_id;
         $data = [];
         if (!empty($start_date)) {
             $data = Office::when($office_id, function ($query) use ($office_id) {
@@ -680,10 +796,13 @@ public function balance_sheet_consolidated(Request $request)
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'office_id' => $office_id,
+                'loan_officer_id' => $loan_officer_id,
 
             ];
-            return Excel::download(new ExportReport("loan_report.expected_repayments_pdf", $data), trans_choice('general.expected', 1) . ' ' . trans_choice('general.repayment',
-                    2) . '.csv');
+            return Excel::download(new ExportReport("loan_report.expected_repayments_pdf", $data), trans_choice('general.expected', 1) . ' ' . trans_choice(
+                'general.repayment',
+                2
+            ) . '.csv');
         }
     }
 
@@ -699,20 +818,36 @@ public function balance_sheet_consolidated(Request $request)
         $data = [];
         if (!empty($start_date)) {
             if ($office_id != 0) {
-                $data = LoanTransaction::where('transaction_type',
-                    'repayment')->where('reversed', 0)->where('office_id',
-                    $office_id)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+                $data = LoanTransaction::where(
+                    'transaction_type',
+                    'repayment'
+                )->where('reversed', 0)->where(
+                        'office_id',
+                        $office_id
+                    )->whereBetween(
+                        'date',
+                        [$start_date, $end_date]
+                    )->with('loan')->with('office')->get();
             } else {
-                $data = LoanTransaction::where('transaction_type',
-                    'repayment')->where('reversed', 0)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+                $data = LoanTransaction::where(
+                    'transaction_type',
+                    'repayment'
+                )->where('reversed', 0)->whereBetween(
+                        'date',
+                        [$start_date, $end_date]
+                    )->with('loan')->with('office')->get();
             }
 
         }
-        return view('loan_report.repayments_report_princ',
-            compact('start_date',
-                'end_date', 'data', 'office_id'));
+        return view(
+            'loan_report.repayments_report_princ',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id'
+            )
+        );
     }
 
     public function repayments_report_interest(Request $request)
@@ -727,20 +862,36 @@ public function balance_sheet_consolidated(Request $request)
         $data = [];
         if (!empty($start_date)) {
             if ($office_id != 0) {
-                $data = LoanTransaction::where('transaction_type',
-                    'repayment')->where('reversed', 0)->where('office_id',
-                    $office_id)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+                $data = LoanTransaction::where(
+                    'transaction_type',
+                    'repayment'
+                )->where('reversed', 0)->where(
+                        'office_id',
+                        $office_id
+                    )->whereBetween(
+                        'date',
+                        [$start_date, $end_date]
+                    )->with('loan')->with('office')->get();
             } else {
-                $data = LoanTransaction::where('transaction_type',
-                    'repayment')->where('reversed', 0)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+                $data = LoanTransaction::where(
+                    'transaction_type',
+                    'repayment'
+                )->where('reversed', 0)->whereBetween(
+                        'date',
+                        [$start_date, $end_date]
+                    )->with('loan')->with('office')->get();
             }
 
         }
-        return view('loan_report.repayments_report_int',
-            compact('start_date',
-                'end_date', 'data', 'office_id'));
+        return view(
+            'loan_report.repayments_report_int',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id'
+            )
+        );
     }
 
 
@@ -766,20 +917,36 @@ public function balance_sheet_consolidated(Request $request)
         $data = [];
         if (!empty($start_date)) {
             if ($office_id != 0) {
-                $data = LoanTransaction::where('transaction_type',
-                    'repayment')->where('reversed', 0)->where('office_id',
-                    $office_id)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+                $data = LoanTransaction::where(
+                    'transaction_type',
+                    'repayment'
+                )->where('reversed', 0)->where(
+                        'office_id',
+                        $office_id
+                    )->whereBetween(
+                        'date',
+                        [$start_date, $end_date]
+                    )->with('loan')->with('office')->get();
             } else {
-                $data = LoanTransaction::where('transaction_type',
-                    'repayment')->where('reversed', 0)->whereBetween('date',
-                    [$start_date, $end_date])->with('loan')->with('office')->get();
+                $data = LoanTransaction::where(
+                    'transaction_type',
+                    'repayment'
+                )->where('reversed', 0)->whereBetween(
+                        'date',
+                        [$start_date, $end_date]
+                    )->with('loan')->with('office')->get();
             }
 
         }
-        return view('loan_report.repayments_report',
-            compact('start_date',
-                'end_date', 'data', 'office_id'));
+        return view(
+            'loan_report.repayments_report',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id'
+            )
+        );
     }
 
     public function repayments_report_pdf(Request $request)
@@ -792,18 +959,27 @@ public function balance_sheet_consolidated(Request $request)
         $end_date = $request->end_date;
         $office_id = $request->office_id;
         if (!empty($start_date)) {
-            $data = LoanTransaction::where('transaction_type',
-                'repayment')->where('reversed', 0)->when($office_id, function ($query) use ($office_id) {
+            $data = LoanTransaction::where(
+                'transaction_type',
+                'repayment'
+            )->where('reversed', 0)->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->with('loan')->with('office')->get();
-            $pdf = PDF::loadView('loan_report.repayments_report_pdf', compact('start_date',
-                'end_date', 'data'));
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->with('loan')->with('office')->get();
+            $pdf = PDF::loadView('loan_report.repayments_report_pdf', compact(
+                'start_date',
+                'end_date',
+                'data'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report',
-                    1) . ".pdf");
+            return $pdf->download(trans_choice('general.repayment', 2) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . ".pdf");
         }
 
 
@@ -819,20 +995,26 @@ public function balance_sheet_consolidated(Request $request)
         $end_date = $request->end_date;
         $office_id = $request->office_id;
         if (!empty($start_date)) {
-            $data = LoanTransaction::where('transaction_type',
-                'repayment')->where('reversed', 0)->when($office_id, function ($query) use ($office_id) {
+            $data = LoanTransaction::where(
+                'transaction_type',
+                'repayment'
+            )->where('reversed', 0)->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->with('loan')->with('office')->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->with('loan')->with('office')->get();
             $data = [
                 "data" => $data,
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ];
-            return Excel::download(new ExportReport("loan_report.repayments_report_pdf", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report',
-                    1) . '.xlsx');
+            return Excel::download(new ExportReport("loan_report.repayments_report_pdf", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.xlsx');
 
         }
 
@@ -849,20 +1031,26 @@ public function balance_sheet_consolidated(Request $request)
         $end_date = $request->end_date;
         $office_id = $request->office_id;
         if (!empty($start_date)) {
-            $data = LoanTransaction::where('transaction_type',
-                'repayment')->where('reversed', 0)->when($office_id, function ($query) use ($office_id) {
+            $data = LoanTransaction::where(
+                'transaction_type',
+                'repayment'
+            )->where('reversed', 0)->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->with('loan')->with('office')->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->with('loan')->with('office')->get();
             $data = [
                 "data" => $data,
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ];
-            return Excel::download(new ExportReport("loan_report.repayments_report_pdf", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice('general.report',
-                    1) . '.csv');
+            return Excel::download(new ExportReport("loan_report.repayments_report_pdf", $data), trans_choice('general.repayment', 2) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.csv');
 
         }
 
@@ -890,11 +1078,20 @@ public function balance_sheet_consolidated(Request $request)
                 if ($loan_officer_id != 0) {
                     $query->where('loan_officer_id', '=', $loan_officer_id);
                 }
-            })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->join("loan_repayment_schedules", 'loans.id', '=', 'loan_repayment_schedules.loan_id')->whereBetween('loan_repayment_schedules.due_date', [$start_date, $end_date])->get();
+            })->when(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6), function ($query) {
+                $query->whereHas('office', function ($query) {
+                    $query->where('province_id', Sentinel::getUser()->province_id); }); })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->join("loan_repayment_schedules", 'loans.id', '=', 'loan_repayment_schedules.loan_id')->whereBetween('loan_repayment_schedules.due_date', [$start_date, $end_date])->get();
         }
-        return view('loan_report.collection_sheet',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'loan_officer_id'));
+        return view(
+            'loan_report.collection_sheet',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'loan_officer_id'
+            )
+        );
     }
 
     public function collection_sheet_pdf(Request $request)
@@ -918,12 +1115,21 @@ public function balance_sheet_consolidated(Request $request)
                 if ($loan_officer_id != 0) {
                     $query->where('loan_officer_id', '=', $loan_officer_id);
                 }
-            })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->join("loan_repayment_schedules", 'loans.id', '=', 'loan_repayment_schedules.loan_id')->whereBetween('loan_repayment_schedules.due_date', [$start_date, $end_date])->get();
-            $pdf = PDF::loadView('loan_report.collection_sheet_pdf', compact('start_date',
-                'end_date', 'data', 'office_id', 'loan_officer_id'));
+            })->when(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6), function ($query) {
+                $query->whereHas('office', function ($query) {
+                    $query->where('province_id', Sentinel::getUser()->province_id); }); })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->join("loan_repayment_schedules", 'loans.id', '=', 'loan_repayment_schedules.loan_id')->whereBetween('loan_repayment_schedules.due_date', [$start_date, $end_date])->get();
+            $pdf = PDF::loadView('loan_report.collection_sheet_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'loan_officer_id'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.collection', 1) . ' ' . trans_choice('general.sheet',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.collection', 1) . ' ' . trans_choice(
+                'general.sheet',
+                2
+            ) . ".pdf");
         }
 
 
@@ -958,8 +1164,10 @@ public function balance_sheet_consolidated(Request $request)
                 'office_id' => $office_id,
                 'loan_officer_id' => $loan_officer_id
             ];
-            return Excel::download(new ExportReport("loan_report.collection_sheet_pdf", $data), trans_choice('general.collection', 1) . ' ' . trans_choice('general.sheet',
-                    1) . '.xlsx');
+            return Excel::download(new ExportReport("loan_report.collection_sheet_pdf", $data), trans_choice('general.collection', 1) . ' ' . trans_choice(
+                'general.sheet',
+                1
+            ) . '.xlsx');
         }
 
 
@@ -994,8 +1202,10 @@ public function balance_sheet_consolidated(Request $request)
                 'office_id' => $office_id,
                 'loan_officer_id' => $loan_officer_id
             ];
-            return Excel::download(new ExportReport("loan_report.collection_sheet_pdf", $data), trans_choice('general.collection', 1) . ' ' . trans_choice('general.sheet',
-                    1) . '.csv');
+            return Excel::download(new ExportReport("loan_report.collection_sheet_pdf", $data), trans_choice('general.collection', 1) . ' ' . trans_choice(
+                'general.sheet',
+                1
+            ) . '.csv');
         }
 
     }
@@ -1025,8 +1235,10 @@ public function balance_sheet_consolidated(Request $request)
 
         }
 
-        return view('loan_report.age_analysis_principle',
-            compact('end_date', 'data', 'office_id','loan_officer_id'));
+        return view(
+            'loan_report.age_analysis_principle',
+            compact('end_date', 'data', 'office_id', 'loan_officer_id')
+        );
     }
 
 
@@ -1056,8 +1268,10 @@ public function balance_sheet_consolidated(Request $request)
 
         }
 
-        return view('loan_report.age_analysis_outstanding',
-            compact('end_date', 'data', 'office_id','loan_officer_id'));
+        return view(
+            'loan_report.age_analysis_outstanding',
+            compact('end_date', 'data', 'office_id', 'loan_officer_id')
+        );
     }
 
 
@@ -1091,8 +1305,10 @@ public function balance_sheet_consolidated(Request $request)
 
         }
 
-        return view('loan_report.age_analysis',
-            compact('end_date', 'data', 'office_id','loan_officer_id'));
+        return view(
+            'loan_report.age_analysis',
+            compact('end_date', 'data', 'office_id', 'loan_officer_id')
+        );
     }
 
 
@@ -1100,8 +1316,8 @@ public function balance_sheet_consolidated(Request $request)
 
 
 
-    
-    
+
+
     public function age_analysis_pdf(Request $request)
     {
         if (!Sentinel::hasAccess('reports.age_analysis_reports')) {
@@ -1118,11 +1334,16 @@ public function balance_sheet_consolidated(Request $request)
                     $query->where('office_id', '=', $office_id);
                 }
             })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->with('repayment_schedules')->get();
-            $pdf = PDF::loadView('loan_report.age_analysis_pdf', compact('office_id',
-                'end_date', 'data'));
+            $pdf = PDF::loadView('loan_report.age_analysis_pdf', compact(
+                'office_id',
+                'end_date',
+                'data'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.age', 1) . ' ' . trans_choice('general.report',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.age', 1) . ' ' . trans_choice(
+                'general.report',
+                2
+            ) . ".pdf");
         }
     }
 
@@ -1182,8 +1403,10 @@ public function balance_sheet_consolidated(Request $request)
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("loan_report.age_analysis_pdf", $data), trans_choice('general.age', 1) . ' ' . trans_choice('general.report',
-                    1) . '.xlsx');
+            return Excel::download(new ExportReport("loan_report.age_analysis_pdf", $data), trans_choice('general.age', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.xlsx');
         }
 
     }
@@ -1208,8 +1431,10 @@ public function balance_sheet_consolidated(Request $request)
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("loan_report.age_analysis_pdf", $data), trans_choice('general.age', 1) . ' ' . trans_choice('general.report',
-                    1) . '.csv');
+            return Excel::download(new ExportReport("loan_report.age_analysis_pdf", $data), trans_choice('general.age', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.csv');
         }
 
 
@@ -1252,8 +1477,10 @@ public function balance_sheet_consolidated(Request $request)
 
         }
 
-        return view('loan_report.arrears_report',
-            compact('end_date', 'data', 'office_id','loan_officer_id'));
+        return view(
+            'loan_report.arrears_report',
+            compact('end_date', 'data', 'office_id', 'loan_officer_id')
+        );
     }
 
     public function arrears_report_pdf(Request $request)
@@ -1272,11 +1499,16 @@ public function balance_sheet_consolidated(Request $request)
                     $query->where('office_id', '=', $office_id);
                 }
             })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->with('repayment_schedules')->get();
-            $pdf = PDF::loadView('loan_report.arrears_report_pdf', compact('office_id',
-                'end_date', 'data'));
+            $pdf = PDF::loadView('loan_report.arrears_report_pdf', compact(
+                'office_id',
+                'end_date',
+                'data'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.arrears', 1) . ' ' . trans_choice('general.report',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.arrears', 1) . ' ' . trans_choice(
+                'general.report',
+                2
+            ) . ".pdf");
         }
 
 
@@ -1303,8 +1535,10 @@ public function balance_sheet_consolidated(Request $request)
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("loan_report.arrears_report_pdf", $data), trans_choice('general.arrears', 1) . ' ' . trans_choice('general.report',
-                    1) . '.xlsx');
+            return Excel::download(new ExportReport("loan_report.arrears_report_pdf", $data), trans_choice('general.arrears', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.xlsx');
         }
 
     }
@@ -1330,8 +1564,10 @@ public function balance_sheet_consolidated(Request $request)
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("loan_report.arrears_report_pdf", $data), trans_choice('general.arrears', 1) . ' ' . trans_choice('general.report',
-                    1) . '.csv');
+            return Excel::download(new ExportReport("loan_report.arrears_report_pdf", $data), trans_choice('general.arrears', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.csv');
         }
 
 
@@ -1358,8 +1594,10 @@ public function balance_sheet_consolidated(Request $request)
 
         }
 
-        return view('loan_report.loan_portfolio',
-            compact('end_date', 'data', 'office_id', 'loan_officer_id','loan_product_id'));
+        return view(
+            'loan_report.loan_portfolio',
+            compact('end_date', 'data', 'office_id', 'loan_officer_id', 'loan_product_id')
+        );
     }
 
 
@@ -1376,7 +1614,7 @@ public function balance_sheet_consolidated(Request $request)
         $data = [];
         if (!empty($end_date)) {
             //get disbursed loans within specified period and officer
-            $data = User::when($loan_officer_id , function ($query) use ($loan_officer_id) {
+            $data = User::when($loan_officer_id, function ($query) use ($loan_officer_id) {
                 if ($loan_officer_id != 0) {
                     $query->where('id', '=', $loan_officer_id);
                 }
@@ -1384,9 +1622,11 @@ public function balance_sheet_consolidated(Request $request)
 
         }
 
-        return view('loan_report.loan_portfoliocro',
-            compact('end_date', 'data', 'loan_officer_id','loan_product_id'));
-    }  
+        return view(
+            'loan_report.loan_portfoliocro',
+            compact('end_date', 'data', 'loan_officer_id', 'loan_product_id')
+        );
+    }
 
 
 
@@ -1415,11 +1655,17 @@ public function balance_sheet_consolidated(Request $request)
                     $query->where('id', '=', $office_id);
                 }
             })->get();
-            $pdf = PDF::loadView('loan_report.loan_portfolio_pdf', compact('office_id',
-                'end_date', 'data', 'loan_product_id'));
+            $pdf = PDF::loadView('loan_report.loan_portfolio_pdf', compact(
+                'office_id',
+                'end_date',
+                'data',
+                'loan_product_id'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.portfolio', 1) . ' ' . trans_choice('general.report',
-                    1) . ".pdf");
+            return $pdf->download(trans_choice('general.portfolio', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . ".pdf");
         }
 
 
@@ -1447,8 +1693,10 @@ public function balance_sheet_consolidated(Request $request)
                 'office_id' => $office_id,
                 'loan_product_id' => $loan_product_id,
             ];
-            return Excel::download(new ExportReport("loan_report.loan_portfolio_pdf", $data), trans_choice('general.portfolio', 1) . ' ' . trans_choice('general.report',
-                    1) . '.xlsx');
+            return Excel::download(new ExportReport("loan_report.loan_portfolio_pdf", $data), trans_choice('general.portfolio', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.xlsx');
         }
 
     }
@@ -1475,8 +1723,10 @@ public function balance_sheet_consolidated(Request $request)
                 'office_id' => $office_id,
                 'loan_product_id' => $loan_product_id,
             ];
-            return Excel::download(new ExportReport("loan_report.loan_portfolio_pdf", $data), trans_choice('general.portfolio', 1) . ' ' . trans_choice('general.report',
-                    1) . '.csv');
+            return Excel::download(new ExportReport("loan_report.loan_portfolio_pdf", $data), trans_choice('general.portfolio', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.csv');
         }
 
 
@@ -1497,8 +1747,10 @@ public function balance_sheet_consolidated(Request $request)
 
         if (!empty($start_date)) {
 
-            $data = Loan::whereBetween('disbursement_date',
-                [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
+            $data = Loan::whereBetween(
+                'disbursement_date',
+                [$start_date, $end_date]
+            )->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
@@ -1519,13 +1771,22 @@ public function balance_sheet_consolidated(Request $request)
             })->with('loan_officer')->with('office')->with('fund')->with('loan_product')->with('client')->with('group')->with('repayment_schedules')->get();
         }
 
-        return view('loan_report.loan_book',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'loan_product_id', 'loan_officer_id', 'status'));
+        return view(
+            'loan_report.loan_book',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'loan_product_id',
+                'loan_officer_id',
+                'status'
+            )
+        );
     }
 
 
-   public function daily_transaction(Request $request)
+    public function daily_transaction(Request $request)
     {
         if (!Sentinel::hasAccess('reports.daily_transactions_reports')) {
             Flash::warning("Permission Denied");
@@ -1550,21 +1811,39 @@ public function balance_sheet_consolidated(Request $request)
             })->when($loan_officer_id, function ($query) use ($loan_officer_id) {
                 if ($loan_officer_id != 0) {
                     $query->where('loan_officer_id', '=', $loan_officer_id);
-                }   
-            })->whereBetween('date',
-                [$start_date, $end_date])->orderBy('created_at', 'asc')->get()->groupBy(function($item) {
-                   
+                }
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->orderBy('created_at', 'asc')->get()->groupBy(function ($item) {
+
                     return Carbon::parse($item->date)->format('Y-m-d');
                 });
         }
-        
-        return view('financial_report.daily_transaction_report',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'gl_account_id' , 'loan_officer_id'));
-         
-             return view('financial_report.daily_transaction_report',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'gl_account_id' , 'loan_officer_id'));
+
+        return view(
+            'financial_report.daily_transaction_report',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'gl_account_id',
+                'loan_officer_id'
+            )
+        );
+
+        return view(
+            'financial_report.daily_transaction_report',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'gl_account_id',
+                'loan_officer_id'
+            )
+        );
     }
 
     public function daily_transaction_pdf(Request $request)
@@ -1587,10 +1866,17 @@ public function balance_sheet_consolidated(Request $request)
                 if ($gl_account_id != 0) {
                     $query->where('gl_account_id', '=', $gl_account_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->orderBy('date', 'asc')->get();
-            $pdf = PDF::loadView('financial_report.daily_transaction_pdf', compact('start_date',
-                'end_date', 'data', 'office_id', 'gl_account_id'));
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->orderBy('date', 'asc')->get();
+            $pdf = PDF::loadView('financial_report.daily_transaction_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'gl_account_id'
+            ));
             return $pdf->download(trans_choice('general.Transactions', 2) . ' : ' . $request->end_date . ".pdf");
         }
     }
@@ -1598,7 +1884,7 @@ public function balance_sheet_consolidated(Request $request)
 
 
 
-   public function GetAccountStatmentReport(Request $request)
+    public function GetAccountStatmentReport(Request $request)
     {
         if (!Sentinel::hasAccess('reports.daily_transactions_reports')) {
             Flash::warning("Permission Denied");
@@ -1611,20 +1897,20 @@ public function balance_sheet_consolidated(Request $request)
         $data = [];
         $credit = 0;
         $debit = 0;
-        $current_balance=0;
+        $current_balance = 0;
 
         if (!empty($start_date)) {
-     
-            $transactions = GlJournalEntry::where('gl_account_id', $gl_account_id)
-            ->where('office_id', $office_id)
-            ->whereDate('date','<',$start_date)
-            ->get();
 
-$credit = $transactions->sum('credit');
-$debit = $transactions->sum('debit');
-$current_balance = $debit - $credit;
-            
-  
+            $transactions = GlJournalEntry::where('gl_account_id', $gl_account_id)
+                ->where('office_id', $office_id)
+                ->whereDate('date', '<', $start_date)
+                ->get();
+
+            $credit = $transactions->sum('credit');
+            $debit = $transactions->sum('debit');
+            $current_balance = $debit - $credit;
+
+
             $data = GlJournalEntry::where('reversed', 0)->where('reversed', 0)->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
@@ -1633,12 +1919,24 @@ $current_balance = $debit - $credit;
                 if ($gl_account_id != 0) {
                     $query->where('gl_account_id', '=', $gl_account_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->orderBy('date', 'asc')->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->orderBy('date', 'asc')->get();
         }
-        return view('financial_report.ledger_statement',
-            compact('start_date',
-                'end_date', 'data','credit','debit','current_balance','office_id', 'gl_account_id'));
+        return view(
+            'financial_report.ledger_statement',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'credit',
+                'debit',
+                'current_balance',
+                'office_id',
+                'gl_account_id'
+            )
+        );
     }
 
 
@@ -1696,8 +1994,10 @@ $current_balance = $debit - $credit;
         $data = [];
         if (!empty($start_date)) {
 
-            $data = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
-                [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
+            $data = Loan::where('status', 'disbursed')->whereBetween(
+                'disbursement_date',
+                [$start_date, $end_date]
+            )->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
@@ -1718,9 +2018,18 @@ $current_balance = $debit - $credit;
             })->with('loan_officer')->with('office')->with('fund')->with('loan_product')->with('client')->with('group')->with('repayment_schedules')->get();
         }
 
-        return view('loan_report.disbursed_loans',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'loan_product_id', 'loan_officer_id', 'status'));
+        return view(
+            'loan_report.disbursed_loans',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'loan_product_id',
+                'loan_officer_id',
+                'status'
+            )
+        );
     }
 
     public function disbursed_loans_pdf(Request $request)
@@ -1736,8 +2045,10 @@ $current_balance = $debit - $credit;
         $loan_product_id = $request->loan_product_id;
         $status = $request->status;
         if (!empty($end_date)) {
-            $data = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
-                [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
+            $data = Loan::where('status', 'disbursed')->whereBetween(
+                'disbursement_date',
+                [$start_date, $end_date]
+            )->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
@@ -1757,12 +2068,23 @@ $current_balance = $debit - $credit;
                 }
             })->with('loan_officer')->with('office')->with('fund')->with('loan_product')->with('client')->with('group')->with('repayment_schedules')->get();
 
-            $pdf = PDF::loadView('loan_report.disbursed_loans_pdf',
-                compact('start_date',
-                    'end_date', 'data', 'office_id', 'loan_product_id', 'loan_officer_id', 'status'));
+            $pdf = PDF::loadView(
+                'loan_report.disbursed_loans_pdf',
+                compact(
+                    'start_date',
+                    'end_date',
+                    'data',
+                    'office_id',
+                    'loan_product_id',
+                    'loan_officer_id',
+                    'status'
+                )
+            );
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.disbursed', 1) . ' ' . trans_choice('general.report',
-                    1) . ".pdf");
+            return $pdf->download(trans_choice('general.disbursed', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . ".pdf");
         }
 
 
@@ -1781,8 +2103,10 @@ $current_balance = $debit - $credit;
         $loan_product_id = $request->loan_product_id;
         $status = $request->status;
         if (!empty($end_date)) {
-            $data = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
-                [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
+            $data = Loan::where('status', 'disbursed')->whereBetween(
+                'disbursement_date',
+                [$start_date, $end_date]
+            )->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
@@ -1811,8 +2135,10 @@ $current_balance = $debit - $credit;
                 'status' => $status,
                 'loan_officer_id' => $loan_officer_id,
             ];
-            return Excel::download(new ExportReport("loan_report.disbursed_loans_pdf", $data), trans_choice('general.disbursement', 1) . ' ' . trans_choice('general.report',
-                    1) . '.xlsx');
+            return Excel::download(new ExportReport("loan_report.disbursed_loans_pdf", $data), trans_choice('general.disbursement', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.xlsx');
         }
 
 
@@ -1831,8 +2157,10 @@ $current_balance = $debit - $credit;
         $loan_product_id = $request->loan_product_id;
         $status = $request->status;
         if (!empty($end_date)) {
-            $data = Loan::where('status', 'disbursed')->whereBetween('disbursement_date',
-                [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
+            $data = Loan::where('status', 'disbursed')->whereBetween(
+                'disbursement_date',
+                [$start_date, $end_date]
+            )->when($office_id, function ($query) use ($office_id) {
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
@@ -1861,8 +2189,10 @@ $current_balance = $debit - $credit;
                 'status' => $status,
                 'loan_officer_id' => $loan_officer_id,
             ];
-            return Excel::download(new ExportReport("loan_report.disbursed_loans_pdf", $data), trans_choice('general.disbursement', 1) . ' ' . trans_choice('general.report',
-                    1) . '.csv');
+            return Excel::download(new ExportReport("loan_report.disbursed_loans_pdf", $data), trans_choice('general.disbursement', 1) . ' ' . trans_choice(
+                'general.report',
+                1
+            ) . '.csv');
         }
 
     }
@@ -1877,9 +2207,14 @@ $current_balance = $debit - $credit;
         $end_date = $request->end_date;
 
 
-        return view('client_report.client_numbers',
-            compact('start_date',
-                'end_date', 'data'));
+        return view(
+            'client_report.client_numbers',
+            compact(
+                'start_date',
+                'end_date',
+                'data'
+            )
+        );
     }
 
     public function client_numbers_pdf(Request $request)
@@ -1892,11 +2227,16 @@ $current_balance = $debit - $credit;
         $end_date = $request->end_date;
 
         if (!empty($end_date)) {
-            $pdf = PDF::loadView('client_report.client_numbers_pdf', compact('start_date',
-                'end_date', 'data'));
+            $pdf = PDF::loadView('client_report.client_numbers_pdf', compact(
+                'start_date',
+                'end_date',
+                'data'
+            ));
             //$pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.client', 1) . ' ' . trans_choice('general.number',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.client', 1) . ' ' . trans_choice(
+                'general.number',
+                2
+            ) . ".pdf");
         }
 
     }
@@ -1915,8 +2255,10 @@ $current_balance = $debit - $credit;
                 'end_date' => $end_date,
                 'start_date' => $start_date,
             ];
-            return Excel::download(new ExportReport("client_report.client_numbers_pdf", $data), trans_choice('general.client', 1) . ' ' . trans_choice('general.number',
-                    2) . '.xlsx');
+            return Excel::download(new ExportReport("client_report.client_numbers_pdf", $data), trans_choice('general.client', 1) . ' ' . trans_choice(
+                'general.number',
+                2
+            ) . '.xlsx');
         }
 
 
@@ -1936,8 +2278,10 @@ $current_balance = $debit - $credit;
                 'end_date' => $end_date,
                 'start_date' => $start_date,
             ];
-            return Excel::download(new ExportReport("client_report.client_numbers_pdf", $data), trans_choice('general.client', 1) . ' ' . trans_choice('general.number',
-                    2) . '.csv');
+            return Excel::download(new ExportReport("client_report.client_numbers_pdf", $data), trans_choice('general.client', 1) . ' ' . trans_choice(
+                'general.number',
+                2
+            ) . '.csv');
 
         }
 
@@ -1963,8 +2307,10 @@ $current_balance = $debit - $credit;
 
         }
 
-        return view('client_report.client_listing',
-            compact('end_date', 'data', 'office_id'));
+        return view(
+            'client_report.client_listing',
+            compact('end_date', 'data', 'office_id')
+        );
     }
 
     public function client_listing_pdf(Request $request)
@@ -1983,11 +2329,16 @@ $current_balance = $debit - $credit;
                     $query->where('office_id', '=', $office_id);
                 }
             })->with('staff')->with('office')->get();
-            $pdf = PDF::loadView('client_report.client_listing_pdf', compact('office_id',
-                'end_date', 'data'));
+            $pdf = PDF::loadView('client_report.client_listing_pdf', compact(
+                'office_id',
+                'end_date',
+                'data'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.client', 1) . ' ' . trans_choice('general.report',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.client', 1) . ' ' . trans_choice(
+                'general.report',
+                2
+            ) . ".pdf");
         }
 
 
@@ -2026,9 +2377,16 @@ $current_balance = $debit - $credit;
         }
 
 
-        return view('financial_report.provisioning',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'loan_officer_id'));
+        return view(
+            'financial_report.provisioning',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'loan_officer_id'
+            )
+        );
     }
 
     public function provisioning_pdf(Request $request)
@@ -2053,11 +2411,18 @@ $current_balance = $debit - $credit;
                 }
             })->with('loan_officer')->with('office')->with('loan_product')->with('client')->with('group')->with('repayment_schedules')->get();
 
-            $pdf = PDF::loadView('financial_report.provisioning_pdf', compact('start_date',
-                'end_date', 'data', 'office_id', 'loan_officer_id'));
+            $pdf = PDF::loadView('financial_report.provisioning_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'loan_officer_id'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.provisioning', 1) . ' ' . trans_choice('general.report',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.provisioning', 1) . ' ' . trans_choice(
+                'general.report',
+                2
+            ) . ".pdf");
         }
 
 
@@ -2091,8 +2456,10 @@ $current_balance = $debit - $credit;
                 'office_id' => $office_id,
                 'loan_officer_id' => $loan_officer_id,
             ];
-            return Excel::download(new ExportReport("financial_report.provisioning_pdf", $data), trans_choice('general.provisioning', 1) . ' ' . trans_choice('general.report',
-                    2) . '.xlsx');
+            return Excel::download(new ExportReport("financial_report.provisioning_pdf", $data), trans_choice('general.provisioning', 1) . ' ' . trans_choice(
+                'general.report',
+                2
+            ) . '.xlsx');
         }
 
 
@@ -2126,8 +2493,10 @@ $current_balance = $debit - $credit;
                 'office_id' => $office_id,
                 'loan_officer_id' => $loan_officer_id,
             ];
-            return Excel::download(new ExportReport("financial_report.provisioning_pdf", $data), trans_choice('general.provisioning', 1) . ' ' . trans_choice('general.report',
-                    2) . '.csv');
+            return Excel::download(new ExportReport("financial_report.provisioning_pdf", $data), trans_choice('general.provisioning', 1) . ' ' . trans_choice(
+                'general.report',
+                2
+            ) . '.csv');
         }
 
     }
@@ -2142,9 +2511,14 @@ $current_balance = $debit - $credit;
         $end_date = $request->end_date;
 
 
-        return view('company_report.products_summary',
-            compact('start_date',
-                'end_date', 'data'));
+        return view(
+            'company_report.products_summary',
+            compact(
+                'start_date',
+                'end_date',
+                'data'
+            )
+        );
     }
 
     public function products_summary_pdf(Request $request)
@@ -2157,11 +2531,16 @@ $current_balance = $debit - $credit;
         $end_date = $request->end_date;
 
         if (!empty($end_date)) {
-            $pdf = PDF::loadView('company_report.products_summary_pdf', compact('start_date',
-                'end_date', 'data'));
+            $pdf = PDF::loadView('company_report.products_summary_pdf', compact(
+                'start_date',
+                'end_date',
+                'data'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.product', 2) . ' ' . trans_choice('general.summary',
-                    1) . ".pdf");
+            return $pdf->download(trans_choice('general.product', 2) . ' ' . trans_choice(
+                'general.summary',
+                1
+            ) . ".pdf");
         }
 
     }
@@ -2217,14 +2596,24 @@ $current_balance = $debit - $credit;
         $loan_product_data = [];
         foreach (LoanProduct::all() as $key) {
             if (empty($start_date)) {
-                $count = Loan::where('loan_product_id', $key->id)->where('branch_id',
-                    session('branch_id'))->whereIn('status',
-                    ['disbursed', 'closed', 'written_off', 'rescheduled'])->count();
+                $count = Loan::where('loan_product_id', $key->id)->where(
+                    'branch_id',
+                    session('branch_id')
+                )->whereIn(
+                        'status',
+                        ['disbursed', 'closed', 'written_off', 'rescheduled']
+                    )->count();
             } else {
-                $count = Loan::where('loan_product_id', $key->id)->where('branch_id',
-                    session('branch_id'))->whereIn('status',
-                    ['disbursed', 'closed', 'written_off', 'rescheduled'])->whereBetween('release_date',
-                    [$start_date, $end_date])->count();
+                $count = Loan::where('loan_product_id', $key->id)->where(
+                    'branch_id',
+                    session('branch_id')
+                )->whereIn(
+                        'status',
+                        ['disbursed', 'closed', 'written_off', 'rescheduled']
+                    )->whereBetween(
+                        'release_date',
+                        [$start_date, $end_date]
+                    )->count();
             }
             array_push($loan_product_data, array(
                 'product' => $key->name,
@@ -2233,134 +2622,238 @@ $current_balance = $debit - $credit;
             ));
         }
         $monthly_net_income_data = array();
-        $loop_date = date_format(date_sub(date_create($date),
-            date_interval_create_from_date_string('1 years')),
-            'Y-m-d');
+        $loop_date = date_format(
+            date_sub(
+                date_create($date),
+                date_interval_create_from_date_string('1 years')
+            ),
+            'Y-m-d'
+        );
         for ($i = 1; $i < 14; $i++) {
             $d = explode('-', $loop_date);
             //get loans in that period
             $total_income = 0;
             foreach (GlAccount::where('account_type', 'income')->get() as $key) {
-                $cr = GlJournalEntry::where('account_id', $key->id)->where('year',
-                    $d[0])->where('month',
-                    $d[1])->where('branch_id',
-                    session('branch_id'))->sum('credit');
-                $dr = GlJournalEntry::where('account_id', $key->id)->where('year',
-                    $d[0])->where('month',
-                    $d[1])->where('branch_id',
-                    session('branch_id'))->sum('debit');
+                $cr = GlJournalEntry::where('account_id', $key->id)->where(
+                    'year',
+                    $d[0]
+                )->where(
+                        'month',
+                        $d[1]
+                    )->where(
+                        'branch_id',
+                        session('branch_id')
+                    )->sum('credit');
+                $dr = GlJournalEntry::where('account_id', $key->id)->where(
+                    'year',
+                    $d[0]
+                )->where(
+                        'month',
+                        $d[1]
+                    )->where(
+                        'branch_id',
+                        session('branch_id')
+                    )->sum('debit');
                 $balance = $cr - $dr;
                 $total_income = $total_income + $balance;
             }
             $total_expenses = 0;
             foreach (GlAccount::where('account_type', 'expense')->get() as $key) {
-                $cr = GlJournalEntry::where('account_id', $key->id)->where('year',
-                    $d[0])->where('month',
-                    $d[1])->where('branch_id',
-                    session('branch_id'))->sum('credit');
-                $dr = GlJournalEntry::where('account_id', $key->id)->where('year',
-                    $d[0])->where('month',
-                    $d[1])->where('branch_id',
-                    session('branch_id'))->sum('debit');
+                $cr = GlJournalEntry::where('account_id', $key->id)->where(
+                    'year',
+                    $d[0]
+                )->where(
+                        'month',
+                        $d[1]
+                    )->where(
+                        'branch_id',
+                        session('branch_id')
+                    )->sum('credit');
+                $dr = GlJournalEntry::where('account_id', $key->id)->where(
+                    'year',
+                    $d[0]
+                )->where(
+                        'month',
+                        $d[1]
+                    )->where(
+                        'branch_id',
+                        session('branch_id')
+                    )->sum('debit');
                 $balance = $dr - $cr;
                 $total_expenses = $total_expenses + $balance;
             }
             array_push($monthly_net_income_data, array(
-                'month' => date_format(date_create($loop_date),
-                    'M' . ' ' . $d[0]),
+                'month' => date_format(
+                    date_create($loop_date),
+                    'M' . ' ' . $d[0]
+                ),
                 'income' => $total_income,
                 'expenses' => $total_expenses
             ));
             //add 1 month to start date
-            $loop_date = date_format(date_add(date_create($loop_date),
-                date_interval_create_from_date_string('1 months')),
-                'Y-m-d');
+            $loop_date = date_format(
+                date_add(
+                    date_create($loop_date),
+                    date_interval_create_from_date_string('1 months')
+                ),
+                'Y-m-d'
+            );
         }
         //user registrations
         $monthly_borrower_data = [];
-        $loop_date = date_format(date_sub(date_create($date),
-            date_interval_create_from_date_string('1 years')),
-            'Y-m-d');
+        $loop_date = date_format(
+            date_sub(
+                date_create($date),
+                date_interval_create_from_date_string('1 years')
+            ),
+            'Y-m-d'
+        );
         for ($i = 1; $i < 14; $i++) {
             $d = explode('-', $loop_date);
             //get loans in that period
-            $count = Client::where('year',
-                $d[0])->where('month',
-                $d[1])->where('branch_id',
-                session('branch_id'))->count();
+            $count = Client::where(
+                'year',
+                $d[0]
+            )->where(
+                    'month',
+                    $d[1]
+                )->where(
+                    'branch_id',
+                    session('branch_id')
+                )->count();
             array_push($monthly_borrower_data, array(
-                'month' => date_format(date_create($loop_date),
-                    'M' . ' ' . $d[0]),
+                'month' => date_format(
+                    date_create($loop_date),
+                    'M' . ' ' . $d[0]
+                ),
                 'value' => $count,
             ));
             //add 1 month to start date
-            $loop_date = date_format(date_add(date_create($loop_date),
-                date_interval_create_from_date_string('1 months')),
-                'Y-m-d');
+            $loop_date = date_format(
+                date_add(
+                    date_create($loop_date),
+                    date_interval_create_from_date_string('1 months')
+                ),
+                'Y-m-d'
+            );
         }
         $monthly_repayments_data = [];
-        $loop_date = date_format(date_sub(date_create($date),
-            date_interval_create_from_date_string('1 years')),
-            'Y-m-d');
+        $loop_date = date_format(
+            date_sub(
+                date_create($date),
+                date_interval_create_from_date_string('1 years')
+            ),
+            'Y-m-d'
+        );
         for ($i = 1; $i < 14; $i++) {
             $d = explode('-', $loop_date);
             //get loans in that period
-            $amount = LoanTransaction::where('transaction_type',
-                'repayment')->where('reversed', 0)->where('year',
-                $d[0])->where('month',
-                $d[1])->where('branch_id',
-                session('branch_id'))->sum('credit');
+            $amount = LoanTransaction::where(
+                'transaction_type',
+                'repayment'
+            )->where('reversed', 0)->where(
+                    'year',
+                    $d[0]
+                )->where(
+                    'month',
+                    $d[1]
+                )->where(
+                    'branch_id',
+                    session('branch_id')
+                )->sum('credit');
             array_push($monthly_repayments_data, array(
-                'month' => date_format(date_create($loop_date),
-                    'M' . ' ' . $d[0]),
+                'month' => date_format(
+                    date_create($loop_date),
+                    'M' . ' ' . $d[0]
+                ),
                 'value' => $amount,
             ));
             //add 1 month to start date
-            $loop_date = date_format(date_add(date_create($loop_date),
-                date_interval_create_from_date_string('1 months')),
-                'Y-m-d');
+            $loop_date = date_format(
+                date_add(
+                    date_create($loop_date),
+                    date_interval_create_from_date_string('1 months')
+                ),
+                'Y-m-d'
+            );
         }
         $monthly_actual_expected_data = [];
         $monthly_disbursed_loans_data = [];
-        $loop_date = date_format(date_sub(date_create($date),
-            date_interval_create_from_date_string('1 years')),
-            'Y-m-d');
+        $loop_date = date_format(
+            date_sub(
+                date_create($date),
+                date_interval_create_from_date_string('1 years')
+            ),
+            'Y-m-d'
+        );
         for ($i = 1; $i < 14; $i++) {
             $d = explode('-', $loop_date);
             $actual = 0;
             $expected = 0;
             $principal = 0;
-            $actual = $actual + LoanTransaction::where('transaction_type',
-                    'repayment')->where('reversed', 0)->where('year',
-                    $d[0])->where('month',
-                    $d[1])->where('branch_id',
-                    session('branch_id'))->sum('credit');
-            foreach (Loan::select("loan_schedules.principal", "loan_schedules.interest", "loan_schedules.penalty",
-                "loan_schedules.fees")->where('loans.branch_id',
-                session('branch_id'))->whereIn('loans.status',
-                ['disbursed', 'closed', 'written_off'])->join('loan_schedules', 'loans.id', '=',
-                'loan_schedules.loan_id')->where('loan_schedules.deleted_at', NULL)->where('loan_schedules.year',
-                $d[0])->where('loan_schedules.month',
-                $d[1])->get() as $key) {
+            $actual = $actual + LoanTransaction::where(
+                'transaction_type',
+                'repayment'
+            )->where('reversed', 0)->where(
+                    'year',
+                    $d[0]
+                )->where(
+                    'month',
+                    $d[1]
+                )->where(
+                    'branch_id',
+                    session('branch_id')
+                )->sum('credit');
+            foreach (Loan::select(
+                "loan_schedules.principal",
+                "loan_schedules.interest",
+                "loan_schedules.penalty",
+                "loan_schedules.fees"
+            )->where(
+                    'loans.branch_id',
+                    session('branch_id')
+                )->whereIn(
+                    'loans.status',
+                    ['disbursed', 'closed', 'written_off']
+                )->join(
+                    'loan_schedules',
+                    'loans.id',
+                    '=',
+                    'loan_schedules.loan_id'
+                )->where('loan_schedules.deleted_at', NULL)->where(
+                    'loan_schedules.year',
+                    $d[0]
+                )->where(
+                    'loan_schedules.month',
+                    $d[1]
+                )->get() as $key) {
                 $expected = $expected + $key->interest + $key->penalty + $key->fees + $key->principal;
                 $principal = $principal + $key->principal;
 
             }
             array_push($monthly_actual_expected_data, array(
-                'month' => date_format(date_create($loop_date),
-                    'M' . ' ' . $d[0]),
+                'month' => date_format(
+                    date_create($loop_date),
+                    'M' . ' ' . $d[0]
+                ),
                 'actual' => $actual,
                 'expected' => $expected
             ));
             array_push($monthly_disbursed_loans_data, array(
-                'month' => date_format(date_create($loop_date),
-                    'M' . ' ' . $d[0]),
+                'month' => date_format(
+                    date_create($loop_date),
+                    'M' . ' ' . $d[0]
+                ),
                 'value' => $principal,
             ));
             //add 1 month to start date
-            $loop_date = date_format(date_add(date_create($loop_date),
-                date_interval_create_from_date_string('1 months')),
-                'Y-m-d');
+            $loop_date = date_format(
+                date_add(
+                    date_create($loop_date),
+                    date_interval_create_from_date_string('1 months')
+                ),
+                'Y-m-d'
+            );
         }
 
         $loan_product_data = json_encode($loan_product_data);
@@ -2369,9 +2862,19 @@ $current_balance = $debit - $credit;
         $monthly_repayments_data = json_encode($monthly_repayments_data);
         $monthly_actual_expected_data = json_encode($monthly_actual_expected_data);
         $monthly_disbursed_loans_data = json_encode($monthly_disbursed_loans_data);
-        return view('company_report.general_report',
-            compact('loan_product_data', 'monthly_net_income_data', 'monthly_borrower_data', 'monthly_repayments_data',
-                'monthly_actual_expected_data', 'monthly_disbursed_loans_data', 'start_date', 'end_date'));
+        return view(
+            'company_report.general_report',
+            compact(
+                'loan_product_data',
+                'monthly_net_income_data',
+                'monthly_borrower_data',
+                'monthly_repayments_data',
+                'monthly_actual_expected_data',
+                'monthly_disbursed_loans_data',
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
     public function journal(Request $request)
@@ -2383,9 +2886,13 @@ $current_balance = $debit - $credit;
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        return view('financial_report.journal',
-            compact('start_date',
-                'end_date'));
+        return view(
+            'financial_report.journal',
+            compact(
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
     public function ledger(Request $request)
@@ -2397,9 +2904,13 @@ $current_balance = $debit - $credit;
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        return view('financial_report.ledger',
-            compact('start_date',
-                'end_date'));
+        return view(
+            'financial_report.ledger',
+            compact(
+                'start_date',
+                'end_date'
+            )
+        );
     }
 
     public function savings_transactions(Request $request)
@@ -2416,12 +2927,20 @@ $current_balance = $debit - $credit;
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->get();
         }
-        return view('savings_report.savings_transactions',
-            compact('start_date',
-                'end_date', 'data', 'office_id'));
+        return view(
+            'savings_report.savings_transactions',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id'
+            )
+        );
     }
 
     public function savings_transactions_pdf(Request $request)
@@ -2438,13 +2957,21 @@ $current_balance = $debit - $credit;
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->get();
-            $pdf = PDF::loadView('savings_report.savings_transactions_pdf', compact('start_date',
-                'end_date', 'data', 'office_id'));
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->get();
+            $pdf = PDF::loadView('savings_report.savings_transactions_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.savings', 2) . ' ' . trans_choice('general.transaction',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.savings', 2) . ' ' . trans_choice(
+                'general.transaction',
+                2
+            ) . ".pdf");
         }
 
 
@@ -2464,16 +2991,20 @@ $current_balance = $debit - $credit;
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->get();
             $data = [
                 "data" => $data,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("savings_report.savings_transactions_pdf", $data), trans_choice('general.savings', 2) . ' ' . trans_choice('general.transaction',
-                    2) . '.xlsx');
+            return Excel::download(new ExportReport("savings_report.savings_transactions_pdf", $data), trans_choice('general.savings', 2) . ' ' . trans_choice(
+                'general.transaction',
+                2
+            ) . '.xlsx');
         }
 
 
@@ -2493,16 +3024,20 @@ $current_balance = $debit - $credit;
                 if ($office_id != 0) {
                     $query->where('office_id', '=', $office_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->get();
             $data = [
                 "data" => $data,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'office_id' => $office_id,
             ];
-            return Excel::download(new ExportReport("savings_report.savings_transactions_pdf", $data), trans_choice('general.savings', 2) . ' ' . trans_choice('general.transaction',
-                    2) . '.csv');
+            return Excel::download(new ExportReport("savings_report.savings_transactions_pdf", $data), trans_choice('general.savings', 2) . ' ' . trans_choice(
+                'general.transaction',
+                2
+            ) . '.csv');
         }
     }
 
@@ -2530,12 +3065,22 @@ $current_balance = $debit - $credit;
                 if ($field_officer_id != 0) {
                     $query->where('field_officer_id', '=', $field_officer_id);
                 }
-            })->whereBetween('approved_date',
-                [$start_date, $end_date])->get();
+            })->whereBetween(
+                    'approved_date',
+                    [$start_date, $end_date]
+                )->get();
         }
-        return view('savings_report.savings_accounts',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'savings_product_id', 'field_officer_id'));
+        return view(
+            'savings_report.savings_accounts',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'savings_product_id',
+                'field_officer_id'
+            )
+        );
     }
 
     public function savings_accounts_pdf(Request $request)
@@ -2562,13 +3107,23 @@ $current_balance = $debit - $credit;
                 if ($field_officer_id != 0) {
                     $query->where('field_officer_id', '=', $field_officer_id);
                 }
-            })->whereBetween('approved_date',
-                [$start_date, $end_date])->get();
-            $pdf = PDF::loadView('savings_report.savings_accounts_pdf', compact('start_date',
-                'end_date', 'data', 'office_id', 'field_officer_id', 'savings_product_id'));
+            })->whereBetween(
+                    'approved_date',
+                    [$start_date, $end_date]
+                )->get();
+            $pdf = PDF::loadView('savings_report.savings_accounts_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'field_officer_id',
+                'savings_product_id'
+            ));
             $pdf->setPaper('A4', 'landscape');
-            return $pdf->download(trans_choice('general.savings', 2) . ' ' . trans_choice('general.account',
-                    2) . ".pdf");
+            return $pdf->download(trans_choice('general.savings', 2) . ' ' . trans_choice(
+                'general.account',
+                2
+            ) . ".pdf");
         }
 
 
@@ -2598,8 +3153,10 @@ $current_balance = $debit - $credit;
                 if ($field_officer_id != 0) {
                     $query->where('field_officer_id', '=', $field_officer_id);
                 }
-            })->whereBetween('approved_date',
-                [$start_date, $end_date])->get();
+            })->whereBetween(
+                    'approved_date',
+                    [$start_date, $end_date]
+                )->get();
             $data = [
                 "data" => $data,
                 'start_date' => $start_date,
@@ -2608,8 +3165,10 @@ $current_balance = $debit - $credit;
                 'field_officer_id' => $field_officer_id,
                 'savings_product_id' => $savings_product_id,
             ];
-            return Excel::download(new ExportReport("savings_report.savings_accounts_pdf", $data), trans_choice('general.savings', 2) . ' ' . trans_choice('general.account',
-                    2) . '.xlsx');
+            return Excel::download(new ExportReport("savings_report.savings_accounts_pdf", $data), trans_choice('general.savings', 2) . ' ' . trans_choice(
+                'general.account',
+                2
+            ) . '.xlsx');
         }
 
 
@@ -2639,8 +3198,10 @@ $current_balance = $debit - $credit;
                 if ($field_officer_id != 0) {
                     $query->where('field_officer_id', '=', $field_officer_id);
                 }
-            })->whereBetween('approved_date',
-                [$start_date, $end_date])->get();
+            })->whereBetween(
+                    'approved_date',
+                    [$start_date, $end_date]
+                )->get();
             $data = [
                 "data" => $data,
                 'start_date' => $start_date,
@@ -2649,8 +3210,10 @@ $current_balance = $debit - $credit;
                 'field_officer_id' => $field_officer_id,
                 'savings_product_id' => $savings_product_id,
             ];
-            return Excel::download(new ExportReport("savings_report.savings_accounts_pdf", $data), trans_choice('general.savings', 2) . ' ' . trans_choice('general.account',
-                    2) . '.csv');
+            return Excel::download(new ExportReport("savings_report.savings_accounts_pdf", $data), trans_choice('general.savings', 2) . ' ' . trans_choice(
+                'general.account',
+                2
+            ) . '.csv');
         }
     }
 
@@ -2669,9 +3232,16 @@ $current_balance = $debit - $credit;
             //get disbursed loans within specified period and officer
             $data = GlAccount::orderBy('gl_code', 'asc')->get();
         }
-        return view('financial_report.ledger_report',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'gl_account_id'));
+        return view(
+            'financial_report.ledger_report',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'gl_account_id'
+            )
+        );
     }
 
     public function ledger_report_pdf(Request $request)
@@ -2688,8 +3258,13 @@ $current_balance = $debit - $credit;
         if (!empty($start_date)) {
             //get disbursed loans within specified period and officer
             $data = GlAccount::orderBy('gl_code', 'asc')->get();
-            $pdf = PDF::loadView('financial_report.ledger_report_pdf', compact('start_date',
-                'end_date', 'data', 'office_id', 'gl_account_id'));
+            $pdf = PDF::loadView('financial_report.ledger_report_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'gl_account_id'
+            ));
             return $pdf->download(trans_choice('general.ledger', 1) . ' : ' . $request->end_date . ".pdf");
         }
 
@@ -2769,12 +3344,21 @@ $current_balance = $debit - $credit;
                 if ($gl_account_id != 0) {
                     $query->where('gl_account_id', '=', $gl_account_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->orderBy('date', 'asc')->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->orderBy('date', 'asc')->get();
         }
-        return view('financial_report.journals_report',
-            compact('start_date',
-                'end_date', 'data', 'office_id', 'gl_account_id'));
+        return view(
+            'financial_report.journals_report',
+            compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'gl_account_id'
+            )
+        );
     }
 
     public function journals_report_pdf(Request $request)
@@ -2797,10 +3381,17 @@ $current_balance = $debit - $credit;
                 if ($gl_account_id != 0) {
                     $query->where('gl_account_id', '=', $gl_account_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->orderBy('date', 'asc')->get();
-            $pdf = PDF::loadView('financial_report.journals_report_pdf', compact('start_date',
-                'end_date', 'data', 'office_id', 'gl_account_id'));
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->orderBy('date', 'asc')->get();
+            $pdf = PDF::loadView('financial_report.journals_report_pdf', compact(
+                'start_date',
+                'end_date',
+                'data',
+                'office_id',
+                'gl_account_id'
+            ));
             return $pdf->download(trans_choice('general.journal', 2) . ' : ' . $request->end_date . ".pdf");
         }
 
@@ -2827,8 +3418,10 @@ $current_balance = $debit - $credit;
                 if ($gl_account_id != 0) {
                     $query->where('gl_account_id', '=', $gl_account_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->orderBy('date', 'asc')->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->orderBy('date', 'asc')->get();
             $data = [
                 "data" => $data,
                 'start_date' => $start_date,
@@ -2861,8 +3454,10 @@ $current_balance = $debit - $credit;
                 if ($gl_account_id != 0) {
                     $query->where('gl_account_id', '=', $gl_account_id);
                 }
-            })->whereBetween('date',
-                [$start_date, $end_date])->orderBy('date', 'asc')->get();
+            })->whereBetween(
+                    'date',
+                    [$start_date, $end_date]
+                )->orderBy('date', 'asc')->get();
             $data = [
                 "data" => $data,
                 'start_date' => $start_date,

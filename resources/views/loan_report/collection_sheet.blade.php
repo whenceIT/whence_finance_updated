@@ -164,8 +164,20 @@
                             <option value="0"
                                     @if($office_id=="0") selected @endif>{{trans_choice('general.all',1)}}</option>
                             @foreach(\App\Models\Office::all() as $key)
-                                <option value="{{$key->id}}"
-                                        @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @if(Sentinel::getUser()->inRole(4))
+                                    @if(Sentinel::getUser()->office_id == $key->id)
+                                        <option value="{{$key->id}}"
+                                                @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                    @endif
+                                @elseif(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
+                                    @if(Sentinel::getUser()->province_id == $key->province_id)
+                                        <option value="{{$key->id}}"
+                                                @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                    @endif
+                                @else
+                                    <option value="{{$key->id}}"
+                                            @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
@@ -180,8 +192,20 @@
                             <option value="0">{{trans_choice('general.all',1)}}</option>
                             @foreach(\App\Models\User::all() as $key)
                                 @if(!Sentinel::findUserById($key->id)->inRole('client'))
-                                    <option value="{{$key->id}}"
-                                            @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                    @if(Sentinel::getUser()->inRole(4))
+                                        @if(Sentinel::getUser()->office_id == $key->office_id)
+                                            <option value="{{$key->id}}" data-office_id="{{$key->office_id}}"
+                                                    @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                        @endif
+                                    @elseif(Sentinel::getUser()->inRole('provincial_manager') || Sentinel::getUser()->inRole(6))
+                                        @if(Sentinel::getUser()->province_id == $key->province_id)
+                                            <option value="{{$key->id}}" data-office_id="{{$key->office_id}}"
+                                                    @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                        @endif
+                                    @else
+                                        <option value="{{$key->id}}" data-office_id="{{$key->office_id}}"
+                                                @if($loan_officer_id==$key->id) selected @endif>{{$key->first_name}} {{$key->last_name}}</option>
+                                    @endif
                                 @endif
                             @endforeach
                         </select>
@@ -369,5 +393,41 @@
     @endif
 @endsection
 @section('footer-scripts')
+    <script>
+        $(document).ready(function () {
+            var loan_officer_id = "{{$loan_officer_id}}";
+            var loan_officers = $('#loan_officer_id option').clone();
+            var user_role = "{{Sentinel::getUser()->roles()->first()->id}}";
+            var user_office_id = "{{Sentinel::getUser()->office_id}}";
 
+            function filterLoanOfficers() {
+                var office_id = $('#office_id').val();
+                if (user_role == "4" && office_id == "0") {
+                    office_id = user_office_id;
+                }
+                $('#loan_officer_id').empty();
+                if (office_id == "0") {
+                    $('#loan_officer_id').append(loan_officers);
+                } else {
+                    $('#loan_officer_id').append(loan_officers.filter(function () {
+                        return $(this).data('office_id') == office_id || $(this).val() == "0";
+                    }));
+                }
+                if (loan_officer_id != "" && $('#loan_officer_id option[value="' + loan_officer_id + '"]').length > 0) {
+                    $('#loan_officer_id').val(loan_officer_id);
+                }
+                $('#loan_officer_id').trigger('change');
+            }
+
+            $('#office_id').on('change', function () {
+                loan_officer_id = ""; // Clear on manual change
+                filterLoanOfficers();
+            });
+
+            // Initial run if office is already selected
+            if ($('#office_id').val() != "0") {
+                filterLoanOfficers();
+            }
+        });
+    </script>
 @endsection
