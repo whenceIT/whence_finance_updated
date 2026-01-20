@@ -23,7 +23,7 @@
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option></option>
                             @php
-                                $offices = \App\Models\Office::all();
+                                $offices = GeneralHelper::get_filtered_offices();
                             @endphp
                             @foreach($offices as $key)
                                 <option value="{{$key->id}}">{{$key->name}}</option>
@@ -31,7 +31,7 @@
                         </select>
                     </div>
                     @php
-                        $staffs = \App\Models\User::where('status', 'Active')->get();
+                        $staffs = GeneralHelper::get_filtered_staffs()->where('status', 'Active');
                     @endphp
                     <label for="staff_id"
                            class="control-label col-md-2">{{trans_choice('general.staff',1)}}</label>
