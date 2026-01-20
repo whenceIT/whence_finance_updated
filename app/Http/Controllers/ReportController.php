@@ -875,6 +875,7 @@ class ReportController extends Controller
         $expenses = [];
         $pending_loans = [];
         $pending_loans_grouped = [];
+        $branches = Office::select('id', 'name')->orderBy('name')->get();
 
         $selected_expense_type = $request->selected_expense_type ?? null;
         $expenseTypes = ExpenseType::all();
@@ -987,7 +988,7 @@ class ReportController extends Controller
 
         }
 
-        return view('loan_report.repayment_break_down', compact('start_date', 'end_date', 'data', 'part_data', 'reloans_data', 'new_loans', 'office_id', 'top_up', 'expenses', 'advances', 'expenseTypes', 'selected_expense_type', 'pending_loans_grouped', ));
+        return view('loan_report.repayment_break_down', compact('start_date', 'end_date', 'data', 'part_data', 'reloans_data', 'new_loans', 'office_id', 'top_up', 'expenses', 'advances', 'expenseTypes', 'selected_expense_type', 'pending_loans_grouped','branches' ));
     }
 
 

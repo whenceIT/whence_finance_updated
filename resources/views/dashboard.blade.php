@@ -2026,7 +2026,7 @@
                                                 justify-content: center; padding-bottom: 10px; ">
 
             <a target="_blank" href="https://erp.whencefinancesystem.com" style="margin: 10px;">
-                <span class="label label-warning" style="font-size: 15px;"><i class="fa fa-external-link"></i> ERPP
+                <span class="label label-warning" style="font-size: 15px;"><i class="fa fa-external-link"></i> ERP
                     Dashboard</span>
             </a>
             <a href="{{ url('user/detailed_dashboard')}}" style="margin: 10px;">

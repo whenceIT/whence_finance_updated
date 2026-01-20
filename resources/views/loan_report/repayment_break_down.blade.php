@@ -1407,6 +1407,24 @@ $total_loans = 0;
 </div>
 
 
+<div class="panel box box-success">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseDeposits">
+                Monthly Deposits Report
+            </a>
+        </h4>
+    </div>
+
+    <div id="collapseDeposits" class="panel-collapse collapse">
+        <div class="box-body" id="depositReportBody">
+            <p class="text-muted">Loading deposit report…</p>
+        </div>
+    </div>
+</div>
+
+
+
 
 
 
@@ -1564,6 +1582,101 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('#collapsePerformance').on('shown.bs.collapse', loadPerformance);
 });
+
+
+
+$(function () {
+
+    var startDate = "{{ $start_date }}";
+    var endDate   = "{{ $end_date }}";
+    var branches  = @json($branches); // collection of branches {id, name}
+
+    var depositTypes = [];
+
+    /* ---------- LOAD DEPOSIT TYPES ---------- */
+
+    $.get('https://lms2backend.whencefinancesystem.com/deposit-types', function (res) {
+
+        depositTypes = res.data || res;
+
+        loadDepositReport();
+    });
+
+    /* ---------- LOAD REPORT ---------- */
+
+    function loadDepositReport() {
+
+        var container = $('#depositReportBody');
+        container.empty();
+
+        branches.forEach(function (branch) {
+
+            var box = $(`
+                <h4><strong>${branch.name}</strong></h4>
+                <table class="table table-bordered table-condensed">
+                    <thead>
+                        <tr>
+                            <th>Deposit Type</th>
+                            <th>Status</th>
+                            <th class="text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deposit-branch-${branch.id}">
+                        <tr><td colspan="3" class="text-muted">Loading…</td></tr>
+                    </tbody>
+                </table>
+            `);
+
+            container.append(box);
+
+            loadBranchDeposits(branch.id);
+        });
+    }
+
+    /* ---------- LOAD PER-BRANCH DEPOSITS ---------- */
+
+    function loadBranchDeposits(branchId) {
+
+        $.get('https://lms2backend.whencefinancesystem.com/check-deposits', {
+            branch: branchId,
+            date: startDate.slice(0,7) // YYYY-MM
+        }, function (response) {
+
+            var tbody = $('#deposit-branch-' + branchId);
+            tbody.empty();
+
+            var completed = {};
+           
+            response.forEach(function (d) {
+                completed[d.deposit_type_id] = d.amount;
+            });
+          
+
+            depositTypes.forEach(function (type) {
+
+                if (completed.hasOwnProperty(type.id)) {
+                    tbody.append(`
+                        <tr class="success">
+                            <td>${type.name}</td>
+                            <td><span class="label label-success">Paid</span></td>
+                            <td class="text-right">${Number(completed[type.id]).toLocaleString()}</td>
+                        </tr>
+                    `);
+                } else {
+                    tbody.append(`
+                        <tr class="warning">
+                            <td>${type.name}</td>
+                            <td><span class="label label-warning">Pending</span></td>
+                            <td class="text-right">—</td>
+                        </tr>
+                    `);
+                }
+            });
+        });
+    }
+
+});
+
 
 </script>
 

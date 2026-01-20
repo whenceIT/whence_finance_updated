@@ -79,6 +79,17 @@
             @endif
 
 
+ @if(Sentinel::hasAccess('settings'))
+                                   <li>
+                                <a href="{{ url('user/branch_deposits') }}"><i
+                                            class="fa fa-circle-o"></i>Branch Deposits
+                                    <span class="pull-right-container">
+                                    </span>
+                                </a>
+                            </li>
+                       @endif      
+
+
             <?php
                 $office_id = Sentinel::getUser()->office_id;
             ?>

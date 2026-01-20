@@ -508,6 +508,13 @@ class UserController extends Controller
         return redirect('user/' . $id . '/my_appraisal')->with('message', 'Success');
     }
 
+
+       public function branch_deposits(Request $request){
+        $office_id = Sentinel::getUser()->office->id;
+        return view('user.branch_deposits',compact('office_id'));
+    }
+
+
     public function provinces_dashboard(Request $request)
     {
 
