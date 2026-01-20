@@ -854,8 +854,8 @@ class ReportController extends Controller
     public function repayments_report_details(Request $request)
     {
         // Increase memory limit and execution time for large data processing
-        ini_set('memory_limit', '1024M');
-        ini_set('max_execution_time', 600); // 10 minutes
+        // ini_set('memory_limit', '1024M');
+        // ini_set('max_execution_time', 600); // 10 minutes
 
         if (!Sentinel::hasAccess('reports.repayments_report')) {
             Flash::warning("Permission Denied");
