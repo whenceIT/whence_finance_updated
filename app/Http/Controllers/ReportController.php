@@ -853,140 +853,110 @@ class ReportController extends Controller
     ///--optimized--//////////////////////////////////////////////////////////////////////HEREREREE/////////////////////////////////////
     public function repayments_report_details(Request $request)
     {
-        // Increase memory limit and execution time for large data processing
-        // ini_set('memory_limit', '1024M');
-        // ini_set('max_execution_time', 600); // 10 minutes
+       if (!Sentinel::hasAccess('reports.repayments_report')) {
+    Flash::warning("Permission Denied");
+    return redirect()->back();
+}
 
-        if (!Sentinel::hasAccess('reports.repayments_report')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+$start_date = $request->start_date;
+$end_date   = $request->end_date;
+$office_id  = $request->office_id;
 
-        $start_date = $request->start_date;
-        $end_date = $request->end_date;
-        $office_id = $request->office_id;
-        $loan = $request->id;
-        $data = [];
-        $part_data = [];
-        $reloans_data = [];
-        $top_up = [];
-        $new_loans = [];
-        $advances = [];
-        $expenses = [];
-        $pending_loans = [];
-        $pending_loans_grouped = [];
-        $branches = Office::select('id', 'name')->orderBy('name')->get();
+$data = [];
+$part_data = [];
+$reloans_data = [];
+$top_up = [];
+$new_loans = [];
+$advances = [];
+$expenses = [];
+$pending_loans = [];
+$pending_loans_grouped = [];
 
-        $selected_expense_type = $request->selected_expense_type ?? null;
-        $expenseTypes = ExpenseType::all();
-        if (!empty($start_date)) {
-            if ($office_id != 0) {
-                $data = LoanTransaction::where(
-                    'transaction_type',
-                    'repayment'
-                )->where('payment_apply_to', 'full_payment')->where('reversed', 0)->where(
-                        'office_id',
-                        $office_id
-                    )->whereBetween(
-                        'date',
-                        [$start_date, $end_date]
-                    )->with('loan')->with('office')->get();
+$branches = Office::select('id', 'name')->orderBy('name')->get();
 
-                $part_data = LoanTransaction::where(
-                    'transaction_type',
-                    'repayment'
-                )->where('payment_apply_to', 'part_payment')->where('reversed', 0)->where(
-                        'office_id',
-                        $office_id
-                    )->whereBetween(
-                        'date',
-                        [$start_date, $end_date]
-                    )->with('loan')->with('office')->get();
+$selected_expense_type = $request->selected_expense_type ?? null;
+$expenseTypes = ExpenseType::all();
 
-                $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->where(
-                    'office_id',
-                    $office_id
-                )->whereBetween(
-                        'date',
-                        [$start_date, $end_date]
-                    )->with('loan')->with('office')->get();
-                $expenses = Expense::whereBetween('date', [$start_date, $end_date])
-                    ->where('office_id', $office_id)->with('office')
-                    ->get();
+if (!empty($start_date)) {
 
-                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
-                    ->where('office_id', $office_id)->with('office')
-                    ->get();
+    /* -----------------------------
+       BASE REPAYMENT QUERY
+    ----------------------------- */
+    $repaymentBase = LoanTransaction::where('transaction_type', 'repayment')
+        ->where('reversed', 0)
+        ->whereBetween('date', [$start_date, $end_date])
+        ->when($office_id != 0, function ($q) use ($office_id) {
+            $q->where('office_id', $office_id);
+        })
+        ->with('loan')
+        ->with('office');
 
-                $top_up = LoanTopUp::whereBetween(
-                    'date',
-                    [$start_date, $end_date]
-                )->where('office_id', $office_id)->with('loan')->with('office')->get();
+    $data = (clone $repaymentBase)
+        ->where('payment_apply_to', 'full_payment')
+        ->get();
 
-                $pending_loans = Loan::whereIn('status', ['pending', 'approved'])->whereBetween('created_date', [$start_date, $end_date])->where('office_id', $office_id)->get();
+    $part_data = (clone $repaymentBase)
+        ->where('payment_apply_to', 'part_payment')
+        ->get();
 
-                // $reloans_data = LoanTransaction::whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->whereBetween('date',
-                // [$start_date, $end_date])->with('loan')->with('office')->get();
+    $reloans_data = (clone $repaymentBase)
+        ->where('payment_apply_to', 'reloan_payment')
+        ->get();
 
+    /* -----------------------------
+       EXPENSES
+    ----------------------------- */
+    $expenses = Expense::whereBetween('date', [$start_date, $end_date])
+        ->when($office_id != 0, function ($q) use ($office_id) {
+            $q->where('office_id', $office_id);
+        })
+        ->with('office')
+        ->get();
 
-                $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])->whereBetween(
-                    'disbursement_date',
-                    [$start_date, $end_date]
-                )->when($office_id, function ($query) use ($office_id) {
-                    if ($office_id != 0) {
-                        $query->where('office_id', '=', $office_id);
-                    }
-                })->get();
+    /* -----------------------------
+       ADVANCES
+    ----------------------------- */
+    $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
+        ->when($office_id != 0, function ($q) use ($office_id) {
+            $q->where('office_id', $office_id);
+        })
+        ->with('office')
+        ->get();
 
+    /* -----------------------------
+       TOP UPS
+    ----------------------------- */
+    $top_up = LoanTopUp::whereBetween('date', [$start_date, $end_date])
+        ->when($office_id != 0, function ($q) use ($office_id) {
+            $q->where('office_id', $office_id);
+        })
+        ->with('loan')
+        ->with('office')
+        ->get();
 
-            } else {
-                $data = LoanTransaction::where(
-                    'transaction_type',
-                    'repayment'
-                )->where('payment_apply_to', 'full_payment')->where('reversed', 0)->whereBetween(
-                        'date',
-                        [$start_date, $end_date]
-                    )->with('loan')->with('office')->get();
+    /* -----------------------------
+       PENDING LOANS
+    ----------------------------- */
+    $pending_loans = Loan::whereIn('status', ['pending', 'approved'])
+        ->whereBetween('created_date', [$start_date, $end_date])
+        ->when($office_id != 0, function ($q) use ($office_id) {
+            $q->where('office_id', $office_id);
+        })
+        ->get();
 
-                $part_data = LoanTransaction::where(
-                    'transaction_type',
-                    'repayment'
-                )->where('payment_apply_to', 'part_payment')->where('reversed', 0)->whereBetween(
-                        'date',
-                        [$start_date, $end_date]
-                    )->with('loan')->with('office')->get();
+    /* -----------------------------
+       NEW LOANS
+    ----------------------------- */
+    $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])
+        ->whereBetween('disbursement_date', [$start_date, $end_date])
+        ->when($office_id != 0, function ($q) use ($office_id) {
+            $q->where('office_id', $office_id);
+        })
+        ->get();
 
-                $reloans_data = LoanTransaction::where('transaction_type', 'repayment')->where('payment_apply_to', 'reloan_payment')->where('reversed', 0)->whereBetween(
-                    'date',
-                    [$start_date, $end_date]
-                )->with('loan')->with('office')->get();
+    $pending_loans_grouped = $pending_loans->groupBy('office_id');
+}
 
-                $expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')
-                    ->get();
-
-                $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
-                    ->get();
-
-                // $reloans_data = LoanTransaction::whereIn('reversal_type',['user','none'])->orderBy('date','asc')->orderBy('id','asc')->whereBetween('date',
-                // [$start_date, $end_date])->with('loan')->with('office')->get();
-
-
-                $top_up = LoanTopUp::whereBetween('date', [$start_date, $end_date])->where('status', 'approved')->get();
-
-                $pending_loans = Loan::whereIn('status', ['pending', 'approved'])
-                    ->whereBetween('created_date', [$start_date, $end_date])->get();
-
-                $new_loans = Loan::whereIn('status', ['disbursed', 'closed'])
-                    ->whereBetween('disbursement_date', [$start_date, $end_date])->when($office_id, function ($query) use ($office_id) {
-                        if ($office_id != 0) {
-                            $query->where('office_id', '=', $office_id);
-                        }
-                    })->get();
-            }
-
-            $pending_loans_grouped = $pending_loans->groupBy('office_id');
-
-        }
 
         return view('loan_report.repayment_break_down', compact('start_date', 'end_date', 'data', 'part_data', 'reloans_data', 'new_loans', 'office_id', 'top_up', 'expenses', 'advances', 'expenseTypes', 'selected_expense_type', 'pending_loans_grouped','branches' ));
     }
