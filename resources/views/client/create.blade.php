@@ -16,25 +16,31 @@
         <form method="post" action="{{url('client/store')}}" class="form-horizontal" enctype="multipart/form-data">
             {{csrf_field()}}
             <div class="box-body">
-                <div class="form-group">
+                                <div class="form-group">
                     <label for="office_id"
                            class="control-label col-md-2">{{trans_choice('general.branch',1)}}</label>
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option></option>
                             @php
-                                $offices = \App\Helpers\GeneralHelper::get_filtered_offices();
+                                $offices = \App\Models\Office::all();
                             @endphp
                             @foreach($offices as $key)
                                 <option value="{{$key->id}}">{{$key->name}}</option>
                             @endforeach
                         </select>
                     </div>
+                    @php
+                        $staffs = \App\Models\User::where('status', 'Active')->get();
+                    @endphp
                     <label for="staff_id"
                            class="control-label col-md-2">{{trans_choice('general.staff',1)}}</label>
                     <div class="col-md-3">
                         <select name="staff_id" class="form-control select2" id="staff_id" required>
                             <option></option>
+                            @foreach($staffs as $staff)
+                                <option value="{{$staff->id}}">{{$staff->first_name}} {{$staff->last_name}}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
