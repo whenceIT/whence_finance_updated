@@ -365,21 +365,21 @@
             }
         });
 
-        $("#office_id").change(function () {
-            var officeId = $(this).val();
-            $.ajax({
-                url: '{{ url("client/get-staffs") }}',
-                type: 'GET',
-                data: { office_id: officeId },
-                success: function (data) {
-                    $("#staff_id").empty();
-                    $("#staff_id").append('<option></option>');
-                    $.each(data, function (key, value) {
-                        $("#staff_id").append('<option value="' + key + '">' + value + '</option>');
-                    });
-                }
-            });
-        });
+        // $("#office_id").change(function () {
+        //     var officeId = $(this).val();
+        //     $.ajax({
+        //         url: '{{ url("client/get-staffs") }}',
+        //         type: 'GET',
+        //         data: { office_id: officeId },
+        //         success: function (data) {
+        //             $("#staff_id").empty();
+        //             $("#staff_id").append('<option></option>');
+        //             $.each(data, function (key, value) {
+        //                 $("#staff_id").append('<option value="' + key + '">' + value + '</option>');
+        //             });
+        //         }
+        //     });
+        // });
         $(".form-horizontal").validate({
             rules: {
                 field: {
