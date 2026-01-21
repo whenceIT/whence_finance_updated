@@ -16,14 +16,14 @@
         <form method="post" action="{{url('client/store')}}" class="form-horizontal" enctype="multipart/form-data">
             {{csrf_field()}}
             <div class="box-body">
-                                <div class="form-group">
+                <div class="form-group">
                     <label for="office_id"
                            class="control-label col-md-2">{{trans_choice('general.branch',1)}}</label>
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option></option>
                             @php
-                                $offices = \App\Models\Office::all();
+                                $offices = \App\Helpers\GeneralHelper::get_filtered_offices();
                             @endphp
                             @foreach($offices as $key)
                                 <option value="{{$key->id}}">{{$key->name}}</option>
@@ -31,17 +31,17 @@
                         </select>
                     </div>
                     @php
-                        $staffs = \App\Models\User::where('status', 'Active')->get();
+                        $staffs = \App\Helpers\GeneralHelper::get_filtered_staffs();
                     @endphp
                     <label for="staff_id"
                            class="control-label col-md-2">{{trans_choice('general.staff',1)}}</label>
                     <div class="col-md-3">
                         <select name="staff_id" class="form-control select2" id="staff_id" required>
-                            <option></option>
-                            @foreach($staffs as $staff)
-                                <option value="{{$staff->id}}">{{$staff->first_name}} {{$staff->last_name}}</option>
-                            @endforeach
+                            <option>Please select a branch first</option>                        
                         </select>
+                        <div id="staff_loading" style="display: none; margin-top: 5px;">
+                            <i class="fa fa-spinner fa-spin"></i> Checking staff...
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -365,21 +365,33 @@
             }
         });
 
-        // $("#office_id").change(function () {
-        //     var officeId = $(this).val();
-        //     $.ajax({
-        //         url: '{{ url("client/get-staffs") }}',
-        //         type: 'GET',
-        //         data: { office_id: officeId },
-        //         success: function (data) {
-        //             $("#staff_id").empty();
-        //             $("#staff_id").append('<option></option>');
-        //             $.each(data, function (key, value) {
-        //                 $("#staff_id").append('<option value="' + key + '">' + value + '</option>');
-        //             });
-        //         }
-        //     });
-        // });
+        $("#office_id").change(function () {
+            var officeId = $(this).val();
+            if (officeId) {
+                $("#staff_loading").show();
+                $.ajax({
+                    url: '{{ url("client/get-staffs") }}',
+                    type: 'GET',
+                    data: { office_id: officeId },
+                    success: function (data) {
+                        $("#staff_id").empty();
+                        $("#staff_id").append('<option></option>');
+                        $.each(data, function (key, value) {
+                            $("#staff_id").append('<option value="' + key + '">' + value + '</option>');
+                        });
+                        $("#staff_loading").hide();
+                    },
+                    error: function () {
+                        $("#staff_loading").hide();
+                        $("#staff_id").empty();
+                        $("#staff_id").append('<option>Please select a branch first</option>');
+                    }
+                });
+            } else {
+                $("#staff_id").empty();
+                $("#staff_id").append('<option>Please select a branch first</option>');
+            }
+        });
         $(".form-horizontal").validate({
             rules: {
                 field: {
