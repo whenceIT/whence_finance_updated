@@ -1541,16 +1541,16 @@ class UserController extends Controller
 
     public function edit($user)
     {
-        if (!Sentinel::hasAccess('users.update')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('users.update')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
 
-        $allowedEditors = config('access.allowed_user_editors');
-        if (!in_array(Sentinel::getUser()->id, $allowedEditors)) {
-            Flash::warning("You are not authorized to edit users");
-            return redirect()->back();
-        }
+        // $allowedEditors = config('access.allowed_user_editors');
+        // if (!in_array(Sentinel::getUser()->id, $allowedEditors)) {
+        //     Flash::warning("You are not authorized to edit users");
+        //     return redirect()->back();
+        // }
 
         foreach ($user->roles as $sel) {
             $selected = $sel->id;
@@ -1568,10 +1568,10 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('users.update')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
+        // if (!Sentinel::hasAccess('users.update')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
         $user = Sentinel::findById($id);
         $credentials = [
             'email' => $request->email,
