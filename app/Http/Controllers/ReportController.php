@@ -870,7 +870,7 @@ class ReportController extends Controller
     if (!empty($start_date)) {
 
         // --------------------
-        // Fetch all repayment transactions in one query
+        // Fetch all repayment transactions in a single query
         // --------------------
         $loanTransactionsQuery = LoanTransaction::select(
             'id', 'loan_id', 'office_id', 'amount', 'date', 'payment_apply_to', 'reversed'
@@ -878,7 +878,11 @@ class ReportController extends Controller
         ->where('transaction_type', 'repayment')
         ->where('reversed', 0)
         ->whereBetween('date', [$start_date, $end_date])
-        ->with(['loan:id,office_id,status', 'office:id,name']);
+        ->with([
+            'loan:id,office_id,status', 
+            'loan.transactions:id,loan_id,amount,date,payment_apply_to,reversed', // eager load all transactions to prevent N+1
+            'office:id,name'
+        ]);
 
         if ($office_id != 0) {
             $loanTransactionsQuery->where('office_id', $office_id);
@@ -976,7 +980,6 @@ class ReportController extends Controller
         'branches'
     ));
 }
-
 
 
     public function repayments_report_details_pdf(Request $request)
