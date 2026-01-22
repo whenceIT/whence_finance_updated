@@ -1,10 +1,12 @@
 <?php
-    use App\Models\AppraisalForm;               
+    use App\Models\AppraisalForm;
+    use App\Models\Ticket;
 
     $userInfo = \App\Helpers\GeneralHelper::get_user_info();
     $user = $userInfo->user;
     $role = $userInfo->role;
     $office = $userInfo->office;
+    $assignedTickets = \App\Models\Ticket::where('assigned_to', Sentinel::getUser()->id)->get();
 ?>
 <aside class="main-sidebar" style="color: #ffffff">
     <!-- sidebar: style can be found in sidebar.less -->
@@ -45,6 +47,10 @@
             <li class="@if(Request::is('ticket*')) active @endif">
                 <a href="{{ url('ticket') }}">
                     <i class="fa fa-ticket"></i> <span>Tickets</span>
+                    <span class="pull-right-container">
+                        
+                        <span class="label label-info pull-right">{{ $assignedTickets->count() }}</span>
+                    </span>
                 </a>
             </li>
             

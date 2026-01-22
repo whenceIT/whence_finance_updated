@@ -28,6 +28,7 @@ class Ticket extends Model
         'sla_met',
         'rating',
         'remarks',
+        'resolution_comment',
     ];
 
     protected $casts = [

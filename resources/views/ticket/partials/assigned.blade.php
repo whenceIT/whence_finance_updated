@@ -41,14 +41,10 @@
                                 <td>{{ $ticket->sla_days ?? '—' }}</td>
                                 <td>{{ $ticket->due_date ? date('d M Y', strtotime($ticket->due_date)) : '—' }}</td>
                                 <td>{!! is_null($ticket->sla_met) ? '&#8212;' : ($ticket->sla_met ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>') !!}</td>
-                                <td><button type="button" class="btn btn-xs btn-info view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" title="View details"><i class="fa fa-info-circle"></i></button></td>
+                                <td><button type="button" class="btn btn-xs btn-info view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" data-resolution-comment="{{ e($ticket->resolution_comment) }}" data-status="{{ $ticket->status }}" title="View details"><i class="fa fa-info-circle"></i></button></td>
                                 <td>
                                     @if($ticket->status != 'resolved')
-                                    <form method="post" action="{{ url('ticket/'.$ticket->id.'/update') }}" style="display:inline-block">
-                                        @csrf
-                                        <input type="hidden" name="status" value="resolved">
-                                        <button class="btn btn-sm btn-info" onclick="return confirm('Mark ticket as resolved?')">Resolve</button>
-                                    </form>
+                                    <button class="btn btn-sm btn-info resolve-btn" data-ticket-id="{{ $ticket->id }}">Resolve</button>
                                     @endif
                                 </td>
                             </tr>
@@ -134,7 +130,7 @@
                         <div class="row">
                             @foreach($assignedTickets as $ticket)
                             <div class="col-12 col-md-6 col-lg-3 mb-3">
-                                <div class="card shadow-none ticket-card view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}">
+                                <div class="card shadow-none ticket-card view-ticket-info" data-ticket-name="{{ e($ticket->name) }}" data-ticket-number="{{ $ticket->ticket_number }}" data-ticket-remarks="{{ e($ticket->remarks) }}" data-ticket-rating="{{ $ticket->rating ?? 0 }}" data-ticket-description="{{ e($ticket->description) }}" data-ticket-days="{{ $ticket->date_closed ? \Carbon\Carbon::parse($ticket->date_raised ?? $ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->date_closed)) : '—' }}" data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}" data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}" data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}" data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}" data-resolution-comment="{{ e($ticket->resolution_comment) }}" data-status="{{ $ticket->status }}">
                                     <div class="ticket-card-body">
                                         <h5 class="ticket-title">
                                             <i class="fa fa-ticket-alt"></i> {{ \Illuminate\Support\Str::limit($ticket->name, 30, '…') }}
@@ -163,11 +159,7 @@
                                         </div>
                                         <div class="ticket-actions">
                                             @if($ticket->status != 'resolved')
-                                            <form method="post" action="{{ url('ticket/'.$ticket->id.'/update') }}" style="display:inline-block" onclick="event.stopPropagation()">
-                                                @csrf
-                                                <input type="hidden" name="status" value="resolved">
-                                                <button class="btn btn-success ticket-btn" style="font-size: 0.9em; padding: 0.4rem 0.8rem;" onclick="event.stopPropagation(); return confirm('Mark ticket as resolved?')"><i class="fa fa-check"></i> Resolve</button>
-                                            </form>
+                                            <button class="btn btn-success ticket-btn resolve-btn" style="font-size: 0.9em; padding: 0.4rem 0.8rem;" onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}"><i class="fa fa-check"></i> Resolve</button>
                                             @endif
                                         </div>
                                     </div>
@@ -194,10 +186,47 @@
                             $('#table-view-btn').addClass('btn-secondary').removeClass('btn-primary');
                         });
                         $(document).on('click', '.view-ticket-info', function(){
-                            $('.ticket-card').removeClass('clicked');
-                            $(this).closest('.ticket-card').addClass('clicked');
+                                $('.ticket-card').removeClass('clicked');
+                                $(this).closest('.ticket-card').addClass('clicked');
+                            });
+                            $('.resolve-btn').click(function(){
+                                var ticketId = $(this).data('ticket-id');
+                                $('#resolveForm').attr('action', '/ticket/' + ticketId + '/update');
+                                $('#resolveModal').modal('show');
+                            });
+                            $('#resolveModal').on('hidden.bs.modal', function () {
+                                $('#resolveForm')[0].reset();
+                            });
                         });
-                    });
                     </script>
                 </div>
+
+                <!-- Resolve Modal -->
+                <div class="modal fade" id="resolveModal" tabindex="-1" role="dialog" aria-labelledby="resolveModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="resolveModalLabel">Resolve Ticket</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form id="resolveForm" method="post">
+                                @csrf
+                                <input type="hidden" name="status" value="resolved">
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="resolution_comment">Resolution Comment</label>
+                                        <textarea class="form-control" id="resolution_comment" name="resolution_comment" rows="3" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Resolve</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 @include('ticket.partials.view_ticket_modal')

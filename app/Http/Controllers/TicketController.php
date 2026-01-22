@@ -272,6 +272,7 @@ class TicketController extends Controller
                 $ticket->datetime_close = now();
                 $ticket->date_closed = now();
                 $ticket->closed_by = Sentinel::getUser()->id;
+                $ticket->resolution_comment = $request->resolution_comment;
 
                 if ($ticket->due_date && $ticket->date_closed) {
                     $ticket->sla_met = \Carbon\Carbon::parse($ticket->date_closed)->lessThanOrEqualTo(\Carbon\Carbon::parse($ticket->due_date));

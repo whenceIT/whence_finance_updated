@@ -368,6 +368,7 @@
                 var name = $(this).data('ticket-name');
                 var ticketNumber = $(this).data('ticket-number') || '—';
                 var remarks = $(this).data('ticket-remarks') || '';
+                var resolutionComment = $(this).data('resolution-comment') || '';
                 var rating = parseInt($(this).data('ticket-rating')) || 0;
                 var description = $(this).data('ticket-description') || '';
                 var days = $(this).data('ticket-days') || '—';
@@ -375,6 +376,7 @@
                 var openedPhone = $(this).data('opened-phone') || '—';
                 var openedEmail = $(this).data('opened-email') || '—';
                 var openedAt = $(this).data('opened-at') || '—';
+                var status = $(this).data('status') || '';
 
                 $('#viewTicketName').text(name);
                 $('#ticketNumber').text(ticketNumber);
@@ -385,6 +387,7 @@
                 $('#ticketDescription').text(description ? description : 'No description provided.');
                 $('#ticketDays').text(days);
                 $('#ticketRemarks').text(remarks ? remarks : 'No remarks provided.');
+                $('#ticketResolutionComment').text(resolutionComment ? resolutionComment : 'No resolution comment provided.');
                 var stars = '';
                 for (var i = 1; i <= 5; i++) {
                     if (i <= rating) stars += '<i class="fa fa-star text-warning"></i> ';
@@ -392,7 +395,26 @@
                 }
                 if (rating === 0) stars = '<span class="text-muted">No rating</span>';
                 $('#ticketRatingStars').html(stars);
+
+                // Handle resolved ticket visual indicator and resolution comment visibility
+                if (status === 'resolved') {
+                    $('#resolvedBadge').show();
+                    $('#modalHeader').addClass('bg-success text-white');
+                    $('#resolutionCommentGroup').show();
+                } else {
+                    $('#resolvedBadge').hide();
+                    $('#modalHeader').removeClass('bg-success text-white');
+                    $('#resolutionCommentGroup').hide();
+                }
+
                 $('#viewTicketModal').modal('show');
+            });
+
+            // Reset modal styles when hidden
+            $('#viewTicketModal').on('hidden.bs.modal', function () {
+                $('#resolvedBadge').hide();
+                $('#modalHeader').removeClass('bg-success text-white');
+                $('#resolutionCommentGroup').hide();
             });
 
             // open assign modal (admin)

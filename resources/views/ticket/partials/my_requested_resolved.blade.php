@@ -75,7 +75,8 @@
                             data-opened-by="{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}"
                             data-opened-phone="{{ optional($ticket->openedBy)->phone ?? '—' }}"
                             data-opened-email="{{ optional($ticket->openedBy)->email ?? '—' }}"
-                            data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}">
+                            data-opened-at="{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}"
+                            data-resolution-comment="{{ e($ticket->resolution_comment) }}" data-status="{{ $ticket->status }}">
                             <div class="ticket-card-body">
                                 <h5 class="ticket-title">
                                     <i class="fa fa-ticket-alt"></i>
