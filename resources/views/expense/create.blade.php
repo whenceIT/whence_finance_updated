@@ -21,20 +21,9 @@
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option></option>
-                            @if(Sentinel::getUser()->role_id == 1)
-                                @foreach(\App\Models\Office::all() as $key)
-                                    <option value="{{$key->id}}">{{$key->name}}</option>
-                                @endforeach
-                            @elseif(in_array(Sentinel::getUser()->role_id, [3,4]))
-                                @foreach(\App\Models\Office::where('id', Sentinel::getUser()->office_id)->get() as $key)
-                                    <option value="{{$key->id}}">{{$key->name}}</option>
-                                @endforeach
-                            @elseif(Sentinel::getUser()->role_id == 6)
-                                @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->province_id)->get() as $key)
-                                
-                                    <option value="{{$key->id}}">{{$key->name}}</option>
-                                @endforeach
-                            @endif
+                            @foreach($offices as $key)
+                                <option value="{{$key->id}}">{{$key->name}}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
