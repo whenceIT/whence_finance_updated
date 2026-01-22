@@ -21,7 +21,7 @@
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option></option>
-                            @foreach(\App\Models\Office::all() as $key)
+                            @foreach($offices as $key)
                                 <option value="{{$key->id}}">{{$key->name}}</option>
                             @endforeach
                         </select>
@@ -256,6 +256,9 @@
             // Dynamic GL accounts
             $('#expense_type_id').change(function () {
                 var id = $(this).val();
+                $('#gl_account_id').empty();
+                $('#gl_account_id').append('<option>Loading...</option>');
+                $('#gl_account_id').prop('disabled', true);
                 if (id) {
                     $.ajax({
                         url: "{{ url('expense/type') }}/" + id + "/get_gl_accounts",
@@ -267,11 +270,18 @@
                             $.each(data, function (key, value) {
                                 $('#gl_account_id').append('<option value="' + value.id + '">' + value.name + '</option>');
                             });
+                            $('#gl_account_id').prop('disabled', false);
+                        },
+                        error: function() {
+                            $('#gl_account_id').empty();
+                            $('#gl_account_id').append('<option></option>');
+                            $('#gl_account_id').prop('disabled', false);
                         }
                     });
                 } else {
                     $('#gl_account_id').empty();
                     $('#gl_account_id').append('<option></option>');
+                    $('#gl_account_id').prop('disabled', false);
                 }
             });
 

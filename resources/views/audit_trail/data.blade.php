@@ -6,9 +6,7 @@
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">  {{ trans_choice('general.audit_trail',2) }} </h3>
-
             <div class="box-tools pull-right">
-
             </div>
         </div>
 

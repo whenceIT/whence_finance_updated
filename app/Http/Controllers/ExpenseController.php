@@ -81,7 +81,17 @@ class ExpenseController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        return view('expense.create');
+        $user = Sentinel::getUser();
+        if ($user->role->role_id == 1) {
+            $offices = Office::all();
+        } elseif (in_array($user->role->role_id, [3,4])) {
+            $offices = Office::where('id', $user->office_id)->get();
+        } elseif ($user->role->role_id == 6) {
+            $offices = Office::where('province_id', $user->province_id)->get();
+        } else {
+            $offices = collect();
+        }
+        return view('expense.create', compact('offices'));
     }
 
     /**

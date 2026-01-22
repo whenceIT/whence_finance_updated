@@ -216,18 +216,18 @@ class TicketController extends Controller
             $ticket->save();
 
             // Send notification emails to admins
-            $notificationEmails = config('ticket.notification_emails', []);
-            foreach ($notificationEmails as $email) {
-                // try {
-                // Mail::to($email)->send(new SendSingleEmail('New Ticket Created | ' . $ticket->ticket_number, 'A new ticket has been created: ' . $ticket->ticket_number . ' by ' . $user->first_name . ' ' . $user->last_name . '. {link}'));
-                // } catch (\Exception $e) {
-                //     \Log::error('Failed to send admin notification email: ' . $e->getMessage());
-                // }
-            }
+            // $notificationEmails = config('ticket.notification_emails', []);
+            // foreach ($notificationEmails as $email) {
+            //     try {
+            //         Mail::to($email)->send(new SendSingleEmail('New Ticket Created | ' . $ticket->ticket_number, 'A new ticket has been created: ' . $ticket->ticket_number . ' by ' . $user->first_name . ' ' . $user->last_name . '. {link}'));
+            //     } catch (\Exception $e) {
+            //         \Log::error('Failed to send admin notification email: ' . $e->getMessage());
+            //     }
+            // }
 
             // Send confirmation email to user
             // try {
-            // Mail::to($user->email)->send(new SendSingleEmail('Ticket Submitted Successfully', 'Your ticket "' . $ticket->ticket_number . '" has been submitted successfully. {link}'));
+            //     Mail::to($user->email)->send(new SendSingleEmail('Ticket Submitted Successfully', 'Your ticket "' . $ticket->ticket_number . '" has been submitted successfully. {link}'));
             // } catch (\Exception $e) {
             //     \Log::error('Failed to send user confirmation email: ' . $e->getMessage());
             // }
