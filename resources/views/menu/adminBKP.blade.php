@@ -466,8 +466,8 @@
                 <a href="#">
                     <i class="fa fa-star"></i> <span>Appraisal</span>
                     <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
                 </a>
 
 
@@ -518,10 +518,10 @@
             @if(Sentinel::hasAccess('offices'))
                 <li class="treeview @if(Request::is('office/*')) active @endif">
                     <a href="#">
-                        <i class="fa fa-briefcase"></i> <span>{{trans_choice('general.branch',2)}}</span>
+                        <i class="fa fa-briefcase"></i> <spanxs>{{trans_choice('general.branch',2)}}</span>
                         <span class="pull-right-container">
-                            <i class="fa fa-angle-left pull-right"></i>
-                        </span>
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
                     </a>
                     <ul class="treeview-menu">
                         @if(Sentinel::hasAccess('offices.view'))
@@ -543,8 +543,8 @@
                     <a href="#">
                         <i class="fa fa-users"></i> <span>{{trans_choice('general.client',2)}}</span>
                         <span class="pull-right-container">
-                            <i class="fa fa-angle-left pull-right"></i>
-                        </span>
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
                     </a>
                     <ul class="treeview-menu">
                         @if(Sentinel::hasAccess('clients.view'))
@@ -1352,15 +1352,15 @@
             @endif-->
 
 
-            @if(Sentinel::hasAccess('settings'))
-            <li>
-                <a href="{{ url('user/performance_information') }}"><i
-                            class="fa fa-circle-o"></i>Performance Information
-                    <span class="pull-right-container">
-                    </span>
-                </a>
-            </li>
-            @endif
+                            @if(Sentinel::hasAccess('settings'))
+                                              <li>
+                                <a href="{{ url('user/performance_information') }}"><i
+                                            class="fa fa-circle-o"></i>Performance Information
+                                    <span class="pull-right-container">
+                                    </span>
+                                </a>
+                            </li>
+@endif
     
             @if(Sentinel::hasAccess('expenses'))
                             <li><a href="{{ url('payroll/lc_information') }}"><i

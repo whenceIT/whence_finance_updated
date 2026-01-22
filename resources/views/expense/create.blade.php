@@ -21,9 +21,20 @@
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option></option>
-                            @foreach(\App\Models\Office::all() as $key)
-                                <option value="{{$key->id}}">{{$key->name}}</option>
-                            @endforeach
+                            @if(Sentinel::getUser()->role_id == 1)
+                                @foreach(\App\Models\Office::all() as $key)
+                                    <option value="{{$key->id}}">{{$key->name}}</option>
+                                @endforeach
+                            @elseif(in_array(Sentinel::getUser()->role_id, [3,4]))
+                                @foreach(\App\Models\Office::where('id', Sentinel::getUser()->office_id)->get() as $key)
+                                    <option value="{{$key->id}}">{{$key->name}}</option>
+                                @endforeach
+                            @elseif(Sentinel::getUser()->role_id == 6)
+                                @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->province_id)->get() as $key)
+                                
+                                    <option value="{{$key->id}}">{{$key->name}}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                 </div>
@@ -256,6 +267,9 @@
             // Dynamic GL accounts
             $('#expense_type_id').change(function () {
                 var id = $(this).val();
+                $('#gl_account_id').empty();
+                $('#gl_account_id').append('<option>Loading...</option>');
+                $('#gl_account_id').prop('disabled', true);
                 if (id) {
                     $.ajax({
                         url: "{{ url('expense/type') }}/" + id + "/get_gl_accounts",
@@ -267,11 +281,18 @@
                             $.each(data, function (key, value) {
                                 $('#gl_account_id').append('<option value="' + value.id + '">' + value.name + '</option>');
                             });
+                            $('#gl_account_id').prop('disabled', false);
+                        },
+                        error: function() {
+                            $('#gl_account_id').empty();
+                            $('#gl_account_id').append('<option></option>');
+                            $('#gl_account_id').prop('disabled', false);
                         }
                     });
                 } else {
                     $('#gl_account_id').empty();
                     $('#gl_account_id').append('<option></option>');
+                    $('#gl_account_id').prop('disabled', false);
                 }
             });
 
