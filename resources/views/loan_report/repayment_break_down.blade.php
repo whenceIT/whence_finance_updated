@@ -1579,18 +1579,34 @@ $(function () {
 
     var startDate = "{{ $start_date }}";
     var endDate   = "{{ $end_date }}";
-    var branches  = @json($branches); // collection of branches {id, name}
+    var branches  = @json($branches);
 
     var depositTypes = [];
 
     /* ---------- LOAD DEPOSIT TYPES ---------- */
 
-    $.get('https://lms2backend.whencefinancesystem.com/deposit-types', function (res) {
+    $.get('https://lms2backend.whencefinancesystem.com/deposit-types')
+        .done(function (res) {
 
-        depositTypes = res.data || res;
+            // normalize response
+            depositTypes = Array.isArray(res)
+                ? res
+                : (res.data || []);
 
-        loadDepositReport();
-    });
+            if (!depositTypes.length) {
+                $('#depositReportBody').html(
+                    '<p class="text-danger">No deposit types found.</p>'
+                );
+                return;
+            }
+
+            loadDepositReport();
+        })
+        .fail(function () {
+            $('#depositReportBody').html(
+                '<p class="text-danger">Failed to load deposit types.</p>'
+            );
+        });
 
     /* ---------- LOAD REPORT ---------- */
 
@@ -1612,13 +1628,14 @@ $(function () {
                         </tr>
                     </thead>
                     <tbody id="deposit-branch-${branch.id}">
-                        <tr><td colspan="3" class="text-muted">Loading…</td></tr>
+                        <tr>
+                            <td colspan="3" class="text-muted">Loading…</td>
+                        </tr>
                     </tbody>
                 </table>
             `);
 
             container.append(box);
-
             loadBranchDeposits(branch.id);
         });
     }
@@ -1629,18 +1646,24 @@ $(function () {
 
         $.get('https://lms2backend.whencefinancesystem.com/check-deposits', {
             branch: branchId,
-            date: startDate.slice(0,7) // YYYY-MM
-        }, function (response) {
+            date: startDate.slice(0, 7) // YYYY-MM
+        })
+        .done(function (res) {
 
             var tbody = $('#deposit-branch-' + branchId);
             tbody.empty();
 
+            // normalize response
+            var rows = Array.isArray(res)
+                ? res
+                : (res.data || []);
+
             var completed = {};
-           
-            response.forEach(function (d) {
-                completed[d.deposit_type_id] = d.amount;
+
+            console.log(rows)
+            rows.forEach(function (d) {
+                completed[d.deposit_type_id] = Number(d.amount || 0);
             });
-          
 
             depositTypes.forEach(function (type) {
 
@@ -1648,24 +1671,41 @@ $(function () {
                     tbody.append(`
                         <tr class="success">
                             <td>${type.name}</td>
-                            <td><span class="label label-success">Paid</span></td>
-                            <td class="text-right">${Number(completed[type.id]).toLocaleString()}</td>
+                            <td>
+                                <span class="label label-success">Paid</span>
+                            </td>
+                            <td class="text-right">
+                                ${completed[type.id].toLocaleString()}
+                            </td>
                         </tr>
                     `);
                 } else {
                     tbody.append(`
                         <tr class="warning">
                             <td>${type.name}</td>
-                            <td><span class="label label-warning">Pending</span></td>
+                            <td>
+                                <span class="label label-warning">Pending</span>
+                            </td>
                             <td class="text-right">—</td>
                         </tr>
                     `);
                 }
             });
+        })
+        .fail(function () {
+
+            $('#deposit-branch-' + branchId).html(`
+                <tr>
+                    <td colspan="3" class="text-danger">
+                        Failed to load deposits
+                    </td>
+                </tr>
+            `);
         });
     }
 
 });
+
 
 
 </script>
