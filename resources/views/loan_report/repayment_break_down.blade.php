@@ -575,7 +575,10 @@ $outstanding_total += $outstanding_amount;
 		    $total_outstanding = 0;
 		    $total_balance_sum = 0;
                     $paid_amount = 0;
-		    $total = 0
+		    $total = 0;
+
+            $loanIds = $part_data->pluck('loan_id')->unique()->toArray();
+$loanBalances = \App\Helpers\GeneralHelper::loan_balances_bulk($loanIds);
 			  
                     ?>
                     @foreach($part_data as $key)
@@ -593,7 +596,8 @@ $outstanding_total += $outstanding_amount;
 			$credit = floatval($key->credit ?? 0);
 			$total_balance_sum += floatval($balance ?? 0);
 
-  $balance = floatval(\App\Helpers\GeneralHelper::new_new_loan_total_balance($key->loan_id) ?? 0);
+  $balance = floatval($loanBalances[$key->loan_id] ?? 0);
+
 
 if (is_numeric($credit) && $credit > 0) {
     $total += $credit;

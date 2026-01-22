@@ -377,6 +377,16 @@ class GeneralHelper
 
     }
 
+    public static function loan_balances_bulk(array $loanIds)
+{
+    return DB::table('loan_transactions')
+        ->whereIn('loan_id', $loanIds)
+        ->groupBy('loan_id')
+        ->selectRaw('loan_id, COALESCE(SUM(debit),0) - COALESCE(SUM(credit),0) as balance')
+        ->pluck('balance', 'loan_id'); // [loan_id => balance]
+}
+
+
 public static function new_new_loan_total_balance($id)
 {
     return DB::table('loan_transactions')
