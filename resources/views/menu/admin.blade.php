@@ -82,7 +82,7 @@
  @if(Sentinel::hasAccess('settings'))
                                    <li>
                                 <a href="{{ url('user/branch_deposits') }}"><i
-                                            class="fa fa-circle-o"></i>Branch Deposits
+                                            class="fa fa-university"></i>Branch Deposits
                                     <span class="pull-right-container">
                                     </span>
                                 </a>
