@@ -851,7 +851,7 @@ class ReportController extends Controller
 
 
     ///--optimized--//////////////////////////////////////////////////////////////////////HEREREREE/////////////////////////////////////
-    public function repayments_report_details(Request $request)
+ public function repayments_report_details(Request $request)
     {
         // Increase memory limit and execution time for large data processing
         // ini_set('memory_limit', '1024M');

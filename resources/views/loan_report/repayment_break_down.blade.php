@@ -387,11 +387,6 @@ if (is_numeric($credit) && $credit > 0) {
                         $bdr=0;
                         $bcr=0;
                         $badrcr=0;
-                        //sum of credit amounts
-                        //$paid_amount = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('credit');
-                        //$new = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('debit');
-                        //$interest_paid =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','reloan_payment')->sum('interest_derived');
-                        //$balance = \App\Helpers\GeneralHelper::loan_total_balance($key->loan_id);
                         $interest_new = $key->interest_derived;
                         $credit = floatval($key->credit ?? 0);
 $bf_balance = floatval($key->balance_bf ?? 0);
@@ -405,17 +400,9 @@ if (is_numeric($credit) && $credit > 0) {
 $total_interest_paid += $interest_new;
 $new_bf += $bf_balance;
 
-                        //$prev_balance = $balance - $interest_paid;
-                        //$total_bf = 0; 
-                        //$total_bf = $total_bf + $bf;
-                        //$total_prev_balance  = $total_prev_balance  + $prev_balance;
-                        //$test =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
-                        //$bf =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
+                       
                         $new_bf = $new_bf + $bf_balance; //- $new_amount;
                         $credit_amount = $credit_amount + $new_amount;
-                        //$bdr =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('debit');
-                        //$bcr =  \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('date','<',$key->date)->sum('credit');
-                        //$badrcr=$bdr-$bcr;
                         $total_outstanding = $total_outstanding + $balance;
 			//$outstanding_amount = $bf - $key->credit;
 			$outstanding_amount = floatval($key->balance_bf ?? 0) - floatval($key->credit ?? 0);
@@ -599,7 +586,6 @@ $outstanding_total += $outstanding_amount;
                             $decimals = 0;
                         }
                        
-                        //$paid_amount = \App\Models\LoanTransaction::where('loan_id',$key->loan_id)->where('payment_apply_to','part_payment')->sum('credit');
                         $principal = $key->principal_derived;
                         $interest = $key->interest_derived;
                         $fees = $key->fees_derived;
@@ -607,7 +593,7 @@ $outstanding_total += $outstanding_amount;
 			$credit = floatval($key->credit ?? 0);
 			$total_balance_sum += floatval($balance ?? 0);
 
-$balance = floatval(\App\Helpers\GeneralHelper::loan_total_balance($key->loan_id) ?? 0);
+
 
 if (is_numeric($credit) && $credit > 0) {
     $total += $credit;
@@ -630,7 +616,7 @@ if (is_numeric($balance)) {
                         $total_expected=0;
                         $principal_outstanding = 0;
                         $total_principal_outstanding = 0;
-                        $balance = \App\Helpers\GeneralHelper::new_loan_total_balance($key->loan_id);
+                     
                       
                         $bf_balance=0;
                         $total_balance = $total_balance + $balance;
@@ -1029,7 +1015,7 @@ $total_loans = 0;
                         // $total_expected=0;
                         // $principal_outstanding = 0;
                         // $total_principal_outstanding = 0;
-                        // $balance = \App\Helpers\GeneralHelper::loan_total_balance($key->loan_id);
+                       
                       
                         // $bf_balance=0;
                         // $total_balance = $total_balance + $balance;
