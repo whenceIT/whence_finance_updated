@@ -593,7 +593,7 @@ $outstanding_total += $outstanding_amount;
 			$credit = floatval($key->credit ?? 0);
 			$total_balance_sum += floatval($balance ?? 0);
 
-
+ $balance = floatval(\App\Helpers\GeneralHelper::new_new_loan_total_balance($key->loan_id) ?? 0);
 
 if (is_numeric($credit) && $credit > 0) {
     $total += $credit;

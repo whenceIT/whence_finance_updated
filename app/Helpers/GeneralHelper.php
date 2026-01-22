@@ -377,20 +377,18 @@ class GeneralHelper
 
     }
 
-    public static function new_new_loan_total_balance($id, $date)
+    public static function new_new_loan_total_balance($id)
     {
 
-        $loan = Loan::find($id);
+        $loan = Loan::with('transactions')->find($id);
         $someInfo = [];
         $debit = 0;
         $credit = 0;
         if (!empty($loan)) {
             foreach ($loan->transactions as $transaction) {
-                if ($transaction->date < $date) {
+              
                     $debit = $debit + $transaction->debit;
                     $credit = $credit + $transaction->credit;
-                }
-
             }
             return (($debit - $credit));
 
