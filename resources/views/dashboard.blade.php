@@ -695,7 +695,7 @@
             <div class="box box-primary">
                 <div id='mydivon_new' style="display:block" class="box-body table-responsive">
                     <div class="box-header with-border">
-                        <h3 class="box-title">Loans at end of last cycle<a href="javascript:;"
+                        <h3 class="box-title">Loans at end of last cycleE<a href="javascript:;"
                                 onmousedown="toggleLedger('mydiv');">
                             </a></h3>
                     </div>
