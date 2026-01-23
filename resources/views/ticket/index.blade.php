@@ -262,11 +262,14 @@
                 <form method="post" id="assignTicketForm" action="">
                     @csrf
                     @method('PUT')
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="assignTicketModalLabel">Assign Ticket: <span
-                                id="assignTicketName"></span></h4>
+                    <div class="modal-header d-flex">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h3 class="modal-title text-bold font-bold" id="assignTicketModalLabel">
+                            <img src="{{ asset('anim/assign.gif') }}" alt="Assign Animation" class="me-3" style="width: 40px; height: 40px; border-radius: 8px;">
+                             Assign Ticket: <span id="assignTicketName"></span>
+                        </h3>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="type" value="assign">
@@ -294,7 +297,10 @@
                                 <option value="">-- Select User --</option>
                             </select>
                         </div>
-                        <div class="help-block text-muted">Choose Office → Role to filter users, then assign.</div>
+                        <div class="alert alert-info mb-0">
+                            <i class="fa fa-info-circle me-2"></i>
+                            <strong>Tip:</strong> Choose Office → Role to filter users, then assign.
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -387,24 +393,34 @@
                 $('#ticketDescription').text(description ? description : 'No description provided.');
                 $('#ticketDays').text(days);
                 $('#ticketRemarks').text(remarks ? remarks : 'No remarks provided.');
-                $('#ticketResolutionComment').text(resolutionComment ? resolutionComment : 'No resolution comment provided.');
+                $('#ticketResolutionComment').text(resolutionComment ? resolutionComment : 'No comments.');
                 var stars = '';
-                for (var i = 1; i <= 5; i++) {
-                    if (i <= rating) stars += '<i class="fa fa-star text-warning"></i> ';
-                    else stars += '<i class="fa fa-star-o text-muted"></i> ';
+                var ratingText = 'No rating provided';
+                if (rating > 0) {
+                    for (var i = 1; i <= 5; i++) {
+                        if (i <= rating) stars += '<i class="bi bi-star-fill text-warning"></i>';
+                        else stars += '<i class="bi bi-star text-muted"></i>';
+                    }
+                    ratingText = rating + ' out of 5 stars';
                 }
-                if (rating === 0) stars = '<span class="text-muted">No rating</span>';
                 $('#ticketRatingStars').html(stars);
+                $('#ratingText').text(ratingText);
 
-                // Handle resolved ticket visual indicator and resolution comment visibility
+                // Handle resolved ticket visual indicator
                 if (status === 'resolved') {
                     $('#resolvedBadge').show();
                     $('#modalHeader').addClass('bg-success text-white');
-                    $('#resolutionCommentGroup').show();
+                    $('#ticketResolutionComment').css({
+                        'background-color': '#d4edda',
+                        'border-left-color': '#28a745'
+                    });
                 } else {
                     $('#resolvedBadge').hide();
                     $('#modalHeader').removeClass('bg-success text-white');
-                    $('#resolutionCommentGroup').hide();
+                    $('#ticketResolutionComment').css({
+                        'background-color': '#f8f9fa',
+                        'border-left-color': '#dee2e6'
+                    });
                 }
 
                 $('#viewTicketModal').modal('show');
@@ -414,7 +430,10 @@
             $('#viewTicketModal').on('hidden.bs.modal', function () {
                 $('#resolvedBadge').hide();
                 $('#modalHeader').removeClass('bg-success text-white');
-                $('#resolutionCommentGroup').hide();
+                $('#ticketResolutionComment').css({
+                    'background-color': '#f8f9fa',
+                    'border-left-color': '#dee2e6'
+                });
             });
 
             // open assign modal (admin)

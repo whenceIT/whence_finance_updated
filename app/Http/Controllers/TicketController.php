@@ -252,14 +252,24 @@ class TicketController extends Controller
             if ($request->status == 'closed') {
                 $request->validate([
                     'rating' => 'required|integer|min:1|max:5',
-                    'remarks' => 'nullable|string',
+                    'predefined_remarks' => 'nullable|string',
+                    'custom_remarks' => 'nullable|string',
                 ]);
 
                 $ticket->datetime_close = now();
                 $ticket->date_closed = now();
                 $ticket->closed_by = Sentinel::getUser()->id;
                 $ticket->rating = $request->rating;
-                $ticket->remarks = $request->remarks;
+
+                // Combine predefined and custom remarks
+                $remarks = [];
+                if ($request->filled('predefined_remarks')) {
+                    $remarks[] = $request->predefined_remarks;
+                }
+                if ($request->filled('custom_remarks')) {
+                    $remarks[] = $request->custom_remarks;
+                }
+                $ticket->remarks = implode(' ', $remarks);
 
                 // compute SLA met
                 if ($ticket->due_date && $ticket->date_closed) {

@@ -42,9 +42,9 @@
                 <label>Remarks</label>
                 <div id="ticketRemarks" style="white-space: pre-wrap;">&mdash;</div>
             </div>
-            <div class="form-group" id="resolutionCommentGroup" style="display:none;">
+            <div class="form-group">
                 <label>Resolution Comment</label>
-                <div id="ticketResolutionComment" style="white-space: pre-wrap;">&mdash;</div>
+                <div id="ticketResolutionComment" style="white-space: pre-wrap; padding: 10px; background-color: #f8f9fa; border-radius: 4px; border-left: 4px solid #28a745;">&mdash;</div>
             </div>
             <div class="form-group">
                 <label>Rating</label>

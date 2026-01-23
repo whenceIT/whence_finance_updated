@@ -32,7 +32,7 @@
                                 <td>{{ $ticket->name }}</td>
                                 <td>{{ ucfirst($ticket->priority) }}</td>
                                 <td>{{ $ticket->stage ?? '—' }}</td>
-                                <td style="background-color:#000;"><b>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</b></td>
+                                <td><b>{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '—' }}</b></td>
                                 <td>{{ optional($ticket->openedBy)->first_name ?? optional($ticket->openedBy)->name ?? '—' }}</td>
                                 <td>{{ optional($ticket->issueCategory)->name ?? '—' }}</td>
                                 <td>{{ $ticket->date_raised ? \Carbon\Carbon::parse($ticket->date_raised)->diffForHumans() : ($ticket->datetime_open ? \Carbon\Carbon::parse($ticket->datetime_open)->diffForHumans() : '—') }}</td>

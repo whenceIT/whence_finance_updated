@@ -49,8 +49,12 @@
                             <td>
                                 @if($ticket->status == 'resolved')
                                     @if($ticket->status != 'closed')
-                                        <button type="button" class="btn btn-sm btn-success open-close-modal"
-                                            data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">Completed</button>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-success open-close-modal"
+                                                data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">Completed</button>
+                                            <button type="button" class="btn btn-sm btn-primary open-rate-modal"
+                                                data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">Rate</button>
+                                        </div>
                                     @else
                                         <button type="button" class="btn btn-sm btn-warning open-close-modal"
                                             data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}"
@@ -111,9 +115,14 @@
                                 <div class="ticket-actions">
                                     @if($ticket->status == 'resolved')
                                         @if($ticket->status != 'closed')
-                                            <button type="button" class="btn btn-success ticket-btn open-close-modal"
-                                                onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}"
-                                                data-ticket-name="{{ $ticket->name }}">Completed</button>
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-success ticket-btn open-close-modal"
+                                                    onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}"
+                                                    data-ticket-name="{{ $ticket->name }}">Completed</button>
+                                                <button type="button" class="btn btn-primary ticket-btn open-rate-modal"
+                                                    onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}"
+                                                    data-ticket-name="{{ $ticket->name }}">Rate</button>
+                                            </div>
                                         @else
                                             <button type="button" class="btn btn-warning ticket-btn open-close-modal"
                                                 onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}"
@@ -144,6 +153,82 @@
                 $(this).addClass('btn-primary').removeClass('btn-secondary');
                 $('#table-view-btn-requested-resolved').addClass('btn-secondary').removeClass('btn-primary');
             });
+
+            // Handle rate modal
+            $(document).on('click', '.open-rate-modal', function () {
+                var ticketId = $(this).data('ticket-id');
+                var ticketName = $(this).data('ticket-name');
+                $('#rateTicketName').text(ticketName);
+                $('#rateTicketForm').attr('action', '{{ url('ticket') }}' + '/' + ticketId + '/update');
+                $('#rateTicketModal').modal('show');
+            });
+
+            // Handle predefined remarks selection
+            $('#predefined_remarks').on('change', function() {
+                var selectedRemark = $(this).val();
+                if (selectedRemark) {
+                    $('#custom_remarks').val(selectedRemark);
+                }
+            });
+
+            // Reset form when modal is hidden
+            $('#rateTicketModal').on('hidden.bs.modal', function () {
+                $('#rateTicketForm')[0].reset();
+            });
         });
     </script>
+
+    <!-- Rate Ticket Modal -->
+    <div class="modal fade" id="rateTicketModal" tabindex="-1" role="dialog" aria-labelledby="rateTicketModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post" id="rateTicketForm" action="">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="rateTicketModalLabel">Rate Ticket: <span id="rateTicketName"></span></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="rating">Rating</label>
+                            <select name="rating" id="rating" class="form-control" required>
+                                <option value="">-- Select Rating --</option>
+                                <option value="1">⭐ 1 - Very Poor</option>
+                                <option value="2">⭐⭐ 2 - Poor</option>
+                                <option value="3">⭐⭐⭐ 3 - Fair</option>
+                                <option value="4">⭐⭐⭐⭐ 4 - Good</option>
+                                <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="predefined_remarks">Predefined Remarks</label>
+                            <select name="predefined_remarks" id="predefined_remarks" class="form-control">
+                                <option value="">-- Select a remark --</option>
+                                <option value="Excellent service and quick resolution!">Excellent service and quick resolution!</option>
+                                <option value="Good job, issue was resolved satisfactorily.">Good job, issue was resolved satisfactorily.</option>
+                                <option value="Resolution was adequate but could be faster.">Resolution was adequate but could be faster.</option>
+                                <option value="The solution worked, but communication could be better.">The solution worked, but communication could be better.</option>
+                                <option value="Issue resolved, but not completely satisfied with the process.">Issue resolved, but not completely satisfied with the process.</option>
+                                <option value="Very poor experience, took too long to resolve.">Very poor experience, took too long to resolve.</option>
+                                <option value="Resolution was ineffective, issue persists.">Resolution was ineffective, issue persists.</option>
+                                <option value="Satisfied with the outcome and support provided.">Satisfied with the outcome and support provided.</option>
+                                <option value="Thank you for the prompt assistance!">Thank you for the prompt assistance!</option>
+                                <option value="Resolution met expectations, good work!">Resolution met expectations, good work!</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="custom_remarks">Additional Remarks (Optional)</label>
+                            <textarea name="custom_remarks" id="custom_remarks" class="form-control" rows="3" placeholder="Add any additional comments..."></textarea>
+                        </div>
+                        <input type="hidden" name="status" value="closed">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Rating</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
