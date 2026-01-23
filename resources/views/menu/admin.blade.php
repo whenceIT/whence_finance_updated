@@ -6,7 +6,11 @@
     $user = $userInfo->user;
     $role = $userInfo->role;
     $office = $userInfo->office;
-    $assignedTickets = \App\Models\Ticket::where('assigned_to', Sentinel::getUser()->id)->get();
+    $assignedTickets = \App\Models\Ticket::with(['openedBy', 'assignedTo', 'closedBy', 'issueCategory'])
+            ->where('assigned_to', $user->id)
+            ->whereNotIn('status', ['resolved', 'closed'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 ?>
 <aside class="main-sidebar" style="color: #ffffff">
     <!-- sidebar: style can be found in sidebar.less -->
