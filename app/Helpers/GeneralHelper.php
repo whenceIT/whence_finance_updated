@@ -377,29 +377,24 @@ class GeneralHelper
 
     }
 
-    public static function new_new_loan_total_balance($id, $date)
-    {
-
-        $loan = Loan::find($id);
-        $someInfo = [];
-        $debit = 0;
-        $credit = 0;
-        if (!empty($loan)) {
-            foreach ($loan->transactions as $transaction) {
-                if ($transaction->date < $date) {
-                    $debit = $debit + $transaction->debit;
-                    $credit = $credit + $transaction->credit;
-                }
-
-            }
-            return (($debit - $credit));
-
-        } else {
-            return 0;
-        }
+    public static function loan_balances_bulk(array $loanIds)
+{
+    return DB::table('loan_transactions')
+        ->whereIn('loan_id', $loanIds)
+        ->groupBy('loan_id')
+        ->selectRaw('loan_id, COALESCE(SUM(debit),0) - COALESCE(SUM(credit),0) as balance')
+        ->pluck('balance', 'loan_id'); // [loan_id => balance]
+}
 
 
-    }
+public static function new_new_loan_total_balance($id)
+{
+    return DB::table('loan_transactions')
+        ->where('loan_id', $id)
+        ->selectRaw('COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0) as balance')
+        ->value('balance');
+}
+
 
 
 

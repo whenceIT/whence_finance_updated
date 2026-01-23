@@ -6,6 +6,14 @@
 <div class="content-wrapper">
     <section class="content-header">
         <h1>Monthly Deposits</h1>
+
+        <p class="text-muted" style="margin-top: 8px;">
+            <i class="fa fa-info-circle"></i>
+            Deposits must be completed in the order shown. 
+            Only the currently active deposit section can be opened.
+            The next deposit will unlock automatically after the previous one is completed.
+            This is to ensure that deposit priorities are followed correctly.
+        </p>
     </section>
 
     <section class="content">
@@ -16,6 +24,7 @@
         </div>
     </section>
 </div>
+
 
 <!-- Confirmation Modal -->
 <div class="modal fade" id="depositConfirmModal" tabindex="-1" role="dialog" aria-labelledby="depositConfirmLabel">

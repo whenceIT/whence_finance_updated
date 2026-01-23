@@ -575,7 +575,10 @@ $outstanding_total += $outstanding_amount;
 		    $total_outstanding = 0;
 		    $total_balance_sum = 0;
                     $paid_amount = 0;
-		    $total = 0
+		    $total = 0;
+
+            $loanIds = $part_data->pluck('loan_id')->unique()->toArray();
+$loanBalances = \App\Helpers\GeneralHelper::loan_balances_bulk($loanIds);
 			  
                     ?>
                     @foreach($part_data as $key)
@@ -593,6 +596,7 @@ $outstanding_total += $outstanding_amount;
 			$credit = floatval($key->credit ?? 0);
 			$total_balance_sum += floatval($balance ?? 0);
 
+  $balance = floatval($loanBalances[$key->loan_id] ?? 0);
 
 
 if (is_numeric($credit) && $credit > 0) {
@@ -1410,6 +1414,43 @@ $total_loans = 0;
 </div>
 
 
+<div class="panel box box-info">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+          <a data-toggle="collapse" data-parent="#accordion" href="#collapseDepositsType">
+                     Deposit Categories Summary
+            </a>
+        </h4>
+    </div>
+
+   <div id="collapseDepositsType" class="panel-collapse collapse">
+    <div class="box-body">
+        <table class="table table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>Deposit Category</th>
+                    <th class="text-right">Amount Paid</th>
+                </tr>
+            </thead>
+            <tbody id="depositCategorySummary">
+                <tr>
+                    <td colspan="2" class="text-muted">
+                        Loading…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div>
+
+
+
+
+</div>
+
+
+
+
 
 
 
@@ -1573,95 +1614,218 @@ document.addEventListener('DOMContentLoaded', function () {
 
 $(function () {
 
+
+
     var startDate = "{{ $start_date }}";
     var endDate   = "{{ $end_date }}";
-    var branches  = @json($branches); // collection of branches {id, name}
+    var branches  = @json($branches);
 
     var depositTypes = [];
+    var grandTotal = 0;
+    var depositCategoryTotals = {}; 
 
     /* ---------- LOAD DEPOSIT TYPES ---------- */
 
-    $.get('https://lms2backend.whencefinancesystem.com/deposit-types', function (res) {
+    $.get('https://lms2backend.whencefinancesystem.com/deposit-types')
+        .done(function (res) {
 
-        depositTypes = res.data || res;
+            // normalize response
+            depositTypes = Array.isArray(res)
+                ? res
+                : (res.data || []);
 
-        loadDepositReport();
-    });
+            if (!depositTypes.length) {
+                $('#depositReportBody').html(
+                    '<p class="text-danger">No deposit types found.</p>'
+                );
+                return;
+            }
+
+            loadDepositReport();
+        })
+        .fail(function () {
+            $('#depositReportBody').html(
+                '<p class="text-danger">Failed to load deposit types.</p>'
+            );
+        });
 
     /* ---------- LOAD REPORT ---------- */
 
-    function loadDepositReport() {
+   function loadDepositReport() {
 
-        var container = $('#depositReportBody');
-        container.empty();
+    var container = $('#depositReportBody');
+    container.empty();
 
-        branches.forEach(function (branch) {
+    grandTotal = 0; // 👈 RESET GRAND TOTAL ON RELOAD
+    depositCategoryTotals = {};
 
-            var box = $(`
-                <h4><strong>${branch.name}</strong></h4>
-                <table class="table table-bordered table-condensed">
-                    <thead>
-                        <tr>
-                            <th>Deposit Type</th>
-                            <th>Status</th>
-                            <th class="text-right">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="deposit-branch-${branch.id}">
-                        <tr><td colspan="3" class="text-muted">Loading…</td></tr>
-                    </tbody>
-                </table>
-            `);
 
-            container.append(box);
+    branches.forEach(function (branch) {
 
-            loadBranchDeposits(branch.id);
-        });
-    }
+        var box = $(`
+            <h4><strong>${branch.name}</strong></h4>
+            <table class="table table-bordered table-condensed">
+                <thead>
+                    <tr>
+                        <th>Deposit Type</th>
+                        <th>Status</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="deposit-branch-${branch.id}">
+                    <tr>
+                        <td colspan="3" class="text-muted">Loading…</td>
+                    </tr>
+                </tbody>
+            </table>
+        `);
+
+        container.append(box);
+        loadBranchDeposits(branch.id);
+    });
+
+    /* 👇 ADD THIS BLOCK AT THE END OF THE FUNCTION */
+
+    container.append(`
+        <table class="table table-bordered table-condensed">
+            <tbody>
+                <tr class="success">
+                    <th colspan="2" class="text-right">
+                        GRAND TOTAL
+                    </th>
+                    <th class="text-right" id="grand-total-amount">
+                        0
+                    </th>
+                </tr>
+            </tbody>
+        </table>
+    `);
+}
+
 
     /* ---------- LOAD PER-BRANCH DEPOSITS ---------- */
 
-    function loadBranchDeposits(branchId) {
+function loadBranchDeposits(branchId) {
 
-        $.get('https://lms2backend.whencefinancesystem.com/check-deposits', {
-            branch: branchId,
-            date: startDate.slice(0,7) // YYYY-MM
-        }, function (response) {
+    $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
+        branch: branchId,
+        date: startDate.slice(0, 7) // YYYY-MM
+    })
+    .done(function (res) {
 
-            var tbody = $('#deposit-branch-' + branchId);
-            tbody.empty();
+        var tbody = $('#deposit-branch-' + branchId);
+        tbody.empty();
 
-            var completed = {};
-           
-            response.forEach(function (d) {
-                completed[d.deposit_type_id] = d.amount;
-            });
-          
+        // normalize response
+        var rows = Array.isArray(res)
+            ? res
+            : (res.data || []);
 
-            depositTypes.forEach(function (type) {
+        var completed = {};
+        var branchTotal = 0;
 
-                if (completed.hasOwnProperty(type.id)) {
-                    tbody.append(`
-                        <tr class="success">
-                            <td>${type.name}</td>
-                            <td><span class="label label-success">Paid</span></td>
-                            <td class="text-right">${Number(completed[type.id]).toLocaleString()}</td>
-                        </tr>
-                    `);
-                } else {
-                    tbody.append(`
-                        <tr class="warning">
-                            <td>${type.name}</td>
-                            <td><span class="label label-warning">Pending</span></td>
-                            <td class="text-right">—</td>
-                        </tr>
-                    `);
-                }
-            });
+        rows.forEach(function (d) {
+            completed[d.deposit_type] = Number(d.amount || 0);
         });
-    }
+
+        depositTypes.forEach(function (type) {
+
+            if (completed.hasOwnProperty(type.id)) {
+
+                var amount = completed[type.id];
+                branchTotal += amount;
+
+                    // 👇 accumulate per deposit category
+    depositCategoryTotals[type.id] =
+        (depositCategoryTotals[type.id] || 0) + amount;
+
+
+                tbody.append(`
+                    <tr class="success">
+                        <td>${type.name}</td>
+                        <td>
+                            <span class="label label-success">Paid</span>
+                        </td>
+                        <td class="text-right">
+                            ${amount.toLocaleString()}
+                        </td>
+                    </tr>
+                `);
+
+            } else {
+
+                tbody.append(`
+                    <tr class="warning">
+                        <td>${type.name}</td>
+                        <td>
+                            <span class="label label-warning">Pending</span>
+                        </td>
+                        <td class="text-right">—</td>
+                    </tr>
+                `);
+            }
+        });
+
+        /* ---------- TOTAL ROW ---------- */
+
+        tbody.append(`
+            <tr class="info">
+                <th colspan="2" class="text-right">
+                    Total
+                </th>
+                <th class="text-right">
+                    ${branchTotal.toLocaleString()}
+                </th>
+            </tr>
+        `);
+
+        grandTotal += branchTotal;
+
+$('#grand-total-amount').text(
+    grandTotal.toLocaleString()
+);
+
+renderDepositCategorySummary();
+
+    })
+    .fail(function () {
+
+        $('#deposit-branch-' + branchId).html(`
+            <tr>
+                <td colspan="3" class="text-danger">
+                    Failed to load deposits
+                </td>
+            </tr>
+        `);
+    });
+
+}
+
+function renderDepositCategorySummary() {
+
+    var tbody = $('#depositCategorySummary');
+    tbody.empty();
+
+    depositTypes.forEach(function (type) {
+
+        var amount = depositCategoryTotals[type.id] || 0;
+
+        tbody.append(`
+            <tr>
+                <td>${type.name}</td>
+                <td class="text-right">
+                    ${amount.toLocaleString()}
+                </td>
+            </tr>
+        `);
+    });
+}
+
+
+
 
 });
+
 
 
 </script>
