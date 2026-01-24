@@ -730,7 +730,7 @@
                                             @foreach($loan->transactions as $transaction)
                                                         <?php
 
-                                                if ($transaction->transaction_type != 'specified_due_date_fee') {
+                                                if ($transaction->date < $compareDate && $transaction->transaction_type != 'specified_due_date_fee' ) {
                                                     $out = $out + $transaction->debit;
                                                 }
 
@@ -739,8 +739,9 @@
                                                 //     $in = $in + $transaction->credit;
                                                 // }
 
-
+ if ($transaction->date < $compareDate) {
                                                 $in = $in + $transaction->credit;
+ }
 
                                                 // if($transaction->date <= $compareDate && $transaction->transaction_type == 'specified_due_date_fee'){
                                                 //     $newout = $newout + $transaction->debit;

@@ -190,7 +190,7 @@ $todaysDate = date('Y-m-d');
             </div>
            
                {{-- Cycle --}}
-               <!-- <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
+               <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
                 <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">Cycle Information</h4>
                 <div class="form-group">
                       <label class="control-label col-md-2">Carry Over to Next Cycle</label>
@@ -204,7 +204,7 @@ $todaysDate = date('Y-m-d');
                         </select>
                     </div>
                 </div>
-               </div> -->
+               </div>
 
             {{-- Charges --}}
             <!-- <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
