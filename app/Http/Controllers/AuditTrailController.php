@@ -6,6 +6,7 @@ use App\Models\AuditTrail;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Laracasts\Flash\Flash;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class AuditTrailController extends Controller
 {
@@ -20,21 +21,29 @@ class AuditTrailController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (!Sentinel::hasAccess('audit_trail')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
-	}
+        }
 
-	$MonthsAgo = Carbon::now()->subMonths(1);
+        $MonthsAgo = Carbon::now()->subMonths(1);
 
-        $data = AuditTrail::with('user')
-        ->where('created_at', '>=', $MonthsAgo)
-        ->get();
+        $data = AuditTrail::with('user')->where('created_at', '>=', $MonthsAgo)->paginate(20);
         return view('audit_trail.data', compact('data'));
     }
 
+    public function user_audit($user_id)
+    {
+        if (!Sentinel::hasAccess('audit_trail')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+        $data = AuditTrail::with('user')->where('user_id', $user_id)->paginate(20);
+        return view('audit_trail.user', compact('data'));
+    }
 
     public function delete($id)
     {
