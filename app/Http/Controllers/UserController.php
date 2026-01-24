@@ -152,7 +152,7 @@ class UserController extends Controller
             $currrent_date = date('Y-m');
             $cycle_date = $currrent_date . '-' . $cycle_end;
             $cycle_date = date('Y-m-d', strtotime($cycle_date));
-            if($today < $cycle_date){
+            if($today <= $cycle_date){
                 $cycle_date = date('Y-m-d', strtotime($cycle_date . ' - 1 months'));
             }
 
