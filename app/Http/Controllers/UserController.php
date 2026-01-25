@@ -168,16 +168,15 @@ class UserController extends Controller
                 $new_target_tracker->given_out = 0;
                 $new_target_tracker->brought_f = 0;
                 $new_target_tracker->target = 1;
-
-                if ($today > $cycle_date) {
-                    $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
-                }
+                // if ($today > $cycle_date) {
+                //     $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
+                // }
                 $new_target_tracker->cycle_date = $cycle_date;
                 $new_target_tracker->status = 'active';
                 $new_target_tracker->save();
             } else {
 
-                if ($today >= $target_tracker->cycle_date) {
+                if ($cycle_date != $target_tracker->cycle_date) {
 
                     $target_tracker->status = 'closed';
                     $target_tracker->save();
@@ -187,10 +186,6 @@ class UserController extends Controller
                     $new_target_tracker->given_out = 0;
                     $new_target_tracker->brought_f = $target_tracker->given_out;
                     $new_target_tracker->target = $target_tracker->target;
-
-                    if ($today > $cycle_date) {
-                        $cycle_date = date('Y-m-d', strtotime($cycle_date . '+ 1 months'));
-                    }
                     $new_target_tracker->cycle_date = $cycle_date;
                     $new_target_tracker->status = 'active';
                     $new_target_tracker->save();
