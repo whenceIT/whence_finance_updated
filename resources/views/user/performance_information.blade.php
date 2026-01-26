@@ -71,7 +71,7 @@
                         <th>Name</th>
                         <th>Office</th>
                         <th class="text-right">Total Given Out</th>
-                        <th class="text-right">Total Uncollected (COUA)</th>
+                        <th class="text-right">Cycle Opening Uncollected (COUA)</th>
                         <th class="text-right">Total Cycle Collected (TCC)</th>
                         <th class="text-right">Still Uncollected Today (SUT)</th>
                     </tr>
