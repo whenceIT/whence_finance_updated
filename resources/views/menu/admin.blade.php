@@ -491,7 +491,7 @@
                     @if(Sentinel::hasAccess('clients'))
                 
                     @endif
-                /ul>   
+                </ul>   
             </li>
             @endif
        
