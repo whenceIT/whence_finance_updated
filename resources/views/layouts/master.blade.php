@@ -201,7 +201,7 @@
                 <div class="navbar-search" style="flex: 1; display: flex; justify-content: center; position: relative;">
                     <div class="input-group" style="width: 350px;">
                         <div class="input-group-btn">
-                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="search-type-btn" style="border-radius: 25px 0 0 25px; border-right: none; background: #f8f9fa; color: #333; font-weight: bold;">
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="search-type-btn" style="border-radius: 25px 0 0 25px; border-right: none; background: #f8f9fa; color: #333; font-weight: bold; margin-top: 0.55%;">
                                 Staff <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" id="search-type-menu">

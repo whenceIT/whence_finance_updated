@@ -5,7 +5,7 @@
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">Quick Audit Results</h3>
+            <h3 class="box-title">Quick Audit Results for {{ $user ? $user->first_name . ' ' . $user->last_name : 'Unknown User' }}</h3>
             <div class="box-tools pull-right">
                 <a href="{{ url('audit_trail/data') }}" class="btn btn-default btn-sm">Back to Audit Trail</a>
             </div>
@@ -26,6 +26,15 @@
                             <strong>Status:</strong> <span class="label label-{{ $loan->status == 'disbursed' ? 'success' : ($loan->status == 'pending' ? 'warning' : 'default') }}">{{ ucfirst($loan->status) }}</span><br>
                             <strong>Client ID:</strong> {{ $loan->client_id }}<br>
                             <strong>Loan Product:</strong> {{ $loan->loan_product_id }}<br>
+                            @if($loan->principal >= 4000)
+                                <div style="color: red; font-weight: bold;">🚩 FLAG: Loans more than K4,000 principal require collateral.</div>
+                            @endif
+                            @php
+                                $hasDisbursement = $loan->transactions->contains('transaction_type', 'disbursement');
+                            @endphp
+                            @if($loan->status == 'disbursed' && !$hasDisbursement)
+                                <div style="color: red; font-weight: bold;">🚩 FLAG: Loan has been disbursed without disbursement transaction found.</div>
+                            @endif
                             @if($loan->transactions && $loan->transactions->count() > 0)
                                 <strong>Transactions ({{ $loan->transactions->count() }}):</strong>
                                 <ul>
