@@ -273,6 +273,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::get('{id}/delete_user', 'ClientController@delete_user');
 
     Route::get('get-staffs', 'ClientController@getStaffs');
+    Route::get('search', 'ClientController@search');
 });
 //route for client identification types
 Route::group(['prefix' => 'client_identification_type'], function () {
@@ -901,6 +902,7 @@ Route::group(['prefix' => 'savings'], function () {
 Route::group(['prefix' => 'audit_trail'], function () {
     Route::get('data', 'AuditTrailController@index');
     Route::get('user/{user_id}', 'AuditTrailController@user_audit');
+    Route::post('quick_audit', 'AuditTrailController@quickAudit');
     Route::get('{id}/delete', 'AuditTrailController@delete');
 });
 //route for custom fields

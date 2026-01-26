@@ -10,6 +10,10 @@
             </div>
         </div>
 
+        <div class="box-tools-section">
+            <button id="quick-audit-btn" class="btn btn-primary">Quick Audit</button>
+        </div>
+
         <!--<button id="manager-button" class="btn btn-primary">Managers Audit Trail</button>-->
 
         <div class="box-body">
@@ -50,11 +54,42 @@
         </div>
     </div>
     <!-- /.box -->
+
+    <!-- Quick Audit Modal -->
+    <div id="quick-audit-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Quick Audit</h4>
+                </div>
+                <form action="{{ url('audit_trail/quick_audit') }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="user_id">Select Staff</label>
+                            <select name="user_id" id="user_id" class="form-control" required>
+                                <option value="">-- Select Staff --</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 @section('footer-scripts')
 
 <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
     <script>
@@ -86,6 +121,10 @@
             },
             responsive: false
         });
+    });
+
+    $('#quick-audit-btn').click(function() {
+        $('#quick-audit-modal').modal('show');
     });
 </script>
 @endsection

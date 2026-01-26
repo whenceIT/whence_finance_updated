@@ -1273,4 +1273,16 @@ class ClientController extends Controller
         }
         return response()->json($options);
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->get('q');
+        $clients = Client::where('first_name', 'like', '%' . $query . '%')
+            ->orWhere('last_name', 'like', '%' . $query . '%')
+            ->orWhere('email', 'like', '%' . $query . '%')
+            ->orWhere('mobile', 'like', '%' . $query . '%')
+            ->with('office')
+            ->get();
+        return response()->json($clients);
+    }
 }
