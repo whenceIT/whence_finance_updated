@@ -1,16 +1,14 @@
 @extends('layouts.master')
 @section('title')
-    {{ trans_choice('general.audit_trail',2) }}
+    {{ trans_choice('general.audit_trail',2) }} - User Details
 @endsection
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">  {{ trans_choice('general.audit_trail',2) }} </h3>
+            <h3 class="box-title">  {{ trans_choice('general.audit_trail',2) }} - User Details </h3>
             <div class="box-tools pull-right">
             </div>
         </div>
-
-        <!--<button id="manager-button" class="btn btn-primary">Managers Audit Trail</button>-->
 
         <div class="box-body">
             <div class="table-responsive">
@@ -22,7 +20,6 @@
                         <th> {{ trans_choice('general.user',1) }}</th>
                         <th> {{ trans_choice('general.note',2) }}</th>
                         <th> {{ trans_choice('general.date',2) }}</th>
-                        <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -35,9 +32,6 @@
                             </td>
                             <td>{{ $key->notes }}</td>
                             <td>{{ $key->created_at }}</td>
-                            <td>
-                                <a href="{{ url('audit_trail/user/' . $key->user_id) }}" class="btn btn-sm btn-primary">View Details</a>
-                            </td>
                         </tr>
                     @endforeach
                     </tbody>
@@ -89,4 +83,3 @@
     });
 </script>
 @endsection
-

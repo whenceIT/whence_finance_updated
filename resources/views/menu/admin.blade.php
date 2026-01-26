@@ -89,15 +89,15 @@
             @endif
 
 
- @if(Sentinel::hasAccess('settings'))
-                                   <li>
-                                <a href="{{ url('user/branch_deposits') }}"><i
-                                            class="fa fa-university"></i>Branch Deposits
-                                    <span class="pull-right-container">
-                                    </span>
-                                </a>
-                            </li>
-                       @endif      
+            @if(Sentinel::hasAccess('settings'))
+            <li>
+                    <a href="{{ url('user/branch_deposits') }}"><i
+                                class="fa fa-university"></i>Branch Deposits
+                        <span class="pull-right-container">
+                        </span>
+                    </a>
+            </li>
+            @endif      
 
 
             <?php
@@ -105,66 +105,65 @@
             ?>
 
             @if(Sentinel::hasAccess('expenses'))
-                <li class="treeview @if(Request::is('expense/*')) active @endif">
-                    <a href="#">
-                        <i class="fa fa-thumbs-up"></i> <span>Approvals</span>
-                        <?php
-                                            $office_id = Sentinel::getUser()->office_id;
-                                            ?>
-                          @if(Sentinel::hasAccess('settings'))
-                        <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() + \App\Models\Loan::where('status','pending')->count() + \App\Models\Client::where('status','pending')->count() + \App\Models\LoanTransactionUnapproved::count() + \App\Models\Advance::where('status','pending')->count() + \App\Models\TopUp::where('status','pending')->count() + \App\Models\Leave::where('status', 'pending')->count() + \App\Models\WaiverTransactionUnapproved::where('status', 'pending')->count() +  \App\Models\ChargeTransactionUnapproved::where('status', 'pending')->count()  }}</span>
-
-                      @else
-                        <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>
-                        @endif
-                    </a>
-                    <ul class="treeview-menu">
-
-    @if(Sentinel::hasAccess('expenses'))
-                            <li>
-                                <a href="{{ url('loan/managers_pending_approval') }}"><i
-                                            class="fa fa-circle-o"></i> Loans Pending
-                                    <span class="pull-right-container">
-                                    <?php
-                                            $office_id = Sentinel::getUser()->office_id;
-?>
-@if(Sentinel::hasAccess('settings'))
-                                        <span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</span>
-@else
-                                        <span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</span>
-                                        @endif
-                                    </span>
-                                </a>
-                            </li>
-			    @endif
-
-                @if(Sentinel::hasAccess('settings'))
-                                              <!-- <li>
-                                <a href="{{ url('user/performance_information') }}"><i
-                                            class="fa fa-circle-o"></i>Performance Information
-                                    <span class="pull-right-container">
-                                    </span>
-                                </a>
-                            </li> -->
-@endif
-
-			          @if(Sentinel::hasAccess('expenses'))
-                            <li>
-                                <a href="{{ url('loan/top_up_approvals') }}"><i
-                                            class="fa fa-circle-o"></i> Top Ups Pending Approval
-                                    <span class="pull-right-container">
-                                    <?php
-                                            $office_id = Sentinel::getUser()->office_id;
-?>
-@if(Sentinel::hasAccess('settings'))
-                                        <span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->count() }}</span>
-@else
-                                        <span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->where('office_id',$office_id)->count() }}</span>
-                                        @endif
-                                    </span>
-                                </a>
-                            </li>
+            <li class="treeview @if(Request::is('expense/*')) active @endif">
+                <a href="#">
+                    <i class="fa fa-thumbs-up"></i> <span>Approvals</span>
+                    <?php
+                        $office_id = Sentinel::getUser()->office_id;
+                    ?>
+                    @if(Sentinel::hasAccess('settings'))
+                    <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() + \App\Models\Loan::where('status','pending')->count() + \App\Models\Client::where('status','pending')->count() + \App\Models\LoanTransactionUnapproved::count() + \App\Models\Advance::where('status','pending')->count() + \App\Models\TopUp::where('status','pending')->count() + \App\Models\Leave::where('status', 'pending')->count() + \App\Models\WaiverTransactionUnapproved::where('status', 'pending')->count() +  \App\Models\ChargeTransactionUnapproved::where('status', 'pending')->count()  }}</span>
+                    @else
+                    <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>
+                    @endif
+                </a>
+                
+                <ul class="treeview-menu">
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li>
+                        <a href="{{ url('loan/managers_pending_approval') }}"><i
+                                    class="fa fa-circle-o"></i> Loans Pending
+                            <span class="pull-right-container">
+                            <?php
+                                    $office_id = Sentinel::getUser()->office_id;
+                            ?>
+                            @if(Sentinel::hasAccess('settings'))
+                                <span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</span>
+                            @else
+                                <span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</span>
                             @endif
+                            </span>
+                        </a>
+                    </li>
+			        @endif
+
+                    @if(Sentinel::hasAccess('settings'))
+                    <!-- <li>
+                        <a href="{{ url('user/performance_information') }}"><i
+                                    class="fa fa-circle-o"></i>Performance Information
+                            <span class="pull-right-container">
+                            </span>
+                        </a>
+                    </li> -->
+                    @endif
+
+			        @if(Sentinel::hasAccess('expenses'))
+                        <li>
+                            <a href="{{ url('loan/top_up_approvals') }}"><i
+                                        class="fa fa-circle-o"></i> Top Ups Pending Approval
+                                <span class="pull-right-container">
+                                <?php
+                                        $office_id = Sentinel::getUser()->office_id;
+                                ?>
+                                @if(Sentinel::hasAccess('settings'))
+                                    <span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->count() }}</span>
+                                @else
+                                    <span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->where('office_id',$office_id)->count() }}</span>
+                                @endif
+                                </span>
+                            </a>
+                        </li>
+                    @endif
 
 
                     @if(Sentinel::hasAccess('expenses'))
@@ -174,7 +173,7 @@
                                             <?php
                                             $office_id = Sentinel::getUser()->office_id;
                                             ?>
-@if(Sentinel::hasAccess('settings'))
+                                @if(Sentinel::hasAccess('settings'))
                                 <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>
                                 @else
                                 <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>
@@ -183,20 +182,20 @@
                                 </a>
 
                             </li>
-                        @endif
+                            @endif
 
 
 
 
 
-                        @if(Sentinel::hasAccess('expenses'))
+                            @if(Sentinel::hasAccess('expenses'))
                             <li><a href="{{ url('loan/reloan_approvals') }}"><i
                                             class="fa fa-circle-o"></i> Reloan Approvals
                                             <span class="pull-right-container">
                                             <?php
                                             $office_id = Sentinel::getUser()->office_id;
                                             ?>
-@if(Sentinel::hasAccess('settings'))
+                                @if(Sentinel::hasAccess('settings'))
                                 <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() }}</span>
                                 @else
                                 <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>
@@ -205,67 +204,63 @@
                                 </a>
 
                             </li>
-			    @endif
-			    <!--------------waiver approvals---------------->
+			                @endif
+			            <!--------------waiver approvals---------------->
                         @if(Sentinel::hasAccess('expenses'))
-                            <li><a href="{{ route('loan.waiver_approvals') }}"><i class="fa fa-circle-o"></i> Waiver Approvals
-                                            <span class="pull-right-container">
-                                            <?php
-                                            $office_id = Sentinel::getUser()->office_id;
-                                            ?>
-@if(Sentinel::hasAccess('settings'))
-                                <span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->count()}}</span>
-                                @else
-                                <span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>
-                                @endif
+                            <li>
+                                <a href="{{ route('loan.waiver_approvals') }}"><i class="fa fa-circle-o"></i> Waiver Approvals
+                                    <span class="pull-right-container">
+                                        <?php
+                                        $office_id = Sentinel::getUser()->office_id;
+                                        ?>
+                                        @if(Sentinel::hasAccess('settings'))
+                                        <span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->count()}}</span>
+                                        @else
+                                        <span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>
+                                        @endif
                                     </span>
                                 </a>
-
                             </li>
                         @endif
 
 
                         @if(Sentinel::hasAccess('expenses'))
-                            <li><a href="{{ route('loan.charge_approvals') }}"><i
+                            <li>
+                                <a href="{{ route('loan.charge_approvals') }}"><i
                                             class="fa fa-circle-o"> </i> Charge Approvals
-                                            <span class="pull-right-container">
-                                            <?php
-                                            $office_id = Sentinel::getUser()->office_id;
-                                            ?>
-@if(Sentinel::hasAccess('settings'))
-                                <span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->count()}}</span>
-                                @else
-                                <span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>
-                                @endif
-                                </span>
+                                    <span class="pull-right-container">
+                                        <?php
+                                        $office_id = Sentinel::getUser()->office_id;
+                                        ?>
+                                        @if(Sentinel::hasAccess('settings'))
+                                        <span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->count()}}</span>
+                                        @else
+                                        <span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>
+                                        @endif
+                                    </span>
                                 </a>
-
                             </li>
                         @endif
 
                         
-
-
-
-                   
-        
-
                         @if(Sentinel::hasAccess('expenses'))
                             <li><a href="{{ url('client/managers_pending_approval') }}"><i
                                             class="fa fa-circle-o"></i>Clients Pending Approval
                                             <span class="pull-right-container">
                                             <?php
                                             $office_id = Sentinel::getUser()->office_id;
-?>
-@if(Sentinel::hasAccess('settings'))
-					    <span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->count() }}</span>
-@else
+                                            ?>
+                                        @if(Sentinel::hasAccess('settings'))
+					                    <span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->count() }}</span>
+                                            @else
                                             <span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</span>
                                             @endif
                                     </span>
-                                </a></li>
-				@endif
-				@if(Sentinel::hasAccess('reports.client_reports'))
+                                </a>
+                            </li>
+				        @endif
+				        
+                        @if(Sentinel::hasAccess('reports.client_reports'))
                         <li>
                             <a href="{{ route('advances.pending_approvals') }}">
                                 <i class="fa fa-circle-o"></i> Advances Pending Approvals
@@ -292,8 +287,9 @@
                                 </span>
                             </a>
                         </li>
-			@endif
-			@if(Sentinel::hasAccess('reports.client_reports'))
+			            @endif
+			            
+                        @if(Sentinel::hasAccess('reports.client_reports'))
                         <li>
                             <a href="{{ route('advances.topups_pending_approval') }}">
                                 <i class="fa fa-circle-o"></i> Advance-TopUps Approvals
@@ -357,7 +353,7 @@
             @endif
 
 
-      @if(Sentinel::hasAccess('settings'))
+            @if(Sentinel::hasAccess('settings'))
                 <li class="treeview @if(Request::is('setting/*')) active @endif">
                     <a href="#">
                         <i class="fa fa-money"></i> <span>Payroll Loan Applications</span>
@@ -397,67 +393,59 @@
 
 
 
-
-
-
            <li class="treeview @if(Request::is('setting/*')) active @endif">
-                    <a href="#">
+                <a href="#">
                     <i class="fa fa-clock-o"></i><span>Collections</span>
-                    </a>
+                </a>
               
-                    <ul class="treeview-menu">
+                <ul class="treeview-menu">
                     @if(Sentinel::hasAccess('expenses'))
-                <li class="">
-                    <a href="{{ url('loan/new_collections') }}">
-                      <span>Collections</span>
-                    </a>
-                </li>
-            @endif
+                    <li class="">
+                        <a href="{{ url('loan/new_collections') }}">
+                        <span>Collections</span>
+                        </a>
+                    </li>
+                    @endif
 
-            @if(Sentinel::hasAccess('expenses'))
-                <li class="">
-                    <a href="{{ url('loan/expected_collections') }}">
-                       <span>Expected collections</span>
-                    </a>
-                </li>
-            @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li class="">
+                            <a href="{{ url('loan/expected_collections') }}">
+                                <span>Expected collections</span>
+                            </a>
+                        </li>
+                    @endif
 
                     <li class="">
-                    <a href="{{ url('loan/my_collections') }}">
-                        <span>My Collections</span>
-                    </a>
-                </li>
+                        <a href="{{ url('loan/my_collections') }}">
+                            <span>My Collections</span>
+                        </a>
+                    </li>
 
-
-                     
-                <li class="">
-                    <a href="{{ url('loan/my_expected_collections') }}">
-                         <span>My Expected Collections</span>
-                    </a>
-                </li>
-           
-
-                    </ul>
-                </li>
+                    <li class="">
+                        <a href="{{ url('loan/my_expected_collections') }}">
+                            <span>My Expected Collections</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
 
 
 
-   <li class="treeview @if(Request::is('setting/*')) active @endif">
-                    <a href="#">
+            <li class="treeview @if(Request::is('setting/*')) active @endif">
+                <a href="#">
                     <i class="fa fa-hand-rock-o"></i> <span>Recoveries</span>
-                    </a>
+                </a>
 
-                    <ul class="treeview-menu">
-            @if(Sentinel::hasAccess('expenses'))
-                <li class="">
-                    <a href="{{ url('loan/branch_uncollected') }}">
-                       <span>Branch uncollected</span>
-                    </a>
-                </li>
-            @endif
-
-                    </ul>
-                </li>
+                <ul class="treeview-menu">
+                @if(Sentinel::hasAccess('expenses'))
+                    <li class="">
+                        <a href="{{ url('loan/branch_uncollected') }}">
+                        <span>Branch uncollected</span>
+                        </a>
+                    </li>
+                @endif
+                </ul>
+            </li>
 
 
             @if(Sentinel::hasAccess('clients'))
@@ -466,12 +454,11 @@
                         <i class="fa fa-trophy"></i> <span>Leaderboard</span>
                     </a>
                 </li>
-		@endif
+		    @endif
 
 
 
-		        @if(Sentinel::hasAccess('clients'))
-
+		    @if(Sentinel::hasAccess('clients'))
             <li class="treeview @if(Request::is('setting/*')) active @endif">
                 <a href="#">
                     <i class="fa fa-star"></i> <span>Appraisal</span>
@@ -481,32 +468,31 @@
                 </a>
 
 
-                    <ul class="treeview-menu">
-                        @if(Sentinel::hasAccess('settings.general.view'))
-                            <li><a href="{{ url('user/appraisal_forms') }}"><i
-                                            class="fa fa-circle-o"></i> Forms
-                                            <span class="pull-right-container">
-                                    </span>
-                                </a></li>
-                        @endif
-                        @if(Sentinel::hasAccess('clients'))
-                            <li>          
-                              
-                                  <a href="{{ url('user/my_appraisal_forms') }}">
-                                 
-                                    <i
-                                            class="fa fa-circle-o"></i> My Appraisal
-                                            <span class="pull-right-container">
-                                        
-                                            </a></span></li>
-					    @endif
+                <ul class="treeview-menu">
+                    @if(Sentinel::hasAccess('settings.general.view'))
+                    <li><a href="{{ url('user/appraisal_forms') }}"><i
+                                    class="fa fa-circle-o"></i> Forms
+                                    <span class="pull-right-container">
+                            </span>
+                        </a>
+                    </li>
+                    @endif
+                    @if(Sentinel::hasAccess('clients'))
+                    <li>          
+                        <a href="{{ url('user/my_appraisal_forms') }}">
+                            <i
+                                class="fa fa-circle-o"></i> My Appraisal
+                                <span class="pull-right-container">
+                        </a>
+                        </span>
+                    </li>
+                    @endif
 
-
-                        @if(Sentinel::hasAccess('clients'))
-                      
-            @endif
-                    </ul>
-                </li>
+                    @if(Sentinel::hasAccess('clients'))
+                
+                    @endif
+                </ul>   
+            </li>
             @endif
        
 
@@ -846,7 +832,7 @@
                                 </a></li>
                         @endif
 
-<!-- 
+                        <!-- 
                         @if(Sentinel::hasAccess('accounting.journals.view'))
                         <li><a href="{{ url('accounting/journal/delete_jv') }}"><i
                                             class="fa fa-circle-o"></i> {{trans_choice('general.delete',1)}} {{trans_choice('general.journal',2)}}
@@ -1379,36 +1365,13 @@
             @endif
 
 
-
-            @if(Sentinel::hasAccess('custom_fields'))
-                <li class="treeview @if(Request::is('custom_field/*')) active @endif">
-                    <a href="#">
-                        <i class="fa fa-list"></i> <span>{{trans_choice('general.custom_field',2)}}</span>
-                        <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
-                    </a>
-                    <ul class="treeview-menu">
-                        @if(Sentinel::hasAccess('custom_fields.view'))
-                            <li><a href="{{ url('custom_field/data') }}"><i
-                                            class="fa fa-circle-o"></i> {{trans_choice('general.view',2)}} {{trans_choice('general.custom_field',2)}}
-                                </a></li>
-                        @endif
-                        @if(Sentinel::hasAccess('custom_fields.create'))
-                            <li><a href="{{ url('custom_field/create') }}"><i
-                                            class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.custom_field',1)}}
-                                </a></li>
-                        @endif
-                    </ul>
-                </li>
-            @endif
             @if(Sentinel::hasAccess('expenses'))
                 <li class="treeview @if(Request::is('user/*')) active @endif">
                     <a href="{{ url('user/data') }}">
                         <i class="fa fa-users"></i> <span>{{trans_choice('general.user',2)}}</span>
                         <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
                     </a>
                     <ul class="treeview-menu">
                         @if(Sentinel::hasAccess('expenses'))
@@ -1416,12 +1379,14 @@
                                     <i class="fa fa-circle-o"></i>
                                     <span>{{trans_choice('general.view',2)}} {{trans_choice('general.user',2)}}</span>
                                 </a></li>
-				@endif
-				@if(Sentinel::hasAccess('expenses'))
-                            <li><a href="{{ route('user.inactive') }}">
+                        @endif
+                        @if(Sentinel::hasAccess('expenses'))
+                            <li>
+                                <a href="{{ route('user.inactive') }}">
                                     <i class="fa fa-circle-o"></i>
                                     <span>View Inactive Users </span>
-                                </a></li>
+                                </a>
+                            </li>
                         @endif
 
                         @if(Sentinel::hasAccess('users.create'))

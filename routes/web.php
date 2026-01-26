@@ -900,6 +900,7 @@ Route::group(['prefix' => 'savings'], function () {
 //route for audit trail
 Route::group(['prefix' => 'audit_trail'], function () {
     Route::get('data', 'AuditTrailController@index');
+    Route::get('user/{user_id}', 'AuditTrailController@user_audit');
     Route::get('{id}/delete', 'AuditTrailController@delete');
 });
 //route for custom fields
