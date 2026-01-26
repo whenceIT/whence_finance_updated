@@ -11,7 +11,7 @@
         </div>
 
         <div class="box-tools-section">
-            <button id="quick-audit-btn" class="btn btn-primary">Quick Audit</button>
+            <button id="quick-audit-btn" class="btn btn-primary">Quick Transactions Audit</button>
         </div>
 
         <!--<button id="manager-button" class="btn btn-primary">Managers Audit Trail</button>-->

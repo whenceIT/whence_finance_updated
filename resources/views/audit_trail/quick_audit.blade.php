@@ -30,7 +30,7 @@
                                 <strong>Transactions ({{ $loan->transactions->count() }}):</strong>
                                 <ul>
                                     @foreach($loan->transactions as $transaction)
-                                    <li>{{ $transaction->name }} - Amount: {{ number_format($transaction->debit - $transaction->credit, 2) }} on {{ $transaction->date }}</li>
+                                    <li>{{ $transaction->transaction_type }} - Amount: {{ number_format($transaction->debit - $transaction->credit, 2) }} on {{ $transaction->date }}</li>
                                     @endforeach
                                 </ul>
                             @else

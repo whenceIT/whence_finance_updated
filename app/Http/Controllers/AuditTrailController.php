@@ -68,7 +68,7 @@ class AuditTrailController extends Controller
             return redirect()->back();
         }
         $user_id = $request->user_id;
-        $loans = Loan::where('loan_officer_id', $user_id)->with('client', 'transactions')->get();
+        $loans = Loan::where('loan_officer_id', $user_id)->with('client', 'transactions')->orderBy('created_at', 'desc')->get();
         return view('audit_trail.quick_audit', compact('loans'));
     }
 
