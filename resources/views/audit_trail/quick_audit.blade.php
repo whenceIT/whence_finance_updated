@@ -24,8 +24,6 @@
                         <h3 class="timeline-header"><a href="#">{{ $loan->client ? $loan->client->first_name . ' ' . $loan->client->last_name : 'Unknown Client' }}</a> - Loan Amount: {{ number_format($loan->principal, 2) }}</h3>
                         <div class="timeline-body">
                             <strong>Status:</strong> <span class="label label-{{ $loan->status == 'disbursed' ? 'success' : ($loan->status == 'pending' ? 'warning' : 'default') }}">{{ ucfirst($loan->status) }}</span><br>
-                            <strong>Client ID:</strong> {{ $loan->client_id }}<br>
-                            <strong>Loan Product:</strong> {{ $loan->loan_product_id }}<br>
                             @if($loan->principal >= 4000)
                                 <div style="color: red; font-weight: bold;">🚩 FLAG: Loans more than K4,000 principal require collateral.</div>
                             @endif
