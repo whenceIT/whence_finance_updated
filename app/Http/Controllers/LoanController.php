@@ -820,13 +820,25 @@ class LoanController extends Controller
         $userProvince = $user->province_id;
         $province_branches = Office::where('province_id', $userProvince)->get();
 
-        // Fetch data for selects
+        // Fetch data for selects with role-based filtering
         $clients_query = Client::where('status', 'active')->where('blacklisted', 0);
         if ($role->role_id == '6') {
             $clients_query->whereIn('office_id', $province_branches->pluck('id'));
+        } elseif ($role->role_id == '4' || $role->role_id == '3') {
+            $clients_query->where('office_id', $userBranch);
         }
+        // role 1 sees all
         $clients = $clients_query->get();
-        $groups = \App\Models\Group::where('status', 'active')->get();
+
+        $groups_query = \App\Models\Group::where('status', 'active');
+        if ($role->role_id == '6') {
+            $groups_query->whereIn('office_id', $province_branches->pluck('id'));
+        } elseif ($role->role_id == '4' || $role->role_id == '3') {
+            $groups_query->where('office_id', $userBranch);
+        }
+        // role 1 sees all
+        $groups = $groups_query->get();
+
         $loan_products = \App\Models\LoanProduct::all();
 
         return view('loan.create', compact('userBranch', 'role', 'userId', 'province_branches', 'province_clients', 'clients', 'groups', 'loan_products'));

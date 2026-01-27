@@ -37,18 +37,21 @@
             <div class="form-group" id="clients_div" style="display: none">
 
                 <label for="client_id"
-                       class="control-label col-md-3">{{trans_choice('general.client',1)}}</label>
+                       class="control-label col-md-3">{{trans_choice('general.client',1)}}
+                </label>
                 <div class="col-md-5">
                     <select name="client_id" class="form-control select2" id="client_id">
                         <option></option>
                         @foreach($clients as $client)
-                            <option value="{{ $client->id }}">
-                                @if($client->client_type == "individual")
-                                    {{ $client->first_name . ' ' . $client->middle_name . ' ' . $client->last_name . ' (' . $client->account_no . ')(' . $client->nrc_number . ')' }}
-                                @else
-                                    {{ $client->full_name . ' (' . $client->account_no . ')' }}
-                                @endif
-                            </option>
+                            @if($role->role_id == 1 || ($role->role_id == 6 && $client->office->province_id == Sentinel::getUser()->province_id) || (in_array($role->role_id, [3,4]) && $client->office_id == Sentinel::getUser()->office_id))
+                                <option value="{{ $client->id }}">
+                                    @if($client->client_type == "individual")
+                                        {{ $client->first_name . ' ' . $client->middle_name . ' ' . $client->last_name . ' (' . $client->account_no . ')(' . $client->nrc_number . ')' }}
+                                    @else
+                                        {{ $client->full_name . ' (' . $client->account_no . ')' }}
+                                    @endif
+                                </option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
@@ -62,7 +65,9 @@
                     <select name="group_id" class="form-control select2" id="group_id">
                         <option></option>
                         @foreach($groups as $group)
-                            <option value="{{ $group->id }}">{{ $group->name . '(' . $group->account_no . ')' }}</option>
+                            @if($role->role_id == 1 || ($role->role_id == 6 && $group->office->province_id == Sentinel::getUser()->province_id) || (in_array($role->role_id, [3,4]) && $group->office_id == Sentinel::getUser()->office_id))
+                                <option value="{{ $group->id }}">{{ $group->name . '(' . $group->account_no . ')' }}</option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
