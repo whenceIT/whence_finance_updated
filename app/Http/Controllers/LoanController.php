@@ -817,20 +817,120 @@ class LoanController extends Controller
         $userBranch = $user->office_id;
         $userId = $user->id;
         $role = UserRole::where('user_id', $userId)->first();
-        $clients = Client::where('status', 'active')->where('blacklisted', 0)->get();
         $userProvince = $user->province_id;
         $province_branches = Office::where('province_id', $userProvince)->get();
+
+        // Fetch data for selects
+        $clients_query = Client::where('status', 'active')->where('blacklisted', 0);
         if ($role->role_id == '6') {
-            foreach ($province_branches as $branch) {
-                foreach ($clients as $client) {
-                    if ($client->office_id == $branch->id) {
-                        array_push($province_clients, $client);
-                    }
-                }
-            }
+            $clients_query->whereIn('office_id', $province_branches->pluck('id'));
+        }
+        $clients = $clients_query->get();
+        $groups = \App\Models\Group::where('status', 'active')->get();
+        $loan_products = \App\Models\LoanProduct::all();
+
+        return view('loan.create', compact('userBranch', 'role', 'userId', 'province_branches', 'province_clients', 'clients', 'groups', 'loan_products'));
+    }
+
+    public function ajaxClients(Request $request)
+    {
+        $user = Sentinel::getUser();
+        $userId = $user->id;
+        $role = UserRole::where('user_id', $userId)->first();
+        $userProvince = $user->province_id;
+        $province_branches = Office::where('province_id', $userProvince)->pluck('id');
+
+        $query = Client::where('status', 'active')->where('blacklisted', 0);
+
+        if ($role->role_id == '6') {
+            $query->whereIn('office_id', $province_branches);
         }
 
-        return view('loan.create', compact('userBranch', 'role', 'userId', 'province_branches', 'province_clients', 'clients'));
+        if ($request->has('q') && !empty($request->q)) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('middle_name', 'like', "%{$search}%")
+                  ->orWhere('full_name', 'like', "%{$search}%")
+                  ->orWhere('account_no', 'like', "%{$search}%")
+                  ->orWhere('nrc_number', 'like', "%{$search}%");
+            });
+        }
+
+        $clients = $query->paginate(30);
+
+        $results = [];
+        foreach ($clients as $client) {
+            $text = '';
+            if ($client->client_type == "individual") {
+                $text = $client->first_name . ' ' . $client->middle_name . ' ' . $client->last_name . ' (' . $client->account_no . ')(' . $client->nrc_number . ')';
+            } else {
+                $text = $client->full_name . ' (' . $client->account_no . ')';
+            }
+            $results[] = [
+                'id' => $client->id,
+                'text' => $text
+            ];
+        }
+
+        return response()->json([
+            'items' => $results,
+            'total_count' => $clients->total()
+        ]);
+    }
+
+    public function ajaxGroups(Request $request)
+    {
+        $query = \App\Models\Group::where('status', 'active');
+
+        if ($request->has('q') && !empty($request->q)) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('account_no', 'like', "%{$search}%");
+            });
+        }
+
+        $groups = $query->paginate(30);
+
+        $results = [];
+        foreach ($groups as $group) {
+            $results[] = [
+                'id' => $group->id,
+                'text' => $group->name . '(' . $group->account_no . ')'
+            ];
+        }
+
+        return response()->json([
+            'items' => $results,
+            'total_count' => $groups->total()
+        ]);
+    }
+
+    public function ajaxLoanProducts(Request $request)
+    {
+        $query = \App\Models\LoanProduct::query();
+
+        if ($request->has('q') && !empty($request->q)) {
+            $search = $request->q;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $loanProducts = $query->paginate(30);
+
+        $results = [];
+        foreach ($loanProducts as $product) {
+            $results[] = [
+                'id' => $product->id,
+                'text' => $product->name
+            ];
+        }
+
+        return response()->json([
+            'items' => $results,
+            'total_count' => $loanProducts->total()
+        ]);
     }
     ///////////////////////////////////////
     public function create_client_loan($client, $loan_product)
