@@ -42,56 +42,17 @@
                 <div class="col-md-5">
                     <select name="client_id" class="form-control select2" id="client_id">
                           <option></option>
-                        @if($role->role_id == '3')
-                        @foreach(\App\Models\Client::where('status', 'active')->where('staff_id',$userId)->where('blacklisted', 0)->get() as $key)
-                            <option value="{{$key->id}}">
-                                @if($key->client_type=="individual")
-                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
-                                    ({{$key->account_no}})({{$key->nrc_number}})
-                                @else
-                                    {{$key->full_name}} ({{$key->account_no}}
-                                    )
-                                @endif
-                            </option>
-                        @endforeach
-                        @elseif($role->role_id == '4')
-                        @foreach(\App\Models\Client::where('status', 'active')->where('office_id', $userBranch)->where('blacklisted', 0)->get() as $key)
-                            <option value="{{$key->id}}">
-                                @if($key->client_type=="individual")
-                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
-                                    ({{$key->account_no}})({{$key->nrc_number}})
-                                @else
-                                    {{$key->full_name}} ({{$key->account_no}}
-                                    )
-                                @endif
-                            </option>
-                        @endforeach
-
-                        @elseif($role->role_id == '6')
-                        @foreach($province_clients as $key)
-                            <option value="{{$key->id}}">
-                                @if($key->client_type=="individual")
-                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
-                                    ({{$key->account_no}})({{$key->nrc_number}})
-                                @else
-                                    {{$key->full_name}} ({{$key->account_no}}
-                                    )
-                                @endif
-                            </option>
-                        @endforeach
-                        @else
-                        @foreach($clients as $key)
-                            <option value="{{$key->id}}">
-                                @if($key->client_type=="individual")
-                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
-                                    ({{$key->account_no}})({{$key->nrc_number}})
-                                @else
-                                    {{$key->full_name}} ({{$key->account_no}}
-                                    )
-                                @endif
-                            </option>
-                        @endforeach
-                        @endif
+                            @foreach($clients as $key)
+                                <option value="{{$key->id}}">
+                                    @if($key->client_type=="individual")
+                                        {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                        ({{$key->account_no}})({{$key->nrc_number}})
+                                    @else
+                                        {{$key->full_name}} ({{$key->account_no}}
+                                        )
+                                    @endif
+                                </option>
+                            @endforeach
                     </select>
                 </div>
             </div>
