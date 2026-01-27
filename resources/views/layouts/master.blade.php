@@ -661,6 +661,318 @@
 
     </script>
 
+    @if($user && !$user->has_completed_profile)
+    <!-- Profile Completion Modal -->
+    <div id="profile-modal" class="profile-modal">
+        <div class="modal-overlay" onclick="closeProfileModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Complete Your Profile</h4>
+                <button type="button" class="close" onclick="closeProfileModal()">&times;</button>
+            </div>
+            <form id="profile-form" action="{{ url('user/update_profile') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Salutation</label>
+                                <select name="salutation" class="form-control">
+                                    <option value="">Select</option>
+                                    <option value="Mr." {{ old('salutation', $user->salutation) == 'Mr.' ? 'selected' : '' }}>Mr.</option>
+                                    <option value="Ms." {{ old('salutation', $user->salutation) == 'Ms.' ? 'selected' : '' }}>Ms.</option>
+                                    <option value="Mrs." {{ old('salutation', $user->salutation) == 'Mrs.' ? 'selected' : '' }}>Mrs.</option>
+                                    <option value="Dr." {{ old('salutation', $user->salutation) == 'Dr.' ? 'selected' : '' }}>Dr.</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Employment Type</label>
+                                <select name="employment_type" class="form-control">
+                                    <option value="">Select</option>
+                                    <option value="Full-time" {{ old('employment_type', $user->employment_type) == 'Full-time' ? 'selected' : '' }}>Full-time</option>
+                                    <option value="Part-time" {{ old('employment_type', $user->employment_type) == 'Part-time' ? 'selected' : '' }}>Part-time</option>
+                                    <option value="Contract" {{ old('employment_type', $user->employment_type) == 'Contract' ? 'selected' : '' }}>Contract</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Mobile Number</label>
+                                <input type="text" name="mobile_number" class="form-control" value="{{ old('mobile_number', $user->mobile_number) }}" required>
+                                <div class="invalid-feedback">Please enter a valid mobile number.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Personal Email</label>
+                                <input type="email" name="personal_email" class="form-control" value="{{ old('personal_email', $user->personal_email) }}" required>
+                                <div class="invalid-feedback">Please enter a valid email address.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Current Address</label>
+                        <textarea name="current_address" class="form-control" rows="3" required>{{ old('current_address', $user->current_address) }}</textarea>
+                        <div class="invalid-feedback">Please enter your current address.</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Emergency Contact Name</label>
+                                <input type="text" name="emergency_contact_name" class="form-control" value="{{ old('emergency_contact_name', $user->emergency_contact_name) }}" required>
+                                <div class="invalid-feedback">Please enter emergency contact name.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Emergency Phone</label>
+                                <input type="text" name="emergency_phone" class="form-control" value="{{ old('emergency_phone', $user->emergency_phone) }}" required>
+                                <div class="invalid-feedback">Please enter a valid emergency phone number.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Relation to Emergency Contact</label>
+                                <input type="text" name="relation_to_emergency" class="form-control" value="{{ old('relation_to_emergency', $user->relation_to_emergency) }}" required>
+                                <div class="invalid-feedback">Please enter relation to emergency contact.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Reports to</label>
+                                <select name="reports_to" class="form-control">
+                                    <option value="">Select</option>
+                                    @foreach(\App\Models\User::all() as $u)
+                                        <option value="{{ $u->id }}" {{ old('reports_to', $user->reports_to) == $u->id ? 'selected' : '' }}>{{ $u->first_name }} {{ $u->last_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Confirmation Date</label>
+                                <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->confirmation_date) }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Qualification</label>
+                                <input type="text" name="qualification" class="form-control" value="{{ old('qualification', $user->qualification) }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>School/University</label>
+                                <input type="text" name="school_university" class="form-control" value="{{ old('school_university', $user->school_university) }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Level of Education</label>
+                                <select name="level_of_education" class="form-control">
+                                    <option value="">Select</option>
+                                    <option value="High School" {{ old('level_of_education', $user->level_of_education) == 'High School' ? 'selected' : '' }}>High School</option>
+                                    <option value="Bachelor's" {{ old('level_of_education', $user->level_of_education) == "Bachelor's" ? 'selected' : '' }}>Bachelor's</option>
+                                    <option value="Master's" {{ old('level_of_education', $user->level_of_education) == "Master's" ? 'selected' : '' }}>Master's</option>
+                                    <option value="PhD" {{ old('level_of_education', $user->level_of_education) == 'PhD' ? 'selected' : '' }}>PhD</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Year Completed</label>
+                                <input type="number" name="year_completed" class="form-control" value="{{ old('year_completed', $user->year_completed) }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Major</label>
+                                <input type="text" name="major" class="form-control" value="{{ old('major', $user->major) }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">Skip</button>
+                    <button type="submit" class="btn btn-primary">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .profile-modal {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1050;
+            display: flex;
+            align-items: flex-end;
+        }
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 10px 10px 0 0;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 10px 10px 0 0;
+        }
+        .modal-header h4 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        .modal-header .close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6c757d;
+            cursor: pointer;
+        }
+        .modal-body {
+            padding: 30px;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            font-size: 1rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .form-control:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+        .invalid-feedback {
+            display: none;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .form-control.is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #e9ecef;
+            text-align: right;
+            background: #f8f9fa;
+        }
+        .btn {
+            border-radius: 0.375rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.15s ease-in-out;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        @media (max-width: 768px) {
+            .modal-content {
+                max-height: 90vh;
+                max-width: 100%;
+            }
+            .modal-header, .modal-body, .modal-footer {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+        }
+    </style>
+
+    <script>
+        function closeProfileModal() {
+            document.getElementById('profile-modal').style.display = 'none';
+        }
+        // Show modal on load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('profile-modal').style.display = 'block';
+            // Initialize form validation
+            $('#profile-form').validate({
+                errorElement: 'div',
+                errorClass: 'invalid-feedback',
+                highlight: function(element) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass('is-invalid');
+                },
+                errorPlacement: function(error, element) {
+                    error.addClass('invalid-feedback');
+                    element.after(error);
+                }
+            });
+        });
+    </script>
+    @endif
+
     <script>
         $(document).ready(function() {
             var currentSearchType = 'staff';

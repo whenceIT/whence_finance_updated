@@ -30,6 +30,22 @@ class User extends EloquentUser
         'access_days',
         'picture',
         'status',
+        'salutation',
+        'employment_type',
+        'mobile_number',
+        'personal_email',
+        'current_address',
+        'emergency_contact_name',
+        'emergency_phone',
+        'relation_to_emergency',
+        'reports_to',
+        'confirmation_date',
+        'qualification',
+        'school_university',
+        'level_of_education',
+        'year_completed',
+        'major',
+        'has_completed_profile',
     ];
     public function payroll()
     {
