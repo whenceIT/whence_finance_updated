@@ -5,19 +5,18 @@
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}t6fty</h3>
+            <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}</h3>
             <div class="box-tools pull-right">
                 <button onclick="window.history.back()" class="btn btn-info btn-sm">
                     {{ trans_choice('general.cancel',1) }}
                 </button>
             </div>
         </div>
+        <div class="alert alert-info" style="margin:10px;">
+            <strong>Info:</strong> Please select the loan type, client/group, and product to proceed to the next step.
+        </div>
 
         <div class="box-body form-horizontal">
-
-
-
-
             <div class="form-group" id="">
                 <label for="type"
                        class="control-label col-md-3">{{trans_choice('general.type',1)}}
@@ -96,9 +95,7 @@
 
 
             <div class="form-group">
-                <label for=""
-                       class="control-label col-md-3"></label>
-                <div class="col-md-5">
+                <div class="col-md-12 text-right">
                     <button type="submit" class="btn btn-primary" id="next" onClick="this.disabled=true;">{{trans_choice('general.next',1)}}</button>
                 </div>
             </div>
