@@ -86,9 +86,9 @@ class ClientController extends Controller
                 ->orWhere('last_name', 'like', "%{$query}%")
                 ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"]);
         })
-        ->get();
+        ->paginate(15);
     } else {
-        $data = $clientQuery->get();
+        $data = null;
     }
     
     return view('client.data', compact('data', 'query'));

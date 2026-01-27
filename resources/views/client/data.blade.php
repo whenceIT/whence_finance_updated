@@ -26,11 +26,11 @@
             </form>
         </div> 
         <div class="box-body table-responsive">
-            @if(isset($query))
-                <p>Showing results for: {{ $query }}</p>
-            @endif
-            @if(isset($data))
-                <table class="table table-bordered table-hover table-striped" id="data-table">
+            @if($data && $data->count() > 0)
+                @if(isset($query))
+                    <p>Showing results for: {{ $query }}</p>
+                @endif
+                <table class="table table-bordered table-hover table-striped">
                     <thead>
                         <tr>
                             <th>{{ trans_choice('general.name',1) }}</th>
@@ -100,7 +100,10 @@
                         @endforeach
                     </tbody>
                 </table>
-            @else
+                <div class="text-center">
+                    {{ $data->appends(request()->query())->links() }}
+                </div>
+            @elseif(isset($query))
                 <p>No clients found for the search query.</p>
             @endif
         </div>
@@ -108,35 +111,6 @@
 @endsection
 @section('footer-scripts')
     <script>
-        $('#data-tableM').DataTable({
-            dom: 'frtip',
-            "paging": true,
-            "lengthChange": true,
-            "displayLength": 15,
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "autoWidth": true,
-            "order": [[0, "asc"]],
-            "columnDefs": [
-                {"orderable": false, "targets": []}
-            ],
-            "language": {
-                "lengthMenu": "{{ trans('general.lengthMenu') }}",
-                "zeroRecords": "{{ trans('general.zeroRecords') }}",
-                "info": "{{ trans('general.info') }}",
-                "infoEmpty": "{{ trans('general.infoEmpty') }}",
-                "search": "{{ trans('general.search') }}",
-                "infoFiltered": "{{ trans('general.infoFiltered') }}",
-                "paginate": {
-                    "first": "{{ trans('general.first') }}",
-                    "last": "{{ trans('general.last') }}",
-                    "next": "{{ trans('general.next') }}",
-                    "previous": "{{ trans('general.previous') }}"
-                }
-            },
-            responsive: false
-        });
         $('#clear-search').click(function() {
             $('#search-input').val('');
             $('#search-form').submit();
