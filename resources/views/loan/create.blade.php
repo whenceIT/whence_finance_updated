@@ -5,18 +5,19 @@
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}</h3>
+            <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}t6fty</h3>
             <div class="box-tools pull-right">
                 <button onclick="window.history.back()" class="btn btn-info btn-sm">
                     {{ trans_choice('general.cancel',1) }}
                 </button>
             </div>
         </div>
-        <div class="alert alert-info" style="margin:10px;">
-            <strong>Info:</strong> Please select the loan type, client/group, and product to proceed to the next step.
-        </div>
 
         <div class="box-body form-horizontal">
+
+
+
+
             <div class="form-group" id="">
                 <label for="type"
                        class="control-label col-md-3">{{trans_choice('general.type',1)}}
@@ -37,26 +38,66 @@
             <div class="form-group" id="clients_div" style="display: none">
 
                 <label for="client_id"
-                       class="control-label col-md-3">{{trans_choice('general.client',1)}}
-                </label>
+                       class="control-label col-md-3">{{trans_choice('general.client',1)}}</label>
                 <div class="col-md-5">
                     <select name="client_id" class="form-control select2" id="client_id">
-                        <option></option>
-                        @foreach($clients as $client)
-                            @if($role->role_id == 1 || ($role->role_id == 6 && $client->office->province_id == Sentinel::getUser()->province_id) || (in_array($role->role_id, [3,4]) && $client->office_id == Sentinel::getUser()->office_id))
-                                <option value="{{ $client->id }}">
-                                    @if($client->client_type == "individual")
-                                        {{ $client->first_name . ' ' . $client->middle_name . ' ' . $client->last_name . ' (' . $client->account_no . ')(' . $client->nrc_number . ')' }}
-                                    @else
-                                        {{ $client->full_name . ' (' . $client->account_no . ')' }}
-                                    @endif
-                                </option>
-                            @endif
+                          <option></option>
+                        @if($role->role_id == '3')
+                        @foreach(\App\Models\Client::where('status', 'active')->where('staff_id',$userId)->where('blacklisted', 0)->get() as $key)
+                            <option value="{{$key->id}}">
+                                @if($key->client_type=="individual")
+                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                    ({{$key->account_no}})({{$key->nrc_number}})
+                                @else
+                                    {{$key->full_name}} ({{$key->account_no}}
+                                    )
+                                @endif
+                            </option>
                         @endforeach
+                        @elseif($role->role_id == '4')
+                        @foreach(\App\Models\Client::where('status', 'active')->where('office_id', $userBranch)->where('blacklisted', 0)->get() as $key)
+                            <option value="{{$key->id}}">
+                                @if($key->client_type=="individual")
+                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                    ({{$key->account_no}})({{$key->nrc_number}})
+                                @else
+                                    {{$key->full_name}} ({{$key->account_no}}
+                                    )
+                                @endif
+                            </option>
+                        @endforeach
+
+                        @elseif($role->role_id == '6')
+                        @foreach($province_clients as $key)
+                            <option value="{{$key->id}}">
+                                @if($key->client_type=="individual")
+                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                    ({{$key->account_no}})({{$key->nrc_number}})
+                                @else
+                                    {{$key->full_name}} ({{$key->account_no}}
+                                    )
+                                @endif
+                            </option>
+                        @endforeach
+                        @else
+                        @foreach($clients as $key)
+                            <option value="{{$key->id}}">
+                                @if($key->client_type=="individual")
+                                    {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
+                                    ({{$key->account_no}})({{$key->nrc_number}})
+                                @else
+                                    {{$key->full_name}} ({{$key->account_no}}
+                                    )
+                                @endif
+                            </option>
+                        @endforeach
+                        @endif
                     </select>
                 </div>
             </div>
 
+            
+           
                 
             <div class="form-group" id="groups_div" style="display: none">
                 <label for="group_id"
@@ -64,14 +105,16 @@
                 <div class="col-md-5">
                     <select name="group_id" class="form-control select2" id="group_id">
                         <option></option>
-                        @foreach($groups as $group)
-                            @if($role->role_id == 1 || ($role->role_id == 6 && $group->office->province_id == Sentinel::getUser()->province_id) || (in_array($role->role_id, [3,4]) && $group->office_id == Sentinel::getUser()->office_id))
-                                <option value="{{ $group->id }}">{{ $group->name . '(' . $group->account_no . ')' }}</option>
-                            @endif
+                        @foreach(\App\Models\Group::where('status', 'active')->get() as $key)
+                            <option value="{{$key->id}}">
+                                {{$key->name}}({{$key->account_no}} )
+                            </option>
                         @endforeach
                     </select>
                 </div>
             </div>
+
+
 
 
             <div class="form-group" id="">
@@ -80,8 +123,10 @@
                 <div class="col-md-5">
                     <select name="loan_product_id" class="form-control select2" id="loan_product_id">
                         <option></option>
-                        @foreach($loan_products as $product)
-                            <option value="{{ $product->id }}">{{ $product->name }}</option>
+                        @foreach(\App\Models\LoanProduct::get() as $key)
+                            <option value="{{$key->id}}">
+                                {{$key->name}}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -90,7 +135,9 @@
 
 
             <div class="form-group">
-                <div class="col-md-12 text-right">
+                <label for=""
+                       class="control-label col-md-3"></label>
+                <div class="col-md-5">
                     <button type="submit" class="btn btn-primary" id="next" onClick="this.disabled=true;">{{trans_choice('general.next',1)}}</button>
                 </div>
             </div>
@@ -127,17 +174,7 @@
                 }
             }
 
-        });
-
-        // Initialize select2 for selects
-        $('#client_id').select2({
-            placeholder: 'Select a client...'
-        });
-        $('#group_id').select2({
-            placeholder: 'Select a group...'
-        });
-        $('#loan_product_id').select2({
-            placeholder: 'Select a loan product...'
-        });
+        })
     </script>
 @endsection
+
