@@ -97,6 +97,8 @@
         </div>
 
     </div>
+@endsection
+@section('footer-scripts')
     <script>
         $('#type').change(function (e) {
             if ($("#type").val() == "client") {
