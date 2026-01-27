@@ -37,27 +37,26 @@
             <div class="form-group" id="clients_div" style="display: none">
 
                 <label for="client_id"
-                       class="control-label col-md-3">{{trans_choice('general.client',1)}}</label>
+                       class="control-label col-md-3">{{trans_choice('general.client',1)}}
+                </label>
                 <div class="col-md-5">
                     <select name="client_id" class="form-control select2" id="client_id">
-                          <option></option>
-                            @foreach($clients as $key)
-                                <option value="{{$key->id}}">
-                                    @if($key->client_type=="individual")
-                                        {{$key->first_name}} {{$key->middle_name}} {{$key->last_name}}
-                                        ({{$key->account_no}})({{$key->nrc_number}})
+                        <option></option>
+                        @foreach($clients as $client)
+                            @if($role->role_id == 1 || ($role->role_id == 6 && $client->office->province_id == Sentinel::getUser()->province_id) || (in_array($role->role_id, [3,4]) && $client->office_id == Sentinel::getUser()->office_id))
+                                <option value="{{ $client->id }}">
+                                    @if($client->client_type == "individual")
+                                        {{ $client->first_name . ' ' . $client->middle_name . ' ' . $client->last_name . ' (' . $client->account_no . ')(' . $client->nrc_number . ')' }}
                                     @else
-                                        {{$key->full_name}} ({{$key->account_no}}
-                                        )
+                                        {{ $client->full_name . ' (' . $client->account_no . ')' }}
                                     @endif
                                 </option>
-                            @endforeach
+                            @endif
+                        @endforeach
                     </select>
                 </div>
             </div>
 
-            
-           
                 
             <div class="form-group" id="groups_div" style="display: none">
                 <label for="group_id"
@@ -65,16 +64,14 @@
                 <div class="col-md-5">
                     <select name="group_id" class="form-control select2" id="group_id">
                         <option></option>
-                        @foreach(\App\Models\Group::where('status', 'active')->get() as $key)
-                            <option value="{{$key->id}}">
-                                {{$key->name}}({{$key->account_no}} )
-                            </option>
+                        @foreach($groups as $group)
+                            @if($role->role_id == 1 || ($role->role_id == 6 && $group->office->province_id == Sentinel::getUser()->province_id) || (in_array($role->role_id, [3,4]) && $group->office_id == Sentinel::getUser()->office_id))
+                                <option value="{{ $group->id }}">{{ $group->name . '(' . $group->account_no . ')' }}</option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
             </div>
-
-
 
 
             <div class="form-group" id="">
@@ -83,10 +80,8 @@
                 <div class="col-md-5">
                     <select name="loan_product_id" class="form-control select2" id="loan_product_id">
                         <option></option>
-                        @foreach(\App\Models\LoanProduct::get() as $key)
-                            <option value="{{$key->id}}">
-                                {{$key->name}}
-                            </option>
+                        @foreach($loan_products as $product)
+                            <option value="{{ $product->id }}">{{ $product->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -132,6 +127,17 @@
                 }
             }
 
-        })
+        });
+
+        // Initialize select2 for selects
+        $('#client_id').select2({
+            placeholder: 'Select a client...'
+        });
+        $('#group_id').select2({
+            placeholder: 'Select a group...'
+        });
+        $('#loan_product_id').select2({
+            placeholder: 'Select a loan product...'
+        });
     </script>
 @endsection

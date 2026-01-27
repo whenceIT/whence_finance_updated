@@ -591,6 +591,10 @@ Route::group(['prefix' => 'loan'], function () {
     Route::post('application/{id}/update', 'LoanController@update_application');
     Route::post('application/{id}/approve', 'LoanController@approve_application');
     Route::post('application/{id}/decline', 'LoanController@decline_application');
+    // AJAX endpoints for select2
+    Route::get('ajax/clients', 'LoanController@ajaxClients');
+    Route::get('ajax/groups', 'LoanController@ajaxGroups');
+    Route::get('ajax/loan_products', 'LoanController@ajaxLoanProducts');
 });
 //route for loan purposes
 Route::group(['prefix' => 'loan_purpose'], function () {
