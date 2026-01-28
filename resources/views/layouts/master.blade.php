@@ -323,25 +323,21 @@
                     @endforeach
                 @endif
                 @if (isset($msg))
-                    <div class="alert alert-success">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        {{ $msg }}
-                    </div>
+                    <script>
+                        toastr.success('{{ $msg }}', 'Success');
+                    </script>
                 @endif
                 @if (isset($error))
-                    <div class="alert alert-error">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        {{ $error }}
-                    </div>
+                    <script>
+                        toastr.error('{{ $error }}', 'Error');
+                    </script>
                 @endif
                 @if (count($errors) > 0)
-                    <div class="alert alert-danger">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                    <script>
+                        @foreach ($errors->all() as $error)
+                            toastr.error('{{ $error }}', 'Validation Error');
+                        @endforeach
+                    </script>
                 @endif
                 @php
                     $user = Sentinel::getUser();
@@ -446,6 +442,24 @@
             }
         });
 
+        // Configure toastr options
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
 
         var state = 0;
 
@@ -658,318 +672,248 @@
     @yield('footer-scripts')
     <!-- ChartJS 1.0.1 -->
     <script src="{{ asset('assets/themes/adminlte/js/custom.js') }}">
-
     </script>
 
-    @if($user && !$user->has_completed_profile)
-    <!-- Profile Completion Modal -->
-    <div id="profile-modal" class="profile-modal">
-        <div class="modal-overlay" onclick="closeProfileModal()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4>Complete Your Profile</h4>
-                <button type="button" class="close" onclick="closeProfileModal()">&times;</button>
+    @if($user && !$user->has_completed_profile && $user->has_seen_induction && !$showPolicyModal)
+    <!-- Profile Completion Wizard Modal -->
+    <div id="profileWizardModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,20,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 100000; display: none; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
+
+        <style>
+            @keyframes modalFadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            .wizard-step { transition: opacity 0.3s ease; }
+            @media (max-width: 768px) {
+                .wizard-content-flex { flex-direction: column !important; padding: 20px !important; gap: 20px !important; }
+                .wizard-step-img { display: none; }
+                #profileWizardModal>div { width: 100% !important; max-width: none !important; }
+            }
+        </style>
+
+        <div style="background: white; border-radius: 12px; overflow: hidden; max-width: 900px; width: 50%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; border: 1px solid #eee; animation: modalContentAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+
+            <!-- Wizard Header -->
+            <div style="padding: 10px 15px; border-bottom: 3px solid #00a04a; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h3 id="profileWizardTitle" style="margin: 0; color: #000041; font-weight: 800; font-size: 22px; letter-spacing: -0.5px;">Complete Your Profile</h3>
+                </div>
+                <div style="font-size: 14px; color: #000041; font-weight: 600; background: #e8f5e9; padding: 5px 12px; border-radius: 20px; border: 1px solid #c8e6c9;">
+                    Step <span id="profileStepNumber">1</span> of 3
+                </div>
             </div>
-            <form id="profile-form" action="{{ url('user/update_profile') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Salutation</label>
-                                <select name="salutation" class="form-control">
-                                    <option value="">Select</option>
-                                    <option value="Mr." {{ old('salutation', $user->salutation) == 'Mr.' ? 'selected' : '' }}>Mr.</option>
-                                    <option value="Ms." {{ old('salutation', $user->salutation) == 'Ms.' ? 'selected' : '' }}>Ms.</option>
-                                    <option value="Mrs." {{ old('salutation', $user->salutation) == 'Mrs.' ? 'selected' : '' }}>Mrs.</option>
-                                    <option value="Dr." {{ old('salutation', $user->salutation) == 'Dr.' ? 'selected' : '' }}>Dr.</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Employment Type</label>
-                                <select name="employment_type" class="form-control">
-                                    <option value="">Select</option>
-                                    <option value="Full-time" {{ old('employment_type', $user->employment_type) == 'Full-time' ? 'selected' : '' }}>Full-time</option>
-                                    <option value="Part-time" {{ old('employment_type', $user->employment_type) == 'Part-time' ? 'selected' : '' }}>Part-time</option>
-                                    <option value="Contract" {{ old('employment_type', $user->employment_type) == 'Contract' ? 'selected' : '' }}>Contract</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Mobile Number</label>
-                                <input type="text" name="mobile_number" class="form-control" value="{{ old('mobile_number', $user->mobile_number) }}" required>
-                                <div class="invalid-feedback">Please enter a valid mobile number.</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Personal Email</label>
-                                <input type="email" name="personal_email" class="form-control" value="{{ old('personal_email', $user->personal_email) }}" required>
-                                <div class="invalid-feedback">Please enter a valid email address.</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Current Address</label>
-                        <textarea name="current_address" class="form-control" rows="3" required>{{ old('current_address', $user->current_address) }}</textarea>
-                        <div class="invalid-feedback">Please enter your current address.</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Emergency Contact Name</label>
-                                <input type="text" name="emergency_contact_name" class="form-control" value="{{ old('emergency_contact_name', $user->emergency_contact_name) }}" required>
-                                <div class="invalid-feedback">Please enter emergency contact name.</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Emergency Phone</label>
-                                <input type="text" name="emergency_phone" class="form-control" value="{{ old('emergency_phone', $user->emergency_phone) }}" required>
-                                <div class="invalid-feedback">Please enter a valid emergency phone number.</div>
+
+            <!-- Wizard Content -->
+            <div id="profileWizardContent" style="padding: 0; background: white; min-height: 350px; max-height: 500px; overflow-y: auto;">
+                <form id="profile-form" action="{{ url('user/profile_completion') }}" method="POST">
+                    @csrf
+
+                    <!-- Step 1: Basic Information -->
+                    <div id="profileStep1" class="wizard-step" style="display: block;">
+                        <div style="padding: 30px;">
+                            <h2 style="color: #000041; font-weight: 900; font-size: 24px; margin-top: 0; margin-bottom: 15px;">Basic Information</h2>
+                            <p style="font-size: 14px; color: #444; margin-bottom: 20px;">Let's start with some essential details about you.</p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label style="font-weight: 600; color: #000041;">Salutation</label>
+                                    <select name="salutation" class="form-control" style="padding: 1px; border-radius: 6px; border: 1px solid #ddd;">
+                                        <option value="">Select</option>
+                                        <option value="Mr." {{ old('salutation', $user->salutation) == 'Mr.' ? 'selected' : '' }}>Mr.</option>
+                                        <option value="Ms." {{ old('salutation', $user->salutation) == 'Ms.' ? 'selected' : '' }}>Ms.</option>
+                                        <option value="Mrs." {{ old('salutation', $user->salutation) == 'Mrs.' ? 'selected' : '' }}>Mrs.</option>
+                                        <option value="Dr." {{ old('salutation', $user->salutation) == 'Dr.' ? 'selected' : '' }}>Dr.</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight: 600; color: #000041;">Employment Type</label>
+                                    <select name="employment_type" class="form-control" style="padding: 1px; border-radius: 6px; border: 1px solid #ddd;">
+                                        <option value="">Select</option>
+                                        <option value="Permanent" {{ old('employment_type', $user->employment_type) == 'Permanent' ? 'selected' : '' }}>Permanent</option>
+                                        <option value="Probation" {{ old('employment_type', $user->employment_type) == 'Probation' ? 'selected' : '' }}>Probation</option>
+                                        <option value="Provisional" {{ old('employment_type', $user->employment_type) == 'Provisional' ? 'selected' : '' }}>Provisional</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight: 600; color: #000041;">Mobile Number *</label>
+                                    <input type="text" name="mobile_number" id="mobile_number" class="form-control" value="{{ old('mobile_number', $user->mobile_number) }}" required pattern="\d{10}" maxlength="10" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    <div class="invalid-feedback">Please enter a valid 10-digit mobile number.</div>
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight: 600; color: #000041;">Personal Email *</label>
+                                    <input type="email" name="personal_email" class="form-control" value="{{ old('personal_email', $user->personal_email) }}" required style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
+
+                    <!-- Step 2: Address -->
+                    <div id="profileStep2" class="wizard-step" style="display: none;">
+                        <div style="padding: 30px;">
+                            <h2 style="color: #000041; font-weight: 900; font-size: 24px; margin-top: 0; margin-bottom: 15px;">Address</h2>
+                            <p style="font-size: 14px; color: #444; margin-bottom: 20px;">Please provide your current residential address.</p>
                             <div class="form-group">
-                                <label>Relation to Emergency Contact</label>
-                                <input type="text" name="relation_to_emergency" class="form-control" value="{{ old('relation_to_emergency', $user->relation_to_emergency) }}" required>
+                                <label style="font-weight: 600; color: #000041;">Current Address *</label>
+                                <textarea name="current_address" class="form-control" rows="4" required style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">{{ old('current_address', $user->current_address) }}</textarea>
+                                <div class="invalid-feedback">Please enter your current address.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Emergency Contact -->
+                    <div id="profileStep3" class="wizard-step" style="display: none;">
+                        <div style="padding: 30px;">
+                            <h2 style="color: #000041; font-weight: 900; font-size: 24px; margin-top: 0; margin-bottom: 15px;">Emergency Contact</h2>
+                            <p style="font-size: 14px; color: #444; margin-bottom: 20px;">Who should we contact in case of an emergency?</p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label style="font-weight: 600; color: #000041;">Emergency Contact Name *</label>
+                                    <input type="text" name="emergency_contact_name" class="form-control" value="{{ old('emergency_contact_name', $user->emergency_contact_name) }}" required style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    <div class="invalid-feedback">Please enter emergency contact name.</div>
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight: 600; color: #000041;">Emergency Phone *</label>
+                                    <input type="text" name="emergency_phone" class="form-control" value="{{ old('emergency_phone', $user->emergency_phone) }}" required style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    <div class="invalid-feedback">Please enter a valid emergency phone number.</div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label style="font-weight: 600; color: #000041;">Relation to Emergency Contact *</label>
+                                <input type="text" name="relation_to_emergency" class="form-control" value="{{ old('relation_to_emergency', $user->relation_to_emergency) }}" required style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                                 <div class="invalid-feedback">Please enter relation to emergency contact.</div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Reports to</label>
-                                <select name="reports_to" class="form-control">
-                                    <option value="">Select</option>
-                                    @foreach(\App\Models\User::all() as $u)
-                                        <option value="{{ $u->id }}" {{ old('reports_to', $user->reports_to) == $u->id ? 'selected' : '' }}>{{ $u->first_name }} {{ $u->last_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Confirmation Date</label>
-                                <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->confirmation_date) }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Qualification</label>
-                                <input type="text" name="qualification" class="form-control" value="{{ old('qualification', $user->qualification) }}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>School/University</label>
-                                <input type="text" name="school_university" class="form-control" value="{{ old('school_university', $user->school_university) }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Level of Education</label>
-                                <select name="level_of_education" class="form-control">
-                                    <option value="">Select</option>
-                                    <option value="High School" {{ old('level_of_education', $user->level_of_education) == 'High School' ? 'selected' : '' }}>High School</option>
-                                    <option value="Bachelor's" {{ old('level_of_education', $user->level_of_education) == "Bachelor's" ? 'selected' : '' }}>Bachelor's</option>
-                                    <option value="Master's" {{ old('level_of_education', $user->level_of_education) == "Master's" ? 'selected' : '' }}>Master's</option>
-                                    <option value="PhD" {{ old('level_of_education', $user->level_of_education) == 'PhD' ? 'selected' : '' }}>PhD</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Year Completed</label>
-                                <input type="number" name="year_completed" class="form-control" value="{{ old('year_completed', $user->year_completed) }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Major</label>
-                                <input type="text" name="major" class="form-control" value="{{ old('major', $user->major) }}">
-                            </div>
-                        </div>
-                    </div>
+                </form>
+            </div>
+
+            <!-- Wizard Footer -->
+            <div style="padding: 8px 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; gap: 12px; background: #f1f8e9;">
+                <button id="profileBtnPrev" style="display: none; padding: 8px 20px; border: 2px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-weight: 600; color: #555; transition: all 0.2s ease; font-size: 14px;">
+                    <i class="fa fa-arrow-left" style="margin-right: 6px;"></i> Previous
+                </button>
+                <div style="display: flex; gap: 12px;">
+                    <button id="profileBtnSkip" style="padding: 8px 20px; border: 2px solid #6c757d; background: white; color: #6c757d; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">Skip</button>
+                    <button id="profileBtnNext" style="padding: 8px 24px; border: none; background: #00a04a; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
+                        Next <i class="fa fa-arrow-right" style="margin-left: 6px;"></i>
+                    </button>
+                    <button id="profileBtnFinish" style="display: none; padding: 8px 24px; border: none; background: #000041; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
+                        Complete Profile <i class="fa fa-check" style="margin-left: 6px;"></i>
+                    </button>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">Skip</button>
-                    <button type="submit" class="btn btn-primary">Save Profile</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
-    <style>
-        .profile-modal {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1050;
-            display: flex;
-            align-items: flex-end;
-        }
-        .modal-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-        }
-        .modal-content {
-            background: white;
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            max-height: 80vh;
-            overflow-y: auto;
-            border-radius: 10px 10px 0 0;
-            animation: slideUp 0.3s ease-out;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-        }
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-        .modal-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8f9fa;
-            border-radius: 10px 10px 0 0;
-        }
-        .modal-header h4 {
-            margin: 0;
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #495057;
-        }
-        .modal-header .close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #6c757d;
-            cursor: pointer;
-        }
-        .modal-body {
-            padding: 30px;
-        }
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        .form-group label {
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        .form-control {
-            border: 1px solid #ced4da;
-            border-radius: 0.375rem;
-            padding: 0.75rem;
-            font-size: 1rem;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        }
-        .form-control:focus {
-            border-color: #80bdff;
-            outline: 0;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-        .form-control.is-invalid {
-            border-color: #dc3545;
-        }
-        .invalid-feedback {
-            display: none;
-            color: #dc3545;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-        .form-control.is-invalid ~ .invalid-feedback {
-            display: block;
-        }
-        .modal-footer {
-            padding: 20px 30px;
-            border-top: 1px solid #e9ecef;
-            text-align: right;
-            background: #f8f9fa;
-        }
-        .btn {
-            border-radius: 0.375rem;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.15s ease-in-out;
-        }
-        .btn-secondary {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #545b62;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #004085;
-        }
-        @media (max-width: 768px) {
-            .modal-content {
-                max-height: 90vh;
-                max-width: 100%;
-            }
-            .modal-header, .modal-body, .modal-footer {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-        }
-    </style>
-
     <script>
-        function closeProfileModal() {
-            document.getElementById('profile-modal').style.display = 'none';
-        }
-        // Show modal on load
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('profile-modal').style.display = 'block';
-            // Initialize form validation
-            $('#profile-form').validate({
-                errorElement: 'div',
-                errorClass: 'invalid-feedback',
-                highlight: function(element) {
-                    $(element).addClass('is-invalid');
-                },
-                unhighlight: function(element) {
-                    $(element).removeClass('is-invalid');
-                },
-                errorPlacement: function(error, element) {
-                    error.addClass('invalid-feedback');
-                    element.after(error);
+        (function () {
+            var currentStep = 1;
+            var totalSteps = 3;
+            var btnNext = document.getElementById('profileBtnNext');
+            var btnPrev = document.getElementById('profileBtnPrev');
+            var btnSkip = document.getElementById('profileBtnSkip');
+            var btnFinish = document.getElementById('profileBtnFinish');
+            var stepNumber = document.getElementById('profileStepNumber');
+            var wizardTitle = document.getElementById('profileWizardTitle');
+
+            function validateCurrentStep() {
+                if (currentStep === 1) {
+                    var mobile = document.getElementById('mobile_number').value.trim();
+                    var email = document.querySelector('input[name="personal_email"]').value.trim();
+                    if (mobile === '' || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
+                        toastr.error('Please enter a valid 10-digit mobile number.', 'Validation Error');
+                        return false;
+                    }
+                    if (email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        toastr.error('Please enter a valid email address.', 'Validation Error');
+                        return false;
+                    }
+                } else if (currentStep === 2) {
+                    var address = document.querySelector('textarea[name="current_address"]').value.trim();
+                    if (address === '') {
+                        toastr.error('Please enter your current address.', 'Validation Error');
+                        return false;
+                    }
+                } else if (currentStep === 3) {
+                    var name = document.querySelector('input[name="emergency_contact_name"]').value.trim();
+                    var phone = document.querySelector('input[name="emergency_phone"]').value.trim();
+                    var relation = document.querySelector('input[name="relation_to_emergency"]').value.trim();
+                    if (name === '') {
+                        toastr.error('Please enter emergency contact name.', 'Validation Error');
+                        return false;
+                    }
+                    if (phone === '' || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
+                        toastr.error('Please enter a valid 10-digit emergency phone number.', 'Validation Error');
+                        return false;
+                    }
+                    if (relation === '') {
+                        toastr.error('Please enter relation to emergency contact.', 'Validation Error');
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function updateWizard() {
+                // Hide ALL steps first
+                document.querySelectorAll('#profileWizardContent .wizard-step').forEach(step => {
+                    step.style.display = 'none';
+                });
+
+                // Show current step
+                document.getElementById('profileStep' + currentStep).style.display = 'block';
+
+                // Update Header & Buttons
+                stepNumber.textContent = currentStep;
+
+                if (currentStep === 1) {
+                    wizardTitle.textContent = 'Complete Your Profile';
+                    btnPrev.style.display = 'none';
+                    btnNext.style.display = 'block';
+                    btnFinish.style.display = 'none';
+                } else if (currentStep === 3) {
+                    wizardTitle.textContent = 'Final Step';
+                    btnPrev.style.display = 'block';
+                    btnNext.style.display = 'none';
+                    btnFinish.style.display = 'block';
+                } else {
+                    wizardTitle.textContent = 'Complete Your Profile';
+                    btnPrev.style.display = 'block';
+                    btnNext.style.display = 'block';
+                    btnFinish.style.display = 'none';
+                }
+            }
+
+            btnNext.addEventListener('click', function () {
+                if (validateCurrentStep()) {
+                    if (currentStep < totalSteps) {
+                        currentStep++;
+                        updateWizard();
+                    }
                 }
             });
-        });
+
+            btnPrev.addEventListener('click', function () {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateWizard();
+                }
+            });
+
+            btnSkip.addEventListener('click', function () {
+                document.getElementById('profileWizardModal').style.display = 'none';
+            });
+
+            btnFinish.addEventListener('click', function () {
+                document.getElementById('profile-form').submit();
+            });
+
+            // Show modal after page load
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('profileWizardModal').style.display = 'flex';
+                updateWizard();
+            });
+        })();
     </script>
     @endif
 

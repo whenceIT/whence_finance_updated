@@ -1764,6 +1764,34 @@ class UserController extends Controller
         return redirect('dashboard');
     }
 
+    public function profile_completion(Request $request){
+
+        $user = Sentinel::getUser();
+
+        $user->update([
+            'salutation' => $request->salutation,
+            'employment_type' => $request->employment_type,
+            'mobile_number' => $request->mobile_number,
+            'personal_email' => $request->personal_email,
+            'current_address' => $request->current_address,
+            'emergency_contact_name' => $request->emergency_contact_name,
+            'emergency_phone' => $request->emergency_phone,
+            'relation_to_emergency' => $request->relation_to_emergency,
+            'reports_to' => $request->reports_to,
+            'confirmation_date' => $request->confirmation_date,
+            'qualification' => $request->qualification,
+            'school_university' => $request->school_university,
+            'level_of_education' => $request->level_of_education,
+            'year_completed' => $request->year_completed,
+            'major' => $request->major,
+            'has_completed_profile' => true,
+        ]);
+
+        GeneralHelper::audit_trail("Profile Completion", "Users", $user->id);
+        Flash::success("Profile completed successfully");
+        return redirect('dashboard');
+    }
+
     //manage permissions
     public function indexPermission()
     {
