@@ -33,7 +33,6 @@
             </div>
 
             <div class="form-group">
-
             </div>
             <div class="form-group" id="clients_div" style="display: none">
 

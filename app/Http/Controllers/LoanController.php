@@ -830,6 +830,10 @@ class LoanController extends Controller
         // role 1 sees all
         $clients = $clients_query->get();
 
+        if ($role->role_id == '6') {
+            $province_clients = $clients;
+        }
+
         $groups_query = \App\Models\Group::where('status', 'active');
         if ($role->role_id == '6') {
             $groups_query->whereIn('office_id', $province_branches->pluck('id'));
