@@ -120,6 +120,174 @@
                                 <h4 class="page-header"><i class="fa fa-user"></i> Personal Information</h4>
                                 <table class="table no-border">
                                     <tr>
+                                        <td class="info-label">Salutation:</td>
+                                        <td>{{ $user->salutation ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Employment Type:</td>
+                                        <td>{{ $user->employment_type ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Mobile Number:</td>
+                                        <td>{{ $user->mobile_number ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Personal Email:</td>
+                                        <td>{{ $user->personal_email ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Current Address:</td>
+                                        <td>{!! $user->current_address ?: 'N/A' !!}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Emergency Contact Name:</td>
+                                        <td>{{ $user->emergency_contact_name ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Emergency Phone:</td>
+                                        <td>{{ $user->emergency_phone ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Relation to Emergency Contact:</td>
+                                        <td>{{ $user->relation_to_emergency ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Reports To:</td>
+                                        <td>
+                                            @if($user->reports_to)
+                                                @php
+                                                    $reportsToUser = \App\Models\User::find($user->reports_to);
+                                                @endphp
+                                                @if($reportsToUser)
+                                                    {{ $reportsToUser->first_name }} {{ $reportsToUser->last_name }}
+                                                    @if($reportsToUser->designation)
+                                                        ({{ $reportsToUser->designation }})
+                                                    @endif
+                                                @else
+                                                    N/A
+                                                @endif
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Confirmation Date:</td>
+                                        <td>{{ $user->confirmation_date ? \Carbon\Carbon::parse($user->confirmation_date)->format('d M, Y') : 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Qualification:</td>
+                                        <td>{{ $user->qualification ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">School/University:</td>
+                                        <td>{{ $user->school_university ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Level of Education:</td>
+                                        <td>{{ $user->level_of_education ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Year Completed:</td>
+                                        <td>{{ $user->year_completed ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Major/Optional Subjects:</td>
+                                        <td>{{ $user->major ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Date of Birth:</td>
+                                        <td>{{ $user->date_of_birth ? \Carbon\Carbon::parse($user->date_of_birth)->format('d M, Y') : 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Date of Joining:</td>
+                                        <td>{{ $user->date_of_joining ? \Carbon\Carbon::parse($user->date_of_joining)->format('d M, Y') : 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Company:</td>
+                                        <td>{{ $user->company ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Employee Number:</td>
+                                        <td>{{ $user->employee_number ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Department:</td>
+                                        <td>{{ $user->department ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Designation:</td>
+                                        <td>{{ $user->designation ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Branch:</td>
+                                        <td>{{ $user->branch ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Salary Currency:</td>
+                                        <td>{{ $user->salary_currency ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Salary Mode:</td>
+                                        <td>{{ $user->salary_mode ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Bank Name:</td>
+                                        <td>{{ $user->bank_name ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Bank Account Number:</td>
+                                        <td>{{ $user->bank_account_number ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Marital Status:</td>
+                                        <td>{{ $user->marital_status ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Health Details:</td>
+                                        <td>{!! $user->health_details ?: 'N/A' !!}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Health Insurance Provider:</td>
+                                        <td>{{ $user->health_insurance_provider ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Health Insurance Number:</td>
+                                        <td>{{ $user->health_insurance_number ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">External Company:</td>
+                                        <td>{{ $user->external_company ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">External Designation:</td>
+                                        <td>{{ $user->external_designation ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">External Contact:</td>
+                                        <td>{{ $user->external_contact ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">External Total Experience:</td>
+                                        <td>{{ $user->external_total_experience ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Internal Branch:</td>
+                                        <td>{{ $user->internal_branch ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Internal Designation:</td>
+                                        <td>{{ $user->internal_designation ?: 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Internal From Date:</td>
+                                        <td>{{ $user->internal_from_date ? \Carbon\Carbon::parse($user->internal_from_date)->format('d M, Y') : 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-label">Internal To Date:</td>
+                                        <td>{{ $user->internal_to_date ? \Carbon\Carbon::parse($user->internal_to_date)->format('d M, Y') : 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
                                         <td class="info-label">{{ trans('general.gender') }}:</td>
                                         <td>{{ ucfirst($user->gender) }}</td>
                                     </tr>

@@ -323,25 +323,21 @@
                     @endforeach
                 @endif
                 @if (isset($msg))
-                    <div class="alert alert-success">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        {{ $msg }}
-                    </div>
+                    <script>
+                        toastr.success('{{ $msg }}', 'Success');
+                    </script>
                 @endif
                 @if (isset($error))
-                    <div class="alert alert-error">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        {{ $error }}
-                    </div>
+                    <script>
+                        toastr.error('{{ $error }}', 'Error');
+                    </script>
                 @endif
                 @if (count($errors) > 0)
-                    <div class="alert alert-danger">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                    <script>
+                        @foreach ($errors->all() as $error)
+                            toastr.error('{{ $error }}', 'Validation Error');
+                        @endforeach
+                    </script>
                 @endif
                 @php
                     $user = Sentinel::getUser();
@@ -446,6 +442,24 @@
             }
         });
 
+        // Configure toastr options
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
 
         var state = 0;
 
@@ -658,8 +672,9 @@
     @yield('footer-scripts')
     <!-- ChartJS 1.0.1 -->
     <script src="{{ asset('assets/themes/adminlte/js/custom.js') }}">
-
     </script>
+
+    @include('partials.profile_completion_wizard')
 
     <script>
         $(document).ready(function() {
