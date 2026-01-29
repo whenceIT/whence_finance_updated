@@ -86,9 +86,9 @@ class ClientController extends Controller
                 ->orWhere('last_name', 'like', "%{$query}%")
                 ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"]);
         })
-        ->get();
+        ->paginate(15);
     } else {
-        $data = $clientQuery->get();
+        $data = null;
     }
     
     return view('client.data', compact('data', 'query'));
@@ -1272,5 +1272,17 @@ class ClientController extends Controller
             }
         }
         return response()->json($options);
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->get('q');
+        $clients = Client::where('first_name', 'like', '%' . $query . '%')
+            ->orWhere('last_name', 'like', '%' . $query . '%')
+            ->orWhere('email', 'like', '%' . $query . '%')
+            ->orWhere('mobile', 'like', '%' . $query . '%')
+            ->with('office')
+            ->get();
+        return response()->json($clients);
     }
 }

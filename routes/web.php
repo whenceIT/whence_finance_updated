@@ -168,6 +168,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('edit_my_details', 'UserController@edit_my_details');
     Route::get('profile', 'UserController@profile');
     Route::post('update_profile', 'UserController@profile_update');
+    Route::post('profile_completion', 'UserController@profile_completion');
     Route::get('{user}/staff_info', 'UserController@user_info');
     Route::get('search', 'UserController@search');
     Route::any('{user}/{collection_type}/collections_stats', 'UserController@collections_stats');
@@ -273,6 +274,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::get('{id}/delete_user', 'ClientController@delete_user');
 
     Route::get('get-staffs', 'ClientController@getStaffs');
+    Route::get('search', 'ClientController@search');
 });
 //route for client identification types
 Route::group(['prefix' => 'client_identification_type'], function () {
@@ -590,6 +592,10 @@ Route::group(['prefix' => 'loan'], function () {
     Route::post('application/{id}/update', 'LoanController@update_application');
     Route::post('application/{id}/approve', 'LoanController@approve_application');
     Route::post('application/{id}/decline', 'LoanController@decline_application');
+    // AJAX endpoints for select2
+    Route::get('ajax/clients', 'LoanController@ajaxClients');
+    Route::get('ajax/groups', 'LoanController@ajaxGroups');
+    Route::get('ajax/loan_products', 'LoanController@ajaxLoanProducts');
 });
 //route for loan purposes
 Route::group(['prefix' => 'loan_purpose'], function () {
@@ -901,6 +907,7 @@ Route::group(['prefix' => 'savings'], function () {
 Route::group(['prefix' => 'audit_trail'], function () {
     Route::get('data', 'AuditTrailController@index');
     Route::get('user/{user_id}', 'AuditTrailController@user_audit');
+    Route::post('quick_audit', 'AuditTrailController@quickAudit');
     Route::get('{id}/delete', 'AuditTrailController@delete');
 });
 //route for custom fields

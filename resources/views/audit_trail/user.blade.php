@@ -7,6 +7,7 @@
         <div class="box-header with-border">
             <h3 class="box-title">  {{ trans_choice('general.audit_trail',2) }} - User Details </h3>
             <div class="box-tools pull-right">
+                <a href="{{ url('audit_trail') }}" class="btn btn-default btn-sm">Back to Audit Trail</a>
             </div>
         </div>
 

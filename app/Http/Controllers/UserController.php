@@ -1764,6 +1764,57 @@ class UserController extends Controller
         return redirect('dashboard');
     }
 
+    public function profile_completion(Request $request){
+
+        $user = Sentinel::getUser();
+
+        $user->update([
+            'salutation' => $request->salutation,
+            'employment_type' => $request->employment_type,
+            'mobile_number' => $request->mobile_number,
+            'personal_email' => $request->personal_email,
+            'current_address' => $request->current_address,
+            'emergency_contact_name' => $request->emergency_contact_name,
+            'emergency_phone' => $request->emergency_phone,
+            'relation_to_emergency' => $request->relation_to_emergency,
+            'reports_to' => $request->reports_to,
+            'confirmation_date' => $request->confirmation_date,
+            'date_of_birth' => $request->date_of_birth,
+            'date_of_joining' => $request->date_of_joining,
+            'company' => $request->company,
+            'employee_number' => $request->employee_number,
+            'department' => $request->department,
+            'designation' => $request->designation,
+            'branch' => $request->branch,
+            'salary_currency' => $request->salary_currency,
+            'salary_mode' => $request->salary_mode,
+            'bank_name' => $request->bank_name,
+            'bank_account_number' => $request->bank_account_number,
+            'marital_status' => $request->marital_status,
+            'health_details' => $request->health_details,
+            'health_insurance_provider' => $request->health_insurance_provider,
+            'health_insurance_number' => $request->health_insurance_number,
+            'qualification' => $request->qualification,
+            'school_university' => $request->school_university,
+            'level_of_education' => $request->level_of_education,
+            'year_completed' => $request->year_completed,
+            'major' => $request->major,
+            'external_company' => $request->external_company,
+            'external_designation' => $request->external_designation,
+            'external_contact' => $request->external_contact,
+            'external_total_experience' => $request->external_total_experience,
+            'internal_branch' => $request->internal_branch,
+            'internal_designation' => $request->internal_designation,
+            'internal_from_date' => $request->internal_from_date,
+            'internal_to_date' => $request->internal_to_date,
+            'has_completed_profile' => true,
+        ]);
+
+        GeneralHelper::audit_trail("Profile Completion", "Users", $user->id);
+        Flash::success("Profile completed successfully");
+        return redirect('dashboard');
+    }
+
     //manage permissions
     public function indexPermission()
     {

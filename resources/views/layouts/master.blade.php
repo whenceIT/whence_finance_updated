@@ -189,14 +189,25 @@
                     </span>
                 </a>
 
-                @if($role && in_array($role, ['1']))
+                @if($role && in_array($role, ['1', '6', '4', '9', '10']))
                 <!-- Search Bar -->
                 <div class="navbar-search" style="flex: 1; display: flex; justify-content: center; position: relative;">
-                    <div style="position: relative;">
-                        <input type="text" id="user-search" placeholder="Search for staff..." style="width: 300px; padding: 8px 35px 8px 15px; border-radius: 25px; border: 2px solid #ddd; background: white; color: #333; font-size: 14px; outline: none; transition: border-color 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <i class="fa fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    <div class="input-group" style="width: 350px;">
+                        <div class="input-group-btn">
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="search-type-btn" style="border-radius: 25px 0 0 25px; border-right: none; background: #f8f9fa; color: #333; font-weight: bold; margin-top: 0.55%;">
+                                Staff <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" id="search-type-menu">
+                                <li><a href="#" data-value="staff">Staff</a></li>
+                                <li><a href="#" data-value="client">Client</a></li>
+                            </ul>
+                        </div>
+                        <input type="text" id="user-search" placeholder="Search for staff..." class="form-control" style="border-radius: 0 25px 25px 0; border-left: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <span class="input-group-addon" style="border-radius: 0 25px 25px 0; border-left: none; background: transparent; border: none;">
+                            <i class="fa fa-search" style="color: #666;"></i>
+                        </span>
                     </div>
-                    <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ddd; width: 300px; max-height: 250px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; margin-top: 5px;"></div>
+                    <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ddd; width: 350px; max-height: 250px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; margin-top: 5px;"></div>
                 </div>
                 @else
                 <div class="col-md-10"></div>
@@ -305,25 +316,21 @@
                     @endforeach
                 @endif
                 @if (isset($msg))
-                    <div class="alert alert-success">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        {{ $msg }}
-                    </div>
+                    <script>
+                        toastr.success('{{ $msg }}', 'Success');
+                    </script>
                 @endif
                 @if (isset($error))
-                    <div class="alert alert-error">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        {{ $error }}
-                    </div>
+                    <script>
+                        toastr.error('{{ $error }}', 'Error');
+                    </script>
                 @endif
                 @if (count($errors) > 0)
-                    <div class="alert alert-danger">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                    <script>
+                        @foreach ($errors->all() as $error)
+                            toastr.error('{{ $error }}', 'Validation Error');
+                        @endforeach
+                    </script>
                 @endif
                 @php
                     $user = Sentinel::getUser();
@@ -428,6 +435,24 @@
             }
         });
 
+        // Configure toastr options
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
 
         var state = 0;
 
@@ -640,33 +665,63 @@
     @yield('footer-scripts')
     <!-- ChartJS 1.0.1 -->
     <script src="{{ asset('assets/themes/adminlte/js/custom.js') }}">
-
     </script>
+
+    @include('partials.profile_completion_wizard')
 
     <script>
         $(document).ready(function() {
+            var currentSearchType = 'staff';
+
+            function updateSearchType(type) {
+                currentSearchType = type;
+                var label = type === 'staff' ? 'Staff' : 'Client';
+                $('#search-type-btn').html(label + ' <span class="caret"></span>');
+                var placeholder = 'Search for ' + (type === 'staff' ? 'staff' : 'clients') + '...';
+                $('#user-search').attr('placeholder', placeholder);
+            }
+
+            $('#search-type-menu a').on('click', function(e) {
+                e.preventDefault();
+                var type = $(this).data('value');
+                updateSearchType(type);
+            });
+
+            updateSearchType('staff'); // Initial
+
             $('#user-search').on('input', function() {
                 var query = $(this).val();
+                var url = currentSearchType === 'staff' ? '/user/search' : '/client/search';
                 if (query.length > 2) {
                     $.ajax({
-                        url: '/user/search',
+                        url: url,
                         method: 'GET',
                         data: { q: query },
                         success: function(data) {
                             var results = $('#search-results');
                             results.empty();
                             if (data.length > 0) {
-                                data.forEach(function(user) {
-                                    var item = $('<div class="search-item" style="padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; color: #333; font-size: 14px;"></div>');
-                                    item.html('<strong>' + user.first_name + ' ' + user.last_name + '</strong><br><small style="color: #666;">' + user.email + ' | ' + (user.office ? user.office.name : 'No Office') + '</small>');
-                                    item.hover(function() { $(this).css('background', '#f8f9fa'); }, function() { $(this).css('background', 'transparent'); });
-                                    item.on('click', function() {
-                                        $('#fullscreen-loader').fadeIn(200);
-                                        setTimeout(function() {
-                                            window.location.href = '/user/' + user.id + '/staff_info';
-                                        }, 100);
-                                    });
-                                    results.append(item);
+                                data.forEach(function(item) {
+                                    var itemDiv = $('<div class="search-item" style="padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; color: #333; font-size: 14px;"></div>');
+                                    if (currentSearchType === 'staff') {
+                                        itemDiv.html('<strong>' + item.first_name + ' ' + item.last_name + '</strong><br><small style="color: #666;">' + item.email + ' | ' + (item.office ? item.office.name : 'No Office') + '</small>');
+                                        itemDiv.on('click', function() {
+                                            $('#fullscreen-loader').fadeIn(200);
+                                            setTimeout(function() {
+                                                window.location.href = '/user/' + item.id + '/staff_info';
+                                            }, 100);
+                                        });
+                                    } else {
+                                        itemDiv.html('<strong>' + item.first_name + ' ' + item.last_name + '</strong><br><small style="color: #666;">' + item.mobile + ' | ' + (item.office ? item.office.name : 'No Office') + '</small>');
+                                        itemDiv.on('click', function() {
+                                            $('#fullscreen-loader').fadeIn(200);
+                                            setTimeout(function() {
+                                                window.location.href = '/client/' + item.id + '/show';
+                                            }, 100);
+                                        });
+                                    }
+                                    itemDiv.hover(function() { $(this).css('background', '#f8f9fa'); }, function() { $(this).css('background', 'transparent'); });
+                                    results.append(itemDiv);
                                 });
                                 results.show();
                             } else {
