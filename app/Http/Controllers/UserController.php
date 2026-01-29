@@ -1782,9 +1782,9 @@ class UserController extends Controller
             'emergency_phone' => $request->emergency_phone,
             'relation_to_emergency' => $request->relation_to_emergency,
             'reports_to' => $request->reports_to,
-            
-            'confirmation_date' => $createdDate,
-            'date_of_joining'   => $createdDate,
+
+            'confirmation_date' => $request->date_of_joining,
+            'date_of_joining'   => $request->date_of_joining,
 
             'date_of_birth' => $request->date_of_birth,
             'company' => $request->company,
