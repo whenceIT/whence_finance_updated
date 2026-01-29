@@ -253,7 +253,7 @@
                                 <label style="font-weight: 600; color: #000041;">Branch</label>
                                 <input type="text" name="branch" class="form-control" value="{{ $user->office ? $user->office->name : '' }}" readonly style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
-                            <div class="form-group">
+                            <!-- <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Reports to</label>
                                 <select name="reports_to" class="form-control select2">
                                     <option value="">Select Reports To</option>
@@ -268,7 +268,7 @@
                                         @endif
                                     @endforeach
                                 </select>
-                            </div>
+                            </div> -->
 <!-- 
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Confirmation Date</label>
@@ -479,10 +479,10 @@
                     toastr.error('Please select a department.', 'Validation Error');
                     return false;
                 }
-                if (reportsSelect && reportsSelect.selectedIndex === 0) {
-                    toastr.error('Please select reports to.', 'Validation Error');
-                    return false;
-                }
+                // if (reportsSelect && reportsSelect.selectedIndex === 0) {
+                //     toastr.error('Please select reports to.', 'Validation Error');
+                //     return false;
+                // }
                 if (!dob || dob === '') {
                     toastr.error('Please enter date of birth.', 'Validation Error');
                     return false;

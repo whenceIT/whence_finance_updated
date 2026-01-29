@@ -1781,7 +1781,7 @@ class UserController extends Controller
             'emergency_contact_name' => $request->emergency_contact_name,
             'emergency_phone' => $request->emergency_phone,
             'relation_to_emergency' => $request->relation_to_emergency,
-            'reports_to' => $request->reports_to,
+            // 'reports_to' => $request->reports_to,
 
             'confirmation_date' => $request->date_of_joining,
             'date_of_joining'   => $request->date_of_joining,

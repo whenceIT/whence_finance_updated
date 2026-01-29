@@ -885,8 +885,8 @@
                 }
             });
 
-            // Update survey link when you have the URL
-            // $('#surveyLink').attr('href', '/your-survey-page');
+            // Update survey link
+            $('#surveyLink').attr('href', '{{ route('survey.show') }}');
         });
     </script>
 </body>
