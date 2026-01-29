@@ -217,7 +217,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Date of Joining</label>
-                                <input type="date" name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $user->date_of_joining) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <input type="date" disabled name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Company</label>
@@ -270,7 +270,7 @@
 
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Confirmation Date</label>
-                                <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->confirmation_date) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <input type="date" disabled name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                         </div>
                     </div>
