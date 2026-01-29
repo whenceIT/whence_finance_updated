@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
 use App\Http\Controllers\LoanReportController;
+use App\Http\Controllers\LearningController;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -143,6 +144,16 @@ Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');
 Route::post('induction/mark_as_seen', [InductionController::class, 'markAsSeen']);
 Route::post('induction/toggle_checklist_item', [InductionController::class, 'toggleChecklistItem']);
+
+// Learning Management System Routes
+Route::group(['prefix' => 'learning'], function () {
+    Route::get('/', [LearningController::class, 'index'])->name('learning.dashboard');
+    Route::get('/courses', [LearningController::class, 'courses'])->name('learning.courses');
+    Route::get('/calendar', [LearningController::class, 'calendar'])->name('learning.calendar');
+    Route::get('/progress', [LearningController::class, 'progress'])->name('learning.progress');
+    Route::get('/certificates', [LearningController::class, 'certificates'])->name('learning.certificates');
+    Route::get('/course/{id}', [LearningController::class, 'showCourse'])->name('learning.course');
+});
 
 //route for users
 Route::group(['prefix' => 'user'], function () {
