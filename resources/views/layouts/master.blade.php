@@ -78,6 +78,103 @@
                 transform: scale(1);
             }
         }
+
+        /* Bottom Sheet Modal Styles */
+        .bottom-sheet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99998;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .bottom-sheet-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.3);
+            z-index: 99999;
+            transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .bottom-sheet.active {
+            bottom: 0;
+        }
+
+        .bottom-sheet-handle {
+            width: 50px;
+            height: 5px;
+            background: #ddd;
+            border-radius: 3px;
+            margin: 15px auto;
+        }
+
+        .bottom-sheet-content {
+            padding: 20px 30px 30px 30px;
+        }
+
+        .bottom-sheet-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .bottom-sheet-description {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .bottom-sheet-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #00a04a;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .bottom-sheet-btn:hover {
+            background: #008a3f;
+        }
+
+        .bottom-sheet-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .bottom-sheet-close:hover {
+            color: #333;
+        }
     </style>
     <!-- Theme style -->
 
@@ -168,6 +265,21 @@
     z-index: 9999;
   }
 </style>
+
+<!-- Bottom Sheet Modal -->
+<!-- <div class="bottom-sheet-overlay" id="surveyBottomSheetOverlay">
+    <div class="bottom-sheet" id="surveyBottomSheet">
+        <button class="bottom-sheet-close" id="closeSurveyBottomSheet">&times;</button>
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content">
+            <h3 class="bottom-sheet-title">We Value Your Feedback!</h3>
+            <p class="bottom-sheet-description">
+                Help us improve our services by taking a quick survey. Your feedback is important to us and will help us serve you better.
+            </p>
+            <a href="#" class="bottom-sheet-btn" id="surveyLink">Take Survey</a>
+        </div>
+    </div>
+</div> -->
 
 
 
@@ -747,6 +859,34 @@
                     $('#search-results').hide();
                 }
             });
+        });
+    </script>
+
+    <!-- Survey Bottom Sheet Modal Script -->
+    <script>
+        $(document).ready(function() {
+            // Show bottom sheet after 4 seconds
+            setTimeout(function() {
+                $('#surveyBottomSheetOverlay').addClass('active');
+                $('#surveyBottomSheet').addClass('active');
+            }, 4000);
+
+            // Close bottom sheet when clicking close button
+            $('#closeSurveyBottomSheet').on('click', function() {
+                $('#surveyBottomSheetOverlay').removeClass('active');
+                $('#surveyBottomSheet').removeClass('active');
+            });
+
+            // Close bottom sheet when clicking overlay
+            $('#surveyBottomSheetOverlay').on('click', function(e) {
+                if (e.target === this) {
+                    $('#surveyBottomSheetOverlay').removeClass('active');
+                    $('#surveyBottomSheet').removeClass('active');
+                }
+            });
+
+            // Update survey link when you have the URL
+            // $('#surveyLink').attr('href', '/your-survey-page');
         });
     </script>
 </body>

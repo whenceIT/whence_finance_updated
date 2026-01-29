@@ -217,7 +217,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Date of Joining</label>
-                                <input type="date" disabled name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <input type="date" name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Company</label>
@@ -238,6 +238,8 @@
                                     <option value="">Select Department</option>
                                     <option value="Administration" {{ old('department', $user->department) == 'Administration' ? 'selected' : '' }}>Administration</option>
                                     <option value="Finance" {{ old('department', $user->department) == 'Finance' ? 'selected' : '' }}>Finance</option>
+                                    <option value="Management" {{ old('department', $user->department) == 'Management' ? 'selected' : '' }}>Management</option>
+                                    <option value="Payroll" {{ old('department', $user->department) == 'Payroll' ? 'selected' : '' }}>Payroll</option>
                                     <option value="Operations" {{ old('department', $user->department) == 'Operations' ? 'selected' : '' }}>Operations</option>
                                     <option value="IT" {{ old('department', $user->department) == 'IT' ? 'selected' : '' }}>IT</option>
                                     <option value="HR" {{ old('department', $user->department) == 'HR' ? 'selected' : '' }}>HR</option>
@@ -267,11 +269,11 @@
                                     @endforeach
                                 </select>
                             </div>
-
+<!-- 
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Confirmation Date</label>
-                                <input type="date" disabled name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
-                            </div>
+                                <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                            </div> -->
                         </div>
                     </div>
                 </div>
