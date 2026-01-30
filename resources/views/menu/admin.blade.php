@@ -119,6 +119,16 @@
                 </a>
                 
                 <ul class="treeview-menu">
+
+                   @if(Sentinel::hasAccess('expenses'))
+                    <li>
+                        <a href="{{ url('user/carry_over_approvals') }}"><i
+                                    class="fa fa-circle-o"></i> Pending Carry Overs
+                        </a>
+                    </li>
+			        @endif
+
+
                     @if(Sentinel::hasAccess('expenses'))
                     <li>
                         <a href="{{ url('loan/managers_pending_approval') }}"><i
