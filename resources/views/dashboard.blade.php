@@ -3276,24 +3276,24 @@ if($branchUser->role){
     @if($role->role_id == '3')
         @if($end !== 'NCI')
             <script>
-                //  console.log('hello')
+                // console.log('hello')
                 //Setting up the cycle count down
 
-                 $('#pendingApprovalModal').modal('show');
+                $('#pendingApprovalModal').modal('show');
 
-    document.getElementById('confirmSubmitCarryOver').addEventListener('click', function () {
-        document.querySelector('#broughtForwardModal form').submit();
-    });
+                var confirmSubmitCarryOverBtn = document.getElementById('confirmSubmitCarryOver');
+                if (confirmSubmitCarryOverBtn) {
+                    confirmSubmitCarryOverBtn.addEventListener('click', function () {
+                        document.querySelector('#broughtForwardModal form').submit();
+                    });
+                }
 
-
-
-
-                  $(document).ready(function () {
-        $('#broughtForwardModal').modal({
-            backdrop: 'static',
-            keyboard: false
-        });
-    });
+                $(document).ready(function () {
+                    $('#broughtForwardModal').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                });
 
                 var COUA = document.getElementById('coua');
                 var TCC = document.getElementById('tcc');

@@ -258,9 +258,9 @@
     z-index: 9999;
   }
 </style>
-
 <!-- Bottom Sheet Modal -->
-<!-- <div class="bottom-sheet-overlay" id="surveyBottomSheetOverlay">
+<div class="bottom-sheet-overlay" id="surveyBottomSheetOverlay">
+
     <div class="bottom-sheet" id="surveyBottomSheet">
         <button class="bottom-sheet-close" id="closeSurveyBottomSheet">&times;</button>
         <div class="bottom-sheet-handle"></div>
@@ -272,7 +272,7 @@
             <a href="#" class="bottom-sheet-btn" id="surveyLink">Take Survey</a>
         </div>
     </div>
-</div> -->
+</div>
 
 
 
@@ -860,54 +860,10 @@
         $(document).ready(function() {
             // Get current route name
             var currentRoute = "{{ request()->route()->getName() }}";
-            
+
             // Check if user has seen survey from server-side
             var hasSeenSurvey = {{ $user && $user->has_seen_survey ? 'true' : 'false' }};
-            
-            // Only show modal if user hasn't seen survey and NOT on survey page
-            if (!hasSeenSurvey && currentRoute !== 'survey.show') {
-                // localStorage keys for tracking survey display
-                var SURVEY_DISPLAY_COUNT_KEY = 'survey_display_count';
-                var SURVEY_LAST_DISPLAY_KEY = 'survey_last_display';
-                var SURVEY_CYCLE_START_KEY = 'survey_cycle_start';
-                
-                // Constants
-                var MAX_DISPLAYS_PER_CYCLE = 2;
-                var CYCLE_DURATION_HOURS = 3;
-                var CYCLE_DURATION_MS = CYCLE_DURATION_HOURS * 60 * 60 * 1000;
-                
-                // Get current values from localStorage
-                var displayCount = parseInt(localStorage.getItem(SURVEY_DISPLAY_COUNT_KEY)) || 0;
-                var lastDisplayTime = parseInt(localStorage.getItem(SURVEY_LAST_DISPLAY_KEY)) || 0;
-                var cycleStartTime = parseInt(localStorage.getItem(SURVEY_CYCLE_START_KEY)) || Date.now();
-                var currentTime = Date.now();
-                
-                // Check if we need to reset the cycle (3 hours have passed)
-                var timeSinceCycleStart = currentTime - cycleStartTime;
-                var shouldResetCycle = timeSinceCycleStart >= CYCLE_DURATION_MS;
-                
-                if (shouldResetCycle) {
-                    // Reset for new cycle
-                    displayCount = 0;
-                    cycleStartTime = currentTime;
-                    localStorage.setItem(SURVEY_DISPLAY_COUNT_KEY, '0');
-                    localStorage.setItem(SURVEY_CYCLE_START_KEY, cycleStartTime.toString());
-                }
-                
-                // Check if we can show the survey (less than 2 times in current cycle)
-                if (displayCount < MAX_DISPLAYS_PER_CYCLE) {
-                    // Show bottom sheet after 4 seconds
-                    setTimeout(function() {
-                        $('#surveyBottomSheetOverlay').addClass('active');
-                        $('#surveyBottomSheet').addClass('active');
-                        
-                        // Update localStorage
-                        displayCount++;
-                        localStorage.setItem(SURVEY_DISPLAY_COUNT_KEY, displayCount.toString());
-                        localStorage.setItem(SURVEY_LAST_DISPLAY_KEY, currentTime.toString());
-                    }, 4000);
-                }
-            }
+
 
             // Close bottom sheet when clicking close button
             $('#closeSurveyBottomSheet').on('click', function() {
@@ -925,6 +881,14 @@
 
             // Update survey link
             $('#surveyLink').attr('href', '{{ route('survey.show') }}');
+
+            // Show survey 2 seconds after page load if user hasn't seen it
+            if (!hasSeenSurvey) {
+                setTimeout(function() {
+                    $('#surveyBottomSheetOverlay').addClass('active');
+                    $('#surveyBottomSheet').addClass('active');
+                }, 2000);
+            }
         });
     </script>
 </body>
