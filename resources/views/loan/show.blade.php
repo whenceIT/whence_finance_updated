@@ -30,6 +30,28 @@
                             </div>
                         </div>
                 </div>
+
+                
+      @if(Sentinel::hasAccess('loans.update'))
+                                        <a href="#"
+                                           data-toggle="modal" data-target="#change_branch_modal"
+                                           class="btn btn-primary"><i
+                                                    class="fa fa-user"></i>&nbsp;
+                                          Change Branch
+                                        </a>
+                                    @endif
+
+
+
+
+                                    @if(Sentinel::hasAccess('loans.update'))
+                                        <a href="#"
+                                           data-toggle="modal" data-target="#change_loan_officer_modal"
+                                           class="btn btn-primary"><i
+                                                    class="fa fa-user"></i>&nbsp;
+                                            {{ trans_choice('general.change',1) }} {{ trans_choice('general.loan',1) }} {{ trans_choice('general.officer',1) }}
+                                        </a>
+                                    @endif
 		@endif
 
 

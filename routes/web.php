@@ -154,6 +154,10 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('create', 'UserController@create');
     Route::post('store', 'UserController@store');
     Route::get('detailed_dashboard', 'UserController@detailed_dashboard');
+    Route::any('/create_carry_over', 'UserController@create_carry_over');
+    Route::get('/carry_over_approvals','UserController@carry_over_approvals');
+    Route::any('{id}/approve_carry_over','UserController@approve_carry_over');
+    Route::any('{id}/decline_carry_over','UserController@decline_carry_over');
     // Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');

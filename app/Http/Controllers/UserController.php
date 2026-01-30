@@ -39,6 +39,7 @@ use App\Models\AppraisalFormSection;
 use App\Models\AppraisalQuestion;
 use App\Models\AppraisalAnswer;
 use App\Models\TargetTracker;
+use App\Models\CarryOver;
 use stdClass;
 
 class UserController extends Controller
@@ -49,9 +50,52 @@ class UserController extends Controller
         $this->middleware('sentinel');
     }
 
+   
+
+        public function create_carry_over(Request $request)
+{
+    $request->validate([
+        'brought_f' => 'required|numeric|min:0'
+    ]);
+
+
+     if (Sentinel::getUser()->cycle_dates == null) {
+                $cycle_end = 24;
+            } else {
+                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+            }
+
+
+            $today = date('Y-m-d');
+            $currrent_date = date('Y-m');
+            $cycle_date = $currrent_date . '-' . $cycle_end;
+            $cycle_date = date('Y-m-d', strtotime($cycle_date));
+            $cycle_date = date('Y-m-d', strtotime($cycle_date . ' + 1 day'));
+
+            if($today < $cycle_date){
+                $cycle_date = date('Y-m-d', strtotime($cycle_date . ' - 1 months'));
+            }
+
+
+
+
+    $new_carry_over = new CarryOver();
+    $new_carry_over->user_id = Sentinel::getUser()->id;
+    $new_carry_over->office_id = Sentinel::getUser()->office_id;
+    $new_carry_over->amount = $request->brought_f;
+    $new_carry_over->cycle_date = $cycle_date;
+    $new_carry_over->status = 'pending';
+    $new_carry_over->save();
+
+    return redirect()->back();
+}
+
     // Renders on dashboard
     public function dashboard(Request $request)
     {
+          $HasPendingCarryOvers = false;
+           $pendingApproval = false;
+            $launchNewCarryOver = false;
 
         $role = Sentinel::getUser()->roles->first();
 
@@ -107,18 +151,18 @@ class UserController extends Controller
         if ($role->role_id == '1') {
 
 
-               try {
-        $endpoint = "https://lms2backend.whencefinancesystem.com/targets-met";
+    //            try {
+    //     $endpoint = "https://lms2backend.whencefinancesystem.com/targets-met";
 
-        $ch = curl_init($endpoint);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3); // don’t slow dashboard
-        curl_exec($ch);
-        curl_close($ch);
-    } catch (\Exception $e) {
-        // Fail silently – dashboard must still load
-    }
+    //     $ch = curl_init($endpoint);
+    //     curl_setopt($ch, CURLOPT_POST, true);
+    //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    //     curl_setopt($ch, CURLOPT_TIMEOUT, 3); // don’t slow dashboard
+    //     curl_exec($ch);
+    //     curl_close($ch);
+    // } catch (\Exception $e) {
+    //     // Fail silently – dashboard must still load
+    // }
 
             $allLoans = Loan::with('transactions')->where('created_date', '>', $afterDate)->get();
             foreach ($allLoans as $loans) {
@@ -209,6 +253,27 @@ class UserController extends Controller
             }
 
 
+          $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
+    ->where('user_id', Sentinel::getUser()->id)
+    ->first();
+            $pendingApproval = false;
+            $launchNewCarryOver = false;
+            if($carry_over == null){
+                $launchNewCarryOver = true;
+            }else{
+
+                if($carry_over->status == 'pending'){
+                    $pendingApproval = true;
+                }else{
+                           if($cycle_date != $carry_over->cycle_date){
+                    $carry_over->status = 'closed';
+                    $carry_over->save();
+
+                    $launchNewCarryOver = true;
+                }
+                }
+         
+            }
 
 
 
@@ -253,11 +318,18 @@ class UserController extends Controller
 
 
         if ($role->role_id == '4') {
+            $carry_overs = CarryOver::where('status','pending')->where('office_id',$userBranch)->count();
             $newBranchLoans = Loan::with('transactions')->where('office_id', $userBranch)->get();
             foreach ($newBranchLoans as $branchLoan) {
                 foreach ($branchLoan->transactions as $Transaction) {
                     array_push($branchTransactions, $Transaction);
                 }
+            }
+
+            if($carry_overs > 0){
+
+                $HasPendingCarryOvers = true;
+
             }
 
             $data = [];
@@ -292,11 +364,44 @@ class UserController extends Controller
 
         $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end'));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers'));
         } else {
             return view('dashboard', compact('role', 'user', 'client', 'clientBranch', 'staff', 'clientLoan'));
         }
     }
+
+
+    public function carry_over_approvals(){
+          if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+ $office_id = Sentinel::getUser()->office_id;
+   
+         
+$data = CarryOver::where('status','pending')->where('office_id',$office_id)->get();
+return view('user.carry_over_approvals',compact('data'));
+}
+
+ public function approve_carry_over(Request $request, $id){
+    $carry_over = CarryOver::where('id',$id)->first();
+    $carry_over->status = 'active';
+    $carry_over->save();
+
+     Flash::success(trans('general.successfully_saved'));
+     return redirect('user/carry_over_approvals');
+ }
+
+ public function decline_carry_over(Request $request, $id){
+
+       CarryOver::where('id',$id)->delete();
+       Flash::success(trans('general.successfully_saved'));
+return redirect('user/carry_over_approvals');
+ }
+
+
+
 
 
     public function detailed_dashboard()

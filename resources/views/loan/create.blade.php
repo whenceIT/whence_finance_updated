@@ -143,9 +143,129 @@
         </div>
 
     </div>
+
+      @if($launchNewCarryOver)
+        <div class="modal fade" id="broughtForwardModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url('user/create_carry_over') }}">
+                @csrf
+
+                <div class="modal-header bg-warning">
+                    <h4 class="modal-title">Carry Over</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>
+                        Please enter your <strong>Carry Over (from last cycle)</strong> amount to continue.
+                    </p>
+
+                    
+
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" step="0.01" name="brought_f"
+                               class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmCarryOverModal">
+    Save & Continue
+</button>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmCarryOverModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-danger">
+                <h4 class="modal-title">Confirm Carry Over</h4>
+            </div>
+
+            <div class="modal-body">
+                <p>
+                    By clicking <strong>Confirm</strong>, you acknowledge that the information you have entered is
+                    accurate and correct.
+                </p>
+
+                <p>
+                    You further understand that if the amount entered affects your target and ultimately your
+                    salary negatively  <strong>you and only you will be responsible</strong> for the consequences.
+                </p>
+
+                <p class="text-danger">
+                    Please ensure the amount entered is correct before proceeding.
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button type="button" class="btn btn-danger" id="confirmSubmitCarryOver">
+                    Confirm & Submit
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+        @endif
+
+              @if($pendingApproval)
+<div class="modal fade" id="pendingApprovalModal"
+     tabindex="-1"
+     data-backdrop="static"
+     data-keyboard="false">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info">
+                <h4 class="modal-title">Carry Over</h4>
+            </div>
+
+            <div class="modal-body text-center">
+                <h4 class="text-info">
+                    Pending Manager Approval
+                </h4>
+                <p>
+                    Your carry over request has been submitted and is awaiting manager approval.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+@endif  
+
 @endsection
 @section('footer-scripts')
     <script>
+
+        
+  $('#pendingApprovalModal').modal('show');
+
+          document.getElementById('confirmSubmitCarryOver').addEventListener('click', function () {
+        document.querySelector('#broughtForwardModal form').submit();
+    });
+
+
+                  $(document).ready(function () {
+        $('#broughtForwardModal').modal({
+            backdrop: 'static',
+            keyboard: false
+        });
+    });
+
         $('#type').change(function (e) {
             if ($("#type").val() == "client") {
                 $("#clients_div").show();
