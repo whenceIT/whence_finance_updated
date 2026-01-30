@@ -252,11 +252,6 @@
     <script>
 
         
-  $('#pendingApprovalModal').modal('show');
-
-          document.getElementById('confirmSubmitCarryOver').addEventListener('click', function () {
-        document.querySelector('#broughtForwardModal form').submit();
-    });
 
 
                   $(document).ready(function () {
@@ -294,6 +289,12 @@
             }
 
         })
+
+          $('#pendingApprovalModal').modal('show');
+          document.getElementById('confirmSubmitCarryOver').addEventListener('click', function () {
+        document.querySelector('#broughtForwardModal').submit();
+    });
+
     </script>
 @endsection
 
