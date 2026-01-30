@@ -827,6 +827,7 @@
                 </li>
 		@endif
 
+
             @if(Sentinel::hasAccess('accounting'))
                 <li class="treeview @if(Request::is('accounting/*')) active @endif">
                     <a href="#">
@@ -1417,6 +1418,23 @@
                                             class="fa fa-circle-o"></i>{{trans_choice('general.add',2)}} {{trans_choice('general.user',1)}}
                                 </a></li>
                         @endif
+                        @if(Sentinel::hasAccess('reports'))
+                            <li class="treeview @if(Request::is('survey/*')) active menu-open @endif">
+                                <a href="#">
+                                    <i class="fa fa-circle-o"></i> <span>Staff Survey</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    @if(Sentinel::hasAccess('reports.client_reports'))
+                                        <li>
+                                            <a href="{{ route('survey.responses') }}"><i class="fa fa-circle-o"></i> Survey Responses</a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </li>
+                        @endif  
                     </ul>
                 </li>
             @endif
