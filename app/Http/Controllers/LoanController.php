@@ -591,6 +591,7 @@ class LoanController extends Controller
 
          $HasPendingCarryOvers = false;
         $role = Sentinel::getUser()->roles->first();
+        $carry_overs = 0;
 
         
 
