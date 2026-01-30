@@ -70,6 +70,10 @@ class StaffSurveyController extends Controller
 
         StaffSurvey::create($validated);
 
+        // Mark user as having seen the survey
+        $user->has_seen_survey = true;
+        $user->save();
+
         return redirect()->route('survey.thankyou')
             ->with('success', 'Thank you for completing the survey! Your feedback is valuable to us.');
     }

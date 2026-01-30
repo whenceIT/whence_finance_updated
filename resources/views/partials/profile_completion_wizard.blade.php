@@ -253,23 +253,21 @@
                                 <label style="font-weight: 600; color: #000041;">Branch</label>
                                 <input type="text" name="branch" class="form-control" value="{{ $user->office ? $user->office->name : '' }}" readonly style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
-                            <!-- <div class="form-group">
+                            <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Reports to</label>
-                                <select name="reports_to" class="form-control select2">
+                                <select name="reports_to" class="form-control">
                                     <option value="">Select Reports To</option>
                                     @foreach(\App\Models\User::all() as $staff)
-                                        @if(!Sentinel::findUserById($staff->id)->inRole('client'))
-                                            <option value="{{ $staff->id }}" {{ old('reports_to', $user->reports_to) == $staff->id ? 'selected' : '' }}>
-                                                {{ $staff->first_name }} {{ $staff->last_name }}
-                                                @if($staff->designation)
-                                                    ({{ $staff->designation }})
-                                                @endif
-                                            </option>
-                                        @endif
+                                        <option value="{{ $staff->id }}" {{ old('reports_to', $user->reports_to) == $staff->id ? 'selected' : '' }}>
+                                            {{ $staff->first_name }} {{ $staff->last_name }}
+                                            @if($staff->designation)
+                                                ({{ $staff->designation }})
+                                            @endif
+                                        </option>
                                     @endforeach
                                 </select>
-                            </div> -->
-<!-- 
+                            </div>
+                            <!-- 
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Confirmation Date</label>
                                 <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
@@ -437,14 +435,14 @@
             if (currentStep === 1) {
                 var mobile = document.getElementById('mobile_number').value.trim();
                 var email = document.querySelector('input[name="personal_email"]').value.trim();
-                if (mobile === '' || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
-                    toastr.error('Please enter a valid 10-digit mobile number.', 'Validation Error');
-                    return false;
-                }
-                if (email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                    toastr.error('Please enter a valid email address.', 'Validation Error');
-                    return false;
-                }
+                // if (mobile === '' || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
+                //     toastr.error('Please enter a valid 10-digit mobile number.', 'Validation Error');
+                //     return false;
+                // }
+                // if (email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                //     toastr.error('Please enter a valid email address.', 'Validation Error');
+                //     return false;
+                // }
             } else if (currentStep === 2) {
                 var address = document.querySelector('textarea[name="current_address"]').value.trim();
                 if (address === '') {
