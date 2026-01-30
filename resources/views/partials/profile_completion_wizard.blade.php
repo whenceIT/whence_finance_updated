@@ -435,14 +435,14 @@
             if (currentStep === 1) {
                 var mobile = document.getElementById('mobile_number').value.trim();
                 var email = document.querySelector('input[name="personal_email"]').value.trim();
-                if (mobile === '' || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
-                    toastr.error('Please enter a valid 10-digit mobile number.', 'Validation Error');
-                    return false;
-                }
-                if (email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                    toastr.error('Please enter a valid email address.', 'Validation Error');
-                    return false;
-                }
+                // if (mobile === '' || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
+                //     toastr.error('Please enter a valid 10-digit mobile number.', 'Validation Error');
+                //     return false;
+                // }
+                // if (email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                //     toastr.error('Please enter a valid email address.', 'Validation Error');
+                //     return false;
+                // }
             } else if (currentStep === 2) {
                 var address = document.querySelector('textarea[name="current_address"]').value.trim();
                 if (address === '') {
