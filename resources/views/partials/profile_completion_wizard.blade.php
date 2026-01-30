@@ -217,7 +217,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Date of Joining</label>
-                                <input type="date" name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $user->date_of_joining) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <input type="date" name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Company</label>
@@ -238,6 +238,8 @@
                                     <option value="">Select Department</option>
                                     <option value="Administration" {{ old('department', $user->department) == 'Administration' ? 'selected' : '' }}>Administration</option>
                                     <option value="Finance" {{ old('department', $user->department) == 'Finance' ? 'selected' : '' }}>Finance</option>
+                                    <option value="Management" {{ old('department', $user->department) == 'Management' ? 'selected' : '' }}>Management</option>
+                                    <option value="Payroll" {{ old('department', $user->department) == 'Payroll' ? 'selected' : '' }}>Payroll</option>
                                     <option value="Operations" {{ old('department', $user->department) == 'Operations' ? 'selected' : '' }}>Operations</option>
                                     <option value="IT" {{ old('department', $user->department) == 'IT' ? 'selected' : '' }}>IT</option>
                                     <option value="HR" {{ old('department', $user->department) == 'HR' ? 'selected' : '' }}>HR</option>
@@ -251,7 +253,7 @@
                                 <label style="font-weight: 600; color: #000041;">Branch</label>
                                 <input type="text" name="branch" class="form-control" value="{{ $user->office ? $user->office->name : '' }}" readonly style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
-                            <div class="form-group">
+                            <!-- <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Reports to</label>
                                 <select name="reports_to" class="form-control select2">
                                     <option value="">Select Reports To</option>
@@ -266,12 +268,12 @@
                                         @endif
                                     @endforeach
                                 </select>
-                            </div>
-
+                            </div> -->
+<!-- 
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Confirmation Date</label>
-                                <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->confirmation_date) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
-                            </div>
+                                <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                            </div> -->
                         </div>
                     </div>
                 </div>
@@ -477,10 +479,10 @@
                     toastr.error('Please select a department.', 'Validation Error');
                     return false;
                 }
-                if (reportsSelect && reportsSelect.selectedIndex === 0) {
-                    toastr.error('Please select reports to.', 'Validation Error');
-                    return false;
-                }
+                // if (reportsSelect && reportsSelect.selectedIndex === 0) {
+                //     toastr.error('Please select reports to.', 'Validation Error');
+                //     return false;
+                // }
                 if (!dob || dob === '') {
                     toastr.error('Please enter date of birth.', 'Validation Error');
                     return false;

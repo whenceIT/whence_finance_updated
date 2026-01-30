@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
 use App\Http\Controllers\LoanReportController;
+use App\Http\Controllers\StaffSurveyController;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -1089,6 +1090,15 @@ Route::group(['prefix' => 'policies'], function () {
     Route::get('user-responses/{userId}', 'PolicyController@getUserResponses');
     Route::get('declined-responses', 'PolicyController@getDeclinedResponses');
     Route::post('reset-response/{userId}/{policyId}', 'PolicyController@resetUserResponse');
+});
+
+//staff survey routes
+Route::group(['prefix' => 'survey'], function () {
+    Route::get('/', [StaffSurveyController::class, 'show'])->name('survey.show');
+    Route::post('/', [StaffSurveyController::class, 'store'])->name('survey.store');
+    Route::get('thankyou', [StaffSurveyController::class, 'thankyou'])->name('survey.thankyou');
+    Route::get('responses', [StaffSurveyController::class, 'index'])->name('survey.responses');
+    Route::get('responses/{id}', [StaffSurveyController::class, 'showUserSurvey'])->name('survey.show_response');
 });
 
 //route for expenses

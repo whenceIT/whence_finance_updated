@@ -1869,9 +1869,13 @@ return redirect('user/carry_over_approvals');
         return redirect('dashboard');
     }
 
-    public function profile_completion(Request $request){
-
+    public function profile_completion(Request $request)
+    {
         $user = Sentinel::getUser();
+
+        $createdDate = $user->created_at
+            ? $user->created_at->toDateString()
+            : now()->toDateString();
 
         $user->update([
             'salutation' => $request->salutation,
@@ -1882,10 +1886,12 @@ return redirect('user/carry_over_approvals');
             'emergency_contact_name' => $request->emergency_contact_name,
             'emergency_phone' => $request->emergency_phone,
             'relation_to_emergency' => $request->relation_to_emergency,
-            'reports_to' => $request->reports_to,
-            'confirmation_date' => $request->confirmation_date,
+            // 'reports_to' => $request->reports_to,
+
+            'confirmation_date' => $request->date_of_joining,
+            'date_of_joining'   => $request->date_of_joining,
+
             'date_of_birth' => $request->date_of_birth,
-            'date_of_joining' => $request->date_of_joining,
             'company' => $request->company,
             'employee_number' => $request->employee_number,
             'department' => $request->department,
@@ -1915,10 +1921,11 @@ return redirect('user/carry_over_approvals');
             'has_completed_profile' => true,
         ]);
 
-        GeneralHelper::audit_trail("Profile Completion", "Users", $user->id);
+        GeneralHelper::audit_trail($user->fname . " completed their profile Completion", "Users", $user->id);
         Flash::success("Profile completed successfully");
         return redirect('dashboard');
     }
+
 
     //manage permissions
     public function indexPermission()
