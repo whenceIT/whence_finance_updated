@@ -5,6 +5,7 @@
 
 @section('content')
     <!-- What Clients see -->
+
     @if($role->role_id == '2')
         <div>
             @if(!($clientLoan))
@@ -879,6 +880,7 @@
             </div>
         </div>
 
+        
                 @if($launchNewCarryOver)
         <div class="modal fade" id="broughtForwardModal" tabindex="-1">
     <div class="modal-dialog">
@@ -3348,19 +3350,17 @@ if($branchUser->role){
 
 
                 function toggleDiv(divid) {
+                    varon = document.getElementById(divid + 'on');
+                    varoff = document.getElementById(divid + 'off');
 
-                    varon = divid + 'on';
-                    varoff = divid + 'off';
-
-
-                    if (document.getElementById(varon).style.display == 'block') {
-                        document.getElementById(varon).style.display = 'none';
-                        document.getElementById(varoff).style.display = 'block';
-                    }
-
-                    else {
-                        document.getElementById(varoff).style.display = 'none';
-                        document.getElementById(varon).style.display = 'block'
+                    if (varon && varoff) {
+                        if (varon.style.display === 'block') {
+                            varon.style.display = 'none';
+                            varoff.style.display = 'block';
+                        } else {
+                            varoff.style.display = 'none';
+                            varon.style.display = 'block';
+                        }
                     }
                 }
 
@@ -3403,8 +3403,7 @@ if($branchUser->role){
                     var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                     var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                    // document.getElementById("demo").innerHTML = days + "d " + hours + "h "
-                    //     + minutes + "m " + seconds + "s";
+                 
 
                 });
 
