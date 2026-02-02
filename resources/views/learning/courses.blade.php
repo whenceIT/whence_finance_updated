@@ -14,48 +14,49 @@
         All Courses
     </button>
     <button style="padding: 10px 20px; background: white; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 500;">
-        In Progress
+        Documents
     </button>
     <button style="padding: 10px 20px; background: white; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 500;">
-        Completed
+        Videos
     </button>
     <button style="padding: 10px 20px; background: white; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 500;">
-        Not Started
+        Audio
     </button>
 </div>
 
 <!-- Courses Grid -->
 <div class="courses-grid">
     @foreach($courses as $course)
-    <div class="course-card" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
+    <div class="course-card" onclick="window.location.href='{{ url('learning/training-materials/' . $course['id']) }}'">
         <div class="course-image">
             <i class="fa {{ $course['icon'] }}"></i>
+            @if($course['is_featured'])
+            <span class="featured-badge">Featured</span>
+            @endif
         </div>
         <div class="course-body">
             <span class="course-category">{{ $course['category'] }}</span>
             <h3 class="course-title">{{ $course['title'] }}</h3>
             <p class="course-description">{{ $course['description'] }}</p>
-            @if($course['enrolled'])
-            <div class="course-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
-                </div>
-                <div class="progress-text">{{ $course['progress'] }}% Complete</div>
-            </div>
-            @endif
+            
             <div class="course-meta">
                 <div class="course-stats">
-                    <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
+                    <span><i class="fa fa-file-o"></i> {{ ucfirst($course['material_type']) }}</span>
+                    @if($course['duration'] != 'N/A')
                     <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
+                    @endif
+                    @if($course['file_size'])
+                    <span><i class="fa fa-database"></i> {{ $course['file_size'] }}</span>
+                    @endif
                 </div>
-                @if(!$course['enrolled'])
-                <button style="background: var(--primary-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.3s;">
-                    Enroll Now
-                </button>
-                @else
-                <button style="background: var(--secondary-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.3s;">
-                    {{ $course['progress'] > 0 ? 'Continue' : 'Start' }}
-                </button>
+                <div class="course-stats" style="margin-top: 8px;">
+                    <span><i class="fa fa-eye"></i> {{ $course['view_count'] ?? 0 }} views</span>
+                    <span><i class="fa fa-download"></i> {{ $course['download_count'] ?? 0 }} downloads</span>
+                </div>
+                @if($course['department'])
+                <div class="course-stats" style="margin-top: 8px;">
+                    <span><i class="fa fa-building-o"></i> {{ $course['department'] }}</span>
+                </div>
                 @endif
             </div>
         </div>

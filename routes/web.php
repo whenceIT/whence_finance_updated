@@ -21,6 +21,7 @@ use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
 use App\Http\Controllers\LoanReportController;
 use App\Http\Controllers\LearningController;
+use App\Http\Controllers\TrainingMaterialController;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -146,13 +147,26 @@ Route::post('induction/mark_as_seen', [InductionController::class, 'markAsSeen']
 Route::post('induction/toggle_checklist_item', [InductionController::class, 'toggleChecklistItem']);
 
 // Learning Management System Routes
-Route::group(['prefix' => 'learning'], function () {
+Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/', [LearningController::class, 'index'])->name('learning.dashboard');
     Route::get('/courses', [LearningController::class, 'courses'])->name('learning.courses');
     Route::get('/calendar', [LearningController::class, 'calendar'])->name('learning.calendar');
     Route::get('/progress', [LearningController::class, 'progress'])->name('learning.progress');
     Route::get('/certificates', [LearningController::class, 'certificates'])->name('learning.certificates');
     Route::get('/course/{id}', [LearningController::class, 'showCourse'])->name('learning.course');
+});
+
+// Training Materials Management Routes
+Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentinel'], function () {
+    Route::get('/', [TrainingMaterialController::class, 'index'])->name('learning.training-materials.index');
+    Route::get('/create', [TrainingMaterialController::class, 'create'])->name('learning.training-materials.create');
+    Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
+    Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
+    Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
+    Route::put('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
+    Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
+    Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
+    Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
 });
 
 //route for users
