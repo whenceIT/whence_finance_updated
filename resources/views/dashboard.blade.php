@@ -881,8 +881,8 @@
         </div>
 
         
-                @if($launchNewCarryOver)
-        <div class="modal fade" id="broughtForwardModal" tabindex="-1">
+     @if($launchNewCarryOver && Sentinel::getUser()->has_completed_profile && Sentinel::getUser()->has_seen_induction)
+    <div class="modal fade" id="broughtForwardModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="{{ url('user/create_carry_over') }}">
@@ -959,7 +959,7 @@
         @endif
 
 
-        @if($pendingApproval)
+        @if($pendingApproval && Sentinel::getUser()->has_completed_profile && Sentinel::getUser()->has_seen_induction )
 <div class="modal fade" id="pendingApprovalModal"
      tabindex="-1"
      data-backdrop="static"
