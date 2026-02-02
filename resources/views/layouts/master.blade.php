@@ -259,7 +259,7 @@
   }
 </style>
 <!-- Bottom Sheet Modal -->
-<!-- <div class="bottom-sheet-overlay" id="surveyBottomSheetOverlay">
+<div class="bottom-sheet-overlay" id="surveyBottomSheetOverlay">
 
     <div class="bottom-sheet" id="surveyBottomSheet">
         <button class="bottom-sheet-close" id="closeSurveyBottomSheet">&times;</button>
@@ -272,7 +272,7 @@
             <a href="#" class="bottom-sheet-btn" id="surveyLink">Take Survey</a>
         </div>
     </div>
-</div> -->
+</div>
 
 
 

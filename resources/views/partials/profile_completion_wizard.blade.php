@@ -1,6 +1,6 @@
 @if($user && !$user->has_completed_profile && $user->has_seen_induction && !$showPolicyModal)
 <!-- Profile Completion Wizard Modal -->
-<div id="profileWizardModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,20,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 100000; display: none; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
+<div id="profileWizardModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,20,0.7); z-index: 100000; display: none; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
     <style>
         @keyframes modalFadeIn {
             from { opacity: 0; }
