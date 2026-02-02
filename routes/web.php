@@ -22,6 +22,7 @@ use App\Http\Controllers\InductionController;
 use App\Http\Controllers\LoanReportController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\TrainingMaterialController;
+use App\Http\Controllers\StaffSurveyController;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -179,6 +180,10 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('create', 'UserController@create');
     Route::post('store', 'UserController@store');
     Route::get('detailed_dashboard', 'UserController@detailed_dashboard');
+    Route::any('/create_carry_over', 'UserController@create_carry_over');
+    Route::any('/carry_over_approvals','UserController@carry_over_approvals');
+    Route::any('{id}/approve_carry_over','UserController@approve_carry_over');
+    Route::any('{id}/decline_carry_over','UserController@decline_carry_over');
     // Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
@@ -1110,6 +1115,15 @@ Route::group(['prefix' => 'policies'], function () {
     Route::get('user-responses/{userId}', 'PolicyController@getUserResponses');
     Route::get('declined-responses', 'PolicyController@getDeclinedResponses');
     Route::post('reset-response/{userId}/{policyId}', 'PolicyController@resetUserResponse');
+});
+
+//staff survey routes
+Route::group(['prefix' => 'survey'], function () {
+    Route::get('/', [StaffSurveyController::class, 'show'])->name('survey.show');
+    Route::post('/', [StaffSurveyController::class, 'store'])->name('survey.store');
+    Route::get('thankyou', [StaffSurveyController::class, 'thankyou'])->name('survey.thankyou');
+    Route::get('responses', [StaffSurveyController::class, 'index'])->name('survey.responses');
+    Route::get('responses/{id}', [StaffSurveyController::class, 'showUserSurvey'])->name('survey.show_response');
 });
 
 //route for expenses

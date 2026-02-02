@@ -51,6 +51,7 @@ use Laracasts\Flash\Flash;
 use App\Models\PayrollApplicant;
 use App\Models\AppraisalAnswer;
 use Illuminate\Support\Facades\Http;
+use App\Models\CarryOver;
 
 class LoanController extends Controller
 {
@@ -588,7 +589,11 @@ class LoanController extends Controller
             return redirect()->back();
         }
 
+         $HasPendingCarryOvers = false;
         $role = Sentinel::getUser()->roles->first();
+        $carry_overs = 0;
+
+        
 
         if ($role->id == 6) {
             $answer = AppraisalAnswer::where('user_id', Sentinel::getUser()->id)->where('form_id', 3)->where('question_id', 80)->where('quater_date', '>=', '10-2025')->first();
@@ -603,6 +608,18 @@ class LoanController extends Controller
         $office_id = Sentinel::getUser()->office_id;
         $offices = Office::get();
         $role = UserRole::where('user_id', $userId)->first();
+
+        
+        if ($role->role_id == '4') {
+             $carry_overs = CarryOver::where('status','pending')->where('office_id',$office_id)->count();
+        }
+
+            if($carry_overs > 0){
+
+                $HasPendingCarryOvers = true;
+
+            }
+
 
         if ($role->role_id == "6") {
 
@@ -623,7 +640,7 @@ class LoanController extends Controller
                 $data = LoanTransactionUnapproved::where('office_id', $office_id)->get();
             }
         }
-        return view('loan.transactions', compact('data'));
+        return view('loan.transactions', compact('data','HasPendingCarryOvers',));
     }
 
     public function top_up_approvals()
@@ -812,11 +829,58 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+
+          $pendingApproval = false;
+          $launchNewCarryOver = false;
         $province_clients = [];
         $user = Sentinel::getUser();
         $userBranch = $user->office_id;
         $userId = $user->id;
         $role = UserRole::where('user_id', $userId)->first();
+
+           if ($role->role_id == '3') {
+
+              if (Sentinel::getUser()->cycle_dates == null) {
+                $cycle_end = 24;
+            } else {
+                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
+            }
+
+              $today = date('Y-m-d');
+            $currrent_date = date('Y-m');
+            $cycle_date = $currrent_date . '-' . $cycle_end;
+            $cycle_date = date('Y-m-d', strtotime($cycle_date));
+            $cycle_date = date('Y-m-d', strtotime($cycle_date . ' + 1 day'));
+
+            if($today < $cycle_date){
+                $cycle_date = date('Y-m-d', strtotime($cycle_date . ' - 1 months'));
+            }
+
+
+                 $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
+    ->where('user_id', Sentinel::getUser()->id)
+    ->first();
+            $pendingApproval = false;
+            $launchNewCarryOver = false;
+            if($carry_over == null){
+                $launchNewCarryOver = true;
+            }else{
+
+                if($carry_over->status == 'pending'){
+                    $pendingApproval = true;
+                }else{
+                           if($cycle_date != $carry_over->cycle_date){
+                    $carry_over->status = 'closed';
+                    $carry_over->save();
+
+                    $launchNewCarryOver = true;
+                }
+                }
+         
+            }
+
+           }
+
         $userProvince = $user->province_id;
         $province_branches = Office::where('province_id', $userProvince)->get();
 
@@ -845,7 +909,7 @@ class LoanController extends Controller
 
         $loan_products = \App\Models\LoanProduct::all();
 
-        return view('loan.create', compact('userBranch', 'role', 'userId', 'province_branches', 'province_clients', 'clients', 'groups', 'loan_products'));
+        return view('loan.create', compact('userBranch', 'role', 'userId', 'province_branches', 'province_clients', 'clients', 'groups', 'loan_products','launchNewCarryOver','pendingApproval'));
     }
 
     public function ajaxClients(Request $request)

@@ -142,7 +142,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Mobile Number</label>
-                                <input type="text" name="mobile_number" id="mobile_number" class="form-control" value="{{ old('mobile_number', $user->mobile_number) }}" pattern="\d{10}" maxlength="10" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <input type="tel" name="mobile_number" id="mobile_number" class="form-control" value="{{ old('mobile_number', $user->mobile_number) }}" pattern="\d{10}" maxlength="10" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Personal Email</label>
@@ -177,7 +177,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Emergency Phone</label>
-                                <input type="text" name="emergency_phone" class="form-control" value="{{ old('emergency_phone', $user->emergency_phone) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <input type="tel" name="emergency_phone" class="form-control" value="{{ old('emergency_phone', $user->emergency_phone) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                         </div>
                         <div class="form-group" style="margin-top: 15px;">
@@ -217,7 +217,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Date of Joining</label>
-                                <input type="date" name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $user->date_of_joining) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <input type="date" name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Company</label>
@@ -238,6 +238,8 @@
                                     <option value="">Select Department</option>
                                     <option value="Administration" {{ old('department', $user->department) == 'Administration' ? 'selected' : '' }}>Administration</option>
                                     <option value="Finance" {{ old('department', $user->department) == 'Finance' ? 'selected' : '' }}>Finance</option>
+                                    <option value="Management" {{ old('department', $user->department) == 'Management' ? 'selected' : '' }}>Management</option>
+                                    <option value="Payroll" {{ old('department', $user->department) == 'Payroll' ? 'selected' : '' }}>Payroll</option>
                                     <option value="Operations" {{ old('department', $user->department) == 'Operations' ? 'selected' : '' }}>Operations</option>
                                     <option value="IT" {{ old('department', $user->department) == 'IT' ? 'selected' : '' }}>IT</option>
                                     <option value="HR" {{ old('department', $user->department) == 'HR' ? 'selected' : '' }}>HR</option>
@@ -253,24 +255,17 @@
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Reports to</label>
-                                <select name="reports_to" class="form-control select2">
+                                <select name="reports_to" class="form-control">
                                     <option value="">Select Reports To</option>
                                     @foreach(\App\Models\User::all() as $staff)
-                                        @if(!Sentinel::findUserById($staff->id)->inRole('client'))
-                                            <option value="{{ $staff->id }}" {{ old('reports_to', $user->reports_to) == $staff->id ? 'selected' : '' }}>
-                                                {{ $staff->first_name }} {{ $staff->last_name }}
-                                                @if($staff->designation)
-                                                    ({{ $staff->designation }})
-                                                @endif
-                                            </option>
-                                        @endif
+                                        <option value="{{ $staff->id }}" {{ old('reports_to', $user->reports_to) == $staff->id ? 'selected' : '' }}>
+                                            {{ $staff->first_name }} {{ $staff->last_name }}
+                                            @if($staff->designation)
+                                                ({{ $staff->designation }})
+                                            @endif
+                                        </option>
                                     @endforeach
                                 </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label style="font-weight: 600; color: #000041;">Confirmation Date</label>
-                                <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->confirmation_date) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                         </div>
                     </div>
@@ -370,7 +365,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Contact</label>
-                                <input type="text" name="external_contact" class="form-control" value="{{ old('external_contact', $user->external_contact) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <input type="tel" name="external_contact" class="form-control" value="{{ old('external_contact', $user->external_contact) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
                             <div class="form-group">
                                 <label style="font-weight: 600; color: #000041;">Total Experience</label>
@@ -477,10 +472,10 @@
                     toastr.error('Please select a department.', 'Validation Error');
                     return false;
                 }
-                if (reportsSelect && reportsSelect.selectedIndex === 0) {
-                    toastr.error('Please select reports to.', 'Validation Error');
-                    return false;
-                }
+                // if (reportsSelect && reportsSelect.selectedIndex === 0) {
+                //     toastr.error('Please select reports to.', 'Validation Error');
+                //     return false;
+                // }
                 if (!dob || dob === '') {
                     toastr.error('Please enter date of birth.', 'Validation Error');
                     return false;
