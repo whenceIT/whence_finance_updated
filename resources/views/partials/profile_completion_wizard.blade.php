@@ -1,6 +1,6 @@
 @if($user && !$user->has_completed_profile && $user->has_seen_induction && !$showPolicyModal)
 <!-- Profile Completion Wizard Modal -->
-<div id="profileWizardModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,20,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 100000; display: none; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
+<div id="profileWizardModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,20,0.7); z-index: 100000; display: none; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
     <style>
         @keyframes modalFadeIn {
             from { opacity: 0; }
@@ -267,11 +267,6 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <!-- 
-                            <div class="form-group">
-                                <label style="font-weight: 600; color: #000041;">Confirmation Date</label>
-                                <input type="date" name="confirmation_date" class="form-control" value="{{ old('confirmation_date', $user->created_at ? $user->created_at->format('Y-m-d') : '') }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
-                            </div> -->
                         </div>
                     </div>
                 </div>
@@ -435,14 +430,14 @@
             if (currentStep === 1) {
                 var mobile = document.getElementById('mobile_number').value.trim();
                 var email = document.querySelector('input[name="personal_email"]').value.trim();
-                // if (mobile === '' || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
-                //     toastr.error('Please enter a valid 10-digit mobile number.', 'Validation Error');
-                //     return false;
-                // }
-                // if (email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                //     toastr.error('Please enter a valid email address.', 'Validation Error');
-                //     return false;
-                // }
+                if (mobile === '' || mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
+                    toastr.error('Please enter a valid 10-digit mobile number.', 'Validation Error');
+                    return false;
+                }
+                if (email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    toastr.error('Please enter a valid email address.', 'Validation Error');
+                    return false;
+                }
             } else if (currentStep === 2) {
                 var address = document.querySelector('textarea[name="current_address"]').value.trim();
                 if (address === '') {

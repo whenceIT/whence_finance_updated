@@ -5,6 +5,7 @@
 
 @section('content')
     <!-- What Clients see -->
+
     @if($role->role_id == '2')
         <div>
             @if(!($clientLoan))
@@ -879,8 +880,9 @@
             </div>
         </div>
 
-                @if($launchNewCarryOver)
-        <div class="modal fade" id="broughtForwardModal" tabindex="-1">
+        
+     @if($launchNewCarryOver && Sentinel::getUser()->has_completed_profile && Sentinel::getUser()->has_seen_induction)
+    <div class="modal fade" id="broughtForwardModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="{{ url('user/create_carry_over') }}">
@@ -957,7 +959,7 @@
         @endif
 
 
-        @if($pendingApproval)
+        @if($pendingApproval && Sentinel::getUser()->has_completed_profile && Sentinel::getUser()->has_seen_induction )
 <div class="modal fade" id="pendingApprovalModal"
      tabindex="-1"
      data-backdrop="static"
@@ -3276,24 +3278,24 @@ if($branchUser->role){
     @if($role->role_id == '3')
         @if($end !== 'NCI')
             <script>
-                //  console.log('hello')
+                // console.log('hello')
                 //Setting up the cycle count down
 
-                 $('#pendingApprovalModal').modal('show');
+                $('#pendingApprovalModal').modal('show');
 
-    document.getElementById('confirmSubmitCarryOver').addEventListener('click', function () {
-        document.querySelector('#broughtForwardModal form').submit();
-    });
+                var confirmSubmitCarryOverBtn = document.getElementById('confirmSubmitCarryOver');
+                if (confirmSubmitCarryOverBtn) {
+                    confirmSubmitCarryOverBtn.addEventListener('click', function () {
+                        document.querySelector('#broughtForwardModal form').submit();
+                    });
+                }
 
-
-
-
-                  $(document).ready(function () {
-        $('#broughtForwardModal').modal({
-            backdrop: 'static',
-            keyboard: false
-        });
-    });
+                $(document).ready(function () {
+                    $('#broughtForwardModal').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                });
 
                 var COUA = document.getElementById('coua');
                 var TCC = document.getElementById('tcc');
@@ -3348,19 +3350,17 @@ if($branchUser->role){
 
 
                 function toggleDiv(divid) {
+                    varon = document.getElementById(divid + 'on');
+                    varoff = document.getElementById(divid + 'off');
 
-                    varon = divid + 'on';
-                    varoff = divid + 'off';
-
-
-                    if (document.getElementById(varon).style.display == 'block') {
-                        document.getElementById(varon).style.display = 'none';
-                        document.getElementById(varoff).style.display = 'block';
-                    }
-
-                    else {
-                        document.getElementById(varoff).style.display = 'none';
-                        document.getElementById(varon).style.display = 'block'
+                    if (varon && varoff) {
+                        if (varon.style.display === 'block') {
+                            varon.style.display = 'none';
+                            varoff.style.display = 'block';
+                        } else {
+                            varoff.style.display = 'none';
+                            varon.style.display = 'block';
+                        }
                     }
                 }
 
@@ -3403,8 +3403,7 @@ if($branchUser->role){
                     var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                     var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                    document.getElementById("demo").innerHTML = days + "d " + hours + "h "
-                        + minutes + "m " + seconds + "s";
+                 
 
                 });
 
