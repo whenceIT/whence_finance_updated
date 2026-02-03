@@ -410,6 +410,13 @@ $data = $json ? json_decode($json, true) : null;
             $end = null;
         }
 
+        
+        if ($role->role_id == '11') {
+            $data = [];
+            $start = null;
+            $end = null;
+        }
+
 
 
 
