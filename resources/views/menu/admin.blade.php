@@ -89,7 +89,7 @@
             @endif
 
 
-            @if(Sentinel::hasAccess('settings'))
+            @if(Sentinel::hasAccess('expenses'))
             <li>
                     <a href="{{ url('user/branch_deposits') }}"><i
                                 class="fa fa-university"></i>Branch Deposits
