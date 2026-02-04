@@ -689,7 +689,7 @@
                 <ul class="treeview-menu">
 
                     <!-- Branch Deposits -->
-                    @if(Sentinel::hasAccess('settings'))
+                    @if(Sentinel::hasAccess('client_reports'))
                     <li style="padding-left: 10px;"><a href="{{ url('user/branch_deposits') }}"><i class="fa fa-university"></i> Branch Deposits</a></li>
                     @endif
 
