@@ -838,49 +838,6 @@ class LoanController extends Controller
         $userId = $user->id;
         $role = UserRole::where('user_id', $userId)->first();
 
-           if ($role->role_id == '3') {
-
-              if (Sentinel::getUser()->cycle_dates == null) {
-                $cycle_end = 24;
-            } else {
-                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
-            }
-
-              $today = date('Y-m-d');
-            $currrent_date = date('Y-m');
-            $cycle_date = $currrent_date . '-' . $cycle_end;
-            $cycle_date = date('Y-m-d', strtotime($cycle_date));
-            $cycle_date = date('Y-m-d', strtotime($cycle_date . ' + 1 day'));
-
-            if($today < $cycle_date){
-                $cycle_date = date('Y-m-d', strtotime($cycle_date . ' - 1 months'));
-            }
-
-
-                 $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
-    ->where('user_id', Sentinel::getUser()->id)
-    ->first();
-            $pendingApproval = false;
-            $launchNewCarryOver = false;
-            if($carry_over == null){
-                $launchNewCarryOver = true;
-            }else{
-
-                if($carry_over->status == 'pending'){
-                    $pendingApproval = true;
-                }else{
-                           if($cycle_date != $carry_over->cycle_date){
-                    $carry_over->status = 'closed';
-                    $carry_over->save();
-
-                    $launchNewCarryOver = true;
-                }
-                }
-         
-            }
-
-           }
-
         $userProvince = $user->province_id;
         $province_branches = Office::where('province_id', $userProvince)->get();
 

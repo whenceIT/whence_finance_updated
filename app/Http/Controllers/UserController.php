@@ -41,6 +41,7 @@ use App\Models\AppraisalAnswer;
 use App\Models\TargetTracker;
 use App\Models\CarryOver;
 use stdClass;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -52,38 +53,55 @@ class UserController extends Controller
 
    
 
-        public function create_carry_over(Request $request)
+public function create_carry_over(Request $request)
 {
     $request->validate([
         'brought_f' => 'required|numeric|min:0'
     ]);
 
+    $user = Sentinel::getUser();
 
-     if (Sentinel::getUser()->cycle_dates == null) {
-                $cycle_end = 24;
-            } else {
-                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
-            }
+    // 1. Cycle end day (default 24)
+    $cycle_end = $user->cycle_dates
+        ? (int) $user->cycle_dates->cycle_end_date
+        : 24;
 
+    $today = Carbon::today();
 
-            $today = date('Y-m-d');
-            $currrent_date = date('Y-m');
-            $cycle_date = $currrent_date . '-' . $cycle_end;
-            $cycle_date = date('Y-m-d', strtotime($cycle_date));
-            $cycle_date = date('Y-m-d', strtotime($cycle_date . ' + 1 day'));
+    /*
+    |--------------------------------------------------------------------------
+    | Build cycle_date for current month
+    |--------------------------------------------------------------------------
+    */
+    $currentMonth = Carbon::now()->startOfMonth();
+    $cycleDay = min($cycle_end, $currentMonth->daysInMonth);
+    $cycleDate = $currentMonth->copy()->day($cycleDay)->addDay();
 
-            if($today < $cycle_date){
-                $cycle_date = date('Y-m-d', strtotime($cycle_date . ' - 1 months'));
-            }
+    // If today is before cycle date, use previous month
+    if ($today->lt($cycleDate)) {
+        $prevMonth = Carbon::now()->subMonth()->startOfMonth();
+        $cycleDay = min($cycle_end, $prevMonth->daysInMonth);
+        $cycleDate = $prevMonth->copy()->day($cycleDay)->addDay();
+    }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Determine cycle_close_date = last day of the next month
+    |--------------------------------------------------------------------------
+    */
+    $nextMonthFirstDay = $cycleDate->copy()->startOfMonth()->addMonth();
+    $cycleCloseDate = $nextMonthFirstDay->copy()->endOfMonth();
 
-
-
+    /*
+    |--------------------------------------------------------------------------
+    | Save carry over
+    |--------------------------------------------------------------------------
+    */
     $new_carry_over = new CarryOver();
-    $new_carry_over->user_id = Sentinel::getUser()->id;
-    $new_carry_over->office_id = Sentinel::getUser()->office_id;
+    $new_carry_over->user_id = $user->id;
+    $new_carry_over->office_id = $user->office_id;
     $new_carry_over->amount = $request->brought_f;
-    $new_carry_over->cycle_date = $cycle_date;
+    $new_carry_over->cycle_date = $cycleDate->format('Y-m-d');
     $new_carry_over->status = 'pending';
     $new_carry_over->save();
 
@@ -199,24 +217,50 @@ class UserController extends Controller
 
         if ($role->role_id == '3') {
 
-            if (Sentinel::getUser()->cycle_dates == null) {
-                $cycle_end = 24;
-            } else {
-                $cycle_end = Sentinel::getUser()->cycle_dates->cycle_end_date;
-            }
+$user = Sentinel::getUser();
 
+// 1. Cycle end day
+$cycle_end = $user->cycle_dates
+    ? (int) $user->cycle_dates->cycle_end_date
+    : 24;
 
-            $today = date('Y-m-d');
-            $currrent_date = date('Y-m');
-            $cycle_date = $currrent_date . '-' . $cycle_end;
-            $cycle_date = date('Y-m-d', strtotime($cycle_date));
-            $cycle_date = date('Y-m-d', strtotime($cycle_date . ' + 1 day'));
+$today = Carbon::today();
 
-            if($today < $cycle_date){
-                $cycle_date = date('Y-m-d', strtotime($cycle_date . ' - 1 months'));
-            }
+/*
+|--------------------------------------------------------------------------
+| Helper: build cycle start for a given month
+| cycle_start = min(cycle_end, last day of month) + 1 day
+|--------------------------------------------------------------------------
+*/
+$buildCycleStart = function (Carbon $month) use ($cycle_end) {
+    $day = min($cycle_end, $month->daysInMonth);
+    return $month->copy()->day($day)->addDay(); // start of next cycle
+};
 
-             $cycle_close_date = date('Y-m-d', strtotime($cycle_date . ' + 1 months'));
+/*
+|--------------------------------------------------------------------------
+| Determine current cycle start (cycle_date)
+|--------------------------------------------------------------------------
+*/
+$currentCycleStart = $buildCycleStart(Carbon::now());
+
+if ($today->lt($currentCycleStart)) {
+    // still in previous cycle
+    $cycleStart = $buildCycleStart(Carbon::now()->subMonth());
+} else {
+    $cycleStart = $currentCycleStart;
+}
+
+$cycle_date = $cycleStart->format('Y-m-d');
+
+/*
+|--------------------------------------------------------------------------
+| Determine cycle close date = last day of month after current cycle
+|--------------------------------------------------------------------------
+*/
+$cycleMonth = $cycleStart->copy(); // keep original cycleStart
+$nextMonthFirstDay = $cycleMonth->copy()->startOfMonth()->addMonth(); // first day of next month
+$cycle_close_date = $nextMonthFirstDay->copy()->endOfMonth()->format('Y-m-d');
 
 
             $target_tracker = TargetTracker::where('status', 'active')->where('user_id', Sentinel::getUser()->id)->first();
@@ -256,6 +300,7 @@ class UserController extends Controller
           $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
     ->where('user_id', Sentinel::getUser()->id)
     ->first();
+
             $pendingApproval = false;
             $launchNewCarryOver = false;
             if($carry_over == null){
@@ -293,26 +338,32 @@ class UserController extends Controller
 
 
             $fixedDay = $cycle_end;
-            $userId = Sentinel::getUser()->id;
+$userId = Sentinel::getUser()->id;
 
-            $cycle_date = date('Y-m', strtotime($cycle_date));
-            $cycle_close_date = date('Y-m', strtotime($cycle_close_date));
-            // Default dates
-            $start = $request->input('start_month', $cycle_date) . "-$fixedDay";
-            $end = $request->input('end_month', $cycle_close_date) . "-$fixedDay";
+// Convert cycle_date/close_date to Carbon
+$cycleStart = Carbon::parse($cycle_date);
+$cycleEnd = Carbon::parse($cycle_close_date);
 
+// Clamp day to last valid day of month
+$start = $cycleStart->copy()->day(min($fixedDay, $cycleStart->daysInMonth))->format('Y-m-d');
+$end = $cycleEnd->copy()->day(min($fixedDay, $cycleEnd->daysInMonth))->format('Y-m-d');
 
-            $query = http_build_query([
-                'user_id' => $userId,
-                'start_date' => $start,
-                'end_date' => $end,
-            ]);
+// Allow override from request
+$start = $request->input('start_month', $start);
+$end = $request->input('end_month', $end);
 
+// Build query
+$query = http_build_query([
+    'user_id' => $userId,
+    'start_date' => $start,
+    'end_date' => $end,
+]);
 
-            $url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
+$url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
 
-            $json = @file_get_contents($url);
-            $data = $json ? json_decode($json, true) : null;
+$json = @file_get_contents($url);
+$data = $json ? json_decode($json, true) : null;
+
 
         }
 
@@ -354,6 +405,13 @@ class UserController extends Controller
         }
 
         if ($role->role_id == '8') {
+            $data = [];
+            $start = null;
+            $end = null;
+        }
+
+        
+        if ($role->role_id == '11') {
             $data = [];
             $start = null;
             $end = null;

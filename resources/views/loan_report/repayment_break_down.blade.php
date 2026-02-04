@@ -8,7 +8,6 @@ Daily Loan Activities Breakdown Report
     border-top: 2px solid;
 }   
 </style>
-
 @section('content')
 <?php
     $user = Sentinel::getUser();
@@ -1143,6 +1142,7 @@ $total_loans = 0;
                             <th>{{trans_choice('general.date',1)}}</th>
 			    <th>{{trans_choice('general.category', 1)}}</th>
 			    <th>{{trans_choice('general.office', 1)}}</th>
+			    <th>Created By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1153,8 +1153,18 @@ $total_loans = 0;
                             <td>{{$expense->name}}</td>
                             <td>{{$expense->amount}}</td>
                             <td>{{$expense->date}}</td>
-			    <td>{{ $expense->type ? $expense->type->name : '-' }}</td>
-			    <td>{{$expense->office->name}}</td>
+                            <td>{{ $expense->type ? $expense->type->name : '-' }}</td>
+                            <td>{{$expense->office->name}}</td>
+                            <td>
+                                @php
+                                $createdBy = \App\User::find($expense->created_by_id);
+                                @endphp
+                                @if($createdBy)
+                                    {{$createdBy->first_name}} {{$createdBy->last_name}}
+                                @else
+                                    -
+                                @endif
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -1163,7 +1173,7 @@ $total_loans = 0;
                             <td colspan="2"></td>
                             <td><b>Total</b></td>
                             <td><b>{{number_format($expenses->sum('amount'), 2)}}</b></td> 
-                            <td colspan="2"></td>
+                            <td colspan="3"></td>
                         </tr>
                     </tfoot>
                 </table>

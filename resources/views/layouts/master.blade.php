@@ -403,7 +403,7 @@
         <!-- Left side column. contains the logo and sidebar -->
         @if($user && Sentinel::inRole('client'))
             @include('menu.client')
-        @elseif($user && Sentinel::inRole('intern'))
+        @elseif($user && Sentinel::inRole('referral'))
             @include('menu.intern')
         @else
             @include('menu.admin')
@@ -459,7 +459,7 @@
                         }
                     }
                 @endphp
-                @if($showInductionModal)
+                @if($showInductionModal && $role !== 11)
                     @include('partials.induction_modal')
                 @elseif($showPolicyModal)
                     <!-- Policy Response Required Modal -->
@@ -779,7 +779,9 @@
     <script src="{{ asset('assets/themes/adminlte/js/custom.js') }}">
     </script>
 
-    @include('partials.profile_completion_wizard')
+    @if($role !== 11)
+        @include('partials.profile_completion_wizard')
+    @endif
 
     <script>
         $(document).ready(function() {
@@ -863,7 +865,7 @@
 
             // Check if user has seen survey from server-side
             var hasSeenSurvey = {{ $user && $user->has_seen_survey ? 'true' : 'false' }};
-
+            var role = {{ $role }};
 
             // Close bottom sheet when clicking close button
             $('#closeSurveyBottomSheet').on('click', function() {
@@ -883,7 +885,7 @@
             $('#surveyLink').attr('href', '{{ route('survey.show') }}');
 
             // Show survey 2 seconds after page load if user hasn't seen it
-            if (!hasSeenSurvey) {
+            if (!hasSeenSurvey && role !== 11) {
                 setTimeout(function() {
                     $('#surveyBottomSheetOverlay').addClass('active');
                     $('#surveyBottomSheet').addClass('active');
