@@ -403,7 +403,7 @@
         <!-- Left side column. contains the logo and sidebar -->
         @if($user && Sentinel::inRole('client'))
             @include('menu.client')
-        @elseif($user && Sentinel::inRole('intern'))
+        @elseif($user && Sentinel::inRole('referral'))
             @include('menu.intern')
         @else
             @include('menu.admin')
