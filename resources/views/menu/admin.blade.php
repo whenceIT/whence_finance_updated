@@ -569,262 +569,7 @@
                 </ul>
             </li>
 
-            <!-- ============================================
-                 RECOVERIES SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/top_up_approvals')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-hand-rock-o"></i> <span>Recoveries</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-
-                    <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
-                    @endif
-                </ul>
-            </li>
-
-            <!-- ============================================
-                 CONSULTANTS SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('user/leaderboard') || Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms') || Request::is('user/performance_information') || Request::is('payroll/lc_information') || Request::is('payroll/mypayslits')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-users"></i> <span>Performance</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-
-                    <!-- Leaderboard -->
-                    @if(Sentinel::hasAccess('clients'))
-                    <li><a href="{{ url('user/leaderboard') }}"><i class="fa fa-trophy"></i> Leaderboard</a></li>
-                    @endif
-
-                    <!-- Appraisal -->
-                    @if(Sentinel::hasAccess('clients'))
-                    <li class="treeview @if(Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-star"></i> <span>Appraisal</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('settings.general.view'))
-                            <li><a href="{{ url('user/appraisal_forms') }}"><i class="fa fa-circle-o"></i> Forms</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('clients'))
-                            <li><a href="{{ url('user/my_appraisal_forms') }}"><i class="fa fa-circle-o"></i> My Appraisal</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Performance Information -->
-                    @if(Sentinel::hasAccess('settings'))
-                    <li><a href="{{ url('user/performance_information') }}"><i class="fa fa-circle-o"></i> Performance Information</a></li>
-                    @endif
-
-                    <!-- Loan Consultant Information -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('payroll/lc_information') }}"><i class="fa fa-circle-o"></i> Loan Consultant Information</a></li>
-                    @endif
-
-                    <!-- My Payslips -->
-                    @if(Sentinel::hasAccess('loans'))
-                    <li><a href="{{ url('payroll/mypayslips') }}"><i class="fa fa-money"></i> My Payslips</a></li>
-                    @endif
-
-                </ul>
-            </li>
-
-            <!-- ============================================
-                 COMMUNICATION & REPORTS SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('communication/*') || Request::is('report/*')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-envelope"></i> <span>Communication</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-
-                    <!-- Communication -->
-                    @if(Sentinel::hasAccess('communication'))
-                    <li class="treeview @if(Request::is('communication/*')) active menu-open @endif" style="padding-left: 10px;">
-                        <a href="#">
-                            <i class="fa fa-envelope"></i> <span>{{trans_choice('general.communication',1)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('communication.view'))
-                                <li><a href="{{ url('communication/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.campaign',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('communication.create'))
-                                <li><a href="{{ url('communication/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.create',1)}} {{trans_choice('general.campaign',1)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-                </ul>
-            </li>
-
-            <!-- ============================================
-                 ACCOUNTS SECTION
-            ============================================ -->
-            @if($role !== 3)
-            <li class="treeview @if(Request::is('ledger/*') || Request::is('accounting/*') || Request::is('report/*') || Request::is('expense/*') || Request::is('other_income/*') || Request::is('payroll/*') || Request::is('user/branch_deposits')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-calculator"></i> <span>Accounts</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-
-                    <!-- Branch Deposits -->
-                    @if(Sentinel::hasAccess('reports.client_reports'))
-                    <li style="padding-left: 10px;"><a href="{{ url('user/branch_deposits') }}"><i class="fa fa-university"></i> Branch Deposits</a></li>
-                    @endif
-
-                    <!-- Ledger -->
-                    @if(Sentinel::hasAccess('reports.client_reports'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-dashboard"></i> <span>Ledger</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('groups.create'))
-                            <li><a href="{{ route('ledger.summary') }}"><i class="fa fa-circle-o"></i> General Ledger</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.client_reports'))
-                            <li><a href="{{ route('ledger.transactions') }}"><i class="fa fa-circle-o"></i> Branch Ledgers</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Accounting -->
-                    @if(Sentinel::hasAccess('accounting'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('accounting/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-money"></i> <span>{{trans_choice('general.accounting',1)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('accounting.gl_accounts.view'))
-                                <li><a href="{{ url('accounting/gl_account/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.chart_of_account',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('accounting.journals.view'))
-                                <li><a href="{{ url('accounting/journal/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.journal',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('accounting.journals.create'))
-                                <li><a href="{{ url('accounting/journal/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.journal',1)}} {{trans_choice('general.entry',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('accounting.journals.reconciliation.view'))
-                                <li><a href="{{ url('accounting/reconciliation/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.reconciliation',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('accounting.period.view'))
-                                <li><a href="{{ url('accounting/period/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.close',1)}} {{trans_choice('general.period',2)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Expenses -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('expense/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-share"></i> <span>{{trans_choice('general.expense',2)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('expenses.view'))
-                                <li><a href="{{ url('expense/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.expense',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses.create'))
-                                <li><a href="{{ url('expense/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.expense',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses.types.view'))
-                                <li><a href="{{ url('expense/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.expense',1)}} {{trans_choice('general.type',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses.budget.view'))
-                                <li><a href="{{ url('expense/budget/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.budget',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses.budget.view'))
-                                <li><a href="{{ url('expense/budget/report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.budget',1)}} {{trans_choice('general.report',2)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Other Income -->
-                    @if(Sentinel::hasAccess('other_income'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('other_income/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-plus"></i> <span>{{trans_choice('general.other_income',2)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('other_income.view'))
-                                <li><a href="{{ url('other_income/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',2)}} {{trans_choice('general.other_income',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('other_income.create'))
-                                <li><a href="{{ url('other_income/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.other_income',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('other_income.create'))
-                                <li><a href="{{ url('other_income/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.other_income',1)}} {{trans_choice('general.type',2)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Payroll -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('payroll/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-paypal"></i> <span>{{trans_choice('general.payroll',1)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ url('payroll/create_wage_bill') }}"><i class="fa fa-circle-o"></i> Add payroll</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ url('payroll/payroll_list') }}"><i class="fa fa-circle-o"></i> Payroll List</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('payroll.update'))
-                                <li><a href="{{ url('payroll/payroll_pending_approval') }}"><i class="fa fa-circle-o"></i> Payroll Approvals</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('payroll.update'))
-                                <li><a href="{{ url('payroll/template') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',1)}} {{trans_choice('general.payroll',1)}} {{trans_choice('general.template',2)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                </ul>
-            </li>
-            @endif
+            
             <!-- ============================================
                  ADMINISTRATION SECTION
             ============================================ -->
@@ -1081,8 +826,263 @@
                 </ul>
             </li>
             @endif
+            <!-- ============================================
+                 RECOVERIES SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/top_up_approvals')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-hand-rock-o"></i> <span>Recoveries</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
 
-        </ul>
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
+                    @endif
+                </ul>
+            </li>
+
+            <!-- ============================================
+                 CONSULTANTS SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('user/leaderboard') || Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms') || Request::is('user/performance_information') || Request::is('payroll/lc_information') || Request::is('payroll/mypayslits')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-users"></i> <span>Performance</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+
+                    <!-- Leaderboard -->
+                    @if(Sentinel::hasAccess('clients'))
+                    <li><a href="{{ url('user/leaderboard') }}"><i class="fa fa-trophy"></i> Leaderboard</a></li>
+                    @endif
+
+                    <!-- Appraisal -->
+                    @if(Sentinel::hasAccess('clients'))
+                    <li class="treeview @if(Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-star"></i> <span>Appraisal</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('settings.general.view'))
+                            <li><a href="{{ url('user/appraisal_forms') }}"><i class="fa fa-circle-o"></i> Forms</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('clients'))
+                            <li><a href="{{ url('user/my_appraisal_forms') }}"><i class="fa fa-circle-o"></i> My Appraisal</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Performance Information -->
+                    @if(Sentinel::hasAccess('settings'))
+                    <li><a href="{{ url('user/performance_information') }}"><i class="fa fa-circle-o"></i> Performance Information</a></li>
+                    @endif
+
+                    <!-- Loan Consultant Information -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('payroll/lc_information') }}"><i class="fa fa-circle-o"></i> Loan Consultant Information</a></li>
+                    @endif
+
+                    <!-- My Payslips -->
+                    @if(Sentinel::hasAccess('loans'))
+                    <li><a href="{{ url('payroll/mypayslips') }}"><i class="fa fa-money"></i> My Payslips</a></li>
+                    @endif
+
+                </ul>
+            </li>
+
+            <!-- ============================================
+                 COMMUNICATION & REPORTS SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('communication/*') || Request::is('report/*')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-envelope"></i> <span>Communication</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+
+                    <!-- Communication -->
+                    @if(Sentinel::hasAccess('communication'))
+                    <li class="treeview @if(Request::is('communication/*')) active menu-open @endif" style="padding-left: 10px;">
+                        <a href="#">
+                            <i class="fa fa-envelope"></i> <span>{{trans_choice('general.communication',1)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('communication.view'))
+                                <li><a href="{{ url('communication/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.campaign',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('communication.create'))
+                                <li><a href="{{ url('communication/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.create',1)}} {{trans_choice('general.campaign',1)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+                </ul>
+            </li>
+
+            <!-- ============================================
+                 ACCOUNTS SECTION
+            ============================================ -->
+            @if($role !== 3)
+            <li class="treeview @if(Request::is('ledger/*') || Request::is('accounting/*') || Request::is('report/*') || Request::is('expense/*') || Request::is('other_income/*') || Request::is('payroll/*') || Request::is('user/branch_deposits')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-calculator"></i> <span>Accounts</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+
+                    <!-- Branch Deposits -->
+                    @if(Sentinel::hasAccess('reports.client_reports'))
+                    <li style="padding-left: 10px;"><a href="{{ url('user/branch_deposits') }}"><i class="fa fa-university"></i> Branch Deposits</a></li>
+                    @endif
+
+                    <!-- Ledger -->
+                    @if(Sentinel::hasAccess('reports.client_reports'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Ledger</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('groups.create'))
+                            <li><a href="{{ route('ledger.summary') }}"><i class="fa fa-circle-o"></i> General Ledger</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            <li><a href="{{ route('ledger.transactions') }}"><i class="fa fa-circle-o"></i> Branch Ledgers</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Accounting -->
+                    @if(Sentinel::hasAccess('accounting'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('accounting/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-money"></i> <span>{{trans_choice('general.accounting',1)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('accounting.gl_accounts.view'))
+                                <li><a href="{{ url('accounting/gl_account/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.chart_of_account',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('accounting.journals.view'))
+                                <li><a href="{{ url('accounting/journal/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.journal',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('accounting.journals.create'))
+                                <li><a href="{{ url('accounting/journal/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.journal',1)}} {{trans_choice('general.entry',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('accounting.journals.reconciliation.view'))
+                                <li><a href="{{ url('accounting/reconciliation/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.reconciliation',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('accounting.period.view'))
+                                <li><a href="{{ url('accounting/period/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.close',1)}} {{trans_choice('general.period',2)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Expenses -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('expense/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-share"></i> <span>{{trans_choice('general.expense',2)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('expenses.view'))
+                                <li><a href="{{ url('expense/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.expense',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses.create'))
+                                <li><a href="{{ url('expense/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.expense',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses.types.view'))
+                                <li><a href="{{ url('expense/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.expense',1)}} {{trans_choice('general.type',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses.budget.view'))
+                                <li><a href="{{ url('expense/budget/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.budget',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses.budget.view'))
+                                <li><a href="{{ url('expense/budget/report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.budget',1)}} {{trans_choice('general.report',2)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Other Income -->
+                    @if(Sentinel::hasAccess('other_income'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('other_income/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-plus"></i> <span>{{trans_choice('general.other_income',2)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('other_income.view'))
+                                <li><a href="{{ url('other_income/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',2)}} {{trans_choice('general.other_income',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('other_income.create'))
+                                <li><a href="{{ url('other_income/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.other_income',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('other_income.create'))
+                                <li><a href="{{ url('other_income/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.other_income',1)}} {{trans_choice('general.type',2)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Payroll -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('payroll/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-paypal"></i> <span>{{trans_choice('general.payroll',1)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('expenses'))
+                                <li><a href="{{ url('payroll/create_wage_bill') }}"><i class="fa fa-circle-o"></i> Add payroll</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses'))
+                                <li><a href="{{ url('payroll/payroll_list') }}"><i class="fa fa-circle-o"></i> Payroll List</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('payroll.update'))
+                                <li><a href="{{ url('payroll/payroll_pending_approval') }}"><i class="fa fa-circle-o"></i> Payroll Approvals</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('payroll.update'))
+                                <li><a href="{{ url('payroll/template') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',1)}} {{trans_choice('general.payroll',1)}} {{trans_choice('general.template',2)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                </ul>
+            </li>
+            @endif
+            </ul>
 
             <!-- Sticky Logout Button -->
             <div class="sidebar-footer" style="position: fixed; bottom: 0; left: 0; background: linear-gradient(135deg, #667eea 0%, #100E3D 100%); padding: 15px; width: 230px; border-radius: 0 0 0 8px; z-index: 1000;">
