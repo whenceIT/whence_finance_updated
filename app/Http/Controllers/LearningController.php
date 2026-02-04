@@ -2,23 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Sentinel;
-use Laracasts\Flash\Flash;
+use App\Models\CourseCategory;
+use App\Models\Enrollment;
 use App\Models\TrainingMaterial;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class LearningController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        // No middleware - authentication handled in each method
-    }
-
     /**
      * Display the learning dashboard.
      *
@@ -32,107 +22,82 @@ class LearningController extends Controller
 
         $user = Sentinel::getUser();
         $role = $user->roles->first();
+        $roleId = $role ? $role->id : null;
+        $isAdmin = $role && in_array($role->id, ['1']);
 
-        // Check if user has access to learning module
-        if (!$role || !in_array($role->id, ['1', '4', '6', '3', '5', '10'])) {
-            Flash::warning('You do not have access to the Learning module.');
-            return redirect('dashboard');
+        // Get all available materials
+        $query = $isAdmin 
+            ? TrainingMaterial::query()
+            : TrainingMaterial::active();
+
+        // Apply role-based filtering
+        if ($roleId && !$isAdmin) {
+            $query->forRole($roleId);
         }
 
-        // Sample data for courses (this would typically come from a database)
-        $courses = [
-            [
-                'id' => 1,
-                'title' => 'Financial Management Fundamentals',
-                'category' => 'Finance',
-                'description' => 'Learn the basics of financial management, budgeting, and financial planning for business success.',
-                'progress' => 75,
-                'lessons' => 12,
-                'duration' => '8 hours',
-                'enrolled' => true,
-                'icon' => 'fa-calculator'
-            ],
-            [
-                'id' => 2,
-                'title' => 'Leadership and Team Management',
-                'category' => 'Leadership',
-                'description' => 'Develop essential leadership skills and learn how to effectively manage and motivate teams.',
-                'progress' => 45,
-                'lessons' => 15,
-                'duration' => '10 hours',
-                'enrolled' => true,
-                'icon' => 'fa-users'
-            ],
-            [
-                'id' => 3,
-                'title' => 'Customer Service Excellence',
-                'category' => 'Business',
-                'description' => 'Master the art of providing exceptional customer service and building lasting client relationships.',
-                'progress' => 0,
-                'lessons' => 8,
-                'duration' => '5 hours',
-                'enrolled' => false,
-                'icon' => 'fa-comments'
-            ],
-            [
-                'id' => 4,
-                'title' => 'Digital Marketing Strategies',
-                'category' => 'Business',
-                'description' => 'Explore modern digital marketing techniques to grow your business and reach more customers.',
-                'progress' => 20,
-                'lessons' => 10,
-                'duration' => '7 hours',
-                'enrolled' => true,
-                'icon' => 'fa-bullhorn'
-            ],
-            [
-                'id' => 5,
-                'title' => 'Data Analysis for Business',
-                'category' => 'Technology',
-                'description' => 'Learn how to analyze business data and make data-driven decisions for better outcomes.',
-                'progress' => 0,
-                'lessons' => 14,
-                'duration' => '12 hours',
-                'enrolled' => false,
-                'icon' => 'fa-bar-chart'
-            ],
-            [
-                'id' => 6,
-                'title' => 'Risk Management Essentials',
-                'category' => 'Finance',
-                'description' => 'Understand key risk management principles and how to mitigate business risks effectively.',
-                'progress' => 60,
-                'lessons' => 9,
-                'duration' => '6 hours',
-                'enrolled' => true,
-                'icon' => 'fa-shield'
-            ]
-        ];
+        // Apply category filtering if specified
+        if (request()->has('category') && !empty(request()->category)) {
+            $category = CourseCategory::where('name', request()->category)->first();
+            if ($category) {
+                $query->where('category', $category->name);
+            }
+        }
+
+        $allMaterials = $query->orderBy('created_at', 'desc')->get();
+
+        // Get enrolled materials for current user
+        $enrolledMaterialIds = Enrollment::where('user_id', $user->id)
+            ->pluck('training_material_id')
+            ->toArray();
+
+        // Get unique categories from CourseCategory model
+        $categories = CourseCategory::active()->ordered()->get();
+
+        // Prepare courses data with enrollment status
+        $courses = $allMaterials->map(function ($material) use ($user, $enrolledMaterialIds) {
+            $isEnrolled = in_array($material->id, $enrolledMaterialIds);
+            
+            return [
+                'id' => $material->id,
+                'title' => $material->title,
+                'description' => $material->description,
+                'category' => $material->category ?? 'General',
+                'icon' => $material->icon,
+                'material_type' => $material->material_type,
+                'duration' => $material->human_duration,
+                'file_size' => $material->human_file_size,
+                'view_count' => $material->view_count,
+                'download_count' => $material->download_count,
+                'department' => $material->department,
+                'is_featured' => $material->is_featured,
+                'enrolled' => $isEnrolled,
+                'progress' => $isEnrolled ? $this->getProgress($user->id, $material->id) : 0,
+                'lessons' => 1,
+            ];
+        })->toArray();
 
         // Calculate statistics
-        $enrolledCourses = collect($courses)->where('enrolled', true);
-        $completedCourses = $enrolledCourses->where('progress', 100)->count();
-        $inProgressCourses = $enrolledCourses->where('progress', '>', 0)->where('progress', '<', 100)->count();
-        $averageProgress = $enrolledCourses->isNotEmpty() 
-            ? round($enrolledCourses->avg('progress')) 
-            : 0;
-
         $stats = [
-            'total_courses' => count($courses),
-            'enrolled_courses' => $enrolledCourses->count(),
-            'completed_courses' => $completedCourses,
-            'in_progress' => $inProgressCourses,
-            'average_progress' => $averageProgress,
-            'total_hours' => collect($courses)->sum(function($course) {
-                return (int) filter_var($course['duration'], FILTER_SANITIZE_NUMBER_INT);
-            })
+            'total_courses' => $allMaterials->count(),
+            'enrolled_courses' => count($enrolledMaterialIds),
+            'completed_courses' => Enrollment::where('user_id', $user->id)
+                ->whereNotNull('completed_at')
+                ->count(),
+            'total_hours' => $this->calculateTotalHours($user->id),
+            'in_progress' => Enrollment::where('user_id', $user->id)
+                ->where('progress', '>', 0)
+                ->where('progress', '<', 100)
+                ->count(),
         ];
+
+        // Share categories with all views
+        view()->share('categories', $categories);
 
         return view('learning.dashboard', compact('courses', 'stats'));
     }
 
     /**
-     * Display all courses.
+     * Display the user's enrolled courses.
      *
      * @return \Illuminate\Http\Response
      */
@@ -143,40 +108,34 @@ class LearningController extends Controller
         }
 
         $user = Sentinel::getUser();
-        $role = $user->roles->first();
 
-        if (!$role || !in_array($role->id, ['1', '4', '6', '3', '5', '10'])) {
-            Flash::warning('You do not have access to the Learning module.');
-            return redirect('dashboard');
-        }
-
-        // Fetch real courses from TrainingMaterial model
-        $trainingMaterials = TrainingMaterial::active()
-            ->orderBy('is_featured', 'desc')
-            ->orderBy('published_at', 'desc')
+        // Get only enrolled materials for current user
+        $enrollments = Enrollment::where('user_id', $user->id)
+            ->with('trainingMaterial')
+            ->orderBy('enrolled_at', 'desc')
             ->get();
 
-        // Transform training materials to course format
-        $courses = $trainingMaterials->map(function ($material) {
+        // Prepare courses data
+        $courses = $enrollments->map(function ($enrollment) {
+            $material = $enrollment->trainingMaterial;
+            
             return [
                 'id' => $material->id,
                 'title' => $material->title,
-                'category' => $material->category ?? 'General',
                 'description' => $material->description,
-                'progress' => 0, // Progress tracking would need a separate enrollment table
-                'lessons' => 1, // Each material is considered one lesson
-                'duration' => $material->human_duration,
-                'enrolled' => false, // Enrollment would need a separate enrollment table
+                'category' => $material->category ?? 'General',
                 'icon' => $material->icon,
                 'material_type' => $material->material_type,
-                'file_path' => $material->file_path,
-                'file_name' => $material->file_name,
+                'duration' => $material->human_duration,
                 'file_size' => $material->human_file_size,
                 'view_count' => $material->view_count,
                 'download_count' => $material->download_count,
-                'is_featured' => $material->is_featured,
                 'department' => $material->department,
-                'target_role' => $material->target_role,
+                'is_featured' => $material->is_featured,
+                'enrolled' => true,
+                'progress' => $enrollment->progress,
+                'enrolled_at' => $enrollment->enrolled_at,
+                'completed_at' => $enrollment->completed_at,
             ];
         })->toArray();
 
@@ -184,7 +143,7 @@ class LearningController extends Controller
     }
 
     /**
-     * Display the calendar view.
+     * Display the calendar page.
      *
      * @return \Illuminate\Http\Response
      */
@@ -194,19 +153,11 @@ class LearningController extends Controller
             return redirect('login');
         }
 
-        $user = Sentinel::getUser();
-        $role = $user->roles->first();
-
-        if (!$role || !in_array($role->id, ['1', '4', '6', '3', '5', '10'])) {
-            Flash::warning('You do not have access to the Learning module.');
-            return redirect('dashboard');
-        }
-
         return view('learning.calendar');
     }
 
     /**
-     * Display the progress view.
+     * Display the progress page.
      *
      * @return \Illuminate\Http\Response
      */
@@ -216,30 +167,11 @@ class LearningController extends Controller
             return redirect('login');
         }
 
-        $user = Sentinel::getUser();
-        $role = $user->roles->first();
-
-        if (!$role || !in_array($role->id, ['1', '4', '6', '3', '5', '10'])) {
-            Flash::warning('You do not have access to the Learning module.');
-            return redirect('dashboard');
-        }
-
-        // Sample progress data
-        $progressData = [
-            'courses_completed' => 2,
-            'courses_in_progress' => 3,
-            'total_lessons_completed' => 45,
-            'total_lessons' => 68,
-            'certificates_earned' => 2,
-            'learning_hours' => 24,
-            'streak_days' => 7
-        ];
-
-        return view('learning.progress', compact('progressData'));
+        return view('learning.progress');
     }
 
     /**
-     * Display the certificates view.
+     * Display the certificates page.
      *
      * @return \Illuminate\Http\Response
      */
@@ -249,31 +181,7 @@ class LearningController extends Controller
             return redirect('login');
         }
 
-        $user = Sentinel::getUser();
-        $role = $user->roles->first();
-
-        if (!$role || !in_array($role->id, ['1', '4', '6', '3', '5', '10'])) {
-            Flash::warning('You do not have access to the Learning module.');
-            return redirect('dashboard');
-        }
-
-        // Sample certificates data
-        $certificates = [
-            [
-                'id' => 1,
-                'course_name' => 'Financial Management Fundamentals',
-                'issue_date' => '2024-01-15',
-                'certificate_id' => 'WF-LM-2024-001'
-            ],
-            [
-                'id' => 2,
-                'course_name' => 'Leadership and Team Management',
-                'issue_date' => '2024-02-20',
-                'certificate_id' => 'WF-LM-2024-002'
-            ]
-        ];
-
-        return view('learning.certificates', compact('certificates'));
+        return view('learning.certificates');
     }
 
     /**
@@ -289,46 +197,243 @@ class LearningController extends Controller
         }
 
         $user = Sentinel::getUser();
-        $role = $user->roles->first();
+        $material = TrainingMaterial::findOrFail($id);
 
-        if (!$role || !in_array($role->id, ['1', '4', '6', '3', '5', '10'])) {
-            Flash::warning('You do not have access to the Learning module.');
-            return redirect('dashboard');
+        // Check if user is enrolled
+        $isEnrolled = $material->isEnrolled($user->id);
+
+        if (!$isEnrolled) {
+            return redirect()->route('learning.dashboard')
+                ->with('toastr_type', 'warning')
+                ->with('toastr_message', 'Please enroll in this course first.');
         }
 
-        // Sample course data (in real app, fetch from database)
-        $course = [
-            'id' => $id,
-            'title' => 'Financial Management Fundamentals',
-            'category' => 'Finance',
-            'description' => 'Learn the basics of financial management, budgeting, and financial planning for business success.',
-            'progress' => 75,
-            'lessons' => 12,
-            'duration' => '8 hours',
-            'enrolled' => true,
-            'icon' => 'fa-calculator',
-            'modules' => [
-                [
-                    'id' => 1,
-                    'title' => 'Introduction to Financial Management',
-                    'completed' => true,
-                    'lessons' => 3
-                ],
-                [
-                    'id' => 2,
-                    'title' => 'Budgeting Basics',
-                    'completed' => true,
-                    'lessons' => 4
-                ],
-                [
-                    'id' => 3,
-                    'title' => 'Financial Planning',
-                    'completed' => false,
-                    'lessons' => 5
-                ]
-            ]
-        ];
+        return view('learning.course', compact('material'));
+    }
 
-        return view('learning.course-detail', compact('course'));
+    /**
+     * Enroll a user in a course.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function enroll($id)
+    {
+        if (!Sentinel::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must be logged in to enroll.'
+            ], 401);
+        }
+
+        $user = Sentinel::getUser();
+        $material = TrainingMaterial::findOrFail($id);
+
+        // Check if already enrolled
+        $existingEnrollment = Enrollment::where('user_id', $user->id)
+            ->where('training_material_id', $id)
+            ->first();
+
+        if ($existingEnrollment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are already enrolled in this course.'
+            ], 400);
+        }
+
+        // Create enrollment
+        Enrollment::create([
+            'user_id' => $user->id,
+            'training_material_id' => $id,
+            'enrolled_at' => now(),
+            'progress' => 0,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Successfully enrolled in ' . $material->title
+        ]);
+    }
+
+    /**
+     * Unenroll a user from a course.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function unenroll($id)
+    {
+        if (!Sentinel::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must be logged in to unenroll.'
+            ], 401);
+        }
+
+        $user = Sentinel::getUser();
+
+        $enrollment = Enrollment::where('user_id', $user->id)
+            ->where('training_material_id', $id)
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not enrolled in this course.'
+            ], 400);
+        }
+
+        $enrollment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Successfully unenrolled from course.'
+        ]);
+    }
+
+    /**
+     * Get progress for a specific enrollment.
+     *
+     * @param int $userId
+     * @param int $materialId
+     * @return int
+     */
+    private function getProgress($userId, $materialId)
+    {
+        $enrollment = Enrollment::where('user_id', $userId)
+            ->where('training_material_id', $materialId)
+            ->first();
+
+        return $enrollment ? $enrollment->progress : 0;
+    }
+
+
+    /**
+     * Display the settings page.
+     *
+     * @return <Illuminate><Http><Response>
+     */
+    public function settings()
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        $isAdmin = $role && in_array($role->id, ['1']);
+
+        // Get statistics for the dashboard
+        $totalSettings = 5; // Total number of settings sections
+        $totalCategories = CourseCategory::count();
+        $totalStudents = 0; // Would need to query actual student count
+        $totalTeachers = 0; // Would need to query actual teacher count
+
+        return view('learning.settings', compact(
+            'totalSettings', 
+            'totalCategories', 
+            'totalStudents', 
+            'totalTeachers'
+        ));
+    }
+
+    /**
+     * Display the course categories settings page.
+     *
+     * @return <Illuminate><Http><Response>
+     */
+    public function settingsCategories()
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        $isAdmin = $role && in_array($role->id, ['1']);
+
+        if (!$isAdmin) {
+            return redirect()->route('learning.settings')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to access this settings page.');
+        }
+
+        $categories = CourseCategory::orderBy('name', 'asc')->get();
+
+        return view('learning.settings.categories', compact('categories'));
+    }
+
+    /**
+     * Display the students settings page.
+     *
+     * @return <Illuminate><Http><Response>
+     */
+    public function settingsStudents()
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        $isAdmin = $role && in_array($role->id, ['1']);
+
+        if (!$isAdmin) {
+            return redirect()->route('learning.settings')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to access this settings page.');
+        }
+
+        // Would need to query actual students data
+        $students = [];
+
+        return view('learning.settings.students', compact('students'));
+    }
+
+    /**
+     * Display the teachers settings page.
+     *
+     * @return <Illuminate><Http><Response>
+     */
+    public function settingsTeachers()
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        $isAdmin = $role && in_array($role->id, ['1']);
+
+        if (!$isAdmin) {
+            return redirect()->route('learning.settings')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to access this settings page.');
+        }
+
+        // Would need to query actual teachers data
+        $teachers = [];
+
+        return view('learning.settings.teachers', compact('teachers'));
+    }
+
+    /**
+     * Calculate total learning hours for a user.
+     *
+     * @param int $userId
+     * @return int
+     */
+    private function calculateTotalHours($userId)
+    {
+        $enrollments = Enrollment::where('user_id', $userId)->get();
+        $totalSeconds = 0;
+
+        foreach ($enrollments as $enrollment) {
+            if ($enrollment->trainingMaterial && $enrollment->trainingMaterial->duration) {
+                $totalSeconds += $enrollment->trainingMaterial->duration;
+            }
+        }
+
+        return round($totalSeconds / 3600, 1);
     }
 }

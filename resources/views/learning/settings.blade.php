@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>@yield('title', 'Whence Learn')</title>
+    <title>Settings - Whence Learn</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     
@@ -258,66 +258,6 @@
             min-height: calc(100vh - 60px);
         }
 
-        /* Sidebar */
-        .learning-sidebar {
-            width: 220px;
-            background: var(--card-bg);
-            border-right: 1px solid var(--border-color);
-            padding: 16px;
-            position: sticky;
-            top: 60px;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-
-        .sidebar-section {
-            margin-bottom: 24px;
-        }
-
-        .sidebar-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 4px;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            color: var(--text-primary);
-            text-decoration: none;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            font-size: 13px;
-        }
-
-        .sidebar-menu a:hover {
-            background: var(--light-bg);
-            transform: translateX(3px);
-        }
-
-        .sidebar-menu a.active {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .sidebar-menu a i {
-            width: 20px;
-            margin-right: 10px;
-            font-size: 14px;
-        }
-
         /* Main Content */
         .learning-content {
             flex: 1;
@@ -341,15 +281,15 @@
             font-size: 14px;
         }
 
-        /* Course Cards */
-        .courses-grid {
+        /* Settings Grid */
+        .settings-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
             margin-bottom: 32px;
         }
 
-        .course-card {
+        .setting-card {
             background: var(--card-bg);
             border-radius: 10px;
             overflow: hidden;
@@ -358,119 +298,64 @@
             cursor: pointer;
         }
 
-        .course-card:hover {
+        .setting-card:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow-hover);
         }
 
-        .course-image {
-            height: 140px;
+        .setting-card-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             color: white;
-            font-size: 40px;
-            position: relative;
+            padding: 20px;
+            text-align: center;
         }
 
-        .featured-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--accent-color);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .course-body {
-            padding: 16px;
-        }
-
-        .course-category {
-            display: inline-block;
-            padding: 3px 10px;
-            background: var(--light-bg);
-            color: var(--text-secondary);
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-
-        .course-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-
-        .course-description {
-            color: var(--text-secondary);
-            font-size: 13px;
+        .setting-card-icon {
+            font-size: 48px;
             margin-bottom: 12px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
-        .course-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-color);
+        .setting-card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
 
-        .course-progress {
-            flex: 1;
-            margin-right: 12px;
+        .setting-card-description {
+            font-size: 14px;
+            opacity: 0.9;
         }
 
-        .progress-bar {
-            height: 5px;
-            background: var(--light-bg);
-            border-radius: 3px;
-            overflow: hidden;
+        .setting-card-body {
+            padding: 20px;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: var(--secondary-color);
-            border-radius: 3px;
-            transition: width 0.25s ease;
-        }
-
-        .progress-text {
-            font-size: 11px;
+        .setting-card-body p {
             color: var(--text-secondary);
-            margin-top: 4px;
+            font-size: 14px;
+            margin-bottom: 16px;
         }
 
-        .course-stats {
-            display: flex;
-            gap: 12px;
-            font-size: 11px;
-            color: var(--text-secondary);
+        .setting-card-body .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
-        .course-stats span {
-            display: flex;
-            align-items: center;
-            gap: 3px;
+        .setting-card-body .btn:hover {
+            background: #357abd;
+            transform: translateY(-2px);
         }
 
         /* Stats Cards */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
             margin-bottom: 32px;
         }
@@ -542,446 +427,6 @@
             margin: 0;
             opacity: 0.8;
             font-size: 13px;
-        }
-
-        /* Mobile Menu Button */
-        .mobile-menu-btn {
-            display: none;
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 18px;
-            margin-right: 12px;
-        }
-
-        .mobile-menu-btn:hover {
-            background: rgba(255,255,255,0.25);
-        }
-
-        /* Mobile Sidebar Overlay */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            transition: opacity 0.25s ease;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
-            opacity: 1;
-        }
-
-        /* Mobile User Panel */
-        .mobile-user-panel {
-            display: none;
-            background: rgba(255,255,255,0.08);
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-        }
-
-        .mobile-user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .mobile-user-avatar {
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .mobile-user-details h4 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .mobile-user-details p {
-            margin: 4px 0 0;
-            font-size: 11px;
-            opacity: 0.8;
-        }
-
-        /* Close Button for Mobile Sidebar */
-        .sidebar-close-btn {
-            display: none;
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: var(--light-bg);
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 16px;
-            color: var(--text-primary);
-            z-index: 1001;
-        }
-
-        .sidebar-close-btn:hover {
-            background: var(--border-color);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .learning-sidebar {
-                position: fixed;
-                top: 0;
-                left: -240px;
-                width: 240px;
-                height: 100vh;
-                z-index: 1000;
-                transition: left 0.25s ease;
-                box-shadow: var(--shadow-hover);
-            }
-
-            .learning-sidebar.active {
-                left: 0;
-            }
-
-            .mobile-menu-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .learning-nav {
-                display: none;
-            }
-
-            .courses-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .course-card {
-                border-radius: 8px;
-            }
-
-            .course-image {
-                height: 120px;
-                font-size: 36px;
-            }
-
-            .course-body {
-                padding: 14px;
-            }
-
-            .course-title {
-                font-size: 15px;
-            }
-
-            .course-description {
-                font-size: 12px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-            }
-
-            .stat-card {
-                padding: 16px;
-            }
-
-            .stat-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-                margin: 0 auto 10px;
-            }
-
-            .stat-value {
-                font-size: 24px;
-            }
-
-            .stat-label {
-                font-size: 11px;
-            }
-
-            .sidebar-close-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .sidebar-close-btn {
-                width: 28px;
-                height: 28px;
-                font-size: 14px;
-                top: 10px;
-                right: 10px;
-            }
-
-            .mobile-user-panel {
-                display: block;
-            }
-
-            .mobile-user-panel {
-                padding: 10px;
-                margin-bottom: 14px;
-            }
-
-            .mobile-user-avatar {
-                width: 36px;
-                height: 36px;
-                font-size: 18px;
-            }
-
-            .mobile-user-details h4 {
-                font-size: 13px;
-            }
-
-            .mobile-user-details p {
-                font-size: 10px;
-            }
-
-            .sidebar-section {
-                margin-bottom: 20px;
-            }
-
-            .sidebar-title {
-                margin-bottom: 10px;
-            }
-        }
-
-            .sidebar-menu a {
-                padding: 10px 12px;
-                font-size: 14px;
-            }
-
-            .sidebar-menu a i {
-                width: 22px;
-                margin-right: 12px;
-                font-size: 15px;
-            }
-
-            .learning-header .container {
-                padding: 0 12px;
-            }
-
-            .learning-header {
-                padding: 8px 0;
-            }
-
-            .mobile-menu-btn {
-                padding: 6px 10px;
-                font-size: 16px;
-                margin-right: 10px;
-            }
-
-            .learning-logo span {
-                font-size: 16px;
-            }
-
-            .learning-content {
-                padding: 16px;
-            }
-
-            .page-header h1 {
-                font-size: 24px;
-            }
-
-            .page-header {
-                margin-bottom: 20px;
-            }
-
-            .page-header p {
-                font-size: 13px;
-            }
-
-            .learning-footer {
-                padding: 16px 0;
-                margin-top: 32px;
-            }
-
-            .learning-footer p {
-                font-size: 12px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .learning-sidebar {
-                width: 260px;
-                left: -260px;
-            }
-
-            .learning-sidebar.active {
-                left: 0;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .stat-card {
-                padding: 16px;
-            }
-
-            .stat-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-                margin: 0 auto 10px;
-            }
-
-            .stat-value {
-                font-size: 24px;
-            }
-
-            .stat-label {
-                font-size: 11px;
-            }
-
-            .learning-logo i {
-                font-size: 20px;
-            }
-
-            .learning-logo span {
-                font-size: 14px;
-            }
-
-            .learning-header {
-                padding: 6px 0;
-            }
-
-            .mobile-menu-btn {
-                padding: 5px 8px;
-                font-size: 14px;
-                margin-right: 8px;
-            }
-
-            .course-card {
-                border-radius: 8px;
-            }
-
-            .course-image {
-                height: 100px;
-                font-size: 32px;
-            }
-
-            .course-body {
-                padding: 12px;
-            }
-
-            .course-title {
-                font-size: 14px;
-            }
-
-            .course-description {
-                font-size: 11px;
-            }
-
-            .page-header h1 {
-                font-size: 20px;
-            }
-
-            .page-header p {
-                font-size: 12px;
-            }
-
-            .sidebar-menu a {
-                padding: 12px 14px;
-                font-size: 15px;
-            }
-
-            .sidebar-menu a i {
-                width: 24px;
-                margin-right: 14px;
-                font-size: 16px;
-            }
-
-            .learning-footer {
-                padding: 14px 0;
-                margin-top: 28px;
-            }
-
-            .learning-footer p {
-                font-size: 11px;
-            }
-
-            .user-dropdown {
-                min-width: 150px;
-            }
-
-            .user-dropdown-item {
-                padding: 7px 12px;
-                font-size: 11px;
-            }
-
-            .sidebar-close-btn {
-                width: 26px;
-                height: 26px;
-                font-size: 13px;
-                top: 8px;
-                right: 8px;
-            }
-
-            .mobile-user-panel {
-                padding: 8px;
-                margin-bottom: 12px;
-            }
-
-            .mobile-user-avatar {
-                width: 32px;
-                height: 32px;
-                font-size: 16px;
-            }
-
-            .mobile-user-details h4 {
-                font-size: 12px;
-            }
-
-            .mobile-user-details p {
-                font-size: 9px;
-            }
-        }
-
-        /* Loader */
-        #loader-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: white;
-            transition: opacity 0.75s, visibility 0.75s;
-            z-index: 99999;
-        }
-
-        #loader {
-            border: 16px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 16px solid var(--primary-color);
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
     </style>
     
@@ -1118,7 +563,101 @@
 
         <!-- Main Content -->
         <main class="learning-content">
-            @yield('content')
+            <div class="page-header">
+                <h1>Settings</h1>
+                <p>Manage your learning platform settings and configurations</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fa fa-cog"></i>
+                    </div>
+                    <div class="stat-value">{{ $totalSettings ?? 0 }}</div>
+                    <div class="stat-label">Total Settings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fa fa-folder"></i>
+                    </div>
+                    <div class="stat-value">{{ $totalCategories ?? 0 }}</div>
+                    <div class="stat-label">Course Categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <div class="stat-value">{{ $totalStudents ?? 0 }}</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fa fa-user-tie"></i>
+                    </div>
+                    <div class="stat-value">{{ $totalTeachers ?? 0 }}</div>
+                    <div class="stat-label">Teachers</div>
+                </div>
+            </div>
+
+            <!-- Settings Grid -->
+            <div class="settings-grid">
+                <!-- Categories Settings -->
+                <div class="setting-card">
+                    <div class="setting-card-header">
+                        <i class="fa fa-folder setting-card-icon"></i>
+                        <div class="setting-card-title">Course Categories</div>
+                        <div class="setting-card-description">Manage course categories and their configurations</div>
+                    </div>
+                    <div class="setting-card-body">
+                        <p>Create, edit, and organize course categories for better content management.</p>
+                        <p>Set up category icons, descriptions, and hierarchy.</p>
+                        <a href="{{ url('learning/settings/categories') }}" class="btn">Manage Categories</a>
+                    </div>
+                </div>
+
+                <!-- Students Settings -->
+                <div class="setting-card">
+                    <div class="setting-card-header">
+                        <i class="fa fa-users setting-card-icon"></i>
+                        <div class="setting-card-title">Students Management</div>
+                        <div class="setting-card-description">Manage student profiles and learning progress</div>
+                    </div>
+                    <div class="setting-card-body">
+                        <p>View and manage student profiles, enrollment status, and progress.</p>
+                        <p>Monitor learning activities and generate reports.</p>
+                        <a href="{{ url('learning/settings/students') }}" class="btn">Manage Students</a>
+                    </div>
+                </div>
+
+                <!-- Teachers Settings -->
+                <div class="setting-card">
+                    <div class="setting-card-header">
+                        <i class="fa fa-user-tie setting-card-icon"></i>
+                        <div class="setting-card-title">Teachers Management</div>
+                        <p class="setting-card-description">Manage teacher profiles and course assignments</p>
+                    </div>
+                    <div class="setting-card-body">
+                        <p>Create and manage teacher profiles with their expertise areas.</p>
+                        <p>Assign courses to teachers and track their performance.</p>
+                        <a href="{{ url('learning/settings/teachers') }}" class="btn">Manage Teachers</a>
+                    </div>
+                </div>
+
+                <!-- Additional Settings Card (Placeholder for future settings) -->
+                <div class="setting-card">
+                    <div class="setting-card-header">
+                        <i class="fa fa-sliders setting-card-icon"></i>
+                        <div class="setting-card-title">Platform Settings</div>
+                        <p class="setting-card-description">Configure platform-wide settings and preferences</p>
+                    </div>
+                    <div class="setting-card-body">
+                        <p>Customize platform appearance, notifications, and user preferences.</p>
+                        <p>Set up system configurations and integrations.</p>
+                        <a href="{{ url('learning/settings/platform') }}" class="btn">Platform Settings</a>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -1128,33 +667,6 @@
             <p>&copy; {{ date('Y') }} Whence Financial Services. All rights reserved.</p>
         </div>
     </footer>
-
-    <!-- Enrollment Modal -->
-    <div class="modal fade" id="enrollModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <h4 class="modal-title">Enroll in Course</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to enroll in this course?</p>
-                    <p id="enrollCourseTitle" style="font-weight: 600; color: var(--primary-color);"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmEnrollBtn">Enroll</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loader -->
-    <div id="loader-wrapper">
-        <div id="loader"></div>
-    </div>
 
     <!-- Scripts -->
     <script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
@@ -1185,11 +697,6 @@
         @if(Session::has('toastr_type'))
             toastr.{{ Session::get('toastr_type') }}('{{ Session::get('toastr_message') }}', '{{ Session::get('toastr_title', 'Notification') }}');
         @endif
-
-        // Hide loader on page load
-        $(window).on('load', function () {
-            $('#loader-wrapper').fadeOut(2000);
-        });
 
         // Mobile Menu Toggle
         $(document).ready(function() {
@@ -1273,54 +780,6 @@
                 if (currentPath === $link.attr('href')) {
                     $link.addClass('active');
                 }
-            });
-
-            // Enrollment Modal Handler
-            var currentCourseId = null;
-            var currentCourseTitle = '';
-
-            window.openEnrollModal = function(courseId, courseTitle) {
-                currentCourseId = courseId;
-                currentCourseTitle = courseTitle;
-                $('#enrollCourseTitle').text(courseTitle);
-                $('#enrollModal').modal('show');
-            };
-
-            $('#confirmEnrollBtn').on('click', function() {
-                if (!currentCourseId) return;
-
-                var $btn = $(this);
-                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Enrolling...');
-
-                $.ajax({
-                    url: '{{ url('learning/enroll') }}/' + currentCourseId,
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            toastr.success(response.message, 'Success');
-                            $('#enrollModal').modal('hide');
-                            // Reload page to show updated enrollment status
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            toastr.error(response.message, 'Error');
-                        }
-                    },
-                    error: function(xhr) {
-                        var message = 'An error occurred while enrolling';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            message = xhr.responseJSON.message;
-                        }
-                        toastr.error(message, 'Error');
-                    },
-                    complete: function() {
-                        $btn.prop('disabled', false).text('Enroll');
-                    }
-                });
             });
         });
     </script>

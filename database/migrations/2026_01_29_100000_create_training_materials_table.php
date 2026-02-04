@@ -14,7 +14,7 @@ class CreateTrainingMaterialsTable extends Migration
     public function up()
     {
         Schema::create('training_materials', function (Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('material_type', ['document', 'audio', 'video'])->default('document');

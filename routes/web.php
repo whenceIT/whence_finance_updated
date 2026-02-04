@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
 use App\Http\Controllers\LoanReportController;
+use App\Http\Controllers\CourseCategoryController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\TrainingMaterialController;
 use App\Http\Controllers\StaffSurveyController;
@@ -155,6 +156,26 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/progress', [LearningController::class, 'progress'])->name('learning.progress');
     Route::get('/certificates', [LearningController::class, 'certificates'])->name('learning.certificates');
     Route::get('/course/{id}', [LearningController::class, 'showCourse'])->name('learning.course');
+    Route::post('/enroll/{id}', [LearningController::class, 'enroll'])->name('learning.enroll');
+    Route::post('/unenroll/{id}', [LearningController::class, 'unenroll'])->name('learning.unenroll');
+    
+    // Settings Routes
+    Route::get('/settings', [LearningController::class, 'settings'])->name('learning.settings');
+    Route::get('/settings/categories', [LearningController::class, 'settingsCategories'])->name('learning.settings.categories');
+    Route::get('/settings/students', [LearningController::class, 'settingsStudents'])->name('learning.settings.students');
+    Route::get('/settings/teachers', [LearningController::class, 'settingsTeachers'])->name('learning.settings.teachers');
+    Route::get('/settings/platform', [LearningController::class, 'settingsPlatform'])->name('learning.settings.platform');
+});
+
+// Course Categories Management Routes
+Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], function () {
+    Route::get('/', [CourseCategoryController::class, 'index'])->name('course-categories.index');
+    Route::get('/create', [CourseCategoryController::class, 'create'])->name('course-categories.create');
+    Route::post('/', [CourseCategoryController::class, 'store'])->name('course-categories.store');
+    Route::get('/{id}/edit', [CourseCategoryController::class, 'edit'])->name('course-categories.edit');
+    Route::put('/{id}', [CourseCategoryController::class, 'update'])->name('course-categories.update');
+    Route::delete('/{id}', [CourseCategoryController::class, 'destroy'])->name('course-categories.destroy');
+    Route::post('/{id}/toggle-status', [CourseCategoryController::class, 'toggleStatus'])->name('course-categories.toggle-status');
 });
 
 // Training Materials Management Routes

@@ -139,7 +139,7 @@ class TrainingMaterial extends Model
     }
 
     /**
-     * Get the file size in human readable format.
+     * Get file size in human readable format.
      *
      * @return string
      */
@@ -166,7 +166,7 @@ class TrainingMaterial extends Model
     }
 
     /**
-     * Get the duration in human readable format.
+     * Get duration in human readable format.
      *
      * @return string
      */
@@ -189,7 +189,7 @@ class TrainingMaterial extends Model
     }
 
     /**
-     * Get the icon based on material type.
+     * Get icon based on material type.
      *
      * @return string
      */
@@ -208,7 +208,7 @@ class TrainingMaterial extends Model
     }
 
     /**
-     * Get the color based on material type.
+     * Get color based on material type.
      *
      * @return string
      */
@@ -224,5 +224,26 @@ class TrainingMaterial extends Model
             default:
                 return '#7f8c8d';
         }
+    }
+
+    /**
+     * Get enrollments for this training material.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'training_material_id');
+    }
+
+    /**
+     * Check if a user is enrolled in this training material.
+     *
+     * @param int $userId
+     * @return bool
+     */
+    public function isEnrolled($userId)
+    {
+        return $this->enrollments()->where('user_id', $userId)->exists();
     }
 }

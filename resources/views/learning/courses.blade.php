@@ -39,6 +39,15 @@
             <h3 class="course-title">{{ $course['title'] }}</h3>
             <p class="course-description">{{ $course['description'] }}</p>
             
+            @if($course['enrolled'] && $course['progress'] > 0)
+            <div class="course-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
+                </div>
+                <div class="progress-text">{{ $course['progress'] }}% Complete</div>
+            </div>
+            @endif
+            
             <div class="course-meta">
                 <div class="course-stats">
                     <span><i class="fa fa-file-o"></i> {{ ucfirst($course['material_type']) }}</span>
@@ -58,6 +67,11 @@
                     <span><i class="fa fa-building-o"></i> {{ $course['department'] }}</span>
                 </div>
                 @endif
+                @if($course['enrolled_at'])
+                <div class="course-stats" style="margin-top: 8px;">
+                    <span><i class="fa fa-calendar-check-o"></i> Enrolled: {{ $course['enrolled_at']->format('M d, Y') }}</span>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -69,10 +83,10 @@
 <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px;">
     <i class="fa fa-book" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px;"></i>
     <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary);">
-        No Courses Available
+        No Enrolled Courses
     </h2>
     <p style="color: var(--text-secondary); font-size: 16px;">
-        Check back later for new courses or contact your administrator.
+        You haven't enrolled in any courses yet. Visit the <a href="{{ url('/learning') }}" style="color: var(--primary-color);">Home</a> page to browse and enroll in available courses.
     </p>
 </div>
 @endif

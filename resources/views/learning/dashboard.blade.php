@@ -105,17 +105,17 @@
                     <div class="progress-text">{{ $course['progress'] }}% Complete</div>
                 </div>
                 @endif
-                <div class="course-meta">
-                    <div class="course-stats">
-                        <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
-                        <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
+                    <div class="course-meta">
+                        <div class="course-stats">
+                            <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
+                            <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
+                        </div>
+                        @if(!$course['enrolled'])
+                        <button onclick="event.stopPropagation(); openEnrollModal({{ $course['id'] }}, '{{ $course['title'] }}')" style="background: var(--primary-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.3s;">
+                            Enroll Now
+                        </button>
+                        @endif
                     </div>
-                    @if(!$course['enrolled'])
-                    <button style="background: var(--primary-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.3s;">
-                        Enroll Now
-                    </button>
-                    @endif
-                </div>
             </div>
         </div>
         @endforeach
