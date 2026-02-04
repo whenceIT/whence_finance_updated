@@ -308,6 +308,8 @@
                         <ul class="treeview-menu">
                             <li><a href="{{ route('advances.apply') }}"><i class="fa fa-circle-o"></i> Apply for Advance</a></li>
                             <li><a href="{{ route('advances.my_advances') }}"><i class="fa fa-circle-o"></i> My Advances</a></li>
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.active_advances') }}">
                                 <i class="fa fa-circle-o"></i> Active Advances
                                 <span class="pull-right-container">
@@ -331,6 +333,10 @@
                                     <span class="label label-warning pull-right">{{ $activeAdvancesCount }}</span>
                                 </span>
                             </a></li>
+                            @endif
+
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.pending_approvals') }}">
                                 <i class="fa fa-circle-o"></i> Pending Approvals
                                 <span class="pull-right-container">
@@ -355,6 +361,10 @@
                                     <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span> 
                                 </span>
                             </a></li>
+                            @endif
+
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.topups_pending_approval') }}">
                                 <i class="fa fa-circle-o"></i> TopUps Pending Approval
                                 <span class="pull-right-container">
@@ -380,6 +390,9 @@
                                 </span>
                                 </a>
                             </li>
+                            @endif
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.declined_advances') }}">
                                 <i class="fa fa-circle-o"></i> Declined Advances
                                 <span class="pull-right-container">
@@ -395,6 +408,10 @@
                                     <span class="label label-warning pull-right">{{ $declinedAdvancesCount }}</span>
                                 </span>   
                             </a></li>
+                            @endif
+
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.closed_advances') }}">
                                 <i class="fa fa-circle-o"></i> Closed Advances
                                 <span class="pull-right-container">
@@ -410,6 +427,7 @@
                                     <span class="label label-warning pull-right">{{ $closedAdvancesCount }}</span>
                                 </span>   
                             </a></li>
+                            @endif
                         </ul>
                     </li>
                     @endif
@@ -425,6 +443,7 @@
                         </a>
                         <ul class="treeview-menu">
                             <li><a href="{{ route('leave.my_leave_days') }}"><i class="fa fa-circle-o"></i> My Leave Days</a></li>
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('leave.active_leave') }}">
                                 <i class="fa fa-circle-o"></i> Active Leave
                                 <span class="pull-right-container">
@@ -458,6 +477,9 @@
                                     <span class="label label-warning pull-right">{{ $activeLeaveCount }}</span>
                                 </span>
                             </a></li>
+                            @endif
+
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('leave.pending_leave_approvals') }}">
                                 <i class="fa fa-circle-o"></i> Pending Leave Approvals
                                 <span class="pull-right-container">
@@ -482,6 +504,10 @@
                                     <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span>
                                 </span>
                             </a></li>
+                            @endif
+
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('leave.declined_leave') }}">
                                 <i class="fa fa-circle-o"></i> Declined Leave
                                 <span class="pull-right-container">
@@ -497,6 +523,8 @@
                                     <span class="label label-warning pull-right">{{ $declinedLeaveCount }}</span>
                                 </span>
                             </a></li>
+                            @endif
+
                         </ul>
                     </li>
                     @endif
@@ -582,7 +610,6 @@
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                    
                     <!-- Approvals -->
                     @if(Sentinel::hasAccess('expenses'))
                     <li style="padding-left: 10px;" class="treeview @if(Request::is('user/carry_over_approvals') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval')) active menu-open @endif">

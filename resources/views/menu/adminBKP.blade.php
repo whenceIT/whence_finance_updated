@@ -914,9 +914,9 @@
 
                     </ul>
                 </li>
-            @endif
+                @endif
 
- @if(Sentinel::hasAccess('reports'))
+                @if(Sentinel::hasAccess('reports'))
                 <li class="treeview @if(Request::is('advances/*')) active menu-open @endif">
                     <a href="#">
                         <i class="fa fa-money"></i> <span>Advances</span>

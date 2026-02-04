@@ -52,6 +52,8 @@ use App\Models\PayrollApplicant;
 use App\Models\AppraisalAnswer;
 use Illuminate\Support\Facades\Http;
 use App\Models\CarryOver;
+use App\Models\Province;
+
 
 class LoanController extends Controller
 {
@@ -144,6 +146,20 @@ class LoanController extends Controller
         }
 
         return view('loan.reloan_approvals', compact('data'));
+    }
+
+
+    public function dormant_loans(){
+
+         if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+
+        $provinces = Province::get();
+
+        return view('loan.dormant_loans',compact('provinces'));
     }
 
 
