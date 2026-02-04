@@ -178,7 +178,39 @@
                             @if(Sentinel::hasAccess('loans.create'))
                                 <li><a href="{{ url('loan/calculator/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.loan',1)}} {{trans_choice('general.calculator',1)}}</a></li>
                             @endif
+
                         </ul>
+                        <!-- Reports -->
+                        @if(Sentinel::hasAccess('reports'))
+                        <li class="treeview @if(Request::is('report/*')) active menu-open @endif" style="padding-left: 10px;">
+                            <a href="#">
+                                <i class="fa fa-bar-chart"></i> <span>{{trans_choice('general.report',2)}}</span>
+                                <span class="pull-right-container">
+                                    <i class="fa fa-angle-left pull-right"></i>
+                                </span>
+                            </a>
+                            <ul class="treeview-menu">
+                                @if(Sentinel::hasAccess('reports.client_reports'))
+                                    <li><a href="{{ url('report/client_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.client',1)}} {{trans_choice('general.report',2)}}</a></li>
+                                @endif
+                                @if(Sentinel::hasAccess('reports.loan_reports'))
+                                    <li><a href="{{ url('report/loan_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.loan',1)}} {{trans_choice('general.report',2)}}</a></li>
+                                @endif
+                                @if(Sentinel::hasAccess('reports.financial_reports'))
+                                    <li><a href="{{ url('report/financial_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.financial',1)}} {{trans_choice('general.report',2)}}</a></li>
+                                @endif
+                                @if(Sentinel::hasAccess('reports.company_reports'))
+                                    <li><a href="{{ url('report/company_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.organisation',1)}} {{trans_choice('general.report',2)}}</a></li>
+                                @endif
+                                @if(Sentinel::hasAccess('reports.savings_reports'))
+                                    <li><a href="{{ url('report/savings_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.savings',2)}} {{trans_choice('general.report',2)}}</a></li>
+                                @endif
+                                @if(Sentinel::hasAccess('reports.reports_scheduler.view'))
+                                    <li><a href="{{ url('report/report_scheduler/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.report',1)}} {{trans_choice('general.scheduler',1)}}</a></li>
+                                @endif
+                            </ul>
+                        </li>
+                        @endif
                     </li>
                     @endif
 
@@ -641,39 +673,6 @@
                         </ul>
                     </li>
                     @endif
-
-                    <!-- Reports -->
-                    @if(Sentinel::hasAccess('reports'))
-                    <li class="treeview @if(Request::is('report/*')) active menu-open @endif" style="padding-left: 10px;">
-                        <a href="#">
-                            <i class="fa fa-bar-chart"></i> <span>{{trans_choice('general.report',2)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('reports.client_reports'))
-                                <li><a href="{{ url('report/client_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.client',1)}} {{trans_choice('general.report',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.loan_reports'))
-                                <li><a href="{{ url('report/loan_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.loan',1)}} {{trans_choice('general.report',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.financial_reports'))
-                                <li><a href="{{ url('report/financial_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.financial',1)}} {{trans_choice('general.report',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.company_reports'))
-                                <li><a href="{{ url('report/company_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.organisation',1)}} {{trans_choice('general.report',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.savings_reports'))
-                                <li><a href="{{ url('report/savings_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.savings',2)}} {{trans_choice('general.report',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.reports_scheduler.view'))
-                                <li><a href="{{ url('report/report_scheduler/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.report',1)}} {{trans_choice('general.scheduler',1)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
                 </ul>
             </li>
 
