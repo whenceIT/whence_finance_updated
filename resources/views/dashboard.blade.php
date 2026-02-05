@@ -414,7 +414,7 @@
 
                     <div class="box box-success">
                         <div class="box-header with-border">
-                            <h3 class="box-title">Performance Summary {{date("jS M, Y", strtotime($start))}} to
+                            <h3 class="box-title"> {{$test_date}} Performance Summary {{date("jS M, Y", strtotime($start))}} to
                                 {{date("jS M, Y", strtotime($end))}}
                             </h3>
                         </div>

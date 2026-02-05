@@ -121,7 +121,8 @@ public function create_carry_over(Request $request)
         $userId = Sentinel::getUser()->id;
         //BELOW THIS
         $role = UserRole::where('user_id', $userId)->first();
-        $userBranch = Sentinel::getUser()->office_id;
+	$userBranch = Sentinel::getUser()->office_id;
+$test_date = null;	
 
         if (Sentinel::getUser()->cycle_dates == null) {
             $cycle_end = 24;
@@ -252,6 +253,7 @@ if ($today->lt($currentCycleStart)) {
 }
 
 $cycle_date = $cycleStart->format('Y-m-d');
+$test_date = $cycle_date; 
 
 /*
 |--------------------------------------------------------------------------
@@ -422,7 +424,7 @@ $data = $json ? json_decode($json, true) : null;
 
         $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers'));
+            return view('dashboard', compact('end','test_date' ,'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers'));
         } else {
             return view('dashboard', compact('role', 'user', 'client', 'clientBranch', 'staff', 'clientLoan'));
         }
