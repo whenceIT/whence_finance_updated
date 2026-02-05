@@ -67,6 +67,9 @@
                             @endforelse
                         </tbody>
                     </table>
+                    <div class="pagination-wrapper">
+                        {{ $allTickets->links() }}
+                    </div>
                     </div>
                     <div id="grid-view-manage">
                         <style>
@@ -208,6 +211,9 @@
                                 <p class="text-center">No tickets available.</p>
                             </div>
                             @endforelse
+                        </div>
+                        <div class="pagination-wrapper mt-3">
+                            {{ $allTickets->links() }}
                         </div>
                     </div>
 
