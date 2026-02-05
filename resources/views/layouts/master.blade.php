@@ -20,6 +20,62 @@
 
 
     <style>
+
+
+       
+    .ledger-toggle {
+        margin: 20px 0 30px;
+    }
+
+    .toggle-wrapper {
+        position: relative;
+        display: inline-flex;
+        background: #f4f6f9;
+        border-radius: 30px;
+        padding: 4px;
+        box-shadow: inset 0 0 0 1px #ddd;
+    }
+
+    .toggle-btn {
+        position: relative;
+        z-index: 2;
+        background: none;
+        border: none;
+        padding: 8px 20px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #555;
+        outline: none;
+    }
+
+    .toggle-btn.active {
+        color: #fff;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 33.333%;
+        height: calc(100% - 8px);
+        background: #00a65a;
+        border-radius: 25px;
+        transition: transform 0.3s ease;
+        z-index: 1;
+    }
+
+    .toggle-wrapper[data-active="disbursements"] .toggle-slider {
+        transform: translateX(100%);
+    }
+
+    .toggle-wrapper[data-active="adjustments"] .toggle-slider {
+        transform: translateX(200%);
+    }
+
+    .ledger-section {
+        padding: 30px 0;
+    }
+
         #loader-wrapper {
             position: fixed;
             top: 0;

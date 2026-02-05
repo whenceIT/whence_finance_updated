@@ -383,106 +383,176 @@
 
                     <div class="box box-primary">
 
+    {{-- BOX HEADER --}}
+ <div class="box-header with-border text-center">
+    <h3 class="box-title">
+    Performance Summary
+        {{ date("jS M, Y", strtotime($start)) }}
+        to
+        {{ date("jS M, Y", strtotime($end)) }}
+    </h3>
+</div>
 
-                        <form method="GET" action="{{ url('dashboard') }}" class="form-horizontal">
-                            <div class="box-body">
 
-                                {{-- Start Month --}}
-                                <div class="form-group">
-                                    <label class="control-label col-md-2">Cycle Start</label>
-                                    <div class="col-md-3">
-                                        <input type="month" name="start_month" class="form-control"
-                                            value="{{ substr($start, 0, 7) }}">
-                                    </div>
-                                </div>
+    {{-- BOX BODY --}}
+    <div class="box-body">
 
-                                {{-- End Month --}}
-                                <div class="form-group">
-                                    <label class="control-label col-md-2">Cycle End</label>
-                                    <div class="col-md-3">
-                                        <input type="month" name="end_month" class="form-control" value="{{ substr($end, 0, 7) }}">
-                                    </div>
-                                </div>
+        {{-- FILTER FORM --}}
+        <div style="background:#f9fafc; padding:25px; border-radius:16px; margin-bottom:25px;">
 
-                            </div>
+        
+       <form method="GET" action="{{ url('dashboard') }}" class="form-horizontal">
 
-                            <div class="box-footer">
-                                <button type="submit" class="btn btn-primary pull-right">Load</button>
-                            </div>
-                        </form>
-                    </div>
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
 
-                    <div class="box box-success">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">Performance Summary {{date("jS M, Y", strtotime($start))}} to
-                                {{date("jS M, Y", strtotime($end))}}
-                            </h3>
+            {{-- Cycle Start --}}
+            <div class="form-group text-center">
+                <label class="control-label">Cycle Start</label>
+                <input type="month" name="start_month" class="form-control"
+                    value="{{ substr($start, 0, 7) }}">
+            </div>
+
+            {{-- Cycle End --}}
+            <div class="form-group text-center">
+                <label class="control-label">Cycle End</label>
+                <input type="month" name="end_month" class="form-control"
+                    value="{{ substr($end, 0, 7) }}">
+            </div>
+
+            {{-- Load Button --}}
+            <div class="form-group text-center">
+                <button type="submit" class="btn btn-primary">
+                    Load
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</form>
+
+</div>
+
+
+        <hr>
+
+<div class="text-center" style="margin-bottom: 20px;">
+        <button type="button" class="btn btn-success" id="toggleView">
+            <i class="fa fa-book"></i> Ledger
+        </button>
+    </div>
+
+
+        {{-- SUMMARY --}}
+<div id="summaryView">
+
+
+       
+        @if(!$data)
+            <p>No data available or failed to fetch.</p>
+        @else
+
+            <div class="row" style="margin-bottom: 25px;">
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="small-box bg-aqua">
+                        <div class="inner">
+                            <h3>{{ number_format($data['total_uncollected']) }}</h3>
+                            <p>Cycle Opening Uncollected</p>
                         </div>
-
-                        <div class="box-body">
-                            @if(!$data)
-                                <p>No data available or failed to fetch.</p>
-                            @else
-
-                                {{-- SUMMARY CARDS --}}
-                                <div class="row" style="margin-bottom: 25px;">
-
-                                    <div class="col-md-3 col-sm-6">
-                                        <div class="small-box bg-aqua">
-                                            <div class="inner">
-                                                <h3>{{ number_format($data['total_uncollected']) }}</h3>
-                                                <p>Cycle Opening Uncollected</p>
-                                            </div>
-                                            <div class="icon">
-                                                <i class="fa fa-warning"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-sm-6">
-                                        <div class="small-box bg-green">
-                                            <div class="inner">
-                                                <h3>{{ number_format($data['total_collected']) }}</h3>
-                                                <p>Total Collected</p>
-                                            </div>
-                                            <div class="icon">
-                                                <i class="fa fa-money"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-sm-6">
-                                        <div class="small-box bg-yellow">
-                                            <div class="inner">
-                                                <h3>{{ number_format($data['still_uncollected']) }}</h3>
-                                                <p>Still Uncollected</p>
-                                            </div>
-                                            <div class="icon">
-                                                <i class="fa fa-hourglass-half"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-sm-6">
-                                        <div class="small-box bg-purple">
-                                            <div class="inner">
-                                                <h3>{{ number_format($data['given_out']) }}</h3>
-                                                <p>Given Out</p>
-                                            </div>
-                                            <div class="icon">
-                                                <i class="fa fa-arrow-up"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                                {{-- END CARDS --}}
-
-                                <hr>
-
-                            @endif
+                        <div class="icon">
+                            <i class="fa fa-warning"></i>
                         </div>
                     </div>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="small-box bg-green">
+                        <div class="inner">
+                            <h3>{{ number_format($data['total_collected']) }}</h3>
+                            <p>Total Collected</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa fa-money"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="small-box bg-yellow">
+                        <div class="inner">
+                            <h3>{{ number_format($data['still_uncollected']) }}</h3>
+                            <p>Still Uncollected</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa fa-hourglass-half"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="small-box bg-purple">
+                        <div class="inner">
+                            <h3>{{ number_format($data['given_out']) }}</h3>
+                            <p>Given Out</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa fa-arrow-up"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        @endif
+
+        </div>
+
+
+        <div id="ledgerView" style="display: none;">
+
+        {{-- TOGGLE SWITCH --}}
+    <div class="ledger-toggle text-center">
+        <div class="toggle-wrapper">
+            <div class="toggle-slider"></div>
+
+            <button class="toggle-btn active" data-target="collections">
+                Cycle Opening Uncollected
+            </button>
+            <button class="toggle-btn" data-target="disbursements">
+                Total Cycle Collected
+            </button>
+            <button class="toggle-btn" data-target="adjustments">
+                Total Cycle Given Out
+            </button>
+        </div>
+    </div>
+
+    {{-- LEDGER SECTIONS --}}
+    <div class="ledger-content">
+
+        <div class="ledger-section" id="collections">
+            <p class="text-muted text-center">Cycle Opening Uncollected</p>
+        </div>
+
+        <div class="ledger-section" id="disbursements" style="display:none;">
+            <p class="text-muted text-center">Total Cycle Collected</p>
+        </div>
+
+        <div class="ledger-section" id="adjustments" style="display:none;">
+            <p class="text-muted text-center">Total Cycle Given Out</p>
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+    </div>
+</div>
+
 
 
                     <!-- <div class="col-lg-4 col-xs-12">
@@ -3297,6 +3367,46 @@ if($branchUser->role){
                     });
                 });
 
+
+                 $(document).ready(function () {
+
+        var showingLedger = false;
+
+        $('#toggleView').on('click', function () {
+
+            if (!showingLedger) {
+                $('#summaryView').hide();
+                $('#ledgerView').show();
+                $(this).html('<i class="fa fa-bar-chart"></i> Summary');
+            } else {
+                $('#ledgerView').hide();
+                $('#summaryView').show();
+                $(this).html('<i class="fa fa-book"></i> Ledger');
+            }
+
+            showingLedger = !showingLedger;
+        });
+
+    });
+
+
+     $('.toggle-btn').on('click', function () {
+
+        var target = $(this).data('target');
+
+        // Toggle active button
+        $('.toggle-btn').removeClass('active');
+        $(this).addClass('active');
+
+        // Move slider
+        $('.toggle-wrapper')
+            .attr('data-active', target);
+
+        // Show correct section
+        $('.ledger-section').hide();
+        $('#' + target).fadeIn(200);
+    });
+
                 var COUA = document.getElementById('coua');
                 var TCC = document.getElementById('tcc');
                 var given_out = document.getElementById('given_out')
@@ -3532,6 +3642,11 @@ if($branchUser->role){
                     },
                     responsive: false
                 });
+
+            
+
+
+
 
 
             </script>
