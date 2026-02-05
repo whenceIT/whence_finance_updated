@@ -1,5 +1,6 @@
                 <div class="tab-pane active" id="manage_all">
                     <h4>All Tickets</h4>
+                    <small>{{$totalTickets}} Total Tickets</small>
                     <div class="view-toggle mb-3">
                         <button id="table-view-btn-manage" class="btn btn-secondary">Table View</button>
                         <button id="grid-view-btn-manage" class="btn btn-primary">Grid View</button>
@@ -67,6 +68,9 @@
                             @endforelse
                         </tbody>
                     </table>
+                    <div class="pagination-wrapper">
+                        {{ $allTickets->links() }}
+                    </div>
                     </div>
                     <div id="grid-view-manage">
                         <style>
@@ -208,6 +212,9 @@
                                 <p class="text-center">No tickets available.</p>
                             </div>
                             @endforelse
+                        </div>
+                        <div class="pagination-wrapper mt-3">
+                            {{ $allTickets->links() }}
                         </div>
                     </div>
 

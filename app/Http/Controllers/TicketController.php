@@ -110,8 +110,8 @@ class TicketController extends Controller
 
         $dashboardTotals = compact('totalTickets', 'openTicketsCount', 'resolvedTicketsCount', 'closedTicketsCount', 'slaCompliancePercent');
 
-        // include all tickets for all users
-        $allTickets = Ticket::with(['openedBy.office', 'assignedTo', 'closedBy', 'issueCategory'])->orderBy('created_at', 'desc')->get();
+        // include all tickets for all users (paginated)
+        $allTickets = Ticket::with(['openedBy.office', 'assignedTo', 'closedBy', 'issueCategory'])->orderBy('created_at', 'desc')->paginate(50);
 
         $slaData = [
             'met' => $allTickets->where('status', 'closed')->where('sla_met', true)->count(),
@@ -156,7 +156,7 @@ class TicketController extends Controller
         } catch (\Exception $e) {
         }
 
-        return view('ticket.index', compact('assignedTickets', 'assignedClosedTickets', 'myTickets', 'myResolvedTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData'));
+        return view('ticket.index', compact('totalTickets','assignedTickets', 'assignedClosedTickets', 'myTickets', 'myResolvedTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData'));
     }
 
     public function store(Request $request)
@@ -389,7 +389,7 @@ class TicketController extends Controller
             $users = $query->get();
 
             $users = $users->map(function ($u) {
-                $u->display = trim(($u->first_name ?? $u->name) . ' ' . ($u->last_name ?? ''));
+                $u->display = trim(($u->first_name) . ' ' . ($u->last_name ?? ''));
                 return $u;
             });
 
