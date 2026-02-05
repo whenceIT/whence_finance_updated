@@ -1,5 +1,6 @@
                 <div class="tab-pane active" id="manage_all">
                     <h4>All Tickets</h4>
+                    <small>{{$totalTickets}} Total Tickets</small>
                     <div class="view-toggle mb-3">
                         <button id="table-view-btn-manage" class="btn btn-secondary">Table View</button>
                         <button id="grid-view-btn-manage" class="btn btn-primary">Grid View</button>

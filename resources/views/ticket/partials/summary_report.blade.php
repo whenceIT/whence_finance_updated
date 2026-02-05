@@ -2,10 +2,14 @@
                     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts/dist/apexcharts.css">
                     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-12 d-flex align-items-center justify-content-between mb-3">
                             <h3 class="box-title" style="margin-bottom: 20px; font-weight: bold; color: #333;">
                                 <i class="fa fa-bar-chart"></i> Ticket Summary & Performance Analytics
                             </h3>
+
+                            <a href="{{ url('ticket') }}" class="text-muted btn btn-sm btn-secondary" style="font-size: 14px;">
+                                <i class="fa fa-info-circle"></i> Reset Filter
+                            </a>
                         </div>
                     </div>
 

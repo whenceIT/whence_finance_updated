@@ -156,7 +156,7 @@ class TicketController extends Controller
         } catch (\Exception $e) {
         }
 
-        return view('ticket.index', compact('assignedTickets', 'assignedClosedTickets', 'myTickets', 'myResolvedTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData'));
+        return view('ticket.index', compact('totalTickets','assignedTickets', 'assignedClosedTickets', 'myTickets', 'myResolvedTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData'));
     }
 
     public function store(Request $request)
