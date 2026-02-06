@@ -860,7 +860,30 @@
                     @if(Sentinel::hasAccess('clients'))
                     <li><a href="{{ url('user/leaderboard') }}"><i class="fa fa-trophy"></i> Leaderboard</a></li>
                     @endif
+		            <!-- @if(Sentinel::hasAccess('expenses'))
+                        <li class="">
+                            <a href="{{ route('performance_metrics.index') }}">
+                                <i class="fa fa-trophy"></i> <span>Performance Metrics</span>
+                            </a>
+                        </li>
+                    @endif -->
 
+
+                    @if(Sentinel::hasAccess('settings'))
+                        <li>
+                            <a href="{{ url('user/performance_information') }}"><i
+                                        class="fa fa-circle-o"></i>Performance Information
+                                <span class="pull-right-container">
+                                </span>
+                            </a>
+                        </li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('payroll/lc_information') }}">
+                            <i class="fa fa-circle-o"></i> Loan Consultant information
+                            </a>
+                        </li>
+                    @endif
                     <!-- Appraisal -->
                     @if(Sentinel::hasAccess('clients'))
                     <li class="treeview @if(Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms')) active menu-open @endif">

@@ -908,9 +908,8 @@
 
                 <div class="modal-footer">
                   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmCarryOverModal">
-    Save & Continue
-</button>
-
+                        Save & Continue
+                    </button>
                 </div>
             </form>
         </div>
