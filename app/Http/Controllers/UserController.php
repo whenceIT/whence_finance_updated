@@ -123,6 +123,8 @@ public function create_carry_over(Request $request)
         $role = UserRole::where('user_id', $userId)->first();
         $userBranch = Sentinel::getUser()->office_id;
         $cycle_date = null;
+        $true_start = null;
+        $true_date = null;
         
 
         if (Sentinel::getUser()->cycle_dates == null) {
@@ -253,6 +255,7 @@ if ($today->lt($cycleDate)) {
 }
 
 $cycle_date = $cycleDate->format('Y-m-d');
+$true_date = $cycle_date;
 
 
 /*
@@ -347,13 +350,33 @@ $userId = Sentinel::getUser()->id;
 $cycleStart = Carbon::parse($cycle_date);
 $cycleEnd = Carbon::parse($cycle_close_date);
 
-// Clamp day to last valid day of month
-$start = $cycleStart->copy()->day(min($fixedDay, $cycleStart->daysInMonth))->format('Y-m-d');
-$end = $cycleEnd->copy()->day(min($fixedDay, $cycleEnd->daysInMonth))->format('Y-m-d');
+// ORIGINAL
+$start = $cycleStart->copy()
+    ->day(min($fixedDay, $cycleStart->daysInMonth))
+    ->addDay()
+    ->format('Y-m-d');
 
-// Allow override from request
-$start = $request->input('start_month', $start);
-$end = $request->input('end_month', $end);
+$end = $cycleEnd->copy()
+    ->day(min($fixedDay, $cycleEnd->daysInMonth))
+    ->format('Y-m-d');
+
+// SECOND DATE
+$startMonth = $request->input('start_month');
+$endMonth   = $request->input('end_month');
+
+if ($startMonth) {
+    $start = Carbon::parse($startMonth)
+        ->day(min($fixedDay, Carbon::parse($startMonth)->daysInMonth))
+        ->addDay()
+        ->format('Y-m-d');
+}
+
+if ($endMonth) {
+    $end = Carbon::parse($endMonth)
+        ->day(min($fixedDay, Carbon::parse($endMonth)->daysInMonth))
+        ->format('Y-m-d');
+}
+
 
 // Build query
 $query = http_build_query([
@@ -425,7 +448,7 @@ $data = $json ? json_decode($json, true) : null;
 
         $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers',));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date'));
         } else {
             return view('dashboard', compact('role', 'user', 'client', 'clientBranch', 'staff', 'clientLoan'));
         }
