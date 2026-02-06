@@ -867,8 +867,6 @@
                             </a>
                         </li>
                     @endif -->
-
-
                     @if(Sentinel::hasAccess('settings'))
                         <li>
                             <a href="{{ url('user/performance_information') }}"><i
