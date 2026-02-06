@@ -124,6 +124,7 @@ public function create_carry_over(Request $request)
         $userBranch = Sentinel::getUser()->office_id;
         $cycle_date = null;
         $true_start = null;
+        $true_date = null;
         
 
         if (Sentinel::getUser()->cycle_dates == null) {
