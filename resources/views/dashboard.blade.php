@@ -1030,9 +1030,8 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
 
                 <div class="modal-footer">
                   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmCarryOverModal">
-    Save & Continue
-</button>
-
+                        Save & Continue
+                    </button>
                 </div>
             </form>
         </div>
