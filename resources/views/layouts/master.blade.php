@@ -21,7 +21,6 @@
 
     <style>
 
-
        
     .ledger-toggle {
         margin: 20px 0 30px;
@@ -75,6 +74,7 @@
     .ledger-section {
         padding: 30px 0;
     }
+
 
         #loader-wrapper {
             position: fixed;
