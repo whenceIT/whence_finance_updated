@@ -79,8 +79,6 @@ class CourseCategoryController extends Controller
             'slug' => 'required|string|max:255|unique:course_categories,slug',
             'description' => 'nullable|string',
             'icon' => 'required|string|max:50',
-            'color' => 'required|string|max:20',
-            'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
         ]);
 
@@ -149,7 +147,6 @@ class CourseCategoryController extends Controller
             'description' => 'nullable|string',
             'icon' => 'required|string|max:50',
             'color' => 'required|string|max:20',
-            'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
         ]);
 

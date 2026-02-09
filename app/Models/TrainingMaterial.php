@@ -46,7 +46,7 @@ class TrainingMaterial extends Model
     /**
      * Scope a query to only include active materials.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent.Builder $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeActive($query)
@@ -57,8 +57,8 @@ class TrainingMaterial extends Model
     /**
      * Scope a query to only include featured materials.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param \Illuminate\Database\Eloquent.Builder $query
+     * @return \Illuminate\Database\Eloquent.Builder
      */
     public function scopeFeatured($query)
     {
@@ -104,7 +104,7 @@ class TrainingMaterial extends Model
     /**
      * Scope a query to filter by target role.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent.Builder $query
      * @param string $role
      * @return \Illuminate\Database\Eloquent\Builder
      */
@@ -245,5 +245,25 @@ class TrainingMaterial extends Model
     public function isEnrolled($userId)
     {
         return $this->enrollments()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Get topics for this training material.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function topics()
+    {
+        return $this->hasMany(CourseTopic::class)->active()->ordered();
+    }
+
+    /**
+     * Get all topics (including inactive) for this training material.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function allTopics()
+    {
+        return $this->hasMany(CourseTopic::class)->ordered();
     }
 }

@@ -4,8 +4,27 @@
 
 @section('content')
 <div class="page-header">
+    @if(isset($selectedCategory) && $selectedCategory)
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+        <a href="{{ url('course-categories') }}" style="color: var(--primary-color); text-decoration: none;">
+            <i class="fa fa-arrow-left"></i> Back to Categories
+        </a>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        @if(isset($category) && $category && $category->icon)
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: {{ $category->color ? $category->color . '20' : '#4a90e220' }};">
+            <i class="fa {{ $category->icon }}" style="font-size: 18px; color: {{ $category->color ?: 'var(--primary-color)' }};"></i>
+        </span>
+        @endif
+        <div>
+            <h1>{{ $selectedCategory }}</h1>
+            <p>Browse courses in this category</p>
+        </div>
+    </div>
+    @else
     <h1>My Courses</h1>
     <p>Explore and manage your enrolled courses</p>
+    @endif
 </div>
 
 <!-- Filter Tabs -->
@@ -25,7 +44,7 @@
 </div>
 
 <!-- Courses Grid -->
-<div class="courses-grid">
+<div class="courses-grid" id="courses-grid">
     @foreach($courses as $course)
     <div class="course-card" onclick="window.location.href='{{ url('learning/training-materials/' . $course['id']) }}'">
         <div class="course-image">
@@ -82,12 +101,21 @@
 @if(count($courses) == 0)
 <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px;">
     <i class="fa fa-book" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+    @if(isset($selectedCategory) && $selectedCategory)
+    <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary);">
+        No Courses in {{ $selectedCategory }}
+    </h2>
+    <p style="color: var(--text-secondary); font-size: 16px;">
+        There are no courses available in this category yet.
+    </p>
+    @else
     <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary);">
         No Enrolled Courses
     </h2>
     <p style="color: var(--text-secondary); font-size: 16px;">
         You haven't enrolled in any courses yet. Visit the <a href="{{ url('/learning') }}" style="color: var(--primary-color);">Home</a> page to browse and enroll in available courses.
     </p>
+    @endif
 </div>
 @endif
 @endsection

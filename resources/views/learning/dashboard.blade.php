@@ -9,7 +9,7 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="stats-grid">
+<div class="stats-grid" id="stats-grid">
     <div class="stat-card">
         <div class="stat-icon blue">
             <i class="fa fa-book"></i>

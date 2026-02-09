@@ -10,6 +10,22 @@ class CourseCategory extends Model
     use HasFactory;
 
     /**
+     * Boot the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($category) {
+            if (empty($category->sort_order)) {
+                $category->sort_order = static::max('sort_order') + 1;
+            }
+        });
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array

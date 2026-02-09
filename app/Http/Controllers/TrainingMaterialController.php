@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrainingMaterial;
+use App\Models\CourseCategory;
+use App\Models\CourseTopic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -92,7 +94,10 @@ class TrainingMaterialController extends Controller
             return redirect('learning/training-materials');
         }
 
-        return view('learning.training-materials.create');
+        // Get active categories for dropdown
+        $categories = CourseCategory::active()->ordered()->get();
+
+        return view('learning.training-materials.create', compact('categories'));
     }
 
     /**
@@ -103,7 +108,7 @@ class TrainingMaterialController extends Controller
      */
     public function store(Request $request)
     {
-       try {
+        try {
             if (!Sentinel::check()) {
                 return redirect('login');
             }
@@ -118,16 +123,14 @@ class TrainingMaterialController extends Controller
                     ->with('toastr_message', 'You do not have permission to create training materials.');
             }
 
-            // Validation rules
+            // Validate course info
             $rules = [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'material_type' => 'required|in:document,audio,video',
-                'file' => 'required|file|max:102400', // 100MB max
                 'department' => 'required|in:Operations,Recoveries,Administration,Finance,IT,HR,Legal,Compliance,General',
                 'category' => 'nullable|string|max:100',
                 'target_role' => 'required|in:all,1,4,6,3,5,10',
-                // is_active and is_featured are optional checkboxes, no validation needed
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -141,13 +144,18 @@ class TrainingMaterialController extends Controller
                     ->withInput();
             }
 
-            // Handle file upload
+            // Handle main course file upload
+            $filePath = null;
+            $fileName = null;
+            $fileSize = null;
+            $mimeType = null;
+            $duration = null;
+
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 
-                // Validate file type based on material type
                 $allowedMimeTypes = [
-                    'document' => ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain'],
+                    'document' => ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
                     'audio' => ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg'],
                     'video' => ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'],
                 ];
@@ -158,49 +166,80 @@ class TrainingMaterialController extends Controller
                 if (!in_array($mimeType, $allowedMimeTypes[$materialType] ?? [])) {
                     return redirect()->back()
                         ->with('toastr_type', 'error')
-                        ->with('toastr_message', 'Invalid file type for ' . $materialType . '. Please upload a valid file.')
+                        ->with('toastr_message', 'Invalid file type for ' . $materialType . '.')
                         ->withInput();
                 }
 
-                // Store file
                 $fileName = time() . '_' . Str::slug($file->getClientOriginalName()) . '.' . $file->getClientOriginalExtension();
                 $filePath = $file->storeAs('training-materials/' . $materialType, $fileName, 'public');
+                $fileSize = $file->getSize();
 
-                // Get duration for audio/video files
-                $duration = null;
                 if (in_array($materialType, ['audio', 'video'])) {
                     $duration = $materialType === 'audio' ? 300 : 600;
                 }
-
-                TrainingMaterial::create([
-                    'title' => $request->title,
-                    'description' => $request->description,
-                    'material_type' => $materialType,
-                    'file_path' => $filePath,
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_size' => $file->getSize(),
-                    'mime_type' => $mimeType,
-                    'duration' => $duration,
-                    'department' => $request->department,
-                    'category' => $request->category,
-                    'target_role' => $request->target_role,
-                    'created_by' => $user->id,
-                    'is_active' => $request->has('is_active') ? $request->is_active : true,
-                    'is_featured' => $request->has('is_featured') ? $request->is_featured : false,
-                    'published_at' => $request->has('published_at') ? $request->published_at : now(),
-                ]);
-
-                return redirect()->route('learning.training-materials.index')
-                    ->with('toastr_type', 'success')
-                    ->with('toastr_message', 'Training material created successfully.');
             }
 
+            // Create the training material
+            $material = TrainingMaterial::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'material_type' => $request->material_type,
+                'file_path' => $filePath,
+                'file_name' => $fileName,
+                'file_size' => $fileSize,
+                'mime_type' => $mimeType,
+                'duration' => $duration,
+                'department' => $request->department,
+                'category' => $request->category,
+                'target_role' => $request->target_role,
+                'created_by' => $user->id,
+                'is_active' => $request->has('is_active'),
+                'is_featured' => $request->has('is_featured'),
+                'published_at' => now(),
+            ]);
+
+            // Handle topics
+            $topicNames = $request->topic_name ?? [];
+            $topicTypes = $request->topic_type ?? [];
+            $topicDurations = $request->topic_duration ?? [];
+            $topicFiles = $request->file('topic_file') ?? [];
+
+            foreach ($topicNames as $index => $topicName) {
+                if (!empty($topicName) && isset($topicTypes[$index])) {
+                    $topicFilePath = null;
+                    $topicFileName = null;
+                    $topicFileSize = null;
+                    $topicMimeType = null;
+
+                    if (isset($topicFiles[$index])) {
+                        $topicFile = $topicFiles[$index];
+                        $topicFileName = time() . '_' . $index . '_' . Str::slug($topicFile->getClientOriginalName()) . '.' . $topicFile->getClientOriginalExtension();
+                        $topicFilePath = $topicFile->storeAs('training-materials/topics/' . $material->id, $topicFileName, 'public');
+                        $topicFileSize = $topicFile->getSize();
+                        $topicMimeType = $topicFile->getMimeType();
+                    }
+
+                    CourseTopic::create([
+                        'training_material_id' => $material->id,
+                        'topic_name' => $topicName,
+                        'topic_type' => $topicTypes[$index],
+                        'file_path' => $topicFilePath,
+                        'file_name' => $topicFileName,
+                        'duration' => $topicDurations[$index] ?? null,
+                        'sort_order' => $index,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+
+            return redirect()->route('learning.training-materials.index')
+                ->with('toastr_type', 'success')
+                ->with('toastr_message', 'Training material created successfully with ' . count($topicNames) . ' topics.');
+        } catch (\Throwable $th) {
             return redirect()->back()
                 ->with('toastr_type', 'error')
-                ->with('toastr_message', 'Please select a file to upload.')
+                ->with('toastr_message', 'Error creating training material: ' . $th->getMessage())
                 ->withInput();
-        } catch (\Throwable $th) {
-            dd($th);
         }
     }
 

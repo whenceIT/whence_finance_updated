@@ -76,11 +76,11 @@
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                 <span style="font-weight: 600; color: var(--text-primary);">Overall Progress</span>
                 <span style="font-weight: 600; color: var(--primary-color);">
-                    {{ round(($progressData['total_lessons_completed'] / $progressData['total_lessons']) * 100) }}%
+                    {{ $progressData['total_lessons'] > 0 ? round(($progressData['total_lessons_completed'] / $progressData['total_lessons']) * 100) : 0 }}%
                 </span>
             </div>
             <div class="progress-bar" style="height: 12px;">
-                <div class="progress-fill" style="width: {{ round(($progressData['total_lessons_completed'] / $progressData['total_lessons']) * 100) }}%;"></div>
+                <div class="progress-fill" style="width: {{ $progressData['total_lessons'] > 0 ? round(($progressData['total_lessons_completed'] / $progressData['total_lessons']) * 100) : 0 }}%;"></div>
             </div>
         </div>
     </div>

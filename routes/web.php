@@ -22,6 +22,7 @@ use App\Http\Controllers\InductionController;
 use App\Http\Controllers\LoanReportController;
 use App\Http\Controllers\CourseCategoryController;
 use App\Http\Controllers\LearningController;
+use App\Http\Controllers\LearningSettingController;
 use App\Http\Controllers\TrainingMaterialController;
 use App\Http\Controllers\StaffSurveyController;
 use Firebase\JWT\JWT;
@@ -156,15 +157,23 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/progress', [LearningController::class, 'progress'])->name('learning.progress');
     Route::get('/certificates', [LearningController::class, 'certificates'])->name('learning.certificates');
     Route::get('/course/{id}', [LearningController::class, 'showCourse'])->name('learning.course');
+    Route::get('/course/{id}/classroom', [LearningController::class, 'classroom'])->name('learning.course.classroom');
+    Route::post('/course/{id}/complete', [LearningController::class, 'completeCourse'])->name('learning.course.complete');
     Route::post('/enroll/{id}', [LearningController::class, 'enroll'])->name('learning.enroll');
     Route::post('/unenroll/{id}', [LearningController::class, 'unenroll'])->name('learning.unenroll');
     
     // Settings Routes
-    Route::get('/settings', [LearningController::class, 'settings'])->name('learning.settings');
-    Route::get('/settings/categories', [LearningController::class, 'settingsCategories'])->name('learning.settings.categories');
-    Route::get('/settings/students', [LearningController::class, 'settingsStudents'])->name('learning.settings.students');
-    Route::get('/settings/teachers', [LearningController::class, 'settingsTeachers'])->name('learning.settings.teachers');
-    Route::get('/settings/platform', [LearningController::class, 'settingsPlatform'])->name('learning.settings.platform');
+    Route::get('/settings', [LearningSettingController::class, 'index'])->name('learning.settings');
+    Route::get('/settings/categories', [LearningSettingController::class, 'categories'])->name('learning.settings.categories');
+    Route::get('/settings/students', [LearningSettingController::class, 'students'])->name('learning.settings.students');
+    Route::get('/settings/teachers', [LearningSettingController::class, 'teachers'])->name('learning.settings.teachers');
+    Route::get('/settings/platform', [LearningSettingController::class, 'platform'])->name('learning.settings.platform');
+    
+    // Trainer Management Routes
+    Route::get('/api/roles-by-office/{officeId}', [LearningSettingController::class, 'getRolesByOffice']);
+    Route::get('/api/users-by-office-role/{officeId}/{roleId}', [LearningSettingController::class, 'getUsersByOfficeRole']);
+    Route::post('/settings/teachers/update-trainer', [LearningSettingController::class, 'updateTrainerStatus'])->name('learning.settings.teachers.update-trainer');
+    Route::delete('/settings/teachers/remove-trainer/{userId}', [LearningSettingController::class, 'removeTrainerStatus'])->name('learning.settings.teachers.remove-trainer');
 });
 
 // Course Categories Management Routes

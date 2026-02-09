@@ -52,7 +52,7 @@
 </div>
 
 <!-- Materials Grid -->
-<div class="courses-grid">
+<div class="courses-grid" id="materials-grid">
     @forelse($materials as $material)
     @php
         $currentUser = Sentinel::getUser();

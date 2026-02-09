@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     
+    <!-- IntroJS CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css">
+    
     <!-- Google Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
     
@@ -995,7 +998,7 @@
                 <button class="mobile-menu-btn" id="mobile-menu-toggle">
                     <i class="fa fa-bars"></i>
                 </button>
-                <a href="{{ url('/learning') }}" class="learning-logo">
+                <a href="{{ url('/learning') }}" class="learning-logo" id="learning-logo">
                     <i class="fa fa-graduation-cap"></i>
                     <span>Whence Learn</span>
                 </a>
@@ -1028,9 +1031,13 @@
                 
                 <!-- User Dropdown Menu -->
                 <div class="user-dropdown" id="user-dropdown">
+                    <a href="javascript:void(0)" onclick="restartTour()" class="user-dropdown-item">
+                        <i class="fa fa-question-circle"></i>
+                        Restart Tour
+                    </a>
                     <a href="{{ url('learning/progress') }}" class="user-dropdown-item">
-                        <i class="fa fa-chart-line"></i>
-                        My Progress
+                        <i class="fa fa-tasks"></i>
+                        My Progres
                     </a>
                     <a href="{{ url('learning/settings') }}" class="user-dropdown-item">
                         <i class="fa fa-cog"></i>
@@ -1059,7 +1066,7 @@
     <!-- Main Container -->
     <div class="learning-container">
         <!-- Sidebar -->
-        <aside class="learning-sidebar">
+        <aside class="learning-sidebar" id="learning-sidebar">
             <button class="sidebar-close-btn" id="sidebar-close">
                 <i class="fa fa-times"></i>
             </button>
@@ -1088,17 +1095,23 @@
                     <li><a href="{{ url('/learning') }}" class="active"><i class="fa fa-home"></i> Home</a></li>
                     <li><a href="{{ url('/learning/courses') }}"><i class="fa fa-book"></i> My Courses</a></li>
                     <li><a href="{{ url('/learning/calendar') }}"><i class="fa fa-calendar"></i> Calendar</a></li>
-                    <li><a href="{{ url('/learning/progress') }}"><i class="fa fa-chart-line"></i> My Progress</a></li>
+                    <li><a href="{{ url('/learning/progress') }}"><i class="fa fa-tasks"></i> My Progress</a></li>
                     <li><a href="{{ url('/learning/certificates') }}"><i class="fa fa-certificate"></i> Certificates</a></li>
+                    @if($user && $user->istrainer == 1)
                     <li><a href="{{ url('/learning/training-materials') }}"><i class="fa fa-folder-open"></i> Training Materials</a></li>
+                    @endif
+                    <li><a href="{{ url('/course-categories') }}"><i class="fa fa-folder"></i> Categories</a></li>
                 </ul>
             </div>
             
             <div class="sidebar-section">
                 <div class="sidebar-title">Categories</div>
                 <ul class="sidebar-menu">
-                    @if(isset($categories) && count($categories) > 0)
-                        @foreach($categories as $category)
+                    @php
+                    $sidebarCategories = isset($categories) && count($categories) > 0 ? $categories : \App\Models\CourseCategory::active()->ordered()->get();
+                    @endphp
+                    @if(count($sidebarCategories) > 0)
+                        @foreach($sidebarCategories as $category)
                         <li><a href="{{ url('/learning?category=' . urlencode($category->name)) }}"><i class="fa {{ $category->icon }}"></i> {{ $category->name }}</a></li>
                         @endforeach
                     @else
@@ -1117,7 +1130,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="learning-content">
+        <main class="learning-content" id="learning-content">
             @yield('content')
         </main>
     </div>
@@ -1160,6 +1173,9 @@
     <script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/bootstrap-toastr/toastr.min.js') }}"></script>
+    
+    <!-- IntroJS JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
     
     <script>
         // Configure toastr
@@ -1322,6 +1338,206 @@
                     }
                 });
             });
+        });
+    </script>
+    
+    <!-- IntroJS Initialization -->
+    <script>
+        // IntroJS Tour Configuration
+        const TOUR_KEY = 'whenceLearnTourCompleted';
+        
+        // Define tour steps for different pages
+        const tours = {
+            // Dashboard tour
+            dashboard: [
+                {
+                    element: '#learning-logo',
+                    title: 'Welcome to Whence Learn!',
+                    intro: 'Your institutional learning platform for professional development and training.'
+                },
+                {
+                    element: '#stats-grid',
+                    title: 'Your Statistics',
+                    intro: 'Track your enrolled courses, completed courses, learning hours, and achievements here.'
+                },
+                {
+                    element: '.course-card:first-child',
+                    title: 'Continue Learning',
+                    intro: 'Click on any course card to continue where you left off or start a new course.'
+                },
+                {
+                    element: '#learning-sidebar',
+                    title: 'Navigation Sidebar',
+                    intro: 'Use the sidebar to quickly access different sections of the learning platform.'
+                }
+            ],
+            // Courses page tour
+            courses: [
+                {
+                    element: '.page-header',
+                    title: 'My Courses',
+                    intro: 'Browse and manage all your enrolled courses here.'
+                },
+                {
+                    element: '#courses-grid',
+                    title: 'Course Cards',
+                    intro: 'Each card shows course details including title, description, progress, and duration.'
+                }
+            ],
+            // Training Materials tour
+            trainingMaterials: [
+                {
+                    element: '.page-header',
+                    title: 'Training Materials',
+                    intro: 'Access and manage institutional learning resources including documents, videos, and audio materials.'
+                },
+                {
+                    element: '#materials-grid',
+                    title: 'Material Library',
+                    intro: 'Browse available training materials organized by type and department.'
+                }
+            ],
+            // Training Materials Create tour
+            trainingMaterialsCreate: [
+                {
+                    element: '#step-1',
+                    title: 'Course Information',
+                    intro: 'Fill in the basic course details including title, description, material type, and target audience.'
+                },
+                {
+                    element: '#step-2',
+                    title: 'Add Topics',
+                    intro: 'Create multiple topics for your course with different content types like video, PDF, PPT, or documents.'
+                }
+            ],
+            // Settings tour
+            settings: [
+                {
+                    element: '.page-header',
+                    title: 'Platform Settings',
+                    intro: 'Manage learning platform configurations and user settings.'
+                },
+                {
+                    element: '#setting-categories',
+                    title: 'Course Categories',
+                    intro: 'Organize courses into categories for better navigation and management.'
+                }
+            ],
+            // Classroom tour
+            classroom: [
+                {
+                    element: '#classroom-header',
+                    title: 'Classroom Header',
+                    intro: 'View course title and access navigation controls.'
+                },
+                {
+                    element: '#classroom-sidebar',
+                    title: 'Course Content',
+                    intro: 'Navigate through course topics and track your progress.'
+                },
+                {
+                    element: '#content-area',
+                    title: 'Course Material',
+                    intro: 'View and interact with your course content here.'
+                }
+            ],
+            // Calendar tour
+            calendar: [
+                {
+                    element: '.page-header',
+                    title: 'Learning Calendar',
+                    intro: 'View your upcoming lessons, deadlines, and learning schedule.'
+                }
+            ],
+            // Progress tour
+            progress: [
+                {
+                    element: '.page-header',
+                    title: 'My Progress',
+                    intro: 'Track your learning achievements, milestones, and overall progress.'
+                },
+                {
+                    element: '.stats-grid',
+                    title: 'Progress Overview',
+                    intro: 'See your completed courses, certificates earned, and learning streaks.'
+                }
+            ],
+            // Certificates tour
+            certificates: [
+                {
+                    element: '.page-header',
+                    title: 'My Certificates',
+                    intro: 'View and download your earned certificates of completion.'
+                }
+            ]
+        };
+
+        // Get current page and start appropriate tour
+        function initIntroTour() {
+            const currentPath = window.location.pathname;
+            const isLearningPath = currentPath.includes('/learning');
+            
+            // Check if user has already completed the tour
+            const tourCompleted = localStorage.getItem(TOUR_KEY);
+            
+            if (!tourCompleted && isLearningPath) {
+                // Determine which tour to show based on current page
+                let tourSteps = tours.dashboard; // Default tour
+                
+                if (currentPath.includes('/training-materials/create')) {
+                    tourSteps = tours.trainingMaterialsCreate;
+                } else if (currentPath.includes('/training-materials')) {
+                    tourSteps = tours.trainingMaterials;
+                } else if (currentPath.includes('/settings')) {
+                    tourSteps = tours.settings;
+                } else if (currentPath.includes('/classroom')) {
+                    tourSteps = tours.classroom;
+                } else if (currentPath.includes('/calendar')) {
+                    tourSteps = tours.calendar;
+                } else if (currentPath.includes('/progress')) {
+                    tourSteps = tours.progress;
+                } else if (currentPath.includes('/certificates')) {
+                    tourSteps = tours.certificates;
+                } else if (currentPath.includes('/courses')) {
+                    tourSteps = tours.courses;
+                }
+                
+                // Start the tour with IntroJS
+                introJs()
+                    .setOptions({
+                        steps: tourSteps,
+                        showBullets: true,
+                        showProgress: false,
+                        scrollToElement: true,
+                        scrollTo: 'element',
+                        tooltipClass: 'introjs-tooltip',
+                        highlightClass: 'introjs-highlight',
+                        buttonClass: 'introjs-button',
+                        prevLabel: '<i class="fa fa-arrow-left"></i> Previous',
+                        nextLabel: 'Next <i class="fa fa-arrow-right"></i>',
+                        skipLabel: 'Skip Tour',
+                        doneLabel: 'Complete'
+                    })
+                    .oncomplete(function() {
+                        localStorage.setItem(TOUR_KEY, 'true');
+                    })
+                    .onskip(function() {
+                        localStorage.setItem(TOUR_KEY, 'true');
+                    })
+                    .start();
+            }
+        }
+
+        // Function to restart tour manually
+        window.restartTour = function() {
+            localStorage.removeItem(TOUR_KEY);
+            location.reload();
+        };
+
+        // Initialize tour on page load
+        $(document).ready(function() {
+            // Wait for all elements to be rendered
+            setTimeout(initIntroTour, 500);
         });
     </script>
     

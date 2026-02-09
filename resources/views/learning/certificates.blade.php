@@ -9,7 +9,7 @@
 </div>
 
 <!-- Certificates Grid -->
-@if(count($certificates) > 0)
+@if(isset($certificates) && count($certificates) > 0)
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px;">
     @foreach($certificates as $certificate)
     <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: transform 0.3s ease;">
