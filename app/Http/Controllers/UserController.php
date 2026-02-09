@@ -122,6 +122,10 @@ public function create_carry_over(Request $request)
         //BELOW THIS
         $role = UserRole::where('user_id', $userId)->first();
         $userBranch = Sentinel::getUser()->office_id;
+        $cycle_date = null;
+        $true_start = null;
+        $true_date = null;
+        
 
         if (Sentinel::getUser()->cycle_dates == null) {
             $cycle_end = 24;
@@ -219,7 +223,7 @@ public function create_carry_over(Request $request)
 
 $user = Sentinel::getUser();
 
-// 1. Cycle end day
+// 1. Cycle end day (default 24)
 $cycle_end = $user->cycle_dates
     ? (int) $user->cycle_dates->cycle_end_date
     : 24;
@@ -228,39 +232,41 @@ $today = Carbon::today();
 
 /*
 |--------------------------------------------------------------------------
-| Helper: build cycle start for a given month
-| cycle_start = min(cycle_end, last day of month) + 1 day
+| Helper: build cycle date for a given month
+| cycle_date = min(cycle_end, last day of month) + 1 day
 |--------------------------------------------------------------------------
 */
-$buildCycleStart = function (Carbon $month) use ($cycle_end) {
-    $day = min($cycle_end, $month->daysInMonth);
-    return $month->copy()->day($day)->addDay(); // start of next cycle
+$buildCycleDate = function (Carbon $month) use ($cycle_end) {
+    $month = $month->copy()->startOfMonth();
+    $cycleDay = min($cycle_end, $month->daysInMonth);
+    return $month->day($cycleDay)->addDay();
 };
 
 /*
 |--------------------------------------------------------------------------
-| Determine current cycle start (cycle_date)
+| Determine correct cycle_date
 |--------------------------------------------------------------------------
 */
-$currentCycleStart = $buildCycleStart(Carbon::now());
+$cycleDate = $buildCycleDate(Carbon::now());
 
-if ($today->lt($currentCycleStart)) {
-    // still in previous cycle
-    $cycleStart = $buildCycleStart(Carbon::now()->subMonth());
-} else {
-    $cycleStart = $currentCycleStart;
+// If today is before cycle date, fall back to previous month
+if ($today->lt($cycleDate)) {
+    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
 }
 
-$cycle_date = $cycleStart->format('Y-m-d');
+$cycle_date = $cycleDate->format('Y-m-d');
+$true_date = $cycle_date;
+
 
 /*
 |--------------------------------------------------------------------------
 | Determine cycle close date = last day of month after current cycle
 |--------------------------------------------------------------------------
 */
-$cycleMonth = $cycleStart->copy(); // keep original cycleStart
-$nextMonthFirstDay = $cycleMonth->copy()->startOfMonth()->addMonth(); // first day of next month
-$cycle_close_date = $nextMonthFirstDay->copy()->endOfMonth()->format('Y-m-d');
+$cycle_close_date = Carbon::parse($cycle_date)
+    ->addMonthNoOverflow()
+    ->subDay()
+    ->format('Y-m-d');
 
 
             $target_tracker = TargetTracker::where('status', 'active')->where('user_id', Sentinel::getUser()->id)->first();
@@ -344,13 +350,33 @@ $userId = Sentinel::getUser()->id;
 $cycleStart = Carbon::parse($cycle_date);
 $cycleEnd = Carbon::parse($cycle_close_date);
 
-// Clamp day to last valid day of month
-$start = $cycleStart->copy()->day(min($fixedDay, $cycleStart->daysInMonth))->format('Y-m-d');
-$end = $cycleEnd->copy()->day(min($fixedDay, $cycleEnd->daysInMonth))->format('Y-m-d');
+// ORIGINAL
+$start = $cycleStart->copy()
+    ->day(min($fixedDay, $cycleStart->daysInMonth))
+    ->addDay()
+    ->format('Y-m-d');
 
-// Allow override from request
-$start = $request->input('start_month', $start);
-$end = $request->input('end_month', $end);
+$end = $cycleEnd->copy()
+    ->day(min($fixedDay, $cycleEnd->daysInMonth))
+    ->format('Y-m-d');
+
+// SECOND DATE
+$startMonth = $request->input('start_month');
+$endMonth   = $request->input('end_month');
+
+if ($startMonth) {
+    $start = Carbon::parse($startMonth)
+        ->day(min($fixedDay, Carbon::parse($startMonth)->daysInMonth))
+        ->addDay()
+        ->format('Y-m-d');
+}
+
+if ($endMonth) {
+    $end = Carbon::parse($endMonth)
+        ->day(min($fixedDay, Carbon::parse($endMonth)->daysInMonth))
+        ->format('Y-m-d');
+}
+
 
 // Build query
 $query = http_build_query([
@@ -422,7 +448,7 @@ $data = $json ? json_decode($json, true) : null;
 
         $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers'));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date'));
         } else {
             return view('dashboard', compact('role', 'user', 'client', 'clientBranch', 'staff', 'clientLoan'));
         }

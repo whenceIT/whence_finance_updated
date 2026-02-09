@@ -57,8 +57,7 @@
                                         </div>
                                     @else
                                         <button type="button" class="btn btn-sm btn-warning open-close-modal"
-                                            data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}"
-                                            data-mode="rate">Rate</button>
+                                            data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">Rate</button>
                                     @endif
                                 @endif
                             </td>
@@ -117,16 +116,16 @@
                                         @if($ticket->status != 'closed')
                                             <div class="d-flex gap-2">
                                                 <button type="button" class="btn btn-success ticket-btn open-close-modal"
-                                                    onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}"
+                                                    data-ticket-id="{{ $ticket->id }}"
                                                     data-ticket-name="{{ $ticket->name }}">Completed</button>
                                                 <button type="button" class="btn btn-primary ticket-btn open-rate-modal"
-                                                    onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}"
+                                                    data-ticket-id="{{ $ticket->id }}"
                                                     data-ticket-name="{{ $ticket->name }}">Rate</button>
                                             </div>
                                         @else
                                             <button type="button" class="btn btn-warning ticket-btn open-close-modal"
-                                                onclick="event.stopPropagation()" data-ticket-id="{{ $ticket->id }}"
-                                                data-ticket-name="{{ $ticket->name }}" data-mode="rate">Rate</button>
+                                                data-ticket-id="{{ $ticket->id }}"
+                                                data-ticket-name="{{ $ticket->name }}">Rate</button>
                                         @endif
                                     @endif
                                 </div>
@@ -154,13 +153,20 @@
                 $('#table-view-btn-requested-resolved').addClass('btn-secondary').removeClass('btn-primary');
             });
 
-            // Handle rate modal
-            $(document).on('click', '.open-rate-modal', function () {
+            // Handle rate modal click with proper event handling
+            $(document).off('click', '.open-rate-modal').on('click', '.open-rate-modal', function (e) {
+                e.stopPropagation();
                 var ticketId = $(this).data('ticket-id');
                 var ticketName = $(this).data('ticket-name');
+                
+                // Update modal content
                 $('#rateTicketName').text(ticketName);
                 $('#rateTicketForm').attr('action', '{{ url('ticket') }}' + '/' + ticketId + '/update');
+                
+                // Show modal
                 $('#rateTicketModal').modal('show');
+                
+                return false;
             });
 
             // Handle predefined remarks selection

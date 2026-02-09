@@ -180,37 +180,7 @@
                             @endif
 
                         </ul>
-                        <!-- Reports -->
-                        @if(Sentinel::hasAccess('reports'))
-                        <li class="treeview @if(Request::is('report/*')) active menu-open @endif" style="padding-left: 10px;">
-                            <a href="#">
-                                <i class="fa fa-bar-chart"></i> <span>{{trans_choice('general.report',2)}}</span>
-                                <span class="pull-right-container">
-                                    <i class="fa fa-angle-left pull-right"></i>
-                                </span>
-                            </a>
-                            <ul class="treeview-menu">
-                                @if(Sentinel::hasAccess('reports.client_reports'))
-                                    <li><a href="{{ url('report/client_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.client',1)}} {{trans_choice('general.report',2)}}</a></li>
-                                @endif
-                                @if(Sentinel::hasAccess('reports.loan_reports'))
-                                    <li><a href="{{ url('report/loan_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.loan',1)}} {{trans_choice('general.report',2)}}</a></li>
-                                @endif
-                                @if(Sentinel::hasAccess('reports.financial_reports'))
-                                    <li><a href="{{ url('report/financial_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.financial',1)}} {{trans_choice('general.report',2)}}</a></li>
-                                @endif
-                                @if(Sentinel::hasAccess('reports.company_reports'))
-                                    <li><a href="{{ url('report/company_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.organisation',1)}} {{trans_choice('general.report',2)}}</a></li>
-                                @endif
-                                @if(Sentinel::hasAccess('reports.savings_reports'))
-                                    <li><a href="{{ url('report/savings_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.savings',2)}} {{trans_choice('general.report',2)}}</a></li>
-                                @endif
-                                @if(Sentinel::hasAccess('reports.reports_scheduler.view'))
-                                    <li><a href="{{ url('report/report_scheduler/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.report',1)}} {{trans_choice('general.scheduler',1)}}</a></li>
-                                @endif
-                            </ul>
-                        </li>
-                        @endif
+                        
                     </li>
                     @endif
 
@@ -338,6 +308,8 @@
                         <ul class="treeview-menu">
                             <li><a href="{{ route('advances.apply') }}"><i class="fa fa-circle-o"></i> Apply for Advance</a></li>
                             <li><a href="{{ route('advances.my_advances') }}"><i class="fa fa-circle-o"></i> My Advances</a></li>
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.active_advances') }}">
                                 <i class="fa fa-circle-o"></i> Active Advances
                                 <span class="pull-right-container">
@@ -361,6 +333,10 @@
                                     <span class="label label-warning pull-right">{{ $activeAdvancesCount }}</span>
                                 </span>
                             </a></li>
+                            @endif
+
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.pending_approvals') }}">
                                 <i class="fa fa-circle-o"></i> Pending Approvals
                                 <span class="pull-right-container">
@@ -385,6 +361,10 @@
                                     <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span> 
                                 </span>
                             </a></li>
+                            @endif
+
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.topups_pending_approval') }}">
                                 <i class="fa fa-circle-o"></i> TopUps Pending Approval
                                 <span class="pull-right-container">
@@ -410,6 +390,9 @@
                                 </span>
                                 </a>
                             </li>
+                            @endif
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.declined_advances') }}">
                                 <i class="fa fa-circle-o"></i> Declined Advances
                                 <span class="pull-right-container">
@@ -425,6 +408,10 @@
                                     <span class="label label-warning pull-right">{{ $declinedAdvancesCount }}</span>
                                 </span>   
                             </a></li>
+                            @endif
+
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('advances.closed_advances') }}">
                                 <i class="fa fa-circle-o"></i> Closed Advances
                                 <span class="pull-right-container">
@@ -440,6 +427,7 @@
                                     <span class="label label-warning pull-right">{{ $closedAdvancesCount }}</span>
                                 </span>   
                             </a></li>
+                            @endif
                         </ul>
                     </li>
                     @endif
@@ -455,6 +443,7 @@
                         </a>
                         <ul class="treeview-menu">
                             <li><a href="{{ route('leave.my_leave_days') }}"><i class="fa fa-circle-o"></i> My Leave Days</a></li>
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('leave.active_leave') }}">
                                 <i class="fa fa-circle-o"></i> Active Leave
                                 <span class="pull-right-container">
@@ -488,6 +477,9 @@
                                     <span class="label label-warning pull-right">{{ $activeLeaveCount }}</span>
                                 </span>
                             </a></li>
+                            @endif
+
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('leave.pending_leave_approvals') }}">
                                 <i class="fa fa-circle-o"></i> Pending Leave Approvals
                                 <span class="pull-right-container">
@@ -512,6 +504,10 @@
                                     <span class="label label-warning pull-right">{{ $pendingApprovalsCount }}</span>
                                 </span>
                             </a></li>
+                            @endif
+
+                            
+                            @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('leave.declined_leave') }}">
                                 <i class="fa fa-circle-o"></i> Declined Leave
                                 <span class="pull-right-container">
@@ -527,6 +523,8 @@
                                     <span class="label label-warning pull-right">{{ $declinedLeaveCount }}</span>
                                 </span>
                             </a></li>
+                            @endif
+
                         </ul>
                     </li>
                     @endif
@@ -564,268 +562,54 @@
                         </ul>
                     </li>
                     @endif
-
+                    <li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
+                   
                 </ul>
             </li>
-
-            <!-- ============================================
-                 RECOVERIES SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/top_up_approvals')) active menu-open @endif">
+            
+            <!-- Approvals -->
+            @if(Sentinel::hasAccess('expenses'))
+            <li class="treeview @if(Request::is('user/carry_over_approvals') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval')) active menu-open @endif">
                 <a href="#">
-                    <i class="fa fa-hand-rock-o"></i> <span>Recoveries</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-
-                    <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
-                    @endif
-                </ul>
-            </li>
-
-            <!-- ============================================
-                 CONSULTANTS SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('user/leaderboard') || Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms') || Request::is('user/performance_information') || Request::is('payroll/lc_information') || Request::is('payroll/mypayslits')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-users"></i> <span>Performance</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-
-                    <!-- Leaderboard -->
-                    @if(Sentinel::hasAccess('clients'))
-                    <li><a href="{{ url('user/leaderboard') }}"><i class="fa fa-trophy"></i> Leaderboard</a></li>
-                    @endif
-
-                    <!-- Appraisal -->
-                    @if(Sentinel::hasAccess('clients'))
-                    <li class="treeview @if(Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-star"></i> <span>Appraisal</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('settings.general.view'))
-                            <li><a href="{{ url('user/appraisal_forms') }}"><i class="fa fa-circle-o"></i> Forms</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('clients'))
-                            <li><a href="{{ url('user/my_appraisal_forms') }}"><i class="fa fa-circle-o"></i> My Appraisal</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Performance Information -->
+                    <i class="fa fa-thumbs-up"></i> <span>Approvals</span>
                     @if(Sentinel::hasAccess('settings'))
-                    <li><a href="{{ url('user/performance_information') }}"><i class="fa fa-circle-o"></i> Performance Information</a></li>
+                    <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() + \App\Models\Loan::where('status','pending')->count() + \App\Models\Client::where('status','pending')->count() + \App\Models\LoanTransactionUnapproved::count() + \App\Models\Advance::where('status','pending')->count() + \App\Models\TopUp::where('status','pending')->count() + \App\Models\Leave::where('status', 'pending')->count() + \App\Models\WaiverTransactionUnapproved::where('status', 'pending')->count() +  \App\Models\ChargeTransactionUnapproved::where('status', 'pending')->count()  }}</span>
+                    @else
+                    <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>
                     @endif
-
-                    <!-- Loan Consultant Information -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('payroll/lc_information') }}"><i class="fa fa-circle-o"></i> Loan Consultant Information</a></li>
-                    @endif
-
-                    <!-- My Payslips -->
-                    @if(Sentinel::hasAccess('loans'))
-                    <li><a href="{{ url('payroll/mypayslips') }}"><i class="fa fa-money"></i> My Payslips</a></li>
-                    @endif
-
-                </ul>
-            </li>
-
-            <!-- ============================================
-                 COMMUNICATION & REPORTS SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('communication/*') || Request::is('report/*')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-envelope"></i> <span>Communication</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
                 </a>
                 <ul class="treeview-menu">
-
-                    <!-- Communication -->
-                    @if(Sentinel::hasAccess('communication'))
-                    <li class="treeview @if(Request::is('communication/*')) active menu-open @endif" style="padding-left: 10px;">
-                        <a href="#">
-                            <i class="fa fa-envelope"></i> <span>{{trans_choice('general.communication',1)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('communication.view'))
-                                <li><a href="{{ url('communication/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.campaign',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('communication.create'))
-                                <li><a href="{{ url('communication/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.create',1)}} {{trans_choice('general.campaign',1)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('user/carry_over_approvals') }}"><i class="fa fa-circle-o"></i> Pending Carry Overs</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('loan/managers_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('loan/top_up_approvals') }}"><i class="fa fa-circle-o"></i> Top Ups Pending Approval @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('loan/transaction_approvals') }}"><i class="fa fa-circle-o"></i> Transaction Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('loan/reloan_approvals') }}"><i class="fa fa-circle-o"></i> Reloan Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() }}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ route('loan.waiver_approvals') }}"><i class="fa fa-circle-o"></i> Waiver Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ route('loan.charge_approvals') }}"><i class="fa fa-circle-o"> </i> Charge Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('client/managers_pending_approval') }}"><i class="fa fa-circle-o"></i>Clients Pending Approval @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->count() }}</span>@else<span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
                 </ul>
             </li>
-
-            <!-- ============================================
-                 ACCOUNTS SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('ledger/*') || Request::is('accounting/*') || Request::is('report/*') || Request::is('expense/*') || Request::is('other_income/*') || Request::is('payroll/*') || Request::is('user/branch_deposits')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-calculator"></i> <span>Accounts</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-
-                    <!-- Branch Deposits -->
-                    @if(Sentinel::hasAccess('client_reports'))
-                    <li style="padding-left: 10px;"><a href="{{ url('user/branch_deposits') }}"><i class="fa fa-university"></i> Branch Deposits</a></li>
-                    @endif
-
-                    <!-- Ledger -->
-                    @if(Sentinel::hasAccess('reports.client_reports'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-dashboard"></i> <span>Ledger</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('groups.create'))
-                            <li><a href="{{ route('ledger.summary') }}"><i class="fa fa-circle-o"></i> General Ledger</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.client_reports'))
-                            <li><a href="{{ route('ledger.transactions') }}"><i class="fa fa-circle-o"></i> Branch Ledgers</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Accounting -->
-                    @if(Sentinel::hasAccess('accounting'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('accounting/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-money"></i> <span>{{trans_choice('general.accounting',1)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('accounting.gl_accounts.view'))
-                                <li><a href="{{ url('accounting/gl_account/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.chart_of_account',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('accounting.journals.view'))
-                                <li><a href="{{ url('accounting/journal/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.journal',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('accounting.journals.create'))
-                                <li><a href="{{ url('accounting/journal/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.journal',1)}} {{trans_choice('general.entry',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('accounting.journals.reconciliation.view'))
-                                <li><a href="{{ url('accounting/reconciliation/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.reconciliation',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('accounting.period.view'))
-                                <li><a href="{{ url('accounting/period/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.close',1)}} {{trans_choice('general.period',2)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Expenses -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('expense/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-share"></i> <span>{{trans_choice('general.expense',2)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('expenses.view'))
-                                <li><a href="{{ url('expense/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.expense',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses.create'))
-                                <li><a href="{{ url('expense/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.expense',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses.types.view'))
-                                <li><a href="{{ url('expense/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.expense',1)}} {{trans_choice('general.type',2)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses.budget.view'))
-                                <li><a href="{{ url('expense/budget/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.budget',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses.budget.view'))
-                                <li><a href="{{ url('expense/budget/report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.budget',1)}} {{trans_choice('general.report',2)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Other Income -->
-                    @if(Sentinel::hasAccess('other_income'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('other_income/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-plus"></i> <span>{{trans_choice('general.other_income',2)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('other_income.view'))
-                                <li><a href="{{ url('other_income/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',2)}} {{trans_choice('general.other_income',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('other_income.create'))
-                                <li><a href="{{ url('other_income/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.other_income',1)}}</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('other_income.create'))
-                                <li><a href="{{ url('other_income/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.other_income',1)}} {{trans_choice('general.type',2)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                    <!-- Payroll -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('payroll/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-paypal"></i> <span>{{trans_choice('general.payroll',1)}}</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ url('payroll/create_wage_bill') }}"><i class="fa fa-circle-o"></i> Add payroll</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ url('payroll/payroll_list') }}"><i class="fa fa-circle-o"></i> Payroll List</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('payroll.update'))
-                                <li><a href="{{ url('payroll/payroll_pending_approval') }}"><i class="fa fa-circle-o"></i> Payroll Approvals</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('payroll.update'))
-                                <li><a href="{{ url('payroll/template') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',1)}} {{trans_choice('general.payroll',1)}} {{trans_choice('general.template',2)}}</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
-                </ul>
-            </li>
-
+            @endif
             <!-- ============================================
                  ADMINISTRATION SECTION
             ============================================ -->
+            @if($role !== 3)
             <li class="treeview @if(Request::is('office/*') || Request::is('setting/*') || Request::is('user/*') || Request::is('asset/*') || Request::is('survey/*') || Request::is('policies/*') || Request::is('audit_trail/*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-cog"></i> <span>Administration</span>
@@ -835,45 +619,6 @@
                 </a>
                 <ul class="treeview-menu">
                     
-                    <!-- Approvals -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('user/carry_over_approvals') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-thumbs-up"></i> <span>Approvals</span>
-                            @if(Sentinel::hasAccess('settings'))
-                            <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() + \App\Models\Loan::where('status','pending')->count() + \App\Models\Client::where('status','pending')->count() + \App\Models\LoanTransactionUnapproved::count() + \App\Models\Advance::where('status','pending')->count() + \App\Models\TopUp::where('status','pending')->count() + \App\Models\Leave::where('status', 'pending')->count() + \App\Models\WaiverTransactionUnapproved::where('status', 'pending')->count() +  \App\Models\ChargeTransactionUnapproved::where('status', 'pending')->count()  }}</span>
-                            @else
-                            <span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>
-                            @endif
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('expenses'))
-                            <li><a href="{{ url('user/carry_over_approvals') }}"><i class="fa fa-circle-o"></i> Pending Carry Overs</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                            <li><a href="{{ url('loan/managers_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</span>@endif</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ url('loan/top_up_approvals') }}"><i class="fa fa-circle-o"></i> Top Ups Pending Approval @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->where('office_id',$office_id)->count() }}</span>@endif</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ url('loan/transaction_approvals') }}"><i class="fa fa-circle-o"></i> Transaction Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ url('loan/reloan_approvals') }}"><i class="fa fa-circle-o"></i> Reloan Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() }}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>@endif</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ route('loan.waiver_approvals') }}"><i class="fa fa-circle-o"></i> Waiver Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ route('loan.charge_approvals') }}"><i class="fa fa-circle-o"> </i> Charge Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\ChargeTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('expenses'))
-                                <li><a href="{{ url('client/managers_pending_approval') }}"><i class="fa fa-circle-o"></i>Clients Pending Approval @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->count() }}</span>@else<span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
 
                     <!-- Advance Approvals -->
                     @if(Sentinel::hasAccess('reports.client_reports'))
@@ -1030,9 +775,6 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('reports.loan_reports'))
-                                <li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
-                            @endif
                             @if(Sentinel::hasAccess('reports.client_reports'))
                                 <li><a href="{{ route('policies.user_responses') }}"><i class="fa fa-circle-o"></i> User Responses</a></li>
                             @endif
@@ -1077,8 +819,313 @@
 
                 </ul>
             </li>
+            @endif
 
-        </ul>
-    </section>
-    <!-- /.sidebar -->
-</aside>
+            <!-- ============================================
+                 RECOVERIES SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/dormant_loans') ) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-hand-rock-o"></i> <span>Recoveries</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
+                    @endif
+                  
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('loan/dormant_loans') }}"><i class="fa fa-frown-o"></i>Dormant Loans</a></li>
+                    @endif
+                </ul>
+            </li>
+
+            <!-- ============================================
+                 PERFORMANCE SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('user/leaderboard') || Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms') || Request::is('user/performance_information') || Request::is('payroll/lc_information') || Request::is('payroll/mypayslits')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-users"></i> <span>Performance</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+
+                    <!-- Leaderboard -->
+                    @if(Sentinel::hasAccess('clients'))
+                    <li><a href="{{ url('user/leaderboard') }}"><i class="fa fa-trophy"></i> Leaderboard</a></li>
+                    @endif
+		            <!-- @if(Sentinel::hasAccess('expenses'))
+                        <li class="">
+                            <a href="{{ route('performance_metrics.index') }}">
+                                <i class="fa fa-trophy"></i> <span>Performance Metrics</span>
+                            </a>
+                        </li>
+                    @endif -->
+                    @if(Sentinel::hasAccess('settings'))
+                        <li>
+                            <a href="{{ url('user/performance_information') }}"><i
+                                        class="fa fa-circle-o"></i>Performance Information
+                                <span class="pull-right-container">
+                                </span>
+                            </a>
+                        </li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('payroll/lc_information') }}">
+                            <i class="fa fa-circle-o"></i> Loan Consultant information
+                            </a>
+                        </li>
+                    @endif
+                    <!-- Appraisal -->
+                    @if(Sentinel::hasAccess('clients'))
+                    <li class="treeview @if(Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-bar-chart"></i> <span>{{trans_choice('general.report',2)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                                <li><a href="{{ url('report/client_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.client',1)}} {{trans_choice('general.report',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.loan_reports'))
+                                <li><a href="{{ url('report/loan_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.loan',1)}} {{trans_choice('general.report',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.financial_reports'))
+                                <li><a href="{{ url('report/financial_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.financial',1)}} {{trans_choice('general.report',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.company_reports'))
+                                <li><a href="{{ url('report/company_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.organisation',1)}} {{trans_choice('general.report',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.savings_reports'))
+                                <li><a href="{{ url('report/savings_report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.savings',2)}} {{trans_choice('general.report',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.reports_scheduler.view'))
+                                <li><a href="{{ url('report/report_scheduler/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.report',1)}} {{trans_choice('general.scheduler',1)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+                </ul>
+            </li>
+
+            <!-- ============================================
+                 RECOVERIES SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/top_up_approvals')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-hand-rock-o"></i> <span>Recoveries</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
+                    @endif
+                </ul>
+            </li>
+
+            <!-- ============================================
+                 COMMUNICATION & REPORTS SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('communication/*') || Request::is('report/*')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-envelope"></i> <span>Communication</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+
+                    <!-- Communication -->
+                    @if(Sentinel::hasAccess('communication'))
+                    <li class="treeview @if(Request::is('communication/*')) active menu-open @endif" style="padding-left: 10px;">
+                        <a href="#">
+                            <i class="fa fa-envelope"></i> <span>{{trans_choice('general.communication',1)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('communication.view'))
+                                <li><a href="{{ url('communication/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.campaign',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('communication.create'))
+                                <li><a href="{{ url('communication/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.create',1)}} {{trans_choice('general.campaign',1)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+                </ul>
+            </li>
+
+            <!-- ============================================
+                 ACCOUNTS SECTION
+            ============================================ -->
+            @if($role !== 3)
+            <li class="treeview @if(Request::is('ledger/*') || Request::is('accounting/*') || Request::is('report/*') || Request::is('expense/*') || Request::is('other_income/*') || Request::is('payroll/*') || Request::is('user/branch_deposits')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-calculator"></i> <span>Accounts</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+
+                    <!-- Branch Deposits -->
+                    @if(Sentinel::hasAccess('reports.client_reports'))
+                    <li style="padding-left: 10px;"><a href="{{ url('user/branch_deposits') }}"><i class="fa fa-university"></i> Branch Deposits</a></li>
+                    @endif
+
+                    <!-- Ledger -->
+                    @if(Sentinel::hasAccess('reports.client_reports'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Ledger</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('groups.create'))
+                            <li><a href="{{ route('ledger.summary') }}"><i class="fa fa-circle-o"></i> General Ledger</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            <li><a href="{{ route('ledger.transactions') }}"><i class="fa fa-circle-o"></i> Branch Ledgers</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Accounting -->
+                    @if(Sentinel::hasAccess('accounting'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('accounting/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-money"></i> <span>{{trans_choice('general.accounting',1)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('accounting.gl_accounts.view'))
+                                <li><a href="{{ url('accounting/gl_account/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.chart_of_account',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('accounting.journals.view'))
+                                <li><a href="{{ url('accounting/journal/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.journal',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('accounting.journals.create'))
+                                <li><a href="{{ url('accounting/journal/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.journal',1)}} {{trans_choice('general.entry',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('accounting.journals.reconciliation.view'))
+                                <li><a href="{{ url('accounting/reconciliation/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.reconciliation',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('accounting.period.view'))
+                                <li><a href="{{ url('accounting/period/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.close',1)}} {{trans_choice('general.period',2)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Expenses -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('expense/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-share"></i> <span>{{trans_choice('general.expense',2)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('expenses.view'))
+                                <li><a href="{{ url('expense/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.expense',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses.create'))
+                                <li><a href="{{ url('expense/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.expense',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses.types.view'))
+                                <li><a href="{{ url('expense/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.expense',1)}} {{trans_choice('general.type',2)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses.budget.view'))
+                                <li><a href="{{ url('expense/budget/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.budget',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses.budget.view'))
+                                <li><a href="{{ url('expense/budget/report') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.budget',1)}} {{trans_choice('general.report',2)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Other Income -->
+                    @if(Sentinel::hasAccess('other_income'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('other_income/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-plus"></i> <span>{{trans_choice('general.other_income',2)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('other_income.view'))
+                                <li><a href="{{ url('other_income/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',2)}} {{trans_choice('general.other_income',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('other_income.create'))
+                                <li><a href="{{ url('other_income/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.other_income',1)}}</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('other_income.create'))
+                                <li><a href="{{ url('other_income/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.other_income',1)}} {{trans_choice('general.type',2)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Payroll -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('payroll/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-paypal"></i> <span>{{trans_choice('general.payroll',1)}}</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('expenses'))
+                                <li><a href="{{ url('payroll/create_wage_bill') }}"><i class="fa fa-circle-o"></i> Add payroll</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('expenses'))
+                                <li><a href="{{ url('payroll/payroll_list') }}"><i class="fa fa-circle-o"></i> Payroll List</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('payroll.update'))
+                                <li><a href="{{ url('payroll/payroll_pending_approval') }}"><i class="fa fa-circle-o"></i> Payroll Approvals</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('payroll.update'))
+                                <li><a href="{{ url('payroll/template') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',1)}} {{trans_choice('general.payroll',1)}} {{trans_choice('general.template',2)}}</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                </ul>
+            </li>
+            @endif
+            </ul>
+
+            <!-- Sticky Logout Button -->
+            <!-- <div class="sidebar-footer" style="position: fixed; bottom: 0; left: 0; background: linear-gradient(135deg, #667eea 0%, #100E3D 100%); padding: 15px; width: 230px; border-radius: 0 0 0 8px; z-index: 1000;">
+                <a href="{{ url('logout') }}" class="btn btn-danger btn-block" style="color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); font-weight: bold;">
+                    <i class="fa fa-sign-out"></i> Logout
+                </a>
+            </div> -->
+
+        </section>
+        <!-- /.sidebar -->
+    </aside>

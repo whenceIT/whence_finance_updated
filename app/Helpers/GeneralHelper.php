@@ -2847,7 +2847,7 @@ public static function new_new_loan_total_balance($id)
             return \App\Models\Office::all();
         } elseif ($user->inRole(6)) {
             return \App\Models\Office::where('province_id', $user->province_id)->get();
-        } elseif ($user->inRole(4) || $user->inRole(3)) {
+        } elseif ($user->inRole(4) || $user->inRole(3) || $user->inRole(11)) {
             return \App\Models\Office::where('id', $user->office_id)->get();
         }
         return collect();
@@ -2866,7 +2866,7 @@ public static function new_new_loan_total_balance($id)
                 return \App\Models\User::where('office_id', $office_id)->where('province_id', $user->province_id)->get();
             }
             return \App\Models\User::where('province_id', $user->province_id)->get();
-        } elseif ($user->inRole(4) || $user->inRole(3)) {
+        } elseif ($user->inRole(4) || $user->inRole(3) || $user->inRole(11)) {
             return \App\Models\User::where('office_id', $user->office_id)->get();
         }
         return collect();

@@ -525,6 +525,8 @@ Route::group(['prefix' => 'loan'], function () {
     Route::post('loan/approve-waiver/{id}', 'LoanController@approveWaiver')->name('waiver.approve');
     Route::post('loan/decline-waiver/{id}', 'LoanController@declineWaiver')->name('waiver.decline');
 
+
+    Route::get('dormant_loans','LoanController@dormant_loans');
     Route::get('pending_approval', 'LoanController@pending_approval');
     Route::get('managers_pending_approval', 'LoanController@managers_pending_approval');
     Route::get('awaiting_disbursement', 'LoanController@awaiting_disbursement');
