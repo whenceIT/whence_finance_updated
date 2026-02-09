@@ -82,15 +82,15 @@ class ExpenseController extends Controller
             return redirect()->back();
         }
         $user = Sentinel::getUser();
+
+        //Only Admin Account can see other offices when attempting to create an expense
         if ($user->role->role_id == 1) {
             $offices = Office::all();
-        } elseif (in_array($user->role->role_id, [3,4])) {
-            $offices = Office::where('id', $user->office_id)->get();
-        } elseif ($user->role->role_id == 6) {
-            $offices = Office::where('province_id', $user->province_id)->get();
         } else {
-            $offices = collect();
-        }
+            //anyone else can only see their own office, and can not add expenses for other offices
+            $offices = Office::where('id', $user->office_id)->get();
+        } 
+        
         return view('expense.create', compact('offices'));
     }
 
