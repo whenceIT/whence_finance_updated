@@ -41,6 +41,17 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label for="province_id" class="control-label col-md-3">Province</label>
+                    <div class="col-md-9">
+                        <select name="province_id" class="form-control select2" id="province_id">
+                            <option></option>
+                            @foreach(\App\Models\Province::all() as $key)
+                                <option value="{{$key->id}}" @if($office->province_id == $key->id) selected @endif>{{$key->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="parent_id" class="control-label col-md-3">{{trans_choice('general.parent', 1)}}
                         {{trans_choice('general.branch', 1)}}</label>
                     <div class="col-md-9">
