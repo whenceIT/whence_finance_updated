@@ -112,15 +112,19 @@ class LearningSettingController extends Controller
                 ->with('toastr_message', 'You do not have permission to access this settings page.');
         }
 
-        // Get all trainers with their office and roles
+        // Get all trainers with their office
         $trainers = User::where('istrainer', 1)
-            ->with(['office', 'roles'])
+            ->with('office')
             ->get();
 
-        // Get all active offices
-        $offices = Office::where('status', 'active')
-            ->orderBy('name', 'asc')
-            ->get();
+        // Add roles to each trainer using the role_users table
+        $trainers->each(function ($trainer) {
+            $roleIds = \DB::table('role_users')->where('user_id', $trainer->id)->pluck('role_id');
+            $trainer->roles = \Cartalyst\Sentinel\Roles\EloquentRole::whereIn('id', $roleIds)->get();
+        });
+
+        // Get all active offices (removed status filter since column doesn't exist)
+        $offices = Office::orderBy('name', 'asc')->get();
 
         return view('learning.settings.teachers', compact('trainers', 'offices'));
     }
@@ -150,6 +154,52 @@ class LearningSettingController extends Controller
     }
 
     /**
+     * Get all roles.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAllRoles()
+    {
+        if (!Sentinel::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Get all roles using Sentinel
+        $roles = \Cartalyst\Sentinel\Roles\EloquentRole::all(['id', 'name', 'slug']);
+
+        return response()->json($roles);
+    }
+
+    /**
+     * Get users by role.
+     *
+     * @param int $roleId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUsersByRole($roleId)
+    {
+        if (!Sentinel::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Get user IDs with the specified role
+        $userIds = \DB::table('role_users')
+            ->where('role_id', $roleId)
+            ->pluck('user_id');
+
+        // Get users by role
+        $users = User::whereIn('id', $userIds)
+            ->get(['id', 'first_name', 'last_name', 'email', 'designation', 'istrainer', 'office_id']);
+
+        // Load office relationship for each user
+        $users->each(function ($user) {
+            $user->load('office');
+        });
+
+        return response()->json($users);
+    }
+
+    /**
      * Get roles by office.
      *
      * @param int $officeId
@@ -161,27 +211,20 @@ class LearningSettingController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Get users in this office
-        $users = User::where('office_id', $officeId)
-            ->with('roles')
-            ->get();
+        // Get users in this office with their role relationship
+        $users = User::where('office_id', $officeId)->with('role')->get();
 
-        // Extract unique roles
-        $roles = [];
-        foreach ($users as $user) {
-            foreach ($user->roles as $userRole) {
-                $roleId = $userRole->id;
-                if (!isset($roles[$roleId])) {
-                    $roles[$roleId] = [
-                        'id' => $roleId,
-                        'name' => $userRole->name,
-                        'slug' => $userRole->slug
-                    ];
-                }
-            }
-        }
+        // Extract unique role IDs from role_users table
+        $roleIds = \DB::table('role_users')
+            ->whereIn('user_id', $users->pluck('id'))
+            ->pluck('role_id')
+            ->unique()
+            ->values();
 
-        return response()->json(array_values($roles));
+        // Get role details using Sentinel
+        $roles = \Cartalyst\Sentinel\Roles\EloquentRole::whereIn('id', $roleIds)->get(['id', 'name', 'slug']);
+
+        return response()->json($roles);
     }
 
     /**
@@ -197,26 +240,17 @@ class LearningSettingController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        // Get user IDs in this office with the specified role
+        $userIds = \DB::table('role_users')
+            ->where('role_id', $roleId)
+            ->pluck('user_id');
+
         // Get users by office and role
         $users = User::where('office_id', $officeId)
-            ->with('roles')
-            ->get()
-            ->filter(function($user) use ($roleId) {
-                return $user->roles->contains('id', $roleId);
-            });
+            ->whereIn('id', $userIds)
+            ->get(['id', 'first_name', 'last_name', 'email', 'designation', 'istrainer']);
 
-        $userList = $users->map(function($user) {
-            return [
-                'id' => $user->id,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'email' => $user->email,
-                'designation' => $user->designation,
-                'istrainer' => $user->istrainer
-            ];
-        })->values();
-
-        return response()->json($userList);
+        return response()->json($users);
     }
 
     /**

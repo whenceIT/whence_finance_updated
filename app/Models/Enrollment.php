@@ -15,12 +15,14 @@ class Enrollment extends Model
         'enrolled_at',
         'completed_at',
         'progress',
+        'completed_topics',
     ];
 
     protected $casts = [
         'enrolled_at' => 'datetime',
         'completed_at' => 'datetime',
         'progress' => 'integer',
+        'completed_topics' => 'array',
     ];
 
     public function user()

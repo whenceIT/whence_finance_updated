@@ -15,6 +15,9 @@
     <!-- IntroJS CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css">
     
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
     <!-- Google Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
     
@@ -974,17 +977,218 @@
         }
 
         #loader {
-            border: 16px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 16px solid var(--primary-color);
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
-
+        
+        #loader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loader-content {
+            text-align: center;
+        }
+        
+        .loader-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .loader-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .loader-icon::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 4px solid transparent;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loader-logo {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loader-logo i {
+            font-size: 28px;
+            color: var(--primary-color);
+        }
+        
+        .loader-text {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .loader-subtext {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+        
+        .loader-progress {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 30px;
+            overflow: hidden;
+        }
+        
+        .loader-progress-bar {
+            height: 100%;
+            background: white;
+            border-radius: 2px;
+            animation: progress 1.5s ease-in-out infinite;
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes progress {
+            0% { width: 0%; margin-left: 0; margin-right: 100%; }
+            50% { width: 100%; margin-left: 0; margin-right: 0; }
+            100% { width: 0%; margin-left: 100%; margin-right: 0; }
+        }
+        
+        /* Flash Message Styles */
+        .flash-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 99999;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .flash-message {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .flash-message.flash-success {
+            border-left-color: #28a745;
+        }
+        
+        .flash-message.flash-error {
+            border-left-color: #dc3545;
+        }
+        
+        .flash-message.flash-warning {
+            border-left-color: #ffc107;
+        }
+        
+        .flash-message.flash-info {
+            border-left-color: #17a2b8;
+        }
+        
+        .flash-message .flash-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .flash-message.flash-success .flash-icon {
+            color: #28a745;
+        }
+        
+        .flash-message.flash-error .flash-icon {
+            color: #dc3545;
+        }
+        
+        .flash-message.flash-warning .flash-icon {
+            color: #ffc107;
+        }
+        
+        .flash-message.flash-info .flash-icon {
+            color: #17a2b8;
+        }
+        
+        .flash-message .flash-content {
+            flex: 1;
+        }
+        
+        .flash-message .flash-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        
+        .flash-message .flash-body {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.4;
+        }
+        
+        .flash-message .flash-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        
+        .flash-message .flash-close:hover {
+            color: #333;
         }
     </style>
     
@@ -1165,46 +1369,83 @@
     </div>
 
     <!-- Loader -->
-    <div id="loader-wrapper">
-        <div id="loader"></div>
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <i class="fa fa-graduation-cap"></i>
+            </div>
+            <div class="loader-text">Whence Learn</div>
+            <div class="loader-subtext">Loading your learning experience...</div>
+            <div class="loader-progress">
+                <div class="loader-progress-bar"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
     <script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('assets/plugins/bootstrap-toastr/toastr.min.js') }}"></script>
     
     <!-- IntroJS JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
     
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
     <script>
-        // Configure toastr
-        toastr.options = {
-            "closeButton": true,
-            "debug": false,
-            "newestOnTop": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "preventDuplicates": false,
-            "onclick": null,
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "5000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        };
-
-        // Handle session flash messages for toastr
+        // Flash Message Handler
         @if(Session::has('toastr_type'))
-            toastr.{{ Session::get('toastr_type') }}('{{ Session::get('toastr_message') }}', '{{ Session::get('toastr_title', 'Notification') }}');
+            @php
+            $message = Session::get('toastr_message');
+            $title = Session::get('toastr_title', 'Notification');
+            $type = Session::get('toastr_type');
+            $iconMap = [
+                'success' => 'fa-check-circle',
+                'error' => 'fa-times-circle',
+                'warning' => 'fa-exclamation-circle',
+                'info' => 'fa-info-circle'
+            ];
+            $icon = $iconMap[$type] ?? 'fa-bell';
+            @endphp
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                showFlashMessage('{{ $type }}', '{{ $title }}', '{{ addslashes($message) }}', '{{ $icon }}');
+            });
         @endif
+        
+        function showFlashMessage(type, title, message, icon) {
+            var container = document.querySelector('.flash-container') || createFlashContainer();
+            
+            var flashDiv = document.createElement('div');
+            flashDiv.className = 'flash-message flash-' + type;
+            flashDiv.innerHTML = '<div class="flash-icon"><i class="fa ' + icon + '"></i></div>' +
+                '<div class="flash-content">' +
+                    '<div class="flash-title">' + title + '</div>' +
+                    '<div class="flash-body">' + message + '</div>' +
+                '</div>' +
+                '<button class="flash-close" onclick="this.parentElement.remove()"><i class="fa fa-times"></i></button>';
+            
+            container.appendChild(flashDiv);
+            
+            // Auto remove after 6 seconds
+            setTimeout(function() {
+                flashDiv.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(function() {
+                    flashDiv.remove();
+                }, 300);
+            }, 6000);
+        }
+        
+        function createFlashContainer() {
+            var div = document.createElement('div');
+            div.className = 'flash-container';
+            document.body.appendChild(div);
+            return div;
+        }
 
         // Hide loader on page load
         $(window).on('load', function () {
-            $('#loader-wrapper').fadeOut(2000);
+            $('#loader').fadeOut(1000);
         });
 
         // Mobile Menu Toggle
@@ -1316,14 +1557,13 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            toastr.success(response.message, 'Success');
+                            showFlashMessage('success', 'Success', response.message, 'fa-check-circle');
                             $('#enrollModal').modal('hide');
-                            // Reload page to show updated enrollment status
                             setTimeout(function() {
                                 location.reload();
-                            }, 1000);
+                            }, 1500);
                         } else {
-                            toastr.error(response.message, 'Error');
+                            showFlashMessage('error', 'Error', response.message, 'fa-times-circle');
                         }
                     },
                     error: function(xhr) {
@@ -1331,7 +1571,7 @@
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             message = xhr.responseJSON.message;
                         }
-                        toastr.error(message, 'Error');
+                        showFlashMessage('error', 'Error', message, 'fa-times-circle');
                     },
                     complete: function() {
                         $btn.prop('disabled', false).text('Enroll');

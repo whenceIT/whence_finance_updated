@@ -79,12 +79,16 @@
                     </div>
                 </div>
                 
-                @if($material->category)
-                <div style="display: flex; align-items: center; padding: 10px; background: var(--light-bg); border-radius: 6px;">
-                    <i class="fa fa-folder" style="color: var(--primary-color); margin-right: 10px; font-size: 20px;"></i>
+                @if($material->categories && $material->categories->count() > 0)
+                <div style="display: flex; align-items: flex-start; padding: 10px; background: var(--light-bg); border-radius: 6px;">
+                    <i class="fa fa-folder" style="color: var(--primary-color); margin-right: 10px; font-size: 20px; margin-top: 2px;"></i>
                     <div>
-                        <div style="font-weight: 600; color: var(--text-primary);">Category</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">{{ $material->category }}</div>
+                        <div style="font-weight: 600; color: var(--text-primary);">Categories</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            @foreach($material->categories as $cat)
+                                <span style="display: inline-block; background: rgba(74, 144, 226, 0.1); color: var(--primary-color); padding: 2px 8px; border-radius: 4px; margin-right: 4px; margin-bottom: 4px;">{{ $cat->name }}</span>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 @endif
@@ -113,18 +117,40 @@
 </div>
 
 <!-- Related Materials -->
-@if($material->category)
+@if($material->categories && $material->categories->count() > 0)
+@php
+$relatedMaterials = \App\Models\TrainingMaterial::whereHas('categories', function ($query) use ($material) {
+    $query->whereIn('course_category_id', $material->categories->pluck('id'));
+})->where('id', '!=', $material->id)->limit(6)->get();
+@endphp
+
+@if($relatedMaterials->count() > 0)
 <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: var(--shadow);">
     <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text-primary);">
         <i class="fa fa-link" style="color: var(--primary-color); margin-right: 10px;"></i>
-        More in "{{ $material->category }}"
+        More in 
+        @foreach($material->categories as $index => $cat)
+            "{{ $cat->name }}"{{ !$loop->last ? ', ' : '' }}
+        @endforeach
     </h3>
     <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
-        Explore other training materials in the same category.
+        Explore other training materials in the same categories.
     </p>
-    <a href="{{ url('learning/training-materials') }}?category={{ $material->category }}" style="display: inline-block; padding: 12px 30px; background: var(--light-bg); color: var(--primary-color); border: 1px solid var(--primary-color); border-radius: 25px; text-decoration: none; font-weight: 600; transition: background 0.3s;">
-        View All {{ $material->category }} Materials
-    </a>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+        @foreach($relatedMaterials as $related)
+        <a href="{{ url('learning/training-materials/' . $related->id) }}" style="display: block; text-decoration: none; color: inherit;">
+            <div style="background: var(--light-bg); border-radius: 8px; padding: 15px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fa {{ $related->icon }}" style="font-size: 24px; color: {{ $related->type_color }};"></i>
+                    <span style="background: rgba(255,255,255,0.9); padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;">{{ $related->department }}</span>
+                </div>
+                <h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin: 0 0 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $related->title }}</h4>
+                <p style="font-size: 11px; color: var(--text-secondary); margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $related->description ?: 'No description' }}</p>
+            </div>
+        </a>
+        @endforeach
+    </div>
 </div>
+@endif
 @endif
 @endsection

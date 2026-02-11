@@ -32,6 +32,14 @@ class CourseTopic extends Model
     }
 
     /**
+     * Get the quiz for this topic.
+     */
+    public function quiz()
+    {
+        return $this->hasOne(Quiz::class, 'course_topic_id');
+    }
+
+    /**
      * Get the icon based on topic type.
      */
     public function getIconAttribute()

@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <form action="{{ url('learning/training-materials') }}" method="POST" enctype="multipart/form-data" id="training-material-form">
+    <form action="{{ url('learning/training-materials') }}" method="POST" id="training-material-form">
         @csrf
         
         <!-- Step 1: Course Info -->
@@ -93,19 +93,19 @@
                 </div>
             </div>
             
-            <!-- Category -->
+            <!-- Categories (Many-to-Many) -->
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                    Category
+                    Categories
                 </label>
-                <select name="category" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; background: white;">
-                    <option value="">Select Category (Optional)</option>
+                <select name="category_ids[]" class="category-select2" multiple style="width: 100%;">
                     @if(isset($categories) && count($categories) > 0)
                         @foreach($categories as $cat)
-                            <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                         @endforeach
                     @endif
                 </select>
+                <small style="color: var(--text-secondary); font-size: 12px;">Select one or more categories</small>
             </div>
             
             <!-- Target Role -->
@@ -216,14 +216,14 @@
             </div>
         </div>
         
-        <!-- File Upload -->
+        <!-- File Link (Google Drive or URL) -->
         <div style="margin-top: 15px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Upload File *</label>
-            <div style="border: 2px dashed var(--border-color); border-radius: 6px; padding: 15px; text-align: center; background: white;">
-                <i class="fa fa-cloud-upload" style="font-size: 24px; color: var(--text-secondary); margin-bottom: 8px;"></i>
-                <p style="color: var(--text-secondary); font-size: 12px; margin: 0 0 8px 0;">Click to browse or drag and drop</p>
-                <input type="file" name="topic_file[]" required accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.webm,.mp3,.wav">
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Resource Link *</label>
+            <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; background: white;">
+                <i class="fa fa-link" style="font-size: 16px; color: var(--primary-color); margin-right: 8px;"></i>
+                <input type="url" name="topic_file[]" required style="width: calc(100% - 30px); padding: 10px; border: none; font-size: 13px;" placeholder="Paste Google Drive or file URL here">
             </div>
+            <small style="color: var(--text-secondary); font-size: 11px;">Paste a link to Google Drive, Dropbox, or any file URL</small>
         </div>
     </div>
 </template>
@@ -243,10 +243,52 @@ input[type="radio"]:checked + label {
     border-color: var(--primary-color) !important;
     background: rgba(74, 144, 226, 0.1) !important;
 }
+/* Select2 Custom Styles */
+.category-select2 ~ .select2-container {
+    width: 100% !important;
+}
+.category-select2 ~ .select2-container .select2-selection {
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    min-height: 42px !important;
+    padding: 4px 8px !important;
+    background: white !important;
+}
+.category-select2 ~ .select2-container .select2-selection__choice {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 8px !important;
+    margin: 2px !important;
+}
+.category-select2 ~ .select2-container .select2-selection__choice__remove {
+    color: white !important;
+    margin-right: 4px !important;
+}
+.category-select2 ~ .select2-container .select2-search--inline {
+    padding: 0 !important;
+}
+.category-select2 ~ .select2-container .select2-selection__rendered {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+}
 </style>
 
 <script>
 let topicCount = 0;
+
+// Initialize Select2 for categories
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof $ !== 'undefined' && $.fn.select2) {
+        $('.category-select2').select2({
+            placeholder: 'Select categories',
+            allowClear: true,
+            width: '100%'
+        });
+    }
+});
 
 function nextStep() {
     // Validate step 1

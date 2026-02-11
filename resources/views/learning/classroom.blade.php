@@ -121,7 +121,7 @@
     border-radius: 12px;
     box-shadow: var(--shadow);
     overflow: hidden;
-    max-width: 900px;
+    max-width: 100%;
     margin: 0 auto;
 }
 
@@ -139,7 +139,7 @@
 }
 
 .content-card-body {
-    padding: 40px 30px;
+    padding: 30px;
     text-align: center;
 }
 
@@ -166,6 +166,62 @@
 }
 
 .content-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+
+/* Resource Preview Area */
+.resource-preview {
+    width: 100%;
+    height: 500px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.resource-preview iframe,
+.resource-preview embed,
+.resource-preview object {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Quiz Section */
+.quiz-section {
+    display: none;
+    padding: 30px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    border-top: 2px solid var(--primary-color);
+    margin-top: 20px;
+}
+
+.quiz-section.visible {
+    display: block;
+}
+
+.quiz-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.quiz-header h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.quiz-header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.quiz-actions {
     display: flex;
     justify-content: center;
     gap: 16px;
@@ -273,6 +329,11 @@
 .wizard-topic.active-item {
     background: rgba(74, 144, 226, 0.15);
     border: 1px solid var(--primary-color);
+}
+
+.wizard-topic.selected {
+    background: rgba(74, 144, 226, 0.2);
+    border: 2px solid var(--primary-color);
 }
 
 .wizard-topic-icon {
@@ -454,6 +515,10 @@
     .wizard-topics {
         padding: 0 16px 16px 60px;
     }
+    
+    .resource-preview {
+        height: 300px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -490,6 +555,10 @@
         width: 100%;
         text-align: center;
     }
+    
+    .quiz-actions {
+        flex-direction: column;
+    }
 }
 </style>
 
@@ -512,10 +581,10 @@
             <div class="wizard-container">
                 @foreach($phases as $phaseIndex => $phase)
                 <div class="wizard-phase">
-                    <div class="wizard-phase-header" onclick="togglePhase({{ $phase['id'] }})">
+                    <div class="wizard-phase-header" onclick="togglePhase({{ $loop->index }})">
                         @php
                         $phaseCompleted = count(array_filter($phase['topics'], fn($t) => $t['is_completed'])) === count($phase['topics']);
-                        $phaseActive = !$phaseCompleted && ($phaseIndex === 0 || count(array_filter($phases[$phaseIndex-1]['topics'], fn($t) => $t['is_completed'])) === count($phases[$phaseIndex-1]['topics']));
+                        $phaseActive = !$phaseCompleted && ($phaseIndex === 0 || (isset($phases[$phaseIndex-1]) && count(array_filter($phases[$phaseIndex-1]['topics'], fn($t) => $t['is_completed'])) === count($phases[$phaseIndex-1]['topics'])));
                         @endphp
                         <div class="wizard-phase-icon {{ $phaseCompleted ? 'completed' : ($phaseActive ? 'active' : '') }}">
                             @if($phaseCompleted)
@@ -528,18 +597,23 @@
                             <div class="wizard-phase-title">{{ $phase['title'] }}</div>
                             <div class="wizard-phase-description">{{ $phase['description'] }}</div>
                         </div>
-                        <div class="wizard-phase-toggle" id="phase-toggle-{{ $phase['id'] }}">
+                        <div class="wizard-phase-toggle" id="phase-toggle-{{ $loop->index }}">
                             <i class="fa fa-chevron-down"></i>
                         </div>
                     </div>
                     
-                    <div class="wizard-topics" id="phase-topics-{{ $phase['id'] }}">
+                    <div class="wizard-topics" id="phase-topics-{{ $loop->index }}">
                         @foreach($phase['topics'] as $topic)
-                        <div class="wizard-topic {{ $loop->first ? 'active-item' : '' }}" onclick="openTopic({{ $topic['id'] }}, '{{ $topic['type'] }}')">
-                            @php
-                            $topicCompleted = $topic['is_completed'];
-                            $topicActive = !$topicCompleted && ($loop->first || (isset($phase['topics'][$loop->index-1]) && $phase['topics'][$loop->index-1]['is_completed']));
-                            @endphp
+                        @php
+                        $topicCompleted = $topic['is_completed'];
+                        $topicActive = !$topicCompleted && ($loop->first || (isset($phase['topics'][$loop->index-1]) && $phase['topics'][$loop->index-1]['is_completed']));
+                        @endphp
+                        <div class="wizard-topic {{ $topicActive ? 'active-item' : '' }}" 
+                             onclick="openTopic({{ $topic['id'] }}, '{{ $topic['type'] }}', '{{ $topic['file_path'] ?? '' }}', {{ $topic['quiz_id'] ?? 'null' }})"
+                             data-topic-id="{{ $topic['id'] }}"
+                             data-topic-completed="{{ $topicCompleted ? 'true' : 'false' }}"
+                             data-quiz-id="{{ $topic['quiz_id'] ?? 'null' }}"
+                             data-quiz-passed="{{ $topic['quiz_passed'] ? 'true' : 'false' }}">
                             <div class="wizard-topic-icon {{ $topicCompleted ? 'completed' : ($topicActive ? 'active' : 'locked') }}">
                                 @if($topicCompleted)
                                     <i class="fa fa-check"></i>
@@ -594,11 +668,11 @@
                 <a href="{{ url('/learning/course/' . $material->id) }}" title="Back to Course">
                     <i class="fa fa-arrow-left"></i>
                 </a>
-                <h1>{{ $material->title }}</h1>
+                <h1 id="topic-header-title">{{ $material->title }}</h1>
                 <div class="header-actions">
-                    @if(isset($material->file_path) && $material->file_path)
-                    <a href="{{ asset($material->file_path) }}" class="btn btn-default btn-sm" target="_blank">
-                        <i class="fa fa-download"></i> Download
+                    @if(isset($material->file_path) && $material->file_path && strpos($material->file_path, 'http') === 0)
+                    <a href="{{ $material->file_path }}" class="btn btn-default btn-sm" target="_blank">
+                        <i class="fa fa-external-link"></i> Open Resource
                     </a>
                     @endif
                 </div>
@@ -617,68 +691,12 @@
             
             <!-- Content Area -->
             <div class="content-area" id="content-area">
-                @php
-                // Get the first incomplete topic or the first topic
-                $currentTopic = null;
-                foreach ($phases as $phase) {
-                    foreach ($phase['topics'] as $topic) {
-                        if (!$topic['is_completed']) {
-                            $currentTopic = $topic;
-                            break 2;
-                        }
-                    }
-                }
-                if (!$currentTopic && count($phases) > 0 && count($phases[0]['topics']) > 0) {
-                    $currentTopic = $phases[0]['topics'][0];
-                }
-                @endphp
-                
-                <div class="content-card">
-                    @if($currentTopic)
+                <div class="content-card" id="topic-content-card">
                     <div class="content-card-header">
-                        <div class="content-card-title">{{ $currentTopic['title'] }}</div>
+                        <div class="content-card-title" id="content-card-title">{{ $material->title }}</div>
                     </div>
-                    <div class="content-card-body">
-                        <div class="content-icon">
-                            @if($currentTopic['type'] == 'video')
-                                <i class="fa fa-play-circle"></i>
-                            @elseif($currentTopic['type'] == 'pdf')
-                                <i class="fa fa-file-pdf-o"></i>
-                            @elseif($currentTopic['type'] == 'ppt')
-                                <i class="fa fa-file-powerpoint-o"></i>
-                            @elseif($currentTopic['type'] == 'document')
-                                <i class="fa fa-file-word-o"></i>
-                            @elseif($currentTopic['type'] == 'audio')
-                                <i class="fa fa-headphones"></i>
-                            @else
-                                <i class="fa fa-book"></i>
-                            @endif
-                        </div>
-                        <h2 class="content-title">{{ $currentTopic['title'] }}</h2>
-                        <p class="content-description">{{ $material->description }}</p>
-                        <div class="content-actions">
-                            @if(isset($currentTopic['file_path']) && $currentTopic['file_path'])
-                            <a href="{{ asset($currentTopic['file_path']) }}" class="btn btn-primary btn-lg" target="_blank">
-                                <i class="fa fa-external-link"></i> Open {{ ucfirst($currentTopic['type']) }}
-                            </a>
-                            @endif
-                            @if($progress < 100)
-                            <button class="btn btn-success btn-lg" onclick="markAsComplete()">
-                                <i class="fa fa-check-circle"></i> Mark Topic Complete
-                            </button>
-                            @else
-                            <button class="btn btn-success btn-lg" disabled>
-                                <i class="fa fa-check-circle"></i> Course Completed
-                            </button>
-                            @endif
-                        </div>
-                    </div>
-                    @else
-                    <div class="content-card-header">
-                        <div class="content-card-title">{{ $material->title }}</div>
-                    </div>
-                    <div class="content-card-body">
-                        <div class="content-icon">
+                    <div class="content-card-body" id="content-card-body">
+                        <div class="content-icon" id="content-icon">
                             @if($material->material_type == 'video')
                                 <i class="fa fa-play-circle"></i>
                             @elseif($material->material_type == 'document')
@@ -689,26 +707,38 @@
                                 <i class="fa fa-book"></i>
                             @endif
                         </div>
-                        <h2 class="content-title">{{ $material->title }}</h2>
-                        <p class="content-description">{{ $material->description }}</p>
-                        <div class="content-actions">
-                            @if(isset($material->file_path) && $material->file_path)
-                            <a href="{{ asset($material->file_path) }}" class="btn btn-primary btn-lg" target="_blank">
-                                <i class="fa fa-download"></i> Download Material
-                            </a>
-                            @endif
-                            @if($progress < 100)
-                            <button class="btn btn-success btn-lg" onclick="markAsComplete()">
-                                <i class="fa fa-check-circle"></i> Mark as Complete
+                        <h2 class="content-title" id="content-title">{{ $material->title }}</h2>
+                        <p class="content-description" id="content-description">{{ $material->description }}</p>
+                        
+                        <!-- Resource Preview -->
+                        <div id="resource-container" style="display: none;">
+                            <div class="resource-preview" id="resource-preview"></div>
+                        </div>
+                        
+                        <div class="content-actions" id="content-actions">
+                            <button class="btn btn-primary btn-lg" onclick="selectFirstTopic()">
+                                <i class="fa fa-play"></i> Start Learning
                             </button>
-                            @else
-                            <button class="btn btn-success btn-lg" disabled>
-                                <i class="fa fa-check-circle"></i> Completed
-                            </button>
-                            @endif
                         </div>
                     </div>
-                    @endif
+                </div>
+                
+                <!-- Quiz Section (shown after completion) -->
+                <div class="quiz-section" id="quiz-section">
+                    <div class="quiz-header">
+                        <h3><i class="fa fa-graduation-cap" style="color: var(--primary-color);"></i> Topic Completed!</h3>
+                        <p>Great job! You've completed this topic. {{ $topic['quiz_id'] ? 'Ready to test your knowledge?' : 'Continue to the next topic.' }}</p>
+                    </div>
+                    <div class="quiz-actions">
+                        @if($topic['quiz_id'])
+                        <a href="{{ url('/learning/quiz/' . $topic['quiz_id'] . '/take') }}" class="btn btn-success btn-lg">
+                            <i class="fa fa-pencil"></i> {{ $topic['quiz_passed'] ? 'Retake Quiz' : 'Start Quiz' }}
+                        </a>
+                        @endif
+                        <button class="btn btn-secondary btn-lg" onclick="skipQuiz()">
+                            <i class="fa fa-arrow-right"></i> Continue to Next Topic
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -716,9 +746,16 @@
 </div>
 
 <script>
-function togglePhase(phaseId) {
-    const topicsDiv = document.getElementById('phase-topics-' + phaseId);
-    const toggleIcon = document.getElementById('phase-toggle-' + phaseId);
+let currentTopicId = null;
+let currentTopicFilePath = null;
+let currentTopicType = null;
+let currentTopicCompleted = false;
+let currentQuizId = null;
+let currentQuizPassed = false;
+
+function togglePhase(phaseIndex) {
+    const topicsDiv = document.getElementById('phase-topics-' + phaseIndex);
+    const toggleIcon = document.getElementById('phase-toggle-' + phaseIndex);
     
     if (topicsDiv.style.display === 'none') {
         topicsDiv.style.display = 'block';
@@ -730,43 +767,239 @@ function togglePhase(phaseId) {
 }
 
 function toggleSidebar() {
-    const sidebar = document.getElementById('classroomSidebar');
+    const sidebar = document.getElementById('classroom-sidebar');
     sidebar.classList.toggle('show');
 }
 
-function openTopic(topicId, topicType) {
-    console.log('Opening topic:', topicId, 'Type:', topicType);
+function openTopic(topicId, topicType, topicFilePath, quizId = null) {
+    console.log('Opening topic:', topicId, 'Type:', topicType, 'File:', topicFilePath, 'Quiz:', quizId);
+    
+    currentTopicId = topicId;
+    currentTopicType = topicType;
+    currentTopicFilePath = topicFilePath;
+    currentQuizId = quizId;
+    
+    // Find topic completed status from the clicked element
+    const topicElement = document.querySelector(`[data-topic-id="${topicId}"]`);
+    currentTopicCompleted = topicElement ? topicElement.dataset.topicCompleted === 'true' : false;
+    currentQuizPassed = topicElement ? topicElement.dataset.quizPassed === 'true' : false;
+    
+    // Update sidebar selection
+    document.querySelectorAll('.wizard-topic').forEach(el => el.classList.remove('selected'));
+    if (topicElement) {
+        topicElement.classList.add('selected');
+    }
+    
+    // Update content area with topic info
+    updateTopicContent(topicId, topicType, topicFilePath);
 }
 
-function markAsComplete() {
+function updateTopicContent(topicId, topicType, topicFilePath) {
+    // Find topic data from the DOM
+    const topicElement = document.querySelector(`[data-topic-id="${topicId}"]`);
+    if (!topicElement) return;
+    
+    const topicTitle = topicElement.querySelector('.wizard-topic-title').textContent;
+    const topicDuration = topicElement.querySelector('.wizard-topic-meta span:first-child').textContent;
+    
+    // Update header
+    document.getElementById('topic-header-title').textContent = topicTitle;
+    
+    // Update content card
+    document.getElementById('content-card-title').textContent = topicTitle;
+    document.getElementById('content-title').textContent = topicTitle;
+    document.getElementById('content-description').textContent = '{{ $material->description }}';
+    
+    // Update icon based on type
+    const iconElement = document.getElementById('content-icon');
+    let iconClass = 'fa-book';
+    if (topicType == 'video') iconClass = 'fa-play-circle';
+    else if (topicType == 'pdf') iconClass = 'fa-file-pdf-o';
+    else if (topicType == 'ppt') iconClass = 'fa-file-powerpoint-o';
+    else if (topicType == 'document') iconClass = 'fa-file-word-o';
+    else if (topicType == 'audio') iconClass = 'fa-headphones';
+    
+    iconElement.innerHTML = `<i class="fa ${iconClass}"></i>`;
+    
+    // Show/hide resource preview
+    const resourceContainer = document.getElementById('resource-container');
+    const resourcePreview = document.getElementById('resource-preview');
+    
+    if (topicFilePath && topicFilePath.trim() !== '') {
+        resourceContainer.style.display = 'block';
+        
+        // Try to embed the resource
+        if (topicFilePath.includes('drive.google.com')) {
+            // Google Drive embed
+            let embedUrl = topicFilePath;
+            if (embedUrl.includes('/view')) {
+                embedUrl = embedUrl.replace('/view', '/preview');
+            }
+            if (embedUrl.includes('?')) {
+                embedUrl += '&embedded=true';
+            } else {
+                embedUrl += '?embedded=true';
+            }
+            resourcePreview.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
+        } else if (topicFilePath.match(/\.(pdf)$/i)) {
+            resourcePreview.innerHTML = `<iframe src="${topicFilePath}" allowfullscreen></iframe>`;
+        } else {
+            // Generic link
+            resourceContainer.style.display = 'none';
+        }
+    } else {
+        resourceContainer.style.display = 'none';
+    }
+    
+    // Update actions based on completion status
+    const actionsDiv = document.getElementById('content-actions');
+    const quizSection = document.getElementById('quiz-section');
+    
+    if (currentTopicCompleted) {
+        quizSection.classList.add('visible');
+        const topicTypeLabel = currentTopicType ? currentTopicType.charAt(0).toUpperCase() + currentTopicType.slice(1) : 'Resource';
+        actionsDiv.innerHTML = `
+            <a href="${topicFilePath}" class="btn btn-primary btn-lg" target="_blank">
+                <i class="fa fa-external-link"></i> Open ${topicTypeLabel}
+            </a>
+            <button class="btn btn-secondary btn-lg" onclick="markAsComplete(true)">
+                <i class="fa fa-refresh"></i> Review Topic
+            </button>
+        `;
+    } else {
+        quizSection.classList.remove('visible');
+        const topicTypeLabel = currentTopicType ? currentTopicType.charAt(0).toUpperCase() + currentTopicType.slice(1) : 'Resource';
+        actionsDiv.innerHTML = `
+            ${topicFilePath && topicFilePath.trim() !== '' ? `
+            <a href="${topicFilePath}" class="btn btn-primary btn-lg" target="_blank">
+                <i class="fa fa-external-link"></i> Open ${topicTypeLabel}
+            </a>
+            ` : ''}
+            <button class="btn btn-success btn-lg" onclick="markAsComplete(false)">
+                <i class="fa fa-check-circle"></i> Mark Topic Complete
+            </button>
+        `;
+    }
+}
+
+function selectFirstTopic() {
+    // Find first active topic
+    const firstActive = document.querySelector('.wizard-topic-action.start');
+    if (firstActive) {
+        const topicElement = firstActive.closest('.wizard-topic');
+        if (topicElement) {
+            const topicId = topicElement.dataset.topicId;
+            const quizId = topicElement.dataset.quizId && topicElement.dataset.quizId !== 'null' ? topicElement.dataset.quizId : null;
+            openTopic(topicId, '{{ $phases[0]['topics'][0]['type'] ?? 'video' }}', '{{ $phases[0]['topics'][0]['file_path'] ?? '' }}', quizId);
+        }
+    }
+}
+
+function markAsComplete(isReview) {
+    if (!currentTopicId) {
+        showFlashMessage('warning', 'No Topic Selected', 'Please select a topic first.', 'fa-exclamation-circle');
+        return;
+    }
+    
     $.ajax({
-        url: '{{ url('/learning/course/' . $material->id . '/complete') }}',
+        url: '{{ url('/learning/course/' . $material->id . '/complete-topic') }}',
         type: 'POST',
         data: {
-            _token: '{{ csrf_token() }}'
+            _token: '{{ csrf_token() }}',
+            topic_id: currentTopicId
         },
         success: function(response) {
             if (response.success) {
-                toastr.success('Course marked as complete!', 'Success');
+                showFlashMessage('success', 'Topic Completed!', 'Great job! You can now take the quiz.', 'fa-check-circle');
+                
+                // Update topic status
+                const topicElement = document.querySelector(`[data-topic-id="${currentTopicId}"]`);
+                if (topicElement) {
+                    topicElement.dataset.topicCompleted = 'true';
+                    topicElement.querySelector('.wizard-topic-icon').classList.remove('active', 'locked');
+                    topicElement.querySelector('.wizard-topic-icon').classList.add('completed');
+                    topicElement.querySelector('.wizard-topic-icon').innerHTML = '<i class="fa fa-check"></i>';
+                    topicElement.querySelector('.wizard-topic-action').classList.remove('start', 'locked');
+                    topicElement.querySelector('.wizard-topic-action').classList.add('completed');
+                    topicElement.querySelector('.wizard-topic-action').textContent = 'Review';
+                    
+                    // Add done indicator
+                    const metaDiv = topicElement.querySelector('.wizard-topic-meta');
+                    if (!metaDiv.querySelector('.done-indicator')) {
+                        metaDiv.innerHTML += '<span class="done-indicator"><i class="fa fa-check-circle"></i> Done</span>';
+                    }
+                }
+                
+                // Show quiz section
+                document.getElementById('quiz-section').classList.add('visible');
+                
+                // Update content actions
+                const actionsDiv = document.getElementById('content-actions');
+                actionsDiv.innerHTML = `
+                    ${currentTopicFilePath ? `
+                    <a href="${currentTopicFilePath}" class="btn btn-primary btn-lg" target="_blank">
+                        <i class="fa fa-external-link"></i> Open Resource
+                    </a>
+                    ` : ''}
+                    <button class="btn btn-secondary btn-lg" onclick="skipQuiz()">
+                        <i class="fa fa-arrow-right"></i> Continue to Next Topic
+                    </button>
+                `;
+                
+                // Reload to update progress
                 setTimeout(function() {
                     location.reload();
-                }, 1000);
+                }, 2000);
             } else {
-                toastr.error(response.message, 'Error');
+                showFlashMessage('error', 'Error', response.message, 'fa-times-circle');
             }
         },
         error: function() {
-            toastr.error('An error occurred', 'Error');
+            showFlashMessage('error', 'Error', 'An error occurred', 'fa-times-circle');
         }
     });
 }
 
+function skipQuiz() {
+    // Move to next incomplete topic or show completion message
+    showFlashMessage('info', 'Skipping Quiz', 'Moving to next topic...', 'fa-info-circle');
+    
+    // Find next incomplete topic
+    const topics = document.querySelectorAll('.wizard-topic');
+    let foundCurrent = false;
+    for (let topic of topics) {
+        if (foundCurrent) {
+            if (topic.dataset.topicCompleted === 'false') {
+                const topicId = topic.dataset.topicId;
+                // Get topic info from DOM
+                const topicType = topic.querySelector('.wizard-topic-icon').classList.contains('video') ? 'video' : 
+                                  topic.querySelector('.wizard-topic-icon').classList.contains('pdf') ? 'pdf' : 'document';
+                openTopic(topicId, topicType, '');
+                return;
+            }
+        }
+        if (topic.dataset.topicId == currentTopicId) {
+            foundCurrent = true;
+        }
+    }
+    
+    // No more topics - course completed
+    showFlashMessage('success', 'Course Completed!', 'Congratulations on completing this course!', 'fa-trophy');
+}
+
 // Expand first phase by default
 document.addEventListener('DOMContentLoaded', function() {
-    const firstToggle = document.getElementById('phase-toggle-1');
+    const firstToggle = document.getElementById('phase-toggle-0');
     if (firstToggle) {
         firstToggle.classList.add('expanded');
-        document.getElementById('phase-topics-1').style.display = 'block';
+        document.getElementById('phase-topics-0').style.display = 'block';
+    }
+    
+    // Load first incomplete topic if exists
+    const firstIncomplete = document.querySelector('.wizard-topic[data-topic-completed="false"]');
+    if (firstIncomplete) {
+        const topicId = firstIncomplete.dataset.topicId;
+        openTopic(topicId, 'video', '');
     }
 });
 </script>

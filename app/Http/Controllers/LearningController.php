@@ -10,6 +10,7 @@ use App\Models\Office;
 use App\Models\User;
 use Cartalyst\Sentinel\Roles\EloquentRole;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use Illuminate\Support\Facades\DB;
 
 class LearningController extends Controller
 {
@@ -337,7 +338,8 @@ class LearningController extends Controller
                 ->with('toastr_message', 'Please enroll in this course first.');
         }
 
-        // Get user's progress for this course
+        // Get user's completed topics from enrollment
+        $completedTopics = $enrollment->completed_topics ?? [];
         $progress = $enrollment->progress ?? 0;
 
         // Build phases from topics
@@ -350,12 +352,9 @@ class LearningController extends Controller
                 'title' => $material->title,
                 'description' => $material->description ?? 'Course Topics',
                 'icon' => 'fa-book',
-                'topics' => $topics->map(function ($topic, $index) use ($progress) {
-                    $isCompleted = false;
-                    // For now, mark topic as completed if course progress is 100%
-                    if ($progress >= 100) {
-                        $isCompleted = true;
-                    }
+                'topics' => $topics->map(function ($topic, $index) use ($completedTopics, $user) {
+                    $isCompleted = in_array($topic->id, $completedTopics);
+                    $quiz = $topic->quiz;
                     
                     return [
                         'id' => $topic->id,
@@ -365,6 +364,8 @@ class LearningController extends Controller
                         'is_completed' => $isCompleted,
                         'file_path' => $topic->file_path,
                         'sort_order' => $topic->sort_order,
+                        'quiz_id' => $quiz ? $quiz->id : null,
+                        'quiz_passed' => $quiz ? ($quiz->attempts->where('user_id', $user->id)->where('passed', true)->count() > 0) : false,
                     ];
                 })->toArray(),
             ]];
@@ -475,10 +476,83 @@ class LearningController extends Controller
     }
 
     /**
+     * Mark a topic as complete.
+     *
+     * @param int $id
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function completeTopic($id, \Illuminate\Http\Request $request)
+    {
+        if (!Sentinel::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must be logged in.'
+            ], 401);
+        }
+
+        $user = Sentinel::getUser();
+        $topicId = $request->input('topic_id');
+        
+        // Find the topic
+        $topic = CourseTopic::find($topicId);
+        
+        if (!$topic) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Topic not found.'
+            ], 404);
+        }
+
+        // Check enrollment
+        $enrollment = Enrollment::where('user_id', $user->id)
+            ->where('training_material_id', $id)
+            ->first();
+        
+        if (!$enrollment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not enrolled in this course.'
+            ], 400);
+        }
+
+        // Get completed topic IDs from enrollment metadata or create new tracking
+        $completedTopics = $enrollment->completed_topics ?? [];
+        
+        if (!in_array($topicId, $completedTopics)) {
+            $completedTopics[] = $topicId;
+        }
+        
+        // Update enrollment with completed topics
+        $enrollment->update([
+            'completed_topics' => $completedTopics,
+        ]);
+        
+        // Calculate progress based on total topics
+        $material = TrainingMaterial::with('topics')->find($id);
+        $totalTopics = $material->topics->count();
+        $completedCount = count($completedTopics);
+        $progress = $totalTopics > 0 ? round(($completedCount / $totalTopics) * 100) : 0;
+        
+        // Update enrollment progress
+        $enrollment->update([
+            'progress' => $progress,
+            'completed_at' => $progress >= 100 ? now() : null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Topic marked as complete!',
+            'progress' => $progress,
+            'completed_topics' => $completedTopics
+        ]);
+    }
+
+    /**
      * Mark a course as complete.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function completeCourse($id)
     {
@@ -638,10 +712,8 @@ class LearningController extends Controller
             ->with(['office', 'roles'])
             ->get();
 
-        // Get all active offices
-        $offices = Office::where('status', 'active')
-            ->orderBy('name', 'asc')
-            ->get();
+        // Get all offices
+        $offices = Office::orderBy('name', 'asc')->get();
 
         return view('learning.settings.teachers', compact('trainers', 'offices'));
     }

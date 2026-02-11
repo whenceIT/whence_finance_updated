@@ -13,8 +13,8 @@ $user = Sentinel::getUser();
 $role = $user ? $user->roles->first() : null;
 $isAdmin = $role && $role->id == 1;
 
-// Get offices for dropdown
-$offices = \App\Models\Office::where('status', 'active')->orderBy('name', 'asc')->get();
+// Get all offices for dropdown
+$offices = \App\Models\Office::orderBy('name', 'asc')->get();
 
 // Get all users who are trainers
 $trainers = \App\Models\User::where('istrainer', 1)->with('office', 'roles')->get();
@@ -81,7 +81,7 @@ $trainers = \App\Models\User::where('istrainer', 1)->with('office', 'roles')->ge
         <div class="form-group mt-3">
             <button type="button" id="submitTrainerBtn" class="btn btn-primary" disabled>
                 <i class="fa fa-check mr-1"></i>
-                Grant Trainer Status (istrainer = 1)
+                Grant Trainer Status
             </button>
         </div>
     </div>
@@ -223,7 +223,7 @@ $(document).ready(function() {
         }
     });
 
-    // Step 1: Office Selection - Load Roles
+    // Step 1: Office Selection - Load ALL Roles (not dependent on office)
     $('#officeSelect').on('change', function() {
         var officeId = $(this).val();
         var $roleSelect = $('#roleSelect');
@@ -234,55 +234,57 @@ $(document).ready(function() {
         $('#selectedUsersSummary').hide();
         $('#submitTrainerBtn').prop('disabled', true);
         
-        if (officeId) {
-            // Fetch roles from Sentinel via API endpoint
-            $.ajax({
-                url: '{{ url("api/roles-by-office") }}/' + officeId,
-                type: 'GET',
-                success: function(roles) {
-                    if (roles.length > 0) {
-                        $.each(roles, function(index, role) {
-                            $roleSelect.append('<option value="' + role.id + '">' + role.name + '</option>');
-                        });
-                        $roleSelect.prop('disabled', false);
-                    } else {
-                        $roleSelect.append('<option value="">No roles found</option>');
-                    }
-                },
-                error: function() {
-                    alert('Error loading roles. Please try again.');
+        // Always load ALL roles when office changes
+        $.ajax({
+            url: '{{ url("learning/api/all-roles") }}',
+            type: 'GET',
+            success: function(roles) {
+                if (roles.length > 0) {
+                    $.each(roles, function(index, role) {
+                        $roleSelect.append('<option value="' + role.id + '">' + role.name + '</option>');
+                    });
+                    $roleSelect.prop('disabled', false);
+                } else {
+                    $roleSelect.append('<option value="">No roles found</option>');
                 }
-            });
-        }
+            },
+            error: function() {
+                alert('Error loading roles. Please try again.');
+            }
+        });
     });
 
-    // Step 2: Role Selection - Load Users
+    // Step 2: Role Selection - Load Users by Role Only (not office + role)
     $('#roleSelect').on('change', function() {
-        var officeId = $('#officeSelect').val();
         var roleId = $(this).val();
         var $userSelect = $('#userSelect');
         
         $userSelect.prop('disabled', true).empty();
+        $userSelect.append('<option value="">Loading users...</option>');
         $('#selectedUsersSummary').hide();
         $('#submitTrainerBtn').prop('disabled', true);
         
-        if (officeId && roleId) {
-            // Fetch users by office and role
+        if (roleId) {
+            // Fetch users by role only
             $.ajax({
-                url: '{{ url("api/users-by-office-role") }}/' + officeId + '/' + roleId,
+                url: '{{ url("learning/api/users-by-role") }}/' + roleId,
                 type: 'GET',
                 success: function(users) {
+                    $userSelect.empty();
                     if (users.length > 0) {
                         $.each(users, function(index, user) {
-                            var displayName = user.first_name + ' ' + user.last_name + ' (' + user.email + ')';
+                            var officeInfo = user.office ? ' (' + user.office.name + ')' : '';
+                            var displayName = user.first_name + ' ' + user.last_name + officeInfo;
                             $userSelect.append('<option value="' + user.id + '">' + displayName + '</option>');
                         });
                         $userSelect.prop('disabled', false);
                     } else {
-                        $userSelect.append('<option value="">No users found in this office with selected role</option>');
+                        $userSelect.append('<option value="">No users found with selected role</option>');
                     }
                 },
                 error: function() {
+                    $userSelect.empty();
+                    $userSelect.append('<option value="">Error loading users</option>');
                     alert('Error loading users. Please try again.');
                 }
             });

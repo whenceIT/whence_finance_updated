@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TrainingMaterial;
 use App\Models\CourseCategory;
 use App\Models\CourseTopic;
+use App\Models\Quiz;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -44,6 +45,10 @@ class TrainingMaterialController extends Controller
             : TrainingMaterial::active(); // Others see only active
 
         // Apply filters
+        if ($request->has('category') && $request->category != 'all') {
+            $query->byCategoryId($request->category);
+        }
+        
         if ($request->has('department') && $request->department != 'all') {
             $query->byDepartment($request->department);
         }
@@ -123,14 +128,27 @@ class TrainingMaterialController extends Controller
                     ->with('toastr_message', 'You do not have permission to create training materials.');
             }
 
-            // Validate course info
+            // Remove the dd() call - it was for debugging
+            // Validate course info and topics
             $rules = [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'material_type' => 'required|in:document,audio,video',
                 'department' => 'required|in:Operations,Recoveries,Administration,Finance,IT,HR,Legal,Compliance,General',
-                'category' => 'nullable|string|max:100',
+                'category_ids' => 'nullable|array',
+                'category_ids.*' => 'exists:course_categories,id',
                 'target_role' => 'required|in:all,1,4,6,3,5,10',
+                'is_active' => 'nullable',
+                'is_featured' => 'nullable',
+                // Topic validation - now using URLs instead of file uploads
+                'topic_name' => 'required|array|min:1',
+                'topic_name.*' => 'required|string|max:255',
+                'topic_type' => 'required|array|min:1',
+                'topic_type.*' => 'required|in:video,pdf,ppt,document',
+                'topic_duration' => 'nullable|array',
+                'topic_duration.*' => 'nullable|integer|min:1',
+                'topic_file' => 'required|array|min:1',
+                'topic_file.*' => 'nullable|url', // Now validating as URL instead of file
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -144,53 +162,19 @@ class TrainingMaterialController extends Controller
                     ->withInput();
             }
 
-            // Handle main course file upload
-            $filePath = null;
-            $fileName = null;
-            $fileSize = null;
-            $mimeType = null;
-            $duration = null;
-
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                
-                $allowedMimeTypes = [
-                    'document' => ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-                    'audio' => ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg'],
-                    'video' => ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'],
-                ];
-
-                $mimeType = $file->getMimeType();
-                $materialType = $request->material_type;
-
-                if (!in_array($mimeType, $allowedMimeTypes[$materialType] ?? [])) {
-                    return redirect()->back()
-                        ->with('toastr_type', 'error')
-                        ->with('toastr_message', 'Invalid file type for ' . $materialType . '.')
-                        ->withInput();
-                }
-
-                $fileName = time() . '_' . Str::slug($file->getClientOriginalName()) . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('training-materials/' . $materialType, $fileName, 'public');
-                $fileSize = $file->getSize();
-
-                if (in_array($materialType, ['audio', 'video'])) {
-                    $duration = $materialType === 'audio' ? 300 : 600;
-                }
-            }
-
+            // Skip main file upload - files are uploaded per topic
             // Create the training material
             $material = TrainingMaterial::create([
                 'title' => $request->title,
                 'description' => $request->description,
                 'material_type' => $request->material_type,
-                'file_path' => $filePath,
-                'file_name' => $fileName,
-                'file_size' => $fileSize,
-                'mime_type' => $mimeType,
-                'duration' => $duration,
+                'file_path' => null, // No main file - files are attached to topics
+                'file_name' => null,
+                'file_size' => null,
+                'mime_type' => null,
+                'duration' => null,
                 'department' => $request->department,
-                'category' => $request->category,
+                'category' => null, // No longer used, using categories relationship instead
                 'target_role' => $request->target_role,
                 'created_by' => $user->id,
                 'is_active' => $request->has('is_active'),
@@ -198,33 +182,29 @@ class TrainingMaterialController extends Controller
                 'published_at' => now(),
             ]);
 
-            // Handle topics
+            // Attach categories (many-to-many)
+            $categoryIds = $request->category_ids ?? [];
+            if (!empty($categoryIds)) {
+                $material->categories()->attach($categoryIds);
+            }
+
+            // Handle topics - now storing URLs instead of file uploads
             $topicNames = $request->topic_name ?? [];
             $topicTypes = $request->topic_type ?? [];
             $topicDurations = $request->topic_duration ?? [];
-            $topicFiles = $request->file('topic_file') ?? [];
+            $topicFiles = $request->topic_file ?? [];
 
             foreach ($topicNames as $index => $topicName) {
                 if (!empty($topicName) && isset($topicTypes[$index])) {
-                    $topicFilePath = null;
-                    $topicFileName = null;
-                    $topicFileSize = null;
-                    $topicMimeType = null;
-
-                    if (isset($topicFiles[$index])) {
-                        $topicFile = $topicFiles[$index];
-                        $topicFileName = time() . '_' . $index . '_' . Str::slug($topicFile->getClientOriginalName()) . '.' . $topicFile->getClientOriginalExtension();
-                        $topicFilePath = $topicFile->storeAs('training-materials/topics/' . $material->id, $topicFileName, 'public');
-                        $topicFileSize = $topicFile->getSize();
-                        $topicMimeType = $topicFile->getMimeType();
-                    }
+                    // Store the URL directly (no file upload)
+                    $topicFileUrl = isset($topicFiles[$index]) ? $topicFiles[$index] : null;
 
                     CourseTopic::create([
                         'training_material_id' => $material->id,
                         'topic_name' => $topicName,
                         'topic_type' => $topicTypes[$index],
-                        'file_path' => $topicFilePath,
-                        'file_name' => $topicFileName,
+                        'file_path' => $topicFileUrl, // Now stores URL instead of file path
+                        'file_name' => null, // No file name when using URL
                         'duration' => $topicDurations[$index] ?? null,
                         'sort_order' => $index,
                         'is_active' => true,
@@ -447,8 +427,8 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_message', 'You do not have permission to delete this training material.');
         }
 
-        // Delete file from storage
-        if (Storage::disk('public')->exists($material->file_path)) {
+        // Delete file from storage if exists
+        if ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
             Storage::disk('public')->delete($material->file_path);
         }
 
@@ -502,6 +482,36 @@ class TrainingMaterialController extends Controller
         }
 
         return response()->download($filePath, $material->file_name);
+    }
+
+    /**
+     * Display topics and quizzes management page for a training material.
+     * Only accessible by trainers.
+     *
+     * @param int $materialId
+     * @return \Illuminate\Http\Response
+     */
+    public function topics($materialId)
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        
+        // Check if user is a trainer
+        if (!$user || $user->istrainer != 1) {
+            return redirect()->route('learning.training-materials.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to manage topics and quizzes.');
+        }
+
+        $material = TrainingMaterial::with(['topics' => function($query) {
+            $query->ordered();
+        }, 'topics.quiz'])->findOrFail($materialId);
+
+        return view('learning.training-materials.topics', compact('material'));
     }
 
     /**

@@ -98,7 +98,23 @@ class TrainingMaterial extends Model
      */
     public function scopeByCategory($query, $category)
     {
-        return $query->where('category', 'like', '%' . $category . '%');
+        return $query->whereHas('categories', function ($q) use ($category) {
+            $q->where('name', 'like', '%' . $category . '%');
+        });
+    }
+
+    /**
+     * Scope a query to filter by category ID.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $categoryId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByCategoryId($query, $categoryId)
+    {
+        return $query->whereHas('categories', function ($q) use ($categoryId) {
+            $q->where('course_category_id', $categoryId);
+        });
     }
 
     /**
@@ -265,5 +281,26 @@ class TrainingMaterial extends Model
     public function allTopics()
     {
         return $this->hasMany(CourseTopic::class)->ordered();
+    }
+
+    /**
+     * Get the categories that belong to this training material.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function categories()
+    {
+        return $this->belongsToMany(CourseCategory::class, 'course_category_training_material');
+    }
+
+    /**
+     * Get the category name (for backward compatibility).
+     * Returns the first category's name if multiple exist.
+     *
+     * @return string
+     */
+    public function getCategoryNameAttribute()
+    {
+        return $this->categories->first() ? $this->categories->first()->name : null;
     }
 }

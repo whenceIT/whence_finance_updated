@@ -24,7 +24,7 @@ use App\Http\Controllers\CourseCategoryController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningSettingController;
 use App\Http\Controllers\TrainingMaterialController;
-use App\Http\Controllers\StaffSurveyController;
+use App\Http\Controllers\QuizController;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -159,6 +159,7 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/course/{id}', [LearningController::class, 'showCourse'])->name('learning.course');
     Route::get('/course/{id}/classroom', [LearningController::class, 'classroom'])->name('learning.course.classroom');
     Route::post('/course/{id}/complete', [LearningController::class, 'completeCourse'])->name('learning.course.complete');
+    Route::post('/course/{id}/complete-topic', [LearningController::class, 'completeTopic'])->name('learning.course.complete-topic');
     Route::post('/enroll/{id}', [LearningController::class, 'enroll'])->name('learning.enroll');
     Route::post('/unenroll/{id}', [LearningController::class, 'unenroll'])->name('learning.unenroll');
     
@@ -170,6 +171,8 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/platform', [LearningSettingController::class, 'platform'])->name('learning.settings.platform');
     
     // Trainer Management Routes
+    Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
+    Route::get('/api/users-by-role/{roleId}', [LearningSettingController::class, 'getUsersByRole']);
     Route::get('/api/roles-by-office/{officeId}', [LearningSettingController::class, 'getRolesByOffice']);
     Route::get('/api/users-by-office-role/{officeId}/{roleId}', [LearningSettingController::class, 'getUsersByOfficeRole']);
     Route::post('/settings/teachers/update-trainer', [LearningSettingController::class, 'updateTrainerStatus'])->name('learning.settings.teachers.update-trainer');
@@ -198,6 +201,17 @@ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentin
     Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
     Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
     Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
+    Route::get('/{id}/quiz', [QuizController::class, 'index'])->name('learning.quizzes.index');
+    Route::get('/topic/{topicId}/quiz/manage', [QuizController::class, 'manage'])->name('learning.quizzes.manage');
+    Route::post('/topic/{topicId}/quiz/save', [QuizController::class, 'save'])->name('learning.quizzes.save');
+    Route::delete('/quiz/{quizId}/delete', [QuizController::class, 'delete'])->name('learning.quizzes.delete');
+    
+    // Quiz taking routes for students
+    Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
+    Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
+    
+    // Topics management route for trainers
+    Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
 });
 
 //route for users

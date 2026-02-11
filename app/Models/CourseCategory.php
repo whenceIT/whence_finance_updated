@@ -50,13 +50,23 @@ class CourseCategory extends Model
     ];
 
     /**
-     * Get the training materials for this category.
+     * Get the training materials for this category (using the old category string field).
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function trainingMaterials()
     {
-        return $this->hasMany(TrainingMaterial::class, 'category', 'category');
+        return $this->hasMany(TrainingMaterial::class, 'category', 'name');
+    }
+
+    /**
+     * Get the training materials that belong to this category (many-to-many).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function materials()
+    {
+        return $this->belongsToMany(TrainingMaterial::class, 'course_category_training_material');
     }
 
     /**
