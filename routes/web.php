@@ -936,6 +936,7 @@ Route::group(['prefix' => 'ticket'], function () {
     Route::get('index', 'TicketController@index');
     Route::get('create', 'TicketController@create');
     Route::post('store', 'TicketController@store');
+    Route::post('reassign', 'TicketController@reassign');
     Route::match(['post', 'put'], '{id}/update', 'TicketController@update');
     Route::get('users', 'TicketController@usersByOfficeRole');
     Route::get('offices', 'TicketController@officesByParent');
