@@ -31,12 +31,8 @@
                         </div>
                 </div>
 
-<<<<<<< HEAD
-                
-=======
 
 			
->>>>>>> 1a05a32fe733f9fa57fc6b7e3951d7f0188091cd
       @if(Sentinel::hasAccess('loans.update'))
                                         <a href="#"
                                            data-toggle="modal" data-target="#change_branch_modal"
