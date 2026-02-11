@@ -50,11 +50,13 @@
                                             <i class="fa fa-user-plus"></i> Assign
                                         </button>
                                         @endif
+                                        &nbsp;
                                         @if($ticket->assigned_to != null)
                                         <button type="button" class="ticket-action action-reassign open-reassign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-current-assigned="{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '' }}" data-assigned-to="{{ $ticket->assigned_to }}" title="Reassign Ticket">
                                             <i class="fa fa-user"></i> Reassign
                                         </button>
                                         @endif
+                                        &nbsp;
                                         @if($ticket->stage != 'Started' && $ticket->assigned_to == null)
                                         <div class="ticket-action text-muted">
                                             <i class="fa fa-clock"></i> Pending
@@ -329,7 +331,18 @@
                             $('.ticket-card').removeClass('clicked');
                             $(this).closest('.ticket-card').addClass('clicked');
                         });
+                        // Handle reassign button click
+                        $(document).on('click', '.open-reassign-modal', function(){
+                            var ticketId = $(this).data('ticket-id');
+                            var ticketName = $(this).data('ticket-name');
+                            var currentAssigned = $(this).data('current-assigned');
+                            $('#reassignTicketId').val(ticketId);
+                            $('#reassignTicketName').text(ticketName);
+                            $('#reassignCurrentAssigned').text(currentAssigned ? currentAssigned : 'Unassigned');
+                            $('#reassignTicketModal').modal('show');
+                        });
                     });
                     </script>
                 </div>
                 @include('ticket.partials.view_ticket_modal')
+                @include('ticket.partials.reassign_modal')
