@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('enrolled_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->integer('progress')->default(0);
-            $table->text('notes')->default(0);
+            $table->text('notes')->nullable();
             $table->timestamps();
             
             $table->unique(['user_id', 'training_material_id']);
