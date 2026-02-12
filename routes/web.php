@@ -25,7 +25,7 @@ use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningSettingController;
 use App\Http\Controllers\TrainingMaterialController;
 use App\Http\Controllers\QuizController;
-use Firebase\JWT\JWT;
+use App\Http\Controllers\StaffSurveyController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');

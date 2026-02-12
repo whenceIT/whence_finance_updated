@@ -444,47 +444,51 @@ private function calculateNetChange($office, $recentLedgerEntry) {
 
     //branch income stored
     public function store(Request $request, $officeName) {
-        $user = Sentinel::getUser();
-        $office = Office::where('name', $officeName)->first();
-        if (!$office) {
-            abort(404);
-        }
-        if (!$user->hasAccess('groups.create') && !$user->hasAccess('offices') && $user->office->province_id != $office->province_id) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $validatedData = $request->validate([
-            'income_amount' => 'required|numeric',
-            'date_received' => 'required|date',
-        ]);
-
-        $office_id = $office->id;
-        
-        if (!$user->hasAccess('groups.create') && !$user->hasAccess('offices')) {
-            $userOffice = $user->office;
-            $provinceId = $userOffice->province_id;
-            $provinceOffices = Office::where('province_id', $provinceId)->pluck('id')->toArray();
-            
-            if (!in_array($office_id, $provinceOffices)) {
-                abort(403, 'You can only enter income for offices in your province.');
+        try {
+            $user = Sentinel::getUser();
+            $office = Office::where('name', $officeName)->first();
+            if (!$office) {
+                abort(404);
             }
-        }
+            if (!$user->hasAccess('groups.create') && !$user->hasAccess('offices') && $user->office->province_id != $office->province_id) {
+                abort(403, 'Unauthorized action.');
+            }
 
-        $generalLedger = GeneralLedger::where('office_id', $office->id)->first();
-        $totalIncome = $generalLedger ? $generalLedger->total_income : 0;
-        
-        if ($generalLedger) {
-            $generalLedger->total_income += $validatedData['income_amount'];
-            $generalLedger->save();
-        } else {
-            GeneralLedger::create([
-                'office_id' => $office->id,
-                'total_income' => $validatedData['income_amount'],
+            $validatedData = $request->validate([
+                'income_amount' => 'required|numeric',
+                'date_received' => 'required|date',
             ]);
+
+            $office_id = $office->id;
+            
+            if (!$user->hasAccess('groups.create') && !$user->hasAccess('offices')) {
+                $userOffice = $user->office;
+                $provinceId = $userOffice->province_id;
+                $provinceOffices = Office::where('province_id', $provinceId)->pluck('id')->toArray();
+                
+                if (!in_array($office_id, $provinceOffices)) {
+                    abort(403, 'You can only enter income for offices in your province.');
+                }
+            }
+
+            $generalLedger = GeneralLedger::where('office_id', $office->id)->first();
+            $totalIncome = $generalLedger ? $generalLedger->total_income : 0;
+            
+            if ($generalLedger) {
+                $generalLedger->total_income += $validatedData['income_amount'];
+                $generalLedger->save();
+            } else {
+                GeneralLedger::create([
+                    'office_id' => $office->id,
+                    'total_income' => $validatedData['income_amount'],
+                ]);
+            }
+        
+            return redirect()->route('ledger.show', ['officeName' => $officeName])
+                ->with('success', 'Income added successfully.');
+        } catch (\Throwable $th) {
+            dd($th);
         }
-    
-        return redirect()->route('ledger.show', ['officeName' => $officeName])
-            ->with('success', 'Income added successfully.');
     }
     
     

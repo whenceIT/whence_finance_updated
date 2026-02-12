@@ -58,16 +58,16 @@
                 <tr class="bg-danger">
                     <td style="font-size: 16px;">Current Cash Balance</td>
                     <td style="font-size: 16px;">{{ number_format($closingBalance, 2) }}</td>
-		</tr>
-		<tr class="bg-success">
+                </tr>
+                <tr class="bg-success">
                     <td style="font-size: 16px;">Total Income</td>
                     <td style="font-size: 16px;">{{ number_format($totalIncome, 2) }}</td>
                 </tr>
                 <tr class="bg-warning">
                     <td style="font-size: 16px;">Total Advances</td>
-		    <td style="font-size: 16px;">{{ number_format($advances, 2) }}</td>
+		        <td style="font-size: 16px;">{{ number_format($advances, 2) }}</td>
 
-	<tr class="bg-info">
+	            <tr class="bg-info">
                     <td style="font-size: 16px;">Advance Installments Paid </td>
                     <td style="font-size: 16px;">{{ number_format($advancesPaid, 2) }}</td>
                 </tr>
@@ -95,7 +95,6 @@
             </tbody>
         </table>
     </div>
-
 <div class="row mb-4">
         <div class="col-md-12">
             <form action="{{ route('ledger.store', ['officeName' => $officeName]) }}" method="POST">
