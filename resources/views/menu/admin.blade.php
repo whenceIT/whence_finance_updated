@@ -432,14 +432,14 @@
                     </li>
                     @endif
                     <!-- My Payslips -->
-                    <!-- @if(Sentinel::hasAccess('loans'))
-                        <li class="">
+                    @if(Sentinel::hasAccess('loans'))
+                        <li style="padding-left: 5%;">
                             <a href="{{ url('payroll/mypayslips') }}">
                                 <i class="fa fa-money"></i> <span>My Payslips</span>
                             </a>
                         </li>
                     @endif
-                    @if(Sentinel::hasAccess('loans'))
+                    <!-- @if(Sentinel::hasAccess('loans'))
                         <li class="">
                             <a href="{{ url('payroll/mypayslips_old') }}">
                                 <i class="fa fa-money"></i> <span>My Payslips 2023 - Jan 2024</span>
