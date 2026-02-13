@@ -496,7 +496,7 @@
                         <div class="col-md-4 col-sm-6">
                         <div class="small-box bg-red">
                             <div class="inner">
-                                <h3>{{ number_format($data['carry_over']) }}</h3>
+                                <h3>{{ number_format($data['carry_over'] ?? 0) }}</h3>
                                 <p>Carry Over</p>
                             </div>
                             <div class="icon">

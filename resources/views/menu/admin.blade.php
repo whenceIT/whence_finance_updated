@@ -431,7 +431,21 @@
                         </ul>
                     </li>
                     @endif
-
+                    <!-- My Payslips -->
+                    @if(Sentinel::hasAccess('loans'))
+                        <li style="padding-left: 5%;">
+                            <a href="{{ url('payroll/mypayslips') }}">
+                                <i class="fa fa-money"></i> <span>My Payslips</span>
+                            </a>
+                        </li>
+                    @endif
+                    <!-- @if(Sentinel::hasAccess('loans'))
+                        <li class="">
+                            <a href="{{ url('payroll/mypayslips_old') }}">
+                                <i class="fa fa-money"></i> <span>My Payslips 2023 - Jan 2024</span>
+                            </a>
+                        </li>
+                    @endif  -->
                     <!-- Annual Leave -->
                     @if(Sentinel::hasAccess('reports'))
                     <li class="treeview @if(Request::is('leave/*')) active menu-open @endif" style="padding-left: 10px;">
