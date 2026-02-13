@@ -74,7 +74,7 @@ class QuizController extends Controller
     public function save(Request $request, $topicId)
     {
         if (!Sentinel::check()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            return redirect('login');
         }
 
         $user = Sentinel::getUser();
@@ -82,58 +82,66 @@ class QuizController extends Controller
         $isTrainer = $user->istrainer == 1;
 
         if (!$isAdmin && !$isTrainer) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            return redirect()->route('learning.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission.');
         }
 
-        $topic = CourseTopic::findOrFail($topicId);
+        try {
+            $topic = CourseTopic::findOrFail($topicId);
 
-        DB::transaction(function () use ($request, $topic) {
-            // Create or update quiz
-            $quiz = Quiz::updateOrCreate(
-                ['course_topic_id' => $topic->id],
-                [
-                    'title' => $request->quiz_title,
-                    'description' => $request->quiz_description,
-                    'passing_score' => $request->passing_score ?? 70,
-                    'time_limit' => $request->time_limit,
-                    'is_active' => true,
-                ]
-            );
+            DB::transaction(function () use ($request, $topic) {
+                // Create or update quiz
+                $quiz = Quiz::updateOrCreate(
+                    ['course_topic_id' => $topic->id],
+                    [
+                        'title' => $request->quiz_title,
+                        'description' => $request->quiz_description,
+                        'passing_score' => $request->passing_score ?? 70,
+                        'time_limit' => $request->time_limit,
+                        'is_active' => true,
+                    ]
+                );
 
-            // Delete existing questions and options
-            QuizQuestion::where('quiz_id', $quiz->id)->delete();
+                // Delete existing questions and options
+                QuizQuestion::where('quiz_id', $quiz->id)->delete();
 
-            // Add new questions
-            if ($request->has('questions')) {
-                foreach ($request->questions as $qIndex => $questionData) {
-                    $question = QuizQuestion::create([
-                        'quiz_id' => $quiz->id,
-                        'question' => $questionData['text'],
-                        'question_type' => $questionData['type'] ?? 'multiple_choice',
-                        'sort_order' => $qIndex,
-                        'points' => $questionData['points'] ?? 1,
-                        'explanation' => $questionData['explanation'] ?? null,
-                    ]);
+                // Add new questions
+                if ($request->has('questions')) {
+                    foreach ($request->questions as $qIndex => $questionData) {
+                        $question = QuizQuestion::create([
+                            'quiz_id' => $quiz->id,
+                            'question' => $questionData['text'],
+                            'question_type' => $questionData['type'] ?? 'multiple_choice',
+                            'sort_order' => $qIndex,
+                            'points' => $questionData['points'] ?? 1,
+                            'explanation' => $questionData['explanation'] ?? null,
+                        ]);
 
-                    // Add options for multiple choice
-                    if (isset($questionData['options']) && is_array($questionData['options'])) {
-                        foreach ($questionData['options'] as $oIndex => $optionText) {
-                            QuizOption::create([
-                                'quiz_question_id' => $question->id,
-                                'option_text' => $optionText,
-                                'is_correct' => isset($questionData['correct_option']) && $questionData['correct_option'] == $oIndex,
-                                'sort_order' => $oIndex,
-                            ]);
+                        // Add options for multiple choice
+                        if (isset($questionData['options']) && is_array($questionData['options'])) {
+                            foreach ($questionData['options'] as $oIndex => $optionText) {
+                                QuizOption::create([
+                                    'quiz_question_id' => $question->id,
+                                    'option_text' => $optionText,
+                                    'is_correct' => isset($questionData['correct_option']) && $questionData['correct_option'] == $oIndex,
+                                    'sort_order' => $oIndex,
+                                ]);
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Quiz saved successfully!'
-        ]);
+            return redirect()->route('learning.quizzes.index', ['id' => $topic->trainingMaterial->id])
+                ->with('toastr_type', 'success')
+                ->with('toastr_message', 'Quiz saved successfully!');
+        } catch (\Throwable $th) {
+            return redirect()->back()
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'Error saving quiz: ' . $th->getMessage())
+                ->withInput();
+        }
     }
 
     /**

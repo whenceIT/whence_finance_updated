@@ -14,7 +14,7 @@
             <div class="box-header with-border">
                 <h3 class="box-title">Quiz Details</h3>
             </div>
-            <form id="quiz-form">
+            <form id="quiz-form" method="POST" action="{{ route('learning.quizzes.save', ['topicId' => $topic->id]) }}">
                 @csrf
                 <input type="hidden" name="topic_id" value="{{ $topic->id }}">
                 
@@ -212,28 +212,5 @@ function addOption(button) {
 function removeOption(button) {
     button.closest('.option-row').remove();
 }
-
-$('#quiz-form').on('submit', function(e) {
-    e.preventDefault();
-    
-    $.ajax({
-        url: '{{ url('learning/training-materials/topic/' . $topic->id . '/quiz/save') }}',
-        type: 'POST',
-        data: $(this).serialize(),
-        success: function(response) {
-            if (response.success) {
-                showFlashMessage('success', 'Quiz Saved', response.message, 'fa-check-circle');
-                setTimeout(function() {
-                    window.location.href = '{{ url('learning/training-materials/quiz') }}';
-                }, 1500);
-            } else {
-                showFlashMessage('error', 'Error', response.message, 'fa-times-circle');
-            }
-        },
-        error: function() {
-            showFlashMessage('error', 'Error', 'An error occurred', 'fa-times-circle');
-        }
-    });
-});
 </script>
 @endsection

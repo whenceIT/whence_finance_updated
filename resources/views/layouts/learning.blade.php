@@ -23,7 +23,7 @@
     
     <style>
         :root {
-            --primary-color: #4a90e2;
+            --primary-color: #4ae2bc;
             --secondary-color: #50c878;
             --accent-color: #ff6b6b;
             --dark-bg: #1a1a2e;
@@ -34,6 +34,10 @@
             --border-color: #e0e0e0;
             --shadow: 0 2px 10px rgba(0,0,0,0.1);
             --shadow-hover: 0 4px 20px rgba(0,0,0,0.15);
+            /* Brand Colors */
+            --brand-navy: #1a365d;
+            --brand-green: #22c55e;
+            --brand-yellow: #eab308;
         }
 
         * {
@@ -73,14 +77,24 @@
             color: white;
         }
 
-        .learning-logo i {
-            font-size: 24px;
+        .learning-logo-img {
+            height: 38px;
+            width: auto;
             margin-right: 10px;
+        }
+
+        .learning-logo:hover .learning-logo-img {
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
         }
 
         .learning-logo span {
             font-size: 18px;
             font-weight: 600;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.9) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .learning-nav {
@@ -322,6 +336,38 @@
             width: 20px;
             margin-right: 10px;
             font-size: 14px;
+        }
+
+        .sidebar-menu .badge {
+            margin-left: auto;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .sidebar-menu .badge-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .sidebar-menu .badge-secondary {
+            background: var(--brand-navy);
+            color: white;
+        }
+
+        .sidebar-menu .badge-warning {
+            background: var(--brand-yellow);
+            color: var(--brand-navy);
+        }
+
+        .sidebar-menu .badge-success {
+            background: var(--brand-green);
+            color: white;
+        }
+
+        .sidebar-menu a:hover .badge {
+            opacity: 0.8;
         }
 
         /* Main Content */
@@ -779,6 +825,11 @@
                 font-size: 15px;
             }
 
+            .sidebar-menu .badge {
+                padding: 1px 6px;
+                font-size: 10px;
+            }
+
             .learning-header .container {
                 padding: 0 12px;
             }
@@ -795,6 +846,48 @@
 
             .learning-logo span {
                 font-size: 16px;
+            }
+
+            .learning-logo-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .learning-logo-icon .book {
+                width: 25px;
+                height: 20px;
+            }
+
+            .learning-logo-icon .cap {
+                width: 22px;
+                height: 10px;
+            }
+
+            .learning-logo-icon .tassel {
+                width: 3px;
+                height: 8px;
+                top: 12px;
+                right: 5px;
+            }
+
+            .learning-logo-icon .tassel::after {
+                width: 5px;
+                height: 6px;
+                bottom: -5px;
+            }
+
+            .learning-logo-icon .star {
+                width: 8px;
+                height: 8px;
+                left: 2px;
+                top: 0;
+            }
+
+            .learning-logo-icon .dot {
+                width: 5px;
+                height: 5px;
+                bottom: 3px;
+                left: 3px;
             }
 
             .learning-content {
@@ -865,6 +958,54 @@
                 font-size: 14px;
             }
 
+            .learning-logo-icon {
+                width: 32px;
+                height: 32px;
+            }
+
+            .learning-logo-icon .book {
+                width: 22px;
+                height: 18px;
+            }
+
+            .learning-logo-icon .cap {
+                width: 19px;
+                height: 9px;
+            }
+
+            .learning-logo-icon .cap::after {
+                bottom: -5px;
+                width: 8px;
+                height: 5px;
+            }
+
+            .learning-logo-icon .tassel {
+                width: 3px;
+                height: 7px;
+                top: 11px;
+                right: 4px;
+            }
+
+            .learning-logo-icon .tassel::after {
+                width: 4px;
+                height: 5px;
+                bottom: -4px;
+            }
+
+            .learning-logo-icon .star {
+                width: 7px;
+                height: 7px;
+                left: 1px;
+                top: 0;
+            }
+
+            .learning-logo-icon .dot {
+                width: 4px;
+                height: 4px;
+                bottom: 3px;
+                left: 2px;
+            }
+
             .learning-header {
                 padding: 6px 0;
             }
@@ -913,6 +1054,11 @@
                 width: 24px;
                 margin-right: 14px;
                 font-size: 16px;
+            }
+
+            .sidebar-menu .badge {
+                padding: 1px 5px;
+                font-size: 9px;
             }
 
             .learning-footer {
@@ -1032,20 +1178,37 @@
         }
         
         .loader-logo {
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 12px;
+            width: 80px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
-        
-        .loader-logo i {
-            font-size: 28px;
-            color: var(--primary-color);
+
+        .loader-logo img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .loader-text {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes loaderTasselSwing {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        @keyframes loaderStarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @keyframes loaderDotBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
         }
         
         .loader-text {
@@ -1203,7 +1366,7 @@
                     <i class="fa fa-bars"></i>
                 </button>
                 <a href="{{ url('/learning') }}" class="learning-logo" id="learning-logo">
-                    <i class="fa fa-graduation-cap"></i>
+                    <img src="{{ asset('images/learn.jpg') }}" alt="Whence Learn" class="learning-logo-img">
                     <span>Whence Learn</span>
                 </a>
             </div>
@@ -1293,21 +1456,72 @@
                 </div>
             </div>
             
+            <!-- Quick Links Section -->
             <div class="sidebar-section">
                 <div class="sidebar-title">Quick Links</div>
                 <ul class="sidebar-menu">
                     <li><a href="{{ url('/learning') }}" class="active"><i class="fa fa-home"></i> Home</a></li>
-                    <li><a href="{{ url('/learning/courses') }}"><i class="fa fa-book"></i> My Courses</a></li>
-                    <li><a href="{{ url('/learning/calendar') }}"><i class="fa fa-calendar"></i> Calendar</a></li>
-                    <li><a href="{{ url('/learning/progress') }}"><i class="fa fa-tasks"></i> My Progress</a></li>
-                    <li><a href="{{ url('/learning/certificates') }}"><i class="fa fa-certificate"></i> Certificates</a></li>
+                    <li>
+                        <a href="{{ url('/learning/courses') }}">
+                            <i class="fa fa-book"></i> My Courses
+                            @php
+                            $enrolledCount = 0;
+                            if($user) {
+                                $enrolledCount = \App\Models\Enrollment::where('user_id', $user->id)->count();
+                            }
+                            @endphp
+                            @if($enrolledCount > 0)
+                                <span class="badge badge-primary">{{ $enrolledCount }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url('/learning/calendar') }}">
+                            <i class="fa fa-calendar"></i> Calendar
+                            @php $upcomingCount = isset($upcomingLessons) ? count($upcomingLessons) : 0; @endphp
+                            @if($upcomingCount > 0)
+                                <span class="badge badge-warning">{{ $upcomingCount }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url('/learning/progress') }}">
+                            <i class="fa fa-tasks"></i> My Progress
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url('/learning/certificates') }}">
+                            <i class="fa fa-certificate"></i> Certificates
+                            @php $certCount = isset($certificates) ? count($certificates) : 0; @endphp
+                            @if($certCount > 0)
+                                <span class="badge badge-success">{{ $certCount }}</span>
+                            @endif
+                        </a>
+                    </li>
                     @if($user && $user->istrainer == 1)
-                    <li><a href="{{ url('/learning/training-materials') }}"><i class="fa fa-folder-open"></i> Training Materials</a></li>
+                    <li>
+                        <a href="{{ url('/learning/training-materials') }}">
+                            <i class="fa fa-folder-open"></i> Training Materials
+                            @php $materialsCount = isset($trainingMaterials) ? count($trainingMaterials) : 0; @endphp
+                            @if($materialsCount > 0)
+                                <span class="badge badge-secondary">{{ $materialsCount }}</span>
+                            @endif
+                        </a>
+                    </li>
                     @endif
-                    <li><a href="{{ url('/course-categories') }}"><i class="fa fa-folder"></i> Categories</a></li>
+                    <li>
+                        <a href="{{ url('/course-categories') }}">
+                            <i class="fa fa-folder"></i> Categories
+                            @php $categoryCount = isset($categories) ? count($categories) : (isset($sidebarCategories) ? count($sidebarCategories) : 0); @endphp
+                            @if($categoryCount > 0)
+                                <span class="badge badge-secondary">{{ $categoryCount }}</span>
+                            @endif
+                        </a>
+                    </li>
                 </ul>
             </div>
             
+            <!-- Categories Section -->
             <div class="sidebar-section">
                 <div class="sidebar-title">Categories</div>
                 <ul class="sidebar-menu">
@@ -1316,7 +1530,15 @@
                     @endphp
                     @if(count($sidebarCategories) > 0)
                         @foreach($sidebarCategories as $category)
-                        <li><a href="{{ url('/learning?category=' . urlencode($category->name)) }}"><i class="fa {{ $category->icon }}"></i> {{ $category->name }}</a></li>
+                        <li>
+                            <a href="{{ url('/learning?category=' . urlencode($category->name)) }}">
+                                <i class="fa {{ $category->icon }}"></i> {{ $category->name }}
+                                @php $courseCount = isset($category->courses) ? $category->courses->count() : 0; @endphp
+                                @if($courseCount > 0)
+                                    <span class="badge badge-primary">{{ $courseCount }}</span>
+                                @endif
+                            </a>
+                        </li>
                         @endforeach
                     @else
                         <li><a href="#"><i class="fa fa-folder"></i> No categories available</a></li>
@@ -1372,7 +1594,7 @@
     <div id="loader">
         <div class="loader-content">
             <div class="loader-logo">
-                <i class="fa fa-graduation-cap"></i>
+                <img src="{{ asset('images/learn.jpg') }}" alt="Whence Learn" style="width: 60px; height: auto;">
             </div>
             <div class="loader-text">Whence Learn</div>
             <div class="loader-subtext">Loading your learning experience...</div>
