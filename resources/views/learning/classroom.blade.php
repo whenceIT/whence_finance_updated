@@ -642,7 +642,13 @@
                             </div>
                             <div class="wizard-topic-action {{ $topicCompleted ? 'completed' : ($topicActive ? 'start' : 'locked') }}">
                                 @if($topicCompleted)
-                                    Review
+                                    @if($topic['quiz_id'])
+                                        <button onclick="event.stopPropagation(); confirmTakeQuiz({{ $topic['quiz_id'] }}, '{{ $topic['title'] }}')" style="background: none; border: none; color: inherit; padding: 0; cursor: pointer;">
+                                            <i class="fa fa-pencil"></i> Quiz
+                                        </button>
+                                    @else
+                                        Review
+                                    @endif
                                 @elseif($topicActive)
                                     {{ $loop->parent->first ? 'Start' : 'Continue' }}
                                 @else
@@ -731,15 +737,47 @@
                     </div>
                     <div class="quiz-actions">
                         @if($topic['quiz_id'])
-                        <a href="{{ url('/learning/quiz/' . $topic['quiz_id'] . '/take') }}" class="btn btn-success btn-lg">
-                            <i class="fa fa-pencil"></i> {{ $topic['quiz_passed'] ? 'Retake Quiz' : 'Start Quiz' }}
-                        </a>
+                        <button class="btn btn-success btn-lg" onclick="confirmTakeQuiz({{ $topic['quiz_id'] }}, '{{ $topic['title'] }}')">
+                            <i class="fa fa-pencil"></i> {{ $topic['quiz_passed'] ? 'Retake Quiz' : 'Take Quiz' }}
+                        </button>
                         @endif
+                        @if(!$topic['quiz_id'] || $topic['quiz_passed'])
                         <button class="btn btn-secondary btn-lg" onclick="skipQuiz()">
                             <i class="fa fa-arrow-right"></i> Continue to Next Topic
                         </button>
+                        @else
+                        <button class="btn btn-secondary btn-lg" onclick="skipQuiz()" disabled style="opacity: 0.6; cursor: not-allowed;" title="Pass the quiz to continue">
+                            <i class="fa fa-lock"></i> Pass Quiz to Continue
+                        </button>
+                        @endif
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quiz Confirmation Modal -->
+<div class="modal fade" id="quizConfirmModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title"><i class="fa fa-question-circle" style="color: var(--primary-color);"></i> Start Quiz</h4>
+            </div>
+            <div class="modal-body">
+                <p id="quizConfirmMessage">Are you ready to take this quiz?</p>
+                <p style="color: var(--text-secondary); font-size: 13px;">
+                    <i class="fa fa-info-circle"></i> You need to pass this quiz to complete the topic and proceed to the next one.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a href="#" id="quizConfirmLink" class="btn btn-primary">
+                    <i class="fa fa-pencil"></i> Start Quiz
+                </a>
             </div>
         </div>
     </div>
@@ -910,7 +948,7 @@ function markAsComplete(isReview) {
         },
         success: function(response) {
             if (response.success) {
-                showFlashMessage('success', 'Topic Completed!', 'Great job! You can now take the quiz.', 'fa-check-circle');
+                showFlashMessage('success', 'Topic Completed!', response.message, 'fa-check-circle');
                 
                 // Update topic status
                 const topicElement = document.querySelector(`[data-topic-id="${currentTopicId}"]`);
@@ -933,25 +971,57 @@ function markAsComplete(isReview) {
                 // Show quiz section
                 document.getElementById('quiz-section').classList.add('visible');
                 
-                // Update content actions
+                // Update content actions - show appropriate buttons based on quiz status
                 const actionsDiv = document.getElementById('content-actions');
-                actionsDiv.innerHTML = `
-                    ${currentTopicFilePath ? `
-                    <a href="${currentTopicFilePath}" class="btn btn-primary btn-lg" target="_blank">
-                        <i class="fa fa-external-link"></i> Open Resource
-                    </a>
-                    ` : ''}
-                    <button class="btn btn-secondary btn-lg" onclick="skipQuiz()">
-                        <i class="fa fa-arrow-right"></i> Continue to Next Topic
-                    </button>
-                `;
+                if (currentQuizId && currentQuizId !== 'null' && !currentQuizPassed) {
+                    // Quiz required but not passed
+                    actionsDiv.innerHTML = `
+                        ${currentTopicFilePath ? `
+                        <a href="${currentTopicFilePath}" class="btn btn-primary btn-lg" target="_blank">
+                            <i class="fa fa-external-link"></i> Open Resource
+                        </a>
+                        ` : ''}
+                        <button class="btn btn-warning btn-lg" onclick="confirmTakeQuiz(currentQuizId, '${topicElement.querySelector('.wizard-topic-title').textContent}')">
+                            <i class="fa fa-pencil"></i> Take Quiz to Complete
+                        </button>
+                    `;
+                } else {
+                    // No quiz or quiz passed - allow continuing
+                    actionsDiv.innerHTML = `
+                        ${currentTopicFilePath ? `
+                        <a href="${currentTopicFilePath}" class="btn btn-primary btn-lg" target="_blank">
+                            <i class="fa fa-external-link"></i> Open Resource
+                        </a>
+                        ` : ''}
+                        <button class="btn btn-secondary btn-lg" onclick="skipQuiz()">
+                            <i class="fa fa-arrow-right"></i> Continue to Next Topic
+                        </button>
+                    `;
+                }
                 
                 // Reload to update progress
                 setTimeout(function() {
                     location.reload();
                 }, 2000);
             } else {
-                showFlashMessage('error', 'Error', response.message, 'fa-times-circle');
+                // Handle quiz requirement error
+                if (response.quiz_required) {
+                    showFlashMessage('warning', 'Quiz Required', response.message, 'fa-exclamation-triangle');
+                    // Update content actions to show quiz button
+                    const actionsDiv = document.getElementById('content-actions');
+                    actionsDiv.innerHTML = `
+                        ${currentTopicFilePath ? `
+                        <a href="${currentTopicFilePath}" class="btn btn-primary btn-lg" target="_blank">
+                            <i class="fa fa-external-link"></i> Open Resource
+                        </a>
+                        ` : ''}
+                        <button class="btn btn-warning btn-lg" onclick="confirmTakeQuiz(${response.quiz_id}, '${topicElement.querySelector('.wizard-topic-title').textContent}')">
+                            <i class="fa fa-pencil"></i> Take Quiz First
+                        </button>
+                    `;
+                } else {
+                    showFlashMessage('error', 'Error', response.message, 'fa-times-circle');
+                }
             }
         },
         error: function() {
@@ -961,8 +1031,14 @@ function markAsComplete(isReview) {
 }
 
 function skipQuiz() {
+    // Check if current topic has a quiz that hasn't been passed
+    if (currentQuizId && currentQuizId !== 'null' && !currentQuizPassed) {
+        showFlashMessage('warning', 'Quiz Required', 'Please take and pass the quiz before proceeding to the next topic.', 'fa-exclamation-triangle');
+        return;
+    }
+    
     // Move to next incomplete topic or show completion message
-    showFlashMessage('info', 'Skipping Quiz', 'Moving to next topic...', 'fa-info-circle');
+    showFlashMessage('info', 'Moving to Next Topic', 'Loading next topic...', 'fa-info-circle');
     
     // Find next incomplete topic
     const topics = document.querySelectorAll('.wizard-topic');
@@ -971,10 +1047,23 @@ function skipQuiz() {
         if (foundCurrent) {
             if (topic.dataset.topicCompleted === 'false') {
                 const topicId = topic.dataset.topicId;
-                // Get topic info from DOM
-                const topicType = topic.querySelector('.wizard-topic-icon').classList.contains('video') ? 'video' : 
-                                  topic.querySelector('.wizard-topic-icon').classList.contains('pdf') ? 'pdf' : 'document';
-                openTopic(topicId, topicType, '');
+                const quizId = topic.dataset.quizId && topic.dataset.quizId !== 'null' ? topic.dataset.quizId : null;
+                const quizPassed = topic.dataset.quizPassed === 'true';
+                
+                // Get topic type from icon classes
+                let topicType = 'video';
+                if (topic.querySelector('.wizard-topic-icon .fa-file-pdf-o')) topicType = 'pdf';
+                else if (topic.querySelector('.wizard-topic-icon .fa-file-powerpoint-o')) topicType = 'ppt';
+                else if (topic.querySelector('.wizard-topic-icon .fa-file-word-o')) topicType = 'document';
+                else if (topic.querySelector('.wizard-topic-icon .fa-headphones')) topicType = 'audio';
+                
+                // Check if next topic requires quiz and if passed
+                if (quizId && !quizPassed) {
+                    // Quiz required but not passed - redirect to quiz
+                    window.location.href = '/learning/training-materials/quiz/' + quizId + '/take';
+                } else {
+                    openTopic(topicId, topicType, '', quizId);
+                }
                 return;
             }
         }
@@ -1002,5 +1091,13 @@ document.addEventListener('DOMContentLoaded', function() {
         openTopic(topicId, 'video', '');
     }
 });
+
+// Quiz confirmation dialog
+function confirmTakeQuiz(quizId, topicTitle) {
+    document.getElementById('quizConfirmMessage').innerHTML = 
+        'Are you ready to take the quiz for <strong style="color: var(--primary-color);">' + topicTitle + '</strong>?\n        <p style="margin-top: 10px; font-size: 13px;">You need to pass this quiz to complete the topic.</p>';
+    document.getElementById('quizConfirmLink').href = '/learning/training-materials/quiz/' + quizId + '/take';
+    $('#quizConfirmModal').modal('show');
+}
 </script>
 @endsection
