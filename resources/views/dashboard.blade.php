@@ -159,31 +159,6 @@
     <!-- What Loan Consultants see -->
     @if($role->role_id == '3')
 
-        <div></div>
-
-        <div style="display: flex;
-                                                            align-items: center;
-                                                            justify-content: center; padding-bottom: 10px;">
-
-            <!-- <a href="{{ url('loan/my_collections') }}" style="margin: 10px;">
-                <span class="label label-primary" style="font-size: 15px;">Collections</span>
-            </a> -->
-
-            <a href="javascript:;" onmousedown="toggleCOUA();" style="margin: 10px;">
-                <span class="label label-primary" style="font-size: 15px;">COUA</span>
-                <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-            </a>
-
-            <a href="javascript:;" onmousedown="toggleTCC();" style="margin: 10px;">
-                <span class="label label-primary" style="font-size: 15px;">TCC</span>
-            </a>
-            <!-- <i class="fa fa-caret-square-o-right" aria-hidden="true"></i> -->
-
-            <a href="{{url('user/' . $userId . '/given_out_today/given_out_stats')}}" style="margin: 10px;">
-                <span class="label label-primary" style="font-size: 15px;">Given out</span>
-            </a>
-
-        </div>
 
 
         <!-- Default Dashboard -->

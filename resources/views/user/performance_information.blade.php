@@ -74,6 +74,7 @@
                         <th class="text-right">Cycle Opening Uncollected (COUA)</th>
                         <th class="text-right">Total Cycle Collected (TCC)</th>
                         <th class="text-right">Still Uncollected Today (SUT)</th>
+                        <th class="text-right">Carry Over</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -140,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <td class="text-right">${row.total_uncollected}</td>
                         <td class="text-right text-success">${row.total_collected}</td>
                         <td class="text-right text-danger">${row.still_uncollected}</td>
+                        <td class="text-right">${row.carry_over}</td>
                     </tr>
                 `;
             });

@@ -517,7 +517,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     
     $advancesTotal = Advance::where('office_id', $officeId)
     ->whereIn('status', ['approved', 'closed'])
-    ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
+    ->whereBetween('date_approved', [$startDate, $endDate])
     ->sum('amount');
     $netChange -= $advancesTotal;
 
@@ -525,38 +525,38 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $advancesPaid = AdvanceTransaction::whereHas('advance', function ($query) use ($officeId) {
         $query->where('office_id', $officeId);
     })
-    ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
+    ->whereBetween('last_update_date', [$startDate, $endDate])
     ->sum('amount_paid');
 
     $netChange += $advancesPaid;
 
     $expensesTotal = Expense::where('office_id', $officeId)
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('amount');
     $netChange -= $expensesTotal;
 
     $fullPaymentsTotal = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'repayment')
         ->where('payment_apply_to', 'full_payment')
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('credit');
     $netChange += $fullPaymentsTotal;
 
     $reloanedAmountTotal = LoanTransaction::where('office_id', $officeId)
         ->where('payment_apply_to', 'reloan_payment')
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('credit');
     $netChange += $reloanedAmountTotal;
 
     $partPaymentTotal = LoanTransaction::where('office_id', $officeId)
         ->where('payment_apply_to', 'part_payment')
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('credit');
     $netChange += $partPaymentTotal;
 
     $newLoansTotal = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'disbursement')
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('debit');
     $netChange -= $newLoansTotal;
     $totalIncome = $generalLedger ? $generalLedger->total_income : 0;

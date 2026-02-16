@@ -159,6 +159,9 @@ Route::group(['prefix' => 'user'], function () {
     Route::any('/carry_over_approvals','UserController@carry_over_approvals');
     Route::any('{id}/approve_carry_over','UserController@approve_carry_over');
     Route::any('{id}/decline_carry_over','UserController@decline_carry_over');
+    Route::any('mandatory_verification','UserController@mandatory_verification');
+    Route::any('verify_numbers','UserController@verify_numbers');
+    Route::any('transfers','UserController@transfers');
     // Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
@@ -935,7 +938,9 @@ Route::group(['prefix' => 'ticket'], function () {
     Route::get('/', 'TicketController@index');
     Route::get('index', 'TicketController@index');
     Route::get('create', 'TicketController@create');
+    Route::get('create_dashboard_ticket', 'TicketController@create_dashboard_ticket');
     Route::post('store', 'TicketController@store');
+    Route::post('store_dashboard_ticket','TicketController@store_dashboard_ticket');
     Route::match(['post', 'put'], '{id}/update', 'TicketController@update');
     Route::get('users', 'TicketController@usersByOfficeRole');
     Route::get('offices', 'TicketController@officesByParent');

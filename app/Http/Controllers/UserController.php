@@ -114,6 +114,7 @@ public function create_carry_over(Request $request)
           $HasPendingCarryOvers = false;
            $pendingApproval = false;
             $launchNewCarryOver = false;
+            $numbers_status = null;
 
         $role = Sentinel::getUser()->roles->first();
 
@@ -222,6 +223,12 @@ public function create_carry_over(Request $request)
         if ($role->role_id == '3') {
 
 $user = Sentinel::getUser();
+
+//  if ($user->verified_numbers == 'unverified') {
+//         return redirect('/user/mandatory_verification');  
+//     }
+
+    $numbers_status = $user->verify_numbers;
 
 // 1. Cycle end day (default 24)
 $cycle_end = $user->cycle_dates
@@ -448,10 +455,104 @@ $data = $json ? json_decode($json, true) : null;
 
         $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date'));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date','numbers_status'));
         } else {
             return view('dashboard', compact('role', 'user', 'client', 'clientBranch', 'staff', 'clientLoan'));
         }
+    }
+
+
+    public function mandatory_verification(Request $request){
+         $userId = Sentinel::getUser()->id;
+         $user = Sentinel::getUser();
+
+         $cycle_end = $user->cycle_dates
+    ? (int) $user->cycle_dates->cycle_end_date
+    : 24;
+
+$today = Carbon::today();
+
+$buildCycleDate = function (Carbon $month) use ($cycle_end) {
+    $month = $month->copy()->startOfMonth();
+    $cycleDay = min($cycle_end, $month->daysInMonth);
+    return $month->day($cycleDay)->addDay();
+};
+
+/*
+|--------------------------------------------------------------------------
+| Determine correct cycle_date
+|--------------------------------------------------------------------------
+*/
+$cycleDate = $buildCycleDate(Carbon::now());
+
+// If today is before cycle date, fall back to previous month
+if ($today->lt($cycleDate)) {
+    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
+}
+
+$cycle_date = $cycleDate->format('Y-m-d');
+$true_date = $cycle_date;
+
+
+/*
+|--------------------------------------------------------------------------
+| Determine cycle close date = last day of month after current cycle
+|--------------------------------------------------------------------------
+*/
+$cycle_close_date = Carbon::parse($cycle_date)
+    ->addMonthNoOverflow()
+    ->subDay()
+    ->format('Y-m-d');
+
+
+     $fixedDay = $cycle_end;
+$userId = Sentinel::getUser()->id;
+
+// Convert cycle_date/close_date to Carbon
+$cycleStart = Carbon::parse($cycle_date);
+$cycleEnd = Carbon::parse($cycle_close_date);
+
+// ORIGINAL
+$start = $cycleStart->copy()
+    ->day(min($fixedDay, $cycleStart->daysInMonth))
+    ->addDay()
+    ->format('Y-m-d');
+
+$end = $cycleEnd->copy()
+    ->day(min($fixedDay, $cycleEnd->daysInMonth))
+    ->format('Y-m-d');
+
+// SECOND DATE
+$startMonth = $request->input('start_month');
+$endMonth   = $request->input('end_month');
+
+if ($startMonth) {
+    $start = Carbon::parse($startMonth)
+        ->day(min($fixedDay, Carbon::parse($startMonth)->daysInMonth))
+        ->addDay()
+        ->format('Y-m-d');
+}
+
+if ($endMonth) {
+    $end = Carbon::parse($endMonth)
+        ->day(min($fixedDay, Carbon::parse($endMonth)->daysInMonth))
+        ->format('Y-m-d');
+}
+
+
+// Build query
+$query = http_build_query([
+    'user_id' => $userId,
+    'start_date' => $start,
+    'end_date' => $end,
+]);
+
+$url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
+
+$json = @file_get_contents($url);
+$data = $json ? json_decode($json, true) : null;
+
+        return view('user.mandatory_verification',compact('data','start','end','userId'));
     }
 
 
@@ -484,6 +585,16 @@ return view('user.carry_over_approvals',compact('data'));
 return redirect('user/carry_over_approvals');
  }
 
+
+ public function verify_numbers(){
+
+     $user = Sentinel::getUser();
+     $user->verified_numbers = 'verified';
+     $user->save();
+
+     return redirect('/dashboard');
+
+ }
 
 
 
