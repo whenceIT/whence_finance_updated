@@ -509,4 +509,52 @@ class TicketController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage(), 'users' => []], 500);
         }
     }
+
+    public function reassign(Request $request)
+    {
+        try {
+            $request->validate([
+                'ticket_id' => 'required|exists:tickets,id',
+                'assigned_to' => 'required|exists:users,id',
+            ]);
+
+            $ticket = Ticket::findOrFail($request->ticket_id);
+            $previousAssignee = $ticket->assigned_to;
+            $newAssignee = User::findOrFail($request->assigned_to);
+            
+            // Update the ticket assignment
+            $ticket->assigned_to = $request->assigned_to;
+            $ticket->assigned_by = Sentinel::getUser()->id;
+            $ticket->stage = 'Started';
+            
+            // If there are remarks, append them to the existing remarks
+            if ($request->filled('remarks')) {
+                $existingRemarks = $ticket->remarks ?? '';
+                $newRemark = 'Reassigned from ' . ($previousAssignee ? User::find($previousAssignee)->first_name ?? 'Unknown' : 'Unassigned') . ' to ' . $newAssignee->first_name . ': ' . $request->remarks;
+                $ticket->remarks = $existingRemarks . '\n' . $newRemark;
+            }
+            
+            $ticket->save();
+
+            // Email notifications are disabled due to SSL configuration issues
+            // Uncomment below if you want to enable email notifications
+            /*
+            // Send notification email to new assignee
+            $notificationEmails = config('ticket.notification_emails', []);
+            foreach ($notificationEmails as $email) {
+                try {
+                    Mail::to($email)->send(new SendSingleEmail('Ticket Reassigned | ' . $ticket->ticket_number, 'Ticket has been reassigned: ' . $ticket->ticket_number . '. {link}'));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send reassignment notification email: ' . $e->getMessage());
+                }
+            }
+            */
+
+            Flash::success('Ticket has been reassigned successfully.');
+            return redirect()->back();
+        } catch (\Exception $e) {
+            Flash::error('Error reassigning ticket: ' . $e->getMessage());
+            return redirect()->back();
+        }
+    }
 }

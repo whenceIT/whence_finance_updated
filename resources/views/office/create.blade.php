@@ -79,6 +79,17 @@
                                     value="{{old('branch_capacity')}}" id="branch_capacity">
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label for="province_id" class="control-label col-md-3">Province</label>
+                            <div class="col-md-9">
+                                <select name="province_id" class="form-control select2" id="province_id">
+                                    <option></option>
+                                    @foreach(\App\Models\Province::all() as $key)
+                                        <option value="{{$key->id}}">{{$key->name}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                         <div class="box-footer">
                             <button type="button" class="btn btn-info pull-right next-step">Next</button>
                         </div>

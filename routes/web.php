@@ -20,8 +20,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
 use App\Http\Controllers\LoanReportController;
+use App\Http\Controllers\CourseCategoryController;
+use App\Http\Controllers\LearningController;
+use App\Http\Controllers\LearningSettingController;
+use App\Http\Controllers\TrainingMaterialController;
+use App\Http\Controllers\QuizController;
 use App\Http\Controllers\StaffSurveyController;
-use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -144,6 +148,71 @@ Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');
 Route::post('induction/mark_as_seen', [InductionController::class, 'markAsSeen']);
 Route::post('induction/toggle_checklist_item', [InductionController::class, 'toggleChecklistItem']);
+
+// Learning Management System Routes
+Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
+    Route::get('/', [LearningController::class, 'index'])->name('learning.dashboard');
+    Route::get('/courses', [LearningController::class, 'courses'])->name('learning.courses');
+    Route::get('/calendar', [LearningController::class, 'calendar'])->name('learning.calendar');
+    Route::get('/progress', [LearningController::class, 'progress'])->name('learning.progress');
+    Route::get('/certificates', [LearningController::class, 'certificates'])->name('learning.certificates');
+    Route::get('/course/{id}', [LearningController::class, 'showCourse'])->name('learning.course');
+    Route::get('/course/{id}/classroom', [LearningController::class, 'classroom'])->name('learning.course.classroom');
+    Route::post('/course/{id}/complete', [LearningController::class, 'completeCourse'])->name('learning.course.complete');
+    Route::post('/course/{id}/complete-topic', [LearningController::class, 'completeTopic'])->name('learning.course.complete-topic');
+    Route::post('/enroll/{id}', [LearningController::class, 'enroll'])->name('learning.enroll');
+    Route::post('/unenroll/{id}', [LearningController::class, 'unenroll'])->name('learning.unenroll');
+    
+    // Settings Routes
+    Route::get('/settings', [LearningSettingController::class, 'index'])->name('learning.settings');
+    Route::get('/settings/categories', [LearningSettingController::class, 'categories'])->name('learning.settings.categories');
+    Route::get('/settings/students', [LearningSettingController::class, 'students'])->name('learning.settings.students');
+    Route::get('/settings/teachers', [LearningSettingController::class, 'teachers'])->name('learning.settings.teachers');
+    Route::get('/settings/platform', [LearningSettingController::class, 'platform'])->name('learning.settings.platform');
+    
+    // Trainer Management Routes
+    Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
+    Route::get('/api/users-by-role/{roleId}', [LearningSettingController::class, 'getUsersByRole']);
+    Route::get('/api/roles-by-office/{officeId}', [LearningSettingController::class, 'getRolesByOffice']);
+    Route::get('/api/users-by-office-role/{officeId}/{roleId}', [LearningSettingController::class, 'getUsersByOfficeRole']);
+    Route::post('/settings/teachers/update-trainer', [LearningSettingController::class, 'updateTrainerStatus'])->name('learning.settings.teachers.update-trainer');
+    Route::delete('/settings/teachers/remove-trainer/{userId}', [LearningSettingController::class, 'removeTrainerStatus'])->name('learning.settings.teachers.remove-trainer');
+});
+
+// Course Categories Management Routes
+Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], function () {
+    Route::get('/', [CourseCategoryController::class, 'index'])->name('course-categories.index');
+    Route::get('/create', [CourseCategoryController::class, 'create'])->name('course-categories.create');
+    Route::post('/', [CourseCategoryController::class, 'store'])->name('course-categories.store');
+    Route::get('/{id}/edit', [CourseCategoryController::class, 'edit'])->name('course-categories.edit');
+    Route::put('/{id}', [CourseCategoryController::class, 'update'])->name('course-categories.update');
+    Route::delete('/{id}', [CourseCategoryController::class, 'destroy'])->name('course-categories.destroy');
+    Route::post('/{id}/toggle-status', [CourseCategoryController::class, 'toggleStatus'])->name('course-categories.toggle-status');
+});
+
+// Training Materials Management Routes
+Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentinel'], function () {
+    Route::get('/', [TrainingMaterialController::class, 'index'])->name('learning.training-materials.index');
+    Route::get('/create', [TrainingMaterialController::class, 'create'])->name('learning.training-materials.create');
+    Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
+    Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
+    Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
+    Route::put('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
+    Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
+    Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
+    Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
+    Route::get('/{id}/quiz', [QuizController::class, 'index'])->name('learning.quizzes.index');
+    Route::get('/topic/{topicId}/quiz/manage', [QuizController::class, 'manage'])->name('learning.quizzes.manage');
+    Route::post('/topic/{topicId}/quiz/save', [QuizController::class, 'save'])->name('learning.quizzes.save');
+    Route::delete('/quiz/{quizId}/delete', [QuizController::class, 'delete'])->name('learning.quizzes.delete');
+    
+    // Quiz taking routes for students
+    Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
+    Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
+    
+    // Topics management route for trainers
+    Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
+});
 
 //route for users
 Route::group(['prefix' => 'user'], function () {
@@ -941,6 +1010,7 @@ Route::group(['prefix' => 'ticket'], function () {
     Route::get('create_dashboard_ticket', 'TicketController@create_dashboard_ticket');
     Route::post('store', 'TicketController@store');
     Route::post('store_dashboard_ticket','TicketController@store_dashboard_ticket');
+    Route::post('reassign', 'TicketController@reassign');
     Route::match(['post', 'put'], '{id}/update', 'TicketController@update');
     Route::get('users', 'TicketController@usersByOfficeRole');
     Route::get('offices', 'TicketController@officesByParent');

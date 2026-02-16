@@ -10,6 +10,22 @@ class Office extends Model
 
     protected $table = "offices";
 
+    protected $fillable = [
+        'name',
+        'parent_id',
+        'external_id',
+        'opening_date',
+        'branch_capacity',
+        'address',
+        'phone',
+        'email',
+        'notes',
+        'manager_id',
+        'active',
+        'default_office',
+        'province_id'
+    ];
+
     public function parent()
     {
         return $this->hasOne(Office::class, 'id', 'parent_id');

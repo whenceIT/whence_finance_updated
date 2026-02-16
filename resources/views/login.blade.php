@@ -92,6 +92,7 @@
                         <!-- /.col -->
                         <div class="col-xs-8">
                             <button type="submit"
+                                    id="login-btn"
                                     class="btn btn-block btn-flat" style="width:80%; color:#ffffff; background-color:#00a04a;">{{ trans_choice('general.sign_in',1) }}</button>
                                     <div>
 
@@ -138,12 +139,45 @@
     </div> --}}
 @endsection
 @section('footer-scripts')
+    <style>
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+            background-color: #007f00 !important;
+        }
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
     <script>
         $(document).ready(function () {
             $('input').iCheck({
                 checkboxClass: 'icheckbox_square-blue',
                 radioClass: 'iradio_square-blue',
                 increaseArea: '20%' /* optional */
+            });
+            $(".login-form").on('submit', function() {
+                var btn = $('#login-btn');
+                btn.addClass('btn-loading');
+                // Re-enable after 10 seconds as fallback
+                setTimeout(function() {
+                    btn.removeClass('btn-loading');
+                }, 10000);
             });
             $(".login-form").validate({
                 rules: {
