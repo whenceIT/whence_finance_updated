@@ -127,8 +127,8 @@
                     <td>Full Payment</td>
                     <td>
                         @if(!empty($payment->loan))
-                                    @if(!empty($payment->loan->loan_officer))
-                                        {{$payment->loan->loan_officer->first_name}}  {{$payment->loan->loan_officer->last_name}}
+                                    @if(!empty($payment->loan->client))
+                                        {{$payment->loan->client->first_name}}  {{$payment->loan->client->last_name}}
                                     @endif
                                 @endif
                     </td>
@@ -149,8 +149,8 @@
                     <td>Reloaned Amount</td>
                     <td>
                         @if(!empty($reloan->loan))
-                                    @if(!empty($reloan->loan->loan_officer))
-                                        {{$reloan->loan->loan_officer->first_name}}  {{$reloan->loan->loan_officer->last_name}}
+                                    @if(!empty($reloan->loan->client))
+                                        {{$reloan->loan->client->first_name}}  {{$reloan->loan->client->last_name}}
                                     @endif
                                 @endif
                     </td> 
@@ -170,8 +170,8 @@
                     <td>Part Payment</td>
                     <td>
                            @if(!empty($part->loan))
-                                    @if(!empty($part->loan->loan_officer))
-                                        {{$part->loan->loan_officer->first_name}}  {{$part->loan->loan_officer->last_name}}
+                                    @if(!empty($part->loan->client))
+                                        {{$part->loan->client->first_name}}  {{$part->loan->client->last_name}}
                                     @endif
                                 @endif
                     </td>
@@ -191,8 +191,8 @@
                     <td>New Loan</td>
                     <td>
                         @if(!empty($loan))
-                                    @if(!empty($loan->loan_officer))
-                                        {{$loan->loan_officer->first_name}}  {{$loan->loan_officer->last_name}}
+                                    @if(!empty($loan->client))
+                                        {{$loan->client->first_name}}  {{$loan->client->last_name}}
                                     @endif
                                 @endif
                     </td> 
