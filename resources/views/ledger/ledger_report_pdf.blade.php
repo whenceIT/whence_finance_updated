@@ -190,9 +190,9 @@
                     <td>{{ $loan->loan_id }}</td> 
                     <td>New Loan</td>
                     <td>
-                        @if(!empty($loan))
-                                    @if(!empty($loan->client))
-                                        {{$loan->client->first_name}}  {{$loan->client->last_name}}
+                        @if(!empty($loan->loan))
+                                    @if(!empty($loan->loan->client))
+                                        {{$loan->loan->client->first_name}}  {{$loan->loan->client->last_name}}
                                     @endif
                                 @endif
                     </td> 
