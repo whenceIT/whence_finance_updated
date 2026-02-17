@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Session;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\LedgerIncome;
 use App\Models\User;
+use App\Models\Deposit;
 
 
 class GeneralLedgerController extends Controller
@@ -265,7 +266,7 @@ public function transactions()
     
     foreach ($offices as $office) {
         $recentLedgerEntry = GeneralLedger::where('office_id', $office->id)
-            ->orderBy('created_at', 'desc')
+            // ->orderBy('created_at', 'desc')
             ->first();
 
         $netChange = $this->calculateNetChange($office, $recentLedgerEntry); 
@@ -298,6 +299,10 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $expensesTotal = Expense::where('office_id', $office->id)
         ->whereBetween('date', [$startLimitDate, $todaysDate])
         ->sum('amount');
+
+    $depositsTotal = Deposit::where('office',$office->id)
+             ->whereBetween('date',[$startLimitDate,$todaysDate])
+             ->sum('amount');
     
     $fullPaymentsTotal = LoanTransaction::where('office_id', $office->id)
         ->where('transaction_type', 'repayment')
@@ -323,7 +328,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $totalIncome = $recentLedgerEntry ? $recentLedgerEntry->total_income : 0;
         
 
-    return $fullPaymentsTotal + $reloanedAmountTotal + $partPaymentTotal+ $advancesTotalPaid  + $totalIncome - ($advancesTotal + $expensesTotal + $newLoansTotal);
+    return $fullPaymentsTotal + $reloanedAmountTotal + $partPaymentTotal+ $advancesTotalPaid  + $totalIncome - ($advancesTotal + $expensesTotal + $newLoansTotal + $depositsTotal);
 }
 
         
@@ -386,6 +391,14 @@ private function calculateNetChange($office, $recentLedgerEntry) {
             ->sum('credit');
         $netChange += $partPaymentTotal;
 
+
+        $depositsTotal = Deposit::where('office',$office->id)
+             ->whereBetween('date',[$startDate,$endDate])
+             ->sum('amount');
+             $netChange -= $depositsTotal;
+
+
+
         $newLoansTotal = LoanTransaction::where('office_id', $office->id)
             ->where('transaction_type', 'disbursement')
             ->whereBetween('date', [$startDate, $endDate])
@@ -409,6 +422,10 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         ->sum('amount_paid');
             
         
+        $deposits = Deposit::where('office',$office->id)
+             ->whereBetween('date',[$startDate,$endDate])
+             ->sum('amount');
+             
         
         $expenses = Expense::where('office_id', $office->id)
             ->whereBetween('date', [$startDate, $endDate])
@@ -436,7 +453,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
             ->sum('debit');
 
         
-        return view('ledger.show', compact('endDate', 'startDate', 'advances', 'advancesPaid', 'expenses', 
+        return view('ledger.show', compact('endDate', 'startDate', 'advances', 'advancesPaid', 'expenses', 'deposits',
             'fullPayments', 'reloanedAmount', 'partPayment', 
             'newLoans', 'office', 'officeName', 'closingBalance', 'generalLedger', 'totalIncome'
         ));

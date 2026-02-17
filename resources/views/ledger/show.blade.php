@@ -80,6 +80,10 @@
                     <td style="font-size: 16px;">Total Full Payments</td>
                     <td style="font-size: 16px;">{{ number_format($fullPayments, 2) }}</td>
                 </tr>
+                <tr class="bg-warning">
+                     <td style="font-size: 16px;">Total Deposits</td>
+                    <td style="font-size: 16px;">{{ number_format($deposits, 2) }}</td>
+                </tr>
                 <tr class="bg-danger">
                     <td style="font-size: 16px;">Total Reloan Payments</td>
                     <td style="font-size: 16px;">{{ number_format($reloanedAmount, 2) }}</td>
