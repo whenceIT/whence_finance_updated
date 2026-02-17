@@ -71,6 +71,10 @@
                 </tr>
             </thead>
             <tbody>
+            <tr>
+                    <td colspan="6" style="text-align: right;"><strong>Opening Balance:</strong></td>
+                    <td><strong>{{ number_format($openingBalance, 2) }}</strong></td>
+                </tr>
                 <!-- Advances -->
                 @foreach ($advances as $advance)
                 <tr>
@@ -111,6 +115,21 @@
                     
                 </tr>
                 @endforeach
+
+
+                           <!-- Deposits -->
+                 @foreach($deposits as $deposit)
+            <tr>
+                    <td>{{ $deposit->date }}</td>
+                    <td>{{ $deposit->id }}</td>
+                    <td> - </td>
+                    <td> Deposit </td> 
+		    <td>{{ $deposit->deposit_type }}</td>
+			<td></td>
+                    <td>{{ number_format($deposit->amount, 2) }}</td>
+                    
+                </tr>
+                 @endforeach
 
                 <!-- Full Payments -->
                 @foreach ($fullPayments as $payment)
@@ -194,6 +213,33 @@
                     
                 </tr>
                 @endforeach
+
+                <!-- Totals Row -->
+<!-- Totals Row -->
+<tr>
+    <td colspan="5" style="text-align: right;"><strong>Totals:</strong></td>
+    <td>
+        <strong>
+            {{ number_format(
+                $advancesPaid->sum('amount_paid') +
+                $fullPayments->sum('credit') +
+                $reloanedAmount->sum('credit') +
+                $partPayment->sum('credit')
+            , 2) }}
+        </strong>
+    </td>
+    <td>
+        <strong>
+            {{ number_format(
+                $advances->sum('amount') +
+                $expenses->sum('amount') +
+                $deposits->sum('amount') +
+                $newLoans->sum('principal')
+            , 2) }}
+        </strong>
+    </td>
+</tr>
+
 
                 <!-- Closing Balance -->
                 <tr>

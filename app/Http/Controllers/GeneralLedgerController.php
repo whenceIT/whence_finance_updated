@@ -556,6 +556,12 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         ->sum('amount');
     $netChange -= $expensesTotal;
 
+    
+    $depositsTotal = Deposit::where('office',$officeId)
+             ->whereBetween('date',[$startDate,$endDate])
+             ->sum('amount');
+             $netChange -= $depositsTotal;
+
     $fullPaymentsTotal = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'repayment')
         ->where('payment_apply_to', 'full_payment')
@@ -603,6 +609,10 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         ->whereBetween('date', [$startDate, $endDate])
         ->get(['id','expense_type', 'name', 'amount', 'date']);
 
+    $deposits = Deposit::where('office',$officeId)
+             ->whereBetween('date',[$startDate,$endDate])
+             ->get();
+
     $fullPayments = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'repayment')
         ->where('payment_apply_to', 'full_payment')
@@ -628,13 +638,13 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $data = compact(
         'startDate', 'endDate', 'advances', 'advancesPaid', 'expenses', 
         'fullPayments', 'reloanedAmount', 'partPayment', 
-        'newLoans', 'closingBalance', 'officeId', 'officeName', 'totalIncome'
+        'newLoans', 'closingBalance', 'officeId', 'officeName', 'totalIncome','deposits',
     );
 
     $pdf = PDF::loadView('ledger.ledger_report_pdf', compact(
-        'startDate', 'endDate', 'advances', 'advancesPaid', 'expenses', 
+        'startDate', 'endDate', 'advances', 'advancesPaid', 'expenses', 'deposits',
         'fullPayments', 'reloanedAmount', 'partPayment', 
-        'newLoans', 'closingBalance', 'officeId', 'officeName', 'totalIncome'
+        'newLoans', 'closingBalance', 'officeId', 'officeName', 'totalIncome','openingBalance',
     ));
     
     return $pdf->download('ledger_report_' . $startDate . '_to_' . $endDate . '.pdf');
@@ -662,6 +672,8 @@ public function generateExcelReport(Request $request)
     $generalLedger = GeneralLedger::where('office_id', $officeId)->first();
     $openingBalance = $generalLedger ? $generalLedger->cash_balance : 0;
     $netChange = 0;
+    $debit = 0;
+    $credit = 0;
 
     // totals
     $advancesTotal = Advance::where('office_id', $officeId)
@@ -669,17 +681,27 @@ public function generateExcelReport(Request $request)
         ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
         ->sum('amount');
     $netChange -= $advancesTotal;
+    $credit -= $advancesTotal;
 
     $advancesPaid = Advance::where('office_id', $officeId)
         ->where('status', 'approved')
         ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
         ->sum('amount_paid');
         $netChange += $advancesPaid;
+        $debit += $advancesPaid;
 
     $expensesTotal = Expense::where('office_id', $officeId)
         ->whereBetween('date', [$startLimitDate, $todaysDate])
         ->sum('amount');
     $netChange -= $expensesTotal;
+    $credit -= $expensesTotal;
+
+
+    $depositsTotal = Deposit::where('office',$officeId)
+             ->whereBetween('date',[$startDate,$endDate])
+             ->sum('amount');
+             $netChange -= $depositsTotal;
+             $credit -= $depositsTotal;
 
     $fullPaymentsTotal = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'repayment')
@@ -687,27 +709,32 @@ public function generateExcelReport(Request $request)
         ->whereBetween('date', [$startLimitDate, $todaysDate])
         ->sum('credit');
     $netChange += $fullPaymentsTotal;
+    $debit += $fullPaymentsTotal;
 
     $reloanedAmountTotal = LoanTransaction::where('office_id', $officeId)
         ->where('payment_apply_to', 'reloan_payment')
         ->whereBetween('date', [$startLimitDate, $todaysDate])
         ->sum('credit');
     $netChange += $reloanedAmountTotal;
+    $debit += $reloanedAmountTotal;
 
     $partPaymentTotal = LoanTransaction::where('office_id', $officeId)
         ->where('payment_apply_to', 'part_payment')
         ->whereBetween('date', [$startLimitDate, $todaysDate])
         ->sum('credit');
     $netChange += $partPaymentTotal;
+    $debit += $partPaymentTotal;
 
     $newLoansTotal = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'disbursement')
         ->whereBetween('date', [$startLimitDate, $todaysDate])
         ->sum('debit');
     $netChange -= $newLoansTotal;
+    $credit -= $newLoansTotal;
 
     $totalIncome = $generalLedger ? $generalLedger->total_income : 0;
         $netChange += $totalIncome;
+        $debit += $totalIncome;
 
     $closingBalance = $openingBalance + $netChange;
 
@@ -717,7 +744,7 @@ public function generateExcelReport(Request $request)
         ->whereBetween('last_update_date', [$startDate, $endDate])
         ->get();
 
-    $advancesPaid = Advance::where('office_id', $office->id)
+    $advancesPaid = Advance::where('office_id', $officeId)
         ->where('status', 'approved')
         ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
         ->get();
@@ -725,6 +752,11 @@ public function generateExcelReport(Request $request)
     $expenses = Expense::where('office_id', $officeId)
         ->whereBetween('date', [$startDate, $endDate])
         ->get();
+
+
+           $deposits = Deposit::where('office',$officeId)
+             ->whereBetween('date',[$startDate,$endDate])
+             ->get();
 
     $fullPayments = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'repayment')
@@ -753,6 +785,7 @@ public function generateExcelReport(Request $request)
         'advances' => $advances,
         'advancesPaid' => $advancesPaid,
         'expenses' => $expenses,
+        'deposits' => $deposits,
         'fullPayments' => $fullPayments,
         'reloanedAmount' => $reloanedAmount,
         'partPayment' => $partPayment,
@@ -760,7 +793,10 @@ public function generateExcelReport(Request $request)
         'closingBalance' => $closingBalance,
         'officeId' => $officeId,
         'officeName' => $officeName,
-        'totalIncome' => $totalIncome
+        'totalIncome' => $totalIncome,
+        'debit' => $debit,
+        'credit' => $credit,
+        'openingBalance' => $openingBalance,
     ];
 
     return Excel::download(new ExportReport('ledger.ledger_report_excel', $data), 'ledger_report_' . $startDate . '_to_' . $endDate . '.xlsx');

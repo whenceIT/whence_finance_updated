@@ -71,6 +71,11 @@
                 </tr>
             </thead>
             <tbody>
+    <tr>
+                    <td colspan="6" style="text-align: right;"><strong>Opening Balance:</strong></td>
+                    <td><strong>{{ number_format($openingBalance, 2) }}</strong></td>
+                </tr>
+
                 <!-- Advances -->
 		@foreach ($advances as $advance)
                 <tr>
@@ -112,14 +117,23 @@
                 </tr>
                 @endforeach
 
+
+                <!-- Deposits -->
+                 @foreach($deposits as $deposit)
+            <tr>
+                    <td>{{ $deposit->date }}</td>
+                    <td>{{ $deposit->id }}</td>
+                    <td> - </td>
+                    <td> Deposit </td> 
+		    <td>{{ $deposit->deposit_type }}</td>
+			<td></td>
+                    <td>{{ number_format($deposit->amount, 2) }}</td>
+                    
+                </tr>
+                 @endforeach
+
                 <!-- Full Payments -->
                 @foreach ($fullPayments as $payment)
-
-                  <?php
-                $client_identification = $payment->client_id;
-              //  $client = \App\Models\Client::where('id',$client_identification)->get();
-                $client = \App\Models\Client::find($client_identification);
-                ?>
                 <tr>
                     <td>{{ $payment->date }}</td>
                     <td>{{ $payment->id }}</td> 
@@ -201,6 +215,35 @@
                    
                 </tr>
                 @endforeach
+
+
+                <!-- Totals Row -->
+<tr>
+    <td colspan="5" style="text-align: right;"><strong>Totals:</strong></td>
+    <td>
+        <strong>
+            {{ number_format(
+                $advancesPaid->sum('amount_paid') +
+                $fullPayments->sum('credit') +
+                $reloanedAmount->sum('credit') +
+                $partPayment->sum('credit')
+        
+            , 2) }}
+        </strong>
+    </td>
+    <td>
+        <strong>
+            {{ number_format(
+                $advances->sum('amount') +
+                $expenses->sum('amount') +
+                $deposits->sum('amount') +
+                $newLoans->sum('debit') +
+                 $totalIncome
+            , 2) }}
+        </strong>
+    </td>
+</tr>
+
 
                 <!-- Closing Balance -->
                 <tr>
