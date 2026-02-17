@@ -65,7 +65,7 @@
                     <th>Transaction ID</th>
                     <th>Loan ID</th>
                     <th>Name</th>
-                    <th>Particulars</th>
+                    <th>Client Name</th>
                     <th>Credit</th>
                     <th>Debit</th>
                 </tr>
@@ -114,21 +114,28 @@
 
                 <!-- Full Payments -->
                 @foreach ($fullPayments as $payment)
+
+                  <?php
+                $client_identification = $payment->client_id;
+              //  $client = \App\Models\Client::where('id',$client_identification)->get();
+                $client = \App\Models\Client::find($client_identification);
+                ?>
                 <tr>
                     <td>{{ $payment->date }}</td>
                     <td>{{ $payment->id }}</td> 
                     <td>{{ $payment->loan_id }}</td>
                     <td>Full Payment</td>
                     <td>
-                        @if($payment->client && $payment->client->first_name)
-                            {{ $payment->client->first_name }}
-                        @else
-                            -
-                        @endif
+                        @if(!empty($payment->loan))
+                                    @if(!empty($payment->loan->loan_officer))
+                                        {{$payment->loan->loan_officer->first_name}}  {{$payment->loan->loan_officer->last_name}}
+                                    @endif
+                                @endif
                     </td>
                     
                     
 		    <td>{{ number_format($payment->credit, 2) }}</td>
+          
 			<td></td>
                 </tr>
                 @endforeach
@@ -141,11 +148,11 @@
                     <td>{{ $reloan->loan_id }}</td> 
                     <td>Reloaned Amount</td>
                     <td>
-                        @if($reloan->client && $reloan->client->first_name)
-                            {{ $reloan->client->first_name }}
-                        @else
-                            -
-                        @endif
+                        @if(!empty($reloan->loan))
+                                    @if(!empty($reloan->loan->loan_officer))
+                                        {{$reloan->loan->loan_officer->first_name}}  {{$reloan->loan->loan_officer->last_name}}
+                                    @endif
+                                @endif
                     </td> 
                     
                     
@@ -162,11 +169,11 @@
                     <td>{{ $part->loan_id }}</td> 
                     <td>Part Payment</td>
                     <td>
-                        @if($part->client && $part->client->first_name)
-                            {{ $part->client->first_name }}
-                        @else
-                            -
-                        @endif
+                           @if(!empty($part->loan))
+                                    @if(!empty($part->loan->loan_officer))
+                                        {{$part->loan->loan_officer->first_name}}  {{$part->loan->loan_officer->last_name}}
+                                    @endif
+                                @endif
                     </td>
                     
                     
@@ -183,11 +190,11 @@
                     <td>{{ $loan->loan_id }}</td> 
                     <td>New Loan</td>
                     <td>
-                        @if($loan->client && $loan->client->first_name)
-                            {{ $loan->client->first_name }} {{ $loan->client->last_name }}
-                        @else
-                            N/A
-                        @endif
+                        @if(!empty($loan))
+                                    @if(!empty($loan->loan_officer))
+                                        {{$loan->loan_officer->first_name}}  {{$loan->loan_officer->last_name}}
+                                    @endif
+                                @endif
                     </td> 
                    <td></td> 
                     <td>{{ number_format($loan->debit, 2) }}</td>
