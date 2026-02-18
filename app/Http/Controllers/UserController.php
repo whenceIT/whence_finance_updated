@@ -224,9 +224,9 @@ public function create_carry_over(Request $request)
 
 $user = Sentinel::getUser();
 
-//  if ($user->verified_numbers == 'unverified') {
-//         return redirect('/user/mandatory_verification');  
-//     }
+ if ($user->verified_numbers == 'unverified') {
+        return redirect('/user/mandatory_verification');  
+    }
 
     $numbers_status = $user->verify_numbers;
 
