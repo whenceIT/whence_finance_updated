@@ -31,6 +31,7 @@
                         </div>
                 </div>
 
+                
 
 			
       @if(Sentinel::hasAccess('loans.update'))

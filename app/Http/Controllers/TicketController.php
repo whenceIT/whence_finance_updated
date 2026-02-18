@@ -37,6 +37,21 @@ class TicketController extends Controller
         return view('ticket.create', compact('users', 'offices', 'roles', 'categories', 'openCount'));
     }
 
+    public function create_dashboard_ticket(){
+        $user = Sentinel::getUser();
+
+        // enforce max 3 open tickets per user
+        $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
+
+        $users = User::all();
+        $offices = \App\Models\Office::all();
+        $roles = \DB::table('roles')->select('id', 'name')->get();
+        $categories = Schema::hasTable('ticket_categories') ? \App\Models\TicketCategory::all() : collect();
+
+        return view('ticket.create_dashboard_ticket',compact('users', 'offices', 'roles', 'categories', 'openCount'));
+
+    }
+
     public function index()
     {
         $user = Sentinel::getUser();
@@ -240,6 +255,101 @@ class TicketController extends Controller
             return redirect('/ticket');
         }
     }
+
+
+    public function store_dashboard_ticket(Request $request)
+{
+   
+
+        $request->validate([
+            'summary_issue' => 'required|string',
+            'description' => 'required|string',
+            'priority' => 'required',
+            'department' => 'nullable|string',
+            'issue_category_id' => 'nullable|exists:ticket_categories,id',
+            'sla_days' => 'nullable|integer|min:0',
+            'due_date' => 'nullable|date',
+        ]);
+
+        $user = Sentinel::getUser();
+
+        // enforce max open tickets (if needed later)
+        $openCount = Ticket::where('opened_by', $user->id)
+            ->where('status', 'open')
+            ->count();
+
+        $ticket = new Ticket();
+
+        /*
+        |--------------------------------------------------------------------------
+        | TITLE: Summary Figure with Issue
+        |--------------------------------------------------------------------------
+        */
+        $ticket->name = 'Dashboard Discrepancy - ' . $request->summary_issue;
+
+        /*
+        |--------------------------------------------------------------------------
+        | DESCRIPTION: Transaction / Loan Entries
+        |--------------------------------------------------------------------------
+        */
+        $ticket->description = $request->description;
+
+        /*
+        |--------------------------------------------------------------------------
+        | PRIORITY (fallback to category default)
+        |--------------------------------------------------------------------------
+        */
+        $priority = $request->priority;
+        if (!$priority && $request->issue_category_id) {
+            $cat = \App\Models\TicketCategory::find($request->issue_category_id);
+            if ($cat && $cat->priority_default) {
+                $priority = strtolower($cat->priority_default);
+            }
+        }
+
+        $ticket->priority = $priority ?? 'medium';
+        $ticket->department = $request->department ?? 'Administration';
+        $ticket->issue_category_id = $request->issue_category_id ?: null;
+        $ticket->sla_days = $request->filled('sla_days') ? intval($request->sla_days) : null;
+        $ticket->opened_by = $user->id;
+        $ticket->datetime_open = now();
+        $ticket->date_raised = now();
+        $ticket->stage = 'Not started';
+        $ticket->status = 'open';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Assignment
+        |--------------------------------------------------------------------------
+        */
+        if ($request->filled('assigned_to')) {
+            $ticket->assigned_to = 1899; //$request->assigned_to;
+            $ticket->assigned_by = $user->id;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Due Date Handling
+        |--------------------------------------------------------------------------
+        */
+        if ($ticket->sla_days && !$request->filled('due_date')) {
+            $ticket->due_date = now()->addDays((int) $ticket->sla_days);
+        } elseif ($request->filled('due_date')) {
+            $ticket->due_date = $request->due_date;
+        }
+
+        $ticket->save();
+
+
+        $user->verified_numbers = 'pending';
+        $user->save();
+
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('/ticket');
+
+ 
+}
+
 
     public function update(Request $request, $id)
     {

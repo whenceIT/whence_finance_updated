@@ -65,12 +65,14 @@
                     <th>Transaction ID</th>
                     <th>Loan ID</th>
                     <th>Name</th>
-                    <th>Particulars</th>
+                    <th>Client Name</th>
                     <th>Credit</th>
                     <th>Debit</th>
                 </tr>
             </thead>
             <tbody>
+
+
                 <!-- Advances -->
 		@foreach ($advances as $advance)
                 <tr>
@@ -112,6 +114,21 @@
                 </tr>
                 @endforeach
 
+
+                <!-- Deposits -->
+                 @foreach($deposits as $deposit)
+            <tr>
+                    <td>{{ $deposit->date }}</td>
+                    <td>{{ $deposit->id }}</td>
+                    <td> - </td>
+                    <td> Deposit </td> 
+		    <td>{{ $deposit->deposit_type }}</td>
+			<td></td>
+                    <td>{{ number_format($deposit->amount, 2) }}</td>
+                    
+                </tr>
+                 @endforeach
+
                 <!-- Full Payments -->
                 @foreach ($fullPayments as $payment)
                 <tr>
@@ -120,15 +137,16 @@
                     <td>{{ $payment->loan_id }}</td>
                     <td>Full Payment</td>
                     <td>
-                        @if($payment->client && $payment->client->first_name)
-                            {{ $payment->client->first_name }}
-                        @else
-                            -
-                        @endif
+                        @if(!empty($payment->loan))
+                                    @if(!empty($payment->loan->client))
+                                        {{$payment->loan->client->first_name}}  {{$payment->loan->client->last_name}}
+                                    @endif
+                                @endif
                     </td>
                     
                     
 		    <td>{{ number_format($payment->credit, 2) }}</td>
+          
 			<td></td>
                 </tr>
                 @endforeach
@@ -141,11 +159,11 @@
                     <td>{{ $reloan->loan_id }}</td> 
                     <td>Reloaned Amount</td>
                     <td>
-                        @if($reloan->client && $reloan->client->first_name)
-                            {{ $reloan->client->first_name }}
-                        @else
-                            -
-                        @endif
+                        @if(!empty($reloan->loan))
+                                    @if(!empty($reloan->loan->client))
+                                        {{$reloan->loan->client->first_name}}  {{$reloan->loan->client->last_name}}
+                                    @endif
+                                @endif
                     </td> 
                     
                     
@@ -162,11 +180,11 @@
                     <td>{{ $part->loan_id }}</td> 
                     <td>Part Payment</td>
                     <td>
-                        @if($part->client && $part->client->first_name)
-                            {{ $part->client->first_name }}
-                        @else
-                            -
-                        @endif
+                           @if(!empty($part->loan))
+                                    @if(!empty($part->loan->client))
+                                        {{$part->loan->client->first_name}}  {{$part->loan->client->last_name}}
+                                    @endif
+                                @endif
                     </td>
                     
                     
@@ -183,17 +201,46 @@
                     <td>{{ $loan->loan_id }}</td> 
                     <td>New Loan</td>
                     <td>
-                        @if($loan->client && $loan->client->first_name)
-                            {{ $loan->client->first_name }} {{ $loan->client->last_name }}
-                        @else
-                            N/A
-                        @endif
+                        @if(!empty($loan->loan))
+                                    @if(!empty($loan->loan->client))
+                                        {{$loan->loan->client->first_name}}  {{$loan->loan->client->last_name}}
+                                    @endif
+                                @endif
                     </td> 
                    <td></td> 
                     <td>{{ number_format($loan->debit, 2) }}</td>
                    
                 </tr>
                 @endforeach
+
+
+                <!-- Totals Row -->
+<tr>
+    <td colspan="5" style="text-align: right;"><strong>Totals:</strong></td>
+    <td>
+        <strong>
+            {{ number_format(
+                $advancesPaid->sum('amount_paid') +
+                $fullPayments->sum('credit') +
+                $reloanedAmount->sum('credit') +
+                $partPayment->sum('credit')
+        
+            , 2) }}
+        </strong>
+    </td>
+    <td>
+        <strong>
+            {{ number_format(
+                $advances->sum('amount') +
+                $expenses->sum('amount') +
+                $deposits->sum('amount') +
+                $newLoans->sum('debit') +
+                 $totalIncome
+            , 2) }}
+        </strong>
+    </td>
+</tr>
+
 
                 <!-- Closing Balance -->
                 <tr>
