@@ -266,7 +266,7 @@ public function transactions()
     
     foreach ($offices as $office) {
         $recentLedgerEntry = GeneralLedger::where('office_id', $office->id)
-            // ->orderBy('created_at', 'desc')
+             ->orderBy('created_at', 'desc')
             ->first();
 
         $netChange = $this->calculateNetChange($office, $recentLedgerEntry); 
@@ -350,7 +350,9 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         }
     
         //fetch the current cash balance
-        $generalLedger = GeneralLedger::where('office_id', $office->id)->first();
+        $generalLedger = GeneralLedger::where('office_id', $office->id)
+          ->orderBy('created_at', 'desc')
+        ->first();
         $openingBalance = $generalLedger ? $generalLedger->cash_balance : 0;
     
         $netChange = 0;
