@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\LoanApproved;
+use App\Events\LoanCreated;
 use App\Events\LoanDisbursed;
 use App\Events\RepaymentCreated;
 use App\Events\RepaymentUpdated;
@@ -1142,7 +1143,11 @@ class LoanController extends Controller
                 $date = explode('-', $request->created_date);
                 $loan->month = $date[1];
                 $loan->year = $date[0];
-		$loan->save();
+		        $loan->save();
+
+            // Broadcast loan created event for real-time updates
+            \Illuminate\Support\Facades\Log::info('LoanCreated event firing for loan ID: ' . $loan->id);
+            // event(new LoanCreated($loan));
 
             Http::post('https://notifications.whencefinancesystem.com/emit', [
                 'event' => 'loan.created',
@@ -1152,6 +1157,7 @@ class LoanController extends Controller
                     'client' => $client->first_name . ' ' . $client->last_name,
                     'amount' => $request->principal,
                     'type' => 'New Loan',
+                    'loan' => $loan->toArray()
                 ]
             ]);
             if (!empty($request->charges)) {
