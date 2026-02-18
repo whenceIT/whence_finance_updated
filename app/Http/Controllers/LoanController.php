@@ -325,7 +325,6 @@ class LoanController extends Controller
             'event' => 'notification.created',
             'data' => [
                 'test' => 'test',
-
             ]
         ]);
         Flash::success(trans('general.successfully_saved'));
@@ -1485,6 +1484,8 @@ class LoanController extends Controller
                 'client' => $client->first_name . ' ' . $client->last_name,
                 'amount' => $request->amount,
                 'type' => 'Top-Up',
+                'loan' => $loan->toArray(),
+                'loan_topup' => $loan_topup->toArray()
             ]
         ]);
         Flash::success(trans('general.successfully_saved'));
@@ -2950,6 +2951,8 @@ class LoanController extends Controller
                         'client' => $client->first_name . ' ' . $client->last_name,
                         'amount' => $request->amount,
                         'type' => $request->payment_apply_to,
+                        'loan' => $loan->toArray(),
+                        'transaction' => $loan_transaction->toArray()
                     ]
                 ]);
                 Flash::success(trans('general.successfully_saved'));
@@ -3831,6 +3834,8 @@ class LoanController extends Controller
                     'client' => $client->first_name . ' ' . $client->last_name,
                     'amount' => $request->paid,
                     'type' => 'reloan_payment',
+                    'loan' => $loan->toArray(),
+                    'transaction' => $loan_transaction->toArray()
                 ]
             ]);
 
