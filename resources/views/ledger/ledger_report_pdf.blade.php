@@ -71,10 +71,7 @@
                 </tr>
             </thead>
             <tbody>
-    <tr>
-                    <td colspan="6" style="text-align: right;"><strong>Opening Balance:</strong></td>
-                    <td><strong>{{ number_format($openingBalance, 2) }}</strong></td>
-                </tr>
+
 
                 <!-- Advances -->
 		@foreach ($advances as $advance)
