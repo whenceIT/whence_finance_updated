@@ -672,6 +672,9 @@
 
     @if ($role && in_array($role, ['1', '6', '4']))
         <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+        <!-- Pusher JS for Laravel WebSockets (local) -->
+        <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+        <script src="{{ asset('js/websocket-client.js') }}"></script>
         <script>
 
             var office = <?php    echo json_encode($office); ?>;
