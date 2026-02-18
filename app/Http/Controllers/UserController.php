@@ -40,6 +40,7 @@ use App\Models\AppraisalQuestion;
 use App\Models\AppraisalAnswer;
 use App\Models\TargetTracker;
 use App\Models\CarryOver;
+use App\Models\ClientTransferLog;
 use stdClass;
 use Carbon\Carbon;
 
@@ -595,6 +596,61 @@ return redirect('user/carry_over_approvals');
      return redirect('/dashboard');
 
  }
+
+
+ public function transfers(){
+     $userBranch = Sentinel::getUser()->office_id;
+    return view('user.transfers',compact('userBranch'));
+ }
+
+ public function transfer_clients(Request $request)
+{
+    $request->validate([
+        'loan_consultant_id' => 'required|exists:users,id',
+        'clients' => 'required|array',
+        'clients.*' => 'exists:clients,id'
+    ]);
+
+       $currentUser = Sentinel::getUser();
+
+    DB::transaction(function () use ($request,$currentUser) {
+
+         foreach ($request->clients as $clientId) {
+
+            $client = Client::findOrFail($clientId);
+
+            $oldOfficer = $client->staff_id;
+
+            // 1️⃣ Log Transfer BEFORE updating
+            ClientTransferLog::create([
+                'client_id' => $client->id,
+                'old_loan_officer_id' => $oldOfficer,
+                'new_loan_officer_id' => $request->loan_consultant_id,
+                'transferred_by' => $currentUser->id,
+            ]); 
+
+
+        // Update Clients in one query
+        Client::whereIn('id', $request->clients)
+            ->update([
+                'staff_id' => $request->loan_consultant_id
+            ]);
+
+        // Update all related Loans in one query
+        Loan::whereIn('client_id', $request->clients)
+            ->update([
+                'loan_officer_id' => $request->loan_consultant_id
+            ]);
+
+        }
+    });
+
+
+
+    Flash::success(trans('general.successfully_saved'));
+    return back()->with('success', 'Clients and their loans transferred successfully.');
+}
+
 
 
 
