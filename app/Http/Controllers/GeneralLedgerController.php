@@ -343,11 +343,8 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         $todaysDate = date('Y-m-d');
         $startLimitDate = '2025-01-04'; // Start date limit
         $endDate = $request->end_date ?: $todaysDate;
-        $startDate = $request->start_date ?: $startLimitDate;
+        $startDate = $startLimitDate;
         
-        if ($startDate < $startLimitDate) {
-            $startDate = $startLimitDate;
-        }
     
         //fetch the current cash balance
         $generalLedger = GeneralLedger::where('office_id', $office->id)
@@ -415,7 +412,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         
         $advances = Advance::where('office_id', $office->id)
             ->whereIn('status', ['approved', 'closed'])
-            ->whereBetween('last_update_date', [$startDate, $endDate])
+            ->whereBetween('date_approved', [$startDate, $endDate])
             ->sum('amount');
 
         $advancesPaid = AdvanceTransaction::whereHas('advance', function ($query) use ($office) {
@@ -457,7 +454,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
         
         return view('ledger.show', compact('endDate', 'startDate', 'advances', 'advancesPaid', 'expenses', 'deposits',
             'fullPayments', 'reloanedAmount', 'partPayment', 
-            'newLoans', 'office', 'officeName', 'closingBalance', 'generalLedger', 'totalIncome'
+            'newLoans', 'office', 'officeName', 'closingBalance', 'generalLedger', 'totalIncome','openingBalance'
         ));
     }
 
@@ -520,7 +517,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $officeId = $request->input('office_id');
     $officeName = Office::find($officeId)->name;
     $startLimitDate = '2025-01-04'; 
-    $startDate = $request->input('start_date') ?: $startLimitDate;
+    $startDate = $startLimitDate;
     $endDate = $request->input('end_date') ?: $todaysDate;
     $format = $request->input('format', 'pdf');
 
@@ -646,10 +643,11 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $pdf = PDF::loadView('ledger.ledger_report_pdf', compact(
         'startDate', 'endDate', 'advances', 'advancesPaid', 'expenses', 'deposits',
         'fullPayments', 'reloanedAmount', 'partPayment', 
-        'newLoans', 'closingBalance', 'officeId', 'officeName', 'totalIncome','openingBalance',
+        'newLoans', 'closingBalance', 'officeId', 'officeName', 'totalIncome','openingBalance','expensesTotal','depositsTotal',
+        'fullPaymentsTotal','reloanedAmountTotal','partPaymentTotal','newLoansTotal','advancesTotal'
     ));
     
-    return $pdf->download('ledger_report_' . $startDate . '_to_' . $endDate . '.pdf');
+    return $pdf->download($officeName .' ledger_report_' . $startDate . '_to_' . $endDate . '.pdf');
 
 }
 
@@ -659,8 +657,8 @@ public function generateExcelReport(Request $request)
     $todaysDate = date('Y-m-d');
     $officeId = $request->input('office_id');
     $officeName = Office::find($officeId)->name;
-    $startLimitDate = '2025-01-04'; 
-    $startDate = $request->input('start_date') ?: $startLimitDate;
+    $startLimitDate = '2025-01-04';
+    $startDate = $startLimitDate;
     $endDate = $request->input('end_date') ?: $todaysDate;
 
     if (!$officeId) {
@@ -674,135 +672,113 @@ public function generateExcelReport(Request $request)
     $generalLedger = GeneralLedger::where('office_id', $officeId)->first();
     $openingBalance = $generalLedger ? $generalLedger->cash_balance : 0;
     $netChange = 0;
-    $debit = 0;
-    $credit = 0;
 
-    // totals
+    // Totals
     $advancesTotal = Advance::where('office_id', $officeId)
-        ->where('status', 'approved')
-        ->whereBetween('date_approved', [$startLimitDate, $todaysDate])
+        ->whereIn('status', ['approved', 'closed'])
+        ->whereBetween('date_approved', [$startDate, $endDate])
         ->sum('amount');
     $netChange -= $advancesTotal;
-    $credit -= $advancesTotal;
 
-    $advancesPaid = Advance::where('office_id', $officeId)
-        ->where('status', 'approved')
-        ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
+    $advancesPaid = AdvanceTransaction::whereHas('advance', function ($query) use ($officeId) {
+            $query->where('office_id', $officeId);
+        })
+        ->whereBetween('last_update_date', [$startDate, $endDate])
         ->sum('amount_paid');
-        $netChange += $advancesPaid;
-        $debit += $advancesPaid;
+    $netChange += $advancesPaid;
 
     $expensesTotal = Expense::where('office_id', $officeId)
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('amount');
     $netChange -= $expensesTotal;
-    $credit -= $expensesTotal;
 
-
-    $depositsTotal = Deposit::where('office',$officeId)
-             ->whereBetween('date',[$startDate,$endDate])
-             ->sum('amount');
-             $netChange -= $depositsTotal;
-             $credit -= $depositsTotal;
+    $depositsTotal = Deposit::where('office', $officeId)
+        ->whereBetween('date', [$startDate, $endDate])
+        ->sum('amount');
+    $netChange -= $depositsTotal;
 
     $fullPaymentsTotal = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'repayment')
         ->where('payment_apply_to', 'full_payment')
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('credit');
     $netChange += $fullPaymentsTotal;
-    $debit += $fullPaymentsTotal;
 
     $reloanedAmountTotal = LoanTransaction::where('office_id', $officeId)
         ->where('payment_apply_to', 'reloan_payment')
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('credit');
     $netChange += $reloanedAmountTotal;
-    $debit += $reloanedAmountTotal;
 
     $partPaymentTotal = LoanTransaction::where('office_id', $officeId)
         ->where('payment_apply_to', 'part_payment')
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('credit');
     $netChange += $partPaymentTotal;
-    $debit += $partPaymentTotal;
 
     $newLoansTotal = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'disbursement')
-        ->whereBetween('date', [$startLimitDate, $todaysDate])
+        ->whereBetween('date', [$startDate, $endDate])
         ->sum('debit');
     $netChange -= $newLoansTotal;
-    $credit -= $newLoansTotal;
 
     $totalIncome = $generalLedger ? $generalLedger->total_income : 0;
-        $netChange += $totalIncome;
-        $debit += $totalIncome;
+    $netChange += $totalIncome;
 
     $closingBalance = $openingBalance + $netChange;
 
-    // Fetch detailed transactions
+    // Detailed transactions
     $advances = Advance::where('office_id', $officeId)
-        ->where('status', 'approved')
-        ->whereBetween('last_update_date', [$startDate, $endDate])
-        ->get();
+        ->whereIn('status', ['approved', 'closed'])
+        ->whereBetween('date_approved', [$startDate, $endDate])
+        ->get(['id','first_name', 'last_name', 'amount', 'date_approved']);
 
-    $advancesPaid = Advance::where('office_id', $officeId)
-        ->where('status', 'approved')
-        ->whereBetween('last_update_date', [$startLimitDate, $todaysDate])
-        ->get();
+    $advancesPaidDetails = AdvanceTransaction::whereHas('advance', function ($query) use ($officeId) {
+            $query->where('office_id', $officeId);
+        })
+        ->whereBetween('last_update_date', [$startDate, $endDate])
+        ->get(['advance_id', 'amount_paid', 'last_update_date']);
 
     $expenses = Expense::where('office_id', $officeId)
         ->whereBetween('date', [$startDate, $endDate])
+        ->get(['id','expense_type', 'name', 'amount', 'date']);
+
+    $deposits = Deposit::where('office', $officeId)
+        ->whereBetween('date', [$startDate, $endDate])
         ->get();
-
-
-           $deposits = Deposit::where('office',$officeId)
-             ->whereBetween('date',[$startDate,$endDate])
-             ->get();
 
     $fullPayments = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'repayment')
         ->where('payment_apply_to', 'full_payment')
         ->whereBetween('date', [$startDate, $endDate])
-        ->get();
+        ->get(['id', 'loan_id','client_id', 'credit', 'date']);
 
     $reloanedAmount = LoanTransaction::where('office_id', $officeId)
         ->where('payment_apply_to', 'reloan_payment')
         ->whereBetween('date', [$startDate, $endDate])
-        ->get();
+        ->get(['id', 'loan_id', 'client_id', 'credit', 'date']);
 
     $partPayment = LoanTransaction::where('office_id', $officeId)
         ->where('payment_apply_to', 'part_payment')
         ->whereBetween('date', [$startDate, $endDate])
-        ->get();
+        ->get(['id', 'loan_id', 'client_id', 'credit', 'date']);
 
     $newLoans = LoanTransaction::where('office_id', $officeId)
         ->where('transaction_type', 'disbursement')
         ->whereBetween('date', [$startDate, $endDate])
-        ->get();
+        ->get(['id', 'loan_id','client_id', 'debit', 'date']);
 
-    $data = [
-        'startDate' => $startDate,
-        'endDate' => $endDate,
-        'advances' => $advances,
-        'advancesPaid' => $advancesPaid,
-        'expenses' => $expenses,
-        'deposits' => $deposits,
-        'fullPayments' => $fullPayments,
-        'reloanedAmount' => $reloanedAmount,
-        'partPayment' => $partPayment,
-        'newLoans' => $newLoans,
-        'closingBalance' => $closingBalance,
-        'officeId' => $officeId,
-        'officeName' => $officeName,
-        'totalIncome' => $totalIncome,
-        'debit' => $debit,
-        'credit' => $credit,
-        'openingBalance' => $openingBalance,
-    ];
+    $data = compact(
+        'startDate', 'endDate', 'advances', 'advancesPaidDetails', 'expenses', 'deposits',
+        'fullPayments', 'reloanedAmount', 'partPayment', 'newLoans', 
+        'closingBalance', 'officeId', 'officeName', 'totalIncome','openingBalance',
+        'advancesTotal','advancesPaid','expensesTotal','depositsTotal',
+        'fullPaymentsTotal','reloanedAmountTotal','partPaymentTotal','newLoansTotal'
+    );
 
-    return Excel::download(new ExportReport('ledger.ledger_report_excel', $data), 'ledger_report_' . $startDate . '_to_' . $endDate . '.xlsx');
+    return Excel::download(new ExportReport('ledger.ledger_report_excel', $data), $officeName .' ledger_report_' . $startDate . '_to_' . $endDate . '.xlsx');
 }
+
 
 //ADMIN excel
 public function allgenerateExcelReport(Request $request)
