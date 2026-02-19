@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\GeneralHelper;
 use App\Models\Policy;
+use App\Models\PolicyCategory;
 use App\Models\UserPolicyResponse;
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -23,25 +24,94 @@ class PolicyController extends Controller
     }
 
     /**
+     * Check if user has managerial access based on role ID
+     * 
+     * Role IDs:
+     * 1 = Admin (sees all)
+     * 3 = Loan Officer (sees only all staff documents)
+     * 4 = Branch Manager (sees managerial documents)
+     * 6 = Provincial Manager (sees managerial documents)
+     * 
+     * @param mixed $user
+     * @return bool
+     */
+    private function isManagerialUser($user)
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $userRole = $user->roles->first();
+        
+        if ($userRole) {
+            // Admin (1), Branch Manager (4), Provincial Manager (6) have managerial access
+            $managerialRoleIds = [1, 4, 6];
+            return in_array($userRole->id, $managerialRoleIds);
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user is Admin
+     * 
+     * @param mixed $user
+     * @return bool
+     */
+    private function isAdmin($user)
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $userRole = $user->roles->first();
+        
+        if ($userRole) {
+            return $userRole->id == 1;
+        }
+
+        return false;
+    }
+
+    /**
      * Display all policies
      *
      * @return \Illuminate\View\View
      */
-    public function viewPolicies()
+    public function viewPolicies(Request $request)
     {
         $user = Sentinel::getUser();
+        $isManagerial = $this->isManagerialUser($user);
+        $isAdmin = $this->isAdmin($user);
+        $selectedCategory = $request->get('category');
 
-        if ($user) {
-            $policies = Policy::with([
-                'userPolicyResponses' => function ($query) use ($user) {
-                    $query->where('user_id', $user->id);
-                }
-            ])->latest()->get();
-        } else {
-            $policies = Policy::latest()->get();
+        // Get all active categories
+        $categories = PolicyCategory::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        // Build query with user responses
+        $query = Policy::with([
+            'userPolicyResponses' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            },
+            'category'
+        ]);
+
+        // Filter by category if selected
+        if ($selectedCategory) {
+            $query->where('category_id', $selectedCategory);
         }
 
-        return view('policies.view', compact('policies'));
+        // Filter by access level for non-managerial users
+        // Role 1 (Admin) sees all, Role 4 & 6 (Managers) see all, Role 3 (Loan Officer) sees only 'all' documents
+        if (!$isManagerial) {
+            $query->where('access_level', Policy::ACCESS_ALL);
+        }
+
+        $policies = $query->latest()->get();
+
+        return view('policies.view', compact('policies', 'categories', 'selectedCategory', 'isManagerial', 'isAdmin'));
     }
 
     public function userResponses()
@@ -52,17 +122,23 @@ class PolicyController extends Controller
     }
 
     /**
-     * 
+     * Show form to add policies
      *
      * @return \Illuminate\View\View
      */
     public function addPolicies()
     {
-        return view('policies.add');
+        $categories = PolicyCategory::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $accessLevels = Policy::getAccessLevels();
+
+        return view('policies.add', compact('categories', 'accessLevels'));
     }
 
     /**
-     *
+     * Store a new policy
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
@@ -74,6 +150,8 @@ class PolicyController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'policy_file' => 'required|file|mimes:pdf,doc,docx,txt|max:10240', // 10MB max
+            'category_id' => 'required|exists:policy_categories,id',
+            'access_level' => 'required|in:all,managerial',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -124,6 +202,8 @@ class PolicyController extends Controller
                     'file_name' => $fileName,
                     'file_size' => $file->getSize(),
                     'file_type' => $file->getClientMimeType(),
+                    'category_id' => $request->category_id,
+                    'access_level' => $request->access_level,
                 ]);
 
                 Flash::success(trans('general.successfully_saved'));

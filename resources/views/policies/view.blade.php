@@ -3,13 +3,17 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-10 border rounded p-4 bg-white shadow-sm">
+        <div class="col-lg-12 border rounded p-4 bg-white shadow-sm">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold">Company Policies</h2>
+                <h2 class="fw-bold">Company Policies & Documents</h2>
                 <div>
                     <button type="button" class="btn btn-success me-2" onclick="acceptAllPolicies()">Accept All</button>
                     <button type="button" class="btn btn-danger me-2" onclick="declineAllPolicies()">Decline All</button>
-                    <!-- <button type="button" class="btn btn-warning me-2" onclick="resetAllPolicies()">Reset All</button> -->
+                    @if($isAdmin)
+                        <a href="{{ route('policies.add_policies') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i> Add New Document
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -20,6 +24,25 @@
                 </div>
             @endif
 
+            <!-- Category Filter -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="category_filter" class="form-label fw-bold">Filter by Category:</label>
+                    <select name="category_filter" id="category_filter" class="form-select" onchange="filterByCategory(this.value)">
+                        <option value="">All Categories</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" {{ $selectedCategory == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Total Documents:</label>
+                    <p class="form-control-plaintext fw-bold text-primary">{{ $policies->count() }}</p>
+                </div>
+            </div>
+
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-0">
                     @if($policies->count() > 0)
@@ -27,7 +50,9 @@
                             <table class="table table-bordered table-hover table-striped align-middle">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th scope="col" class="ps-3">Policy Title</th>
+                                        <th scope="col" class="ps-3">Document Title</th>
+                                        <th scope="col">Category</th>
+                                        <th scope="col">Access Level</th>
                                         <th scope="col">File Type</th>
                                         <th scope="col">File Size</th>
                                         <th scope="col" class="text-center">Your Response</th>
@@ -37,30 +62,62 @@
                                 <tbody>
                                     @foreach($policies as $policy)
                                         <tr data-policy-id="{{ $policy->id }}">
-                                            <td class="ps-3">{{ $policy->title }}</td>
+                                            <td class="ps-3">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-file-pdf text-danger me-2 fa-lg"></i>
+                                                    <div>
+                                                        <strong>{{ $policy->title }}</strong>
+                                                        @if($policy->description)
+                                                            <br><small class="text-muted">{{ \Illuminate\Support\Str::limit($policy->description, 60) }}</small>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if($policy->category)
+                                                    <span class="badge bg-info">{{ $policy->category->name }}</span>
+                                                @else
+                                                    <span class="badge bg-secondary">Uncategorized</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($policy->access_level == 'managerial')
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-user-tie me-1"></i> Managerial
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-users me-1"></i> All Staff
+                                                    </span>
+                                                @endif
+                                            </td>
                                             <td>{{ strtoupper(pathinfo($policy->file_name, PATHINFO_EXTENSION)) }}</td>
                                             <td>{{ round($policy->file_size / 1024, 2) }} KB</td>
                                             <td class="text-center">
-                                                @if($policy->userPolicyResponses->isNotEmpty())
-                                                    @if($policy->userPolicyResponses->first()->status == 'accepted')
-                                                        <span class="label label-success">Accepted</span>
-                                                    @elseif($policy->userPolicyResponses->first()->status == 'declined')
-                                                        <span class="label label-danger">Declined</span>
-                                                    @elseif($policy->userPolicyResponses->first()->status == 'pending')
-                                                        <span class="label label-warning">Pending</span>
+                                                @php
+                                                    $response = $policy->userPolicyResponses->first();
+                                                @endphp
+                                                @if($response)
+                                                    @if($response->status == 'accepted')
+                                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i> Accepted</span>
+                                                    @elseif($response->status == 'declined')
+                                                        <span class="badge bg-danger"><i class="fas fa-times me-1"></i> Declined</span>
+                                                    @elseif($response->status == 'pending')
+                                                        <span class="badge bg-warning">Pending</span>
                                                     @endif
                                                 @else
-                                                    <span class="label label-warning">Pending</span>
+                                                    <span class="badge bg-secondary">Pending</span>
                                                 @endif
                                             </td>
                                             <td class="text-center">
-
-                                                <a href="{{ $policy->file_url }}" download class="btn btn-sm btn-success" title="Download">
-                                                    <i></i> Download
-                                                </a>
-                                                <button type="button" class="btn btn-sm btn-primary" title="View Preview" onclick="openPolicyModal({{ $policy->id }}, '{{ $policy->title }}', '{{ $policy->file_url }}', '{{ $policy->file_type }}')">
-                                                    <i></i> View Preview
-                                                </button>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ $policy->file_url }}" download class="btn btn-success" title="Download">
+                                                        <i class="fas fa-download"></i> Download
+                                                    </a>
+                                                    <button type="button" class="btn btn-primary" title="View Preview" onclick="openPolicyModal({{ $policy->id }}, '{{ addslashes($policy->title) }}', '{{ $policy->file_url }}', '{{ $policy->file_type }}')">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -69,7 +126,7 @@
                         </div>
                     @else
                         <div class="alert alert-info m-3" role="alert">
-                            No policies found.
+                            <i class="fas fa-info-circle me-2"></i> No documents found for the selected category.
                         </div>
                     @endif
                 </div>
@@ -99,8 +156,8 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title" id="confirmationModalLabel">Confirm Action</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body" id="confirmationModalBody">
                 Are you sure?
@@ -117,6 +174,7 @@
 
 <script>
 let confirmCallback = null;
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 function showConfirmation(message, callback) {
     document.getElementById('confirmationModalBody').innerText = message;
@@ -132,14 +190,21 @@ document.getElementById('confirmYes').addEventListener('click', function() {
     $('#confirmationModal').modal('hide');
 });
 
+function filterByCategory(categoryId) {
+    if (categoryId) {
+        window.location.href = '?category=' + categoryId;
+    } else {
+        window.location.href = window.location.pathname;
+    }
+}
+
 function acceptAllPolicies() {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const rows = document.querySelectorAll('tr[data-policy-id]');
     const nonAcceptedPolicies = [];
 
     rows.forEach(row => {
-        const responseCell = row.querySelector('td:nth-child(4)');
-        if (responseCell && responseCell.textContent.trim() !== 'Accepted') {
+        const responseCell = row.querySelector('td:nth-child(6)');
+        if (responseCell && !responseCell.textContent.includes('Accepted')) {
             nonAcceptedPolicies.push(row.getAttribute('data-policy-id'));
         }
     });
@@ -174,13 +239,12 @@ function acceptAllPolicies() {
 }
 
 function declineAllPolicies() {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const rows = document.querySelectorAll('tr[data-policy-id]');
     const nonDeclinedPolicies = [];
 
     rows.forEach(row => {
-        const responseCell = row.querySelector('td:nth-child(4)');
-        if (responseCell && responseCell.textContent.trim() !== 'Declined') {
+        const responseCell = row.querySelector('td:nth-child(6)');
+        if (responseCell && !responseCell.textContent.includes('Declined')) {
             nonDeclinedPolicies.push(row.getAttribute('data-policy-id'));
         }
     });
@@ -214,47 +278,6 @@ function declineAllPolicies() {
     });
 }
 
-function resetAllPolicies() {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const rows = document.querySelectorAll('tr[data-policy-id]');
-    const respondedPolicies = [];
-
-    rows.forEach(row => {
-        const responseCell = row.querySelector('td:nth-child(4)');
-        if (responseCell && responseCell.textContent.trim() !== 'Pending') {
-            respondedPolicies.push(row.getAttribute('data-policy-id'));
-        }
-    });
-
-    if (respondedPolicies.length === 0) {
-        alert('All policies are already pending.');
-        return;
-    }
-
-    showConfirmation('Are you sure you want to reset all policies to pending?', () => {
-        const button = document.querySelector('button[onclick="resetAllPolicies()"]');
-        button.disabled = true;
-        button.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
-
-        let completed = 0;
-        respondedPolicies.forEach(policyId => {
-            fetch(`/policies/${policyId}/respond`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                body: `status=pending&_token=${csrfToken}`
-            }).then(response => {
-                completed++;
-                if (completed === respondedPolicies.length) {
-                    location.reload();
-                }
-            });
-        });
-    });
-}
-
 function openPolicyModal(policyId, title, url, fileType) {
     document.getElementById('modalTitle').innerHTML = title;
 
@@ -265,7 +288,6 @@ function openPolicyModal(policyId, title, url, fileType) {
         </div>
     `;
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const footerContent = `
         <button type="button" class="btn btn-success" onclick="acceptPolicy(${policyId})">Accept</button>
         <form action="/policies/${policyId}/respond" method="POST" style="display: inline;" id="acceptForm${policyId}">
@@ -321,7 +343,5 @@ function acceptPolicy(policyId) {
         document.getElementById(`acceptForm${policyId}`).submit();
     }, 3500); // 3.5 seconds for animation
 }
-
 </script>
-
 @endsection

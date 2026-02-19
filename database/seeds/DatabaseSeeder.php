@@ -24,5 +24,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PayrollTemplateTableSeeder::class);
         // Ticket categories
         $this->call(TicketCategoriesSeeder::class);
+        // Policy categories
+        $this->call(PolicyCategoriesTableSeeder::class);
     }
 }
