@@ -184,6 +184,9 @@
                     </li>
                     @endif
 
+
+
+
                     <!-- Loan Applications -->
                     @if(Sentinel::hasAccess('loans.create'))
                         <li style="padding-left: 10px;">
@@ -275,6 +278,14 @@
                         </ul>
                     </li>
                     @endif
+
+
+                       @if(Sentinel::hasAccess('expenses'))
+                            <li style="padding-left: 5%;">
+                                <a href="{{ url('user/transfers') }}">
+                                    <i class="fa fa-exchange"></i>Transfers</a>
+                                </li>
+                        @endif
 
                     <!-- Collections -->
                     <li class="treeview @if(Request::is('loan/new_collections') || Request::is('loan/expected_collections') || Request::is('loan/my_collections') || Request::is('loan/my_expected_collections')) active menu-open @endif" style="padding-left: 10px;">

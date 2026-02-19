@@ -231,6 +231,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::any('mandatory_verification','UserController@mandatory_verification');
     Route::any('verify_numbers','UserController@verify_numbers');
     Route::any('transfers','UserController@transfers');
+    Route::any('transfer_clients','UserController@transfer_clients');
     // Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
