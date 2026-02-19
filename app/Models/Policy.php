@@ -17,11 +17,30 @@ class Policy extends Model
         'file_name',
         'file_size',
         'file_type',
+        'category_id',
+        'access_level',
     ];
 
     protected $casts = [
         'file_size' => 'integer',
     ];
+
+    /**
+     * Access level constants
+     */
+    const ACCESS_ALL = 'all';
+    const ACCESS_MANAGERIAL = 'managerial';
+
+    /**
+     * Get available access levels
+     */
+    public static function getAccessLevels()
+    {
+        return [
+            self::ACCESS_ALL => 'All Staff',
+            self::ACCESS_MANAGERIAL => 'Managerial Only',
+        ];
+    }
 
     /**
      * Get the URL to access the policy file
@@ -39,5 +58,46 @@ class Policy extends Model
     public function userPolicyResponses()
     {
         return $this->hasMany(UserPolicyResponse::class);
+    }
+
+    /**
+     * Get the category that the policy belongs to.
+     */
+    public function category()
+    {
+        return $this->belongsTo(PolicyCategory::class, 'category_id');
+    }
+
+    /**
+     * Check if policy is accessible by a specific user role.
+     * 
+     * @param mixed $userRole
+     * @return bool
+     */
+    public function isAccessibleBy($userRole)
+    {
+        if ($this->access_level === self::ACCESS_ALL) {
+            return true;
+        }
+
+        // Check if user has managerial role
+        $managerialRoles = ['manager', 'admin', 'supervisor', 'director', 'ceo'];
+        return in_array(strtolower($userRole), $managerialRoles);
+    }
+
+    /**
+     * Scope to filter by category.
+     */
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
+    }
+
+    /**
+     * Scope to filter by access level.
+     */
+    public function scopeByAccessLevel($query, $accessLevel)
+    {
+        return $query->where('access_level', $accessLevel);
     }
 }
