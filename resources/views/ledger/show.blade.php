@@ -26,6 +26,8 @@
             <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request('end_date') ?: date('Y-m-d') }}">
         </div>
 
+
+
         <button type="submit" class="btn btn-primary mr-2">Apply Filter</button>
     </form>
 </div>
@@ -34,6 +36,7 @@
 <div class="row mb-3">
     <div class="col-md-12" style="margin-bottom: 10px;">
         <form action="{{ route('ledger.ledger_report_pdf') }}" method="GET" style="display:flex; align-items:center; gap:10px; flex-wrap: wrap;">
+            
             <input type="hidden" name="office_id" value="{{ $office->id }}">
             <input type="hidden" name="start_date" value="{{ request('start_date') ?: date('Y-m-d') }}">
             <input type="hidden" name="end_date" value="{{ request('end_date') ?: date('Y-m-d') }}">
@@ -43,6 +46,19 @@
                 Select the sections you want to expand into detailed transactions in the PDF report. 
                 If a section is not selected, only the summary totals will appear.
             </span>
+
+            <!-- VIEW MODE DROPDOWN (ADDED HERE) -->
+            <label style="white-space: nowrap;">
+                View:
+                <select name="view_mode" class="form-control form-control-sm" style="width:auto; display:inline-block;">
+                    <option value="all" {{ request('view_mode', 'all') == 'all' ? 'selected' : '' }}>
+                        All Time
+                    </option>
+                    <option value="today" {{ request('view_mode') == 'today' ? 'selected' : '' }}>
+                        Today
+                    </option>
+                </select>
+            </label>
 
             <!-- Checkboxes -->
             <label style="white-space: nowrap;"><input type="checkbox" name="sections[]" value="advances"> Advances</label>
@@ -54,15 +70,10 @@
             <label style="white-space: nowrap;"><input type="checkbox" name="sections[]" value="part_payments"> Part Payments</label>
             <label style="white-space: nowrap;"><input type="checkbox" name="sections[]" value="new_loans"> New Loans</label>
 
-            <button type="submit" class="btn btn-primary btn-sm" style="background-color: #007bff; border-color: blue;">PDF</button>
+            <button type="submit" class="btn btn-primary btn-sm" style="background-color: #007bff; border-color: blue;">
+                PDF
+            </button>
         </form>
-
-         <!-- <form action="{{ route('ledger.ledger_report_excel') }}" method="GET">
-            <input type="hidden" name="office_id" value="{{ $office->id }}">
-            <input type="hidden" name="start_date" value="{{ request('start_date') ?: date('Y-m-d') }}">
-            <input type="hidden" name="end_date" value="{{ request('end_date') ?: date('Y-m-d') }}">
-            <button type="submit" class="btn btn-primary btn-sm" style="background-color: #007bff; border-color: blue;">Excel</button>
-        </form> -->
     </div>
 </div>
 

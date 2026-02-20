@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -62,6 +62,41 @@
 <body>
 
 @php
+$viewMode = request('view_mode', 'all');
+
+/*
+|--------------------------------------------------------------------------
+| STORE ORIGINAL COLLECTIONS FOR SUBTOTALS
+|--------------------------------------------------------------------------
+*/
+$allAdvances        = $advances;
+$allAdvancesPaid    = $advancesPaid;
+$allExpenses        = $expenses;
+$allDeposits        = $deposits;
+$allFullPayments    = $fullPayments;
+$allReloans         = $reloanedAmount;
+$allPartPayments    = $partPayment;
+$allNewLoans        = $newLoans;
+
+/*
+|--------------------------------------------------------------------------
+| FILTER ONLY TRANSACTIONS (NOT TOTALS)
+|--------------------------------------------------------------------------
+*/
+if ($viewMode === 'today') {
+
+    $advances       = $advances->where('date_approved', $endDate);
+    $advancesPaid   = $advancesPaid->where('last_update_date', $endDate);
+    $expenses       = $expenses->where('date', $endDate);
+    $deposits       = $deposits->where('date', $endDate);
+    $fullPayments   = $fullPayments->where('date', $endDate);
+    $reloanedAmount = $reloanedAmount->where('date', $endDate);
+    $partPayment    = $partPayment->where('date', $endDate);
+    $newLoans       = $newLoans->where('date', $endDate);
+}
+@endphp
+
+@php
     $selectedSections = request()->get('sections', []);
 @endphp
 
@@ -120,8 +155,8 @@
     <td colspan="3"></td>
     <td class="total-label">Total Advances:</td>
     <td></td>
-    <td class="total-amount">{{ number_format($advances->sum('amount'), 2) }}</td>
-    <td ></td>
+    <td class="total-amount">{{ number_format($allAdvances->sum('amount'), 2) }}</td>
+    <td></td>
 </tr>
 
 {{-- ADVANCES PAID --}}
@@ -143,7 +178,7 @@
     <td class="total-label">Total Advances Paid:</td>
     <td></td>
     <td></td>
-    <td class="total-amount">{{ number_format($advancesPaid->sum('amount_paid'), 2) }}</td>
+    <td class="total-amount">{{ number_format($allAdvancesPaid->sum('amount_paid'), 2) }}</td>
 </tr>
 
 {{-- EXPENSES --}}
@@ -165,7 +200,7 @@
     <td class="total-label">Total Expenses:</td>
     <td></td>
     <td></td>
-    <td class="total-amount">{{ number_format($expenses->sum('amount'), 2) }}</td>
+    <td class="total-amount">{{ number_format($allExpenses->sum('amount'), 2) }}</td>
 </tr>
 
 {{-- DEPOSITS --}}
@@ -186,7 +221,7 @@
     <td colspan="3"></td>
     <td class="total-label">Total Deposits:</td>
     <td></td>
-    <td class="total-amount">{{ number_format($deposits->sum('amount'), 2) }}</td>
+    <td class="total-amount">{{ number_format($allDeposits->sum('amount'), 2) }}</td>
     <td></td>
 </tr>
 
@@ -212,7 +247,7 @@
     <td colspan="3"></td>
     <td class="total-label">Total Full Payments:</td>
     <td></td>
-    <td class="total-amount">{{ number_format($fullPayments->sum('credit'), 2) }}</td>
+    <td class="total-amount">{{ number_format($allFullPayments->sum('credit'), 2) }}</td>
     <td></td>
 </tr>
 
@@ -238,7 +273,7 @@
     <td colspan="3"></td>
     <td class="total-label">Total Reloaned:</td>
     <td></td>
-    <td class="total-amount">{{ number_format($reloanedAmount->sum('credit'), 2) }}</td>
+    <td class="total-amount">{{ number_format($allReloans->sum('credit'), 2) }}</td>
     <td></td>
 </tr>
 
@@ -265,7 +300,7 @@
     <td class="total-label">Total Part Payments:</td>
     <td></td>
     <td></td>
-    <td class="total-amount">{{ number_format($partPayment->sum('credit'), 2) }}</td>
+    <td class="total-amount">{{ number_format($allPartPayments->sum('credit'), 2) }}</td>
 </tr>
 
 {{-- NEW LOANS --}}
@@ -291,22 +326,21 @@
     <td class="total-label">Total New Loans:</td>
     <td></td>
     <td></td>
-    <td class="total-amount">{{ number_format($newLoans->sum('debit'), 2) }}</td>
+    <td class="total-amount">{{ number_format($allNewLoans->sum('debit'), 2) }}</td>
 </tr>
 
 {{-- GRAND TOTALS --}}
 @php
-    $totalCredit = $depositsTotal  +
-                   $expensesTotal +
-                   $advancesTotal +
-                   $newLoansTotal;
-                  
+    $totalCredit = $allDeposits->sum('amount') +
+                   $allExpenses->sum('amount') +
+                   $allAdvances->sum('amount') +
+                   $allNewLoans->sum('debit');
 
-    $totalDebit = $advancesPaid->sum('amount_paid') +
-                   $reloanedAmountTotal +
-                   $fullPaymentsTotal +
+    $totalDebit = $allAdvancesPaid->sum('amount_paid') +
+                  $allReloans->sum('credit') +
+                  $allFullPayments->sum('credit') +
                   $totalIncome + 
-                  $partPaymentTotal + 
+                  $allPartPayments->sum('credit') + 
                   $openingBalance;
 @endphp
 
