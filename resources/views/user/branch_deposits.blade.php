@@ -25,7 +25,6 @@
     </section>
 </div>
 
-
 <!-- Confirmation Modal -->
 <div class="modal fade" id="depositConfirmModal" tabindex="-1" role="dialog" aria-labelledby="depositConfirmLabel">
   <div class="modal-dialog">
@@ -50,7 +49,6 @@
   </div>
 </div>
 @endsection
-
 
 @section('footer-scripts')
 <script>
@@ -82,16 +80,20 @@ $(document).ready(function () {
             .closest('.deposit-item').css('opacity', 1);
     }
 
+    // ---------- Keep input enabled but mark completed ----------
     function markCompleted(id) {
         $('.deposit-item[data-deposit-id="'+id+'"]')
-            .find('input,button').prop('disabled', true)
             .closest('.deposit-item')
             .addClass('bg-success')
             .css('opacity', 1);
+
+        // Keep input and button enabled so managers can add more
+        $('.deposit-item[data-deposit-id="'+id+'"]')
+            .find('input.amount, .complete-btn')
+            .prop('disabled', false);
     }
 
     /* ---------- LOAD DEPOSIT TYPES ---------- */
-
     $.get('https://lms2backend.whencefinancesystem.com/deposit-types', function (res) {
 
         var deposits = res.data || res;
@@ -108,7 +110,8 @@ $(document).ready(function () {
             container.append(`
                 <div class="deposit-item" data-deposit-id="${d.id}">
                     <h4>${d.name}</h4>
-                    <input type="number" class="form-control amount" placeholder="Enter amount">
+                    <p class="existing-amount text-muted">Current Amount: 0</p>
+                    <input type="number" class="form-control amount" placeholder="Enter amount to add">
                     <br>
                     <button class="btn btn-primary complete-btn">Save Deposit</button>
                     ${skipBtn}
@@ -120,10 +123,8 @@ $(document).ready(function () {
     });
 
     /* ---------- CHECK COMPLETED ---------- */
-
     function checkCompletedDeposits() {
-
-        $.get('https://lms2backend.whencefinancesystem.com/check-deposits', {
+        $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
             branch: branchId,
             date: today().slice(0,7)
         }, function (response) {
@@ -135,8 +136,16 @@ $(document).ready(function () {
                 return;
             }
 
-            var completedIds = response.map(r => r.deposit_type_id);
+            var completedIds = response.map(r => r.deposit_type);
             completedIds.forEach(markCompleted);
+
+            response.forEach(r => {
+                let box = $('.deposit-item[data-deposit-id="'+r.deposit_type+'"]');
+                // Show existing amount
+                box.find('.existing-amount').text(`Current Amount: ${r.amount}`);
+                // Clear input for new addition
+                box.find('input.amount').val('');
+            });
 
             for (let id of depositOrder) {
                 if (!completedIds.includes(id)) {
@@ -148,7 +157,6 @@ $(document).ready(function () {
     }
 
     /* ---------- SAVE DEPOSIT ---------- */
-
     $(document).on('click', '.complete-btn', function () {
 
         let box = $(this).closest('.deposit-item');
@@ -157,8 +165,8 @@ $(document).ready(function () {
         let raw = box.find('.amount').val();
         currentDepositAmount = parseFloat(raw);
 
-        if (isNaN(currentDepositAmount) || currentDepositAmount < 0) {
-            alert('Enter a valid amount');
+        if (isNaN(currentDepositAmount) || currentDepositAmount <= 0) {
+            alert('Enter a valid amount to add');
             return;
         }
 
@@ -186,37 +194,30 @@ $(document).ready(function () {
     });
 
     /* ---------- SKIP OPTIONAL (SAVE ZERO) ---------- */
-
     $(document).on('click', '.skip-btn', function () {
 
         if (!confirm('Skip Managers Housing deposit? This will be recorded as 0.')) return;
 
         let depositId = $(this).closest('.deposit-item').data('deposit-id');
 
-  $.ajax({
-    url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
-    type: 'POST',
-    data: {
-        deposit_type: depositId,
-        office: branchId,
-        amount: 0,
-        date: today()
-    },
-    success: function () {
-        location.reload();
-    }
-});
+        $.ajax({
+            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+            type: 'POST',
+            data: {
+                deposit_type: depositId,
+                office: branchId,
+                amount: 0,
+                date: today()
+            },
+            success: function () {
+                location.reload();
+            }
+        });
 
     });
 
 });
 </script>
-
-
-
-
-
-
 @endsection
 
 
