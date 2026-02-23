@@ -7,9 +7,20 @@
                                 <i class="fa fa-bar-chart"></i> Ticket Summary & Performance Analytics
                             </h3>
 
-                            <a href="{{ url('ticket') }}" class="text-muted btn btn-sm btn-secondary" style="font-size: 14px;">
-                                <i class="fa fa-info-circle"></i> Reset Filter
-                            </a>
+                            <div class="d-flex align-items-center gap-2">
+                                <form method="GET" action="{{ url('ticket') }}" class="d-flex align-items-center gap-2">
+                                    <input type="hidden" name="tab" value="summary_report">
+                                    <select name="year" class="form-control input-sm" style="width: 120px;" onchange="this.form.submit()">
+                                        <option value="">All Years</option>
+                                        @foreach($availableYears as $year)
+                                            <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                </form>
+                                <a href="{{ url('ticket') }}" class="text-muted btn btn-sm btn-secondary" style="font-size: 14px;">
+                                    <i class="fa fa-info-circle"></i> Reset Filter
+                                </a>
+                            </div>
                         </div>
                     </div>
 
