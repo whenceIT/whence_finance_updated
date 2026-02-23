@@ -64,6 +64,11 @@
 @php
 $viewMode = request('view_mode', 'all');
 
+/*
+|--------------------------------------------------------------------------
+| STORE ORIGINAL COLLECTIONS FOR SUBTOTALS
+|--------------------------------------------------------------------------
+*/
 $allAdvances        = $advances;
 $allAdvancesPaid    = $advancesPaid;
 $allExpenses        = $expenses;
@@ -73,6 +78,11 @@ $allReloans         = $reloanedAmount;
 $allPartPayments    = $partPayment;
 $allNewLoans        = $newLoans;
 
+/*
+|--------------------------------------------------------------------------
+| FILTER ONLY TRANSACTIONS (NOT TOTALS)
+|--------------------------------------------------------------------------
+*/
 if ($viewMode === 'today') {
 
     $advances       = $advances->where('date_approved', $endDate);
@@ -171,7 +181,7 @@ if ($viewMode === 'today') {
     <td class="total-amount">{{ number_format($allAdvancesPaid->sum('amount_paid'), 2) }}</td>
 </tr>
 
-{{-- EXPENSES (CREDIT) --}}
+{{-- EXPENSES (MOVED TO CREDIT) --}}
 @if(in_array('expenses', $selectedSections))
     @foreach ($expenses as $expense)
     <tr>
@@ -215,7 +225,7 @@ if ($viewMode === 'today') {
     <td></td>
 </tr>
 
-{{-- FULL PAYMENTS (DEBIT) --}}
+{{-- FULL PAYMENTS (MOVED TO DEBIT) --}}
 @if(in_array('full_payments', $selectedSections))
     @foreach ($fullPayments as $payment)
     <tr>
@@ -241,7 +251,7 @@ if ($viewMode === 'today') {
     <td class="total-amount">{{ number_format($allFullPayments->sum('credit'), 2) }}</td>
 </tr>
 
-{{-- RELOAN (DEBIT) --}}
+{{-- RELOAN (MOVED TO DEBIT) --}}
 @if(in_array('reloan', $selectedSections))
     @foreach ($reloanedAmount as $reloan)
     <tr>
@@ -293,7 +303,7 @@ if ($viewMode === 'today') {
     <td class="total-amount">{{ number_format($allPartPayments->sum('credit'), 2) }}</td>
 </tr>
 
-{{-- NEW LOANS (CREDIT) --}}
+{{-- NEW LOANS (MOVED TO CREDIT) --}}
 @if(in_array('new_loans', $selectedSections))
     @foreach ($newLoans as $loan)
     <tr>
@@ -317,6 +327,37 @@ if ($viewMode === 'today') {
     <td></td>
     <td class="total-amount">{{ number_format($allNewLoans->sum('debit'), 2) }}</td>
     <td></td>
+</tr>
+
+{{-- GRAND TOTALS --}}
+@php
+    $totalCredit = $allDeposits->sum('amount') +
+                   $allExpenses->sum('amount') +
+                   $allAdvances->sum('amount') +
+                   $allNewLoans->sum('debit');
+
+    $totalDebit = $allAdvancesPaid->sum('amount_paid') +
+                  $allReloans->sum('credit') +
+                  $allFullPayments->sum('credit') +
+                  $totalIncome + 
+                  $allPartPayments->sum('credit') + 
+                  $openingBalance;
+@endphp
+
+<tr>
+    <td colspan="3"></td>
+    <td class="total-label">Totals:</td>
+    <td></td>
+    <td class="total-amount">{{ number_format($totalCredit, 2) }}</td>
+    <td class="total-amount">{{ number_format($totalDebit, 2) }}</td>
+</tr>
+
+<tr>
+    <td colspan="3"></td>
+    <td class="total-label">Cash Balance at {{$endDate}} :</td>
+    <td></td>
+    <td></td>
+    <td class="total-amount">{{ number_format($closingBalance, 2) }}</td>
 </tr>
 
         </tbody>
