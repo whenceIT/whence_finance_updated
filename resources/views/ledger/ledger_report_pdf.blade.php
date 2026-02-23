@@ -181,7 +181,7 @@ if ($viewMode === 'today') {
     <td class="total-amount">{{ number_format($allAdvancesPaid->sum('amount_paid'), 2) }}</td>
 </tr>
 
-{{-- EXPENSES --}}
+{{-- EXPENSES (MOVED TO CREDIT) --}}
 @if(in_array('expenses', $selectedSections))
     @foreach ($expenses as $expense)
     <tr>
@@ -190,8 +190,8 @@ if ($viewMode === 'today') {
         <td>-</td>
         <td>Expense</td>
         <td>{{ $expense->expense_type }}</td>
-        <td></td>
         <td>{{ number_format($expense->amount, 2) }}</td>
+        <td></td>
     </tr>
     @endforeach
 @endif
@@ -199,8 +199,8 @@ if ($viewMode === 'today') {
     <td colspan="3"></td>
     <td class="total-label">Total Expenses:</td>
     <td></td>
-    <td></td>
     <td class="total-amount">{{ number_format($allExpenses->sum('amount'), 2) }}</td>
+    <td></td>
 </tr>
 
 {{-- DEPOSITS --}}
@@ -225,7 +225,7 @@ if ($viewMode === 'today') {
     <td></td>
 </tr>
 
-{{-- FULL PAYMENTS --}}
+{{-- FULL PAYMENTS (MOVED TO DEBIT) --}}
 @if(in_array('full_payments', $selectedSections))
     @foreach ($fullPayments as $payment)
     <tr>
@@ -238,8 +238,8 @@ if ($viewMode === 'today') {
                 {{$payment->loan->client->first_name}} {{$payment->loan->client->last_name}}
             @endif
         </td>
-        <td>{{ number_format($payment->credit, 2) }}</td>
         <td></td>
+        <td>{{ number_format($payment->credit, 2) }}</td>
     </tr>
     @endforeach
 @endif
@@ -247,11 +247,11 @@ if ($viewMode === 'today') {
     <td colspan="3"></td>
     <td class="total-label">Total Full Payments:</td>
     <td></td>
-    <td class="total-amount">{{ number_format($allFullPayments->sum('credit'), 2) }}</td>
     <td></td>
+    <td class="total-amount">{{ number_format($allFullPayments->sum('credit'), 2) }}</td>
 </tr>
 
-{{-- RELOAN --}}
+{{-- RELOAN (MOVED TO DEBIT) --}}
 @if(in_array('reloan', $selectedSections))
     @foreach ($reloanedAmount as $reloan)
     <tr>
@@ -264,8 +264,8 @@ if ($viewMode === 'today') {
                 {{$reloan->loan->client->first_name}} {{$reloan->loan->client->last_name}}
             @endif
         </td>
-        <td>{{ number_format($reloan->credit, 2) }}</td>
         <td></td>
+        <td>{{ number_format($reloan->credit, 2) }}</td>
     </tr>
     @endforeach
 @endif
@@ -273,8 +273,8 @@ if ($viewMode === 'today') {
     <td colspan="3"></td>
     <td class="total-label">Total Reloaned:</td>
     <td></td>
-    <td class="total-amount">{{ number_format($allReloans->sum('credit'), 2) }}</td>
     <td></td>
+    <td class="total-amount">{{ number_format($allReloans->sum('credit'), 2) }}</td>
 </tr>
 
 {{-- PART PAYMENTS --}}
@@ -303,7 +303,7 @@ if ($viewMode === 'today') {
     <td class="total-amount">{{ number_format($allPartPayments->sum('credit'), 2) }}</td>
 </tr>
 
-{{-- NEW LOANS --}}
+{{-- NEW LOANS (MOVED TO CREDIT) --}}
 @if(in_array('new_loans', $selectedSections))
     @foreach ($newLoans as $loan)
     <tr>
@@ -316,8 +316,8 @@ if ($viewMode === 'today') {
                 {{$loan->loan->client->first_name}} {{$loan->loan->client->last_name}}
             @endif
         </td>
-        <td></td>
         <td>{{ number_format($loan->debit, 2) }}</td>
+        <td></td>
     </tr>
     @endforeach
 @endif
@@ -325,8 +325,8 @@ if ($viewMode === 'today') {
     <td colspan="3"></td>
     <td class="total-label">Total New Loans:</td>
     <td></td>
-    <td></td>
     <td class="total-amount">{{ number_format($allNewLoans->sum('debit'), 2) }}</td>
+    <td></td>
 </tr>
 
 {{-- GRAND TOTALS --}}
@@ -365,6 +365,5 @@ if ($viewMode === 'today') {
 </div>
 </body>
 </html>
-
 
 
