@@ -242,76 +242,35 @@
 
                     
 
-                    <script src="{{ asset('assets/plugins/chart.js/Chart.min.js') }}"></script>
                     <script>
-                        // SLA Pie Chart
-                        var ctx = document.getElementById('slaChart').getContext('2d');
-                        var slaChart = new Chart(ctx, {
-                            type: 'pie',
-                            data: {
-                                labels: ['Met', 'Not Met'],
-                                datasets: [{
-                                    data: [{{ $slaData['met'] }}, {{ $slaData['not_met'] }}],
-                                    backgroundColor: ['#28a745', '#dc3545']
-                                }]
-                            }
+                    $(document).ready(function(){
+                        $('#table-view-btn-manage').click(function(){
+                            $('#table-view-manage').show();
+                            $('#grid-view-manage').hide();
+                            $(this).addClass('btn-primary').removeClass('btn-secondary');
+                            $('#grid-view-btn-manage').addClass('btn-secondary').removeClass('btn-primary');
                         });
-
-                        // Office Bar Chart
-                        var ctx2 = document.getElementById('officeChart').getContext('2d');
-                        var officeChart = new Chart(ctx2, {
-                            type: 'bar',
-                            data: {
-                                labels: {!! json_encode(array_keys($officeData->toArray())) !!},
-                                datasets: [{
-                                    label: 'Tickets',
-                                    data: {!! json_encode(array_values($officeData->toArray())) !!},
-                                    backgroundColor: '#007bff'
-                                }]
-                            }
+                        $('#grid-view-btn-manage').click(function(){
+                            $('#grid-view-manage').show();
+                            $('#table-view-manage').hide();
+                            $(this).addClass('btn-primary').removeClass('btn-secondary');
+                            $('#table-view-btn-manage').addClass('btn-secondary').removeClass('btn-primary');
                         });
-
-                        // Category Pie Chart
-                        var ctx3 = document.getElementById('categoryChart').getContext('2d');
-                        var categoryChart = new Chart(ctx3, {
-                            type: 'pie',
-                            data: {
-                                labels: {!! json_encode(array_keys($categoryData->toArray())) !!},
-                                datasets: [{
-                                    data: {!! json_encode(array_values($categoryData->toArray())) !!},
-                                    backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56', '#ff9f40', '#4bc0c0']
-                                }]
-                            }
+                        $(document).on('click', '.view-ticket-info', function(){
+                            $('.ticket-card').removeClass('clicked');
+                            $(this).closest('.ticket-card').addClass('clicked');
                         });
-
-                        // Open Time Line Chart
-                        var ctx4 = document.getElementById('openChart').getContext('2d');
-                        var openChart = new Chart(ctx4, {
-                            type: 'line',
-                            data: {
-                                labels: {!! json_encode(array_keys($openData->toArray())) !!},
-                                datasets: [{
-                                    label: 'Tickets Opened',
-                                    data: {!! json_encode(array_values($openData->toArray())) !!},
-                                    borderColor: '#28a745',
-                                    fill: false
-                                }]
-                            }
+                        // Handle reassign button click
+                        $(document).on('click', '.open-reassign-modal', function(){
+                            var ticketId = $(this).data('ticket-id');
+                            var ticketName = $(this).data('ticket-name');
+                            var currentAssigned = $(this).data('current-assigned');
+                            $('#reassignTicketId').val(ticketId);
+                            $('#reassignTicketName').text(ticketName);
+                            $('#reassignCurrentAssigned').text(currentAssigned ? currentAssigned : 'Unassigned');
+                            $('#reassignTicketModal').modal('show');
                         });
-
-                        // Close Bar Chart
-                        var ctx5 = document.getElementById('closeChart').getContext('2d');
-                        var closeChart = new Chart(ctx5, {
-                            type: 'bar',
-                            data: {
-                                labels: {!! json_encode(array_keys($closeData->toArray())) !!},
-                                datasets: [{
-                                    label: 'Average Days',
-                                    data: {!! json_encode(array_values($closeData->toArray())) !!},
-                                    backgroundColor: '#ffc107'
-                                }]
-                            }
-                        });
+                    });
                     </script>
                     <script>
                     $(document).ready(function(){
