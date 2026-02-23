@@ -237,7 +237,7 @@
                     @endif
 
                     @if($isAdmin == 1)
-                        @include('ticket.partials.summary_report', ['slaData' => $slaData, 'officeData' => $officeData, 'categoryData' => $categoryData, 'openData' => $openData, 'closeData' => $closeData])
+                        @include('ticket.partials.summary_report', ['slaData' => $slaData, 'officeData' => $officeData, 'categoryData' => $categoryData, 'openData' => $openData, 'closeData' => $closeData, 'statusData' => $statusData, 'dashboardTotals' => $dashboardTotals, 'selectedYear' => $selectedYear, 'availableYears' => $availableYears])
                     @endif
 
                     @include('ticket.partials.assigned')
@@ -352,6 +352,19 @@
 
 
     <script>
+        // Handle tab parameter from URL (for year filter)
+        (function ($) {
+            // Check if we need to activate a specific tab from URL
+            var urlParams = new URLSearchParams(window.location.search);
+            var tabParam = urlParams.get('tab');
+            if (tabParam) {
+                $('.nav-tabs li').removeClass('active');
+                $('.tab-pane').removeClass('active');
+                $('a[href="#' + tabParam + '"]').parent().addClass('active');
+                $('#' + tabParam).addClass('active');
+            }
+        })(jQuery);
+
         (function ($) {
             $(document).on('click', '.open-close-modal', function () {
                 var id = $(this).data('ticket-id');

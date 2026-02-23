@@ -115,7 +115,7 @@
                             border-left: 5px solid #f59e0b;
                         }
                         .tk-card.tk-status-assigned-card {
-                            border-left: 5px solid #3b82f6;
+                            border-left: 5px solid #8c8e91;
                         }
                         .tk-card.tk-status-working-card {
                             border-left: 5px solid #8b5cf6;
@@ -239,6 +239,20 @@
                             color: #1d4ed8;
                             border: 1px solid #93c5fd;
                         }
+                        /* Pulse animation for unassigned badge */
+                        .tk-status-unassigned {
+                            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                            color: #b45309;
+                            border: 1px solid #fcd34d;
+                        }
+                        .tk-status-unassigned.tk-pulse {
+                            animation: smoothPulse 0.8s ease-in-out;
+                        }
+                        @keyframes smoothPulse {
+                            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.4); }
+                            50% { transform: scale(1.05); box-shadow: 0 0 15px 5px rgba(180, 83, 9, 0.3); }
+                            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(180, 83, 9, 0); }
+                        }
                         .tk-card-footer {
                             padding: 1rem 1.25rem;
                             background: #f8fafc;
@@ -357,6 +371,8 @@
                                                 <span class="tk-status-badge tk-status-working"><i class="fa fa-cog fa-spin"></i> Working</span>
                                             @elseif($ticket->assigned_to != null)
                                                 <span class="tk-status-badge tk-status-assigned"><i class="fa fa-user-check"></i> Assigned</span>
+                                            @elseif($ticket->assigned_to == null && $ticket->stage == 'Started')
+                                                <span class="tk-status-badge tk-status-unassigned"><i class="fa fa-user-times"></i> Unassigned</span>
                                             @else
                                                 <span class="tk-info-value">—</span>
                                             @endif
@@ -423,6 +439,22 @@
                             $('.tk-card').removeClass('tk-selected');
                             $(this).addClass('tk-selected');
                         });
+                        
+                        // Random pulse animation for unassigned badges (4-6 seconds interval)
+                        function triggerPulse() {
+                            $('.tk-status-unassigned').each(function(){
+                                var $badge = $(this);
+                                $badge.addClass('tk-pulse');
+                                setTimeout(function(){
+                                    $badge.removeClass('tk-pulse');
+                                }, 800);
+                            });
+                            // Random interval between 4-6 seconds (4000-6000ms)
+                            var nextPulse = Math.floor(Math.random() * 2000) + 4000;
+                            setTimeout(triggerPulse, nextPulse);
+                        }
+                        // Start the pulse animation
+                        setTimeout(triggerPulse, 2000);
                     });
                     </script>
                 </div>

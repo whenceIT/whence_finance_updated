@@ -115,54 +115,85 @@ class TicketController extends Controller
         // count open tickets created by this user
         $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
 
-        // Dashboard metrics (site-wide)
-        $totalTickets = Ticket::count();
-        $openTicketsCount = Ticket::where('status', 'open')->count();
-        $resolvedTicketsCount = Ticket::where('status', 'resolved')->count();
-        $closedTicketsCount = Ticket::where('status', 'closed')->count();
-        $slaMetCount = Ticket::where('status', 'closed')->where('sla_met', true)->count();
-        $slaCompliancePercent = $closedTicketsCount ? round(($slaMetCount / $closedTicketsCount) * 100) . '%' : '—';
+        // Get year filter from request
+        $selectedYear = request()->get('year', null);
+        
+        // Build base query for ALL tickets (not paginated) - for charts
+        $chartTicketsQuery = Ticket::with(['openedBy.office', 'assignedTo', 'closedBy', 'issueCategory']);
+        
+        // Apply year filter if selected
+        if ($selectedYear) {
+            $chartTicketsQuery->whereYear('created_at', $selectedYear);
+        }
+        
+        // Get ALL tickets for chart calculations (not paginated)
+        $chartTickets = $chartTicketsQuery->get();
+
+        // Dashboard metrics - calculated from chartTickets (filtered by year)
+        $totalTickets = $chartTickets->count();
+        $openTicketsCount = $chartTickets->where('status', 'open')->count();
+        $resolvedTicketsCount = $chartTickets->where('status', 'resolved')->count();
+        $closedTicketsCount = $chartTickets->where('status', 'closed')->count();
+        
+        // SLA Compliance - based on RESOLVED and CLOSED tickets
+        $resolvedForSla = $chartTickets->whereIn('status', ['resolved', 'closed']);
+        $slaMetCount = $resolvedForSla->where('sla_met', true)->count();
+        $resolvedForSlaCount = $resolvedForSla->count();
+        $slaCompliancePercent = $resolvedForSlaCount > 0 ? round(($slaMetCount / $resolvedForSlaCount) * 100) . '%' : '—';
 
         $dashboardTotals = compact('totalTickets', 'openTicketsCount', 'resolvedTicketsCount', 'closedTicketsCount', 'slaCompliancePercent');
 
-        // include all tickets for all users (paginated)
+        // include all tickets for all users (paginated) - for display purposes
         $allTickets = Ticket::with(['openedBy.office', 'assignedTo', 'closedBy', 'issueCategory'])->orderBy('created_at', 'desc')->paginate(50);
 
+        // SLA Compliance chart data - based on RESOLVED and CLOSED tickets
         $slaData = [
-            'met' => $allTickets->where('status', 'closed')->where('sla_met', true)->count(),
-            'not_met' => $allTickets->where('status', 'closed')->where('sla_met', false)->count(),
+            'met' => $resolvedForSla->where('sla_met', true)->count(),
+            'not_met' => $resolvedForSla->where('sla_met', false)->count(),
         ];
 
-        $officeData = $allTickets->groupBy(function ($ticket) {
+        // Tickets by Office - uses all tickets
+        $officeData = $chartTickets->groupBy(function ($ticket) {
             return $ticket->openedBy && $ticket->openedBy->office ? $ticket->openedBy->office->name : 'Unknown';
         })->map(function ($group) {
             return $group->count();
-        });
+        })->sortDesc();
 
-        $categoryData = $allTickets->groupBy(function ($ticket) {
+        // Tickets by Issue Category - uses all tickets
+        $categoryData = $chartTickets->groupBy(function ($ticket) {
             return $ticket->issueCategory->name ?? 'Uncategorized';
         })->map(function ($group) {
             return $group->count();
-        });
+        })->sortDesc();
 
-        $openData = $allTickets->groupBy(function ($ticket) {
+        // Tickets Opened Over Time - uses all tickets
+        $openData = $chartTickets->groupBy(function ($ticket) {
             return \Carbon\Carbon::parse($ticket->datetime_open)->format('Y-m');
         })->map(function ($group) {
             return $group->count();
         })->sortKeys();
 
-        $closeData = $allTickets->where('status', 'closed')->whereNotNull('datetime_close')->groupBy(function ($ticket) {
+        // Average Days to Close by Office - uses all closed/resolved tickets
+        $closeData = $chartTickets->whereIn('status', ['resolved', 'closed'])->whereNotNull('datetime_close')->groupBy(function ($ticket) {
             return $ticket->openedBy->office->name ?? 'Unknown';
         })->map(function ($group) {
             $totalDays = $group->sum(function ($ticket) {
                 return \Carbon\Carbon::parse($ticket->datetime_open)->diffInDays(\Carbon\Carbon::parse($ticket->datetime_close));
             });
             return $group->count() > 0 ? round($totalDays / $group->count(), 1) : 0;
-        });
+        })->sortDesc();
 
-        $statusData = $allTickets->groupBy('status')->map(function ($group) {
+        // Tickets by Status - uses all tickets
+        $statusData = $chartTickets->groupBy('status')->map(function ($group) {
             return $group->count();
         });
+
+        // Get available years for filter dropdown
+        $availableYears = Ticket::selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
 
         // check if admin
         $isAdmin = false;
@@ -171,7 +202,7 @@ class TicketController extends Controller
         } catch (\Exception $e) {
         }
 
-        return view('ticket.index', compact('totalTickets','assignedTickets', 'assignedClosedTickets', 'myTickets', 'myResolvedTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData'));
+        return view('ticket.index', compact('totalTickets','assignedTickets', 'assignedClosedTickets', 'myTickets', 'myResolvedTickets', 'myClosedTickets', 'users', 'offices', 'roles', 'categories', 'openCount', 'dashboardTotals', 'allTickets', 'isAdmin', 'slaData', 'officeData', 'categoryData', 'openData', 'closeData', 'statusData', 'selectedYear', 'availableYears'));
     }
 
     public function store(Request $request)
