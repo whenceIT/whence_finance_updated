@@ -103,7 +103,7 @@ $(document).ready(function () {
 
             depositOrder.push(d.id);
 
-          var skipBtn = (d.id == 2 || d.id == 3)
+          var skipBtn = (d.id == 2 || d.id == 3 || d.id == 1)
     ? `<button class="btn btn-warning skip-btn">Skip Deposit</button>`
     : '';
 
