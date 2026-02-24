@@ -878,7 +878,8 @@ return redirect('user/carry_over_approvals');
 
        public function branch_deposits(Request $request){
         $office_id = Sentinel::getUser()->office->id;
-        return view('user.branch_deposits',compact('office_id'));
+        $userId = Sentinel::getUser()->id;
+        return view('user.branch_deposits',compact('office_id','userId',));
     }
 
 

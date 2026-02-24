@@ -55,10 +55,12 @@
 $(document).ready(function () {
 
     var branchId = {{ $office_id }};
+    var userId = {{$userId}};
     var depositOrder = [];
 
     var currentDepositType = null;
     var currentDepositAmount = null;
+    var currentReferenceNumber = null;
 
     function today() {
         var d = new Date();
@@ -80,17 +82,15 @@ $(document).ready(function () {
             .closest('.deposit-item').css('opacity', 1);
     }
 
-    // ---------- Keep input enabled but mark completed ----------
     function markCompleted(id) {
         $('.deposit-item[data-deposit-id="'+id+'"]')
             .closest('.deposit-item')
             .addClass('bg-success')
             .css('opacity', 1);
 
-        // Keep input and button enabled so managers can add more
         $('.deposit-item[data-deposit-id="'+id+'"]')
-            .find('input.amount, .complete-btn')
-            .prop('disabled', false);
+           .find('input.amount, input.reference, .complete-btn')
+.prop('disabled', false);
     }
 
     /* ---------- LOAD DEPOSIT TYPES ---------- */
@@ -103,14 +103,21 @@ $(document).ready(function () {
 
             depositOrder.push(d.id);
 
-            var skipBtn = d.id == 2
-                ? `<button class="btn btn-warning skip-btn">Skip Deposit</button>`
-                : '';
+          var skipBtn = (d.id == 2 || d.id == 3 || d.id == 1)
+    ? `<button class="btn btn-warning skip-btn">Skip Deposit</button>`
+    : '';
 
             container.append(`
                 <div class="deposit-item" data-deposit-id="${d.id}">
                     <h4>${d.name}</h4>
                     <p class="existing-amount text-muted">Current Amount: 0</p>
+
+                    <small class="text-muted">
+                        Enter Payment Reference Number (Example: MP260223.0953.J76581)
+                    </small>
+                    <input type="text" class="form-control reference" placeholder="MP260223.0953.J76581" required>
+                    <br>
+
                     <input type="number" class="form-control amount" placeholder="Enter amount to add">
                     <br>
                     <button class="btn btn-primary complete-btn">Save Deposit</button>
@@ -141,9 +148,7 @@ $(document).ready(function () {
 
             response.forEach(r => {
                 let box = $('.deposit-item[data-deposit-id="'+r.deposit_type+'"]');
-                // Show existing amount
                 box.find('.existing-amount').text(`Current Amount: ${r.amount}`);
-                // Clear input for new addition
                 box.find('input.amount').val('');
             });
 
@@ -165,8 +170,24 @@ $(document).ready(function () {
         let raw = box.find('.amount').val();
         currentDepositAmount = parseFloat(raw);
 
+        currentReferenceNumber = box.find('.reference').val().trim();
+
+        if (!currentReferenceNumber) {
+            alert('Please enter a payment reference number.');
+            return;
+        }
+
         if (isNaN(currentDepositAmount) || currentDepositAmount <= 0) {
             alert('Enter a valid amount to add');
+            return;
+        }
+
+        if (
+            (currentDepositType == 1 && currentDepositAmount < 100) ||
+            (currentDepositType == 3 && currentDepositAmount < 100) ||
+            (currentDepositType == 5 && currentDepositAmount < 100)
+        ) {
+            alert('Please enter minimum deposit amount.');
             return;
         }
 
@@ -175,24 +196,47 @@ $(document).ready(function () {
 
     $('#modalConfirmBtn').click(function () {
 
-        $('#depositConfirmModal').modal('hide');
+    $('#depositConfirmModal').modal('hide');
 
-        $.ajax({
-            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                deposit_type: currentDepositType,
-                office: branchId,
-                amount: currentDepositAmount,
-                date: today()
-            }),
-            success: function () {
-                location.reload();
-            }
-        });
+    $.ajax({
+        url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            deposit_type: currentDepositType,
+            office: branchId,
+            amount: currentDepositAmount,
+            date: today()
+        }),
+        success: function (response) {
+
+$.ajax({
+    url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({
+        deposit_type: currentDepositType,
+        office_id: branchId,
+        user_id: userId, 
+        amount: currentDepositAmount,
+        reference_number: currentReferenceNumber
+    })
+})
+.done(function () {
+    console.log('Deposit log created successfully');
+    location.reload();
+})
+.fail(function (xhr, status, error) {
+    console.error('Deposit log failed:', status, error, xhr.responseText);
+    location.reload();
+});
+
+        },
+        error: function (err) {
+            console.error('Deposit failed:', err);
+        }
     });
-
+});
     /* ---------- SKIP OPTIONAL (SAVE ZERO) ---------- */
     $(document).on('click', '.skip-btn', function () {
 
