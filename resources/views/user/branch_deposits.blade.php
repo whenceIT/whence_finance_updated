@@ -183,9 +183,9 @@ $(document).ready(function () {
         }
 
         if (
-            (currentDepositType == 1 && currentDepositAmount < 7000) ||
-            (currentDepositType == 3 && currentDepositAmount < 5000) ||
-            (currentDepositType == 5 && currentDepositAmount < 4500)
+            (currentDepositType == 1 && currentDepositAmount < 10000) ||
+            (currentDepositType == 3 && currentDepositAmount < 10000) ||
+            (currentDepositType == 5 && currentDepositAmount < 10000)
         ) {
             alert('Please enter minimum deposit amount.');
             return;
