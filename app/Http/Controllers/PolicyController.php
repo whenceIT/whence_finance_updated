@@ -90,12 +90,13 @@ class PolicyController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        // Build query with user responses
+        // Build query with user responses and created by user
         $query = Policy::with([
             'userPolicyResponses' => function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             },
-            'category'
+            'category',
+            'createdBy'
         ]);
 
         // Filter by category if selected
@@ -204,6 +205,7 @@ class PolicyController extends Controller
                     'file_type' => $file->getClientMimeType(),
                     'category_id' => $request->category_id,
                     'access_level' => $request->access_level,
+                    'created_by' => Sentinel::getUser()->id,
                 ]);
 
                 Flash::success(trans('general.successfully_saved'));
@@ -363,6 +365,63 @@ class PolicyController extends Controller
         UserPolicyResponse::where('user_id', $userId)->where('policy_id', $policyId)->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Delete a policy
+     *
+     * @param  int  $policyId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function deletePolicy($policyId)
+    {
+        $policy = Policy::findOrFail($policyId);
+        $user = Sentinel::getUser();
+
+        // Check if user has permission to delete the policy
+        $canDelete = false;
+        $userRole = $user->roles->first();
+        
+        if ($userRole && $userRole->id == 1) {
+            // Admin can delete any policy
+            $canDelete = true;
+        } elseif ($policy->created_by == $user->id) {
+            // Policy creator can delete their own policy
+            $canDelete = true;
+        }
+
+        if (!$canDelete) {
+            Flash::error('You do not have permission to delete this policy.');
+            return redirect()->back();
+        }
+
+        try {
+            // Delete policy file from DigitalOcean Spaces
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => 'nyc3',
+                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                'credentials' => [
+                    'key' => 'DO00RP9FA3QZTA3JV637',
+                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                ],
+            ]);
+
+            $s3Client->deleteObject([
+                'Bucket' => 'wfspolicies',
+                'Key' => $policy->file_path,
+            ]);
+
+            // Delete policy record
+            $policy->delete();
+
+            Flash::success('Policy deleted successfully.');
+        } catch (AwsException $e) {
+            Log::error('Policy Delete Error: ' . $e->getMessage());
+            Flash::error('Failed to delete policy file from DigitalOcean Spaces.');
+        }
+
+        return redirect()->route('policies.view_policies');
     }
 
 

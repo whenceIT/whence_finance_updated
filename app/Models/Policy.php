@@ -19,6 +19,7 @@ class Policy extends Model
         'file_type',
         'category_id',
         'access_level',
+        'created_by',
     ];
 
     protected $casts = [
@@ -99,5 +100,13 @@ class Policy extends Model
     public function scopeByAccessLevel($query, $accessLevel)
     {
         return $query->where('access_level', $accessLevel);
+    }
+
+    /**
+     * Get the user that created the policy.
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(\App\User::class, 'created_by');
     }
 }
