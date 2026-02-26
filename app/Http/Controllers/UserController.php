@@ -43,6 +43,8 @@ use App\Models\CarryOver;
 use App\Models\ClientTransferLog;
 use stdClass;
 use Carbon\Carbon;
+use App\Models\AuditLogs;
+
 
 class UserController extends Controller
 {
@@ -620,6 +622,8 @@ return redirect('user/carry_over_approvals');
             $client = Client::findOrFail($clientId);
 
             $oldOfficer = $client->staff_id;
+            $oldOfficerName = User::where('id',$oldOfficer)->first();
+            $newLoanOfficerName = User::where('id',$request->loan_consultant_id)->first();
 
             // 1️⃣ Log Transfer BEFORE updating
             ClientTransferLog::create([
@@ -628,6 +632,17 @@ return redirect('user/carry_over_approvals');
                 'new_loan_officer_id' => $request->loan_consultant_id,
                 'transferred_by' => $currentUser->id,
             ]); 
+
+
+ AuditLogs::create([
+    'module' => 1,
+    'action' => 'client transfer',
+    'done_by' => trim(($currentUser->first_name ?? '') . ' ' . ($currentUser->last_name ?? '')),
+    'details' => 
+        'Old Loan Officer: ' . trim(($oldOfficerName->first_name ?? '') . ' ' . ($oldOfficerName->last_name ?? '')) . "\n" .
+        'New Loan Officer: ' . trim(($newLoanOfficerName->first_name ?? '') . ' ' . ($newLoanOfficerName->last_name ?? '')) . "\n" .
+        'Client: ' . trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? ''))
+]);
 
 
         // Update Clients in one query

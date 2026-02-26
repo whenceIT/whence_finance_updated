@@ -11,6 +11,8 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Laracasts\Flash\Flash;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\AuditLogs;
+use App\Models\AuditModules;
 
 class AuditTrailController extends Controller
 {
@@ -32,12 +34,33 @@ class AuditTrailController extends Controller
             return redirect()->back();
         }
 
+        $modules = AuditModules::get();
+
         $MonthsAgo = Carbon::now()->subMonths(1);
 
         $data = AuditTrail::with('user')->where('created_at', '>=', $MonthsAgo)->paginate(20);
         $users = User::all();
-        return view('audit_trail.data', compact('data', 'users'));
+        return view('audit_trail.data', compact('data', 'users','modules'));
     }
+
+    public function audit_log($id)
+{
+    $query = AuditLogs::where('module', $id);
+
+    // Apply From Date filter
+    if (request()->filled('from_date')) {
+        $query->whereDate('date', '>=', request('from_date'));
+    }
+
+    // Apply To Date filter
+    if (request()->filled('to_date')) {
+        $query->whereDate('date', '<=', request('to_date'));
+    }
+
+    $data = $query->get();
+
+    return view('audit_trail.audit_log', compact('data'));
+}
 
     public function user_audit($user_id)
     {

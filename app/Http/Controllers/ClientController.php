@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\GeneralHelper;
 use App\Mail\SendLoginDetailsEmail;
+use App\Models\AuditLogs;
 use App\Models\BlacklistHistory;
 use App\Models\BlacklistReason;
 use App\Models\Client;
@@ -22,6 +23,7 @@ use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\Http;
 use App\Models\Savings;
 use App\Models\Setting;
+use App\Models\User;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Intervention\Image\Facades\Image as InterventionImage;
 use Illuminate\Support\Facades\Storage;
@@ -837,9 +839,16 @@ class ClientController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+        $done_by = Sentinel::getUser();
         $client = Client::find($id);
+          $oldOfficeName = Office::where('id',$client->office_id)->first();
 	$client->office_id = $request->office_id;
+   
 	$client->staff_id = $request->staff_id;
+    $oldOfficerName = User::where('id',$client->staff_id)->first();
+     $newLoanOfficerName = User::where('id',$request->staff_id)->first();
+    
+     $newOfficeName = Office::where('id',$request->office_id)->first();
         $client->save();
         foreach (Loan::where("status", "disbursed")->where('client_id', $id)->get() as $key) {
             $loan = Loan::find($key->id);
@@ -852,6 +861,19 @@ class ClientController extends Controller
             $savings->office_id = $client->office_id;
             $savings->save();
         }
+
+        AuditLogs::create([
+            'module' => 1,
+            'action' => 'client transfer',
+            'done_by'=> trim(($done_by->first_name ?? '') . ' ' . ($done_by->last_name ?? '')),
+            'details' => 
+        'Old Loan Officer: ' . trim(($oldOfficerName->first_name ?? '') . ' ' . ($oldOfficerName->last_name ?? '')) . "\n" .
+        'New Loan Officer: ' . trim(($newLoanOfficerName->first_name ?? '') . ' ' . ($newLoanOfficerName->last_name ?? '')) . "\n" .
+        'Client: ' . trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')) . "\n" .
+        'Old Office:' . trim(($oldOfficeName->name)) . "\n" .
+        'New Office:' . trim(($newOfficeName->name))
+
+        ]);
         GeneralHelper::audit_trail("Transfer", "Clients", $client->id);
         Flash::success(trans('general.successfully_saved'));
         return redirect()->back();

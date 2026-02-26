@@ -9,45 +9,20 @@
             <div class="box-tools pull-right">
             </div>
         </div>
-
-        <div class="box-tools-section">
-            <button id="quick-audit-btn" class="btn btn-primary">Quick Transactions Audit</button>
-        </div>
-
         <!--<button id="manager-button" class="btn btn-primary">Managers Audit Trail</button>-->
 
-        <div class="box-body">
-            <div class="table-responsive">
-                <table id="data-table" class="table table-bordered table-condensed table-hover">
-                    <thead>
-                    <tr>
-                        <th> {{ trans_choice('general.action',1) }}</th>
-                        <th> {{ trans_choice('general.module',1) }}</th>
-                        <th> {{ trans_choice('general.user',1) }}</th>
-                        <th> {{ trans_choice('general.note',2) }}</th>
-                        <th> {{ trans_choice('general.date',2) }}</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($data as $key)
-                        <tr>
-                            <td>{{ $key->action }}</td>
-                            <td>{{ $key->module }}</td>
-                            <td>
-                                <a href="{{url('user/'.$key->user_id.'/show')}}"> {{$key->user ? $key->user->first_name . ' ' . $key->user->last_name : ''}}</a>
-                            </td>
-                            <td>{{ $key->notes }}</td>
-                            <td>{{ $key->created_at }}</td>
-                            <td>
-                                <a href="{{ url('audit_trail/user/' . $key->user_id) }}" class="btn btn-sm btn-primary">View Details</a>
-                            </td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
+     <div class="box-body">
+    <div class="row">
+        @foreach($modules as $module)
+            <div class="col-md-3" style="margin-bottom: 15px;">
+                <a href="{{ url('audit_trail/log/'.$module->id.'' ) }}"
+                   class="btn btn-primary btn-block">
+                    {{ ucfirst($module->name) }} Module
+                </a>
             </div>
-        </div>
+        @endforeach
+    </div>
+</div>
         <!-- /.box-body -->
         <div class="box-footer">
             {!! $data->links() !!}

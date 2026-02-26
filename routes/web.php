@@ -989,6 +989,7 @@ Route::group(['prefix' => 'audit_trail'], function () {
     Route::get('user/{user_id}', 'AuditTrailController@user_audit');
     Route::post('quick_audit', 'AuditTrailController@quickAudit');
     Route::get('{id}/delete', 'AuditTrailController@delete');
+    Route::get('log/{id}','AuditTrailController@audit_log');
 });
 //route for custom fields
 Route::group(['prefix' => 'custom_field'], function () {
@@ -1496,6 +1497,7 @@ Route::group(['prefix' => 'hybrid'], function () {
     Route::any('audit_trail/data', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\AuditTrailController@index');
     });
+
 
     Route::any('settings/general', function (Request $request) {
         return handleHybridRoute($request, 'App\Http\Controllers\SettingController@general');
