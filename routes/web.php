@@ -1169,6 +1169,7 @@ Route::group(['prefix' => 'policies'], function () {
     Route::get('user-responses/{userId}', 'PolicyController@getUserResponses');
     Route::get('declined-responses', 'PolicyController@getDeclinedResponses');
     Route::post('reset-response/{userId}/{policyId}', 'PolicyController@resetUserResponse');
+    Route::get('{policyId}/delete', 'PolicyController@deletePolicy')->name('policies.delete');
 });
 
 //staff survey routes
