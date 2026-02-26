@@ -892,7 +892,7 @@
                             </a>
                         </li>
                     @endif -->
-                    @if(Sentinel::hasAccess('settings'))
+                    @if(Sentinel::hasAccess('expenses'))
                         <li>
                             <a href="{{ url('user/performance_information') }}"><i
                                         class="fa fa-circle-o"></i>Performance Information

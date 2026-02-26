@@ -710,8 +710,12 @@ return redirect('user/carry_over_approvals');
 
     public function performance_information()
     {
+        $userId = Sentinel::getuser()->id;
         $offices = Office::get();
-        return view('user.performance_information', compact('offices'));
+        $office_id = Sentinel::getuser()->office_id;
+        $user_role = UserRole::where('user_id', $userId)->first();
+        $role = $user_role->role_id;
+        return view('user.performance_information', compact('offices','role','office_id'));
     }
 
 
