@@ -306,7 +306,7 @@ $(document).ready(function () {
 
         switch (paymentMethod) {
             case 'airtel':
-                valid = /^MP\d{6}\.\d{4}\.J\d{5}$/.test(currentReferenceNumber);
+                valid = /^MP\d{6}\.\d{4}\.[A-Za-z]\d{5}$/.test(currentReferenceNumber);
                 break;
             case 'zanaco_express':
                 valid = /^\d{12}$/.test(currentReferenceNumber);
