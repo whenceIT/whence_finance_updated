@@ -62,7 +62,7 @@
                             <td>{{ $log->id }}</td>
                             <td>{{ $log->action }}</td>
                             <td>
-                             {{$log->done_by}}
+                            
                             </td>
                             <td>{{ $log->details ?? $log->notes }}</td>
                             <td>{{ \Carbon\Carbon::parse($log->created_at)->format('d M Y H:i:s') }}</td>

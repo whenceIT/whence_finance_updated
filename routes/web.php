@@ -289,6 +289,7 @@ Route::group(['prefix' => 'user'], function () {
 
 
      Route::get('branch_deposits','UserController@branch_deposits');
+     Route::get('deposit_logs','UserController@deposit_logs');
 });
 //route for offices
 Route::group(['prefix' => 'office'], function () {

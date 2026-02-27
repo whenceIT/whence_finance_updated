@@ -1007,9 +1007,26 @@
                 </a>
                 <ul class="treeview-menu">
 
-                    <!-- Branch Deposits -->
+                
+
+                       <!-- Deposits -->
                     @if(Sentinel::hasAccess('reports.client_reports'))
-                    <li style="padding-left: 10px;"><a href="{{ url('user/branch_deposits') }}"><i class="fa fa-university"></i> Branch Deposits</a></li>
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-university"></i> <span>Branch Deposits</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            <li><a href="{{ url('user/branch_deposits') }}"><i class="fa fa-circle-o"></i>Branch Deposits</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('settings'))
+                            <li><a href="{{ url('user/deposit_logs') }}"><i class="fa fa-circle-o"></i>Deposit Logs</a></li>
+                            @endif
+                        </ul>
+                    </li>
                     @endif
 
                     <!-- Ledger -->

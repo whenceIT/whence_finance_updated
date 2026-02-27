@@ -902,6 +902,12 @@ return redirect('user/carry_over_approvals');
     }
 
 
+    public function deposit_logs(){
+        $branches = Office::get();
+        return view('user.deposit_logs',compact('branches'));
+    }
+
+
     public function provinces_dashboard(Request $request)
     {
 
