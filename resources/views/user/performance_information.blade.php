@@ -32,19 +32,31 @@
                         <input type="date" name="end_date" id="end_date" class="form-control">
                     </div>
                 </div>
+{{-- Office --}}
+<div class="form-group">
+    <label for="office_id"
+           class="control-label col-md-2">{{trans_choice('general.office',1)}}</label>
+    <div class="col-md-3">
+        <select name="office_id" class="form-control select2" id="office_id" required>
+         
 
-                {{-- Office --}}
-                <div class="form-group">
-                    <label class="col-md-2 control-label">Office</label>
-                    <div class="col-md-3">
-                        <select name="office_id" id="office_id" class="form-control">
-                            <option value="">All Offices</option>
-                            @foreach($offices as $office)
-                                <option value="{{ $office->id }}">{{ $office->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
+            @if($role == 4)
+                @foreach(\App\Models\Office::where('id', Sentinel::getUser()->office->id)->get() as $key)
+                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                @endforeach
+            @elseif($role == 6)
+                @foreach(\App\Models\Office::where('province_id', Sentinel::getUser()->office->province_id)->get() as $key)
+                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                @endforeach
+            @elseif($role == 1)
+               <option value="0" @if($office_id == "0") selected @endif>{{trans_choice('general.all',1)}}</option>
+                @foreach(\App\Models\Office::all() as $key)
+                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
+                @endforeach
+            @endif
+        </select>
+    </div>
+</div>
 
             </div>
 
