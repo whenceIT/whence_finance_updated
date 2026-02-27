@@ -1,7 +1,6 @@
 @extends('layouts.master')
 
 @section('content')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
     /* Custom Styles */
     .policy-container {
@@ -244,8 +243,10 @@
     <!-- Header Section -->
     <div class="header-section">
         <div class="header-icon">
-            <i class="fas fa-file-contract"></i>
-        </div>
+                <svg style="color:#fff" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
+                <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0"/>
+                </svg>        
+            </div>
         <h1>Add New Policy Document</h1>
         <p>Create and upload new policy documents with proper categorization and access controls</p>
     </div>
@@ -276,7 +277,6 @@
                 <!-- Category -->
                 <div class="col-lg-12 form-group">
                     <label for="category_id" class="form-label">
-                        <i class="fas fa-folder-open text-primary mr-2"></i>
                         Category <span class="text-danger">*</span>
                     </label>
                     <select name="category_id" id="category_id" class="form-control form-control-lg" required>
@@ -288,7 +288,6 @@
                         @endforeach
                     </select>
                     <small class="text-muted d-block mt-2">
-                        <i class="fas fa-info-circle text-primary mr-1"></i> 
                         Select the document category (Policies, Procedures, Training Manuals, Forms and Templates).
                     </small>
                 </div>
@@ -296,12 +295,10 @@
                 <!-- Document Title -->
                 <div class="col-lg-12 form-group">
                     <label for="title" class="form-label">
-                        <i class="fas fa-heading text-primary mr-2"></i>
                         Document Title <span class="text-danger">*</span>
                     </label>
                     <input type="text" name="title" id="title" class="form-control form-control-lg" value="{{ old('title') }}" required placeholder="Enter policy document title">
                     <small class="text-muted d-block mt-2">
-                        <i class="fas fa-info-circle text-primary mr-1"></i> 
                         Provide a clear and descriptive title for the document.
                     </small>
                 </div>
@@ -309,7 +306,6 @@
                 <!-- Description -->
                 <div class="col-lg-12 form-group">
                     <label for="description" class="form-label">
-                        <i class="fas fa-align-left text-primary mr-2"></i>
                         Description
                     </label>
                     <textarea name="description" id="description" class="form-control form-control-lg" rows="4" placeholder="Enter policy description (optional)">{{ old('description') }}</textarea>
@@ -318,7 +314,6 @@
                 <!-- Access Level -->
                 <div class="col-lg-12 form-group">
                     <label for="access_level" class="form-label">
-                        <i class="fas fa-shield-alt text-primary mr-2"></i>
                         Access Level <span class="text-danger">*</span>
                     </label>
                     <select name="access_level" id="access_level" class="form-control form-control-lg" required>
@@ -344,7 +339,6 @@
                 <!-- Document File -->
                 <div class="col-lg-12 form-group">
                     <label for="policy_file" class="form-label">
-                        <i class="fas fa-upload text-primary mr-2"></i>
                         Document File <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
@@ -354,7 +348,6 @@
                         </label>
                     </div>
                     <small class="text-muted d-block mt-2">
-                        <i class="fas fa-info-circle text-primary mr-1"></i> 
                         Accepted file types: PDF, DOC, DOCX, TXT. Max size: 10MB.
                     </small>
                 </div>
@@ -362,11 +355,16 @@
 
             <!-- Action Buttons -->
             <div class="d-flex justify-content-end gap-3 mt-5">
-                <a href="{{ route('policies.view_policies') }}" class="btn btn-secondary">
-                    <i class="fas fa-times mr-2"></i> Cancel
+                <a href="{{ route('policies.view_policies') }}" class="btn btn-muted">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                    </svg> Cancel
                 </a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-upload mr-2"></i> Upload Document
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
+                    </svg> Upload Document
                 </button>
             </div>
         </form>

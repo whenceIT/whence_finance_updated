@@ -1,7 +1,6 @@
 @extends('layouts.master')
 
 @section('content')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
     /* Custom Styles */
     .policy-container {
@@ -413,7 +412,9 @@
     <!-- Header Section -->
     <div class="header-section">
         <div class="header-icon">
-            <i class="fas fa-file-contract"></i>
+            <svg style="color:#fff" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-medical-fill" viewBox="0 0 16 16">
+            <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m-3 2v.634l.549-.317a.5.5 0 1 1 .5.866L7 7l.549.317a.5.5 0 1 1-.5.866L6.5 7.866V8.5a.5.5 0 0 1-1 0v-.634l-.549.317a.5.5 0 1 1-.5-.866L5 7l-.549-.317a.5.5 0 0 1 .5-.866l.549.317V5.5a.5.5 0 1 1 1 0m-2 4.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1m0 2h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1"/>
+            </svg>
         </div>
         <h1>Company Policies & Documents</h1>
         <p>Manage and review company policies with proper categorization and access controls</p>
@@ -424,14 +425,23 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex gap-3 flex-wrap">
                 <button type="button" class="btn btn-success" onclick="acceptAllPolicies()">
-                    <i class="fas fa-check-circle mr-2"></i> Accept All
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-all" viewBox="0 0 16 16">
+                        <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0"/>
+                        <path d="m5.354 7.146.896.897-.707.707-.897-.896a.5.5 0 1 1 .708-.708"/>
+                        </svg> Accept All
                 </button>
                 <button type="button" class="btn btn-danger" onclick="declineAllPolicies()">
-                    <i class="fas fa-times-circle mr-2"></i> Decline All
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-slash-circle" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                    <path d="M11.354 4.646a.5.5 0 0 0-.708 0l-6 6a.5.5 0 0 0 .708.708l6-6a.5.5 0 0 0 0-.708"/>
+                    </svg> Decline All
                 </button>
                 @if($isAdmin)
                     <a href="{{ route('policies.add_policies') }}" class="btn btn-primary">
-                        <i class="fas fa-plus-circle mr-2"></i> Add New Document
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-plus" viewBox="0 0 16 16">
+                        <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5"/>
+                        <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
+                        </svg> Add New Document
                     </a>
                 @endif
             </div>
@@ -454,7 +464,9 @@
         <div class="row align-items-end">
             <div class="col-md-6 mb-3">
                 <label for="category_filter" class="filter-label">
-                    <i class="fas fa-filter text-primary mr-2"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filter" viewBox="0 0 16 16">
+                    <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
+                    </svg>
                     Filter by Category:
                 </label>
                 <div style="position: relative;">
@@ -489,25 +501,21 @@
                             </th>
                             <th scope="col">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-folder text-primary mr-2"></i>
                                     <span class="font-weight-bold text-dark">Category</span>
                                 </div>
                             </th>
                             <th scope="col">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-shield-alt text-primary mr-2"></i>
                                     <span class="font-weight-bold text-dark">Access Level</span>
                                 </div>
                             </th>
                             <th scope="col">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-file-code text-primary mr-2"></i>
                                     <span class="font-weight-bold text-dark">File Type</span>
                                 </div>
                             </th>
                             <th scope="col">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-database text-primary mr-2"></i>
                                     <span class="font-weight-bold text-dark">File Size</span>
                                 </div>
                             </th>
@@ -519,7 +527,6 @@
                             </th>
                             <th scope="col" class="text-center">
                                 <div class="d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-cog text-primary mr-2"></i>
                                     <span class="font-weight-bold text-dark">Actions</span>
                                 </div>
                             </th>
@@ -531,31 +538,43 @@
                                 <td>
                                     <div style="display: inline-flex; align-items: center;" class="d-flex align-items-center">
                                         <div class="document-icon">
-                                            <i class="fas fa-file-pdf"></i>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-files" viewBox="0 0 16 16">
+                                            <path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 2 2 0 0 0 2-2V2a2 2 0 0 0-2-2m0 13V4a2 2 0 0 0-2-2H5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1M3 4a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
+                                            </svg>                                       
                                         </div>
                                         <div class="document-info">
-                                            <h6>{{ $policy->title }}</h6>
+                                            <h6 style="text-transform: capitalize;">
+                                                {{ $policy->title }}
+                                            </h6>
+
                                             @if($policy->description)
-                                                <p>{{ \Illuminate\Support\Str::limit($policy->description, 80) }}</p>
+                                                <p style="text-transform: capitalize;">
+                                                    {{ \Illuminate\Support\Str::limit($policy->description, 80) }}
+                                                </p>
                                             @endif
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     @if($policy->category)
-                                        <span class="badge bg-primary">{{ $policy->category->name }}</span>
+                                        <p class="badge bg-primary">{{ $policy->category->name }}</p>
                                     @else
-                                        <span class="badge bg-secondary">Policies</span>
+                                        <p class="badge bg-secondary">Policies</p>
                                     @endif
                                 </td>
                                 <td>
                                     @if($policy->access_level == 'managerial')
                                         <span class="badge bg-warning">
-                                            <i class="fas fa-user-tie mr-1"></i> Managerial
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-rolodex" viewBox="0 0 16 16">
+                                            <path d="M8 9.05a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                                            <path d="M1 1a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h.5a.5.5 0 0 0 .5-.5.5.5 0 0 1 1 0 .5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5.5.5 0 0 1 1 0 .5.5 0 0 0 .5.5h.5a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H6.707L6 1.293A1 1 0 0 0 5.293 1zm0 1h4.293L6 2.707A1 1 0 0 0 6.707 3H15v10h-.085a1.5 1.5 0 0 0-2.4-.63C11.885 11.223 10.554 10 8 10c-2.555 0-3.886 1.224-4.514 2.37a1.5 1.5 0 0 0-2.4.63H1z"/>
+                                            </svg> Managerial
                                         </span>
                                     @else
                                         <span class="badge bg-success">
-                                            <i class="fas fa-users mr-1"></i> All Staff
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                                            <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                                            </svg> All Staff
                                         </span>
                                     @endif
                                 </td>
@@ -572,32 +591,49 @@
                                     @if($response)
                                         @if($response->status == 'accepted')
                                             <span class="badge bg-success">
-                                                <i class="fas fa-check-circle mr-1"></i> Accepted
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                                                <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/>
+                                                </svg> Accepted
                                             </span>
                                         @elseif($response->status == 'declined')
                                             <span class="badge bg-danger">
-                                                <i class="fas fa-times-circle mr-1"></i> Declined
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-octagon" viewBox="0 0 16 16">
+                                                <path d="M4.54.146A.5.5 0 0 1 4.893 0h6.214a.5.5 0 0 1 .353.146l4.394 4.394a.5.5 0 0 1 .146.353v6.214a.5.5 0 0 1-.146.353l-4.394 4.394a.5.5 0 0 1-.353.146H4.893a.5.5 0 0 1-.353-.146L.146 11.46A.5.5 0 0 1 0 11.107V4.893a.5.5 0 0 1 .146-.353zM5.1 1 1 5.1v5.8L5.1 15h5.8l4.1-4.1V5.1L10.9 1z"/>
+                                                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                                                </svg>Declined
                                             </span>
                                         @elseif($response->status == 'pending')
                                             <span class="badge bg-warning">
-                                                <i class="fas fa-clock mr-1"></i> Pending
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pause-fill" viewBox="0 0 16 16">
+                                                <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"/>
+                                                </svg> Pending
                                             </span>
                                         @endif
                                     @else
                                         <span class="badge bg-secondary">
-                                            <i class="fas fa-clock mr-1"></i> Pending
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+                                            <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z"/>
+                                            <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
+                                            <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
+                                            </svg> Pending
                                         </span>
                                     @endif
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
                                         <a href="{{ $policy->file_url }}" download class="btn btn-success btn-sm">
-                                            <i class="fas fa-download mr-1"></i> Download
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-down" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd" d="M3.5 10a.5.5 0 0 1-.5-.5v-8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 0 0 1h2A1.5 1.5 0 0 0 14 9.5v-8A1.5 1.5 0 0 0 12.5 0h-9A1.5 1.5 0 0 0 2 1.5v8A1.5 1.5 0 0 0 3.5 11h2a.5.5 0 0 0 0-1z"/>
+                                            <path fill-rule="evenodd" d="M7.646 15.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 14.293V5.5a.5.5 0 0 0-1 0v8.793l-2.146-2.147a.5.5 0 0 0-.708.708z"/>
+                                            </svg> Download
                                         </a>
                                         <button type="button" class="btn btn-primary btn-sm" 
                                                 title="View Preview" 
                                                 onclick="openPolicyModal({{ $policy->id }}, '{{ addslashes($policy->title) }}', '{{ $policy->file_url }}', '{{ $policy->file_type }}')">
-                                            <i class="fas fa-eye mr-1"></i> View
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                                                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                                                </svg> View
                                         </button>
                                         @php
                                             $user = Sentinel::getUser();
@@ -614,7 +650,9 @@
                                             <button type="button" class="btn btn-danger btn-sm" 
                                                     title="Delete Policy" 
                                                     onclick="deletePolicy({{ $policy->id }})">
-                                                <i class="fas fa-trash mr-1"></i> Delete
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                                                    </svg> Delete
                                             </button>
                                         @endif
                                     </div>
