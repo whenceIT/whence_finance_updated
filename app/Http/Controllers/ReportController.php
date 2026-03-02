@@ -868,6 +868,7 @@ class ReportController extends Controller
         $office_id = $request->office_id;
         $loan = $request->id;
         $data = [];
+        $targets_met = [];
         $part_data = [];
         $reloans_data = [];
         $top_up = [];
