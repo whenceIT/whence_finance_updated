@@ -22,6 +22,7 @@ use App\Models\Office;
 use App\Models\Savings;
 use App\Models\SavingsTransaction;
 use App\Models\Setting;
+use App\Models\TargetsMet;
 use App\Models\User;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Support\Facades\View;
@@ -938,6 +939,8 @@ class ReportController extends Controller
                     }
                 })->get();
 
+                $targets_met = TargetsMet::whereBetween('date',[$start_date,$end_date])->get();
+
 
             } else {
                 $data = LoanTransaction::where(
@@ -982,13 +985,15 @@ class ReportController extends Controller
                             $query->where('office_id', '=', $office_id);
                         }
                     })->get();
+
+                $targets_met = TargetsMet::whereBetween('date',[$start_date,$end_date])->get();
             }
 
             $pending_loans_grouped = $pending_loans->groupBy('office_id');
 
         }
 
-        return view('loan_report.repayment_break_down', compact('start_date', 'end_date', 'data', 'part_data', 'reloans_data', 'new_loans', 'office_id', 'top_up', 'expenses', 'advances', 'expenseTypes', 'selected_expense_type', 'pending_loans_grouped','branches' ));
+        return view('loan_report.repayment_break_down', compact('start_date', 'end_date', 'data', 'part_data', 'reloans_data', 'new_loans', 'office_id', 'top_up', 'expenses', 'advances', 'expenseTypes', 'selected_expense_type', 'pending_loans_grouped','branches','targets_met', ));
     }
 
 

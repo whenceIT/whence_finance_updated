@@ -177,18 +177,21 @@ public function create_carry_over(Request $request)
         if ($role->role_id == '1') {
 
 
-    //            try {
-    //     $endpoint = "https://lms2backend.whencefinancesystem.com/targets-met";
+  try {
 
-    //     $ch = curl_init($endpoint);
-    //     curl_setopt($ch, CURLOPT_POST, true);
-    //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    //     curl_setopt($ch, CURLOPT_TIMEOUT, 3); // don’t slow dashboard
-    //     curl_exec($ch);
-    //     curl_close($ch);
-    // } catch (\Exception $e) {
-    //     // Fail silently – dashboard must still load
-    // }
+        $endpoint = "https://lms2backend.whencefinancesystem.com/all-target-data";
+
+        $ch = curl_init($endpoint);
+
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3); // don’t slow system
+        curl_exec($ch);
+        curl_close($ch);
+
+    } catch (\Exception $e) {
+        // Fail silently – system must continue
+    }
 
             $allLoans = Loan::with('transactions')->where('created_date', '>', $afterDate)->get();
             foreach ($allLoans as $loans) {
