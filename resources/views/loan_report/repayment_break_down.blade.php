@@ -1098,6 +1098,11 @@ $total_loans = 0;
                     </div>
                   </div>
                 </div>
+
+
+
+            
+
 <div class="panel box box-warning">
     <div class="box-header with-border">
         <h4 class="box-title">
@@ -1366,45 +1371,72 @@ $total_loans = 0;
 </div>
 
 
-<div class="panel box box-info">
-    <div class="box-header with-border">
-        <h4 class="box-title">
-            <a data-toggle="collapse" data-parent="#accordion" href="#collapsePerformance">
-                Targets
-            </a>
-        </h4>
-    </div>
+ <div class="panel box box-warning">
+                  <div class="box-header with-border">
+                    <h4 class="box-title">
+                      <a data-toggle="collapse" data-parent="#accordion" href="#collapseTargets">
+                        Targets
+                      </a>
+                    </h4>
+                  </div>
+                  <div id="collapseTargets" class="panel-collapse collapse">
+                    <div class="box-body">
+                     
+                      <table class="table  table-condensed table-hover">
+                    <tbody>
+                    <tr class="">
+                        <td><strong>Loan officer</strong> </td>
+                        <td><strong>Office</strong></td>
+                        <td><strong>Given Out</strong></td>
+                        <td><strong>Uncollected</strong></td>
+                        <td><strong>Target Level</strong></td>
+                        <td><strong>Cycle Start</strong></td>
+                        <td><strong>Date</strong></td>
+                    </tr>
+                    @foreach($targets_met as $key)
+              
+                       
+                        <tr>
+                            <td>{{$key->user_name}}</td>
+                            <td>
+                                {{$key->office_name}}
+                            </td>
+                            <td>{{number_format($key->given_out)}}</td>
+                            <td>{{ number_format(max($key->uncollected, 0), 2) }}</td>
+                            <td>
+@php
+    $level = $key->target_level;
+    $label = '';
+    $color = '';
 
-    <div id="collapsePerformance" class="panel-collapse collapse">
-        <div class="box-body table-responsive">
-
-            <p class="text-info">
-                <i class="fa fa-calendar"></i>
-                Reporting Period:
-                <b><span id="cycleDates"></span></b>
-            </p>
-
-            <table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Consultant</th>
-            <th class="text-right">Given Out</th>
-            <th class="text-right">Still Uncollected</th>
-        </tr>
-    </thead>
-    <tbody id="performanceTableBody">
-        <tr>
-            <td colspan="3" class="text-center text-muted">
-                Expand to load performance data
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-
-        </div>
-    </div>
-</div>
+    if($level == 40000){
+        $label = 'Single Target';
+        $color = 'green';
+    } elseif($level == 50000){
+        $label = '50 Band';
+        $color = 'blue';
+    } elseif($level == 80000){
+        $label = 'Double Target';
+        $color = 'orange';
+    } elseif($level == 120000){
+        $label = 'Triple Target';
+        $color = 'red';
+    } else {
+        $label = number_format($level);
+        $color = 'black';
+    }
+@endphp
+<span style="color: {{$color}}; font-weight:bold;">{{$label}}</span>
+</td>
+                            <td>{{$key->cycle_start}}</td>
+                            <td>{{$key->date}}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+                    </div>
+                  </div>
+                </div>
 
 
 <div class="panel box box-success">

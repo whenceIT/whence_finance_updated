@@ -7,10 +7,22 @@
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">{{trans_choice('general.add',1)}} {{trans_choice('general.expense',1)}}</h3>
+            {{-- Warning for Deposits --}}
 
-            <div class="box-tools pull-right">
+{{-- Warning for Deposits --}}
+<div class="alert alert-danger">
+    <strong>Warning:</strong><br>
+    DO NOT ADD THE FOLLOWING DEPOSITS UNDER EXPENSES:<br>
+    - Administration Department fee deposit<br>
+    - Managers Housing deposit<br>
+    - Building & Infrastructure fee deposits<br>
+    - Salaries deposits<br>
+    - Statutory payments deposits<br>
+    - Savings deposits<br><br>
+    <strong>Note:</strong> Instead, add them under 
+    <a  href="{{ url('user/branch_deposits') }}" class="text-white" style="text-decoration: underline;">Deposits</a>.
+</div>
 
-            </div>
         </div>
         <form method="post" action="{{url('expense/store')}}" class="form-horizontal" enctype="multipart/form-data">
             {{csrf_field()}}

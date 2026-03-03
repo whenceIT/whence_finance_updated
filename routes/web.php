@@ -283,12 +283,14 @@ Route::group(['prefix' => 'user'], function () {
 
     //LC Cycle information
     Route::get('cycle', 'UserController@cycle');
+    Route::get('mandatory_cycle','UserController@mandatory_cycle');
     Route::post('addcycle', 'UserController@addCycle');
     Route::any('performance_information', 'UserController@performance_information');
     Route::get('get_offices_by_province/{id}', 'UserController@get_offices_by_province');
 
 
      Route::get('branch_deposits','UserController@branch_deposits');
+     Route::get('deposit_logs','UserController@deposit_logs');
 });
 //route for offices
 Route::group(['prefix' => 'office'], function () {

@@ -3,24 +3,79 @@
 @section('title', 'Monthly Deposits')
 
 @section('content')
+<style>
+.deposit-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+    background: #fff;
+    border-left: 5px solid #3c8dbc;
+    transition: 0.2s ease-in-out;
+}
+
+.deposit-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.deposit-card.completed {
+    border-left: 5px solid #00a65a;
+    background: #f6fffa;
+}
+
+.deposit-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.deposit-header-box {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.deposit-label {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.btn-primary {
+    background-color: #3c8dbc;
+    border-color: #367fa9;
+}
+
+.btn-warning {
+    background-color: #f39c12;
+    border-color: #e08e0b;
+}
+</style>
+
 <div class="content-wrapper">
     <section class="content-header">
-        <h1>Monthly Deposits</h1>
 
-        <p class="text-muted" style="margin-top: 8px;">
-            <i class="fa fa-info-circle"></i>
-            Deposits must be completed in the order shown. 
-            Only the currently active deposit section can be opened.
-            The next deposit will unlock automatically after the previous one is completed.
-            This is to ensure that deposit priorities are followed correctly.
-        </p>
+        <div class="deposit-header-box">
+            <h2 style="margin-top:0;">Monthly Deposits</h2>
+
+            <p class="text-muted" style="margin-bottom:15px;">
+                <i class="fa fa-info-circle"></i>
+                Deposits must be completed in order. 
+                Only the currently active deposit section can be opened.
+                The next deposit unlocks automatically after completion.
+            </p>
+
+            <div style="max-width:300px;">
+                <label class="deposit-label">Select Month</label>
+                <input type="month" id="monthFilter" class="form-control">
+            </div>
+        </div>
+
     </section>
 
     <section class="content">
-        <div class="box box-primary">
-            <div class="box-body" id="depositSteps">
-                {{-- Deposit steps will be dynamically loaded here --}}
-            </div>
+        <div id="depositSteps">
+            {{-- Deposit steps injected here --}}
         </div>
     </section>
 </div>
@@ -61,36 +116,41 @@ $(document).ready(function () {
     var currentDepositType = null;
     var currentDepositAmount = null;
     var currentReferenceNumber = null;
+    var currentPaymentMethod = null;
+
+    // Default Month = Current Month
+    var now = new Date();
+    var currentMonth = now.getFullYear() + '-' + 
+        String(now.getMonth()+1).padStart(2,'0');
+    $('#monthFilter').val(currentMonth);
 
     function today() {
-        var d = new Date();
-        return d.getFullYear() + '-' +
-            String(d.getMonth()+1).padStart(2,'0') + '-' +
-            String(d.getDate()).padStart(2,'0');
+        var selectedMonth = $('#monthFilter').val();
+        return selectedMonth + '-01';
     }
 
     function lockAll() {
         $('.deposit-item').each(function () {
-            $(this).find('input,button').prop('disabled', true);
+            $(this).find('input,button,select').prop('disabled', true);
             $(this).css('opacity', 0.5);
         });
     }
 
     function unlock(id) {
         $('.deposit-item[data-deposit-id="'+id+'"]')
-            .find('input,button').prop('disabled', false)
+            .find('input,button,select').prop('disabled', false)
             .closest('.deposit-item').css('opacity', 1);
     }
 
     function markCompleted(id) {
-        $('.deposit-item[data-deposit-id="'+id+'"]')
-            .closest('.deposit-item')
-            .addClass('bg-success')
-            .css('opacity', 1);
+        let box = $('.deposit-item[data-deposit-id="'+id+'"]');
 
-        $('.deposit-item[data-deposit-id="'+id+'"]')
-           .find('input.amount, input.reference, .complete-btn')
-.prop('disabled', false);
+        box.addClass('completed')
+           .css('opacity', 1);
+
+        // Re-enable fields so user can add more deposits
+        box.find('input.amount, input.reference, select.payment-method, .complete-btn')
+           .prop('disabled', false);
     }
 
     /* ---------- LOAD DEPOSIT TYPES ---------- */
@@ -103,26 +163,34 @@ $(document).ready(function () {
 
             depositOrder.push(d.id);
 
-          var skipBtn = (d.id == 2 || d.id == 3 || d.id == 1)
-    ? `<button class="btn btn-warning skip-btn">Skip Deposit</button>`
-    : '';
+            var skipBtn = (d.id == 2 || d.id == 3 || d.id == 1)
+                ? `<button class="btn btn-warning skip-btn">Skip Deposit</button>`
+                : '';
 
             container.append(`
-                <div class="deposit-item" data-deposit-id="${d.id}">
-                    <h4>${d.name}</h4>
+                <div class="deposit-item deposit-card" data-deposit-id="${d.id}">
+                    <h4 class="deposit-title">${d.name}</h4>
                     <p class="existing-amount text-muted">Current Amount: 0</p>
 
-                    <small class="text-muted">
-                        Enter Payment Reference Number (Example: MP260223.0953.J76581)
-                    </small>
-                    <input type="text" class="form-control reference" placeholder="MP260223.0953.J76581" required>
+                    <label class="deposit-label">Payment Method</label>
+                    <select class="form-control payment-method">
+                        <option value="">Select Method</option>
+                        <option value="airtel">Airtel Money</option>
+                        <option value="zanaco_express">Zanaco Express</option>
+                        <option value="mtn">MTN MoMo</option>
+                        <option value="zanaco_cash">Zanaco Cash Deposit</option>
+                    </select>
+                    <br>
+
+                    <small class="text-muted format-hint">Enter Payment Reference Number</small>
+                    <input type="text" class="form-control reference" placeholder="Enter reference number" required>
                     <br>
 
                     <input type="number" class="form-control amount" placeholder="Enter amount to add">
                     <br>
                     <button class="btn btn-primary complete-btn">Save Deposit</button>
                     ${skipBtn}
-                </div><hr>
+                </div>
             `);
         });
 
@@ -130,36 +198,84 @@ $(document).ready(function () {
     });
 
     /* ---------- CHECK COMPLETED ---------- */
-    function checkCompletedDeposits() {
-        $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
-            branch: branchId,
-            date: today().slice(0,7)
-        }, function (response) {
+function checkCompletedDeposits() {
 
-            lockAll();
+    var selectedMonth = $('#monthFilter').val();
 
-            if (!response || !response.length) {
-                unlock(depositOrder[0]);
-                return;
-            }
+    $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
+        branch: branchId,
+        date: selectedMonth
+    }, function (response) {
 
-            var completedIds = response.map(r => r.deposit_type);
-            completedIds.forEach(markCompleted);
+        lockAll();
+        $('.existing-amount').text('Current Amount: 0');
+        $('.deposit-item').removeClass('completed');
+        $('.deposit-item input').val('');
+        $('.deposit-item select').val('');
 
-            response.forEach(r => {
-                let box = $('.deposit-item[data-deposit-id="'+r.deposit_type+'"]');
-                box.find('.existing-amount').text(`Current Amount: ${r.amount}`);
-                box.find('input.amount').val('');
-            });
+        // ✅ ALWAYS UNLOCK DEPOSIT TYPE 5
+        unlock(6);
 
-            for (let id of depositOrder) {
-                if (!completedIds.includes(id)) {
-                    unlock(id);
-                    break;
-                }
-            }
+        if (!response || !response.length) {
+            unlock(depositOrder[0]);
+            return;
+        }
+
+        var completedIds = response.map(r => r.deposit_type);
+        completedIds.forEach(markCompleted);
+
+        response.forEach(r => {
+            let box = $('.deposit-item[data-deposit-id="'+r.deposit_type+'"]');
+            box.find('.existing-amount').text(`Current Amount: ${r.amount}`);
         });
-    }
+
+        for (let id of depositOrder) {
+            if (!completedIds.includes(id)) {
+                unlock(id);
+                break;
+            }
+        }
+    });
+}
+
+    $('#monthFilter').change(function(){
+        checkCompletedDeposits();
+    });
+
+    /* ---------- PAYMENT METHOD FORMAT HINT ---------- */
+    $(document).on('change', '.payment-method', function () {
+
+        let box = $(this).closest('.deposit-item');
+        let hint = box.find('.format-hint');
+        let referenceInput = box.find('.reference');
+
+        referenceInput.val('');
+
+        switch ($(this).val()) {
+            case 'airtel':
+                hint.text('Format: MP260223.0953.J76581');
+                referenceInput.attr('placeholder', 'MP260223.0953.J76581');
+                break;
+
+            case 'zanaco_express':
+                hint.text('Format: 12 digit number (002504072516)');
+                referenceInput.attr('placeholder', '002504072516');
+                break;
+
+            case 'mtn':
+                hint.text('Format: 10 digit number (8704564481)');
+                referenceInput.attr('placeholder', '8704564481');
+                break;
+
+            case 'zanaco_cash':
+                hint.text('Format: 16 digit number (0502605703255600)');
+                referenceInput.attr('placeholder', '0502605703255600');
+                break;
+
+            default:
+                hint.text('Enter Payment Reference Number');
+        }
+    });
 
     /* ---------- SAVE DEPOSIT ---------- */
     $(document).on('click', '.complete-btn', function () {
@@ -169,8 +285,14 @@ $(document).ready(function () {
 
         let raw = box.find('.amount').val();
         currentDepositAmount = parseFloat(raw);
-
         currentReferenceNumber = box.find('.reference').val().trim();
+        let paymentMethod = box.find('.payment-method').val();
+        currentPaymentMethod = paymentMethod;
+
+        if (!paymentMethod) {
+            alert('Please select a payment method.');
+            return;
+        }
 
         if (!currentReferenceNumber) {
             alert('Please enter a payment reference number.');
@@ -182,12 +304,26 @@ $(document).ready(function () {
             return;
         }
 
-        if (
-            (currentDepositType == 1 && currentDepositAmount < 100) ||
-            (currentDepositType == 3 && currentDepositAmount < 100) ||
-            (currentDepositType == 5 && currentDepositAmount < 100)
-        ) {
-            alert('Please enter minimum deposit amount.');
+        // Format Validation
+        let valid = false;
+
+        switch (paymentMethod) {
+            case 'airtel':
+                valid = /^[A-Za-z]{2}\d{6}\.\d{4}\.[A-Za-z]\d{5}$/.test(currentReferenceNumber);
+                break;
+            case 'zanaco_express':
+                valid = /^\d{12}$/.test(currentReferenceNumber);
+                break;
+            case 'mtn':
+                valid = /^\d{10}$/.test(currentReferenceNumber);
+                break;
+            case 'zanaco_cash':
+                valid = /^\d{16}$/.test(currentReferenceNumber);
+                break;
+        }
+
+        if (!valid) {
+            alert('Invalid reference format for selected payment method.');
             return;
         }
 
@@ -196,48 +332,45 @@ $(document).ready(function () {
 
     $('#modalConfirmBtn').click(function () {
 
-    $('#depositConfirmModal').modal('hide');
+        $('#depositConfirmModal').modal('hide');
 
-    $.ajax({
-        url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            deposit_type: currentDepositType,
-            office: branchId,
-            amount: currentDepositAmount,
-            date: today()
-        }),
-        success: function (response) {
+        $.ajax({
+            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                deposit_type: currentDepositType,
+                office: branchId,
+                amount: currentDepositAmount,
+                date: today()
+            }),
+            success: function () {
 
-$.ajax({
-    url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
-    type: 'POST',
-    contentType: 'application/json',
-    data: JSON.stringify({
-        deposit_type: currentDepositType,
-        office_id: branchId,
-        user_id: userId, 
-        amount: currentDepositAmount,
-        reference_number: currentReferenceNumber
-    })
-})
-.done(function () {
-    console.log('Deposit log created successfully');
-    location.reload();
-})
-.fail(function (xhr, status, error) {
-    console.error('Deposit log failed:', status, error, xhr.responseText);
-    location.reload();
-});
+                $.ajax({
+                    url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        deposit_type: currentDepositType,
+                        office_id: branchId,
+                        user_id: userId,
+                        amount: currentDepositAmount,
+                        reference_number: currentReferenceNumber,
+                        deposit_method: currentPaymentMethod 
+                    })
+                })
+                .done(function () {
+                    location.reload();
+                })
+                .fail(function () {
+                    location.reload();
+                });
 
-        },
-        error: function (err) {
-            console.error('Deposit failed:', err);
-        }
+            }
+        });
     });
-});
-    /* ---------- SKIP OPTIONAL (SAVE ZERO) ---------- */
+
+    /* ---------- SKIP OPTIONAL ---------- */
     $(document).on('click', '.skip-btn', function () {
 
         if (!confirm('Skip Managers Housing deposit? This will be recorded as 0.')) return;
@@ -263,7 +396,6 @@ $.ajax({
 });
 </script>
 @endsection
-
 
 
 
