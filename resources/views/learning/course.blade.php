@@ -101,9 +101,9 @@
                     <i class="fa fa-chalkboard-teacher"></i> Open Classroom
                 </a>
 
-                <button class="btn btn-default btn-block" onclick="markAsComplete()">
+                <!-- <button class="btn btn-default btn-block" onclick="markAsComplete()">
                     <i class="fa fa-check-circle"></i> Mark as Complete
-                </button>
+                </button> -->
                 @else
                 <!-- Non-Enrolled User View -->
                 <div style="text-align: center; margin-bottom: 24px;">
@@ -114,10 +114,13 @@
                     </p>
                 </div>
 
-                <!-- Enrollment Button -->
-                <button class="btn btn-primary btn-block" style="margin-bottom: 12px;" onclick="enrollInCourse({{ $material->id }}, '{{ addslashes($material->title) }}')">
-                    <i class="fa fa-plus-circle"></i> Enroll in This Course
-                </button>
+                <!-- Enrollment Form -->
+                <form action="{{ url('learning/enroll') }}/{{ $material->id }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-bottom: 12px;">
+                        <i class="fa fa-plus-circle"></i> Enroll in This Course
+                    </button>
+                </form>
 
                 <!-- Alternative Options -->
                 <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
@@ -157,33 +160,6 @@
 </div>
 
 <script>
-function enrollInCourse(courseId, courseTitle) {
-    $.ajax({
-        url: '{{ url('learning/enroll') }}/' + courseId,
-        type: 'POST',
-        data: {
-            _token: '{{ csrf_token() }}'
-        },
-        success: function(response) {
-            if (response.success) {
-                toastr.success(response.message, 'Success');
-                setTimeout(function() {
-                    location.reload();
-                }, 1000);
-            } else {
-                toastr.error(response.message, 'Error');
-            }
-        },
-        error: function(xhr) {
-            var message = 'An error occurred while enrolling';
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                message = xhr.responseJSON.message;
-            }
-            toastr.error(message, 'Error');
-        }
-    });
-}
-
 function markAsComplete() {
     toastr.success('Course marked as complete!', 'Success');
 }
