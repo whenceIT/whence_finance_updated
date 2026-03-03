@@ -198,42 +198,45 @@ $(document).ready(function () {
     });
 
     /* ---------- CHECK COMPLETED ---------- */
-    function checkCompletedDeposits() {
+function checkCompletedDeposits() {
 
-        var selectedMonth = $('#monthFilter').val();
+    var selectedMonth = $('#monthFilter').val();
 
-        $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
-            branch: branchId,
-            date: selectedMonth
-        }, function (response) {
+    $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
+        branch: branchId,
+        date: selectedMonth
+    }, function (response) {
 
-            lockAll();
-            $('.existing-amount').text('Current Amount: 0');
-            $('.deposit-item').removeClass('completed');
-            $('.deposit-item input').val('');
-            $('.deposit-item select').val('');
+        lockAll();
+        $('.existing-amount').text('Current Amount: 0');
+        $('.deposit-item').removeClass('completed');
+        $('.deposit-item input').val('');
+        $('.deposit-item select').val('');
 
-            if (!response || !response.length) {
-                unlock(depositOrder[0]);
-                return;
-            }
+        // ✅ ALWAYS UNLOCK DEPOSIT TYPE 5
+        unlock(6);
 
-            var completedIds = response.map(r => r.deposit_type);
-            completedIds.forEach(markCompleted);
+        if (!response || !response.length) {
+            unlock(depositOrder[0]);
+            return;
+        }
 
-            response.forEach(r => {
-                let box = $('.deposit-item[data-deposit-id="'+r.deposit_type+'"]');
-                box.find('.existing-amount').text(`Current Amount: ${r.amount}`);
-            });
+        var completedIds = response.map(r => r.deposit_type);
+        completedIds.forEach(markCompleted);
 
-            for (let id of depositOrder) {
-                if (!completedIds.includes(id)) {
-                    unlock(id);
-                    break;
-                }
-            }
+        response.forEach(r => {
+            let box = $('.deposit-item[data-deposit-id="'+r.deposit_type+'"]');
+            box.find('.existing-amount').text(`Current Amount: ${r.amount}`);
         });
-    }
+
+        for (let id of depositOrder) {
+            if (!completedIds.includes(id)) {
+                unlock(id);
+                break;
+            }
+        }
+    });
+}
 
     $('#monthFilter').change(function(){
         checkCompletedDeposits();

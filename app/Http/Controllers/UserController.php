@@ -118,6 +118,7 @@ public function create_carry_over(Request $request)
            $pendingApproval = false;
             $launchNewCarryOver = false;
             $numbers_status = null;
+            $has_carry_over = null;
 
         $role = Sentinel::getUser()->roles->first();
 
@@ -229,9 +230,11 @@ public function create_carry_over(Request $request)
         if ($role->role_id == '3') {
 
 $user = Sentinel::getUser();
+$loan_officer_id = $user->id;
+$has_carry_over = CycleDates::where('loan_officer_id',$loan_officer_id)->first();
 
- if ($user->verified_numbers == 'unverified') {
-        return redirect('/user/mandatory_verification');  
+ if (!$has_carry_over) {
+        return redirect('/user/mandatory_cycle');  
     }
 
     $numbers_status = $user->verify_numbers;
@@ -1732,6 +1735,10 @@ return redirect('user/carry_over_approvals');
     public function Cycle()
     {
         return view('user.cycle');
+    }
+
+    public function mandatory_cycle(){
+        return view('user.mandatory_cycle');
     }
 
     public function addCycle(Request $request)
