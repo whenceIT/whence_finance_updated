@@ -68,16 +68,6 @@ $breadcrumb = [
                             <i class="fa fa-file-pdf-o" style="color: #4a90e2; margin-right: 6px;"></i>
                             <span style="font-size: 13px;">Document</span>
                         </label>
-                        <!-- <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                            <input type="radio" name="material_type" value="video" style="margin-right: 8px;">
-                            <i class="fa fa-video-camera" style="color: #ff6b6b; margin-right: 6px;"></i>
-                            <span style="font-size: 13px;">Video</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                            <input type="radio" name="material_type" value="audio" style="margin-right: 8px;">
-                            <i class="fa fa-headphones" style="color: #50c878; margin-right: 6px;"></i>
-                            <span style="font-size: 13px;">Audio</span>
-                        </label> -->
                     </div>
                 </div>
                 
@@ -86,33 +76,35 @@ $breadcrumb = [
                     <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
                         Department <span style="color: var(--accent-color);">*</span>
                     </label>
-                    <select name="department" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; background: white;">
-                        <option value="">Select Department</option>
-                        <option value="Operations">Operations</option>
-                        <option value="Recoveries">Recoveries</option>
-                        <option value="Administration">Administration</option>
-                        <option value="Finance">Finance</option>
-                        <option value="IT">IT</option>
-                        <option value="HR">HR</option>
-                        <option value="Legal">Legal</option>
-                        <option value="Compliance">Compliance</option>
-                        <option value="General">General</option>
-                    </select>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        @php
+                            $departments = ['Operations', 'Recoveries', 'Administration', 'Finance', 'IT', 'HR', 'Legal', 'Compliance', 'General'];
+                        @endphp
+                        @foreach($departments as $dept)
+                            <label style="display: inline-flex; align-items: center; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border-color); border-radius: 20px; background: white; color: var(--text-primary); font-size: 14px; transition: all 0.3s;">
+                                <input type="radio" name="department" value="{{ $dept }}" required style="display: none;">
+                                {{ $dept }}
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
             </div>
             
-            <!-- Categories (Many-to-Many) -->
+            <!-- Categories -->
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
                     Categories
                 </label>
-                <select name="category_ids[]" class="category-select2" multiple style="width: 100%;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                     @if(isset($categories) && count($categories) > 0)
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @foreach($categories as $category)
+                            <label style="display: inline-flex; align-items: center; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border-color); border-radius: 20px; background: white; color: var(--text-primary); font-size: 14px; transition: all 0.3s;">
+                                <input type="checkbox" name="category_ids[]" value="{{ $category->id }}" style="display: none;">
+                                {{ $category->name }}
+                            </label>
                         @endforeach
                     @endif
-                </select>
+                </div>
                 <small style="color: var(--text-secondary); font-size: 12px;">Select one or more categories</small>
             </div>
             
@@ -193,49 +185,61 @@ input[type="radio"]:checked + label {
     border-color: var(--primary-color) !important;
     background: rgba(74, 144, 226, 0.1) !important;
 }
-/* Select2 Custom Styles */
-.category-select2 ~ .select2-container {
-    width: 100% !important;
+/* Button Pill Styles */
+label.pill-label {
+    transition: all 0.3s ease;
 }
-.category-select2 ~ .select2-container .select2-selection {
-    border: 1px solid var(--border-color) !important;
-    border-radius: 6px !important;
-    min-height: 42px !important;
-    padding: 4px 8px !important;
-    background: white !important;
-}
-.category-select2 ~ .select2-container .select2-selection__choice {
-    background: var(--primary-color) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 4px !important;
-    padding: 4px 8px !important;
-    margin: 2px !important;
-}
-.category-select2 ~ .select2-container .select2-selection__choice__remove {
-    color: white !important;
-    margin-right: 4px !important;
-}
-.category-select2 ~ .select2-container .select2-search--inline {
-    padding: 0 !important;
-}
-.category-select2 ~ .select2-container .select2-selection__rendered {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 4px !important;
+
+label.pill-label:hover {
+    border-color: var(--primary-color) !important;
+    background: rgba(74, 144, 226, 0.1) !important;
+    color: var(--primary-color) !important;
 }
 </style>
 
 <script>
-// Initialize Select2 for categories
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof $ !== 'undefined' && $.fn.select2) {
-        $('.category-select2').select2({
-            placeholder: 'Select categories',
-            allowClear: true,
-            width: '100%'
+    // Department pill functionality
+    const departmentInputs = document.querySelectorAll('input[name="department"]');
+    
+    departmentInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Reset all department pills
+            document.querySelectorAll('input[name="department"]').forEach(radio => {
+                const label = radio.parentElement;
+                label.style.background = 'white';
+                label.style.color = 'var(--text-primary)';
+                label.style.borderColor = 'var(--border-color)';
+            });
+            
+            // Highlight selected department pill
+            if (this.checked) {
+                const label = this.parentElement;
+                label.style.background = 'var(--primary-color)';
+                label.style.color = 'white';
+                label.style.borderColor = 'var(--primary-color)';
+            }
         });
-    }
+    });
+    
+    // Category pill functionality
+    const categoryInputs = document.querySelectorAll('input[name="category_ids[]"]');
+    
+    categoryInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const label = this.parentElement;
+            
+            if (this.checked) {
+                label.style.background = 'var(--primary-color)';
+                label.style.color = 'white';
+                label.style.borderColor = 'var(--primary-color)';
+            } else {
+                label.style.background = 'white';
+                label.style.color = 'var(--text-primary)';
+                label.style.borderColor = 'var(--border-color)';
+            }
+        });
+    });
 });
 </script>
 @endsection

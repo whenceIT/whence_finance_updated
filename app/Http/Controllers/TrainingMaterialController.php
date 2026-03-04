@@ -918,8 +918,9 @@ class TrainingMaterialController extends Controller
         }
 
         $material = TrainingMaterial::findOrFail($id);
+        $categories = CourseCategory::active()->ordered()->get();
 
-        return view('learning.training-materials.edit', compact('material'));
+        return view('learning.training-materials.edit', compact('material', 'categories'));
     }
 
     /**
@@ -952,7 +953,8 @@ class TrainingMaterialController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'department' => 'required|in:Operations,Recoveries,Administration,Finance,IT,HR,Legal,Compliance,General',
-            'category' => 'nullable|string|max:100',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'exists:course_categories,id',
             'target_role' => 'required|in:all,1,4,6,3,5,10',
             // is_active and is_featured are optional checkboxes, no validation needed
         ];
@@ -1018,11 +1020,14 @@ class TrainingMaterialController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'department' => $request->department,
-            'category' => $request->category,
             'target_role' => $request->target_role,
             'is_active' => $request->has('is_active') ? $request->is_active : true,
             'is_featured' => $request->has('is_featured') ? $request->is_featured : false,
         ]);
+
+        // Sync categories
+        $categoryIds = $request->category_ids ?? [];
+        $material->categories()->sync($categoryIds);
 
         return redirect()->route('learning.training-materials.index')
             ->with('toastr_type', 'success')
