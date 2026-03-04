@@ -113,7 +113,7 @@
 
 /* Content area */
 .content-area {
-    padding: 30px;
+    padding: 15px;
 }
 
 .content-card {
@@ -173,14 +173,125 @@
     margin-top: 24px;
 }
 
+/* Resource Grid */
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 10px 0;
+    padding: 8px;
+    background: linear-gradient(135deg, #f7f8fb 0%, #ffffff 100%);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.resource-grid::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+.resource-item {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.resource-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgb(255, 255, 255), transparent);
+    transition: left 0.6s ease;
+    z-index: -1;
+}
+
+.resource-item:hover::before {
+    left: 100%;
+}
+
+.resource-item:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+    border-color: rgba(74, 144, 226, 0.4);
+    background: rgba(255, 255, 255, 0.98);
+}
+
+.resource-icon {
+    font-size: 36px;
+    color: var(--primary-color);
+    margin-bottom: 6px;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(74, 144, 226, 0.3));
+}
+
+.resource-item:hover .resource-icon {
+    transform: scale(1.15) rotate(3deg);
+}
+
+.resource-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    position: relative;
+    z-index: 1;
+}
+
+.resource-item::after {
+    content: 'Click to view';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    width: 100%;
+    font-size: 8px;
+    color: var(--text-secondary);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.resource-item:hover::after {
+    bottom: 3px;
+    opacity: 0.8;
+}
+
 /* Resource Preview Area */
 .resource-preview {
     width: 100%;
-    height: 500px;
-    border: 1px solid var(--border-color);
+    height: 700px;
     border-radius: 8px;
     overflow: hidden;
-    background: #f5f5f5;
+    background: #ffffff;
+    position: relative;
 }
 
 .resource-preview iframe,
@@ -191,13 +302,49 @@
     border: none;
 }
 
+/* Full Screen Preview */
+.full-screen-preview {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    z-index: 100;
+}
+
+.full-screen-preview .exit-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 101;
+}
+
+.full-screen-preview .exit-button:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.full-screen-preview .preview-content {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
 /* Quiz Section */
 .quiz-section {
     display: none;
-    padding: 30px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    padding: 5px;
+    background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
     border-top: 2px solid var(--primary-color);
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .quiz-section.visible {
@@ -497,11 +644,11 @@
     }
     
     .content-area {
-        padding: 20px;
+        padding: 5px;
     }
     
     .content-card-body {
-        padding: 30px 20px;
+        padding: 1px 2px;
     }
     
     .content-icon {
@@ -702,19 +849,6 @@
                         <div class="content-card-title" id="content-card-title">{{ $material->title }}</div>
                     </div>
                     <div class="content-card-body" id="content-card-body">
-                        <div class="content-icon" id="content-icon">
-                            @if($material->material_type == 'video')
-                                <i class="fa fa-play-circle"></i>
-                            @elseif($material->material_type == 'document')
-                                <i class="fa fa-file-pdf-o"></i>
-                            @elseif($material->material_type == 'audio')
-                                <i class="fa fa-headphones"></i>
-                            @else
-                                <i class="fa fa-book"></i>
-                            @endif
-                        </div>
-                        <h2 class="content-title" id="content-title">{{ $material->title }}</h2>
-                        <p class="content-description" id="content-description">{{ $material->description }}</p>
                         
                         <!-- Resource Preview -->
                         <div id="resource-container" style="display: none;">
@@ -737,16 +871,16 @@
                     </div>
                     <div class="quiz-actions">
                         @if($topic['quiz_id'])
-                        <button class="btn btn-success btn-lg" onclick="confirmTakeQuiz({{ $topic['quiz_id'] }}, '{{ $topic['title'] }}')">
+                        <button class="btn btn-success btn-sm" onclick="confirmTakeQuiz({{ $topic['quiz_id'] }}, '{{ $topic['title'] }}')">
                             <i class="fa fa-pencil"></i> {{ $topic['quiz_passed'] ? 'Retake Quiz' : 'Take Quiz' }}
                         </button>
                         @endif
                         @if(!$topic['quiz_id'] || $topic['quiz_passed'])
-                        <button class="btn btn-secondary btn-lg" onclick="skipQuiz()">
+                        <button class="btn btn-secondary btn-sm" onclick="skipQuiz()">
                             <i class="fa fa-arrow-right"></i> Continue to Next Topic
                         </button>
                         @else
-                        <button class="btn btn-secondary btn-lg" onclick="skipQuiz()" disabled style="opacity: 0.6; cursor: not-allowed;" title="Pass the quiz to continue">
+                        <button class="btn btn-secondary btn-sm" onclick="skipQuiz()" disabled style="opacity: 0.6; cursor: not-allowed;" title="Pass the quiz to continue">
                             <i class="fa fa-lock"></i> Pass Quiz to Continue
                         </button>
                         @endif
@@ -784,6 +918,9 @@
 </div>
 
 <script>
+// Pass phases data from PHP to JavaScript
+const phases = @json($phases);
+
 let currentTopicId = null;
 let currentTopicFilePath = null;
 let currentTopicType = null;
@@ -807,6 +944,47 @@ function togglePhase(phaseIndex) {
 function toggleSidebar() {
     const sidebar = document.getElementById('classroom-sidebar');
     sidebar.classList.toggle('show');
+}
+
+function previewResource(type, filePath) {
+    const resourcePreview = document.getElementById('resource-preview');
+    
+    // Create full screen preview
+    let previewHTML = `<div class="full-screen-preview">
+        <button class="exit-button" onclick="exitFullScreenPreview()">
+            <i class="fa fa-times"></i>
+        </button>
+        <div class="preview-content">`;
+    
+    if (type === 'video') {
+        if (filePath.match(/\.(mp4|webm|ogg)$/i)) {
+            previewHTML += `<video src="${filePath}" controls style="width: 100%; height: 100%;"></video>`;
+        } else {
+            previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-video-o"></i> Download Video</a>`;
+        }
+    } else if (type === 'audio') {
+        if (filePath.match(/\.(mp3|wav|ogg)$/i)) {
+            previewHTML += `<audio src="${filePath}" controls style="width: 100%; height: 100%;"></audio>`;
+        } else {
+            previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-audio-o"></i> Download Audio</a>`;
+        }
+    } else if (type === 'pdf') {
+        previewHTML += `<iframe src="${filePath}" allowfullscreen style="width: 100%; height: 100%;"></iframe>`;
+    } else if (type === 'ppt') {
+        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+    } else if (type === 'document') {
+        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+    }
+    
+    previewHTML += `</div></div>`;
+    resourcePreview.innerHTML += previewHTML;
+}
+
+function exitFullScreenPreview() {
+    const fullScreenPreview = document.querySelector('.full-screen-preview');
+    if (fullScreenPreview) {
+        fullScreenPreview.remove();
+    }
 }
 
 function openTopic(topicId, topicType, topicFilePath, quizId = null) {
@@ -837,86 +1015,158 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
     const topicElement = document.querySelector(`[data-topic-id="${topicId}"]`);
     if (!topicElement) return;
     
-    const topicTitle = topicElement.querySelector('.wizard-topic-title').textContent;
-    const topicDuration = topicElement.querySelector('.wizard-topic-meta span:first-child').textContent;
+    // Get all file paths for the topic from the phases data
+    let videoFilePath = '';
+    let audioFilePath = '';
+    let pdfFilePath = '';
+    let pptFilePath = '';
+    let documentFilePath = '';
+    let topicTitle = '';
+    let topicDuration = 'N/A';
+    let quizId = null;
+    
+    // Search for the topic in the phases data
+    for (let phase of phases) {
+        for (let topic of phase.topics) {
+            if (topic.id == topicId) {
+                topicTitle = topic.title;
+                topicDuration = topic.duration;
+                videoFilePath = topic.video_file_path || '';
+                audioFilePath = topic.audio_file_path || '';
+                pdfFilePath = topic.pdf_file_path || '';
+                pptFilePath = topic.ppt_file_path || '';
+                documentFilePath = topic.document_file_path || '';
+                quizId = topic.quiz_id;
+                break;
+            }
+        }
+    }
     
     // Update header
-    document.getElementById('topic-header-title').textContent = topicTitle;
+    const topicHeaderTitle = document.getElementById('topic-header-title');
+    if (topicHeaderTitle) {
+        topicHeaderTitle.textContent = topicTitle;
+    }
     
     // Update content card
-    document.getElementById('content-card-title').textContent = topicTitle;
-    document.getElementById('content-title').textContent = topicTitle;
-    document.getElementById('content-description').textContent = '{{ $material->description }}';
+    const contentCardTitle = document.getElementById('content-card-title');
+    if (contentCardTitle) {
+        contentCardTitle.textContent = topicTitle;
+    }
+    
+    const contentTitle = document.getElementById('content-title');
+    if (contentTitle) {
+        contentTitle.textContent = topicTitle;
+    }
+    
+    const contentDescription = document.getElementById('content-description');
+    if (contentDescription) {
+        contentDescription.textContent = '{{ $material->description }}';
+    }
     
     // Update icon based on type
     const iconElement = document.getElementById('content-icon');
-    let iconClass = 'fa-book';
-    if (topicType == 'video') iconClass = 'fa-play-circle';
-    else if (topicType == 'pdf') iconClass = 'fa-file-pdf-o';
-    else if (topicType == 'ppt') iconClass = 'fa-file-powerpoint-o';
-    else if (topicType == 'document') iconClass = 'fa-file-word-o';
-    else if (topicType == 'audio') iconClass = 'fa-headphones';
-    
-    iconElement.innerHTML = `<i class="fa ${iconClass}"></i>`;
+    if (iconElement) {
+        let iconClass = 'fa-book';
+        if (topicType == 'video') iconClass = 'fa-play-circle';
+        else if (topicType == 'pdf') iconClass = 'fa-file-pdf-o';
+        else if (topicType == 'ppt') iconClass = 'fa-file-powerpoint-o';
+        else if (topicType == 'document') iconClass = 'fa-file-word-o';
+        else if (topicType == 'audio') iconClass = 'fa-headphones';
+        
+        iconElement.innerHTML = `<i class="fa ${iconClass}"></i>`;
+    }
     
     // Show/hide resource preview
     const resourceContainer = document.getElementById('resource-container');
     const resourcePreview = document.getElementById('resource-preview');
     
-    if (topicFilePath && topicFilePath.trim() !== '') {
+    // Check if any file path exists
+    const hasFile = videoFilePath || audioFilePath || pdfFilePath || pptFilePath || documentFilePath;
+    
+    if (hasFile) {
         resourceContainer.style.display = 'block';
         
-        // Try to embed the resource
-        if (topicFilePath.includes('drive.google.com')) {
-            // Google Drive embed
-            let embedUrl = topicFilePath;
-            if (embedUrl.includes('/view')) {
-                embedUrl = embedUrl.replace('/view', '/preview');
-            }
-            if (embedUrl.includes('?')) {
-                embedUrl += '&embedded=true';
-            } else {
-                embedUrl += '?embedded=true';
-            }
-            resourcePreview.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
-        } else if (topicFilePath.match(/\.(pdf)$/i)) {
-            resourcePreview.innerHTML = `<iframe src="${topicFilePath}" allowfullscreen></iframe>`;
-        } else {
-            // Generic link
-            resourceContainer.style.display = 'none';
+        // Display resources in grid layout initially
+        let previewHTML = `<div class="resource-grid">`;
+        let resourceCount = 0;
+        
+        if (videoFilePath) {
+            resourceCount++;
+            previewHTML += `<div class="resource-item" onclick="previewResource('video', '${videoFilePath}')">
+                <div class="resource-icon">
+                    <i class="fa fa-video-camera"></i>
+                </div>
+                <div class="resource-name">Video</div>
+            </div>`;
         }
+        
+        if (audioFilePath) {
+            resourceCount++;
+            previewHTML += `<div class="resource-item" onclick="previewResource('audio', '${audioFilePath}')">
+                <div class="resource-icon">
+                    <i class="fa fa-music"></i>
+                </div>
+                <div class="resource-name">Audio</div>
+            </div>`;
+        }
+        
+        if (pdfFilePath) {
+            resourceCount++;
+            previewHTML += `<div class="resource-item" onclick="previewResource('pdf', '${pdfFilePath}')">
+                <div class="resource-icon">
+                    <i class="fa fa-file-pdf-o"></i>
+                </div>
+                <div class="resource-name">PDF</div>
+            </div>`;
+        }
+        
+        if (pptFilePath) {
+            resourceCount++;
+            previewHTML += `<div class="resource-item" onclick="previewResource('ppt', '${pptFilePath}')">
+                <div class="resource-icon">
+                    <i class="fa fa-file-powerpoint-o"></i>
+                </div>
+                <div class="resource-name">PowerPoint</div>
+            </div>`;
+        }
+        
+        if (documentFilePath) {
+            resourceCount++;
+            previewHTML += `<div class="resource-item" onclick="previewResource('document', '${documentFilePath}')">
+                <div class="resource-icon">
+                    <i class="fa fa-file-word-o"></i>
+                </div>
+                <div class="resource-name">Document</div>
+            </div>`;
+        }
+        
+        previewHTML += `</div>`;
+        resourcePreview.innerHTML = previewHTML;
     } else {
         resourceContainer.style.display = 'none';
     }
     
-    // Update actions based on completion status
-    const actionsDiv = document.getElementById('content-actions');
-    const quizSection = document.getElementById('quiz-section');
-    
-    if (currentTopicCompleted) {
-        quizSection.classList.add('visible');
-        const topicTypeLabel = currentTopicType ? currentTopicType.charAt(0).toUpperCase() + currentTopicType.slice(1) : 'Resource';
-        actionsDiv.innerHTML = `
-            <a href="${topicFilePath}" class="btn btn-primary btn-lg" target="_blank">
-                <i class="fa fa-external-link"></i> Open ${topicTypeLabel}
-            </a>
-            <button class="btn btn-secondary btn-lg" onclick="markAsComplete(true)">
-                <i class="fa fa-refresh"></i> Review Topic
-            </button>
-        `;
-    } else {
-        quizSection.classList.remove('visible');
-        const topicTypeLabel = currentTopicType ? currentTopicType.charAt(0).toUpperCase() + currentTopicType.slice(1) : 'Resource';
-        actionsDiv.innerHTML = `
-            ${topicFilePath && topicFilePath.trim() !== '' ? `
-            <a href="${topicFilePath}" class="btn btn-primary btn-lg" target="_blank">
-                <i class="fa fa-external-link"></i> Open ${topicTypeLabel}
-            </a>
-            ` : ''}
-            <button class="btn btn-success btn-lg" onclick="markAsComplete(false)">
-                <i class="fa fa-check-circle"></i> Mark Topic Complete
-            </button>
-        `;
+    // Update content actions
+    const contentActions = document.getElementById('content-actions');
+    if (contentActions) {
+        let actionsHTML = '';
+        
+        // Show quiz button if topic has a quiz
+        if (quizId) {
+            actionsHTML += `<button class="btn btn-success btn-lg" onclick="confirmTakeQuiz(${quizId}, '${topicTitle}')">
+                <i class="fa fa-pencil"></i> Take Quiz
+            </button>`;
+        }
+        
+        // Show mark complete button if not already completed
+        // if (!currentTopicCompleted) {
+        //     actionsHTML += `<button class="btn btn-primary btn-lg" onclick="markAsComplete(false)">
+        //         <i class="fa fa-check-circle"></i> Mark Complete
+        //     </button>`;
+        // }
+        
+        contentActions.innerHTML = actionsHTML;
     }
 }
 

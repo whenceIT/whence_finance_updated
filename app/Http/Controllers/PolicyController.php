@@ -165,7 +165,7 @@ class PolicyController extends Controller
         if ($request->hasFile('policy_file')) {
             $file = $request->file('policy_file');
 
-            // Create filename without using Str::slug
+            // Create filename without using Str::slugo
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
             $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();

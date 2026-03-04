@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
     <!-- IntroJS CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css">
     
@@ -1562,11 +1565,11 @@
     </div>
 
     <!-- Footer -->
-    <footer class="learning-footer">
+    <!-- <footer class="learning-footer">
         <div class="container">
             <p>&copy; {{ date('Y') }} Whence Financial Services. All rights reserved.</p>
         </div>
-    </footer>
+    </footer> -->
 
     <!-- Enrollment Modal -->
     <div class="modal fade" id="enrollModal" tabindex="-1" role="dialog">
@@ -1613,6 +1616,9 @@
     
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     
     <script>
         // Flash Message Handler

@@ -21,46 +21,22 @@ class LearningController extends Controller
      */
     public function index()
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
-
         $user = Sentinel::getUser();
-        $role = $user->roles->first();
-        $roleId = $role ? $role->id : null;
-        $isAdmin = $role && in_array($role->id, ['1']);
-
-        // Get all available materials
-        $query = $isAdmin 
-            ? TrainingMaterial::query()
-            : TrainingMaterial::active();
-
-        // Apply role-based filtering
-        if ($roleId && !$isAdmin) {
-            $query->forRole($roleId);
-        }
-
-        // Apply category filtering if specified
-        if (request()->has('category') && !empty(request()->category)) {
-            $category = CourseCategory::where('name', request()->category)->first();
-            if ($category) {
-                $query->where('category', $category->name);
-            }
-        }
-
-        $allMaterials = $query->orderBy('created_at', 'desc')->get();
+        
+        // Get all active training materials
+        $allMaterials = TrainingMaterial::where('is_active', 1)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Get enrolled materials for current user
-        $enrolledMaterialIds = Enrollment::where('user_id', $user->id)
-            ->pluck('training_material_id')
-            ->toArray();
-
-        // Get unique categories from CourseCategory model
-        $categories = CourseCategory::active()->ordered()->get();
+        $enrollments = Enrollment::where('user_id', $user->id)->get();
+        $enrolledMaterialIds = $enrollments->pluck('training_material_id')->toArray();
+        $enrollmentMap = $enrollments->keyBy('training_material_id');
 
         // Prepare courses data with enrollment status
-        $courses = $allMaterials->map(function ($material) use ($user, $enrolledMaterialIds) {
+        $courses = $allMaterials->map(function ($material) use ($enrolledMaterialIds, $enrollmentMap) {
             $isEnrolled = in_array($material->id, $enrolledMaterialIds);
+            $progress = $isEnrolled ? $enrollmentMap[$material->id]->progress : 0;
             
             return [
                 'id' => $material->id,
@@ -76,24 +52,27 @@ class LearningController extends Controller
                 'department' => $material->department,
                 'is_featured' => $material->is_featured,
                 'enrolled' => $isEnrolled,
-                'progress' => $isEnrolled ? $this->getProgress($user->id, $material->id) : 0,
+                'progress' => $progress,
                 'lessons' => 1,
             ];
         })->toArray();
 
-        // Calculate statistics
+        // Calculate statistics for current user
         $stats = [
             'total_courses' => $allMaterials->count(),
             'enrolled_courses' => count($enrolledMaterialIds),
             'completed_courses' => Enrollment::where('user_id', $user->id)
                 ->whereNotNull('completed_at')
                 ->count(),
-            'total_hours' => $this->calculateTotalHours($user->id),
+            'total_hours' => 0,
             'in_progress' => Enrollment::where('user_id', $user->id)
                 ->where('progress', '>', 0)
                 ->where('progress', '<', 100)
                 ->count(),
         ];
+
+        // Get unique categories from CourseCategory model
+        $categories = CourseCategory::active()->ordered()->get();
 
         // Share categories with all views
         view()->share('categories', $categories);
@@ -108,13 +87,6 @@ class LearningController extends Controller
      */
     public function courses()
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
-
-        $user = Sentinel::getUser();
-        $role = $user->roles->first();
-        $isAdmin = $role && in_array($role->id, ['1']);
         $selectedCategory = request()->get('category');
 
         // If category is specified, show all available courses in that category
@@ -128,19 +100,8 @@ class LearningController extends Controller
             
             $materials = $query->orderBy('created_at', 'desc')->get();
 
-            // Get enrolled material IDs
-            $enrolledMaterialIds = Enrollment::where('user_id', $user->id)
-                ->pluck('training_material_id')
-                ->toArray();
-
             // Prepare courses data
-            $courses = $materials->map(function ($material) use ($user, $enrolledMaterialIds) {
-                $isEnrolled = in_array($material->id, $enrolledMaterialIds);
-                
-                $enrollment = Enrollment::where('user_id', $user->id)
-                    ->where('training_material_id', $material->id)
-                    ->first();
-                
+            $courses = $materials->map(function ($material) {
                 return [
                     'id' => $material->id,
                     'title' => $material->title,
@@ -154,10 +115,10 @@ class LearningController extends Controller
                     'download_count' => $material->download_count,
                     'department' => $material->department,
                     'is_featured' => $material->is_featured,
-                    'enrolled' => $isEnrolled,
-                    'progress' => $isEnrolled ? ($enrollment->progress ?? 0) : 0,
-                    'enrolled_at' => $isEnrolled ? $enrollment->enrolled_at : null,
-                    'completed_at' => $isEnrolled ? $enrollment->completed_at : null,
+                    'enrolled' => false,
+                    'progress' => 0,
+                    'enrolled_at' => null,
+                    'completed_at' => null,
                 ];
             })->toArray();
 
@@ -165,8 +126,7 @@ class LearningController extends Controller
         }
 
         // Otherwise, show only enrolled courses (original behavior)
-        $enrollments = Enrollment::where('user_id', $user->id)
-            ->with('trainingMaterial')
+        $enrollments = Enrollment::with('trainingMaterial')
             ->orderBy('enrolled_at', 'desc')
             ->get();
 
@@ -212,10 +172,6 @@ class LearningController extends Controller
      */
     public function calendar()
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
-
         return view('learning.calendar');
     }
 
@@ -226,47 +182,14 @@ class LearningController extends Controller
      */
     public function progress()
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
-
-        $user = Sentinel::getUser();
-        
-        // Get user's enrollments with training materials
-        $enrollments = Enrollment::where('user_id', $user->id)
-            ->with('trainingMaterial')
-            ->get();
-        
-        // Calculate progress data
-        $completedCount = 0;
-        $inProgressCount = 0;
-        $totalLessons = 0;
-        $completedLessons = 0;
-        $learningSeconds = 0;
-        
-        foreach ($enrollments as $enrollment) {
-            $material = $enrollment->trainingMaterial;
-            if (!$material) continue;
-            
-            $totalLessons += 1;
-            $completedLessons += ($enrollment->progress / 100);
-            $learningSeconds += $material->duration ?? 0;
-            
-            if ($enrollment->completed_at) {
-                $completedCount++;
-            } elseif ($enrollment->progress > 0) {
-                $inProgressCount++;
-            }
-        }
-        
         $progressData = [
-            'courses_completed' => $completedCount,
-            'courses_in_progress' => $inProgressCount,
-            'certificates_earned' => $completedCount, // Using completed courses as certificates for now
-            'streak_days' => 0, // Would need separate tracking logic
-            'total_lessons_completed' => floor($completedLessons),
-            'total_lessons' => $totalLessons,
-            'learning_hours' => round($learningSeconds / 3600, 1),
+            'courses_completed' => 0,
+            'courses_in_progress' => 0,
+            'certificates_earned' => 0,
+            'streak_days' => 0,
+            'total_lessons_completed' => 0,
+            'total_lessons' => 0,
+            'learning_hours' => 0,
         ];
 
         return view('learning.progress', compact('progressData'));
@@ -279,10 +202,6 @@ class LearningController extends Controller
      */
     public function certificates()
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
-
         return view('learning.certificates');
     }
 
@@ -294,20 +213,22 @@ class LearningController extends Controller
      */
     public function showCourse($id)
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
-
-        $user = Sentinel::getUser();
         $material = TrainingMaterial::findOrFail($id);
+        $isEnrolled = false;
+        $progress = 0;
 
-        // Check enrollment status
-        $enrollment = Enrollment::where('user_id', $user->id)
-            ->where('training_material_id', $id)
-            ->first();
-        
-        $isEnrolled = $enrollment !== null;
-        $progress = $enrollment ? $enrollment->progress : 0;
+        // Check if user is logged in and enrolled
+        if (Sentinel::check()) {
+            $user = Sentinel::getUser();
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('training_material_id', $id)
+                ->first();
+            
+            if ($enrollment) {
+                $isEnrolled = true;
+                $progress = $enrollment->progress;
+            }
+        }
 
         return view('learning.course', compact('material', 'isEnrolled', 'progress'));
     }
@@ -320,27 +241,23 @@ class LearningController extends Controller
      */
     public function classroom($id)
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
-
-        $user = Sentinel::getUser();
         $material = TrainingMaterial::with('topics')->findOrFail($id);
-
-        // Check enrollment
-        $enrollment = Enrollment::where('user_id', $user->id)
-            ->where('training_material_id', $id)
-            ->first();
+        $enrollment = null;
+        $progress = 0;
+        $completedTopics = [];
         
-        if (!$enrollment) {
-            return redirect()->route('learning.course', $id)
-                ->with('toastr_type', 'warning')
-                ->with('toastr_message', 'Please enroll in this course first.');
+        // Get enrollment details if user is logged in
+        if (Sentinel::check()) {
+            $user = Sentinel::getUser();
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('training_material_id', $id)
+                ->first();
+            
+            if ($enrollment) {
+                $progress = $enrollment->progress;
+                $completedTopics = $enrollment->completed_topics ?? [];
+            }
         }
-
-        // Get user's completed topics from enrollment
-        $completedTopics = $enrollment->completed_topics ?? [];
-        $progress = $enrollment->progress ?? 0;
 
         // Build phases from topics
         $topics = $material->topics;
@@ -352,20 +269,23 @@ class LearningController extends Controller
                 'title' => $material->title,
                 'description' => $material->description ?? 'Course Topics',
                 'icon' => 'fa-book',
-                'topics' => $topics->map(function ($topic, $index) use ($completedTopics, $user) {
-                    $isCompleted = in_array($topic->id, $completedTopics);
-                    $quiz = $topic->quiz;
-                    
+                'topics' => $topics->map(function ($topic, $index) use ($completedTopics) {
                     return [
                         'id' => $topic->id,
                         'title' => $topic->topic_name,
                         'type' => $topic->topic_type,
                         'duration' => $topic->duration ? $topic->duration . ' min' : 'N/A',
-                        'is_completed' => $isCompleted,
+                        'is_completed' => false,
                         'file_path' => $topic->file_path,
+                        'video_file_path' => $topic->video_file_path,
+                        'audio_file_path' => $topic->audio_file_path,
+                        'pdf_file_path' => $topic->pdf_file_path,
+                        'ppt_file_path' => $topic->ppt_file_path,
+                        'document_file_path' => $topic->document_file_path,
+                        'file_name' => $topic->file_name,
                         'sort_order' => $topic->sort_order,
-                        'quiz_id' => $quiz ? $quiz->id : null,
-                        'quiz_passed' => $quiz ? ($quiz->attempts->where('user_id', $user->id)->where('passed', true)->count() > 0) : false,
+                        'quiz_id' => $topic->quiz ? $topic->quiz->id : null,
+                        'quiz_passed' => false,
                     ];
                 })->toArray(),
             ]];
@@ -383,7 +303,7 @@ class LearningController extends Controller
                             'title' => $material->title,
                             'type' => $material->material_type,
                             'duration' => $material->human_duration ?? 'N/A',
-                            'is_completed' => $progress >= 100,
+                            'is_completed' => false,
                             'file_path' => $material->file_path,
                             'sort_order' => 0,
                         ]
@@ -403,40 +323,34 @@ class LearningController extends Controller
      */
     public function enroll($id)
     {
-        if (!Sentinel::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You must be logged in to enroll.'
-            ], 401);
-        }
-
-        $user = Sentinel::getUser();
         $material = TrainingMaterial::findOrFail($id);
+        $user = Sentinel::getUser();
 
-        // Check if already enrolled
+        // Check if user is already enrolled
         $existingEnrollment = Enrollment::where('user_id', $user->id)
             ->where('training_material_id', $id)
             ->first();
 
         if ($existingEnrollment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You are already enrolled in this course.'
-            ], 400);
+            return redirect()->back()
+                ->with('toastr_type', 'warning')
+                ->with('toastr_message', 'You are already enrolled in this course');
         }
 
-        // Create enrollment
+        // Create new enrollment
         Enrollment::create([
             'user_id' => $user->id,
             'training_material_id' => $id,
             'enrolled_at' => now(),
+            'completed_at' => null,
             'progress' => 0,
+            'completed_topics' => [],
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Successfully enrolled in ' . $material->title
-        ]);
+        // Redirect with success message
+        return redirect()->back()
+            ->with('toastr_type', 'success')
+            ->with('toastr_message', 'Successfully enrolled in ' . $material->title);
     }
 
     /**
@@ -447,32 +361,25 @@ class LearningController extends Controller
      */
     public function unenroll($id)
     {
-        if (!Sentinel::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You must be logged in to unenroll.'
-            ], 401);
-        }
-
         $user = Sentinel::getUser();
-
+        
+        // Find and delete the enrollment
         $enrollment = Enrollment::where('user_id', $user->id)
             ->where('training_material_id', $id)
             ->first();
-
-        if (!$enrollment) {
+        
+        if ($enrollment) {
+            $enrollment->delete();
             return response()->json([
-                'success' => false,
-                'message' => 'You are not enrolled in this course.'
-            ], 400);
+                'success' => true,
+                'message' => 'Successfully unenrolled from course.'
+            ]);
         }
-
-        $enrollment->delete();
-
+        
         return response()->json([
-            'success' => true,
-            'message' => 'Successfully unenrolled from course.'
-        ]);
+            'success' => false,
+            'message' => 'You are not enrolled in this course.'
+        ], 400);
     }
 
     /**

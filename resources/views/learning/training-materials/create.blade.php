@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <form action="{{ url('learning/training-materials') }}" method="POST" id="training-material-form">
+    <form action="{{ url('learning/training-materials') }}" method="POST" id="training-material-form" enctype="multipart/form-data">
         @csrf
         
         <!-- Step 1: Course Info -->
@@ -49,7 +49,7 @@
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <!-- Material Type -->
+                <!-- Main Material Type -->
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
                         Material Type <span style="color: var(--accent-color);">*</span>
@@ -154,7 +154,7 @@
         <!-- Step 2: Topics -->
         <div id="step-2" class="wizard-step" style="display: none;">
             <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 24px; color: var(--text-primary);">Course Topics</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">Add topics to your course. Each topic can be a video, PDF, PPT, or document.</p>
+            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">Add topics to your course. Each topic can have multiple resources including videos, audio, PDFs, PPTs, or documents.</p>
             
             <!-- Topics Container -->
             <div id="topics-container">
@@ -191,22 +191,11 @@
             </button>
         </div>
         
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
             <!-- Topic Name -->
             <div>
                 <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Topic Name *</label>
                 <input type="text" name="topic_name[]" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;" placeholder="Enter topic name">
-            </div>
-            
-            <!-- Topic Type -->
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Type *</label>
-                <select name="topic_type[]" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; background: white;">
-                    <option value="video">Video</option>
-                    <option value="pdf">PDF</option>
-                    <option value="ppt">PPT</option>
-                    <option value="document">Document</option>
-                </select>
             </div>
             
             <!-- Duration -->
@@ -216,14 +205,65 @@
             </div>
         </div>
         
-        <!-- File Link (Google Drive or URL) -->
+        <!-- File Uploads -->
         <div style="margin-top: 15px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Resource Link *</label>
-            <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; background: white;">
-                <i class="fa fa-link" style="font-size: 16px; color: var(--primary-color); margin-right: 8px;"></i>
-                <input type="url" name="topic_file[]" required style="width: calc(100% - 30px); padding: 10px; border: none; font-size: 13px;" placeholder="Paste Google Drive or file URL here">
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
+                Video File
+            </label>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <i class="fa fa-video-camera" style="font-size: 16px; color: #ff6b6b;"></i>
+                <input type="file" name="video_topic_file[]" 
+                    style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
+                    accept="video/*">
             </div>
-            <small style="color: var(--text-secondary); font-size: 11px;">Paste a link to Google Drive, Dropbox, or any file URL</small>
+            <small style="color: var(--text-secondary); font-size: 11px;">
+                Upload a video file (MP4, MOV, etc.)
+            </small>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
+                Audio File
+            </label>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <i class="fa fa-headphones" style="font-size: 16px; color: #50c878;"></i>
+                <input type="file" name="audio_topic_file[]" 
+                    style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
+                    accept="audio/*">
+            </div>
+            <small style="color: var(--text-secondary); font-size: 11px;">
+                Upload an audio file (MP3, WAV, etc.)
+            </small>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
+                PDF File
+            </label>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <i class="fa fa-file-pdf-o" style="font-size: 16px; color: #4a90e2;"></i>
+                <input type="file" name="pdf_topic_file[]" 
+                    style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
+                    accept="application/pdf">
+            </div>
+            <small style="color: var(--text-secondary); font-size: 11px;">
+                Upload a PDF document
+            </small>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
+                PPT File
+            </label>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
+                <i class="fa fa-file-powerpoint-o" style="font-size: 16px; color: #f7b733;"></i>
+                <input type="file" name="ppt_topic_file[]" 
+                    style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
+                    accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation">
+            </div>
+            <small style="color: var(--text-secondary); font-size: 11px;">
+                Upload a PowerPoint presentation
+            </small>
         </div>
     </div>
 </template>
@@ -353,7 +393,18 @@ function addTopic() {
     const lastTopic = topicItems[topicItems.length - 1];
     const fileInputs = lastTopic.querySelectorAll('input[type="file"]');
     fileInputs.forEach((input, idx) => {
-        input.name = `topic_file[${topicCount - 1}]`;
+        // Determine which type of file input it is
+        if (input.name.includes('video')) {
+            input.name = `video_topic_file[${topicCount - 1}]`;
+        } else if (input.name.includes('audio')) {
+            input.name = `audio_topic_file[${topicCount - 1}]`;
+        } else if (input.name.includes('pdf')) {
+            input.name = `pdf_topic_file[${topicCount - 1}]`;
+        } else if (input.name.includes('ppt')) {
+            input.name = `ppt_topic_file[${topicCount - 1}]`;
+        } else if (input.name.includes('document')) {
+            input.name = `document_topic_file[${topicCount - 1}]`;
+        }
     });
 }
 
@@ -365,6 +416,22 @@ function removeTopic(button) {
     const topicItems = document.querySelectorAll('.topic-item');
     topicItems.forEach((item, index) => {
         item.querySelector('.topic-number').textContent = index + 1;
+        
+        // Update file input names
+        const fileInputs = item.querySelectorAll('input[type="file"]');
+        fileInputs.forEach((input, idx) => {
+            if (input.name.includes('video')) {
+                input.name = `video_topic_file[${index}]`;
+            } else if (input.name.includes('audio')) {
+                input.name = `audio_topic_file[${index}]`;
+            } else if (input.name.includes('pdf')) {
+                input.name = `pdf_topic_file[${index}]`;
+            } else if (input.name.includes('ppt')) {
+                input.name = `ppt_topic_file[${index}]`;
+            } else if (input.name.includes('document')) {
+                input.name = `document_topic_file[${index}]`;
+            }
+        });
     });
     topicCount = topicItems.length;
 }
