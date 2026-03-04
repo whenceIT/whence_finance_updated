@@ -102,7 +102,6 @@
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
                     </div>
-                    <div class="progress-text">{{ $course['progress'] }}% Complete</div>
                 </div>
                 @endif
                     <div class="course-meta">
@@ -123,7 +122,7 @@
 </div>
 
 <!-- Welcome Message for New Users -->
-@if($stats['enrolled_courses'] == 0)
+@if(!$courses)
 <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; margin-top: 40px;">
     <i class="fa fa-rocket" style="font-size: 64px; color: var(--primary-color); margin-bottom: 20px;"></i>
     <h2 style="font-size: 28px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary);">

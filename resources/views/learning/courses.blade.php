@@ -46,7 +46,7 @@
 <!-- Courses Grid -->
 <div class="courses-grid" id="courses-grid">
     @foreach($courses as $course)
-    <div class="course-card" onclick="window.location.href='{{ url('learning/training-materials/' . $course['id']) }}'">
+    <div class="course-card" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
         <div class="course-image">
             <i class="fa {{ $course['icon'] }}"></i>
             @if($course['is_featured'])
