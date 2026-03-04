@@ -3,6 +3,15 @@
 @section('title', 'Course Categories - Whence Learn')
 
 @section('content')
+@php
+$breadcrumb = [
+    ['label' => 'Dashboard', 'url' => url('learning/dashboard')],
+    ['label' => 'Settings', 'url' => url('learning/settings')],
+    ['label' => 'Course Categories', 'url' => '']
+];
+@endphp
+@include('partials.breadcrumb')
+
 <div class="page-header">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>

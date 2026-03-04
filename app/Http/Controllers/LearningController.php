@@ -213,9 +213,12 @@ class LearningController extends Controller
      */
     public function showCourse($id)
     {
+        
+        $user = Sentinel::getUser();
         $material = TrainingMaterial::findOrFail($id);
         $isEnrolled = false;
         $progress = 0;
+        $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
 
         // Check if user is logged in and enrolled
         if (Sentinel::check()) {
@@ -230,7 +233,7 @@ class LearningController extends Controller
             }
         }
 
-        return view('learning.course', compact('material', 'isEnrolled', 'progress'));
+        return view('learning.course', compact('material', 'isEnrolled', 'progress', 'isAdmin'));
     }
 
     /**

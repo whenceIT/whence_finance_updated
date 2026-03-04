@@ -3,6 +3,15 @@
 @section('title', 'Teachers Management - Whence Learn')
 
 @section('content')
+@php
+$breadcrumb = [
+    ['label' => 'Dashboard', 'url' => url('learning/dashboard')],
+    ['label' => 'Settings', 'url' => url('learning/settings')],
+    ['label' => 'Teachers Management', 'url' => '']
+];
+@endphp
+@include('partials.breadcrumb')
+
 <div class="page-header">
     <h1>Teachers Management</h1>
     <p>Manage teacher profiles and assign training capabilities</p>

@@ -13,10 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('policies', function (Blueprint $table) {
-            $table->integer('created_by')->nullable()->after('access_level');
-
-        });
+        if (!Schema::hasColumn('policies', 'created_by')) {
+            Schema::table('policies', function (Blueprint $table) {
+                $table->integer('created_by')->nullable()->after('access_level');
+            });
+        }
     }
 
     /**

@@ -84,6 +84,7 @@
             height: 38px;
             width: auto;
             margin-right: 10px;
+            border-radius: 10px;
         }
 
         .learning-logo:hover .learning-logo-img {
@@ -371,6 +372,45 @@
 
         .sidebar-menu a:hover .badge {
             opacity: 0.8;
+        }
+
+        /* Breadcrumb Styles */
+        .breadcrumb {
+            background: var(--light-bg);
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #357abd;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-secondary);
         }
 
         /* Main Content */
@@ -1259,7 +1299,7 @@
                     <i class="fa fa-bars"></i>
                 </button>
                 <a href="{{ url('/learning') }}" class="learning-logo" id="learning-logo">
-                    <img src="/main/public/images/w/logo.jpg" alt="Whence Learn" class="learning-logo-img">
+                    <img src="/images/w/logo.jpg" alt="Whence Learn" class="learning-logo-img">
                     <span>Whence Learn</span>
                 </a>
             </div>
@@ -1425,7 +1465,7 @@
                         @foreach($sidebarCategories as $category)
                         <li>
                             <a href="{{ url('/learning?category=' . urlencode($category->name)) }}">
-                                <i class="fa {{ $category->icon }}"></i> {{ $category->name }}
+                                <i class="fa fa-book"></i> {{ $category->name }}
                                 @php $courseCount = isset($category->courses) ? $category->courses->count() : 0; @endphp
                                 @if($courseCount > 0)
                                     <span class="badge badge-primary">{{ $courseCount }}</span>

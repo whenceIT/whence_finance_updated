@@ -3,6 +3,14 @@
     {{ trans_choice('general.edit', 1) }} {{ trans_choice('general.branch', 1) }}
 @endsection
 @section('content')
+    @php
+    $breadcrumb = [
+        ['label' => trans_choice('general.branch', 2), 'url' => url('office')],
+        ['label' => trans_choice('general.edit', 1) . ' ' . trans_choice('general.branch', 1), 'url' => '']
+    ];
+    @endphp
+    @include('partials.breadcrumb')
+
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">{{ trans_choice('general.edit', 1) }} {{ trans_choice('general.branch', 1) }}</h3>

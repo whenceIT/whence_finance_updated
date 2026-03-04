@@ -3,6 +3,16 @@
 @section('title', 'Take Quiz - Whence Learn')
 
 @section('content')
+@php
+$breadcrumb = [
+    ['label' => 'Training Materials', 'url' => url('learning/training-materials')],
+    ['label' => $quiz->topic->trainingMaterial->title ?? 'Course', 'url' => url('learning/training-materials/' . $quiz->topic->trainingMaterial->id)],
+    ['label' => $quiz->topic->topic_name, 'url' => url('learning/course/' . $quiz->topic->trainingMaterial->id . '/classroom?topic=' . $quiz->topic->id)],
+    ['label' => 'Take Quiz', 'url' => '']
+];
+@endphp
+@include('partials.breadcrumb')
+
 <div class="page-header">
     <h1>{{ $quiz->title }}</h1>
     <p>{{ $quiz->description }}</p>

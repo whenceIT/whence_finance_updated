@@ -3,6 +3,14 @@
 @section('title', 'Settings - Whence Learn')
 
 @section('content')
+@php
+$breadcrumb = [
+    ['label' => 'Dashboard', 'url' => url('learning/dashboard')],
+    ['label' => 'Settings', 'url' => '']
+];
+@endphp
+@include('partials.breadcrumb')
+
 <div class="page-header">
     <h1>Settings</h1>
     <p>Manage your learning platform settings and configurations</p>

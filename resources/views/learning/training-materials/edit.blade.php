@@ -57,16 +57,16 @@
         <!-- File Upload -->
         <div style="margin-bottom: 20px;">
             <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                Upload New File (Optional)
+                Upload New File (Mandatory) <span style="color: var(--accent-color);">*</span>
             </label>
             <div style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 30px; text-align: center; background: var(--light-bg);">
                 <i class="fa fa-cloud-upload" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 15px;"></i>
                 <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
                     Current file: {{ $material->file_name }} ({{ $material->human_file_size }})
                 </p>
-                <input type="file" name="file" style="width: 100%;" accept=".pdf,.doc,.docx,.mp3,.wav,.mp4,.webm">
+                <input type="file" name="file" style="width: 100%;" accept=".pdf" required>
                 <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
-                    Leave blank to keep current file, or upload a new one
+                    Only PDF files are accepted. Leave blank to keep current file.
                 </p>
             </div>
         </div>

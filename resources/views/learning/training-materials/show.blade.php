@@ -3,12 +3,13 @@
 @section('title', $material->title . ' - Whence Learn')
 
 @section('content')
-<!-- Back Button -->
-<div style="margin-bottom: 20px;">
-    <a href="{{ url('learning/training-materials') }}" style="display: inline-flex; align-items: center; padding: 10px 20px; background: white; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.3s;">
-        <i class="fa fa-arrow-left"></i> Back to Materials
-    </a>
-</div>
+@php
+$breadcrumb = [
+    ['label' => 'Training Materials', 'url' => url('learning/training-materials')],
+    ['label' => $material->title, 'url' => '']
+];
+@endphp
+@include('partials.breadcrumb')
 
 <!-- Material Header -->
 <div style="background: linear-gradient(135deg, {{ $material->type_color }} 0%, {{ $material->type_color }} 100%); padding: 40px; border-radius: 12px; color: white; margin-bottom: 30px;">

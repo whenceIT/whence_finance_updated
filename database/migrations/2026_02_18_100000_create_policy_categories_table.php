@@ -13,23 +13,27 @@ class CreatePolicyCategoriesTable extends Migration
      */
     public function up()
     {
-        Schema::create('policy_categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
-            $table->text('description')->nullable();
-            $table->integer('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('policy_categories')) {
+            Schema::create('policy_categories', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('slug')->unique();
+                $table->text('description')->nullable();
+                $table->integer('sort_order')->default(0);
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+        }
 
         // Add category_id and access_level to policies table
-        Schema::table('policies', function (Blueprint $table) {
-            $table->unsignedBigInteger('category_id')->nullable()->after('id');
-            $table->enum('access_level', ['all', 'managerial'])->default('all')->after('category_id');
-            
-            $table->foreign('category_id')->references('id')->on('policy_categories')->onDelete('set null');
-        });
+        if (!Schema::hasColumn('policies', 'category_id')) {
+            Schema::table('policies', function (Blueprint $table) {
+                $table->unsignedBigInteger('category_id')->nullable()->after('id');
+                $table->enum('access_level', ['all', 'managerial'])->default('all')->after('category_id');
+                
+                $table->foreign('category_id')->references('id')->on('policy_categories')->onDelete('set null');
+            });
+        }
     }
 
     /**

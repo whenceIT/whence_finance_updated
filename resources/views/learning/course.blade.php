@@ -68,67 +68,64 @@
         <!-- Sidebar -->
         <div class="panel panel-default" style="border-radius: 10px; box-shadow: var(--shadow);">
             <div class="panel-body" style="padding: 24px;">
-                @if($isEnrolled)
-                <!-- Enrolled User View -->
-                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">Your Progress</h3>
-                
-                <!-- Progress Circle -->
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <div style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--secondary-color) {{ $progress }}%, var(--light-bg) 0); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                        <div style="width: 100px; height: 100px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                            <span style="font-size: 28px; font-weight: 700; color: var(--text-primary);">{{ $progress }}%</span>
-                            <span style="font-size: 11px; color: var(--text-secondary);">Complete</span>
+                @if($isEnrolled || $isAdmin)
+                    <!-- Enrolled User View -->
+                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">Your Progress</h3>
+                    
+                    <!-- Progress Circle -->
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--secondary-color) {{ $progress }}%, var(--light-bg) 0); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <div style="width: 100px; height: 100px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                                <span style="font-size: 28px; font-weight: 700; color: var(--text-primary);">{{ $progress }}%</span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">Complete</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Download Materials Section -->
-                @if(isset($material->file_path) && $material->file_path)
-                <div style="margin-bottom: 12px;">
-                    <a href="{{ asset($material->file_path) }}" class="btn btn-primary btn-block" style="margin-bottom: 12px;" target="_blank">
-                        <i class="fa fa-download"></i> Download Material
+                    <!-- Download Materials Section -->
+                    @if(isset($material->file_path) && $material->file_path)
+                        <div style="margin-bottom: 12px;">
+                            <a href="{{ asset($material->file_path) }}" class="btn btn-primary btn-block" style="margin-bottom: 12px;" target="_blank">
+                                <i class="fa fa-download"></i> Download Material
+                            </a>
+                        </div>
+                    @else
+                        <div style="text-align: center; padding: 20px; background: var(--light-bg); border-radius: 8px; margin-bottom: 16px;">
+                            <i class="fa fa-info-circle" style="color: var(--text-secondary); font-size: 24px; margin-bottom: 8px;"></i>
+                            <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">No downloadable materials available</p>
+                        </div>
+                    @endif
+
+                    <!-- Classroom Button -->
+                    <a href="{{ url('/learning/course/' . $material->id . '/classroom') }}" class="btn btn-success btn-block" style="margin-bottom: 12px;">
+                        <i class="fa fa-chalkboard-teacher"></i> Open Classroom
                     </a>
-                </div>
+                
                 @else
-                <div style="text-align: center; padding: 20px; background: var(--light-bg); border-radius: 8px; margin-bottom: 16px;">
-                    <i class="fa fa-info-circle" style="color: var(--text-secondary); font-size: 24px; margin-bottom: 8px;"></i>
-                    <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">No downloadable materials available</p>
-                </div>
-                @endif
+                    <!-- Non-Enrolled User View -->
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <i class="fa fa-graduation-cap" style="font-size: 48px; color: var(--primary-color); margin-bottom: 16px;"></i>
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Start Learning</h3>
+                        <p style="color: var(--text-secondary); font-size: 13px;">
+                            Enroll now to access this course and track your progress.
+                        </p>
+                    </div>
 
-                <!-- Classroom Button -->
-                <a href="{{ url('/learning/course/' . $material->id . '/classroom') }}" class="btn btn-success btn-block" style="margin-bottom: 12px;">
-                    <i class="fa fa-chalkboard-teacher"></i> Open Classroom
-                </a>
+                    <!-- Enrollment Form -->
+                    <form action="{{ url('learning/enroll') }}/{{ $material->id }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary btn-block" style="margin-bottom: 12px;">
+                            <i class="fa fa-plus-circle"></i> Enroll in This Course
+                        </button>
+                    </form>
 
-                <!-- <button class="btn btn-default btn-block" onclick="markAsComplete()">
-                    <i class="fa fa-check-circle"></i> Mark as Complete
-                </button> -->
-                @else
-                <!-- Non-Enrolled User View -->
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <i class="fa fa-graduation-cap" style="font-size: 48px; color: var(--primary-color); margin-bottom: 16px;"></i>
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Start Learning</h3>
-                    <p style="color: var(--text-secondary); font-size: 13px;">
-                        Enroll now to access this course and track your progress.
-                    </p>
-                </div>
-
-                <!-- Enrollment Form -->
-                <form action="{{ url('learning/enroll') }}/{{ $material->id }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn btn-primary btn-block" style="margin-bottom: 12px;">
-                        <i class="fa fa-plus-circle"></i> Enroll in This Course
-                    </button>
-                </form>
-
-                <!-- Alternative Options -->
-                <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
-                    <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 12px;">Or browse more courses</p>
-                    <a href="{{ url('/learning') }}" class="btn btn-default btn-block">
-                        <i class="fa fa-search"></i> Browse Courses
-                    </a>
-                </div>
+                    <!-- Alternative Options -->
+                    <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                        <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 12px;">Or browse more courses</p>
+                        <a href="{{ url('/learning') }}" class="btn btn-default btn-block">
+                            <i class="fa fa-search"></i> Browse Courses
+                        </a>
+                    </div>
                 @endif
             </div>
         </div>
