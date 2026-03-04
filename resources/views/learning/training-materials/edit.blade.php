@@ -41,7 +41,7 @@
                     <i class="fa fa-file-pdf-o" style="color: #4a90e2; margin-right: 8px;"></i>
                     Document
                 </label>
-                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px 20px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
+                <!-- <label style="display: flex; align-items: center; cursor: pointer; padding: 10px 20px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
                     <input type="radio" name="material_type" value="audio" {{ $material->material_type == 'audio' ? 'checked' : '' }} style="margin-right: 8px;">
                     <i class="fa fa-headphones" style="color: #50c878; margin-right: 8px;"></i>
                     Audio
@@ -50,7 +50,7 @@
                     <input type="radio" name="material_type" value="video" {{ $material->material_type == 'video' ? 'checked' : '' }} style="margin-right: 8px;">
                     <i class="fa fa-video-camera" style="color: #ff6b6b; margin-right: 8px;"></i>
                     Video
-                </label>
+                </label> -->
             </div>
         </div>
         
