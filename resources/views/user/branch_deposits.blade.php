@@ -179,6 +179,7 @@ $(document).ready(function () {
                         <option value="zanaco_express">Zanaco Express</option>
                         <option value="mtn">MTN MoMo</option>
                         <option value="zanaco_cash">Zanaco Cash Deposit</option>
+                        <option value="access">Access</option>
                     </select>
                     <br>
 
@@ -272,6 +273,11 @@ function checkCompletedDeposits() {
                 referenceInput.attr('placeholder', '0502605703255600');
                 break;
 
+            case 'access':
+                hint.text('Format: FJB2606341708208');
+                referenceInput.attr('placeholder', 'FJB2606341708208');
+                break;
+
             default:
                 hint.text('Enter Payment Reference Number');
         }
@@ -319,6 +325,9 @@ function checkCompletedDeposits() {
                 break;
             case 'zanaco_cash':
                 valid = /^\d{16}$/.test(currentReferenceNumber);
+                break;
+            case 'access':
+                valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
                 break;
         }
 
