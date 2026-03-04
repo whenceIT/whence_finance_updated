@@ -162,6 +162,8 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::post('/course/{id}/complete-topic', [LearningController::class, 'completeTopic'])->name('learning.course.complete-topic');
     Route::post('/enroll/{id}', [LearningController::class, 'enroll'])->name('learning.enroll');
     Route::post('/unenroll/{id}', [LearningController::class, 'unenroll'])->name('learning.unenroll');
+    Route::get('/course/{id}/certificate', [LearningController::class, 'generateCertificate'])->name('learning.course.certificate');
+    Route::get('/course/{id}/certificate/{userId}', [LearningController::class, 'generateCertificate'])->name('learning.course.certificate.user');
     
     // Settings Routes
     Route::get('/settings', [LearningSettingController::class, 'index'])->name('learning.settings');

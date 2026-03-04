@@ -25,9 +25,9 @@ class LearningSettingController extends Controller
         $isAdmin = $role && in_array($role->id, ['1']);
 
         // Get statistics for the dashboard
-        $totalSettings = 5; // Total number of settings sections
+        $totalSettings = 4; // Total number of settings sections
         $totalCategories = CourseCategory::count();
-        $totalStudents = 0; // Would need to query actual student count
+        $totalStudents = Enrollment::distinct('user_id')->count('user_id');
         $totalTeachers = User::where('istrainer', 1)->count();
 
         return view('learning.settings', compact(

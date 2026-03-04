@@ -1459,7 +1459,7 @@
                 <div class="sidebar-title">Categories</div>
                 <ul class="sidebar-menu">
                     @php
-                    $sidebarCategories = isset($categories) && count($categories) > 0 ? $categories : \App\Models\CourseCategory::active()->ordered()->get();
+                        $sidebarCategories = isset($categories) && count($categories) > 0 ? $categories : \App\Models\CourseCategory::active()->ordered()->get();
                     @endphp
                     @if(count($sidebarCategories) > 0)
                         @foreach($sidebarCategories as $category)

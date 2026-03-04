@@ -111,14 +111,14 @@ function applyFilters() {
         <div style="position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; gap: 5px;" onclick="event.stopPropagation();">
             {{-- Manage Topics & Quizzes button for trainers --}}
             @if($isTrainer || !$isAdmin)
-            <a href="{{ url('learning/training-materials/' . $material->id . '/topics') }}" style="background: rgba(40, 167, 69, 0.95); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s; text-decoration: none;" title="Manage Topics & Quizzes" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                <i class="fa fa-list-alt" style="font-size: 16px;"></i>
+            <a href="{{ url('learning/training-materials/' . $material->id . '/topics') }}" style="background: rgba(40, 167, 69, 0.95); color: white; border: none; border-radius: 5%; width: 100px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s; text-decoration: none;" title="Manage Course, Topics & Quizzes" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                Manage &nbsp;<i class="fa fa-list-alt" style="font-size: 16px;"></i>
             </a>
             @endif
             <form action="{{ url('learning/training-materials/' . $material->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete \"{{ addslashes($material->title) }}\"? This action cannot be undone.');">
                 @csrf
                 @method('DELETE')
-                <button type="submit" style="background: rgba(220, 53, 69, 0.95); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s;" title="Delete this material" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <button type="submit" style="background: rgba(220, 53, 69, 0.95); color: white; border: none; border-radius: 50%; width: 36px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s;" title="Delete this material" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                     <i class="fa fa-trash" style="font-size: 16px;"></i>
                 </button>
             </form>

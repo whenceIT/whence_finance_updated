@@ -62,6 +62,98 @@
                 </div>
             </div>
         </div>
+
+        <!-- Enrolled Users -->
+        <div class="panel panel-default" style="border-radius: 10px; box-shadow: var(--shadow); margin-top: 24px;">
+            <div class="panel-body" style="padding: 30px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">Enrolled Users ({{ count($enrolledUsers) }})</h3>
+                
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Enrolled</th>
+                                <th>Progress</th>
+                                <th>Quiz Attempts</th>
+                                <th>Average Score</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($enrolledUsers as $enrolledUser)
+                                <tr>
+                                    <td>{{ $enrolledUser['name'] }}</td>
+                                    <td>{{ $enrolledUser['email'] }}</td>
+                                    <td>{{ $enrolledUser['enrolled_at']->format('M d, Y') }}</td>
+                                    <td>{{ $enrolledUser['progress'] }}%</td>
+                                    <td>
+                                        {{ count(array_filter($enrolledUser['quiz_stats'], function($stat) { return $stat['attempted']; })) }}/{{ count($enrolledUser['quiz_stats']) }}
+                                    </td>
+                                    <td>
+                                        @php
+                                            $scores = array_filter(array_column($enrolledUser['quiz_stats'], 'score'));
+                                            $average = count($scores) > 0 ? round(array_sum($scores) / count($scores)) : 0;
+                                        @endphp
+                                        {{ $average }}%
+                                    </td>
+                                    <td>
+                                        @if($enrolledUser['completed_all_quizzes'])
+                                            <span class="label label-success">All Quizzes Completed</span>
+                                        @else
+                                            <span class="label label-warning">In Progress</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($enrolledUser['completed_all_quizzes'] || $isAdmin)
+                                            <a href="{{ url('/learning/course/' . $material->id . '/certificate/' . $enrolledUser['id']) }}" 
+                                               class="btn btn-sm btn-primary" 
+                                               target="_blank">
+                                                <i class="fa fa-certificate"></i> Certificate
+                                            </a>
+                                        @else
+                                            <span class="text-muted">Complete quizzes first</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Statistics -->
+         
+        <div class="panel panel-default" style="border-radius: 10px; box-shadow: var(--shadow); margin-top: 24px;">
+            <div class="panel-body" style="padding: 30px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">Quiz Statistics</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div style="background: var(--light-bg); padding: 20px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: var(--primary-color);">{{ $quizStats['topics_with_quizzes'] }}</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Topics with Quizzes</div>
+                    </div>
+                    
+                    <div style="background: var(--light-bg); padding: 20px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: var(--primary-color);">{{ $quizStats['total_attempts'] }}</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Total Attempts</div>
+                    </div>
+                    
+                    <div style="background: var(--light-bg); padding: 20px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: var(--success-color);">{{ $quizStats['passed_attempts'] }}</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Passed Attempts</div>
+                    </div>
+                    
+                    <div style="background: var(--light-bg); padding: 20px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: var(--primary-color);">{{ $quizStats['average_score'] }}%</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Average Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="col-md-4">
@@ -81,6 +173,27 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Certificate Button -->
+                    @if($userCompletedAllQuizzes || $isAdmin)
+                        <a href="{{ url('/learning/course/' . $material->id . '/certificate') }}" 
+                           class="btn btn-primary btn-block" 
+                           style="margin-bottom: 12px;"
+                           target="_blank">
+                            <i class="fa fa-certificate"></i> Generate Certificate
+                        </a>
+                        
+                        @if($isAdmin && !$userCompletedAllQuizzes)
+                            <p style="color: var(--text-secondary); font-size: 12px; text-align: center; margin-top: 8px;">
+                                Preview certificate (Admin only)
+                            </p>
+                        @endif
+                    @else
+                        <div style="text-align: center; padding: 20px; background: var(--light-bg); border-radius: 8px; margin-bottom: 16px;">
+                            <i class="fa fa-info-circle" style="color: var(--text-secondary); font-size: 24px; margin-bottom: 8px;"></i>
+                            <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">Complete all topic quizzes to generate certificate</p>
+                        </div>
+                    @endif
 
                     <!-- Download Materials Section -->
                     @if(isset($material->file_path) && $material->file_path)

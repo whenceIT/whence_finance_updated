@@ -33,14 +33,6 @@
         <div class="stat-value">{{ $progressData['certificates_earned'] }}</div>
         <div class="stat-label">Certificates Earned</div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon purple">
-            <i class="fa fa-fire"></i>
-        </div>
-        <div class="stat-value">{{ $progressData['streak_days'] }}</div>
-        <div class="stat-label">Day Streak</div>
-    </div>
 </div>
 
 <!-- Learning Activity -->
@@ -57,17 +49,11 @@
                 </div>
                 <div style="color: var(--text-secondary); font-size: 14px;">Lessons Completed</div>
             </div>
-            <div style="text-align: center; flex: 1; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
+            <div style="text-align: center; flex: 1; border-left: 1px solid var(--border-color);">
                 <div style="font-size: 32px; font-weight: 700; color: var(--secondary-color); margin-bottom: 5px;">
                     {{ $progressData['total_lessons'] }}
                 </div>
                 <div style="color: var(--text-secondary); font-size: 14px;">Total Lessons</div>
-            </div>
-            <div style="text-align: center; flex: 1;">
-                <div style="font-size: 32px; font-weight: 700; color: var(--accent-color); margin-bottom: 5px;">
-                    {{ $progressData['learning_hours'] }}h
-                </div>
-                <div style="color: var(--text-secondary); font-size: 14px;">Learning Hours</div>
             </div>
         </div>
         
