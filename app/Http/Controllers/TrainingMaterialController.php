@@ -120,20 +120,16 @@ class TrainingMaterialController extends Controller
      */
     public function storeCourseInfo(Request $request)
     {
-
         try {
-
             $user = Sentinel::getUser();
-            $role = $user->roles->first();
 
-            // Validate course info only
+            // Validate course info only - optimized validation
             $rules = [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'material_type' => 'required',
                 'department' => 'required',
                 'category_ids' => 'nullable|array',
-                'category_ids.*' => 'exists:course_categories,id',
                 'target_role' => 'required',
                 'is_active' => 'nullable',
                 'is_featured' => 'nullable',
@@ -151,50 +147,22 @@ class TrainingMaterialController extends Controller
                     ->withInput();
             }
 
-            // Handle file upload
-            $file = $request->file('file');
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            
-            dd('here');
-            try {
-                $s3Client = new \Aws\S3\S3Client([
-                    'version' => 'latest',
-                    'region' => 'nyc3',
-                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                    'credentials' => [
-                        'key' => 'DO00RP9FA3QZTA3JV637',
-                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                    ],
-                ]);
-                
-                $result = $s3Client->putObject([
-                    'Bucket' => 'wfspolicies',
-                    'Key' => 'training-materials/' . $fileName,
-                    'Body' => fopen($file->getPathname(), 'r'),
-                    'ACL' => 'public-read',
-                    'ContentType' => $file->getClientMimeType(),
-                ]);
-                
-                $filePath = $result['ObjectURL'];
-            } catch (\Aws\Exception\AwsException $e) {
-                Log::error('Training Material Upload Error: ' . $e->getMessage());
-                return redirect()->back()
-                    ->with('toastr_type', 'error')
-                    ->with('toastr_message', 'Failed to upload document file. Please try again.')
-                    ->withInput();
-            }
+            // Handle file upload - using Laravel Storage for optimization
+            $filePath = Storage::disk('do')->putFile(
+                'training-materials',
+                $request->file('file'),
+                'public'
+            );
 
             // Create the training material
             $material = TrainingMaterial::create([
                 'title' => $request->title,
                 'description' => $request->description,
                 'material_type' => $request->material_type,
-                'file_path' => $filePath,
-                'file_name' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
+                'file_path' => 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath,
+                'file_name' => $request->file('file')->getClientOriginalName(),
+                'file_size' => $request->file('file')->getSize(),
+                'mime_type' => $request->file('file')->getMimeType(),
                 'duration' => null,
                 'department' => $request->department,
                 'category' => null, // No longer used, using categories relationship instead
@@ -205,17 +173,17 @@ class TrainingMaterialController extends Controller
                 'published_at' => now(),
             ]);
 
-            // Attach categories (many-to-many)
+            // Sync categories (many-to-many) - using sync for efficiency
             $categoryIds = $request->category_ids ?? [];
             if (!empty($categoryIds)) {
-                $material->categories()->attach($categoryIds);
+                $material->categories()->sync($categoryIds);
             }
 
             return redirect()->route('learning.training-materials.add-topics', ['materialId' => $material->id])
                 ->with('toastr_type', 'success')
                 ->with('toastr_message', 'Course created successfully. Now add topics.');
         } catch (\Throwable $th) {
-            dd($th);
+            Log::error('Training Material Creation Error: ' . $th->getMessage());
             return redirect()->back()
                 ->with('toastr_type', 'error')
                 ->with('toastr_message', 'Error creating course: ' . $th->getMessage())
@@ -312,32 +280,11 @@ class TrainingMaterialController extends Controller
             // Handle video file
             $videoFile = $request->file('video_topic_file') ?? null;
             if ($videoFile) {
-                $originalName = pathinfo($videoFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                $fileName = $sanitizedName . '_' . uniqid() . '.' . $videoFile->getClientOriginalExtension();
-                
                 try {
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($videoFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $videoFile->getClientMimeType(),
-                    ]);
-                    
-                    $topicData['video_file_path'] = $result['ObjectURL'];
+                    $filePath = Storage::disk('do')->putFile('training-materials', $videoFile, 'public');
+                    $topicData['video_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                     $topicData['file_name'] = $videoFile->getClientOriginalName();
-                } catch (\Aws\Exception\AwsException $e) {
+                } catch (\Exception $e) {
                     Log::error('Training Material Upload Error: ' . $e->getMessage());
                     return redirect()->back()
                         ->with('toastr_type', 'error')
@@ -349,34 +296,13 @@ class TrainingMaterialController extends Controller
             // Handle audio file
             $audioFile = $request->file('audio_topic_file') ?? null;
             if ($audioFile) {
-                $originalName = pathinfo($audioFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                $fileName = $sanitizedName . '_' . uniqid() . '.' . $audioFile->getClientOriginalExtension();
-                
                 try {
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($audioFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $audioFile->getClientMimeType(),
-                    ]);
-                    
-                    $topicData['audio_file_path'] = $result['ObjectURL'];
+                    $filePath = Storage::disk('do')->putFile('training-materials', $audioFile, 'public');
+                    $topicData['audio_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                     if (!isset($topicData['file_name'])) {
                         $topicData['file_name'] = $audioFile->getClientOriginalName();
                     }
-                } catch (\Aws\Exception\AwsException $e) {
+                } catch (\Exception $e) {
                     Log::error('Training Material Upload Error: ' . $e->getMessage());
                     return redirect()->back()
                         ->with('toastr_type', 'error')
@@ -388,34 +314,13 @@ class TrainingMaterialController extends Controller
             // Handle PDF file
             $pdfFile = $request->file('pdf_topic_file') ?? null;
             if ($pdfFile) {
-                $originalName = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                $fileName = $sanitizedName . '_' . uniqid() . '.' . $pdfFile->getClientOriginalExtension();
-                
                 try {
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($pdfFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $pdfFile->getClientMimeType(),
-                    ]);
-                    
-                    $topicData['pdf_file_path'] = $result['ObjectURL'];
+                    $filePath = Storage::disk('do')->putFile('training-materials', $pdfFile, 'public');
+                    $topicData['pdf_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                     if (!isset($topicData['file_name'])) {
                         $topicData['file_name'] = $pdfFile->getClientOriginalName();
                     }
-                } catch (\Aws\Exception\AwsException $e) {
+                } catch (\Exception $e) {
                     Log::error('Training Material Upload Error: ' . $e->getMessage());
                     return redirect()->back()
                         ->with('toastr_type', 'error')
@@ -427,34 +332,13 @@ class TrainingMaterialController extends Controller
             // Handle PPT file
             $pptFile = $request->file('ppt_topic_file') ?? null;
             if ($pptFile) {
-                $originalName = pathinfo($pptFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                $fileName = $sanitizedName . '_' . uniqid() . '.' . $pptFile->getClientOriginalExtension();
-                
                 try {
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($pptFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $pptFile->getClientMimeType(),
-                    ]);
-                    
-                    $topicData['ppt_file_path'] = $result['ObjectURL'];
+                    $filePath = Storage::disk('do')->putFile('training-materials', $pptFile, 'public');
+                    $topicData['ppt_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                     if (!isset($topicData['file_name'])) {
                         $topicData['file_name'] = $pptFile->getClientOriginalName();
                     }
-                } catch (\Aws\Exception\AwsException $e) {
+                } catch (\Exception $e) {
                     Log::error('Training Material Upload Error: ' . $e->getMessage());
                     return redirect()->back()
                         ->with('toastr_type', 'error')
@@ -466,34 +350,13 @@ class TrainingMaterialController extends Controller
             // Handle document file
             $documentFile = $request->file('document_topic_file') ?? null;
             if ($documentFile) {
-                $originalName = pathinfo($documentFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                $fileName = $sanitizedName . '_' . uniqid() . '.' . $documentFile->getClientOriginalExtension();
-                
                 try {
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($documentFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $documentFile->getClientMimeType(),
-                    ]);
-                    
-                    $topicData['document_file_path'] = $result['ObjectURL'];
+                    $filePath = Storage::disk('do')->putFile('training-materials', $documentFile, 'public');
+                    $topicData['document_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                     if (!isset($topicData['file_name'])) {
                         $topicData['file_name'] = $documentFile->getClientOriginalName();
                     }
-                } catch (\Aws\Exception\AwsException $e) {
+                } catch (\Exception $e) {
                     Log::error('Training Material Upload Error: ' . $e->getMessage());
                     return redirect()->back()
                         ->with('toastr_type', 'error')
@@ -671,32 +534,11 @@ class TrainingMaterialController extends Controller
                     // Handle video file
                     $videoFile = $request->file('video_topic_file')[$index] ?? null;
                     if ($videoFile) {
-                        $originalName = pathinfo($videoFile->getClientOriginalName(), PATHINFO_FILENAME);
-                        $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                        $fileName = $sanitizedName . '_' . uniqid() . '.' . $videoFile->getClientOriginalExtension();
-                        
                         try {
-                            $s3Client = new \Aws\S3\S3Client([
-                                'version' => 'latest',
-                                'region' => 'nyc3',
-                                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                                'credentials' => [
-                                    'key' => 'DO00RP9FA3QZTA3JV637',
-                                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                                ],
-                            ]);
-                            
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
-                                'Body' => fopen($videoFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                                'ContentType' => $videoFile->getClientMimeType(),
-                            ]);
-                            
-                            $topicData['video_file_path'] = $result['ObjectURL'];
+                            $filePath = Storage::disk('do')->putFile('training-materials', $videoFile, 'public');
+                            $topicData['video_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                             $topicData['file_name'] = $videoFile->getClientOriginalName();
-                        } catch (\Aws\Exception\AwsException $e) {
+                        } catch (\Exception $e) {
                             Log::error('Training Material Upload Error: ' . $e->getMessage());
                             return redirect()->back()
                                 ->with('toastr_type', 'error')
@@ -708,34 +550,13 @@ class TrainingMaterialController extends Controller
                     // Handle audio file
                     $audioFile = $request->file('audio_topic_file')[$index] ?? null;
                     if ($audioFile) {
-                        $originalName = pathinfo($audioFile->getClientOriginalName(), PATHINFO_FILENAME);
-                        $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                        $fileName = $sanitizedName . '_' . uniqid() . '.' . $audioFile->getClientOriginalExtension();
-                        
                         try {
-                            $s3Client = new \Aws\S3\S3Client([
-                                'version' => 'latest',
-                                'region' => 'nyc3',
-                                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                                'credentials' => [
-                                    'key' => 'DO00RP9FA3QZTA3JV637',
-                                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                                ],
-                            ]);
-                            
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
-                                'Body' => fopen($audioFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                                'ContentType' => $audioFile->getClientMimeType(),
-                            ]);
-                            
-                            $topicData['audio_file_path'] = $result['ObjectURL'];
+                            $filePath = Storage::disk('do')->putFile('training-materials', $audioFile, 'public');
+                            $topicData['audio_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                             if (!isset($topicData['file_name'])) {
                                 $topicData['file_name'] = $audioFile->getClientOriginalName();
                             }
-                        } catch (\Aws\Exception\AwsException $e) {
+                        } catch (\Exception $e) {
                             Log::error('Training Material Upload Error: ' . $e->getMessage());
                             return redirect()->back()
                                 ->with('toastr_type', 'error')
@@ -747,34 +568,13 @@ class TrainingMaterialController extends Controller
                     // Handle PDF file
                     $pdfFile = $request->file('pdf_topic_file')[$index] ?? null;
                     if ($pdfFile) {
-                        $originalName = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
-                        $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                        $fileName = $sanitizedName . '_' . uniqid() . '.' . $pdfFile->getClientOriginalExtension();
-                        
                         try {
-                            $s3Client = new \Aws\S3\S3Client([
-                                'version' => 'latest',
-                                'region' => 'nyc3',
-                                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                                'credentials' => [
-                                    'key' => 'DO00RP9FA3QZTA3JV637',
-                                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                                ],
-                            ]);
-                            
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
-                                'Body' => fopen($pdfFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                                'ContentType' => $pdfFile->getClientMimeType(),
-                            ]);
-                            
-                            $topicData['pdf_file_path'] = $result['ObjectURL'];
+                            $filePath = Storage::disk('do')->putFile('training-materials', $pdfFile, 'public');
+                            $topicData['pdf_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                             if (!isset($topicData['file_name'])) {
                                 $topicData['file_name'] = $pdfFile->getClientOriginalName();
                             }
-                        } catch (\Aws\Exception\AwsException $e) {
+                        } catch (\Exception $e) {
                             Log::error('Training Material Upload Error: ' . $e->getMessage());
                             return redirect()->back()
                                 ->with('toastr_type', 'error')
@@ -786,34 +586,13 @@ class TrainingMaterialController extends Controller
                     // Handle PPT file
                     $pptFile = $request->file('ppt_topic_file')[$index] ?? null;
                     if ($pptFile) {
-                        $originalName = pathinfo($pptFile->getClientOriginalName(), PATHINFO_FILENAME);
-                        $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                        $fileName = $sanitizedName . '_' . uniqid() . '.' . $pptFile->getClientOriginalExtension();
-                        
                         try {
-                            $s3Client = new \Aws\S3\S3Client([
-                                'version' => 'latest',
-                                'region' => 'nyc3',
-                                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                                'credentials' => [
-                                    'key' => 'DO00RP9FA3QZTA3JV637',
-                                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                                ],
-                            ]);
-                            
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
-                                'Body' => fopen($pptFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                                'ContentType' => $pptFile->getClientMimeType(),
-                            ]);
-                            
-                            $topicData['ppt_file_path'] = $result['ObjectURL'];
+                            $filePath = Storage::disk('do')->putFile('training-materials', $pptFile, 'public');
+                            $topicData['ppt_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                             if (!isset($topicData['file_name'])) {
                                 $topicData['file_name'] = $pptFile->getClientOriginalName();
                             }
-                        } catch (\Aws\Exception\AwsException $e) {
+                        } catch (\Exception $e) {
                             Log::error('Training Material Upload Error: ' . $e->getMessage());
                             return redirect()->back()
                                 ->with('toastr_type', 'error')
@@ -825,34 +604,13 @@ class TrainingMaterialController extends Controller
                     // Handle document file
                     $documentFile = $request->file('document_topic_file')[$index] ?? null;
                     if ($documentFile) {
-                        $originalName = pathinfo($documentFile->getClientOriginalName(), PATHINFO_FILENAME);
-                        $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                        $fileName = $sanitizedName . '_' . uniqid() . '.' . $documentFile->getClientOriginalExtension();
-                        
                         try {
-                            $s3Client = new \Aws\S3\S3Client([
-                                'version' => 'latest',
-                                'region' => 'nyc3',
-                                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                                'credentials' => [
-                                    'key' => 'DO00RP9FA3QZTA3JV637',
-                                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                                ],
-                            ]);
-                            
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
-                                'Body' => fopen($documentFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                                'ContentType' => $documentFile->getClientMimeType(),
-                            ]);
-                            
-                            $topicData['document_file_path'] = $result['ObjectURL'];
+                            $filePath = Storage::disk('do')->putFile('training-materials', $documentFile, 'public');
+                            $topicData['document_file_path'] = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
                             if (!isset($topicData['file_name'])) {
                                 $topicData['file_name'] = $documentFile->getClientOriginalName();
                             }
-                        } catch (\Aws\Exception\AwsException $e) {
+                        } catch (\Exception $e) {
                             Log::error('Training Material Upload Error: ' . $e->getMessage());
                             return redirect()->back()
                                 ->with('toastr_type', 'error')
@@ -1011,38 +769,14 @@ class TrainingMaterialController extends Controller
                     ->withInput();
             }
 
-            // Store new file on S3
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            // Store new file on S3 using Laravel Storage
+            $filePath = Storage::disk('do')->putFile(
+                'training-materials',
+                $request->file('file'),
+                'public'
+            );
             
-            try {
-                $s3Client = new \Aws\S3\S3Client([
-                    'version' => 'latest',
-                    'region' => 'nyc3',
-                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                    'credentials' => [
-                        'key' => 'DO00RP9FA3QZTA3JV637',
-                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                    ],
-                ]);
-                
-                $result = $s3Client->putObject([
-                    'Bucket' => 'wfspolicies',
-                    'Key' => 'training-materials/' . $fileName,
-                    'Body' => fopen($file->getPathname(), 'r'),
-                    'ACL' => 'public-read',
-                    'ContentType' => $file->getClientMimeType(),
-                ]);
-                
-                $filePath = $result['ObjectURL'];
-            } catch (\Aws\Exception\AwsException $e) {
-                Log::error('Training Material Upload Error: ' . $e->getMessage());
-                return redirect()->back()
-                    ->with('toastr_type', 'error')
-                    ->with('toastr_message', 'Failed to upload document file. Please try again.')
-                    ->withInput();
-            }
+            $filePath = 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath;
 
             // Get duration for audio/video files
             $duration = null;
