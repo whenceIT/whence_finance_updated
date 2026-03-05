@@ -120,24 +120,11 @@ class TrainingMaterialController extends Controller
      */
     public function storeCourseInfo(Request $request)
     {
-        //increasing the PHP upload size and timeout from here
-        ini_set('upload_max_filesize', '200M');
-        ini_set('post_max_size', '200M');
-        ini_set('max_execution_time', 600); // 10 minutes
-        ini_set('max_input_time', 600); // 10 minutes
-        ini_set('memory_limit', '256M');
-        
+
         try {
 
             $user = Sentinel::getUser();
             $role = $user->roles->first();
-
-            // Check if user has permission to create training materials
-            if (!$role || !in_array($role->id, ['1', '6', '4'])) {
-                return redirect()->route('learning.training-materials.index')
-                    ->with('toastr_type', 'error')
-                    ->with('toastr_message', 'You do not have permission to create training materials.');
-            }
 
             // Validate course info only
             $rules = [
@@ -170,6 +157,7 @@ class TrainingMaterialController extends Controller
             $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
             $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             
+            dd('here');
             try {
                 $s3Client = new \Aws\S3\S3Client([
                     'version' => 'latest',
