@@ -1091,7 +1091,7 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_message', 'You do not have permission to delete this training material.');
         }
 
-        // Delete file from S3 if exists
+        // Delete file from S3 if exists - skip if file path is invalid
         if ($material->file_path) {
             try {
                 $s3Client = new \Aws\S3\S3Client([
@@ -1104,15 +1104,18 @@ class TrainingMaterialController extends Controller
                     ],
                 ]);
                 
-                // Extract filename from URL
+                // Extract filename from URL - skip if parsing fails
                 $parsedUrl = parse_url($material->file_path);
-                $path = ltrim($parsedUrl['path'], '/');
-                
-                $s3Client->deleteObject([
-                    'Bucket' => 'wfspolicies',
-                    'Key' => $path,
-                ]);
-            } catch (\Aws\Exception\AwsException $e) {
+                if ($parsedUrl && isset($parsedUrl['path'])) {
+                    $path = ltrim($parsedUrl['path'], '/');
+                    if (!empty($path)) {
+                        $s3Client->deleteObject([
+                            'Bucket' => 'wfspolicies',
+                            'Key' => $path,
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
                 Log::error('Training Material Delete Error: ' . $e->getMessage());
                 // Continue with deletion even if file deletion fails
             }
