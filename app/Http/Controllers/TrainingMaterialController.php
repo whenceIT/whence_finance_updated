@@ -120,10 +120,14 @@ class TrainingMaterialController extends Controller
      */
     public function storeCourseInfo(Request $request)
     {
+        //increasing the PHP upload size and timeout from here
+        ini_set('upload_max_filesize', '200M');
+        ini_set('post_max_size', '200M');
+        ini_set('max_execution_time', 600); // 10 minutes
+        ini_set('max_input_time', 600); // 10 minutes
+        ini_set('memory_limit', '256M');
+        
         try {
-            if (!Sentinel::check()) {
-                return redirect('login');
-            }
 
             $user = Sentinel::getUser();
             $role = $user->roles->first();
@@ -162,8 +166,37 @@ class TrainingMaterialController extends Controller
 
             // Handle file upload
             $file = $request->file('file');
-            $fileName = time() . '_' . Str::slug($file->getClientOriginalName()) . '.' . $file->getClientOriginalExtension();
-            $filePath = $file->storeAs('training-materials/document', $fileName, 'public');
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+            $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            
+            try {
+                $s3Client = new \Aws\S3\S3Client([
+                    'version' => 'latest',
+                    'region' => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key' => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+                
+                $result = $s3Client->putObject([
+                    'Bucket' => 'wfspolicies',
+                    'Key' => 'training-materials/' . $fileName,
+                    'Body' => fopen($file->getPathname(), 'r'),
+                    'ACL' => 'public-read',
+                    'ContentType' => $file->getClientMimeType(),
+                ]);
+                
+                $filePath = $result['ObjectURL'];
+            } catch (\Aws\Exception\AwsException $e) {
+                Log::error('Training Material Upload Error: ' . $e->getMessage());
+                return redirect()->back()
+                    ->with('toastr_type', 'error')
+                    ->with('toastr_message', 'Failed to upload document file. Please try again.')
+                    ->withInput();
+            }
 
             // Create the training material
             $material = TrainingMaterial::create([
@@ -274,7 +307,7 @@ class TrainingMaterialController extends Controller
                 $errorMessages = implode('<br>', $validator->errors()->all());
                 return redirect()->back()
                     ->with('toastr_type', 'error')
-                    ->with('toastr_message', 'Validation failed:<br>' . $errorMessages)
+                    ->with('toastr_message', 'Validation failed: ' . $errorMessages)
                     ->withErrors($validator)
                     ->withInput();
             }
@@ -978,11 +1011,6 @@ class TrainingMaterialController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             
-            // Delete old file
-            if (Storage::disk('public')->exists($material->file_path)) {
-                Storage::disk('public')->delete($material->file_path);
-            }
-
             // Validate file type - only PDF is allowed
             $allowedMimeTypes = ['application/pdf'];
 
@@ -995,9 +1023,38 @@ class TrainingMaterialController extends Controller
                     ->withInput();
             }
 
-            // Store new file
-            $fileName = time() . '_' . Str::slug($file->getClientOriginalName()) . '.' . $file->getClientOriginalExtension();
-            $filePath = $file->storeAs('training-materials/' . $materialType, $fileName, 'public');
+            // Store new file on S3
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+            $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            
+            try {
+                $s3Client = new \Aws\S3\S3Client([
+                    'version' => 'latest',
+                    'region' => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key' => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+                
+                $result = $s3Client->putObject([
+                    'Bucket' => 'wfspolicies',
+                    'Key' => 'training-materials/' . $fileName,
+                    'Body' => fopen($file->getPathname(), 'r'),
+                    'ACL' => 'public-read',
+                    'ContentType' => $file->getClientMimeType(),
+                ]);
+                
+                $filePath = $result['ObjectURL'];
+            } catch (\Aws\Exception\AwsException $e) {
+                Log::error('Training Material Upload Error: ' . $e->getMessage());
+                return redirect()->back()
+                    ->with('toastr_type', 'error')
+                    ->with('toastr_message', 'Failed to upload document file. Please try again.')
+                    ->withInput();
+            }
 
             // Get duration for audio/video files
             $duration = null;
@@ -1062,9 +1119,31 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_message', 'You do not have permission to delete this training material.');
         }
 
-        // Delete file from storage if exists
-        if ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
-            Storage::disk('public')->delete($material->file_path);
+        // Delete file from S3 if exists
+        if ($material->file_path) {
+            try {
+                $s3Client = new \Aws\S3\S3Client([
+                    'version' => 'latest',
+                    'region' => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key' => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+                
+                // Extract filename from URL
+                $parsedUrl = parse_url($material->file_path);
+                $path = ltrim($parsedUrl['path'], '/');
+                
+                $s3Client->deleteObject([
+                    'Bucket' => 'wfspolicies',
+                    'Key' => $path,
+                ]);
+            } catch (\Aws\Exception\AwsException $e) {
+                Log::error('Training Material Delete Error: ' . $e->getMessage());
+                // Continue with deletion even if file deletion fails
+            }
         }
 
         $material->delete();
@@ -1108,15 +1187,14 @@ class TrainingMaterialController extends Controller
         // Increment download count
         $material->incrementDownloadCount();
 
-        $filePath = storage_path('app/public/' . $material->file_path);
-
-        if (!file_exists($filePath)) {
-            return redirect()->route('learning.training-materials.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'File not found.');
+        // Since files are now stored on S3 with public URLs, we can redirect to the file URL
+        if ($material->file_path) {
+            return redirect($material->file_path);
         }
 
-        return response()->download($filePath, $material->file_name);
+        return redirect()->route('learning.training-materials.index')
+            ->with('toastr_type', 'error')
+            ->with('toastr_message', 'File not found.');
     }
 
     /**

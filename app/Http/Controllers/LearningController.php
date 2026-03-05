@@ -388,10 +388,11 @@ class LearningController extends Controller
      */
     public function classroom($id)
     {
-        $material = TrainingMaterial::with('topics')->findOrFail($id);
+         $material = TrainingMaterial::with('topics.quiz.attempts')->findOrFail($id);
         $enrollment = null;
         $progress = 0;
         $completedTopics = [];
+        $user = null;
         
         // Get enrollment details if user is logged in
         if (Sentinel::check()) {
@@ -416,13 +417,18 @@ class LearningController extends Controller
                 'title' => $material->title,
                 'description' => $material->description ?? 'Course Topics',
                 'icon' => 'fa-book',
-                'topics' => $topics->map(function ($topic, $index) use ($completedTopics) {
+                 'topics' => $topics->map(function ($topic, $index) use ($completedTopics, $user) {
+                    $quizPassed = false;
+                    if ($topic->quiz) {
+                        $quizPassed = $topic->quiz->attempts->where('user_id', $user->id)->where('passed', true)->count() > 0;
+                    }
+                    
                     return [
                         'id' => $topic->id,
                         'title' => $topic->topic_name,
                         'type' => $topic->topic_type,
                         'duration' => $topic->duration ? $topic->duration . ' min' : 'N/A',
-                        'is_completed' => false,
+                        'is_completed' => in_array($topic->id, $completedTopics),
                         'file_path' => $topic->file_path,
                         'video_file_path' => $topic->video_file_path,
                         'audio_file_path' => $topic->audio_file_path,
@@ -432,7 +438,7 @@ class LearningController extends Controller
                         'file_name' => $topic->file_name,
                         'sort_order' => $topic->sort_order,
                         'quiz_id' => $topic->quiz ? $topic->quiz->id : null,
-                        'quiz_passed' => false,
+                        'quiz_passed' => $quizPassed,
                     ];
                 })->toArray(),
             ]];
@@ -995,7 +1001,7 @@ class LearningController extends Controller
         // If no enrollment exists (shouldn't happen normally), create a dummy object
         if (!$enrollment) {
             $enrollment = (object)[
-                'enrolled_at' => now(),
+                'created_at' => now(),
                 'completed_at' => null,
                 'progress' => 0
             ];

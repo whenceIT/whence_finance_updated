@@ -125,6 +125,18 @@ class ClientController extends Controller
         return view('client.branch_clients', compact('data'));
     }
 
+    public function staff_clients($staff_id)
+    {
+        if (!Sentinel::hasAccess('clients.view')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+        
+        $data = Client::where('status', 'active')->where('staff_id', $staff_id)->with('staff')->with('office')->get();
+
+        return view('client.branch_clients', compact('data'));
+    }
+
 
     
 
@@ -535,8 +547,8 @@ class ClientController extends Controller
          $client->gender = $request->gender;
          $client->marital_status = $request->marital_status;
          $client->dob = $request->dob;
-       //  $client->dob = Carbon::createFromFormat('Y-m-d', $request->dob)->format('m/d/Y');
-     //   $client->dob = Carbon::toFormattedDateString('Y-m-d', $request->dob);
+        //  $client->dob = Carbon::createFromFormat('Y-m-d', $request->dob)->format('m/d/Y');
+        //   $client->dob = Carbon::toFormattedDateString('Y-m-d', $request->dob);
          $client->working_place = $request->working_place;
          $client->working_position = $request->working_position;
          $client->salary = $request->salary;

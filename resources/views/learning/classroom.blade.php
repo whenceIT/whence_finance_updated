@@ -760,7 +760,7 @@
                              data-topic-id="{{ $topic['id'] }}"
                              data-topic-completed="{{ $topicCompleted ? 'true' : 'false' }}"
                              data-quiz-id="{{ $topic['quiz_id'] ?? 'null' }}"
-                             data-quiz-passed="{{ $topic['quiz_passed'] ? 'true' : 'false' }}">
+                              data-quiz-passed="{{ isset($topic['quiz_passed']) && $topic['quiz_passed'] ? 'true' : 'false' }}">
                             <div class="wizard-topic-icon {{ $topicCompleted ? 'completed' : ($topicActive ? 'active' : 'locked') }}">
                                 @if($topicCompleted)
                                     <i class="fa fa-check"></i>

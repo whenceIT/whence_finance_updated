@@ -57,20 +57,7 @@ $breadcrumb = [
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <!-- Main Material Type -->
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                        Material Type <span style="color: var(--accent-color);">*</span>
-                    </label>
-                    <div style="display: flex; gap: 10px;">
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                            <input type="radio" name="material_type" value="document" required style="margin-right: 8px;">
-                            <i class="fa fa-file-pdf-o" style="color: #4a90e2; margin-right: 6px;"></i>
-                            <span style="font-size: 13px;">Document</span>
-                        </label>
-                    </div>
-                </div>
-                
+
                 <!-- Department -->
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">

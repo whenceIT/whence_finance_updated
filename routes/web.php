@@ -363,6 +363,7 @@ Route::group(['prefix' => 'client'], function () {
 
     Route::get('get-staffs', 'ClientController@getStaffs');
     Route::get('search', 'ClientController@search');
+    Route::get('staff/{staff_id}/clients', 'ClientController@staff_clients');
 });
 //route for client identification types
 Route::group(['prefix' => 'client_identification_type'], function () {

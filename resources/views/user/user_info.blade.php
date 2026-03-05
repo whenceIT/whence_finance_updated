@@ -482,7 +482,11 @@ if($target_count >= 7){
 
                         <div class="col-md-4">
                            <span class="info-box-text">Clients</span>
-                            <span class="info-box-number">{{\App\Models\Client::where('staff_id',$user->id)->where('status','active')->count()}}</span>
+                            <span class="info-box-number">
+                                <a href="{{ url('client/staff/'.$user->id.'/clients') }}">
+                                    {{\App\Models\Client::where('staff_id',$user->id)->where('status','active')->count()}}
+                                </a>
+                            </span>
                         </div>
                         <div class="col-md-4">
                             <span class="info-box-text">Current Reloans</span>

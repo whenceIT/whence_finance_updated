@@ -268,7 +268,7 @@
             <div class="certificate-details">
                 <div class="certificate-detail">
                     <div class="certificate-detail-label">Enrollment Date</div>
-                    <div class="certificate-detail-value">{{ $enrollment->enrolled_at->format('F d, Y') }}</div>
+                    <div class="certificate-detail-value">{{ $enrollment->created_at->format('F d, Y') }}</div>
                 </div>
                 <div class="certificate-detail">
                     <div class="certificate-detail-label">Completion Date</div>
