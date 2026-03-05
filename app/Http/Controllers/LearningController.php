@@ -205,6 +205,10 @@ class LearningController extends Controller
             $material = $enrollment->trainingMaterial;
             $allQuizzesPassed = true;
             
+            if (!$material) {
+                continue;
+            }
+            
             foreach ($material->topics as $topic) {
                 if ($topic->quiz) {
                     $hasPassed = $topic->quiz->attempts->where('user_id', $user->id)->where('passed', true)->count() > 0;
@@ -236,7 +240,9 @@ class LearningController extends Controller
             ->get();
             
         foreach ($enrollments as $enrollment) {
-            $totalLessons += $enrollment->trainingMaterial->topics->count();
+            if ($enrollment->trainingMaterial) {
+                $totalLessons += $enrollment->trainingMaterial->topics->count();
+            }
         }
 
         $progressData = [
