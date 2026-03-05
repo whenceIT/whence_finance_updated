@@ -127,7 +127,7 @@ class TrainingMaterialController extends Controller
             $rules = [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'material_type' => 'required',
+                'material_type' => 'nullable',
                 'department' => 'required',
                 'category_ids' => 'nullable|array',
                 'target_role' => 'required',
@@ -158,7 +158,7 @@ class TrainingMaterialController extends Controller
             $material = TrainingMaterial::create([
                 'title' => $request->title,
                 'description' => $request->description,
-                'material_type' => $request->material_type,
+                'material_type' => 'document',
                 'file_path' => 'https://wfspolicies.nyc3.digitaloceanspaces.com/' . $filePath,
                 'file_name' => $request->file('file')->getClientOriginalName(),
                 'file_size' => $request->file('file')->getSize(),
