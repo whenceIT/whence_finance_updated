@@ -3,6 +3,14 @@
 @section('title', 'Manage Topics & Quizzes - ' . $material->title . ' - Whence Learn')
 
 @section('content')
+@php
+$breadcrumb = [
+    ['label' => 'Training Materials', 'url' => url('learning/training-materials')],
+    ['label' => $material->title, 'url' => url('learning/training-materials/' . $material->id)],
+    ['label' => 'Manage Topics & Quizzes', 'url' => '']
+];
+@endphp
+@include('partials.breadcrumb')
 <style>
 .page-header {
     margin-bottom: 30px;

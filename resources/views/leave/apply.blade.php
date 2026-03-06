@@ -59,6 +59,7 @@
                         <option value="Compassionate Leave">Compassionate Leave</option>
                         <option value="Maternity Leave">Maternity Leave</option>
                         <option value="Parental Leave">Parental Leave</option>
+                        <option value="Mothers Day Leave">Mothers Day Leave</option>
                         <option value="Sick Leave">Sick Leave</option>
                     </select>
                 </div>

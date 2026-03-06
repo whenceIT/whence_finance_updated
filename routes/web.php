@@ -162,6 +162,8 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::post('/course/{id}/complete-topic', [LearningController::class, 'completeTopic'])->name('learning.course.complete-topic');
     Route::post('/enroll/{id}', [LearningController::class, 'enroll'])->name('learning.enroll');
     Route::post('/unenroll/{id}', [LearningController::class, 'unenroll'])->name('learning.unenroll');
+    Route::get('/course/{id}/certificate', [LearningController::class, 'generateCertificate'])->name('learning.course.certificate');
+    Route::get('/course/{id}/certificate/{userId}', [LearningController::class, 'generateCertificate'])->name('learning.course.certificate.user');
     
     // Settings Routes
     Route::get('/settings', [LearningSettingController::class, 'index'])->name('learning.settings');
@@ -210,8 +212,14 @@ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentin
     Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
     Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
     
-    // Topics management route for trainers
+     // Topics management route for trainers
     Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
+    
+    // New routes for course creation process
+    Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
+    Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
+    Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
+    Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
 });
 
 //route for users
@@ -355,6 +363,7 @@ Route::group(['prefix' => 'client'], function () {
 
     Route::get('get-staffs', 'ClientController@getStaffs');
     Route::get('search', 'ClientController@search');
+    Route::get('staff/{staff_id}/clients', 'ClientController@staff_clients');
 });
 //route for client identification types
 Route::group(['prefix' => 'client_identification_type'], function () {

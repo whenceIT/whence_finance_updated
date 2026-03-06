@@ -107,23 +107,23 @@ function applyFilters() {
     @endphp
     <div class="course-card" style="position: relative; {{ $canDelete || $isTrainer ? 'cursor: default;' : '' }}" onclick="{{ $canDelete || $isTrainer ? '' : "window.location.href='" . url('learning/training-materials/' . $material->id) . "'" }}">
         {{-- Delete button for creator/admin --}}
-        @if($canDelete)
+        @if($canDelete || !$isAdmin)
         <div style="position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; gap: 5px;" onclick="event.stopPropagation();">
             {{-- Manage Topics & Quizzes button for trainers --}}
-            @if($isTrainer)
-            <a href="{{ url('learning/training-materials/' . $material->id . '/topics') }}" style="background: rgba(40, 167, 69, 0.95); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s; text-decoration: none;" title="Manage Topics & Quizzes" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                <i class="fa fa-list-alt" style="font-size: 16px;"></i>
+            @if($isTrainer || !$isAdmin)
+            <a href="{{ url('learning/training-materials/' . $material->id . '/topics') }}" style="background: rgba(40, 167, 69, 0.95); color: white; border: none; border-radius: 5%; width: 100px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s; text-decoration: none;" title="Manage Course, Topics & Quizzes" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                Manage &nbsp;<i class="fa fa-list-alt" style="font-size: 16px;"></i>
             </a>
             @endif
             <form action="{{ url('learning/training-materials/' . $material->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete \"{{ addslashes($material->title) }}\"? This action cannot be undone.');">
                 @csrf
                 @method('DELETE')
-                <button type="submit" style="background: rgba(220, 53, 69, 0.95); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s;" title="Delete this material" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <button type="submit" style="background: rgba(220, 53, 69, 0.95); color: white; border: none; border-radius: 50%; width: 36px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s;" title="Delete this material" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                     <i class="fa fa-trash" style="font-size: 16px;"></i>
                 </button>
             </form>
         </div>
-        @elseif($isTrainer)
+        @elseif($isTrainer || !$isAdmin)
         <div style="position: absolute; top: 10px; right: 10px; z-index: 100;" onclick="event.stopPropagation();">
             <a href="{{ url('learning/training-materials/' . $material->id . '/topics') }}" style="background: rgba(40, 167, 69, 0.95); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s; text-decoration: none;" title="Manage Topics & Quizzes" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                 <i class="fa fa-list-alt" style="font-size: 16px;"></i>
@@ -147,27 +147,15 @@ function applyFilters() {
                 @endforeach
             </div>
             @endif
-            
-            <div class="course-meta">
-                <div class="course-stats">
-                    <span><i class="fa fa-file-o"></i> {{ $material->human_file_size }}</span>
-                    @if($material->duration)
-                    <span><i class="fa fa-clock-o"></i> {{ $material->human_duration }}</span>
-                    @endif
-                </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    @if($material->target_role != 'all')
-                    <span style="background: rgba(74, 144, 226, 0.1); color: var(--primary-color); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                        <i class="fa fa-users"></i> Role: {{ $material->target_role }}
-                    </span>
-                    @endif
-                    @if(!$material->is_active)
-                    <span style="background: rgba(255, 107, 107, 0.1); color: var(--accent-color); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                        <i class="fa fa-pause"></i> Inactive
-                    </span>
-                    @endif
-                </div>
-            </div>
+            @if(!$material->is_active)
+            <span style="background: rgba(255, 107, 107, 0.1); color: var(--accent-color); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                <i class="fa fa-pause"></i> Inactive
+            </span>
+            @else
+            <span style="background: rgba(40, 167, 69, 0.1); color: var(--success-color); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                <i class="fa fa-check"></i> Active
+            </span>
+            @endif
         </div>
     </div>
     @empty

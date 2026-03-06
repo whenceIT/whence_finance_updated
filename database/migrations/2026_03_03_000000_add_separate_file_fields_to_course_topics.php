@@ -13,14 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('course_topics', function (Blueprint $table) {
-            $table->string('video_file_path')->nullable()->after('file_path');
-            $table->string('audio_file_path')->nullable()->after('video_file_path');
-            $table->string('pdf_file_path')->nullable()->after('audio_file_path');
-            $table->string('ppt_file_path')->nullable()->after('pdf_file_path');
-            $table->string('document_file_path')->nullable()->after('ppt_file_path');
-            $table->string('file_name')->nullable()->after('document_file_path');
-        });
+        if (!Schema::hasColumn('course_topics', 'video_file_path')) {   
+            Schema::table('course_topics', function (Blueprint $table) {
+                $table->string('video_file_path')->nullable()->after('file_path');
+                $table->string('audio_file_path')->nullable()->after('video_file_path');
+                $table->string('pdf_file_path')->nullable()->after('audio_file_path');
+                $table->string('ppt_file_path')->nullable()->after('pdf_file_path');
+                $table->string('document_file_path')->nullable()->after('ppt_file_path');
+                $table->string('file_name')->nullable()->after('document_file_path');
+            });
+        }
     }
 
     /**

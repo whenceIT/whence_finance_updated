@@ -3,6 +3,14 @@
 @section('title', 'Add Training Material - Whence Learn')
 
 @section('content')
+@php
+$breadcrumb = [
+    ['label' => 'Training Materials', 'url' => url('learning/training-materials')],
+    ['label' => 'Add Course', 'url' => '']
+];
+@endphp
+@include('partials.breadcrumb')
+
 <div class="page-header">
     <h1>Add Training Material</h1>
     <p>Create a new course with multiple topics</p>
@@ -25,7 +33,7 @@
         </div>
     </div>
 
-    <form action="{{ url('learning/training-materials') }}" method="POST" id="training-material-form" enctype="multipart/form-data">
+    <form action="{{ route('learning.training-materials.store-course-info') }}" method="POST" id="training-material-form" enctype="multipart/form-data">
         @csrf
         
         <!-- Step 1: Course Info -->
@@ -49,62 +57,41 @@
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <!-- Main Material Type -->
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                        Material Type <span style="color: var(--accent-color);">*</span>
-                    </label>
-                    <div style="display: flex; gap: 10px;">
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                            <input type="radio" name="material_type" value="document" required style="margin-right: 8px;">
-                            <i class="fa fa-file-pdf-o" style="color: #4a90e2; margin-right: 6px;"></i>
-                            <span style="font-size: 13px;">Document</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                            <input type="radio" name="material_type" value="video" style="margin-right: 8px;">
-                            <i class="fa fa-video-camera" style="color: #ff6b6b; margin-right: 6px;"></i>
-                            <span style="font-size: 13px;">Video</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                            <input type="radio" name="material_type" value="audio" style="margin-right: 8px;">
-                            <i class="fa fa-headphones" style="color: #50c878; margin-right: 6px;"></i>
-                            <span style="font-size: 13px;">Audio</span>
-                        </label>
-                    </div>
-                </div>
-                
+
                 <!-- Department -->
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
                         Department <span style="color: var(--accent-color);">*</span>
                     </label>
-                    <select name="department" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; background: white;">
-                        <option value="">Select Department</option>
-                        <option value="Operations">Operations</option>
-                        <option value="Recoveries">Recoveries</option>
-                        <option value="Administration">Administration</option>
-                        <option value="Finance">Finance</option>
-                        <option value="IT">IT</option>
-                        <option value="HR">HR</option>
-                        <option value="Legal">Legal</option>
-                        <option value="Compliance">Compliance</option>
-                        <option value="General">General</option>
-                    </select>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        @php
+                            $departments = ['Operations', 'Recoveries', 'Administration', 'Finance', 'IT', 'HR', 'Legal', 'Compliance', 'General'];
+                        @endphp
+                        @foreach($departments as $dept)
+                            <label style="display: inline-flex; align-items: center; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border-color); border-radius: 20px; background: white; color: var(--text-primary); font-size: 14px; transition: all 0.3s;">
+                                <input type="radio" name="department" value="{{ $dept }}" required style="display: none;">
+                                {{ $dept }}
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
             </div>
             
-            <!-- Categories (Many-to-Many) -->
+            <!-- Categories -->
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
                     Categories
                 </label>
-                <select name="category_ids[]" class="category-select2" multiple style="width: 100%;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                     @if(isset($categories) && count($categories) > 0)
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @foreach($categories as $category)
+                            <label style="display: inline-flex; align-items: center; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border-color); border-radius: 20px; background: white; color: var(--text-primary); font-size: 14px; transition: all 0.3s;">
+                                <input type="checkbox" name="category_ids[]" value="{{ $category->id }}" style="display: none;">
+                                {{ $category->name }}
+                            </label>
                         @endforeach
                     @endif
-                </select>
+                </div>
                 <small style="color: var(--text-secondary); font-size: 12px;">Select one or more categories</small>
             </div>
             
@@ -122,6 +109,23 @@
                     <option value="5">Staff</option>
                     <option value="10">Client</option>
                 </select>
+            </div>
+            
+            <!-- File Upload -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
+                    Upload New File (Mandatory) <span style="color: var(--accent-color);">*</span>
+                </label>
+                <div style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 30px; text-align: center; background: var(--light-bg);">
+                    <i class="fa fa-cloud-upload" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
+                        Upload a PDF document
+                    </p>
+                    <input type="file" name="file" style="width: 100%;" accept=".pdf" required>
+                    <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
+                        Only PDF files are accepted
+                    </p>
+                </div>
             </div>
             
             <!-- Options -->
@@ -145,128 +149,13 @@
                 <a href="{{ url('learning/training-materials') }}" style="padding: 12px 24px; background: white; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; text-decoration: none; font-weight: 600;">
                     Cancel
                 </a>
-                <button type="button" onclick="nextStep()" style="padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                <button type="submit" style="padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                     Next: Add Topics <i class="fa fa-arrow-right" style="margin-left: 8px;"></i>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Step 2: Topics -->
-        <div id="step-2" class="wizard-step" style="display: none;">
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 24px; color: var(--text-primary);">Course Topics</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">Add topics to your course. Each topic can have multiple resources including videos, audio, PDFs, PPTs, or documents.</p>
-            
-            <!-- Topics Container -->
-            <div id="topics-container">
-                <!-- Topics will be added here dynamically -->
-            </div>
-            
-            <!-- Add Topic Button -->
-            <div style="margin-bottom: 30px;">
-                <button type="button" onclick="addTopic()" style="padding: 10px 20px; background: white; color: var(--primary-color); border: 2px dashed var(--primary-color); border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa fa-plus"></i> Add Topic
-                </button>
-            </div>
-            
-            <!-- Step 2 Navigation -->
-            <div style="display: flex; gap: 15px; justify-content: space-between;">
-                <button type="button" onclick="prevStep()" style="padding: 12px 24px; background: white; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-weight: 600;">
-                    <i class="fa fa-arrow-left" style="margin-right: 8px;"></i> Previous
-                </button>
-                <button type="submit" style="padding: 12px 30px; background: var(--secondary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                    <i class="fa fa-check"></i> Create Course
                 </button>
             </div>
         </div>
     </form>
 </div>
-
-<!-- Topic Template -->
-<template id="topic-template">
-    <div class="topic-item" style="background: var(--light-bg); border-radius: 8px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--border-color);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0;">Topic #<span class="topic-number"></span></h4>
-            <button type="button" onclick="removeTopic(this)" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-size: 18px;">
-                <i class="fa fa-times"></i>
-            </button>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
-            <!-- Topic Name -->
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Topic Name *</label>
-                <input type="text" name="topic_name[]" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;" placeholder="Enter topic name">
-            </div>
-            
-            <!-- Duration -->
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Duration (min)</label>
-                <input type="number" name="topic_duration[]" min="1" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;" placeholder="e.g., 15">
-            </div>
-        </div>
-        
-        <!-- File Uploads -->
-        <div style="margin-top: 15px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                Video File
-            </label>
-            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
-                <i class="fa fa-video-camera" style="font-size: 16px; color: #ff6b6b;"></i>
-                <input type="file" name="video_topic_file[]" 
-                    style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                    accept="video/*">
-            </div>
-            <small style="color: var(--text-secondary); font-size: 11px;">
-                Upload a video file (MP4, MOV, etc.)
-            </small>
-        </div>
-
-        <div style="margin-top: 15px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                Audio File
-            </label>
-            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
-                <i class="fa fa-headphones" style="font-size: 16px; color: #50c878;"></i>
-                <input type="file" name="audio_topic_file[]" 
-                    style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                    accept="audio/*">
-            </div>
-            <small style="color: var(--text-secondary); font-size: 11px;">
-                Upload an audio file (MP3, WAV, etc.)
-            </small>
-        </div>
-
-        <div style="margin-top: 15px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                PDF File
-            </label>
-            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
-                <i class="fa fa-file-pdf-o" style="font-size: 16px; color: #4a90e2;"></i>
-                <input type="file" name="pdf_topic_file[]" 
-                    style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                    accept="application/pdf">
-            </div>
-            <small style="color: var(--text-secondary); font-size: 11px;">
-                Upload a PDF document
-            </small>
-        </div>
-
-        <div style="margin-top: 15px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
-                PPT File
-            </label>
-            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
-                <i class="fa fa-file-powerpoint-o" style="font-size: 16px; color: #f7b733;"></i>
-                <input type="file" name="ppt_topic_file[]" 
-                    style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                    accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation">
-            </div>
-            <small style="color: var(--text-secondary); font-size: 11px;">
-                Upload a PowerPoint presentation
-            </small>
-        </div>
-    </div>
-</template>
 
 <style>
 .step-indicator.active div {
@@ -283,157 +172,61 @@ input[type="radio"]:checked + label {
     border-color: var(--primary-color) !important;
     background: rgba(74, 144, 226, 0.1) !important;
 }
-/* Select2 Custom Styles */
-.category-select2 ~ .select2-container {
-    width: 100% !important;
+/* Button Pill Styles */
+label.pill-label {
+    transition: all 0.3s ease;
 }
-.category-select2 ~ .select2-container .select2-selection {
-    border: 1px solid var(--border-color) !important;
-    border-radius: 6px !important;
-    min-height: 42px !important;
-    padding: 4px 8px !important;
-    background: white !important;
-}
-.category-select2 ~ .select2-container .select2-selection__choice {
-    background: var(--primary-color) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 4px !important;
-    padding: 4px 8px !important;
-    margin: 2px !important;
-}
-.category-select2 ~ .select2-container .select2-selection__choice__remove {
-    color: white !important;
-    margin-right: 4px !important;
-}
-.category-select2 ~ .select2-container .select2-search--inline {
-    padding: 0 !important;
-}
-.category-select2 ~ .select2-container .select2-selection__rendered {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 4px !important;
+
+label.pill-label:hover {
+    border-color: var(--primary-color) !important;
+    background: rgba(74, 144, 226, 0.1) !important;
+    color: var(--primary-color) !important;
 }
 </style>
 
 <script>
-let topicCount = 0;
-
-// Initialize Select2 for categories
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof $ !== 'undefined' && $.fn.select2) {
-        $('.category-select2').select2({
-            placeholder: 'Select categories',
-            allowClear: true,
-            width: '100%'
-        });
-    }
-});
-
-function nextStep() {
-    // Validate step 1
-    const title = document.querySelector('input[name="title"]').value;
-    const materialType = document.querySelector('input[name="material_type"]:checked');
-    const department = document.querySelector('select[name="department"]').value;
-    const targetRole = document.querySelector('select[name="target_role"]').value;
+    // Department pill functionality
+    const departmentInputs = document.querySelectorAll('input[name="department"]');
     
-    if (!title) {
-        alert('Please enter a course title.');
-        return;
-    }
-    if (!materialType) {
-        alert('Please select a material type.');
-        return;
-    }
-    if (!department) {
-        alert('Please select a department.');
-        return;
-    }
-    if (!targetRole) {
-        alert('Please select a target audience.');
-        return;
-    }
-    
-    document.getElementById('step-1').style.display = 'none';
-    document.getElementById('step-2').style.display = 'block';
-    
-    document.getElementById('step-indicator-2').classList.add('active');
-    document.getElementById('step-indicator-2').querySelector('div').style.background = 'var(--primary-color)';
-    document.getElementById('step-indicator-2').querySelector('div').style.color = 'white';
-    document.getElementById('step-indicator-2').querySelector('span').style.color = 'var(--primary-color)';
-    document.getElementById('step-line-1').style.background = 'var(--primary-color)';
-    
-    // Add first topic if none exist
-    if (topicCount === 0) {
-        addTopic();
-    }
-}
-
-function prevStep() {
-    document.getElementById('step-2').style.display = 'none';
-    document.getElementById('step-1').style.display = 'block';
-    
-    document.getElementById('step-indicator-2').classList.remove('active');
-    document.getElementById('step-indicator-2').querySelector('div').style.background = 'var(--border-color)';
-    document.getElementById('step-indicator-2').querySelector('div').style.color = 'var(--text-secondary)';
-    document.getElementById('step-indicator-2').querySelector('span').style.color = 'var(--text-secondary)';
-    document.getElementById('step-line-1').style.background = 'var(--border-color)';
-}
-
-function addTopic() {
-    topicCount++;
-    const template = document.getElementById('topic-template');
-    const clone = template.content.cloneNode(true);
-    
-    clone.querySelector('.topic-number').textContent = topicCount;
-    document.getElementById('topics-container').appendChild(clone);
-    
-    // Update file input name with index
-    const topicItems = document.querySelectorAll('.topic-item');
-    const lastTopic = topicItems[topicItems.length - 1];
-    const fileInputs = lastTopic.querySelectorAll('input[type="file"]');
-    fileInputs.forEach((input, idx) => {
-        // Determine which type of file input it is
-        if (input.name.includes('video')) {
-            input.name = `video_topic_file[${topicCount - 1}]`;
-        } else if (input.name.includes('audio')) {
-            input.name = `audio_topic_file[${topicCount - 1}]`;
-        } else if (input.name.includes('pdf')) {
-            input.name = `pdf_topic_file[${topicCount - 1}]`;
-        } else if (input.name.includes('ppt')) {
-            input.name = `ppt_topic_file[${topicCount - 1}]`;
-        } else if (input.name.includes('document')) {
-            input.name = `document_topic_file[${topicCount - 1}]`;
-        }
-    });
-}
-
-function removeTopic(button) {
-    const topicItem = button.closest('.topic-item');
-    topicItem.remove();
-    
-    // Renumber topics
-    const topicItems = document.querySelectorAll('.topic-item');
-    topicItems.forEach((item, index) => {
-        item.querySelector('.topic-number').textContent = index + 1;
-        
-        // Update file input names
-        const fileInputs = item.querySelectorAll('input[type="file"]');
-        fileInputs.forEach((input, idx) => {
-            if (input.name.includes('video')) {
-                input.name = `video_topic_file[${index}]`;
-            } else if (input.name.includes('audio')) {
-                input.name = `audio_topic_file[${index}]`;
-            } else if (input.name.includes('pdf')) {
-                input.name = `pdf_topic_file[${index}]`;
-            } else if (input.name.includes('ppt')) {
-                input.name = `ppt_topic_file[${index}]`;
-            } else if (input.name.includes('document')) {
-                input.name = `document_topic_file[${index}]`;
+    departmentInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Reset all department pills
+            document.querySelectorAll('input[name="department"]').forEach(radio => {
+                const label = radio.parentElement;
+                label.style.background = 'white';
+                label.style.color = 'var(--text-primary)';
+                label.style.borderColor = 'var(--border-color)';
+            });
+            
+            // Highlight selected department pill
+            if (this.checked) {
+                const label = this.parentElement;
+                label.style.background = 'var(--primary-color)';
+                label.style.color = 'white';
+                label.style.borderColor = 'var(--primary-color)';
             }
         });
     });
-    topicCount = topicItems.length;
-}
+    
+    // Category pill functionality
+    const categoryInputs = document.querySelectorAll('input[name="category_ids[]"]');
+    
+    categoryInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const label = this.parentElement;
+            
+            if (this.checked) {
+                label.style.background = 'var(--primary-color)';
+                label.style.color = 'white';
+                label.style.borderColor = 'var(--primary-color)';
+            } else {
+                label.style.background = 'white';
+                label.style.color = 'var(--text-primary)';
+                label.style.borderColor = 'var(--border-color)';
+            }
+        });
+    });
+});
 </script>
 @endsection

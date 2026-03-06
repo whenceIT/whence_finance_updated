@@ -123,6 +123,7 @@
     overflow: hidden;
     max-width: 100%;
     margin: 0 auto;
+    padding:0;
 }
 
 .content-card-header {
@@ -139,7 +140,7 @@
 }
 
 .content-card-body {
-    padding: 30px;
+    padding: 0px;
     text-align: center;
 }
 
@@ -760,7 +761,7 @@
                              data-topic-id="{{ $topic['id'] }}"
                              data-topic-completed="{{ $topicCompleted ? 'true' : 'false' }}"
                              data-quiz-id="{{ $topic['quiz_id'] ?? 'null' }}"
-                             data-quiz-passed="{{ $topic['quiz_passed'] ? 'true' : 'false' }}">
+                              data-quiz-passed="{{ isset($topic['quiz_passed']) && $topic['quiz_passed'] ? 'true' : 'false' }}">
                             <div class="wizard-topic-icon {{ $topicCompleted ? 'completed' : ($topicActive ? 'active' : 'locked') }}">
                                 @if($topicCompleted)
                                     <i class="fa fa-check"></i>
@@ -832,7 +833,7 @@
             </div>
             
             <!-- Progress Bar -->
-            <div class="progress-section">
+            <!-- <div class="progress-section">
                 <div class="progress-info">
                     <span class="progress-label">Course Progress</span>
                     <span class="progress-percentage">{{ $progress }}%</span>
@@ -840,14 +841,14 @@
                 <div class="progress-bar-container">
                     <div class="progress-bar-fill" style="width: {{ $progress }}%;"></div>
                 </div>
-            </div>
+            </div> -->
             
             <!-- Content Area -->
             <div class="content-area" id="content-area">
                 <div class="content-card" id="topic-content-card">
-                    <div class="content-card-header">
+                    <!-- <div class="content-card-header">
                         <div class="content-card-title" id="content-card-title">{{ $material->title }}</div>
-                    </div>
+                    </div> -->
                     <div class="content-card-body" id="content-card-body">
                         
                         <!-- Resource Preview -->

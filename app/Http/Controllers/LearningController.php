@@ -182,14 +182,75 @@ class LearningController extends Controller
      */
     public function progress()
     {
+        $user = Sentinel::getUser();
+        
+        // Calculate courses completed
+        $coursesCompleted = Enrollment::where('user_id', $user->id)
+            ->whereNotNull('completed_at')
+            ->count();
+            
+        // Calculate courses in progress
+        $coursesInProgress = Enrollment::where('user_id', $user->id)
+            ->where('progress', '>', 0)
+            ->where('progress', '<', 100)
+            ->count();
+            
+        // Calculate certificates earned (courses completed with all quizzes passed)
+        $certificatesEarned = 0;
+        $enrollments = Enrollment::where('user_id', $user->id)
+            ->with(['trainingMaterial.topics.quiz.attempts'])
+            ->get();
+            
+        foreach ($enrollments as $enrollment) {
+            $material = $enrollment->trainingMaterial;
+            $allQuizzesPassed = true;
+            
+            if (!$material) {
+                continue;
+            }
+            
+            foreach ($material->topics as $topic) {
+                if ($topic->quiz) {
+                    $hasPassed = $topic->quiz->attempts->where('user_id', $user->id)->where('passed', true)->count() > 0;
+                    if (!$hasPassed) {
+                        $allQuizzesPassed = false;
+                        break;
+                    }
+                }
+            }
+            
+            if ($allQuizzesPassed) {
+                $certificatesEarned++;
+            }
+        }
+            
+        // Calculate total lessons completed
+        $totalLessonsCompleted = 0;
+        $enrollments = Enrollment::where('user_id', $user->id)->get();
+        
+        foreach ($enrollments as $enrollment) {
+            $completedTopics = $enrollment->completed_topics ?? [];
+            $totalLessonsCompleted += count($completedTopics);
+        }
+            
+        // Calculate total lessons
+        $totalLessons = 0;
+        $enrollments = Enrollment::where('user_id', $user->id)
+            ->with('trainingMaterial.topics')
+            ->get();
+            
+        foreach ($enrollments as $enrollment) {
+            if ($enrollment->trainingMaterial) {
+                $totalLessons += $enrollment->trainingMaterial->topics->count();
+            }
+        }
+
         $progressData = [
-            'courses_completed' => 0,
-            'courses_in_progress' => 0,
-            'certificates_earned' => 0,
-            'streak_days' => 0,
-            'total_lessons_completed' => 0,
-            'total_lessons' => 0,
-            'learning_hours' => 0,
+            'courses_completed' => $coursesCompleted,
+            'courses_in_progress' => $coursesInProgress,
+            'certificates_earned' => $certificatesEarned,
+            'total_lessons_completed' => $totalLessonsCompleted,
+            'total_lessons' => $totalLessons,
         ];
 
         return view('learning.progress', compact('progressData'));
@@ -213,9 +274,12 @@ class LearningController extends Controller
      */
     public function showCourse($id)
     {
-        $material = TrainingMaterial::findOrFail($id);
+        
+        $user = Sentinel::getUser();
+        $material = TrainingMaterial::with('topics.quiz.attempts')->findOrFail($id);
         $isEnrolled = false;
         $progress = 0;
+        $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
 
         // Check if user is logged in and enrolled
         if (Sentinel::check()) {
@@ -230,7 +294,96 @@ class LearningController extends Controller
             }
         }
 
-        return view('learning.course', compact('material', 'isEnrolled', 'progress'));
+        // Get all enrolled users
+        $enrolledUsers = Enrollment::with('user')
+            ->where('training_material_id', $id)
+            ->get()
+            ->map(function($enrollment) use ($material) {
+                // Check if user has completed all topic quizzes
+                $userCompletedAllQuizzes = true;
+                $userQuizStats = [];
+                
+                foreach ($material->topics as $topic) {
+                    if ($topic->quiz) {
+                        $attempt = $topic->quiz->attempts->where('user_id', $enrollment->user_id)->first();
+                        $userQuizStats[$topic->id] = [
+                            'quiz_id' => $topic->quiz->id,
+                            'attempted' => $attempt ? true : false,
+                            'passed' => $attempt ? $attempt->passed : false,
+                            'score' => $attempt ? $attempt->percentage : 0,
+                        ];
+                        
+                        if (!$attempt || !$attempt->passed) {
+                            $userCompletedAllQuizzes = false;
+                        }
+                    }
+                }
+
+                return [
+                    'id' => $enrollment->user_id,
+                    'name' => $enrollment->user->first_name . ' ' . $enrollment->user->last_name,
+                    'email' => $enrollment->user->email,
+                    'enrolled_at' => $enrollment->enrolled_at,
+                    'completed_at' => $enrollment->completed_at,
+                    'progress' => $enrollment->progress,
+                    'completed_all_quizzes' => $userCompletedAllQuizzes,
+                    'quiz_stats' => $userQuizStats,
+                ];
+            });
+
+        // Calculate quiz statistics
+        $quizStats = [
+            'total_attempts' => 0,
+            'passed_attempts' => 0,
+            'average_score' => 0,
+            'topics_with_quizzes' => 0,
+        ];
+
+        $totalScore = 0;
+        $attemptCount = 0;
+
+        foreach ($material->topics as $topic) {
+            if ($topic->quiz) {
+                $quizStats['topics_with_quizzes']++;
+                $quizStats['total_attempts'] += $topic->quiz->attempts->count();
+                $passedAttempts = $topic->quiz->attempts->where('passed', true)->count();
+                $quizStats['passed_attempts'] += $passedAttempts;
+                
+                foreach ($topic->quiz->attempts as $attempt) {
+                    $totalScore += $attempt->percentage;
+                    $attemptCount++;
+                }
+            }
+        }
+
+        if ($attemptCount > 0) {
+            $quizStats['average_score'] = round($totalScore / $attemptCount, 2);
+        }
+
+        // Check if current user has completed all quizzes (for certificate eligibility)
+        $userCompletedAllQuizzes = false;
+        if (Sentinel::check()) {
+            $userCompletedAllQuizzes = true;
+            foreach ($material->topics as $topic) {
+                if ($topic->quiz) {
+                    $attempt = $topic->quiz->attempts->where('user_id', $user->id)->where('passed', true)->first();
+                    if (!$attempt) {
+                        $userCompletedAllQuizzes = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return view('learning.course', compact(
+            'material', 
+            'isEnrolled', 
+            'progress', 
+            'isAdmin', 
+            'enrolledUsers', 
+            'quizStats',
+            'userCompletedAllQuizzes'
+        ));
     }
 
     /**
@@ -241,10 +394,11 @@ class LearningController extends Controller
      */
     public function classroom($id)
     {
-        $material = TrainingMaterial::with('topics')->findOrFail($id);
+         $material = TrainingMaterial::with('topics.quiz.attempts')->findOrFail($id);
         $enrollment = null;
         $progress = 0;
         $completedTopics = [];
+        $user = null;
         
         // Get enrollment details if user is logged in
         if (Sentinel::check()) {
@@ -269,13 +423,18 @@ class LearningController extends Controller
                 'title' => $material->title,
                 'description' => $material->description ?? 'Course Topics',
                 'icon' => 'fa-book',
-                'topics' => $topics->map(function ($topic, $index) use ($completedTopics) {
+                 'topics' => $topics->map(function ($topic, $index) use ($completedTopics, $user) {
+                    $quizPassed = false;
+                    if ($topic->quiz) {
+                        $quizPassed = $topic->quiz->attempts->where('user_id', $user->id)->where('passed', true)->count() > 0;
+                    }
+                    
                     return [
                         'id' => $topic->id,
                         'title' => $topic->topic_name,
                         'type' => $topic->topic_type,
                         'duration' => $topic->duration ? $topic->duration . ' min' : 'N/A',
-                        'is_completed' => false,
+                        'is_completed' => in_array($topic->id, $completedTopics),
                         'file_path' => $topic->file_path,
                         'video_file_path' => $topic->video_file_path,
                         'audio_file_path' => $topic->audio_file_path,
@@ -285,7 +444,7 @@ class LearningController extends Controller
                         'file_name' => $topic->file_name,
                         'sort_order' => $topic->sort_order,
                         'quiz_id' => $topic->quiz ? $topic->quiz->id : null,
-                        'quiz_passed' => false,
+                        'quiz_passed' => $quizPassed,
                     ];
                 })->toArray(),
             ]];
@@ -789,6 +948,77 @@ class LearningController extends Controller
         return redirect()->route('learning.settings.teachers')
             ->with('toastr_type', 'success')
             ->with('toastr_message', "Successfully revoked trainer status from {$userToUpdate->first_name} {$userToUpdate->last_name}.");
+    }
+
+    /**
+     * Generate certificate for a course.
+     *
+     * @param int $id
+     * @param int|null $userId
+     * @return \Illuminate\Http\Response
+     */
+    public function generateCertificate($id, $userId = null)
+    {
+        $material = TrainingMaterial::findOrFail($id);
+        $user = Sentinel::getUser();
+        $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
+
+        // Determine which user to generate certificate for
+        if ($userId) {
+            if (!$isAdmin) {
+                return redirect()->back()
+                    ->with('toastr_type', 'error')
+                    ->with('toastr_message', 'You do not have permission to generate certificates for other users.');
+            }
+            
+            $targetUser = User::findOrFail($userId);
+        } else {
+            $targetUser = $user;
+        }
+
+        // Check if user is eligible for certificate
+        $eligible = false;
+        if ($isAdmin) {
+            $eligible = true; // Admin can generate any certificate
+        } else {
+            $eligible = true;
+            foreach ($material->topics as $topic) {
+                if ($topic->quiz) {
+                    $attempt = $topic->quiz->attempts->where('user_id', $targetUser->id)->where('passed', true)->first();
+                    if (!$attempt) {
+                        $eligible = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$eligible) {
+            return redirect()->back()
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You must complete all topic quizzes to generate a certificate.');
+        }
+
+        // Get enrollment details - create a dummy enrollment if none exists
+        $enrollment = Enrollment::where('user_id', $targetUser->id)
+            ->where('training_material_id', $id)
+            ->first();
+            
+        // If no enrollment exists (shouldn't happen normally), create a dummy object
+        if (!$enrollment) {
+            $enrollment = (object)[
+                'created_at' => now(),
+                'completed_at' => null,
+                'progress' => 0
+            ];
+        }
+
+        return view('learning.certificate', compact(
+            'material', 
+            'targetUser', 
+            'enrollment',
+            'isAdmin'
+        ));
     }
 
     /**

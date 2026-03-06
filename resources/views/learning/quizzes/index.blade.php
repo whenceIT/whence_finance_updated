@@ -3,6 +3,14 @@
 @section('title', 'Quiz Management - Whence Learn')
 
 @section('content')
+@php
+$breadcrumb = [
+    ['label' => 'Training Materials', 'url' => url('learning/training-materials')],
+    ['label' => 'Quiz Management', 'url' => '']
+];
+@endphp
+@include('partials.breadcrumb')
+
 <div class="page-header">
     <h1>Quiz Management</h1>
     <p>Manage quizzes for course topics</p>

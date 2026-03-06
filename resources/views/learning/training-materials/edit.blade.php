@@ -30,43 +30,19 @@
             <textarea name="description" rows="4" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; resize: vertical;">{{ old('description', $material->description) }}</textarea>
         </div>
         
-        <!-- Material Type -->
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                Material Type <span style="color: var(--accent-color);">*</span>
-            </label>
-            <div style="display: flex; gap: 15px;">
-                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px 20px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                    <input type="radio" name="material_type" value="document" {{ $material->material_type == 'document' ? 'checked' : '' }} style="margin-right: 8px;">
-                    <i class="fa fa-file-pdf-o" style="color: #4a90e2; margin-right: 8px;"></i>
-                    Document
-                </label>
-                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px 20px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                    <input type="radio" name="material_type" value="audio" {{ $material->material_type == 'audio' ? 'checked' : '' }} style="margin-right: 8px;">
-                    <i class="fa fa-headphones" style="color: #50c878; margin-right: 8px;"></i>
-                    Audio
-                </label>
-                <label style="display: flex; align-items: center; cursor: pointer; padding: 10px 20px; border: 2px solid var(--border-color); border-radius: 6px; background: white; flex: 1;">
-                    <input type="radio" name="material_type" value="video" {{ $material->material_type == 'video' ? 'checked' : '' }} style="margin-right: 8px;">
-                    <i class="fa fa-video-camera" style="color: #ff6b6b; margin-right: 8px;"></i>
-                    Video
-                </label>
-            </div>
-        </div>
-        
         <!-- File Upload -->
         <div style="margin-bottom: 20px;">
             <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                Upload New File (Optional)
+                Upload New File <span style="color: var(--accent-color);">*</span>
             </label>
             <div style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 30px; text-align: center; background: var(--light-bg);">
                 <i class="fa fa-cloud-upload" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 15px;"></i>
                 <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
                     Current file: {{ $material->file_name }} ({{ $material->human_file_size }})
                 </p>
-                <input type="file" name="file" style="width: 100%;" accept=".pdf,.doc,.docx,.mp3,.wav,.mp4,.webm">
+                <input type="file" name="file" style="width: 100%;" accept=".pdf" required>
                 <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
-                    Leave blank to keep current file, or upload a new one
+                    Only PDF files are accepted. Leave blank to keep current file.
                 </p>
             </div>
         </div>
@@ -76,26 +52,35 @@
             <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
                 Department <span style="color: var(--accent-color);">*</span>
             </label>
-            <select name="department" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; background: white;">
-                <option value="">Select Department</option>
-                <option value="Operations" {{ $material->department == 'Operations' ? 'selected' : '' }}>Operations</option>
-                <option value="Recoveries" {{ $material->department == 'Recoveries' ? 'selected' : '' }}>Recoveries</option>
-                <option value="Administration" {{ $material->department == 'Administration' ? 'selected' : '' }}>Administration</option>
-                <option value="Finance" {{ $material->department == 'Finance' ? 'selected' : '' }}>Finance</option>
-                <option value="IT" {{ $material->department == 'IT' ? 'selected' : '' }}>IT</option>
-                <option value="HR" {{ $material->department == 'HR' ? 'selected' : '' }}>HR</option>
-                <option value="Legal" {{ $material->department == 'Legal' ? 'selected' : '' }}>Legal</option>
-                <option value="Compliance" {{ $material->department == 'Compliance' ? 'selected' : '' }}>Compliance</option>
-                <option value="General" {{ $material->department == 'General' ? 'selected' : '' }}>General</option>
-            </select>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                @php
+                    $departments = ['Operations', 'Recoveries', 'Administration', 'Finance', 'IT', 'HR', 'Legal', 'Compliance', 'General'];
+                @endphp
+                @foreach($departments as $dept)
+                    <label style="display: inline-flex; align-items: center; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border-color); border-radius: 20px; background: {{ $material->department == $dept ? 'var(--primary-color)' : 'white' }}; color: {{ $material->department == $dept ? 'white' : 'var(--text-primary)' }}; font-size: 14px; transition: all 0.3s;">
+                        <input type="radio" name="department" value="{{ $dept }}" {{ $material->department == $dept ? 'checked' : '' }} required style="display: none;">
+                        {{ $dept }}
+                    </label>
+                @endforeach
+            </div>
         </div>
         
-        <!-- Category -->
+        <!-- Categories -->
         <div style="margin-bottom: 20px;">
             <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                Category
+                Categories
             </label>
-            <input type="text" name="category" value="{{ old('category', $material->category) }}" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px;" placeholder="Enter category (optional)">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                @if(isset($categories) && count($categories) > 0)
+                    @foreach($categories as $category)
+                        <label style="display: inline-flex; align-items: center; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border-color); border-radius: 20px; background: {{ $material->categories->contains($category->id) ? 'var(--primary-color)' : 'white' }}; color: {{ $material->categories->contains($category->id) ? 'white' : 'var(--text-primary)' }}; font-size: 14px; transition: all 0.3s;">
+                            <input type="checkbox" name="category_ids[]" value="{{ $category->id }}" {{ $material->categories->contains($category->id) ? 'checked' : '' }} style="display: none;">
+                            {{ $category->name }}
+                        </label>
+                    @endforeach
+                @endif
+            </div>
+            <small style="color: var(--text-secondary); font-size: 12px;">Select one or more categories</small>
         </div>
         
         <!-- Target Role -->
@@ -143,13 +128,65 @@
 </div>
 
 <style>
-    input[type="radio"]:checked + label {
-        border-color: var(--primary-color) !important;
-        background: rgba(74, 144, 226, 0.1) !important;
-    }
-    
     input[type="file"] {
         cursor: pointer;
     }
+    
+    /* Button Pill Styles */
+    label.pill-label {
+        transition: all 0.3s ease;
+    }
+    
+    label.pill-label:hover {
+        border-color: var(--primary-color) !important;
+        background: rgba(74, 144, 226, 0.1) !important;
+        color: var(--primary-color) !important;
+    }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Department pill functionality
+        const departmentInputs = document.querySelectorAll('input[name="department"]');
+        
+        departmentInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                // Reset all department pills
+                document.querySelectorAll('input[name="department"]').forEach(radio => {
+                    const label = radio.parentElement;
+                    label.style.background = 'white';
+                    label.style.color = 'var(--text-primary)';
+                    label.style.borderColor = 'var(--border-color)';
+                });
+                
+                // Highlight selected department pill
+                if (this.checked) {
+                    const label = this.parentElement;
+                    label.style.background = 'var(--primary-color)';
+                    label.style.color = 'white';
+                    label.style.borderColor = 'var(--primary-color)';
+                }
+            });
+        });
+        
+        // Category pill functionality
+        const categoryInputs = document.querySelectorAll('input[name="category_ids[]"]');
+        
+        categoryInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const label = this.parentElement;
+                
+                if (this.checked) {
+                    label.style.background = 'var(--primary-color)';
+                    label.style.color = 'white';
+                    label.style.borderColor = 'var(--primary-color)';
+                } else {
+                    label.style.background = 'white';
+                    label.style.color = 'var(--text-primary)';
+                    label.style.borderColor = 'var(--border-color)';
+                }
+            });
+        });
+    });
+</script>
 @endsection

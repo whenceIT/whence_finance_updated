@@ -84,6 +84,7 @@
             height: 38px;
             width: auto;
             margin-right: 10px;
+            border-radius: 10px;
         }
 
         .learning-logo:hover .learning-logo-img {
@@ -373,6 +374,45 @@
             opacity: 0.8;
         }
 
+        /* Breadcrumb Styles */
+        .breadcrumb {
+            background: var(--light-bg);
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #357abd;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-secondary);
+        }
+
         /* Main Content */
         .learning-content {
             flex: 1;
@@ -477,9 +517,7 @@
         }
 
         .course-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: block;
             padding-top: 12px;
             border-top: 1px solid var(--border-color);
         }
@@ -851,47 +889,7 @@
                 font-size: 16px;
             }
 
-            .learning-logo-icon {
-                width: 36px;
-                height: 36px;
-            }
 
-            .learning-logo-icon .book {
-                width: 25px;
-                height: 20px;
-            }
-
-            .learning-logo-icon .cap {
-                width: 22px;
-                height: 10px;
-            }
-
-            .learning-logo-icon .tassel {
-                width: 3px;
-                height: 8px;
-                top: 12px;
-                right: 5px;
-            }
-
-            .learning-logo-icon .tassel::after {
-                width: 5px;
-                height: 6px;
-                bottom: -5px;
-            }
-
-            .learning-logo-icon .star {
-                width: 8px;
-                height: 8px;
-                left: 2px;
-                top: 0;
-            }
-
-            .learning-logo-icon .dot {
-                width: 5px;
-                height: 5px;
-                bottom: 3px;
-                left: 3px;
-            }
 
             .learning-content {
                 padding: 16px;
@@ -953,61 +951,13 @@
                 font-size: 11px;
             }
 
-            .learning-logo i {
-                font-size: 20px;
-            }
+
 
             .learning-logo span {
                 font-size: 14px;
             }
 
-            .learning-logo-icon {
-                width: 32px;
-                height: 32px;
-            }
 
-            .learning-logo-icon .book {
-                width: 22px;
-                height: 18px;
-            }
-
-            .learning-logo-icon .cap {
-                width: 19px;
-                height: 9px;
-            }
-
-            .learning-logo-icon .cap::after {
-                bottom: -5px;
-                width: 8px;
-                height: 5px;
-            }
-
-            .learning-logo-icon .tassel {
-                width: 3px;
-                height: 7px;
-                top: 11px;
-                right: 4px;
-            }
-
-            .learning-logo-icon .tassel::after {
-                width: 4px;
-                height: 5px;
-                bottom: -4px;
-            }
-
-            .learning-logo-icon .star {
-                width: 7px;
-                height: 7px;
-                left: 1px;
-                top: 0;
-            }
-
-            .learning-logo-icon .dot {
-                width: 4px;
-                height: 4px;
-                bottom: 3px;
-                left: 2px;
-            }
 
             .learning-header {
                 padding: 6px 0;
@@ -1195,26 +1145,6 @@
         }
 
         .loader-text {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        @keyframes loaderTasselSwing {
-            0%, 100% { transform: rotate(-5deg); }
-            50% { transform: rotate(5deg); }
-        }
-
-        @keyframes loaderStarPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
-        @keyframes loaderDotBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
-        }
-        
-        .loader-text {
             color: white;
             font-size: 18px;
             font-weight: 600;
@@ -1369,7 +1299,7 @@
                     <i class="fa fa-bars"></i>
                 </button>
                 <a href="{{ url('/learning') }}" class="learning-logo" id="learning-logo">
-                    <img src="{{ asset('images/learn.jpg') }}" alt="Whence Learn" class="learning-logo-img">
+                    <img src="/images/w/logo.jpg" alt="Whence Learn" class="learning-logo-img">
                     <span>Whence Learn</span>
                 </a>
             </div>
@@ -1529,13 +1459,13 @@
                 <div class="sidebar-title">Categories</div>
                 <ul class="sidebar-menu">
                     @php
-                    $sidebarCategories = isset($categories) && count($categories) > 0 ? $categories : \App\Models\CourseCategory::active()->ordered()->get();
+                        $sidebarCategories = isset($categories) && count($categories) > 0 ? $categories : \App\Models\CourseCategory::active()->ordered()->get();
                     @endphp
                     @if(count($sidebarCategories) > 0)
                         @foreach($sidebarCategories as $category)
                         <li>
                             <a href="{{ url('/learning?category=' . urlencode($category->name)) }}">
-                                <i class="fa {{ $category->icon }}"></i> {{ $category->name }}
+                                <i class="fa fa-book"></i> {{ $category->name }}
                                 @php $courseCount = isset($category->courses) ? $category->courses->count() : 0; @endphp
                                 @if($courseCount > 0)
                                     <span class="badge badge-primary">{{ $courseCount }}</span>
@@ -1596,9 +1526,9 @@
     <!-- Loader -->
     <div id="loader">
         <div class="loader-content">
-            <div class="loader-logo">
-                <img src="{{ asset('images/learn.jpg') }}" alt="Whence Learn" style="width: 60px; height: auto;">
-            </div>
+             <div class="loader-logo">
+                 <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Learn" style="width: 60px; height: auto;">
+             </div>
             <div class="loader-text">Whence Learn</div>
             <div class="loader-subtext">Loading your learning experience...</div>
             <div class="loader-progress">
