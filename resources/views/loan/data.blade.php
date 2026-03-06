@@ -36,6 +36,9 @@
                         <th>{{ trans_choice('general.account',1) }}#</th>
                         <th>{{ trans_choice('general.branch',1) }}</th>
                         <th>{{ trans_choice('general.client',1) }}</th>
+                        <th>Loan Consultant</th>
+                        <th>vetted_by</th>
+                        <th>verified_by</th>
                         <th>{{ trans_choice('general.product',1) }}</th>
                         <th>{{ trans_choice('general.balance',1) }}</th>
                         <th>{{ trans_choice('general.action',1) }}</th>
@@ -79,6 +82,21 @@
                             @endif
                             @if($key->client_type=="group")
                                 {{$key->group->name}}
+                            @endif
+                        </td>
+                        <td>
+                        @if(!empty($key->loan_officer))
+                            {{$key->loan_officer->first_name}} {{$key->loan_officer->last_name}}
+                        @endif
+                        </td>
+                        <td>  
+                            @if(!empty($key->vetted_by_field))
+                                {{$key->vetted_by_field->first_name}} {{$key->vetted_by_field->last_name}}
+                            @endif
+                        </td>
+                        <td>
+                             @if(!empty($key->verified_by_field))
+                                                {{$key->verified_by_field->first_name}} {{$key->verified_by_field->last_name}}
                             @endif
                         </td>
                         <td>
