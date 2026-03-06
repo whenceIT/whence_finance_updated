@@ -112,12 +112,13 @@ $('#quiz-form').on('submit', function(e) {
     }
     
     $.ajax({
-        url: '{{ url('learning/quiz/' . $quiz->id . '/submit') }}',
+        url: '{{ url('learning/training-materials/quiz/' . $quiz->id . '/submit') }}',
         type: 'POST',
-        data: {
+        data: JSON.stringify({
             _token: '{{ csrf_token() }}',
             answers: answers
-        },
+        }),
+        contentType: 'application/json',
         success: function(response) {
             if (response.success) {
                 let resultsHtml = `
@@ -148,8 +149,11 @@ $('#quiz-form').on('submit', function(e) {
                 $('#results-modal').modal('show');
             }
         },
-        error: function() {
-            showFlashMessage('error', 'Error', 'An error occurred while submitting the quiz.', 'fa-times-circle');
+        error: function(xhr, status, error) {
+            console.error('Quiz submission error:', error);
+            console.error('Response:', xhr.responseText);
+            const errorMsg = xhr.responseJSON?.message || 'An error occurred while submitting the quiz.';
+            showFlashMessage('error', 'Error', errorMsg, 'fa-times-circle');
         }
     });
 });

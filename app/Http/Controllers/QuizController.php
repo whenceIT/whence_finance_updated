@@ -154,6 +154,7 @@ class QuizController extends Controller
         }
 
         $user = Sentinel::getUser();
+        $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
         $quiz = Quiz::with('questions.options', 'topic.trainingMaterial')->findOrFail($quizId);
 
         if (!$quiz->is_active) {
@@ -162,22 +163,24 @@ class QuizController extends Controller
                 ->with('toastr_message', 'This quiz is not currently available.');
         }
 
-        // Check if user has completed the topic
-        $enrollment = Enrollment::where('user_id', $user->id)
-            ->where('training_material_id', $quiz->topic->trainingMaterial->id)
-            ->first();
+        // Check if user has completed the topic (skip check for admins)
+        if (!$isAdmin) {
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('training_material_id', $quiz->topic->trainingMaterial->id)
+                ->first();
 
-        if (!$enrollment) {
-            return redirect()->route('learning.course', $quiz->topic->trainingMaterial->id)
-                ->with('toastr_type', 'warning')
-                ->with('toastr_message', 'Please enroll in this course first.');
-        }
+            if (!$enrollment) {
+                return redirect()->route('learning.course', $quiz->topic->trainingMaterial->id)
+                    ->with('toastr_type', 'warning')
+                    ->with('toastr_message', 'Please enroll in this course first.');
+            }
 
-        $completedTopics = $enrollment->completed_topics ?? [];
-        if (!in_array($quiz->topic->id, $completedTopics)) {
-            return redirect()->route('learning.classroom', $quiz->topic->trainingMaterial->id)
-                ->with('toastr_type', 'warning')
-                ->with('toastr_message', 'Please complete the topic first before taking the quiz.');
+            $completedTopics = $enrollment->completed_topics ?? [];
+            if (!in_array($quiz->topic->id, $completedTopics)) {
+                return redirect()->route('learning.classroom', $quiz->topic->trainingMaterial->id)
+                    ->with('toastr_type', 'warning')
+                    ->with('toastr_message', 'Please complete the topic first before taking the quiz.');
+            }
         }
 
         // Get previous attempts
@@ -196,14 +199,20 @@ class QuizController extends Controller
      */
     public function submit(Request $request, $quizId)
     {
-        if (!Sentinel::check()) {
+        try {
+            if (!Sentinel::check()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
         $user = Sentinel::getUser();
         $quiz = Quiz::with('questions.options')->findOrFail($quizId);
 
+        // Get answers from request (handle both JSON and form data)
         $answers = $request->answers ?? [];
+        if (empty($answers) && $request->header('Content-Type') === 'application/json') {
+            $data = json_decode($request->getContent(), true);
+            $answers = $data['answers'] ?? [];
+        }
         $score = 0;
         $totalPoints = 0;
         $results = [];
@@ -254,6 +263,10 @@ class QuizController extends Controller
             'results' => $results,
             'attempt_id' => $attempt->id,
         ]);
+        } catch (\Throwable $th) {
+            \Log::error('Quiz submission error: ' . $th->getMessage(), ['quiz_id' => $quizId, 'user_id' => $user->id ?? null]);
+            return response()->json(['success' => false, 'message' => 'An error occurred while processing your quiz submission'], 500);
+        }
     }
 
     /**
