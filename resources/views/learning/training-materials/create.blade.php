@@ -33,7 +33,7 @@ $breadcrumb = [
         </div>
     </div>
 
-    <form action="{{ route('learning.training-materials.store-course-info') }}" method="POST" id="training-material-form" enctype="multipart/form-data">
+    <form action="{{ route('learning.training-materials.store-course-info') }}" method="POST" id="training-material-form">
         @csrf
         
         <!-- Step 1: Course Info -->
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Form submission with loading modal
+    // Form submission with loading modal and optimizations
     const form = document.getElementById('training-material-form');
     const modal = document.getElementById('loading-modal');
     const title = document.getElementById('loading-title');
@@ -249,17 +249,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (form) {
         form.addEventListener('submit', function(e) {
+            // Optimize form submission
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            // Show loading state on button
+            submitButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+            submitButton.disabled = true;
+            submitButton.style.opacity = '0.7';
+            
             // Show loading modal
             modal.style.display = 'flex';
-            title.textContent = 'System is processing files';
-            message.textContent = 'Please wait while we create this course...';
+            title.textContent = 'Creating Course';
+            message.textContent = 'This will only take a moment...';
             
-            // Disable submit button to prevent double submissions
-            const submitButtons = form.querySelectorAll('button[type="submit"]');
-            submitButtons.forEach(button => {
-                button.disabled = true;
-                button.style.opacity = '0.7';
-            });
+            // Prevent double submission
+            form.dataset.submitting = 'true';
         });
     }
 });

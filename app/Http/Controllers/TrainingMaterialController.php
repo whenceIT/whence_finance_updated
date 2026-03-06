@@ -145,6 +145,8 @@ class TrainingMaterialController extends Controller
                     ->withErrors($validator)
                     ->withInput();
             }
+            
+            // Create material with minimal data first
             $material = TrainingMaterial::create([
                 'title' => $request->title,
                 'description' => $request->description,
@@ -159,10 +161,10 @@ class TrainingMaterialController extends Controller
                 'published_at' => now(),
             ]);
 
-            // Sync categories (many-to-many) - using sync for efficiency
+            // Sync categories (many-to-many) - using attach for efficiency
             $categoryIds = $request->category_ids ?? [];
             if (!empty($categoryIds)) {
-                $material->categories()->sync($categoryIds);
+                $material->categories()->attach($categoryIds);
             }
 
             return redirect()->route('learning.training-materials.add-topics', ['materialId' => $material->id])
@@ -219,7 +221,6 @@ class TrainingMaterialController extends Controller
         ini_set('memory_limit', '256M');
 
         try {
-            dd('here');
             $user = Sentinel::getUser();
             $role = $user->roles->first();
 
