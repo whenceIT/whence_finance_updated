@@ -219,10 +219,7 @@ class TrainingMaterialController extends Controller
         ini_set('memory_limit', '256M');
 
         try {
-            if (!Sentinel::check()) {
-                return redirect('login');
-            }
-
+            dd('here');
             $user = Sentinel::getUser();
             $role = $user->roles->first();
 
