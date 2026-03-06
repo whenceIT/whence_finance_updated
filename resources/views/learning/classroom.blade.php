@@ -114,6 +114,7 @@
 /* Content area */
 .content-area {
     padding: 15px;
+    padding-bottom: 100px; /* Add space for bottom toolbar */
 }
 
 .content-card {
@@ -707,6 +708,23 @@
     .quiz-actions {
         flex-direction: column;
     }
+    
+    /* Bottom toolbar responsive */
+    #bottom-toolbar {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    #bottom-toolbar > div:first-child {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    #unlock-next-btn {
+        width: 100%;
+    }
 }
 </style>
 
@@ -890,6 +908,22 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Sticky Bottom Toolbar -->
+<div id="bottom-toolbar" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); padding: 15px 30px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 1000; align-items: center; justify-content: center; gap: 16px;">
+    <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--secondary-color); color: white; display: flex; align-items: center; justify-content: center;">
+            <i class="fa fa-check-circle"></i>
+        </div>
+        <div>
+            <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">Topic Completed!</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">You're ready to move to the next lesson</div>
+        </div>
+    </div>
+    <button id="unlock-next-btn" class="btn btn-primary" style="padding: 10px 30px; font-weight: 600;">
+        <i class="fa fa-unlock"></i> Unlock Next Lesson
+    </button>
 </div>
 
 <!-- Quiz Confirmation Modal -->
@@ -1161,11 +1195,11 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         }
         
         // Show mark complete button if not already completed
-        // if (!currentTopicCompleted) {
-        //     actionsHTML += `<button class="btn btn-primary btn-lg" onclick="markAsComplete(false)">
-        //         <i class="fa fa-check-circle"></i> Mark Complete
-        //     </button>`;
-        // }
+        if (!currentTopicCompleted) {
+            actionsHTML += `<button class="btn btn-primary btn-lg" onclick="markAsComplete(false)">
+                <i class="fa fa-check-circle"></i> Mark Complete
+            </button>`;
+        }
         
         contentActions.innerHTML = actionsHTML;
     }
@@ -1250,6 +1284,34 @@ function markAsComplete(isReview) {
                     `;
                 }
                 
+                // Show bottom toolbar if there's a next topic to unlock
+                const bottomToolbar = document.getElementById('bottom-toolbar');
+                const unlockBtn = document.getElementById('unlock-next-btn');
+                if (bottomToolbar && unlockBtn) {
+                    // Check if there's a next topic
+                    const topics = document.querySelectorAll('.wizard-topic');
+                    let hasNextTopic = false;
+                    let foundCurrent = false;
+                    for (let topic of topics) {
+                        if (foundCurrent) {
+                            if (topic.dataset.topicCompleted === 'false') {
+                                hasNextTopic = true;
+                                break;
+                            }
+                        }
+                        if (topic.dataset.topicId == currentTopicId) {
+                            foundCurrent = true;
+                        }
+                    }
+                    
+                    if (hasNextTopic && (!currentQuizId || currentQuizPassed)) {
+                        bottomToolbar.style.display = 'flex';
+                        unlockBtn.onclick = function() {
+                            skipQuiz();
+                        };
+                    }
+                }
+                
                 // Reload to update progress
                 setTimeout(function() {
                     location.reload();
@@ -1286,6 +1348,12 @@ function skipQuiz() {
     if (currentQuizId && currentQuizId !== 'null' && !currentQuizPassed) {
         showFlashMessage('warning', 'Quiz Required', 'Please take and pass the quiz before proceeding to the next topic.', 'fa-exclamation-triangle');
         return;
+    }
+    
+    // Hide bottom toolbar
+    const bottomToolbar = document.getElementById('bottom-toolbar');
+    if (bottomToolbar) {
+        bottomToolbar.style.display = 'none';
     }
     
     // Move to next incomplete topic or show completion message
@@ -1341,6 +1409,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const topicId = firstIncomplete.dataset.topicId;
         openTopic(topicId, 'video', '');
     }
+    
+    
+    // Debug function to check markAsComplete
+    console.log('classroom.js: DOMContentLoaded executed');
+    console.log('classroom.js: markAsComplete function exists:', typeof markAsComplete === 'function');
 });
 
 // Quiz confirmation dialog

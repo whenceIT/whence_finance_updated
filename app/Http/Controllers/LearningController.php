@@ -570,21 +570,6 @@ class LearningController extends Controller
             ], 404);
         }
 
-        // Check if topic has a quiz
-        $quiz = $topic->quiz;
-        if ($quiz) {
-            // Check if user has passed the quiz
-            $hasPassed = $quiz->attempts->where('user_id', $user->id)->where('passed', true)->count() > 0;
-            if (!$hasPassed) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You must pass the quiz before completing this topic. Please take the quiz first.',
-                    'quiz_required' => true,
-                    'quiz_id' => $quiz->id
-                ], 400);
-            }
-        }
-
         // Check enrollment
         $enrollment = Enrollment::where('user_id', $user->id)
             ->where('training_material_id', $id)
