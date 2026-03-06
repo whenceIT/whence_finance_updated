@@ -883,18 +883,18 @@
                 </div>
                 
                 <!-- Quiz Section (shown after completion) -->
-                <div class="quiz-section" id="quiz-section">
+                 <div class="quiz-section" id="quiz-section">
                     <div class="quiz-header">
                         <h3><i class="fa fa-graduation-cap" style="color: var(--primary-color);"></i> Topic Completed!</h3>
-                        <p>Great job! You've completed this topic. {{ $topic['quiz_id'] ? 'Ready to test your knowledge?' : 'Continue to the next topic.' }}</p>
+                        <p>Great job! You've completed this topic. {{ isset($topic['quiz_id']) && $topic['quiz_id'] ? 'Ready to test your knowledge?' : 'Continue to the next topic.' }}</p>
                     </div>
                     <div class="quiz-actions">
-                        @if($topic['quiz_id'])
+                        @if(isset($topic['quiz_id']) && $topic['quiz_id'])
                         <button class="btn btn-success btn-sm" onclick="confirmTakeQuiz({{ $topic['quiz_id'] }}, '{{ $topic['title'] }}')">
-                            <i class="fa fa-pencil"></i> {{ $topic['quiz_passed'] ? 'Retake Quiz' : 'Take Quiz' }}
+                            <i class="fa fa-pencil"></i> {{ isset($topic['quiz_passed']) && $topic['quiz_passed'] ? 'Retake Quiz' : 'Take Quiz' }}
                         </button>
                         @endif
-                        @if(!$topic['quiz_id'] || $topic['quiz_passed'])
+                        @if(!isset($topic['quiz_id']) || !$topic['quiz_id'] || (isset($topic['quiz_passed']) && $topic['quiz_passed']))
                         <button class="btn btn-secondary btn-sm" onclick="skipQuiz()">
                             <i class="fa fa-arrow-right"></i> Continue to Next Topic
                         </button>

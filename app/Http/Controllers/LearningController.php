@@ -450,25 +450,27 @@ class LearningController extends Controller
             ]];
         } else {
             // Fallback to single topic if no topics exist
-            $phases = [
-                [
-                    'id' => 1,
-                    'title' => 'Main Material',
-                    'description' => 'Get started with this course',
-                    'icon' => 'fa-play-circle',
-                    'topics' => [
-                        [
-                            'id' => 1,
-                            'title' => $material->title,
-                            'type' => $material->material_type,
-                            'duration' => $material->human_duration ?? 'N/A',
-                            'is_completed' => false,
-                            'file_path' => $material->file_path,
-                            'sort_order' => 0,
-                        ]
-                    ]
-                ]
-            ];
+             $phases = [
+                 [
+                     'id' => 1,
+                     'title' => 'Main Material',
+                     'description' => 'Get started with this course',
+                     'icon' => 'fa-play-circle',
+                     'topics' => [
+                         [
+                             'id' => 1,
+                             'title' => $material->title,
+                             'type' => $material->material_type,
+                             'duration' => $material->human_duration ?? 'N/A',
+                             'is_completed' => false,
+                             'file_path' => $material->file_path,
+                             'sort_order' => 0,
+                             'quiz_id' => null,
+                             'quiz_passed' => false,
+                         ]
+                     ]
+                 ]
+             ];
         }
 
         return view('learning.classroom', compact('material', 'enrollment', 'progress', 'phases'));
