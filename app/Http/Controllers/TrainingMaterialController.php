@@ -133,7 +133,6 @@ class TrainingMaterialController extends Controller
                 'target_role' => 'required',
                 'is_active' => 'nullable',
                 'is_featured' => 'nullable',
-                'file' => 'required|file|max:204800|mimetypes:application/pdf',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -146,44 +145,10 @@ class TrainingMaterialController extends Controller
                     ->withErrors($validator)
                     ->withInput();
             }
-
-            // Handle file upload
-            $file = $request->file('file');
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            
-            // Initialize S3 client
-            $s3Client = new \Aws\S3\S3Client([
-                'version' => 'latest',
-                'region' => 'nyc3',
-                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                'credentials' => [
-                    'key' => 'DO00RP9FA3QZTA3JV637',
-                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                ],
-            ]);
-            
-            // Upload file to DigitalOcean Spaces
-            $result = $s3Client->putObject([
-                'Bucket' => 'wfspolicies',
-                'Key' => 'training-materials/' . $fileName,
-                'Body' => fopen($file->getPathname(), 'r'),
-                'ACL' => 'public-read',
-                'ContentType' => $file->getClientMimeType(),
-            ]);
-            
-            $filePath = $result['ObjectURL'];
-
-            // Create the training material
             $material = TrainingMaterial::create([
                 'title' => $request->title,
                 'description' => $request->description,
                 'material_type' => 'document',
-                'file_path' => $filePath,
-                'file_name' => $request->file('file')->getClientOriginalName(),
-                'file_size' => $request->file('file')->getSize(),
-                'mime_type' => $request->file('file')->getMimeType(),
                 'duration' => null,
                 'department' => $request->department,
                 'category' => null, // No longer used, using categories relationship instead
@@ -982,66 +947,6 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_message', 'Validation failed:<br>' . $errorMessages)
                 ->withErrors($validator)
                 ->withInput();
-        }
-
-        // Handle file update if new file is uploaded
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            
-            // Validate file type - only PDF is allowed
-            $allowedMimeTypes = ['application/pdf'];
-
-            $mimeType = $file->getMimeType();
-
-            if (!in_array($mimeType, $allowedMimeTypes)) {
-                return redirect()->back()
-                    ->with('toastr_type', 'error')
-                    ->with('toastr_message', 'Invalid file type. Please upload a PDF file only.')
-                    ->withInput();
-            }
-
-            // Handle file upload
-            $file = $request->file('file');
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            
-            // Initialize S3 client
-            $s3Client = new \Aws\S3\S3Client([
-                'version' => 'latest',
-                'region' => 'nyc3',
-                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                'credentials' => [
-                    'key' => 'DO00RP9FA3QZTA3JV637',
-                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                ],
-            ]);
-            
-            // Upload file to DigitalOcean Spaces
-            $result = $s3Client->putObject([
-                'Bucket' => 'wfspolicies',
-                'Key' => 'training-materials/' . $fileName,
-                'Body' => fopen($file->getPathname(), 'r'),
-                'ACL' => 'public-read',
-                'ContentType' => $file->getClientMimeType(),
-            ]);
-            
-            $filePath = $result['ObjectURL'];
-
-            // Get duration for audio/video files
-            $duration = null;
-            if (in_array($materialType, ['audio', 'video'])) {
-                $duration = $materialType === 'audio' ? 300 : 600;
-            }
-
-            $material->update([
-                'file_path' => $filePath,
-                'file_name' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
-                'mime_type' => $mimeType,
-                'duration' => $duration,
-                'material_type' => $materialType,
-            ]);
         }
 
         // Update other fields

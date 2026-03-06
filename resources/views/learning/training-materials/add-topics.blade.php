@@ -240,7 +240,20 @@ $breadcrumb = [
     </div>
 </div>
 
+<!-- Loading Modal -->
+<div id="loading-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);">
+        <div id="loading-spinner" style="display: inline-block; width: 50px; height: 50px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+        <h3 id="loading-title" style="font-size: 18px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary);">System is processing files</h3>
+        <p id="loading-message" style="font-size: 14px; color: var(--text-secondary);">Please wait while we add this topic...</p>
+    </div>
+</div>
+
 <style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 /* Custom Styles for this page */
 .page-header h1 {
     font-size: 28px;
@@ -312,6 +325,28 @@ $breadcrumb = [
 </style>
 
 <script>
-// No custom JavaScript needed for this page
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission with loading modal
+    const form = document.querySelector('form');
+    const modal = document.getElementById('loading-modal');
+    const title = document.getElementById('loading-title');
+    const message = document.getElementById('loading-message');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Show loading modal
+            modal.style.display = 'flex';
+            title.textContent = 'System is processing files';
+            message.textContent = 'Please wait while we add this topic...';
+            
+            // Disable submit button to prevent double submissions
+            const submitButtons = form.querySelectorAll('button[type="submit"]');
+            submitButtons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.7';
+            });
+        });
+    }
+});
 </script>
 @endsection
