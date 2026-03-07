@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CourseCategory;
 use App\Models\Office;
 use App\Models\User;
+use App\Models\Enrollment;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class LearningSettingController extends Controller
