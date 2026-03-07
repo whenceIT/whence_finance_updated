@@ -13,6 +13,7 @@
 <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: var(--shadow); max-width: 800px; margin: 0 auto;">
     <form action="{{ url('learning/training-materials/' . $material->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
+        @method('PUT')
         
         <!-- Title -->
         <div style="margin-bottom: 20px;">
@@ -29,23 +30,6 @@
             </label>
             <textarea name="description" rows="4" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; resize: vertical;">{{ old('description', $material->description) }}</textarea>
         </div>
-        
-        <!-- File Upload
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                Upload New File <span style="color: var(--accent-color);">*</span>
-            </label>
-            <div style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 30px; text-align: center; background: var(--light-bg);">
-                <i class="fa fa-cloud-upload" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 15px;"></i>
-                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
-                    Current file: {{ $material->file_name }} ({{ $material->human_file_size }})
-                </p>
-                <input type="file" name="file" style="width: 100%;" accept=".pdf" required>
-                <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
-                    Only PDF files are accepted. Leave blank to keep current file.
-                </p>
-            </div>
-        </div> -->
         
         <!-- Department -->
         <div style="margin-bottom: 20px;">
