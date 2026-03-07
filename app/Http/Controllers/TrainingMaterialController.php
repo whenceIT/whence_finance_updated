@@ -902,13 +902,6 @@ class TrainingMaterialController extends Controller
         $user = Sentinel::getUser();
         $role = $user->roles->first();
 
-        // Check if user has permission to edit training materials
-        if (!$role || !in_array($role->id, ['1', '6', '4'])) {
-            return redirect()->route('learning.training-materials.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'You do not have permission to edit training materials.');
-        }
-
         $material = TrainingMaterial::findOrFail($id);
 
         // Validation rules

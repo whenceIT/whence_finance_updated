@@ -199,7 +199,7 @@ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentin
     Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
     Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
     Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
-    Route::put('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
+     Route::match(['put', 'post'], '/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
     Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
     Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
     Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
