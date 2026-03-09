@@ -201,71 +201,62 @@ class QuizController extends Controller
     {
         try {
             if (!Sentinel::check()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $user = Sentinel::getUser();
-        $quiz = Quiz::with('questions.options')->findOrFail($quizId);
-
-        // Get answers from request (handle both JSON and form data)
-        $answers = $request->answers ?? [];
-        if (empty($answers) && $request->header('Content-Type') === 'application/json') {
-            $data = json_decode($request->getContent(), true);
-            $answers = $data['answers'] ?? [];
-        }
-        $score = 0;
-        $totalPoints = 0;
-        $results = [];
-
-        foreach ($quiz->questions as $question) {
-            $totalPoints += $question->points;
-            $selectedOption = $answers[$question->id] ?? null;
-            $isCorrect = false;
-
-            if ($selectedOption) {
-                $correctOption = $question->options->where('is_correct', true)->first();
-                if ($correctOption && $correctOption->id == $selectedOption) {
-                    $isCorrect = true;
-                    $score += $question->points;
-                }
+                return redirect('login');
             }
 
-            $results[$question->id] = [
-                'correct' => $isCorrect,
-                'selected_option' => $selectedOption,
-                'correct_option' => $question->options->where('is_correct', true)->first()?->id,
-            ];
-        }
+            $user = Sentinel::getUser();
+            $quiz = Quiz::with('questions.options', 'topic.trainingMaterial')->findOrFail($quizId);
 
-        $percentage = $totalPoints > 0 ? round(($score / $totalPoints) * 100) : 0;
-        $passed = $percentage >= $quiz->passing_score;
+            // Get answers from request
+            $answers = $request->answers ?? [];
+            $score = 0;
+            $totalPoints = 0;
+            $results = [];
 
-        // Create attempt record
-        $attempt = QuizAttempt::create([
-            'quiz_id' => $quizId,
-            'user_id' => $user->id,
-            'score' => $score,
-            'total_points' => $totalPoints,
-            'percentage' => $percentage,
-            'passed' => $passed,
-            'started_at' => now()->subMinutes($quiz->time_limit ?? 30),
-            'completed_at' => now(),
-            'answers' => $results,
-        ]);
+            foreach ($quiz->questions as $question) {
+                $totalPoints += $question->points;
+                $selectedOption = $answers[$question->id] ?? null;
+                $isCorrect = false;
 
-        return response()->json([
-            'success' => true,
-            'score' => $score,
-            'total_points' => $totalPoints,
-            'percentage' => $percentage,
-            'passed' => $passed,
-            'passing_score' => $quiz->passing_score,
-            'results' => $results,
-            'attempt_id' => $attempt->id,
-        ]);
+                if ($selectedOption) {
+                    $correctOption = $question->options->where('is_correct', true)->first();
+                    if ($correctOption && $correctOption->id == $selectedOption) {
+                        $isCorrect = true;
+                        $score += $question->points;
+                    }
+                }
+
+                $results[$question->id] = [
+                    'correct' => $isCorrect,
+                    'selected_option' => $selectedOption,
+                    'correct_option' => $question->options->where('is_correct', true)->first()?->id,
+                ];
+            }
+
+            $percentage = $totalPoints > 0 ? round(($score / $totalPoints) * 100) : 0;
+            $passed = $percentage >= $quiz->passing_score;
+
+            // Create attempt record
+            $attempt = QuizAttempt::create([
+                'quiz_id' => $quizId,
+                'user_id' => $user->id,
+                'score' => $score,
+                'total_points' => $totalPoints,
+                'percentage' => $percentage,
+                'passed' => $passed,
+                'started_at' => now()->subMinutes($quiz->time_limit ?? 30),
+                'completed_at' => now(),
+                'answers' => $results,
+            ]);
+
+            // Redirect to results page
+            return view('learning.quizzes.results', compact('quiz', 'score', 'totalPoints', 'percentage', 'passed', 'results', 'attempt'));
+            
         } catch (\Throwable $th) {
             \Log::error('Quiz submission error: ' . $th->getMessage(), ['quiz_id' => $quizId, 'user_id' => $user->id ?? null]);
-            return response()->json(['success' => false, 'message' => 'An error occurred while processing your quiz submission'], 500);
+            return redirect()->back()
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'An error occurred while processing your quiz submission');
         }
     }
 

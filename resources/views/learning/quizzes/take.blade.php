@@ -34,7 +34,7 @@ $breadcrumb = [
 </div>
 @endif
 
-<form id="quiz-form">
+<form id="quiz-form" method="POST" action="{{ route('learning.quizzes.submit', ['quizId' => $quiz->id]) }}">
     @csrf
     <input type="hidden" name="quiz_id" value="{{ $quiz->id }}">
     
@@ -82,80 +82,21 @@ $breadcrumb = [
 </div>
 @endif
 
-<div id="results-modal" class="modal fade" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Quiz Results</h4>
-            </div>
-            <div class="modal-body" id="results-content">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" onclick="location.reload()">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <script>
+// Form validation to ensure all questions are answered before submission
 $('#quiz-form').on('submit', function(e) {
-    e.preventDefault();
-    
     const answers = {};
     $('input[name^="answers["]:checked').each(function() {
         answers[$(this).attr('name').match(/answers\[(\d+)\]/)[1]] = $(this).val();
     });
     
     if (Object.keys(answers).length < {{ $quiz->questions->count() }}) {
+        e.preventDefault();
         showFlashMessage('warning', 'Incomplete Quiz', 'Please answer all questions before submitting.', 'fa-exclamation-circle');
-        return;
+        return false;
     }
-    
-    $.ajax({
-        url: '{{ url('learning/training-materials/quiz/' . $quiz->id . '/submit') }}',
-        type: 'POST',
-        data: JSON.stringify({
-            _token: '{{ csrf_token() }}',
-            answers: answers
-        }),
-        contentType: 'application/json',
-        success: function(response) {
-            if (response.success) {
-                let resultsHtml = `
-                    <div class="text-center mb-4">
-                        <h2 class="${response.passed ? 'text-success' : 'text-danger'}">
-                            ${response.passed ? '<i class="fa fa-trophy"></i> Congratulations!' : '<i class="fa fa-times-circle"></i> Keep Trying!'}
-                        </h2>
-                        <div style="font-size: 48px; font-weight: bold; color: ${response.passed ? '#28a745' : '#dc3545'};">
-                            ${response.percentage}%
-                        </div>
-                        <p>You scored ${response.score} out of ${response.total_points} points</p>
-                        <p class="text-muted">Passing score: ${response.passing_score}%</p>
-                    </div>
-                    <hr>
-                    <h4>Question Review</h4>
-                `;
-                
-                @foreach($quiz->questions as $question)
-                const q{{ $question->id }} = response.results[{{ $question->id }}];
-                resultsHtml += `
-                    <div class="question-review ${q{{ $question->id }}.correct ? 'correct' : 'incorrect'}">
-                        <p><strong>Q{{ $loop->iteration }}: ${q{{ $question->id }}.correct ? '<i class="fa fa-check text-success"></i>' : '<i class="fa fa-times text-danger"></i>'}</strong></p>
-                    </div>
-                `;
-                @endforeach
-                
-                $('#results-content').html(resultsHtml);
-                $('#results-modal').modal('show');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Quiz submission error:', error);
-            console.error('Response:', xhr.responseText);
-            const errorMsg = xhr.responseJSON?.message || 'An error occurred while submitting the quiz.';
-            showFlashMessage('error', 'Error', errorMsg, 'fa-times-circle');
-        }
-    });
 });
 </script>
 

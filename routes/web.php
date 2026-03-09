@@ -197,6 +197,12 @@ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentin
     Route::get('/', [TrainingMaterialController::class, 'index'])->name('learning.training-materials.index');
     Route::get('/create', [TrainingMaterialController::class, 'create'])->name('learning.training-materials.create');
     Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
+    // New routes for course creation process - must come before routes with parameters
+    Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
+    Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
+    Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
+    Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
+    // Routes with parameters
     Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
     Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
      Route::any('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
@@ -214,12 +220,6 @@ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentin
     
      // Topics management route for trainers
     Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
-    
-    // New routes for course creation process
-    Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
-    Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
-    Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
-    Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
 });
 
 //route for users
