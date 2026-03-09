@@ -176,11 +176,11 @@ class QuizController extends Controller
             }
 
             $completedTopics = $enrollment->completed_topics ?? [];
-            if (!in_array($quiz->topic->id, $completedTopics)) {
-                return redirect()->route('learning.classroom', $quiz->topic->trainingMaterial->id)
-                    ->with('toastr_type', 'warning')
-                    ->with('toastr_message', 'Please complete the topic first before taking the quiz.');
-            }
+            // if (!in_array($quiz->topic->id, $completedTopics)) {
+            //     return redirect()->route('learning.classroom', $quiz->topic->trainingMaterial->id)
+            //         ->with('toastr_type', 'warning')
+            //         ->with('toastr_message', 'Please complete the topic first before taking the quiz.');
+            // }
         }
 
         // Get previous attempts
