@@ -419,12 +419,10 @@
                                             </a>
                                             @endif
 
-                                            @if($role && in_array($role, ['1']))
                                             <a href="{{ url('learning') }}" title="Whence Learn" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
                                                 <i class="fa fa-graduation-cap" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
                                                 <span style="font-size: 12px;">Whence Learn</span>
                                             </a>
-                                            @endif
 
                                             <a href="https://meet.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
                                                 <i class="fa fa-video-camera" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
