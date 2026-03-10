@@ -450,25 +450,27 @@ class LearningController extends Controller
             ]];
         } else {
             // Fallback to single topic if no topics exist
-            $phases = [
-                [
-                    'id' => 1,
-                    'title' => 'Main Material',
-                    'description' => 'Get started with this course',
-                    'icon' => 'fa-play-circle',
-                    'topics' => [
-                        [
-                            'id' => 1,
-                            'title' => $material->title,
-                            'type' => $material->material_type,
-                            'duration' => $material->human_duration ?? 'N/A',
-                            'is_completed' => false,
-                            'file_path' => $material->file_path,
-                            'sort_order' => 0,
-                        ]
-                    ]
-                ]
-            ];
+             $phases = [
+                 [
+                     'id' => 1,
+                     'title' => 'Main Material',
+                     'description' => 'Get started with this course',
+                     'icon' => 'fa-play-circle',
+                     'topics' => [
+                         [
+                             'id' => 1,
+                             'title' => $material->title,
+                             'type' => $material->material_type,
+                             'duration' => $material->human_duration ?? 'N/A',
+                             'is_completed' => false,
+                             'file_path' => $material->file_path,
+                             'sort_order' => 0,
+                             'quiz_id' => null,
+                             'quiz_passed' => false,
+                         ]
+                     ]
+                 ]
+             ];
         }
 
         return view('learning.classroom', compact('material', 'enrollment', 'progress', 'phases'));
@@ -568,21 +570,6 @@ class LearningController extends Controller
                 'success' => false,
                 'message' => 'Topic not found.'
             ], 404);
-        }
-
-        // Check if topic has a quiz
-        $quiz = $topic->quiz;
-        if ($quiz) {
-            // Check if user has passed the quiz
-            $hasPassed = $quiz->attempts->where('user_id', $user->id)->where('passed', true)->count() > 0;
-            if (!$hasPassed) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You must pass the quiz before completing this topic. Please take the quiz first.',
-                    'quiz_required' => true,
-                    'quiz_id' => $quiz->id
-                ], 400);
-            }
         }
 
         // Check enrollment

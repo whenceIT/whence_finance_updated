@@ -13,6 +13,7 @@
 <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: var(--shadow); max-width: 800px; margin: 0 auto;">
     <form action="{{ url('learning/training-materials/' . $material->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
+        @method('PUT')
         
         <!-- Title -->
         <div style="margin-bottom: 20px;">
@@ -28,23 +29,6 @@
                 Description
             </label>
             <textarea name="description" rows="4" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; resize: vertical;">{{ old('description', $material->description) }}</textarea>
-        </div>
-        
-        <!-- File Upload -->
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
-                Upload New File <span style="color: var(--accent-color);">*</span>
-            </label>
-            <div style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 30px; text-align: center; background: var(--light-bg);">
-                <i class="fa fa-cloud-upload" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 15px;"></i>
-                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
-                    Current file: {{ $material->file_name }} ({{ $material->human_file_size }})
-                </p>
-                <input type="file" name="file" style="width: 100%;" accept=".pdf" required>
-                <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
-                    Only PDF files are accepted. Leave blank to keep current file.
-                </p>
-            </div>
         </div>
         
         <!-- Department -->
@@ -127,7 +111,20 @@
     </form>
 </div>
 
+<!-- Loading Modal -->
+<div id="loading-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);">
+        <div id="loading-spinner" style="display: inline-block; width: 50px; height: 50px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+        <h3 id="loading-title" style="font-size: 18px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary);">System is processing files</h3>
+        <p id="loading-message" style="font-size: 14px; color: var(--text-secondary);">Please wait while we update this course...</p>
+    </div>
+</div>
+
 <style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     input[type="file"] {
         cursor: pointer;
     }
@@ -187,6 +184,28 @@
                 }
             });
         });
+        
+        // Form submission with loading modal
+        const form = document.querySelector('form');
+        const modal = document.getElementById('loading-modal');
+        const title = document.getElementById('loading-title');
+        const message = document.getElementById('loading-message');
+        
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Show loading modal
+                modal.style.display = 'flex';
+                title.textContent = 'System is processing files';
+                message.textContent = 'Please wait while we update this course...';
+                
+                // Disable submit button to prevent double submissions
+                const submitButtons = form.querySelectorAll('button[type="submit"]');
+                submitButtons.forEach(button => {
+                    button.disabled = true;
+                    button.style.opacity = '0.7';
+                });
+            });
+        }
     });
 </script>
 @endsection

@@ -266,12 +266,18 @@ $breadcrumb = [
         <div class="empty-state">
             <i class="fa fa-folder-open"></i>
             <h3>No Topics Found</h3>
-            <p>This training material doesn't have any topics yet. Topics are created when the training material is first created.</p>
+            <p>This training material doesn't have any topics yet. Add topics to create a structured learning experience for your users.</p>
+            <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" class="btn btn-success" style="padding: 12px 30px; margin-top: 20px;">
+                <i class="fa fa-plus"></i> Add First Topic
+            </a>
         </div>
     @endif
 </div>
 
-<div style="margin-top: 30px; text-align: center;">
+<div style="margin-top: 30px; text-align: center; display: flex; gap: 15px; justify-content: center;">
+    <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" class="btn btn-success" style="padding: 12px 30px;">
+        <i class="fa fa-plus"></i> Add Topics
+    </a>
     <a href="{{ url('learning/training-materials/' . $material->id . '/edit') }}" class="btn btn-primary" style="padding: 12px 30px;">
         <i class="fa fa-edit"></i> Edit Training Material
     </a>

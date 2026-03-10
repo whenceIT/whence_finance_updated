@@ -133,7 +133,6 @@ class TrainingMaterialController extends Controller
                 'target_role' => 'required',
                 'is_active' => 'nullable',
                 'is_featured' => 'nullable',
-                'file' => 'required|file|max:204800|mimetypes:application/pdf',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -146,44 +145,12 @@ class TrainingMaterialController extends Controller
                     ->withErrors($validator)
                     ->withInput();
             }
-
-            // Handle file upload
-            $file = $request->file('file');
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             
-            // Initialize S3 client
-            $s3Client = new \Aws\S3\S3Client([
-                'version' => 'latest',
-                'region' => 'nyc3',
-                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                'credentials' => [
-                    'key' => 'DO00RP9FA3QZTA3JV637',
-                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                ],
-            ]);
-            
-            // Upload file to DigitalOcean Spaces
-            $result = $s3Client->putObject([
-                'Bucket' => 'wfspolicies',
-                'Key' => 'training-materials/' . $fileName,
-                'Body' => fopen($file->getPathname(), 'r'),
-                'ACL' => 'public-read',
-                'ContentType' => $file->getClientMimeType(),
-            ]);
-            
-            $filePath = $result['ObjectURL'];
-
-            // Create the training material
+            // Create material with minimal data first
             $material = TrainingMaterial::create([
                 'title' => $request->title,
                 'description' => $request->description,
                 'material_type' => 'document',
-                'file_path' => $filePath,
-                'file_name' => $request->file('file')->getClientOriginalName(),
-                'file_size' => $request->file('file')->getSize(),
-                'mime_type' => $request->file('file')->getMimeType(),
                 'duration' => null,
                 'department' => $request->department,
                 'category' => null, // No longer used, using categories relationship instead
@@ -194,10 +161,10 @@ class TrainingMaterialController extends Controller
                 'published_at' => now(),
             ]);
 
-            // Sync categories (many-to-many) - using sync for efficiency
+            // Sync categories (many-to-many) - using attach for efficiency
             $categoryIds = $request->category_ids ?? [];
             if (!empty($categoryIds)) {
-                $material->categories()->sync($categoryIds);
+                $material->categories()->attach($categoryIds);
             }
 
             return redirect()->route('learning.training-materials.add-topics', ['materialId' => $material->id])
@@ -254,10 +221,6 @@ class TrainingMaterialController extends Controller
         ini_set('memory_limit', '256M');
 
         try {
-            if (!Sentinel::check()) {
-                return redirect('login');
-            }
-
             $user = Sentinel::getUser();
             $role = $user->roles->first();
 
@@ -317,11 +280,10 @@ class TrainingMaterialController extends Controller
                     ]);
                     
                     $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
+                        'Bucket' => 'wfssystem',
+                        'Key' => $fileName,
                         'Body' => fopen($videoFile->getPathname(), 'r'),
                         'ACL' => 'public-read',
-                        'ContentType' => $videoFile->getClientMimeType(),
                     ]);
                     
                     $topicData['video_file_path'] = $result['ObjectURL'];
@@ -353,13 +315,12 @@ class TrainingMaterialController extends Controller
                         ],
                     ]);
                     
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($audioFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $audioFile->getClientMimeType(),
-                    ]);
+                            $result = $s3Client->putObject([
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
+                                'Body' => fopen($audioFile->getPathname(), 'r'),
+                                'ACL' => 'public-read',
+                            ]);
                     
                     $topicData['audio_file_path'] = $result['ObjectURL'];
                     if (!isset($topicData['file_name'])) {
@@ -392,13 +353,12 @@ class TrainingMaterialController extends Controller
                         ],
                     ]);
                     
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($pdfFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $pdfFile->getClientMimeType(),
-                    ]);
+                            $result = $s3Client->putObject([
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
+                                'Body' => fopen($pdfFile->getPathname(), 'r'),
+                                'ACL' => 'public-read',
+                            ]);
                     
                     $topicData['pdf_file_path'] = $result['ObjectURL'];
                     if (!isset($topicData['file_name'])) {
@@ -431,13 +391,12 @@ class TrainingMaterialController extends Controller
                         ],
                     ]);
                     
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($pptFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $pptFile->getClientMimeType(),
-                    ]);
+                            $result = $s3Client->putObject([
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
+                                'Body' => fopen($pptFile->getPathname(), 'r'),
+                                'ACL' => 'public-read',
+                            ]);
                     
                     $topicData['ppt_file_path'] = $result['ObjectURL'];
                     if (!isset($topicData['file_name'])) {
@@ -470,13 +429,12 @@ class TrainingMaterialController extends Controller
                         ],
                     ]);
                     
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfspolicies',
-                        'Key' => 'training-materials/' . $fileName,
-                        'Body' => fopen($documentFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                        'ContentType' => $documentFile->getClientMimeType(),
-                    ]);
+                            $result = $s3Client->putObject([
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
+                                'Body' => fopen($documentFile->getPathname(), 'r'),
+                                'ACL' => 'public-read',
+                            ]);
                     
                     $topicData['document_file_path'] = $result['ObjectURL'];
                     if (!isset($topicData['file_name'])) {
@@ -676,11 +634,10 @@ class TrainingMaterialController extends Controller
                             ]);
                             
                             $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
                                 'Body' => fopen($videoFile->getPathname(), 'r'),
                                 'ACL' => 'public-read',
-                                'ContentType' => $videoFile->getClientMimeType(),
                             ]);
                             
                             $topicData['video_file_path'] = $result['ObjectURL'];
@@ -713,11 +670,10 @@ class TrainingMaterialController extends Controller
                             ]);
                             
                             $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
                                 'Body' => fopen($audioFile->getPathname(), 'r'),
                                 'ACL' => 'public-read',
-                                'ContentType' => $audioFile->getClientMimeType(),
                             ]);
                             
                             $topicData['audio_file_path'] = $result['ObjectURL'];
@@ -752,11 +708,10 @@ class TrainingMaterialController extends Controller
                             ]);
                             
                             $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
                                 'Body' => fopen($pdfFile->getPathname(), 'r'),
                                 'ACL' => 'public-read',
-                                'ContentType' => $pdfFile->getClientMimeType(),
                             ]);
                             
                             $topicData['pdf_file_path'] = $result['ObjectURL'];
@@ -791,11 +746,10 @@ class TrainingMaterialController extends Controller
                             ]);
                             
                             $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
                                 'Body' => fopen($pptFile->getPathname(), 'r'),
                                 'ACL' => 'public-read',
-                                'ContentType' => $pptFile->getClientMimeType(),
                             ]);
                             
                             $topicData['ppt_file_path'] = $result['ObjectURL'];
@@ -830,11 +784,10 @@ class TrainingMaterialController extends Controller
                             ]);
                             
                             $result = $s3Client->putObject([
-                                'Bucket' => 'wfspolicies',
-                                'Key' => 'training-materials/' . $fileName,
+                                'Bucket' => 'wfssystem',
+                                'Key' => $fileName,
                                 'Body' => fopen($documentFile->getPathname(), 'r'),
                                 'ACL' => 'public-read',
-                                'ContentType' => $documentFile->getClientMimeType(),
                             ]);
                             
                             $topicData['document_file_path'] = $result['ObjectURL'];
@@ -949,13 +902,6 @@ class TrainingMaterialController extends Controller
         $user = Sentinel::getUser();
         $role = $user->roles->first();
 
-        // Check if user has permission to edit training materials
-        if (!$role || !in_array($role->id, ['1', '6', '4'])) {
-            return redirect()->route('learning.training-materials.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'You do not have permission to edit training materials.');
-        }
-
         $material = TrainingMaterial::findOrFail($id);
 
         // Validation rules
@@ -982,66 +928,6 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_message', 'Validation failed:<br>' . $errorMessages)
                 ->withErrors($validator)
                 ->withInput();
-        }
-
-        // Handle file update if new file is uploaded
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            
-            // Validate file type - only PDF is allowed
-            $allowedMimeTypes = ['application/pdf'];
-
-            $mimeType = $file->getMimeType();
-
-            if (!in_array($mimeType, $allowedMimeTypes)) {
-                return redirect()->back()
-                    ->with('toastr_type', 'error')
-                    ->with('toastr_message', 'Invalid file type. Please upload a PDF file only.')
-                    ->withInput();
-            }
-
-            // Handle file upload
-            $file = $request->file('file');
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $fileName = $sanitizedName . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            
-            // Initialize S3 client
-            $s3Client = new \Aws\S3\S3Client([
-                'version' => 'latest',
-                'region' => 'nyc3',
-                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                'credentials' => [
-                    'key' => 'DO00RP9FA3QZTA3JV637',
-                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                ],
-            ]);
-            
-            // Upload file to DigitalOcean Spaces
-            $result = $s3Client->putObject([
-                'Bucket' => 'wfspolicies',
-                'Key' => 'training-materials/' . $fileName,
-                'Body' => fopen($file->getPathname(), 'r'),
-                'ACL' => 'public-read',
-                'ContentType' => $file->getClientMimeType(),
-            ]);
-            
-            $filePath = $result['ObjectURL'];
-
-            // Get duration for audio/video files
-            $duration = null;
-            if (in_array($materialType, ['audio', 'video'])) {
-                $duration = $materialType === 'audio' ? 300 : 600;
-            }
-
-            $material->update([
-                'file_path' => $filePath,
-                'file_name' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
-                'mime_type' => $mimeType,
-                'duration' => $duration,
-                'material_type' => $materialType,
-            ]);
         }
 
         // Update other fields
@@ -1110,7 +996,7 @@ class TrainingMaterialController extends Controller
                     $path = ltrim($parsedUrl['path'], '/');
                     if (!empty($path)) {
                         $s3Client->deleteObject([
-                            'Bucket' => 'wfspolicies',
+                            'Bucket' => 'wfssystem',
                             'Key' => $path,
                         ]);
                     }

@@ -413,18 +413,16 @@
                                     <li class="user-body" style="padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
                                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                                             @if($role && in_array($role, ['1','4','6','9','10']))
-                                            <a href="https://erp.whencefinancesystem.com/app" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                            <!-- <a href="https://erp.whencefinancesystem.com/app" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
                                                 <i class="fa fa-cogs" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
                                                 <span style="font-size: 12px;">ERPNext</span>
-                                            </a>
+                                            </a> -->
                                             @endif
 
-                                            @if($role && in_array($role, ['1']))
                                             <a href="{{ url('learning') }}" title="Whence Learn" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
                                                 <i class="fa fa-graduation-cap" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
                                                 <span style="font-size: 12px;">Whence Learn</span>
                                             </a>
-                                            @endif
 
                                             <a href="https://meet.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
                                                 <i class="fa fa-video-camera" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>

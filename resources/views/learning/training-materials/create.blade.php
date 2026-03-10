@@ -33,7 +33,7 @@ $breadcrumb = [
         </div>
     </div>
 
-    <form action="{{ route('learning.training-materials.store-course-info') }}" method="POST" id="training-material-form" enctype="multipart/form-data">
+    <form action="{{ route('learning.training-materials.store-course-info') }}" method="POST" id="training-material-form">
         @csrf
         
         <!-- Step 1: Course Info -->
@@ -112,7 +112,7 @@ $breadcrumb = [
             </div>
             
             <!-- File Upload -->
-            <div style="margin-bottom: 20px;">
+            <!-- <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
                     Upload New File (Mandatory) <span style="color: var(--accent-color);">*</span>
                 </label>
@@ -126,7 +126,7 @@ $breadcrumb = [
                         Only PDF files are accepted
                     </p>
                 </div>
-            </div>
+            </div> -->
             
             <!-- Options -->
             <div style="display: flex; gap: 30px; margin-bottom: 30px;">
@@ -136,12 +136,12 @@ $breadcrumb = [
                         Active
                     </label>
                 </div>
-                <div style="flex: 1;">
+                <!-- <div style="flex: 1;">
                     <label style="display: flex; align-items: center; cursor: pointer; font-weight: 600; color: var(--text-primary);">
                         <input type="checkbox" name="is_featured" style="margin-right: 8px;">
                         Featured
                     </label>
-                </div>
+                </div> -->
             </div>
             
             <!-- Step 1 Navigation -->
@@ -157,7 +157,20 @@ $breadcrumb = [
     </form>
 </div>
 
+<!-- Loading Modal -->
+<div id="loading-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; display: none; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 400px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);">
+        <div id="loading-spinner" style="display: inline-block; width: 50px; height: 50px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+        <h3 id="loading-title" style="font-size: 18px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary);">System is processing files</h3>
+        <p id="loading-message" style="font-size: 14px; color: var(--text-secondary);">Please wait while we create this course...</p>
+    </div>
+</div>
+
 <style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 .step-indicator.active div {
     background: var(--primary-color) !important;
     color: white !important;
@@ -227,6 +240,33 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Form submission with loading modal and optimizations
+    const form = document.getElementById('training-material-form');
+    const modal = document.getElementById('loading-modal');
+    const title = document.getElementById('loading-title');
+    const message = document.getElementById('loading-message');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Optimize form submission
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            // Show loading state on button
+            submitButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+            submitButton.disabled = true;
+            submitButton.style.opacity = '0.7';
+            
+            // Show loading modal
+            modal.style.display = 'flex';
+            title.textContent = 'Creating Course';
+            message.textContent = 'This will only take a moment...';
+            
+            // Prevent double submission
+            form.dataset.submitting = 'true';
+        });
+    }
 });
 </script>
 @endsection

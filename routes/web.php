@@ -157,7 +157,8 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/progress', [LearningController::class, 'progress'])->name('learning.progress');
     Route::get('/certificates', [LearningController::class, 'certificates'])->name('learning.certificates');
     Route::get('/course/{id}', [LearningController::class, 'showCourse'])->name('learning.course');
-    Route::get('/course/{id}/classroom', [LearningController::class, 'classroom'])->name('learning.course.classroom');
+     Route::get('/course/{id}/classroom', [LearningController::class, 'classroom'])->name('learning.course.classroom');
+     Route::get('/course/{id}/classroom', [LearningController::class, 'classroom'])->name('learning.classroom');
     Route::post('/course/{id}/complete', [LearningController::class, 'completeCourse'])->name('learning.course.complete');
     Route::post('/course/{id}/complete-topic', [LearningController::class, 'completeTopic'])->name('learning.course.complete-topic');
     Route::post('/enroll/{id}', [LearningController::class, 'enroll'])->name('learning.enroll');
@@ -171,6 +172,8 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/students', [LearningSettingController::class, 'students'])->name('learning.settings.students');
     Route::get('/settings/teachers', [LearningSettingController::class, 'teachers'])->name('learning.settings.teachers');
     Route::get('/settings/platform', [LearningSettingController::class, 'platform'])->name('learning.settings.platform');
+    Route::get('/settings/courses', [LearningSettingController::class, 'courses'])->name('learning.settings.courses');
+    Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
     
     // Trainer Management Routes
     Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
@@ -197,9 +200,15 @@ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentin
     Route::get('/', [TrainingMaterialController::class, 'index'])->name('learning.training-materials.index');
     Route::get('/create', [TrainingMaterialController::class, 'create'])->name('learning.training-materials.create');
     Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
+    // New routes for course creation process - must come before routes with parameters
+    Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
+    Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
+    Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
+    Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
+    // Routes with parameters
     Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
     Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
-    Route::put('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
+     Route::any('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
     Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
     Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
     Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
@@ -214,12 +223,6 @@ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentin
     
      // Topics management route for trainers
     Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
-    
-    // New routes for course creation process
-    Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
-    Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
-    Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
-    Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
 });
 
 //route for users

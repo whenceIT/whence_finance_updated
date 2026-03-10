@@ -1292,6 +1292,10 @@
 </head>
 <body>
     <!-- Header -->
+    @php
+        $user = Sentinel::getUser();
+        $role = $user ? $user->roles->first() : null;
+    @endphp
     <header class="learning-header">
         <div class="container">
             <div style="display: flex; align-items: center;">
@@ -1306,16 +1310,14 @@
             
             <nav class="learning-nav">
                 <a href="{{ url('/learning') }}" class="active">Dashboard</a>
-                <a href="{{ url('/learning/courses') }}">My Courses</a>
-                <a href="{{ url('/learning/calendar') }}">Calendar</a>
-                <a href="{{ url('/learning/progress') }}">Progress</a>
+                @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
+                <a href="{{ url('learning/settings/courses') }}">Manage Courses</a>
+                <a href="{{ url('learning/settings/students') }}">Manage Students</a>
+                <a href="{{ url('learning/settings/teachers') }}">Manage Trainers</a>
+                @endif
             </nav>
             
             <div class="user-menu">
-                @php
-                $user = Sentinel::getUser();
-                $role = $user ? $user->roles->first() : null;
-                @endphp
                 
                 @if($user)
                 <div class="user-profile" id="user-profile-toggle">

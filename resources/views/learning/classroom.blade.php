@@ -114,6 +114,7 @@
 /* Content area */
 .content-area {
     padding: 15px;
+    padding-bottom: 100px; /* Add space for bottom toolbar */
 }
 
 .content-card {
@@ -707,6 +708,23 @@
     .quiz-actions {
         flex-direction: column;
     }
+    
+    /* Bottom toolbar responsive */
+    #bottom-toolbar {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    #bottom-toolbar > div:first-child {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    #unlock-next-btn {
+        width: 100%;
+    }
 }
 </style>
 
@@ -831,24 +849,11 @@
                     @endif
                 </div>
             </div>
-            
-            <!-- Progress Bar -->
-            <!-- <div class="progress-section">
-                <div class="progress-info">
-                    <span class="progress-label">Course Progress</span>
-                    <span class="progress-percentage">{{ $progress }}%</span>
-                </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: {{ $progress }}%;"></div>
-                </div>
-            </div> -->
+        
             
             <!-- Content Area -->
             <div class="content-area" id="content-area">
                 <div class="content-card" id="topic-content-card">
-                    <!-- <div class="content-card-header">
-                        <div class="content-card-title" id="content-card-title">{{ $material->title }}</div>
-                    </div> -->
                     <div class="content-card-body" id="content-card-body">
                         
                         <!-- Resource Preview -->
@@ -856,39 +861,20 @@
                             <div class="resource-preview" id="resource-preview"></div>
                         </div>
                         
-                        <div class="content-actions" id="content-actions">
-                            <button class="btn btn-primary btn-lg" onclick="selectFirstTopic()">
-                                <i class="fa fa-play"></i> Start Learning
-                            </button>
-                        </div>
+
                     </div>
                 </div>
                 
-                <!-- Quiz Section (shown after completion) -->
-                <div class="quiz-section" id="quiz-section">
-                    <div class="quiz-header">
-                        <h3><i class="fa fa-graduation-cap" style="color: var(--primary-color);"></i> Topic Completed!</h3>
-                        <p>Great job! You've completed this topic. {{ $topic['quiz_id'] ? 'Ready to test your knowledge?' : 'Continue to the next topic.' }}</p>
-                    </div>
-                    <div class="quiz-actions">
-                        @if($topic['quiz_id'])
-                        <button class="btn btn-success btn-sm" onclick="confirmTakeQuiz({{ $topic['quiz_id'] }}, '{{ $topic['title'] }}')">
-                            <i class="fa fa-pencil"></i> {{ $topic['quiz_passed'] ? 'Retake Quiz' : 'Take Quiz' }}
-                        </button>
-                        @endif
-                        @if(!$topic['quiz_id'] || $topic['quiz_passed'])
-                        <button class="btn btn-secondary btn-sm" onclick="skipQuiz()">
-                            <i class="fa fa-arrow-right"></i> Continue to Next Topic
-                        </button>
-                        @else
-                        <button class="btn btn-secondary btn-sm" onclick="skipQuiz()" disabled style="opacity: 0.6; cursor: not-allowed;" title="Pass the quiz to continue">
-                            <i class="fa fa-lock"></i> Pass Quiz to Continue
-                        </button>
-                        @endif
-                    </div>
-                </div>
+
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Sticky Bottom Toolbar -->
+<div id="bottom-toolbar" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); padding: 15px 30px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 1000; align-items: center; justify-content: center; gap: 16px;">
+    <div id="toolbar-actions" style="display: flex; gap: 12px;">
+        <!-- Quiz and Next Topic buttons will be dynamically added here -->
     </div>
 </div>
 
@@ -1148,26 +1134,67 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         resourceContainer.style.display = 'none';
     }
     
-    // Update content actions
-    const contentActions = document.getElementById('content-actions');
-    if (contentActions) {
-        let actionsHTML = '';
+    // Update bottom toolbar - show/hide based on topic and quiz status
+    const bottomToolbar = document.getElementById('bottom-toolbar');
+    const toolbarActions = document.getElementById('toolbar-actions');
+    if (bottomToolbar && toolbarActions) {
+        // Clear existing actions
+        toolbarActions.innerHTML = '';
         
-        // Show quiz button if topic has a quiz
-        if (quizId) {
-            actionsHTML += `<button class="btn btn-success btn-lg" onclick="confirmTakeQuiz(${quizId}, '${topicTitle}')">
-                <i class="fa fa-pencil"></i> Take Quiz
-            </button>`;
+        // Check if there's a next topic
+        const topics = document.querySelectorAll('.wizard-topic');
+        let hasNextTopic = false;
+        let foundCurrent = false;
+        for (let topic of topics) {
+            if (foundCurrent) {
+                if (topic.dataset.topicCompleted === 'false') {
+                    hasNextTopic = true;
+                    break;
+                }
+            }
+            if (topic.dataset.topicId == currentTopicId) {
+                foundCurrent = true;
+            }
         }
         
-        // Show mark complete button if not already completed
-        // if (!currentTopicCompleted) {
-        //     actionsHTML += `<button class="btn btn-primary btn-lg" onclick="markAsComplete(false)">
-        //         <i class="fa fa-check-circle"></i> Mark Complete
-        //     </button>`;
-        // }
-        
-        contentActions.innerHTML = actionsHTML;
+        if (hasNextTopic) {
+            bottomToolbar.style.display = 'flex';
+            
+            // Add quiz button if topic has a quiz
+            if (quizId) {
+                const quizBtn = document.createElement('button');
+                quizBtn.className = 'btn btn-success btn-sm';
+                quizBtn.innerHTML = `<i class="fa fa-pencil"></i> ${currentQuizPassed ? 'Retake Quiz' : 'Take Quiz'}`;
+                quizBtn.onclick = function() {
+                    confirmTakeQuiz(quizId, topicTitle);
+                };
+                toolbarActions.appendChild(quizBtn);
+            }
+            
+            // Add next topic button
+            const nextBtn = document.createElement('button');
+            if (quizId && !currentQuizPassed) {
+                // Quiz required but not passed - disable button
+                nextBtn.className = 'btn btn-secondary btn-sm';
+                nextBtn.innerHTML = '<i class="fa fa-lock"></i> Pass Quiz to Continue';
+                nextBtn.disabled = true;
+                nextBtn.style.opacity = '0.6';
+                nextBtn.style.cursor = 'not-allowed';
+            } else {
+                // No quiz or quiz passed - enable button
+                nextBtn.className = 'btn btn-secondary btn-sm';
+                nextBtn.innerHTML = '<i class="fa fa-arrow-right"></i> Next Topic';
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+                nextBtn.style.cursor = 'pointer';
+                nextBtn.onclick = function() {
+                    skipQuiz();
+                };
+            }
+            toolbarActions.appendChild(nextBtn);
+        } else {
+            bottomToolbar.style.display = 'none';
+        }
     }
 }
 
@@ -1184,108 +1211,19 @@ function selectFirstTopic() {
     }
 }
 
-function markAsComplete(isReview) {
-    if (!currentTopicId) {
-        showFlashMessage('warning', 'No Topic Selected', 'Please select a topic first.', 'fa-exclamation-circle');
-        return;
-    }
-    
-    $.ajax({
-        url: '{{ url('/learning/course/' . $material->id . '/complete-topic') }}',
-        type: 'POST',
-        data: {
-            _token: '{{ csrf_token() }}',
-            topic_id: currentTopicId
-        },
-        success: function(response) {
-            if (response.success) {
-                showFlashMessage('success', 'Topic Completed!', response.message, 'fa-check-circle');
-                
-                // Update topic status
-                const topicElement = document.querySelector(`[data-topic-id="${currentTopicId}"]`);
-                if (topicElement) {
-                    topicElement.dataset.topicCompleted = 'true';
-                    topicElement.querySelector('.wizard-topic-icon').classList.remove('active', 'locked');
-                    topicElement.querySelector('.wizard-topic-icon').classList.add('completed');
-                    topicElement.querySelector('.wizard-topic-icon').innerHTML = '<i class="fa fa-check"></i>';
-                    topicElement.querySelector('.wizard-topic-action').classList.remove('start', 'locked');
-                    topicElement.querySelector('.wizard-topic-action').classList.add('completed');
-                    topicElement.querySelector('.wizard-topic-action').textContent = 'Review';
-                    
-                    // Add done indicator
-                    const metaDiv = topicElement.querySelector('.wizard-topic-meta');
-                    if (!metaDiv.querySelector('.done-indicator')) {
-                        metaDiv.innerHTML += '<span class="done-indicator"><i class="fa fa-check-circle"></i> Done</span>';
-                    }
-                }
-                
-                // Show quiz section
-                document.getElementById('quiz-section').classList.add('visible');
-                
-                // Update content actions - show appropriate buttons based on quiz status
-                const actionsDiv = document.getElementById('content-actions');
-                if (currentQuizId && currentQuizId !== 'null' && !currentQuizPassed) {
-                    // Quiz required but not passed
-                    actionsDiv.innerHTML = `
-                        ${currentTopicFilePath ? `
-                        <a href="${currentTopicFilePath}" class="btn btn-primary btn-lg" target="_blank">
-                            <i class="fa fa-external-link"></i> Open Resource
-                        </a>
-                        ` : ''}
-                        <button class="btn btn-warning btn-lg" onclick="confirmTakeQuiz(currentQuizId, '${topicElement.querySelector('.wizard-topic-title').textContent}')">
-                            <i class="fa fa-pencil"></i> Take Quiz to Complete
-                        </button>
-                    `;
-                } else {
-                    // No quiz or quiz passed - allow continuing
-                    actionsDiv.innerHTML = `
-                        ${currentTopicFilePath ? `
-                        <a href="${currentTopicFilePath}" class="btn btn-primary btn-lg" target="_blank">
-                            <i class="fa fa-external-link"></i> Open Resource
-                        </a>
-                        ` : ''}
-                        <button class="btn btn-secondary btn-lg" onclick="skipQuiz()">
-                            <i class="fa fa-arrow-right"></i> Continue to Next Topic
-                        </button>
-                    `;
-                }
-                
-                // Reload to update progress
-                setTimeout(function() {
-                    location.reload();
-                }, 2000);
-            } else {
-                // Handle quiz requirement error
-                if (response.quiz_required) {
-                    showFlashMessage('warning', 'Quiz Required', response.message, 'fa-exclamation-triangle');
-                    // Update content actions to show quiz button
-                    const actionsDiv = document.getElementById('content-actions');
-                    actionsDiv.innerHTML = `
-                        ${currentTopicFilePath ? `
-                        <a href="${currentTopicFilePath}" class="btn btn-primary btn-lg" target="_blank">
-                            <i class="fa fa-external-link"></i> Open Resource
-                        </a>
-                        ` : ''}
-                        <button class="btn btn-warning btn-lg" onclick="confirmTakeQuiz(${response.quiz_id}, '${topicElement.querySelector('.wizard-topic-title').textContent}')">
-                            <i class="fa fa-pencil"></i> Take Quiz First
-                        </button>
-                    `;
-                } else {
-                    showFlashMessage('error', 'Error', response.message, 'fa-times-circle');
-                }
-            }
-        },
-        error: function() {
-            showFlashMessage('error', 'Error', 'An error occurred', 'fa-times-circle');
-        }
-    });
-}
+
 
 function skipQuiz() {
     // Check if current topic has a quiz that hasn't been passed
     if (currentQuizId && currentQuizId !== 'null' && !currentQuizPassed) {
         showFlashMessage('warning', 'Quiz Required', 'Please take and pass the quiz before proceeding to the next topic.', 'fa-exclamation-triangle');
         return;
+    }
+    
+    // Hide bottom toolbar
+    const bottomToolbar = document.getElementById('bottom-toolbar');
+    if (bottomToolbar) {
+        bottomToolbar.style.display = 'none';
     }
     
     // Move to next incomplete topic or show completion message
@@ -1341,6 +1279,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const topicId = firstIncomplete.dataset.topicId;
         openTopic(topicId, 'video', '');
     }
+    
+    
+    // Debug function to check markAsComplete
+    console.log('classroom.js: DOMContentLoaded executed');
+    console.log('classroom.js: markAsComplete function exists:', typeof markAsComplete === 'function');
 });
 
 // Quiz confirmation dialog

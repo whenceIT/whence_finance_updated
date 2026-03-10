@@ -452,10 +452,10 @@
                     toastr.error('Please enter emergency contact name.', 'Validation Error');
                     return false;
                 }
-                if (phone === '' || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
-                    toastr.error('Please enter a valid 10-digit emergency phone number.', 'Validation Error');
-                    return false;
-                }
+                // if (phone === '' || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
+                //     toastr.error('Please enter a valid 10-digit emergency phone number.', 'Validation Error');
+                //     return false;
+                // }
                 if (relationSelect && relationSelect.selectedIndex === 0) {
                     toastr.error('Please select relation to emergency contact.', 'Validation Error');
                     return false;

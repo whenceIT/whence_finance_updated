@@ -154,6 +154,7 @@ class QuizController extends Controller
         }
 
         $user = Sentinel::getUser();
+        $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
         $quiz = Quiz::with('questions.options', 'topic.trainingMaterial')->findOrFail($quizId);
 
         if (!$quiz->is_active) {
@@ -162,22 +163,24 @@ class QuizController extends Controller
                 ->with('toastr_message', 'This quiz is not currently available.');
         }
 
-        // Check if user has completed the topic
-        $enrollment = Enrollment::where('user_id', $user->id)
-            ->where('training_material_id', $quiz->topic->trainingMaterial->id)
-            ->first();
+        // Check if user has completed the topic (skip check for admins)
+        if (!$isAdmin) {
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('training_material_id', $quiz->topic->trainingMaterial->id)
+                ->first();
 
-        if (!$enrollment) {
-            return redirect()->route('learning.course', $quiz->topic->trainingMaterial->id)
-                ->with('toastr_type', 'warning')
-                ->with('toastr_message', 'Please enroll in this course first.');
-        }
+            if (!$enrollment) {
+                return redirect()->route('learning.course', $quiz->topic->trainingMaterial->id)
+                    ->with('toastr_type', 'warning')
+                    ->with('toastr_message', 'Please enroll in this course first.');
+            }
 
-        $completedTopics = $enrollment->completed_topics ?? [];
-        if (!in_array($quiz->topic->id, $completedTopics)) {
-            return redirect()->route('learning.classroom', $quiz->topic->trainingMaterial->id)
-                ->with('toastr_type', 'warning')
-                ->with('toastr_message', 'Please complete the topic first before taking the quiz.');
+            $completedTopics = $enrollment->completed_topics ?? [];
+            // if (!in_array($quiz->topic->id, $completedTopics)) {
+            //     return redirect()->route('learning.classroom', $quiz->topic->trainingMaterial->id)
+            //         ->with('toastr_type', 'warning')
+            //         ->with('toastr_message', 'Please complete the topic first before taking the quiz.');
+            // }
         }
 
         // Get previous attempts
@@ -196,64 +199,65 @@ class QuizController extends Controller
      */
     public function submit(Request $request, $quizId)
     {
-        if (!Sentinel::check()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $user = Sentinel::getUser();
-        $quiz = Quiz::with('questions.options')->findOrFail($quizId);
-
-        $answers = $request->answers ?? [];
-        $score = 0;
-        $totalPoints = 0;
-        $results = [];
-
-        foreach ($quiz->questions as $question) {
-            $totalPoints += $question->points;
-            $selectedOption = $answers[$question->id] ?? null;
-            $isCorrect = false;
-
-            if ($selectedOption) {
-                $correctOption = $question->options->where('is_correct', true)->first();
-                if ($correctOption && $correctOption->id == $selectedOption) {
-                    $isCorrect = true;
-                    $score += $question->points;
-                }
+        try {
+            if (!Sentinel::check()) {
+                return redirect('login');
             }
 
-            $results[$question->id] = [
-                'correct' => $isCorrect,
-                'selected_option' => $selectedOption,
-                'correct_option' => $question->options->where('is_correct', true)->first()?->id,
-            ];
+            $user = Sentinel::getUser();
+            $quiz = Quiz::with('questions.options', 'topic.trainingMaterial')->findOrFail($quizId);
+
+            // Get answers from request
+            $answers = $request->answers ?? [];
+            $score = 0;
+            $totalPoints = 0;
+            $results = [];
+
+            foreach ($quiz->questions as $question) {
+                $totalPoints += $question->points;
+                $selectedOption = $answers[$question->id] ?? null;
+                $isCorrect = false;
+
+                if ($selectedOption) {
+                    $correctOption = $question->options->where('is_correct', true)->first();
+                    if ($correctOption && $correctOption->id == $selectedOption) {
+                        $isCorrect = true;
+                        $score += $question->points;
+                    }
+                }
+
+                $results[$question->id] = [
+                    'correct' => $isCorrect,
+                    'selected_option' => $selectedOption,
+                    'correct_option' => $question->options->where('is_correct', true)->first()?->id,
+                ];
+            }
+
+            $percentage = $totalPoints > 0 ? round(($score / $totalPoints) * 100) : 0;
+            $passed = $percentage >= $quiz->passing_score;
+
+            // Create attempt record
+            $attempt = QuizAttempt::create([
+                'quiz_id' => $quizId,
+                'user_id' => $user->id,
+                'score' => $score,
+                'total_points' => $totalPoints,
+                'percentage' => $percentage,
+                'passed' => $passed,
+                'started_at' => now()->subMinutes($quiz->time_limit ?? 30),
+                'completed_at' => now(),
+                'answers' => $results,
+            ]);
+
+            // Redirect to results page
+            return view('learning.quizzes.results', compact('quiz', 'score', 'totalPoints', 'percentage', 'passed', 'results', 'attempt'));
+            
+        } catch (\Throwable $th) {
+            \Log::error('Quiz submission error: ' . $th->getMessage(), ['quiz_id' => $quizId, 'user_id' => $user->id ?? null]);
+            return redirect()->back()
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'An error occurred while processing your quiz submission');
         }
-
-        $percentage = $totalPoints > 0 ? round(($score / $totalPoints) * 100) : 0;
-        $passed = $percentage >= $quiz->passing_score;
-
-        // Create attempt record
-        $attempt = QuizAttempt::create([
-            'quiz_id' => $quizId,
-            'user_id' => $user->id,
-            'score' => $score,
-            'total_points' => $totalPoints,
-            'percentage' => $percentage,
-            'passed' => $passed,
-            'started_at' => now()->subMinutes($quiz->time_limit ?? 30),
-            'completed_at' => now(),
-            'answers' => $results,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'score' => $score,
-            'total_points' => $totalPoints,
-            'percentage' => $percentage,
-            'passed' => $passed,
-            'passing_score' => $quiz->passing_score,
-            'results' => $results,
-            'attempt_id' => $attempt->id,
-        ]);
     }
 
     /**
