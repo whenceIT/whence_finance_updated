@@ -368,8 +368,6 @@ $cycleEnd = Carbon::parse($cycle_close_date);
 
 // ORIGINAL
 $start = $cycleStart->copy()
-    ->day(min($fixedDay, $cycleStart->daysInMonth))
-    ->addDay()
     ->format('Y-m-d');
 
 $end = $cycleEnd->copy()
@@ -464,7 +462,7 @@ $data = $json ? json_decode($json, true) : null;
 
         $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date','numbers_status'));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date','numbers_status',));
         } else {
             return view('dashboard', compact('role', 'user', 'client', 'clientBranch', 'staff', 'clientLoan'));
         }

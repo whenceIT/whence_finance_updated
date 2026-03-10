@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use App\User;
 use App\Mail\SendSingleEmail;
+use App\Models\Office;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Laracasts\Flash\Flash;
@@ -220,6 +222,7 @@ class TicketController extends Controller
 
             // enforce max 3 open tickets per user
             $user = Sentinel::getUser();
+            $office = Office::where('id',$user->office_id)->first();
             $openCount = Ticket::where('opened_by', $user->id)->where('status', 'open')->count();
             // if ($openCount >= 3) {
             //     Flash::error('You already have 3 open tickets. Please resolve or close an existing ticket before creating a new one.');
@@ -260,6 +263,17 @@ class TicketController extends Controller
             }
 
             $ticket->save();
+
+  $category_name = \App\Models\TicketCategory::find($request->issue_category_id);
+         Http::post('https://notifications.whencefinancesystem.com/emit', [
+                'event' => 'ticket.created',
+                'data' => [
+                    'name' => $request->name,
+                    'user' => $user->first_name . ' ' . $user->last_name,
+                    'office' => $office->name,
+                    'type' => $category_name->name
+                ]
+            ]);
 
             // Send notification emails to admins
             // $notificationEmails = config('ticket.notification_emails', []);

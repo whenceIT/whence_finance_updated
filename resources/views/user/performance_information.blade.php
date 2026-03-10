@@ -84,6 +84,7 @@
                         <th>Office</th>
                         <th class="text-right">Total Given Out</th>
                         <th class="text-right">Cycle Opening Uncollected (COUA)</th>
+                        <th class="text-right">Cycle Opening Uncollected (without charges)</th>
                         <th class="text-right">Total Cycle Collected (TCC)</th>
                         <th class="text-right">Still Uncollected Today (SUT)</th>
                         <th class="text-right">Carry Over</th>
@@ -151,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <td>${row.office}</td>
                         <td class="text-right">${row.given_out}</td>
                         <td class="text-right">${row.total_uncollected}</td>
+                         <td class="text-right">${row.uncollected_without_charges}</td>
                         <td class="text-right text-success">${row.total_collected}</td>
                         <td class="text-right text-danger">${row.still_uncollected}</td>
                         <td class="text-right">${row.carry_over}</td>

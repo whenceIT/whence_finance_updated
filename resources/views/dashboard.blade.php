@@ -431,6 +431,18 @@
                         </div>
                     </div>
 
+                            <div class="col-md-4 col-sm-6">
+                        <div class="small-box bg-orange">
+                            <div class="inner">
+                                <h3>{{ number_format($data['uncollected_without_charges']) }}</h3>
+                                <p>Cycle Opening Uncollected (without charges)</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-md-4 col-sm-6">
                         <div class="small-box bg-green">
                             <div class="inner">
