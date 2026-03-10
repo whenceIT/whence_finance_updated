@@ -155,6 +155,72 @@ class LearningSettingController extends Controller
     }
 
     /**
+     * Display the courses settings page.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function courses()
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        $isAdmin = $role && in_array($role->id, ['1']);
+
+        if (!$isAdmin) {
+            return redirect()->route('learning.settings')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to access this settings page.');
+        }
+
+        // Get all courses
+        $courses = \App\Models\TrainingMaterial::orderBy('title', 'asc')->get();
+
+        return view('learning.settings.courses', compact('courses'));
+    }
+
+    /**
+     * Get course details for modal display.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getCourseDetails($id)
+    {
+        if (!Sentinel::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $user = Sentinel::getUser();
+        $role = $user->roles->first();
+        $isAdmin = $role && in_array($role->id, ['1']);
+
+        if (!$isAdmin) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Get course with topics and enrollments
+        $course = \App\Models\TrainingMaterial::with(['allTopics.quiz', 'enrollments.user'])->find($id);
+
+        if (!$course) {
+            return response()->json(['error' => 'Course not found'], 404);
+        }
+
+        // Get creator info
+        $creator = \App\Models\User::find($course->created_by);
+
+        return response()->json([
+            'course' => $course,
+            'creator' => $creator,
+            'enrolledUsers' => $course->enrollments->map(function($enrollment) {
+                return $enrollment->user;
+            })
+        ]);
+    }
+
+    /**
      * Get all roles.
      *
      * @return \Illuminate\Http\JsonResponse
