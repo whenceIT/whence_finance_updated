@@ -458,7 +458,7 @@
                     <div class="col-md-4 col-sm-6">
                         <div class="small-box bg-yellow">
                             <div class="inner">
-                                <h3>{{ number_format($data['still_uncollected']) }}</h3>
+                        <h3>{{ number_format(max(0, $data['still_uncollected'])) }}</h3>
                                 <p>Still Uncollected</p>
                             </div>
                             <div class="icon">
