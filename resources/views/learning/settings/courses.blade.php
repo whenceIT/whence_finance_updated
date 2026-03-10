@@ -203,7 +203,7 @@
                             
                             html += '<div class="topic-card">' +
                                 '<div class="topic-header">' +
-                                    '<i class="fa fa-' + topic.icon + ' topic-icon"></i>' +
+                                    '<i class="fa fa-tag topic-icon"></i>' +
                                     '<h4 class="topic-name">' + topic.topic_name + '</h4>' +
                                     '<span class="topic-status badge-' + (topic.is_active ? 'success' : 'danger') + '">' +
                                         (topic.is_active ? 'Active' : 'Inactive') +
@@ -545,7 +545,7 @@
                 }
 
                 .topic-icon {
-                    font-size: 24px;
+                    font-size: 19px;
                     color: #667eea;
                     width: 40px;
                     height: 40px;
