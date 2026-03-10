@@ -218,16 +218,39 @@
                                     '<div class="resources-list">';
                                 $.each(resources, function(resIndex, resource) {
                                     var resourceIcon = '';
+                                    var resourcePath = '';
                                     switch(resource) {
-                                        case 'PDF': resourceIcon = 'fa-file-pdf-o'; break;
-                                        case 'Video': resourceIcon = 'fa-video-camera'; break;
-                                        case 'Audio': resourceIcon = 'fa-music'; break;
-                                        case 'PPT': resourceIcon = 'fa-file-powerpoint-o'; break;
-                                        case 'Document': resourceIcon = 'fa-file-word-o'; break;
+                                        case 'PDF': 
+                                            resourceIcon = 'fa-file-pdf-o'; 
+                                            resourcePath = topic.pdf_file_path; 
+                                            break;
+                                        case 'Video': 
+                                            resourceIcon = 'fa-video-camera'; 
+                                            resourcePath = topic.video_file_path; 
+                                            break;
+                                        case 'Audio': 
+                                            resourceIcon = 'fa-music'; 
+                                            resourcePath = topic.audio_file_path; 
+                                            break;
+                                        case 'PPT': 
+                                            resourceIcon = 'fa-file-powerpoint-o'; 
+                                            resourcePath = topic.ppt_file_path; 
+                                            break;
+                                        case 'Document': 
+                                            resourceIcon = 'fa-file-word-o'; 
+                                            resourcePath = topic.document_file_path; 
+                                            break;
                                     }
-                                    html += '<span class="resource-tag">' +
-                                        '<i class="fa fa-' + resourceIcon + '"></i> ' + resource +
-                                    '</span>';
+                                    
+                                    if (resourcePath) {
+                                        html += '<a href="' + resourcePath + '" target="_blank" class="resource-tag" title="Open ' + resource + '">' +
+                                            '<i class="fa fa-' + resourceIcon + '"></i> ' + resource +
+                                        '</a>';
+                                    } else {
+                                        html += '<span class="resource-tag">' +
+                                            '<i class="fa fa-' + resourceIcon + '"></i> ' + resource +
+                                        '</span>';
+                                    }
                                 });
                                 html += '</div></div>';
                             }
@@ -619,11 +642,24 @@
                     font-weight: 500;
                     color: #667eea;
                     transition: all 0.2s ease;
+                    text-decoration: none;
+                    cursor: pointer;
                 }
 
                 .resource-tag:hover {
                     background: rgba(102, 126, 234, 0.15);
                     border-color: rgba(102, 126, 234, 0.3);
+                    text-decoration: none;
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+                }
+
+                .resource-tag:visited {
+                    color: #667eea;
+                }
+
+                .resource-tag:active {
+                    transform: translateY(0);
                 }
 
                 .resource-tag i {
