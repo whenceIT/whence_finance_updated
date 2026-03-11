@@ -151,6 +151,11 @@ Route::post('induction/toggle_checklist_item', [InductionController::class, 'tog
 
 // Learning Management System Routes
 Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
+    // Test route for PDF generation
+    Route::get('/test-pdf', function () {
+        $pdf = \PDF::loadHTML('<h1>Test PDF Generation</h1><p>This is a test to see if dompdf works.</p>');
+        return $pdf->download('test.pdf');
+    })->name('learning.test-pdf');
     Route::get('/', [LearningController::class, 'index'])->name('learning.dashboard');
     Route::get('/courses', [LearningController::class, 'courses'])->name('learning.courses');
     Route::get('/calendar', [LearningController::class, 'calendar'])->name('learning.calendar');
@@ -195,35 +200,38 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
     Route::post('/{id}/toggle-status', [CourseCategoryController::class, 'toggleStatus'])->name('course-categories.toggle-status');
 });
 
-// Training Materials Management Routes
-Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentinel'], function () {
-    Route::get('/', [TrainingMaterialController::class, 'index'])->name('learning.training-materials.index');
-    Route::get('/create', [TrainingMaterialController::class, 'create'])->name('learning.training-materials.create');
-    Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
-    // New routes for course creation process - must come before routes with parameters
-    Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
-    Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
-    Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
-    Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
-    // Routes with parameters
-    Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
-    Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
-     Route::any('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
-    Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
-    Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
-    Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
-    Route::get('/{id}/quiz', [QuizController::class, 'index'])->name('learning.quizzes.index');
-    Route::get('/topic/{topicId}/quiz/manage', [QuizController::class, 'manage'])->name('learning.quizzes.manage');
-    Route::post('/topic/{topicId}/quiz/save', [QuizController::class, 'save'])->name('learning.quizzes.save');
-    Route::delete('/quiz/{quizId}/delete', [QuizController::class, 'delete'])->name('learning.quizzes.delete');
-    
-    // Quiz taking routes for students
-    Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
-    Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
-    
-     // Topics management route for trainers
-    Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
-});
+ // Training Materials Management Routes
+ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentinel'], function () {
+     Route::get('/', [TrainingMaterialController::class, 'index'])->name('learning.training-materials.index');
+     Route::get('/create', [TrainingMaterialController::class, 'create'])->name('learning.training-materials.create');
+     Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
+     // Chunk upload routes - must come before routes with parameters
+     Route::post('/upload-chunk', [TrainingMaterialController::class, 'uploadChunk'])->name('learning.training-materials.upload-chunk');
+     Route::post('/merge-chunks', [TrainingMaterialController::class, 'mergeChunks'])->name('learning.training-materials.merge-chunks');
+     // New routes for course creation process - must come before routes with parameters
+     Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
+     Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
+     Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
+     Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
+     // Routes with parameters
+     Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
+     Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
+      Route::any('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
+     Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
+     Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
+     Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
+     Route::get('/{id}/quiz', [QuizController::class, 'index'])->name('learning.quizzes.index');
+     Route::get('/topic/{topicId}/quiz/manage', [QuizController::class, 'manage'])->name('learning.quizzes.manage');
+     Route::post('/topic/{topicId}/quiz/save', [QuizController::class, 'save'])->name('learning.quizzes.save');
+     Route::delete('/quiz/{quizId}/delete', [QuizController::class, 'delete'])->name('learning.quizzes.delete');
+     
+     // Quiz taking routes for students
+     Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
+     Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
+     
+      // Topics management route for trainers
+     Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
+ });
 
 //route for users
 Route::group(['prefix' => 'user'], function () {

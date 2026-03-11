@@ -12,6 +12,9 @@ $breadcrumb = [
 @endphp
 @include('partials.breadcrumb')
 
+<!-- Uppy CSS -->
+<link rel="stylesheet" href="https://releases.transloadit.com/uppy/v3.22.2/uppy.min.css">
+
 <div class="page-header">
     <h1>Add Topics to "{{ $material->title }}"</h1>
     <p>Add topics to your course. Each topic can have multiple resources including videos, audio, PDFs, PPTs, or documents.</p>
@@ -139,17 +142,27 @@ $breadcrumb = [
                 </div>
             </div>
             
-            <!-- File Uploads -->
+            <!-- File Uploads with Custom Chunked Upload -->
             <div style="margin-top: 15px;">
                 <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">
                     Video File
                 </label>
                 <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                     <i class="fa fa-video-camera" style="font-size: 16px; color: #ff6b6b;"></i>
-                    <input type="file" name="video_topic_file" 
+                    <input type="file" id="video-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="video/*">
+                        accept="video/*" onchange="handleFileSelect(this, 'video')">
                 </div>
+                <div id="video-progress-container" style="margin-top: 8px; display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span id="video-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
+                        <span id="video-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                        <div id="video-progress-bar" style="height: 100%; background: var(--secondary-color); width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                <input type="hidden" id="video_file_path" name="video_file_path">
                 <small style="color: var(--text-secondary); font-size: 11px;">
                     Upload a video file (MP4, MOV, etc.)
                 </small>
@@ -161,10 +174,20 @@ $breadcrumb = [
                 </label>
                 <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                     <i class="fa fa-headphones" style="font-size: 16px; color: #50c878;"></i>
-                    <input type="file" name="audio_topic_file" 
+                    <input type="file" id="audio-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="audio/*">
+                        accept="audio/*" onchange="handleFileSelect(this, 'audio')">
                 </div>
+                <div id="audio-progress-container" style="margin-top: 8px; display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span id="audio-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
+                        <span id="audio-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                        <div id="audio-progress-bar" style="height: 100%; background: var(--secondary-color); width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                <input type="hidden" id="audio_file_path" name="audio_file_path">
                 <small style="color: var(--text-secondary); font-size: 11px;">
                     Upload an audio file (MP3, WAV, etc.)
                 </small>
@@ -176,10 +199,20 @@ $breadcrumb = [
                 </label>
                 <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                     <i class="fa fa-file-pdf-o" style="font-size: 16px; color: #4a90e2;"></i>
-                    <input type="file" name="pdf_topic_file" 
+                    <input type="file" id="pdf-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="application/pdf">
+                        accept="application/pdf" onchange="handleFileSelect(this, 'pdf')">
                 </div>
+                <div id="pdf-progress-container" style="margin-top: 8px; display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span id="pdf-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
+                        <span id="pdf-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                        <div id="pdf-progress-bar" style="height: 100%; background: var(--secondary-color); width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                <input type="hidden" id="pdf_file_path" name="pdf_file_path">
                 <small style="color: var(--text-secondary); font-size: 11px;">
                     Upload a PDF document
                 </small>
@@ -191,10 +224,20 @@ $breadcrumb = [
                 </label>
                 <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                     <i class="fa fa-file-powerpoint-o" style="font-size: 16px; color: #f7b733;"></i>
-                    <input type="file" name="ppt_topic_file" 
+                    <input type="file" id="ppt-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation">
+                        accept="application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" onchange="handleFileSelect(this, 'ppt')">
                 </div>
+                <div id="ppt-progress-container" style="margin-top: 8px; display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span id="ppt-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
+                        <span id="ppt-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                        <div id="ppt-progress-bar" style="height: 100%; background: var(--secondary-color); width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                <input type="hidden" id="ppt_file_path" name="ppt_file_path">
                 <small style="color: var(--text-secondary); font-size: 11px;">
                     Upload a PowerPoint presentation
                 </small>
@@ -206,10 +249,20 @@ $breadcrumb = [
                 </label>
                 <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; background: white;">
                     <i class="fa fa-file-text-o" style="font-size: 16px; color: #95a5a6;"></i>
-                    <input type="file" name="document_topic_file" 
+                    <input type="file" id="document-file-input" 
                         style="flex: 1; padding: 6px 0; border: none; font-size: 13px; background: transparent;"
-                        accept="application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
+                        accept="application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onchange="handleFileSelect(this, 'document')">
                 </div>
+                <div id="document-progress-container" style="margin-top: 8px; display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span id="document-file-name" style="font-size: 12px; color: var(--text-secondary);"></span>
+                        <span id="document-progress-text" style="font-size: 12px; color: var(--text-secondary);">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                        <div id="document-progress-bar" style="height: 100%; background: var(--secondary-color); width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+                <input type="hidden" id="document_file_path" name="document_file_path">
                 <small style="color: var(--text-secondary); font-size: 11px;">
                     Upload a document file (DOC, DOCX, TXT, etc.)
                 </small>
@@ -325,6 +378,10 @@ $breadcrumb = [
 </style>
 
 <script>
+const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+const uploadPromises = {};
+let isUploading = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Form submission with loading modal
     const form = document.querySelector('form');
@@ -333,11 +390,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const message = document.getElementById('loading-message');
     
     if (form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (isUploading) {
+                return;
+            }
+            
+            isUploading = true;
+            
             // Show loading modal
             modal.style.display = 'flex';
-            title.textContent = 'System is processing files';
-            message.textContent = 'Please wait while we add this topic...';
+            title.textContent = 'Uploading and processing files';
+            message.textContent = 'Please wait while we upload and add this topic...';
             
             // Disable submit button to prevent double submissions
             const submitButtons = form.querySelectorAll('button[type="submit"]');
@@ -345,8 +410,105 @@ document.addEventListener('DOMContentLoaded', function() {
                 button.disabled = true;
                 button.style.opacity = '0.7';
             });
+            
+            // Wait for all uploads to complete
+            try {
+                await Promise.all(Object.values(uploadPromises));
+                form.submit();
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error uploading files. Please try again.');
+                isUploading = false;
+                submitButtons.forEach(button => {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                });
+                modal.style.display = 'none';
+            }
         });
     }
 });
+
+async function handleFileSelect(input, type) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const progressContainer = document.getElementById(`${type}-progress-container`);
+    const fileNameElement = document.getElementById(`${type}-file-name`);
+    const progressText = document.getElementById(`${type}-progress-text`);
+    const progressBar = document.getElementById(`${type}-progress-bar`);
+    
+    fileNameElement.textContent = file.name;
+    progressContainer.style.display = 'block';
+    progressText.textContent = '0%';
+    progressBar.style.width = '0%';
+    
+    // Create and store upload promise
+    uploadPromises[type] = uploadFile(file, type, (progress) => {
+        progressText.textContent = `${Math.round(progress)}%`;
+        progressBar.style.width = `${progress}%`;
+    });
+}
+
+async function uploadFile(file, type, onProgress) {
+    const chunkSize = CHUNK_SIZE;
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    const fileId = generateFileId(file);
+    
+    for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize;
+        const end = Math.min(start + chunkSize, file.size);
+        const chunk = file.slice(start, end);
+        
+        const formData = new FormData();
+        formData.append('chunk', chunk);
+        formData.append('index', i);
+        formData.append('totalChunks', totalChunks);
+        formData.append('filename', file.name);
+        formData.append('fileId', fileId);
+        formData.append('type', type);
+        
+        const response = await fetch('{{ url("learning/training-materials/upload-chunk") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to upload chunk ${i + 1}/${totalChunks}`);
+        }
+        
+        const progress = ((i + 1) / totalChunks) * 100;
+        onProgress(progress);
+    }
+    
+    // Merge chunks and get file path
+        const mergeResponse = await fetch('{{ url("learning/training-materials/merge-chunks") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            filename: file.name,
+            fileId: fileId,
+            type: type,
+            totalChunks: totalChunks
+        })
+    });
+    
+    if (!mergeResponse.ok) {
+        throw new Error('Failed to merge chunks');
+    }
+    
+    const data = await mergeResponse.json();
+    document.getElementById(`${type}_file_path`).value = data.filePath;
+}
+
+function generateFileId(file) {
+    return `${file.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
 </script>
 @endsection

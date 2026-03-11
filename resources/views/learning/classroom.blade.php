@@ -3,6 +3,14 @@
 @section('title', 'Classroom: ' . $material->title . ' - Whence Learn')
 
 @section('content')
+<!-- Video.js CDN -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.css" />
+
+<!-- Viewer.js CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/viewerjs@1.11.6/dist/viewer.min.css">
+<script src="https://cdn.jsdelivr.net/npm/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
 <style>
 /* Full width container - override layout constraints */
 .classroom-page {
@@ -175,115 +183,139 @@
     margin-top: 24px;
 }
 
-/* Resource Grid */
-.resource-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px;
-    margin: 10px 0;
-    padding: 8px;
-    background: linear-gradient(135deg, #f7f8fb 0%, #ffffff 100%);
+/* Resource List - Classroom Style */
+.resource-list {
+    margin: 20px 0;
+    padding: 0;
+    list-style: none;
+    background: #f8f9fa;
     border-radius: 12px;
-    position: relative;
     overflow: hidden;
+    border: 1px solid var(--border-color);
 }
 
-.resource-grid::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: pulse 3s ease-in-out infinite;
+.resource-list-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 0.5;
-    }
-    50% {
-        transform: scale(1.1);
-        opacity: 0.8;
-    }
+.resource-list-header i {
+    font-size: 16px;
 }
 
-.resource-item {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    padding: 10px;
-    text-align: center;
+.resource-list-item {
+    background: white;
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
     position: relative;
-    overflow: hidden;
-    z-index: 1;
 }
 
-.resource-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgb(255, 255, 255), transparent);
-    transition: left 0.6s ease;
-    z-index: -1;
+.resource-list-item:last-child {
+    border-bottom: none;
 }
 
-.resource-item:hover::before {
-    left: 100%;
+.resource-list-item:hover {
+    background: rgba(74, 144, 226, 0.05);
+    transform: translateX(4px);
+    box-shadow: inset 4px 0 0 var(--primary-color);
 }
 
-.resource-item:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
-    border-color: rgba(74, 144, 226, 0.4);
-    background: rgba(255, 255, 255, 0.98);
+.resource-list-item:active {
+    transform: translateX(2px);
 }
 
-.resource-icon {
-    font-size: 36px;
-    color: var(--primary-color);
-    margin-bottom: 6px;
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(74, 144, 226, 0.3));
+.resource-list-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
 }
 
-.resource-item:hover .resource-icon {
-    transform: scale(1.15) rotate(3deg);
+.resource-list-item[data-type="video"] .resource-list-icon {
+    background: linear-gradient(135deg, #FF6B6B, #FF8E53);
 }
 
-.resource-name {
+.resource-list-item[data-type="audio"] .resource-list-icon {
+    background: linear-gradient(135deg, #4ECDC4, #44A08D);
+}
+
+.resource-list-item[data-type="pdf"] .resource-list-icon {
+    background: linear-gradient(135deg, #FF6B6B, #C92A2A);
+}
+
+.resource-list-item[data-type="ppt"] .resource-list-icon {
+    background: linear-gradient(135deg, #FFC107, #FF8F00);
+}
+
+.resource-list-item[data-type="document"] .resource-list-icon {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+}
+
+.resource-list-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.resource-list-name {
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    position: relative;
-    z-index: 1;
+    font-size: 14px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.resource-item::after {
-    content: 'Click to view';
-    position: absolute;
-    bottom: -15px;
-    left: 0;
-    width: 100%;
-    font-size: 8px;
+.resource-list-name i {
     color: var(--text-secondary);
-    opacity: 0;
-    transition: all 0.3s ease;
+    font-size: 12px;
 }
 
-.resource-item:hover::after {
-    bottom: 3px;
-    opacity: 0.8;
+.resource-list-description {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resource-list-action {
+    color: var(--primary-color);
+    font-size: 18px;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.resource-list-item:hover .resource-list-action {
+    opacity: 1;
+    transform: translateX(4px);
+}
+
+.resource-list-item:hover .resource-list-action i {
+    animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
 }
 
 /* Resource Preview Area */
@@ -313,6 +345,10 @@
     height: 100%;
     background: white;
     z-index: 100;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .full-screen-preview .exit-button {
@@ -338,6 +374,24 @@
     width: 100%;
     height: 100%;
     padding: 0;
+}
+
+/* Disable right-click on preview */
+.full-screen-preview {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.full-screen-preview iframe {
+    pointer-events: none;
+}
+
+.full-screen-preview iframe[src*="view.officeapps.live.com"] {
+    pointer-events: auto;
 }
 
 /* Quiz Section */
@@ -860,12 +914,9 @@
                         <div id="resource-container" style="display: none;">
                             <div class="resource-preview" id="resource-preview"></div>
                         </div>
-                        
 
                     </div>
                 </div>
-                
-
             </div>
         </div>
     </div>
@@ -945,26 +996,46 @@ function previewResource(type, filePath) {
     
     if (type === 'video') {
         if (filePath.match(/\.(mp4|webm|ogg)$/i)) {
-            previewHTML += `<video src="${filePath}" controls style="width: 100%; height: 100%;"></video>`;
+            previewHTML += `<video-player>
+                <video-skin>
+                    <video slot="media" src="${filePath}" controls></video>
+                </video-skin>
+            </video-player>`;
         } else {
             previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-video-o"></i> Download Video</a>`;
         }
     } else if (type === 'audio') {
         if (filePath.match(/\.(mp3|wav|ogg)$/i)) {
-            previewHTML += `<audio src="${filePath}" controls style="width: 100%; height: 100%;"></audio>`;
+            previewHTML += `<video-player>
+                <video-skin>
+                    <audio slot="media" src="${filePath}" controls></audio>
+                </video-skin>
+            </video-player>`;
         } else {
             previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-audio-o"></i> Download Audio</a>`;
         }
     } else if (type === 'pdf') {
-        previewHTML += `<iframe src="${filePath}" allowfullscreen style="width: 100%; height: 100%;"></iframe>`;
+        // Use Viewer.js to display PDF without download option
+        previewHTML += `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(filePath)}&embedded=true" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>`;
     } else if (type === 'ppt') {
-        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>`;
     } else if (type === 'document') {
-        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>`;
     }
     
     previewHTML += `</div></div>`;
     resourcePreview.innerHTML += previewHTML;
+    
+    // Prevent document download by disabling right-click
+    setTimeout(() => {
+        const iframe = document.querySelector('.full-screen-preview iframe');
+        if (iframe) {
+            iframe.oncontextmenu = function(e) {
+                e.preventDefault();
+                return false;
+            };
+        }
+    }, 1000);
 }
 
 function exitFullScreenPreview() {
@@ -1074,57 +1145,100 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
     if (hasFile) {
         resourceContainer.style.display = 'block';
         
-        // Display resources in grid layout initially
-        let previewHTML = `<div class="resource-grid">`;
-        let resourceCount = 0;
+        // Display resources in classroom-style list layout
+        let previewHTML = `<div class="resource-list">
+            <div class="resource-list-header">
+                <i class="fa fa-folder-open"></i>
+                <span>Learning Resources</span>
+            </div>`;
         
         if (videoFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('video', '${videoFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${videoFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-video-camera"></i>
                 </div>
-                <div class="resource-name">Video</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-play-circle"></i>
+                        <span>Video Lecture</span>
+                    </div>
+                    <div class="resource-list-description">Click to watch the video lesson</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
         if (audioFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('audio', '${audioFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${audioFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-music"></i>
                 </div>
-                <div class="resource-name">Audio</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-volume-up"></i>
+                        <span>Audio Recording</span>
+                    </div>
+                    <div class="resource-list-description">Click to listen to the audio lesson</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
         if (pdfFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('pdf', '${pdfFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${pdfFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-file-pdf-o"></i>
                 </div>
-                <div class="resource-name">PDF</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-file-text-o"></i>
+                        <span>PDF Document</span>
+                    </div>
+                    <div class="resource-list-description">Click to view the PDF document</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
         if (pptFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('ppt', '${pptFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${pptFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-file-powerpoint-o"></i>
                 </div>
-                <div class="resource-name">PowerPoint</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-slideshare"></i>
+                        <span>PowerPoint Presentation</span>
+                    </div>
+                    <div class="resource-list-description">Click to view the slideshow</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
         if (documentFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('document', '${documentFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${documentFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-file-word-o"></i>
                 </div>
-                <div class="resource-name">Document</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-file-text-o"></i>
+                        <span>Word Document</span>
+                    </div>
+                    <div class="resource-list-description">Click to view the document</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         

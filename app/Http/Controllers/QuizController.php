@@ -249,8 +249,12 @@ class QuizController extends Controller
                 'answers' => $results,
             ]);
 
-            // Redirect to results page
-            return view('learning.quizzes.results', compact('quiz', 'score', 'totalPoints', 'percentage', 'passed', 'results', 'attempt'));
+             // Generate PDF
+             $pdf = \PDF::loadView('learning.quizzes.results-pdf', compact('quiz', 'score', 'totalPoints', 'percentage', 'passed', 'results', 'attempt'));
+             
+             // Return PDF for download
+             $filename = 'quiz-results-' . $quiz->id . '-' . $attempt->id . '.pdf';
+             return $pdf->download($filename);
             
         } catch (\Throwable $th) {
             \Log::error('Quiz submission error: ' . $th->getMessage(), ['quiz_id' => $quizId, 'user_id' => $user->id ?? null]);

@@ -20,7 +20,11 @@ $breadcrumb = [
 <div class="results-container">
     <div class="text-center mb-4">
         <h2 class="{{ $passed ? 'text-success' : 'text-danger' }}">
-            {{ $passed ? '<i class="fa fa-trophy"></i> Congratulations!' : '<i class="fa fa-times-circle"></i> Keep Trying!' }}
+            @if($passed) 
+                <i class="fa fa-trophy"></i> Congratulations!
+            @else
+                <i class="fa fa-times"></i> Keep Trying! 
+            @endif
         </h2>
         <div style="font-size: 48px; font-weight: bold; color: {{ $passed ? '#28a745' : '#dc3545' }};">
             {{ $percentage }}%
@@ -39,9 +43,9 @@ $breadcrumb = [
                 <h5 class="card-title">
                     Question {{ $qIndex + 1 }} 
                     <span class="badge badge-primary">{{ $question->points }} point(s)</span>
-                    {{ $results[$question->id]['correct'] ? 
+                    <!-- {{ $results[$question->id]['correct'] ? 
                         '<span class="badge badge-success float-right"><i class="fa fa-check"></i> Correct</span>' : 
-                        '<span class="badge badge-danger float-right"><i class="fa fa-times"></i> Incorrect</span>' }}
+                        '<span class="badge badge-danger float-right"><i class="fa fa-times"></i> Incorrect</span>' }} -->
                 </h5>
             </div>
             <div class="card-body">

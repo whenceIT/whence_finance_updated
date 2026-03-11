@@ -183,6 +183,17 @@
                                     '<span class="meta-value">' + course.all_topics.length + '</span>' +
                                 '</div>' +
                             '</div>' +
+                            '<div class="meta-card">' +
+                                '<div class="meta-icon"><i class="fa fa-graduation-cap"></i></div>' +
+                                '<div class="meta-content">' +
+                                    '<span class="meta-label">Access</span>' +
+                                    '<span class="meta-value">' +
+                                        '<a href="{{ route('learning.classroom', ['id' => '__course_id__']) }}'.replace('__course_id__', course.id) + '" target="_blank" class="classroom-link">' +
+                                            '<i class="fa fa-external-link"></i> Open Classroom' +
+                                        '</a>' +
+                                    '</span>' +
+                                '</div>' +
+                            '</div>' +
                         '</div>';
                     
                     if (course.all_topics.length > 0) {
@@ -732,11 +743,46 @@
                     margin: 0 0 4px 0;
                 }
 
-                .user-designation {
-                    font-size: 12px;
-                    color: #667eea;
-                    margin: 0;
-                }
+                 .user-designation {
+                     font-size: 12px;
+                     color: #667eea;
+                     margin: 0;
+                 }
+
+                 .classroom-link {
+                     display: inline-flex;
+                     align-items: center;
+                     gap: 5px;
+                     padding: 6px 12px;
+                     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                     color: white;
+                     text-decoration: none;
+                     border-radius: 8px;
+                     font-size: 12px;
+                     font-weight: 600;
+                     transition: all 0.3s ease;
+                     box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+                 }
+
+                 .classroom-link:hover {
+                     transform: translateY(-1px);
+                     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+                     background: linear-gradient(135deg, #218838 0%, #198754 100%);
+                     text-decoration: none;
+                     color: white;
+                 }
+
+                 .classroom-link:visited {
+                     color: white;
+                 }
+
+                 .classroom-link:active {
+                     transform: translateY(0);
+                 }
+
+                 .classroom-link i {
+                     font-size: 12px;
+                 }
 
                 .empty-state {
                     text-align: center;

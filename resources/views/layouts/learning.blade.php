@@ -1552,6 +1552,9 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     
+    <!-- Playerjs Script -->
+    <script src="{{ asset('layouts/player.js') }}" type="text/javascript"></script>
+    
     <script>
         // Flash Message Handler
         @if(Session::has('toastr_type'))
