@@ -684,7 +684,7 @@
 
             function showNotification(data) {
                 // Play notification sound
-                const audio = new Audio('https://www.myinstants.com/media/sounds/mario-jump.mp3'); // You can replace this URL with your own sound
+                const audio = new Audio('https://www.myinstants.com/media/sounds/undertakers-bell_2UwFCIe.mp3'); // You can replace this URL with your own sound
                 audio.play();
 
                 // Create the container div
@@ -747,6 +747,75 @@
                     setTimeout(() => div.remove(), 400);
                 });
             }
+
+
+                       function showTicketNotification(data) {
+                // Play notification sound
+                const audio = new Audio('https://www.myinstants.com/media/sounds/undertakers-bell_2UwFCIe.mp3'); // You can replace this URL with your own sound
+                audio.play();
+
+                // Create the container div
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    position: fixed;
+                    top: 25px;
+                    right: 25px;
+                    width: 320px;
+                    background: #ffffff;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                    overflow: hidden;
+                    z-index: 9999;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: #333;
+                    transform: translateX(150%);
+                    opacity: 0;
+                    transition: all 0.5s ease;
+                `;
+
+                // Inner content
+                div.innerHTML = `
+                    <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
+                            NEW TICKET ALERT 🔔
+                        </h4>
+                        <p style="margin: 3px 0; font-size: 14px;"><strong>Name:</strong> ${data.name || 'N/A'}</p>
+                        <p style="margin: 3px 0; font-size: 14px;"><strong>Type:</strong> ${data.type || 'N/A'}</p>
+                        <p style="margin: 3px 0; font-size: 14px;"><strong>Created by:</strong> ${data.user || 'N/A'}</p>
+                        <p style="margin: 3px 0; font-size: 14px;"><strong>Branch:</strong> ${data.office || 'N/A'}</p>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                            <button style="
+                                background: #007bff;
+                                color: #fff;
+                                border: none;
+                                border-radius: 6px;
+                                padding: 6px 14px;
+                                font-size: 13px;
+                                cursor: pointer;
+                                transition: background 0.3s ease;
+                            ">Close</button>
+                        </div>
+                    </div>
+                `;
+
+                // Add to document
+                document.body.appendChild(div);
+
+                // Slide in animation
+                requestAnimationFrame(() => {
+                    div.style.transform = "translateX(0)";
+                    div.style.opacity = "1";
+                });
+
+                // Close button
+                div.querySelector('button').addEventListener('click', () => {
+                    div.style.transform = "translateX(150%)";
+                    div.style.opacity = "0";
+                    setTimeout(() => div.remove(), 400);
+                });
+            }
+
+
 
 
             function showNotificationTest(data) {
@@ -824,6 +893,12 @@
                 }
 
             });
+
+              socket.on('ticket.created', (data) => {
+              
+                showTicketNotification(data)
+            });
+           
 
             socket.on('notification.created', (data) => {
                 showNotificationTest()
