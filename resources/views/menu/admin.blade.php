@@ -13,6 +13,13 @@
             ->get();
     $office_id = Sentinel::getUser()->office_id;
 ?>
+<style>
+@keyframes pulse-red {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(231, 76, 60, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+</style>
 <aside class="main-sidebar" style="color: #ffffff">
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar" style="color:#ffffff;">
@@ -1168,6 +1175,7 @@
                     <a href="#">
                         <i class="fa fa-refresh"></i> <span>Recoveries</span>
                         <span class="pull-right-container">
+                            @if($role == 1)<span class="label label-primary pull-right" style="background-color: #e74c3c; animation: pulse-red 2s infinite;">v1.0.1</span>@endif
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>

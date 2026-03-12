@@ -420,7 +420,7 @@
                                             @endif
 
                                             <a href="{{ url('learning') }}" title="Whence Learn" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                                                <i class="fa fa-graduation-cap" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                                <img src="{{ asset('images/education.gif') }}" alt="Education" style="width: 32px; height: 32px; display: block; margin-bottom: 5px;">
                                                 <span style="font-size: 12px;">Whence Learn</span>
                                             </a>
 
