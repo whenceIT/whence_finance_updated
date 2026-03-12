@@ -1159,6 +1159,78 @@
                 </ul>
             </li>
             @endif
+
+
+            {{-- ====================================================== --}}
+            {{-- RECOVERIES MODULE                                        --}}
+            {{-- ====================================================== --}}
+                <li class="treeview @if(Request::is('recovery/*')) active @endif">
+                    <a href="#">
+                        <i class="fa fa-refresh"></i> <span>Recoveries</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                            <li class="@if(Request::is('recovery/overview')) active @endif">
+                                <a href="{{ url('recovery/overview') }}"><i class="fa fa-circle-o"></i> Recovery Dashboard
+                                    <span class="pull-right-container">
+                                        <span class="label label-info pull-right">{{\App\Models\RecoveryCase::active()->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/data')) active @endif">
+                                <a href="{{ url('recovery/case/data') }}"><i class="fa fa-circle-o"></i> All Cases</a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/cross_branch')) active @endif">
+                                <a href="{{ url('recovery/case/cross_branch') }}"><i class="fa fa-circle-o"></i> Cross-Branch
+                                    <span class="pull-right-container">
+                                        <span class="label label-primary pull-right">{{\App\Models\RecoveryCase::active()->byCategory('cross_branch')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/escalated')) active @endif">
+                                <a href="{{ url('recovery/case/escalated') }}"><i class="fa fa-circle-o"></i> Escalated Accounts
+                                    <span class="pull-right-container">
+                                        <span class="label label-warning pull-right">{{\App\Models\RecoveryCase::active()->byCategory('escalated')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/dormant')) active @endif">
+                                <a href="{{ url('recovery/case/dormant') }}"><i class="fa fa-circle-o"></i> Dormant Revival
+                                    <span class="pull-right-container">
+                                        <span class="label label-default pull-right">{{\App\Models\RecoveryCase::active()->byCategory('dormant')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/legal')) active @endif">
+                                <a href="{{ url('recovery/case/legal') }}"><i class="fa fa-circle-o"></i> Legal Recovery
+                                    <span class="pull-right-container">
+                                        <span class="label label-danger pull-right">{{\App\Models\RecoveryCase::active()->byCategory('legal')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/skip_trace')) active @endif">
+                                <a href="{{ url('recovery/case/skip_trace') }}"><i class="fa fa-circle-o"></i> Skip Tracing
+                                    <span class="pull-right-container">
+                                        <span class="label label-success pull-right">{{\App\Models\RecoveryCase::active()->byCategory('skip_trace')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/create')) active @endif">
+                                <a href="{{ url('recovery/case/create') }}"><i class="fa fa-circle-o"></i> Open New Case</a>
+                            </li>
+                            <li class="@if(Request::is('recovery/specialist/*')) active @endif">
+                                <a href="{{ url('recovery/specialist/data') }}"><i class="fa fa-circle-o"></i> Specialists</a>
+                            </li>
+                            <li class="@if(Request::is('recovery/nudge/*')) active @endif">
+                                <a href="{{ url('recovery/nudge/compose') }}"><i class="fa fa-bell"></i> Send Nudges</a>
+                            </li>
+                            <li class="@if(Request::is('recovery/report/*')) active @endif">
+                                <a href="{{ url('recovery/report/overview') }}"><i class="fa fa-circle-o"></i> Recovery Reports</a>
+                            </li>
+                    </ul>
+                </li>
             </ul>
 
             <!-- Sticky Logout Button -->
