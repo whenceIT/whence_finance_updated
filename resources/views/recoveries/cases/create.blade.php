@@ -34,10 +34,10 @@
                                     <option value="">— Select Loan —</option>
                                     @foreach($loans as $loan)
                                         <option value="{{ $loan->id }}">
-                                            {{ $loan->client->first_name . ' ' . $loan->client->last_name ?? 'N/A' }} 
-                                            - {{ $loan->loan_product->name ?? 'N/A' }} 
+                                            {{ $loan->client?->first_name . ' ' . $loan->client?->last_name ?? 'N/A' }} 
+                                            - {{ $loan->loan_product?->name ?? 'N/A' }} 
                                             (K{{ number_format($loan->principal, 2) }})
-                                            - {{ $loan->office->name ?? 'N/A' }}
+                                            - {{ $loan->office?->name ?? 'N/A' }}
                                             ({{ $loan->first_installment_date ? \Carbon\Carbon::parse($loan->first_installment_date)->format('d M Y') : 'No schedule' }})
                                         </option>
                                     @endforeach
