@@ -92,15 +92,12 @@ class RecoveryCaseController extends Controller
     {
         try {
             $categories = RecoveryCase::CATEGORIES;
-            
             // Fetch loans with client, loan_product, office and first installment date
             $loans = Loan::with('client')
                     ->where('first_repayment_date', '>', now())
                     ->get();
-            
             // Fetch all offices (branches)
             $offices = Office::get();
-            
             return view('recoveries.cases.create', compact('categories', 'loans', 'offices'));
         } catch (\Throwable $th) {
             dd($th->getMessage());
