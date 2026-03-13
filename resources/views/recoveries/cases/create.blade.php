@@ -9,7 +9,6 @@
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h3 class="box-title"><i class="fa fa-folder-open"></i> New Recovery Case</h3>
-                @dd('here')
             </div>
 
             <form method="POST" action="{{ url('recovery/case/store') }}">
