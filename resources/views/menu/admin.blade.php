@@ -13,6 +13,13 @@
             ->get();
     $office_id = Sentinel::getUser()->office_id;
 ?>
+<style>
+@keyframes pulse-red {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(231, 76, 60, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+</style>
 <aside class="main-sidebar" style="color: #ffffff">
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar" style="color:#ffffff;">
@@ -1159,8 +1166,82 @@
                 </ul>
             </li>
             @endif
-            </ul>
 
+
+            {{-- ====================================================== --}}
+            {{-- RECOVERIES MODULE                                        --}}
+            {{-- ====================================================== --}}
+            @if($role == 1)
+                <li class="treeview @if(Request::is('recovery/*')) active @endif">
+                    <a href="#">
+                        <i class="fa fa-refresh"></i> <span>Recoveries</span>
+                        <span class="pull-right-container">
+                            @if($role == 1)<span class="label label-danger pull-right" style="background-color: #ff1900; animation: pulse-red 2s infinite;">Beta</span>@endif
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                            <li class="@if(Request::is('recovery/overview')) active @endif">
+                                <a href="{{ url('recovery/overview') }}"><i class="fa fa-circle-o"></i> Recovery Dashboard
+                                    <span class="pull-right-container">
+                                        <span class="label label-info pull-right">{{\App\Models\RecoveryCase::active()->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/data')) active @endif">
+                                <a href="{{ url('recovery/case/data') }}"><i class="fa fa-circle-o"></i> All Cases</a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/cross_branch')) active @endif">
+                                <a href="{{ url('recovery/case/cross_branch') }}"><i class="fa fa-circle-o"></i> Cross-Branch
+                                    <span class="pull-right-container">
+                                        <span class="label label-primary pull-right">{{\App\Models\RecoveryCase::active()->byCategory('cross_branch')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/escalated')) active @endif">
+                                <a href="{{ url('recovery/case/escalated') }}"><i class="fa fa-circle-o"></i> Escalated Accounts
+                                    <span class="pull-right-container">
+                                        <span class="label label-warning pull-right">{{\App\Models\RecoveryCase::active()->byCategory('escalated')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/dormant')) active @endif">
+                                <a href="{{ url('recovery/case/dormant') }}"><i class="fa fa-circle-o"></i> Dormant Revival
+                                    <span class="pull-right-container">
+                                        <span class="label label-default pull-right">{{\App\Models\RecoveryCase::active()->byCategory('dormant')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/legal')) active @endif">
+                                <a href="{{ url('recovery/case/legal') }}"><i class="fa fa-circle-o"></i> Legal Recovery
+                                    <span class="pull-right-container">
+                                        <span class="label label-danger pull-right">{{\App\Models\RecoveryCase::active()->byCategory('legal')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/skip_trace')) active @endif">
+                                <a href="{{ url('recovery/case/skip_trace') }}"><i class="fa fa-circle-o"></i> Skip Tracing
+                                    <span class="pull-right-container">
+                                        <span class="label label-success pull-right">{{\App\Models\RecoveryCase::active()->byCategory('skip_trace')->count()}}</span>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="@if(Request::is('recovery/case/create')) active @endif">
+                                <a href="{{ url('recovery/case/create') }}"><i class="fa fa-circle-o"></i> Open New Case</a>
+                            </li>
+                            <li class="@if(Request::is('recovery/specialist/*')) active @endif">
+                                <a href="{{ url('recovery/specialist/data') }}"><i class="fa fa-circle-o"></i> Specialists</a>
+                            </li>
+                            <li class="@if(Request::is('recovery/nudge/*')) active @endif">
+                                <a href="{{ url('recovery/nudge/compose') }}"><i class="fa fa-bell"></i> Send Nudges</a>
+                            </li>
+                            <li class="@if(Request::is('recovery/report/*')) active @endif">
+                                <a href="{{ url('recovery/report/overview') }}"><i class="fa fa-circle-o"></i> Recovery Reports</a>
+                            </li>
+                    </ul>
+                </li>
+            </ul>
+            @endif
             <!-- Sticky Logout Button -->
             <!-- <div class="sidebar-footer" style="position: fixed; bottom: 0; left: 0; background: linear-gradient(135deg, #667eea 0%, #100E3D 100%); padding: 15px; width: 230px; border-radius: 0 0 0 8px; z-index: 1000;">
                 <a href="{{ url('logout') }}" class="btn btn-danger btn-block" style="color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); font-weight: bold;">

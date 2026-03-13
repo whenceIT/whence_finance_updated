@@ -419,9 +419,9 @@
                                             </a> -->
                                             @endif
 
-                                            <a href="{{ url('learning') }}" title="Whence Learn" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                                                <i class="fa fa-graduation-cap" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
-                                                <span style="font-size: 12px;">Whence Learn</span>
+                                            <a href="{{ url('learning') }}" title="Whence Learn" style="text-decoration: none; color: #333; text-align: center; padding: 8px; border-radius: 8px; background: transparent; display: inline-block; transition: all 0.3s;">
+                                                <img src="{{ asset('images/education.gif') }}" alt="Education" style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
+                                                <span style="font-size: 11px; font-weight: 500;">Whence Learn</span>
                                             </a>
 
                                             <a href="https://meet.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">

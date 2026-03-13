@@ -26,6 +26,11 @@ use App\Http\Controllers\LearningSettingController;
 use App\Http\Controllers\TrainingMaterialController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\StaffSurveyController;
+use App\Http\Controllers\Recoveries\RecoveryDashboardController;
+use App\Http\Controllers\Recoveries\RecoveryCaseController;
+use App\Http\Controllers\Recoveries\RecoveryNudgeController;
+use App\Http\Controllers\Recoveries\RecoverySpecialistController;
+use App\Http\Controllers\Recoveries\RecoveryReportController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -70,6 +75,13 @@ Route::model('expense_budget', 'App\Models\ExpenseBudget');
 Route::model('payroll', 'App\Models\Payroll');
 Route::model('loan_application', 'App\Models\LoanApplication');
 
+// Recovery model bindings
+Route::model('recovery_case', 'App\Models\RecoveryCase');
+Route::model('recovery_payment', 'App\Models\RecoveryPayment');
+Route::model('recovery_document', 'App\Models\RecoveryDocument');
+Route::model('recovery_nudge', 'App\Models\RecoveryNudge');
+Route::model('recovery_activity', 'App\Models\RecoveryActivity');
+Route::model('recovery_specialist_target', 'App\Models\RecoverySpecialistTarget');
 
 //development routes
 //route for audit trail
@@ -1564,6 +1576,65 @@ Route::group(['prefix' => 'hybrid'], function () {
     });
 
     Route::get('institution_metrics', 'PerformanceMetricsController@institutionMetrics')->name('performance.institution_metrics');
+
+});
+
+// ============================================
+// RECOVERY MODULE ROUTES
+// ============================================
+Route::group(['prefix' => 'recovery'], function () {
+
+    Route::get('overview', 'Recoveries\RecoveryDashboardController@overview');
+
+    Route::group(['prefix' => 'case'], function () {
+        Route::get('data',                 'Recoveries\RecoveryCaseController@index');
+        Route::get('create',               'Recoveries\RecoveryCaseController@create');
+        Route::post('store',               'Recoveries\RecoveryCaseController@store');
+        Route::get('{id}/show',            'Recoveries\RecoveryCaseController@show');
+        Route::get('{id}/edit',            'Recoveries\RecoveryCaseController@edit');
+        Route::post('{id}/update',         'Recoveries\RecoveryCaseController@update');
+        Route::get('{id}/delete',          'Recoveries\RecoveryCaseController@destroy');
+        Route::post('{id}/status',         'Recoveries\RecoveryCaseController@updateStatus');
+        Route::post('{id}/payment/store',  'Recoveries\RecoveryCaseController@recordPayment');
+        Route::post('{id}/document/store', 'Recoveries\RecoveryCaseController@uploadDocument');
+        Route::post('{id}/assign',         'Recoveries\RecoveryCaseController@assign');
+        Route::post('{id}/cost/store',      'Recoveries\RecoveryCaseController@recordCost');
+        Route::get('{id}/document/{document_id}/download', 'Recoveries\RecoveryCaseController@downloadDocument');
+        Route::get('{id}/document/{document_id}/delete',   'Recoveries\RecoveryCaseController@deleteDocument');
+        Route::get('cross_branch',         'Recoveries\RecoveryCaseController@crossBranch');
+        Route::get('escalated',            'Recoveries\RecoveryCaseController@escalated');
+        Route::get('dormant',              'Recoveries\RecoveryCaseController@dormant');
+        Route::get('legal',                'Recoveries\RecoveryCaseController@legal');
+        Route::get('skip_trace',           'Recoveries\RecoveryCaseController@skipTrace');
+        Route::get('resolved',             'Recoveries\RecoveryCaseController@resolved');
+    });
+
+    // Nudge routes
+    Route::get('nudge/compose',   'Recoveries\RecoveryNudgeController@compose');
+    Route::post('nudge/send-bulk','Recoveries\RecoveryNudgeController@sendBulk');
+    Route::post('case/{id}/nudge/send', 'Recoveries\RecoveryNudgeController@sendSingle');
+
+    Route::group(['prefix' => 'specialist'], function () {
+        Route::get('data',                           'Recoveries\RecoverySpecialistController@index');
+        Route::get('{id}/show',                      'Recoveries\RecoverySpecialistController@show');
+        Route::post('{id}/target/store',             'Recoveries\RecoverySpecialistController@setTarget');
+        Route::get('{id}/target/{target_id}/delete', 'Recoveries\RecoverySpecialistController@deleteTarget');
+    });
+
+    Route::group(['prefix' => 'report'], function () {
+        // Monthly
+        Route::any('overview',              'Recoveries\RecoveryReportController@monthly');
+        Route::any('overview/pdf',          'Recoveries\RecoveryReportController@monthlyPdf');
+        Route::any('overview/excel',        'Recoveries\RecoveryReportController@monthlyExcel');
+        // Attribution
+        Route::any('attribution',           'Recoveries\RecoveryReportController@attribution');
+        Route::any('attribution/pdf',       'Recoveries\RecoveryReportController@attributionPdf');
+        Route::any('attribution/excel',     'Recoveries\RecoveryReportController@attributionExcel');
+        // Specialists
+        Route::any('specialist_report',     'Recoveries\RecoveryReportController@specialists');
+        Route::any('specialist_report/pdf', 'Recoveries\RecoveryReportController@specialistsPdf');
+        Route::any('specialist_report/excel','Recoveries\RecoveryReportController@specialistsExcel');
+    });
 
 });
 
