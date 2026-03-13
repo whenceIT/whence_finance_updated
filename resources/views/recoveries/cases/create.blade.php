@@ -1,9 +1,7 @@
 @extends('layouts.master')
-
 @section('title')
     Open New Recovery Case
 @endsection
-
 @section('content')
 
 <div class="row">
@@ -47,7 +45,6 @@
                                 @endif
                             </div>
                         </div>
-
                         <div class="col-md-6">
                             <div class="form-group {{ $errors->has('category') ? 'has-error' : '' }}">
                                 <label>Recovery Category <span class="text-danger">*</span></label>
@@ -65,7 +62,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group {{ $errors->has('origin_branch_id') ? 'has-error' : '' }}">
@@ -81,7 +77,6 @@
                                 @endif
                             </div>
                         </div>
-
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label>Supporting Branch</label>
@@ -93,7 +88,6 @@
                                 </select>
                             </div>
                         </div>
-
                         <div class="col-md-4">
                             <div class="form-group {{ $errors->has('loan_outstanding_amount') ? 'has-error' : '' }}">
                                 <label>Loan Outstanding Amount (K) <span class="text-danger">*</span></label>
