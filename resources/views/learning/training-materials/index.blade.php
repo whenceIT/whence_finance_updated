@@ -135,7 +135,7 @@ function applyFilters() {
         </div>
         <div class="course-body">
             <span class="course-category">{{ $material->department ?? 'General' }}</span>
-            <h3 class="course-title">{{ $material->title }}</h3>
+            <h3 class="course-title">{{ strtoupper($material->title) }}</h3>
             <p class="course-description">{{ $material->description ?: 'No description available.' }}</p>
             
             @if($material->categories && $material->categories->count() > 0)
