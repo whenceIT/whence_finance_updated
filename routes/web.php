@@ -25,6 +25,7 @@ use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningSettingController;
 use App\Http\Controllers\TrainingMaterialController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\GeneralUploadsController;
 use App\Http\Controllers\StaffSurveyController;
 use App\Http\Controllers\Recoveries\RecoveryDashboardController;
 use App\Http\Controllers\Recoveries\RecoveryCaseController;
@@ -244,6 +245,23 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      
       // Topics management route for trainers
      Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
+ });
+
+ // General Uploads Management Routes
+ Route::group(['prefix' => 'learning/general-uploads', 'middleware' => 'sentinel'], function () {
+     Route::get('/', [GeneralUploadsController::class, 'index'])->name('learning.general-uploads.index');
+     Route::get('/create', [GeneralUploadsController::class, 'create'])->name('learning.general-uploads.create');
+     Route::post('/', [GeneralUploadsController::class, 'store'])->name('learning.general-uploads.store');
+     // Chunk upload routes - must come before routes with parameters
+     Route::post('/upload-chunk', [GeneralUploadsController::class, 'uploadChunk'])->name('learning.general-uploads.upload-chunk');
+     Route::post('/merge-chunks', [GeneralUploadsController::class, 'mergeChunks'])->name('learning.general-uploads.merge-chunks');
+     // Routes with parameters
+     Route::get('/{id}', [GeneralUploadsController::class, 'show'])->name('learning.general-uploads.show');
+     Route::get('/{id}/edit', [GeneralUploadsController::class, 'edit'])->name('learning.general-uploads.edit');
+     Route::any('/{id}', [GeneralUploadsController::class, 'update'])->name('learning.general-uploads.update');
+     Route::delete('/{id}', [GeneralUploadsController::class, 'destroy'])->name('learning.general-uploads.destroy');
+     Route::get('/{id}/download', [GeneralUploadsController::class, 'download'])->name('learning.general-uploads.download');
+     Route::post('/{id}/toggle-status', [GeneralUploadsController::class, 'toggleStatus'])->name('learning.general-uploads.toggle-status');
  });
 
 //route for users

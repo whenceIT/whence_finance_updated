@@ -27,6 +27,41 @@
     @endif
 </div>
 
+<!-- Statistics Cards -->
+<div class="stats-grid" id="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fa fa-book"></i>
+        </div>
+        <div class="stat-value">{{ $stats['total_courses'] }}</div>
+        <div class="stat-label">Total Courses</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fa fa-check-circle"></i>
+        </div>
+        <div class="stat-value">{{ $stats['enrolled_courses'] }}</div>
+        <div class="stat-label">Enrolled Courses</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fa fa-trophy"></i>
+        </div>
+        <div class="stat-value">{{ $stats['completed_courses'] }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="fa fa-clock-o"></i>
+        </div>
+        <div class="stat-value">{{ $stats['total_hours'] }}h</div>
+        <div class="stat-label">Learning Hours</div>
+    </div>
+</div>
+
 <!-- Filter Tabs -->
 <div style="margin-bottom: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
     <button style="padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
