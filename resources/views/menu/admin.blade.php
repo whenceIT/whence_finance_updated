@@ -1171,11 +1171,12 @@
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
             {{-- ====================================================== --}}
+            @if($role == 1)
                 <li class="treeview @if(Request::is('recovery/*')) active @endif">
                     <a href="#">
                         <i class="fa fa-refresh"></i> <span>Recoveries</span>
                         <span class="pull-right-container">
-                            @if($role == 1)<span class="label label-primary pull-right" style="background-color: #e74c3c; animation: pulse-red 2s infinite;">v1.0.1</span>@endif
+                            @if($role == 1)<span class="label label-primary pull-right" style="background-color: #e74c3c; animation: pulse-red 2s infinite;">Beta</span>@endif
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>
@@ -1240,7 +1241,7 @@
                     </ul>
                 </li>
             </ul>
-
+            @endif
             <!-- Sticky Logout Button -->
             <!-- <div class="sidebar-footer" style="position: fixed; bottom: 0; left: 0; background: linear-gradient(135deg, #667eea 0%, #100E3D 100%); padding: 15px; width: 230px; border-radius: 0 0 0 8px; z-index: 1000;">
                 <a href="{{ url('logout') }}" class="btn btn-danger btn-block" style="color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); font-weight: bold;">
