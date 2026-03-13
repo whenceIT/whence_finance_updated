@@ -895,11 +895,26 @@
                     <i class="fa fa-arrow-left"></i>
                 </a>
                 <h1 id="topic-header-title">{{ $material->title }}</h1>
-                <div class="header-actions">
+                <div class="header-actions" id="header-actions">
+                    @php
+                    $fileType = '';
+                    if(isset($material->file_path)) {
+                        $ext = strtolower(pathinfo($material->file_path, PATHINFO_EXTENSION));
+                        if(in_array($ext, ['pdf'])) $fileType = 'pdf';
+                        elseif(in_array($ext, ['ppt','pptx'])) $fileType = 'ppt';
+                        elseif(in_array($ext, ['doc','docx'])) $fileType = 'document';
+                    }
+                    @endphp
                     @if(isset($material->file_path) && $material->file_path && strpos($material->file_path, 'http') === 0)
+                        @if($fileType === '')
                     <a href="{{ $material->file_path }}" class="btn btn-default btn-sm" target="_blank">
                         <i class="fa fa-external-link"></i> Open Resource
                     </a>
+                        @else
+                    <span class="btn btn-default btn-sm" style="opacity: 0.5; cursor: not-allowed;" title="Download disabled for {{ $fileType }} files">
+                        <i class="fa fa-external-link"></i> Open Resource
+                    </span>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -959,6 +974,70 @@
 // Pass phases data from PHP to JavaScript
 const phases = @json($phases);
 
+// Disable browser download events for document protection
+document.addEventListener('DOMContentLoaded', function() {
+    // Disable right-click context menu on document
+    document.addEventListener('contextmenu', function(e) {
+        // Allow right-click on form inputs and text fields
+        const target = e.target;
+        const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+        if (!isInput) {
+            e.preventDefault();
+            return false;
+        }
+    }, false);
+
+    // Disable keyboard shortcuts for saving/printing
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+S, Ctrl+P, Ctrl+Shift+S, Ctrl+Shift+P, F12
+        if ((e.ctrlKey && (e.key === 's' || e.key === 'p' || e.key === 'S' || e.key === 'P')) ||
+            (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'p' || e.key === 'S' || e.key === 'P')) ||
+            e.key === 'F12') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    // Disable drag and drop download
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        return false;
+    }, false);
+
+    document.addEventListener('drop', function(e) {
+        e.preventDefault();
+        return false;
+    }, false);
+
+    // Disable pointer events on iframes for document types to prevent download
+    // This will be toggled when viewing protected documents
+    window.protectedDocumentTypes = ['pdf', 'ppt', 'document'];
+    
+    window.disableDocumentDownloads = function() {
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+            // Add overlay to prevent direct interaction
+            const parent = iframe.parentElement;
+            if (parent && !parent.querySelector('.download-blocker')) {
+                const blocker = document.createElement('div');
+                blocker.className = 'download-blocker';
+                blocker.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:100;cursor:not-allowed;';
+                parent.style.position = 'relative';
+                parent.appendChild(blocker);
+            }
+        });
+    };
+
+    // Disable Ctrl+U (View Source)
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'u') {
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+});
+
 let currentTopicId = null;
 let currentTopicFilePath = null;
 let currentTopicType = null;
@@ -1015,12 +1094,29 @@ function previewResource(type, filePath) {
             previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-audio-o"></i> Download Audio</a>`;
         }
     } else if (type === 'pdf') {
-        // Use Viewer.js to display PDF without download option
-        previewHTML += `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(filePath)}&embedded=true" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>`;
-    } else if (type === 'ppt') {
-        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>`;
-    } else if (type === 'document') {
-        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>`;
+        previewHTML += `
+        <div style="position:relative;height:100%">
+            <iframe 
+            src="https://docs.google.com/gview?url=${encodeURIComponent(filePath)}&embedded=true"
+            style="width:100%;height:100%;border:none;"
+            allowfullscreen></iframe>
+
+            <div style="position:absolute;top:0;left:0;width:100%;height:45px;z-index:10;"></div>
+            <div class="download-blocker" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
+        </div>`;
+
+    } else if (type === 'ppt' || type === 'document') {
+
+        previewHTML += `
+        <div style="position:relative;height:100%">
+            <iframe 
+            src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}"
+            style="width:100%;height:100%;border:none;"
+            allowfullscreen></iframe>
+
+            <div style="position:absolute;top:0;left:0;width:100%;height:45px;z-index:10;"></div>
+            <div class="download-blocker" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
+        </div>`;
     }
     
     previewHTML += `</div></div>`;

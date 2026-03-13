@@ -55,7 +55,7 @@
         </div>
         <div class="course-body">
             <span class="course-category">{{ $course['category'] }}</span>
-            <h3 class="course-title">{{ $course['title'] }}</h3>
+            <h3 class="course-title">{{ strtoupper($course['title']) }}</h3>
             <p class="course-description">{{ $course['description'] }}</p>
             
             @if($course['enrolled'] && $course['progress'] > 0)
