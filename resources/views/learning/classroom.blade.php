@@ -907,12 +907,12 @@
                     @endphp
                     @if(isset($material->file_path) && $material->file_path && strpos($material->file_path, 'http') === 0)
                         @if($fileType === '')
-                    <a href="{{ $material->file_path }}" class="btn btn-default btn-sm" target="_blank">
+                    <button class="btn btn-default btn-sm" onclick="previewExternalResource('{{ $material->file_path }}', 'file')">
                         <i class="fa fa-external-link"></i> Open Resource
-                    </a>
+                    </button>
                         @else
-                    <span class="btn btn-default btn-sm" style="opacity: 0.5; cursor: not-allowed;" title="Download disabled for {{ $fileType }} files">
-                        <i class="fa fa-external-link"></i> Open Resource
+                    <span class="btn btn-default btn-sm" style="opacity: 0.5; cursor: not-allowed;" title="Download disabled - preview in platform">
+                        <i class="fa fa-eye"></i> Preview
                     </span>
                         @endif
                     @endif
@@ -1138,6 +1138,32 @@ function exitFullScreenPreview() {
     const fullScreenPreview = document.querySelector('.full-screen-preview');
     if (fullScreenPreview) {
         fullScreenPreview.remove();
+    }
+}
+
+// Preview external resource in platform - prevents downloads
+function previewExternalResource(filePath, resourceType) {
+    console.log('Preview external resource:', filePath, resourceType);
+    
+    // Determine resource type from file extension if not provided
+    if (!resourceType || resourceType === 'file') {
+        const ext = filePath.split('.').pop().toLowerCase();
+        if (['pdf'].includes(ext)) resourceType = 'pdf';
+        else if (['ppt', 'pptx'].includes(ext)) resourceType = 'ppt';
+        else if (['doc', 'docx'].includes(ext)) resourceType = 'document';
+        else if (['mp4', 'webm', 'ogg'].includes(ext)) resourceType = 'video';
+        else if (['mp3', 'wav', 'ogg'].includes(ext)) resourceType = 'audio';
+        else resourceType = 'unknown';
+    }
+    
+    // Use the existing previewResource function
+    if (resourceType === 'unknown') {
+        // For unknown types, open in a new tab but warn user
+        if (confirm('This file type may not preview in the platform. Open in new tab instead?')) {
+            window.open(filePath, '_blank');
+        }
+    } else {
+        previewResource(resourceType, filePath);
     }
 }
 

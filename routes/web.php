@@ -179,6 +179,7 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/platform', [LearningSettingController::class, 'platform'])->name('learning.settings.platform');
     Route::get('/settings/courses', [LearningSettingController::class, 'courses'])->name('learning.settings.courses');
     Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
+    Route::get('/settings/courses/resource-preview', [LearningSettingController::class, 'resourcePreview'])->name('learning.settings.courses.resource-preview');
     
     // Trainer Management Routes
     Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
