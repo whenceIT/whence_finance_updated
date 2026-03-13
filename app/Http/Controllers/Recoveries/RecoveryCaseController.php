@@ -90,10 +90,9 @@ class RecoveryCaseController extends Controller
 
     public function create()
     {
-        dd('here');
         try {
             $categories = RecoveryCase::CATEGORIES;
-           
+            dd($categories);
             // Fetch loans with client, loan_product, office and first installment date
             $loans = Loan::with(['client', 'loan_product', 'office', 'repayment_schedules'])
                 ->whereHas('repayment_schedules')
