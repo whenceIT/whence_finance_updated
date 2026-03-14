@@ -11,7 +11,7 @@
             </a>
             <div style="min-width: 0;">
                 <h1 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $material->title }}</h1>
-                <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $material->description }}</p>
+                <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">by {{ $material->creator->first_name }} {{ $material->creator->last_name }}</p>
             </div>
         </div>
         

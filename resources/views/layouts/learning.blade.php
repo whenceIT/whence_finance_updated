@@ -1552,11 +1552,13 @@
                             @endif
                         </a>
                     </li>
+                    @if($role && $role->id != 1 && $user->istrainer != 1)
                     <li>
                         <a href="{{ url('/learning/progress') }}">
                             <i class="fa fa-tasks"></i> My Progress
                         </a>
                     </li>
+                    @endif
                     <li>
                         <a href="{{ url('/learning/certificates') }}">
                             <i class="fa fa-certificate"></i> Certificates
