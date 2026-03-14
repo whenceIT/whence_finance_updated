@@ -227,6 +227,9 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
      Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
      Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
+     // Edit topic route
+     Route::get('/topic/{topicId}/edit', [TrainingMaterialController::class, 'editTopic'])->name('learning.training-materials.edit-topic');
+     Route::put('/topic/{topicId}/update', [TrainingMaterialController::class, 'updateTopic'])->name('learning.training-materials.update-topic');
      // Routes with parameters
      Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
      Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');

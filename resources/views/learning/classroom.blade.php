@@ -704,7 +704,7 @@
     }
     
     .content-card-body {
-        padding: 1px 2px;
+        padding: 0px;
     }
     
     .content-icon {
@@ -815,7 +815,7 @@
                         </div>
                         <div class="wizard-phase-info">
                             <div class="wizard-phase-title">{{ $phase['title'] }}</div>
-                            <div class="wizard-phase-description">{{ $phase['description'] }}</div>
+                            <div class="wizard-phase-description">{{ strlen($phase['description']) > 40 ? substr($phase['description'], 0, 40) . '...' : $phase['description'] }}</div>
                         </div>
                         <div class="wizard-phase-toggle" id="phase-toggle-{{ $loop->index }}">
                             <i class="fa fa-chevron-down"></i>
@@ -937,12 +937,7 @@
     </div>
 </div>
 
-<!-- Sticky Bottom Toolbar -->
-<div id="bottom-toolbar" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); padding: 15px 30px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 1000; align-items: center; justify-content: center; gap: 16px;">
-    <div id="toolbar-actions" style="display: flex; gap: 12px;">
-        <!-- Quiz and Next Topic buttons will be dynamically added here -->
-    </div>
-</div>
+
 
 <!-- Quiz Confirmation Modal -->
 <div class="modal fade" id="quizConfirmModal" tabindex="-1" role="dialog">
@@ -1370,12 +1365,11 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         resourceContainer.style.display = 'none';
     }
     
-    // Update bottom toolbar - show/hide based on topic and quiz status
-    const bottomToolbar = document.getElementById('bottom-toolbar');
-    const toolbarActions = document.getElementById('toolbar-actions');
-    if (bottomToolbar && toolbarActions) {
+    // Update header actions - show/hide based on topic and quiz status
+    const headerActions = document.getElementById('header-actions');
+    if (headerActions) {
         // Clear existing actions
-        toolbarActions.innerHTML = '';
+        headerActions.innerHTML = '';
         
         // Check if there's a next topic
         const topics = document.querySelectorAll('.wizard-topic');
@@ -1394,17 +1388,16 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         }
         
         if (hasNextTopic) {
-            bottomToolbar.style.display = 'flex';
-            
             // Add quiz button if topic has a quiz
             if (quizId) {
                 const quizBtn = document.createElement('button');
                 quizBtn.className = 'btn btn-success btn-sm';
+                quizBtn.style.marginRight = '8px';
                 quizBtn.innerHTML = `<i class="fa fa-pencil"></i> ${currentQuizPassed ? 'Retake Quiz' : 'Take Quiz'}`;
                 quizBtn.onclick = function() {
                     confirmTakeQuiz(quizId, topicTitle);
                 };
-                toolbarActions.appendChild(quizBtn);
+                headerActions.appendChild(quizBtn);
             }
             
             // Add next topic button
@@ -1412,13 +1405,13 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             if (quizId && !currentQuizPassed) {
                 // Quiz required but not passed - disable button
                 nextBtn.className = 'btn btn-secondary btn-sm';
-                nextBtn.innerHTML = '<i class="fa fa-lock"></i> Pass Quiz to Continue';
+                nextBtn.innerHTML = '<i class="fa fa-lock"></i> Next Topic';
                 nextBtn.disabled = true;
                 nextBtn.style.opacity = '0.6';
                 nextBtn.style.cursor = 'not-allowed';
             } else {
                 // No quiz or quiz passed - enable button
-                nextBtn.className = 'btn btn-secondary btn-sm';
+                nextBtn.className = 'btn btn-primary btn-sm';
                 nextBtn.innerHTML = '<i class="fa fa-arrow-right"></i> Next Topic';
                 nextBtn.disabled = false;
                 nextBtn.style.opacity = '1';
@@ -1427,9 +1420,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                     skipQuiz();
                 };
             }
-            toolbarActions.appendChild(nextBtn);
-        } else {
-            bottomToolbar.style.display = 'none';
+            headerActions.appendChild(nextBtn);
         }
     }
 }
@@ -1454,12 +1445,6 @@ function skipQuiz() {
     if (currentQuizId && currentQuizId !== 'null' && !currentQuizPassed) {
         showFlashMessage('warning', 'Quiz Required', 'Please take and pass the quiz before proceeding to the next topic.', 'fa-exclamation-triangle');
         return;
-    }
-    
-    // Hide bottom toolbar
-    const bottomToolbar = document.getElementById('bottom-toolbar');
-    if (bottomToolbar) {
-        bottomToolbar.style.display = 'none';
     }
     
     // Move to next incomplete topic or show completion message

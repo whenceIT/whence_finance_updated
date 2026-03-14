@@ -14,7 +14,8 @@ class GeneralUpload extends Model
         'type',
         'file_size',
         'mime_type',
-        'uploaded_by'
+        'uploaded_by',
+        'poster'
     ];
     
     public function user()
@@ -96,7 +97,7 @@ class GeneralUpload extends Model
         $icons = [
             'video' => 'fa-video-camera',
             'audio' => 'fa-headphones',
-            'book' => 'fa-book',
+            'book' => 'fa-file-text',
             'paper' => 'fa-file-text',
             'document' => 'fa-file-word',
             'image' => 'fa-image',
@@ -104,5 +105,16 @@ class GeneralUpload extends Model
         ];
         
         return $icons[$this->type] ?? 'fa-file';
+    }
+    
+    /**
+     * Get poster URL for video thumbnail
+     */
+    public function getPosterUrlAttribute()
+    {
+        if ($this->poster) {
+            return $this->poster;
+        }
+        return null;
     }
 }

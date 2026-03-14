@@ -357,6 +357,111 @@ class TrainingMaterialController extends Controller
     }
 
     /**
+     * Show the form to edit a topic.
+     *
+     * @param int $topicId
+     * @return \Illuminate\Http\Response
+     */
+    public function editTopic($topicId)
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        
+        // Check if user is a trainer
+        if (!$user || $user->istrainer != 1) {
+            return redirect()->route('learning.training-materials.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to manage topics.');
+        }
+
+        $topic = CourseTopic::with('trainingMaterial')->findOrFail($topicId);
+        $material = $topic->trainingMaterial;
+        $topics = CourseTopic::where('training_material_id', $material->id)->orderBy('sort_order')->get();
+
+        return view('learning.training-materials.edit-topic', compact('topic', 'material', 'topics'));
+    }
+
+    /**
+     * Update a topic.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $topicId
+     * @return \Illuminate\Http\Response
+     */
+    public function updateTopic(Request $request, $topicId)
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        
+        // Check if user is a trainer
+        if (!$user || $user->istrainer != 1) {
+            return redirect()->route('learning.training-materials.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to manage topics.');
+        }
+
+        $topic = CourseTopic::with('trainingMaterial')->findOrFail($topicId);
+        $material = $topic->trainingMaterial;
+
+        $request->validate([
+            'topic_name' => 'required|string|max:255',
+            'topic_duration' => 'nullable|integer|min:1',
+        ]);
+
+        // Update basic fields
+        $topic->topic_name = $request->topic_name;
+        $topic->duration = $request->topic_duration;
+
+        // Handle file path updates (only if new files are uploaded)
+        if ($request->filled('video_file_path')) {
+            $topic->video_file_path = $request->video_file_path;
+            if ($request->filled('video_file_name')) {
+                $topic->file_name = $request->video_file_name;
+            }
+        }
+
+        if ($request->filled('audio_file_path')) {
+            $topic->audio_file_path = $request->audio_file_path;
+            if (!isset($topic->file_name) && $request->filled('audio_file_name')) {
+                $topic->file_name = $request->audio_file_name;
+            }
+        }
+
+        if ($request->filled('pdf_file_path')) {
+            $topic->pdf_file_path = $request->pdf_file_path;
+            if (!isset($topic->file_name) && $request->filled('pdf_file_name')) {
+                $topic->file_name = $request->pdf_file_name;
+            }
+        }
+
+        if ($request->filled('ppt_file_path')) {
+            $topic->ppt_file_path = $request->ppt_file_path;
+            if (!isset($topic->file_name) && $request->filled('ppt_file_name')) {
+                $topic->file_name = $request->ppt_file_name;
+            }
+        }
+
+        if ($request->filled('document_file_path')) {
+            $topic->document_file_path = $request->document_file_path;
+            if (!isset($topic->file_name) && $request->filled('document_file_name')) {
+                $topic->file_name = $request->document_file_name;
+            }
+        }
+
+        $topic->save();
+
+        return redirect()->route('learning.training-materials.topics', ['materialId' => $material->id])
+            ->with('toastr_type', 'success')
+            ->with('toastr_message', 'Topic updated successfully.');
+    }
+
+    /**
      * Store a newly created training material in storage. (Legacy method - kept for compatibility)
      *
      * @param \Illuminate\Http\Request $request

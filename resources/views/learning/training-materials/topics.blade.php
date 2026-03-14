@@ -207,9 +207,6 @@ $breadcrumb = [
 </style>
 
 <div class="page-header">
-    <a href="{{ url('learning/training-materials') }}" class="back-link">
-        <i class="fa fa-arrow-left"></i> Back to Training Materials
-    </a>
     <h1>Manage Topics & Quizzes</h1>
     <p>Configure learning topics and quizzes for your training materials</p>
 </div>
@@ -247,6 +244,9 @@ $breadcrumb = [
                 </div>
             </div>
             <div class="topic-actions">
+                <a href="{{ url('/learning/training-materials/topic/' . $topic->id . '/edit') }}" class="btn btn-secondary btn-sm">
+                    <i class="fa fa-edit"></i> Edit Topic
+                </a>
                 @if($topic->quiz)
                     <a href="{{ url('/learning/training-materials/topic/' . $topic->id . '/quiz/manage') }}" class="btn btn-primary btn-sm">
                         <i class="fa fa-edit"></i> Edit Quiz

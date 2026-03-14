@@ -166,9 +166,10 @@
              data-name="{{ $upload->name }}"
              data-type="{{ $upload->type }}"
              data-size="{{ $upload->formatted_size }}"
-             onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size }}')"
+             data-poster="{{ $upload->poster ?? '' }}"
+             onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size }}', '{{ $upload->poster ?? '' }}')"
              style="cursor: pointer;">
-            <div class="course-image" style="background: {{ $upload->type_color }}; position: relative;">
+            <div class="course-image" style="{{ $upload->type === 'video' && $upload->poster ? 'background-image: url(' . $upload->poster . '); background-size: cover; background-position: center;' : 'background: ' . $upload->type_color . ';' }} position: relative;">
                 @if($upload->type === 'video')
                 <!-- Video Play Button Overlay -->
                 <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2);">
@@ -273,7 +274,7 @@ function filterUploads(type) {
 }
 
 // Play media inline (YouTube-like)
-function playMedia(type, path, name, size) {
+function playMedia(type, path, name, size, poster = '') {
     // Show player container
     var playerContainer = document.getElementById('dashboard-player');
     playerContainer.style.display = 'block';
@@ -288,9 +289,10 @@ function playMedia(type, path, name, size) {
     wrapper.innerHTML = '';
     
     if (type === 'video') {
-        // Video player
+        // Video player with poster if available
+        var posterAttr = poster ? `poster="${poster}"` : '';
         wrapper.innerHTML = `
-            <video id="dashboard-video-player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" style="width: 100%; height: 400px;">
+            <video id="dashboard-video-player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" style="width: 100%; height: 400px;" ${posterAttr}>
                 <source src="${path}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
