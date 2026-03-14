@@ -783,6 +783,17 @@
 </style>
 
 <div class="classroom-page">
+    {{-- Preview Mode Banner --}}
+    @if(request()->get('preview') == 1)
+    <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 12px 30px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);">
+        <i class="fa fa-eye"></i>
+        <span>PREVIEW MODE</span>
+        <span style="font-weight: 400; opacity: 0.9; font-size: 13px;">- You are viewing this course as a trainer/administrator. Your progress is not being tracked.</span>
+        <a href="{{ url('learning/training-materials/' . (isset($material) ? $material->id : '') . '/topics') }}" style="position: absolute; right: 20px; color: white; font-size: 18px; opacity: 0.8; transition: opacity 0.2s;" title="Back to Topics" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+            <i class="fa fa-times"></i>
+        </a>
+    </div>
+    @endif
     <div class="classroom-container">
         <!-- Sidebar with Vertical Wizard -->
         <div class="classroom-sidebar" id="classroom-sidebar">
@@ -1488,17 +1499,69 @@ function skipQuiz() {
 
 // Expand first phase by default
 document.addEventListener('DOMContentLoaded', function() {
+    // Check URL parameters for topic and preview mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const topicParam = urlParams.get('topic');
+    const previewMode = urlParams.get('preview');
+    
     const firstToggle = document.getElementById('phase-toggle-0');
     if (firstToggle) {
         firstToggle.classList.add('expanded');
         document.getElementById('phase-topics-0').style.display = 'block';
     }
     
-    // Load first incomplete topic if exists
-    const firstIncomplete = document.querySelector('.wizard-topic[data-topic-completed="false"]');
-    if (firstIncomplete) {
-        const topicId = firstIncomplete.dataset.topicId;
-        openTopic(topicId, 'video', '');
+    // If topic parameter is passed (preview mode), load that specific topic
+    if (topicParam) {
+        // Find and open the topic from URL parameter
+        const topicElement = document.querySelector(`[data-topic-id="${topicParam}"]`);
+        if (topicElement) {
+            // Get topic details from the element
+            const topicId = topicElement.dataset.topicId;
+            const quizId = topicElement.dataset.quizId && topicElement.dataset.quizId !== 'null' ? topicElement.dataset.quizId : null;
+            
+            // Determine topic type from icon
+            let topicType = 'video';
+            if (topicElement.querySelector('.fa-file-pdf-o')) topicType = 'pdf';
+            else if (topicElement.querySelector('.fa-file-powerpoint-o')) topicType = 'ppt';
+            else if (topicElement.querySelector('.fa-file-word-o')) topicType = 'document';
+            else if (topicElement.querySelector('.fa-headphones')) topicType = 'audio';
+            
+            // Get file path from phases data
+            let filePath = '';
+            for (let phase of phases) {
+                for (let topic of phase.topics) {
+                    if (topic.id == topicParam) {
+                        filePath = topic.file_path || topic.video_file_path || '';
+                        break;
+                    }
+                }
+            }
+            
+            openTopic(topicId, topicType, filePath, quizId);
+            
+            // Expand the phase containing this topic
+            const phaseElement = topicElement.closest('.wizard-phase');
+            if (phaseElement) {
+                const phaseIndex = Array.from(phaseElement.parentElement.children).indexOf(phaseElement);
+                const toggleElement = document.getElementById('phase-toggle-' + phaseIndex);
+                const topicsElement = document.getElementById('phase-topics-' + phaseIndex);
+                if (toggleElement && topicsElement) {
+                    toggleElement.classList.add('expanded');
+                    topicsElement.style.display = 'block';
+                }
+            }
+            
+            if (previewMode == '1') {
+                console.log('Preview Mode: Loading topic ID ' + topicParam);
+            }
+        }
+    } else {
+        // Normal mode: Load first incomplete topic
+        const firstIncomplete = document.querySelector('.wizard-topic[data-topic-completed="false"]');
+        if (firstIncomplete) {
+            const topicId = firstIncomplete.dataset.topicId;
+            openTopic(topicId, 'video', '');
+        }
     }
     
     

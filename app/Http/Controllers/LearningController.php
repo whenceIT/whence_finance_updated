@@ -294,7 +294,7 @@ class LearningController extends Controller
     {
         
         $user = Sentinel::getUser();
-        $material = TrainingMaterial::with('topics.quiz.attempts')->findOrFail($id);
+        $material = TrainingMaterial::with(['topics.quiz.attempts', 'creator.roles'])->findOrFail($id);
         $isEnrolled = false;
         $progress = 0;
         $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);

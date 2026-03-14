@@ -48,24 +48,49 @@ class QuizController extends Controller
      */
     public function manage($topicId)
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
+        try {
+            if (!Sentinel::check()) {
+                return redirect('login');
+            }
 
-        $user = Sentinel::getUser();
-        $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
-        $isTrainer = $user->istrainer == 1;
+            $user = Sentinel::getUser();
+            $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
+            $isTrainer = $user->istrainer == 1;
 
-        if (!$isAdmin && !$isTrainer) {
+            if (!$isAdmin && !$isTrainer) {
+                return redirect()->route('learning.index')
+                    ->with('toastr_type', 'error')
+                    ->with('toastr_message', 'You do not have permission.');
+            }
+
+            $topic = CourseTopic::with('quiz.questions.options')->findOrFail($topicId);
+            $quiz = $topic->quiz;
+
+            return view('learning.quizzes.manage', compact('topic', 'quiz'));
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error loading quiz manage page: ' . $e->getMessage(), [
+                'topic_id' => $topicId,
+                'user_id' => Sentinel::getUser() ? Sentinel::getUser()->id : null
+            ]);
             return redirect()->route('learning.index')
                 ->with('toastr_type', 'error')
-                ->with('toastr_message', 'You do not have permission.');
+                ->with('toastr_message', 'Unable to load quiz. Please try again later.');
+        } catch (\Illuminate\Routing\Exceptions\UrlNotFoundException $e) {
+            \Log::error('Topic not found for quiz manage: ' . $e->getMessage(), [
+                'topic_id' => $topicId
+            ]);
+            return redirect()->route('learning.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'Topic not found.');
+        } catch (\Throwable $e) {
+            \Log::error('Error loading quiz manage page: ' . $e->getMessage(), [
+                'topic_id' => $topicId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->route('learning.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'An error occurred while loading the quiz. Please try again.');
         }
-
-        $topic = CourseTopic::with('quiz.questions.options')->findOrFail($topicId);
-        $quiz = $topic->quiz;
-
-        return view('learning.quizzes.manage', compact('topic', 'quiz'));
     }
 
     /**
@@ -73,24 +98,52 @@ class QuizController extends Controller
      */
     public function save(Request $request, $topicId)
     {
-        if (!Sentinel::check()) {
-            return redirect('login');
-        }
-
-        $user = Sentinel::getUser();
-        $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
-        $isTrainer = $user->istrainer == 1;
-
-        if (!$isAdmin && !$isTrainer) {
-            return redirect()->route('learning.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'You do not have permission.');
-        }
-
         try {
+            if (!Sentinel::check()) {
+                return redirect('login');
+            }
+
+            $user = Sentinel::getUser();
+            $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
+            $isTrainer = $user->istrainer == 1;
+
+            if (!$isAdmin && !$isTrainer) {
+                return redirect()->route('learning.index')
+                    ->with('toastr_type', 'error')
+                    ->with('toastr_message', 'You do not have permission.');
+            }
+
+            // Validate request
+            $request->validate([
+                'quiz_title' => 'required|string|max:255',
+                'passing_score' => 'required|integer|min:0|max:100',
+                'questions' => 'required|array|min:1',
+            ], [
+                'quiz_title.required' => 'Quiz title is required.',
+                'passing_score.required' => 'Passing score is required.',
+                'questions.required' => 'At least one question is required.',
+                'questions.min' => 'At least one question is required.',
+            ]);
+
+            // Validate each question has options
+            foreach ($request->questions as $index => $question) {
+                if (empty($question['options']) || count($question['options']) < 2) {
+                    return redirect()->back()
+                        ->with('toastr_type', 'error')
+                        ->with('toastr_message', 'Question ' . ($index + 1) . ' must have at least 2 options.')
+                        ->withInput();
+                }
+                if (!isset($question['correct_option'])) {
+                    return redirect()->back()
+                        ->with('toastr_type', 'error')
+                        ->with('toastr_message', 'Please select the correct answer for Question ' . ($index + 1) . '.')
+                        ->withInput();
+                }
+            }
+
             $topic = CourseTopic::findOrFail($topicId);
 
-            DB::transaction(function () use ($request, $topic) {
+            DB::transaction(function () use ($request, $topic, $user) {
                 // Create or update quiz
                 $quiz = Quiz::updateOrCreate(
                     ['course_topic_id' => $topic->id],
@@ -102,6 +155,8 @@ class QuizController extends Controller
                         'is_active' => true,
                     ]
                 );
+
+                \Log::info('Quiz saved', ['quiz_id' => $quiz->id, 'topic_id' => $topic->id, 'user_id' => $user->id]);
 
                 // Delete existing questions and options
                 QuizQuestion::where('quiz_id', $quiz->id)->delete();
@@ -133,13 +188,34 @@ class QuizController extends Controller
                 }
             });
 
-            return redirect()->route('learning.quizzes.index', ['id' => $topic->trainingMaterial->id])
+            return redirect()->route('learning.training-materials.topics', ['materialId' => $topic->trainingMaterial->id])
                 ->with('toastr_type', 'success')
                 ->with('toastr_message', 'Quiz saved successfully!');
-        } catch (\Throwable $th) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
                 ->with('toastr_type', 'error')
-                ->with('toastr_message', 'Error saving quiz: ' . $th->getMessage())
+                ->with('toastr_message', 'Please fill in all required fields correctly.')
+                ->withErrors($e->validator)
+                ->withInput();
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error saving quiz: ' . $e->getMessage(), [
+                'topic_id' => $topicId,
+                'user_id' => Sentinel::getUser() ? Sentinel::getUser()->id : null,
+                'request' => $request->except(['_token'])
+            ]);
+            return redirect()->back()
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'Unable to save quiz. Please try again later.')
+                ->withInput();
+        } catch (\Throwable $th) {
+            \Log::error('Error saving quiz: ' . $th->getMessage(), [
+                'topic_id' => $topicId,
+                'user_id' => Sentinel::getUser() ? Sentinel::getUser()->id : null,
+                'trace' => $th->getTraceAsString()
+            ]);
+            return redirect()->back()
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'An error occurred while saving the quiz. Please try again.')
                 ->withInput();
         }
     }
@@ -269,24 +345,54 @@ class QuizController extends Controller
      */
     public function delete($quizId)
     {
-        if (!Sentinel::check()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        try {
+            if (!Sentinel::check()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $user = Sentinel::getUser();
+            $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
+            $isTrainer = $user->istrainer == 1;
+
+            if (!$isAdmin && !$isTrainer) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+
+            $quiz = Quiz::findOrFail($quizId);
+            $quiz->delete();
+
+            \Log::info('Quiz deleted', ['quiz_id' => $quizId, 'user_id' => $user->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Quiz deleted successfully!'
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error deleting quiz: ' . $e->getMessage(), [
+                'quiz_id' => $quizId,
+                'user_id' => Sentinel::getUser() ? Sentinel::getUser()->id : null
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to delete quiz. Please try again later.'
+            ], 500);
+        } catch (\Illuminate\Routing\Exceptions\UrlNotFoundException $e) {
+            \Log::error('Quiz not found for deletion: ' . $e->getMessage(), [
+                'quiz_id' => $quizId
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Quiz not found.'
+            ], 404);
+        } catch (\Throwable $e) {
+            \Log::error('Error deleting quiz: ' . $e->getMessage(), [
+                'quiz_id' => $quizId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the quiz.'
+            ], 500);
         }
-
-        $user = Sentinel::getUser();
-        $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
-        $isTrainer = $user->istrainer == 1;
-
-        if (!$isAdmin && !$isTrainer) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-        }
-
-        $quiz = Quiz::findOrFail($quizId);
-        $quiz->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Quiz deleted successfully!'
-        ]);
     }
 }

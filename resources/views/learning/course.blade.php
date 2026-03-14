@@ -4,14 +4,38 @@
 
 @section('content')
 <div class="page-header">
-    <div style="display: flex; align-items: center; gap: 16px;">
-        <a href="{{ url('/learning') }}" style="color: var(--primary-color); font-size: 24px;">
-            <i class="fa fa-arrow-left"></i>
-        </a>
-        <div>
-            <h1>{{ $material->title }}</h1>
-            <p>{{ $material->description }}</p>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="{{ url('/learning') }}" style="color: var(--primary-color); font-size: 24px;">
+                <i class="fa fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1>{{ $material->title }}</h1>
+                <p>{{ $material->description }}</p>
+            </div>
         </div>
+        
+        <!-- Trainer Info Card in Header -->
+        @if($material->creator)
+        <div style="background: white; border-radius: 12px; box-shadow: var(--shadow); padding: 16px 20px; display: flex; align-items: center; gap: 16px; min-width: 280px;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0;">
+                <i class="fa fa-user"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ $material->creator->first_name }} {{ $material->creator->last_name }}
+                </div>
+                @if($material->creator->roles && $material->creator->roles->first())
+                <div style="font-size: 12px; color: var(--primary-color); font-weight: 500;">
+                    {{ $material->creator->roles->first()->name }}
+                </div>
+                @endif
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                    <i class="fa fa-clock-o"></i> {{ $material->created_at->diffForHumans() }}
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 

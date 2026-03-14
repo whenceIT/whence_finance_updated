@@ -284,6 +284,16 @@ class TrainingMaterial extends Model
     }
 
     /**
+     * Get the user who created this training material.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
      * Get the categories that belong to this training material.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany

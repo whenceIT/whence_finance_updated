@@ -211,6 +211,16 @@ $breadcrumb = [
     <p>Configure learning topics and quizzes for your training materials</p>
 </div>
 
+
+<div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+    <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(40, 167, 69, 0.45)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(40, 167, 69, 0.35)'">
+        <i class="fa fa-plus-circle"></i> Add Topics
+    </a>
+    <a href="{{ url('learning/training-materials/' . $material->id . '/edit') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.35); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(74, 144, 226, 0.45)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(74, 144, 226, 0.35)'">
+        <i class="fa fa-edit"></i> Edit Material
+    </a>
+</div>
+
 <div class="topics-container">
     <div class="material-info">
         <h2>{{ $material->title }}</h2>
@@ -256,7 +266,7 @@ $breadcrumb = [
                         <i class="fa fa-plus"></i> Add Quiz
                     </a>
                 @endif
-                <a href="{{ url('learning/course/' . $material->id . '/classroom?topic=' . $topic->id) }}" class="btn btn-secondary btn-sm" target="_blank">
+                <a href="{{ url('learning/course/' . $material->id . '/classroom?topic=' . $topic->id . '&preview=1') }}" class="btn btn-secondary btn-sm" target="_blank">
                     <i class="fa fa-eye"></i> Preview
                 </a>
             </div>
@@ -267,19 +277,10 @@ $breadcrumb = [
             <i class="fa fa-folder-open"></i>
             <h3>No Topics Found</h3>
             <p>This training material doesn't have any topics yet. Add topics to create a structured learning experience for your users.</p>
-            <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" class="btn btn-success" style="padding: 12px 30px; margin-top: 20px;">
-                <i class="fa fa-plus"></i> Add First Topic
+            <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35); transition: all 0.3s; margin-top: 20px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(40, 167, 69, 0.45)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(40, 167, 69, 0.35)'">
+                <i class="fa fa-plus-circle"></i> Add First Topic
             </a>
         </div>
     @endif
-</div>
-
-<div style="margin-top: 30px; text-align: center; display: flex; gap: 15px; justify-content: center;">
-    <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" class="btn btn-success" style="padding: 12px 30px;">
-        <i class="fa fa-plus"></i> Add Topics
-    </a>
-    <a href="{{ url('learning/training-materials/' . $material->id . '/edit') }}" class="btn btn-primary" style="padding: 12px 30px;">
-        <i class="fa fa-edit"></i> Edit Training Material
-    </a>
 </div>
 @endsection
