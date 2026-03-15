@@ -795,7 +795,72 @@ class TrainingMaterialController extends Controller
 
         $material = TrainingMaterial::with(['creator', 'allTopics' => function($query) {
             $query->ordered();
-        }, 'allTopics.quiz'])->findOrFail($id);
+        }, 'allTopics.quiz', 'enrollments.user', 'enrollments.user.roles'])
+            ->findOrFail($id);
+
+        // Get enrolled users ordered by progress (highest to lowest)
+        $enrolledUsers = [];
+        foreach ($material->enrollments->sortByDesc('progress') as $enrollment) {
+            $user = $enrollment->user;
+            if (!$user) continue;
+            
+            // Get quiz stats for this user and material
+            $quizStats = [];
+            $topicsWithQuizzes = 0;
+            $completedQuizzes = 0;
+            
+            foreach ($material->allTopics as $topic) {
+                if ($topic->quiz) {
+                    $topicsWithQuizzes++;
+                    $attempt = \App\Models\QuizAttempt::where('user_id', $user->id)
+                        ->where('quiz_id', $topic->quiz->id)
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+                    
+                    if ($attempt) {
+                        $completedQuizzes++;
+                        $quizStats[] = [
+                            'topic_id' => $topic->id,
+                            'quiz_id' => $topic->quiz->id,
+                            'attempted' => true,
+                            'score' => $attempt->score ?? 0,
+                            'passed' => ($attempt->score ?? 0) >= ($topic->quiz->passing_score ?? 70),
+                        ];
+                    } else {
+                        $quizStats[] = [
+                            'topic_id' => $topic->id,
+                            'quiz_id' => $topic->quiz->id,
+                            'attempted' => false,
+                            'score' => 0,
+                            'passed' => false,
+                        ];
+                    }
+                }
+            }
+            
+            $scores = array_filter(array_column($quizStats, 'score'));
+            $averageScore = count($scores) > 0 ? round(array_sum($scores) / count($scores)) : 0;
+            
+            $enrolledUsers[] = [
+                'id' => $enrollment->id,
+                'user_id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+                'enrolled_at' => $enrollment->enrolled_at,
+                'progress' => $enrollment->progress ?? 0,
+                'completed_topics' => $enrollment->completed_topics ?? [],
+                'quiz_stats' => $quizStats,
+                'topics_with_quizzes' => $topicsWithQuizzes,
+                'completed_all_quizzes' => $completedQuizzes == $topicsWithQuizzes && $topicsWithQuizzes > 0,
+                'average_score' => $averageScore,
+            ];
+        }
+
+        // Get current user enrollment if logged in
+        $user = Sentinel::getUser();
+        $currentUserEnrollment = $material->enrollments->where('user_id', $user->id)->first();
+        $isEnrolled = $currentUserEnrollment ? true : false;
+        $isAdmin = in_array($role->id, ['1', '6', '4']);
 
         // Check if user has permission to view this material
         if (!$material->is_active) {
@@ -804,7 +869,8 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_message', 'This training material is not available.');
         }
 
-        if ($roleId && $material->target_role != 'all' && $material->target_role != $roleId) {
+        // Important dont change this condition: $role->id != 1 || $user->istrainer != 1
+        if ($role->id != 1 || $user->istrainer != 1) {
             return redirect()->route('learning.training-materials.index')
                 ->with('toastr_type', 'warning')
                 ->with('toastr_message', 'You do not have permission to view this training material.');
@@ -813,7 +879,7 @@ class TrainingMaterialController extends Controller
         // Increment view count
         $material->incrementViewCount();
 
-        return view('learning.training-materials.show', compact('material'));
+        return view('learning.training-materials.show', compact('material', 'enrolledUsers', 'isEnrolled', 'isAdmin'));
     }
 
     /**

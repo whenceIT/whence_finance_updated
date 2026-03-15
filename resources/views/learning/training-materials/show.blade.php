@@ -316,6 +316,84 @@ $breadcrumb = [
         </div>
         @endif
         @endif
+        @endif
+        @endif
+        
+        <!-- Enrolled Users / Leaderboard -->
+        @if(isset($enrolledUsers) && count($enrolledUsers) > 0)
+        <div class="panel panel-default" style="border-radius: 10px; box-shadow: var(--shadow); margin-top: 24px;">
+            <div class="panel-body" style="padding: 30px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">
+                    <i class="fa fa-trophy" style="color: var(--primary-color); margin-right: 10px;"></i>
+                    Leaderboard ({{ count($enrolledUsers) }} enrolled)
+                </h3>
+                
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">#</th>
+                                <th>Name</th>
+                                <th>Progress</th>
+                                <th>Quiz Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($enrolledUsers as $index => $enrolledUser)
+                                <tr>
+                                    <td style="text-align: center;">
+                                        @if($index == 0)
+                                            <i class="fa fa-trophy" style="color: #FFD700; font-size: 18px;"></i>
+                                        @elseif($index == 1)
+                                            <i class="fa fa-trophy" style="color: #C0C0C0; font-size: 16px;"></i>
+                                        @elseif($index == 2)
+                                            <i class="fa fa-trophy" style="color: #CD7F32; font-size: 16px;"></i>
+                                        @else
+                                            <span style="color: var(--text-secondary); font-weight: 600;">{{ $index + 1 }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600;">{{ $enrolledUser['name'] }}</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">{{ $enrolledUser['email'] }}</div>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="flex: 1; height: 8px; background: var(--light-bg); border-radius: 4px; overflow: hidden;">
+                                                <div style="height: 100%; width: {{ $enrolledUser['progress'] }}%; background: var(--primary-color); border-radius: 4px;"></div>
+                                            </div>
+                                            <span style="font-weight: 600; min-width: 40px;">{{ $enrolledUser['progress'] }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if($enrolledUser['topics_with_quizzes'] > 0)
+                                            <span style="font-weight: 600;">{{ $enrolledUser['average_score'] }}%</span>
+                                            <div style="font-size: 11px; color: var(--text-secondary);">
+                                                {{ count(array_filter($enrolledUser['quiz_stats'], function($stat) { return $stat['attempted']; })) }}/{{ $enrolledUser['topics_with_quizzes'] }} quizzes
+                                            </div>
+                                        @else
+                                            <span style="color: var(--text-secondary);">N/A</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($enrolledUser['completed_all_quizzes'])
+                                            <span class="label label-success" style="background: #28a745; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                                <i class="fa fa-check-circle"></i> Completed
+                                            </span>
+                                        @else
+                                            <span class="label label-warning" style="background: #ffc107; color: #333; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                                <i class="fa fa-spinner"></i> In Progress
+                                            </span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 
     <div class="col-md-4">
