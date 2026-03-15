@@ -243,7 +243,31 @@ $breadcrumb = [
                 @if($material->allTopics && $material->allTopics->count() > 0)
                     <div style="max-height: 500px; overflow-y: auto;">
                         @foreach($material->allTopics as $index => $topic)
-                        <div class="topic-item" data-topic-id="{{ $topic->id }}" data-topic-name="{{ addslashes($topic->topic_name) }}" onclick="showTopicPreview(this)">
+                        @php
+                            // Determine the resource path and type (priority: video > audio > pdf)
+                            $resourcePath = '';
+                            $resourceType = 'Video';
+                            if (!empty($topic->video_file_path)) {
+                                $resourcePath = $topic->video_file_path;
+                                $resourceType = 'Video';
+                            } elseif (!empty($topic->audio_file_path)) {
+                                $resourcePath = $topic->audio_file_path;
+                                $resourceType = 'Audio';
+                            } elseif (!empty($topic->pdf_file_path)) {
+                                $resourcePath = $topic->pdf_file_path;
+                                $resourceType = 'PDF';
+                            }
+                            $previewUrl = '';
+                            if ($resourcePath) {
+                                $previewUrl = route('learning.settings.courses.resource-preview', [
+                                    'path' => $resourcePath,
+                                    'type' => $resourceType,
+                                    'topic' => $topic->topic_name,
+                                    'course' => $material->id
+                                ]);
+                            }
+                        @endphp
+                        <a href="{{ $previewUrl }}" class="topic-item" style="text-decoration: none; color: inherit; {{ !$previewUrl ? 'cursor: default;' : '' }}" {{ !$previewUrl ? 'onclick="alert(\'No resource available for this topic.\'); return false;"' : '' }}>
                             <div class="topic-number">{{ $index + 1 }}</div>
                             <div class="topic-info">
                                 <div class="topic-title">{{ $topic->topic_name }}</div>
@@ -266,11 +290,13 @@ $breadcrumb = [
                                         </span>
                                     @endif
                                 </div>
+                            @if($previewUrl)
+                                <i class="fa fa-play"></i> Video Preview
+                            @else
+                                <i class="text-muted"></i> No Preview
+                            @endif
                             </div>
-                            <button class="btn-play-topic">
-                                <i class="fa fa-play"></i> View
-                            </button>
-                        </div>
+                        </a>
                         @endforeach
                     </div>
                 @else
@@ -473,146 +499,5 @@ $breadcrumb = [
     </div>
 </div>
 
-<!-- Topic Preview Modal -->
-<div id="topicPreviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto;" onclick="closeTopicPreview(event)">
-    <div style="background: white; max-width: 700px; margin: 50px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
-        <div style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); padding: 20px 25px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; color: white; font-size: 18px;">
-                <i class="fa fa-book"></i> <span id="topicPreviewTitle">Topic Details</span>
-            </h3>
-            <button onclick="closeTopicPreviewModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px;">
-                <i class="fa fa-times"></i>
-            </button>
-        </div>
-        <div id="topicPreviewContent" style="padding: 25px; max-height: 60vh; overflow-y: auto;">
-            <!-- Topic details will be loaded here -->
-            <div style="text-align: center; padding: 40px;">
-                <i class="fa fa-spinner fa-spin" style="font-size: 32px; color: var(--primary-color);"></i>
-                <p style="margin-top: 15px; color: var(--text-secondary);">Loading topic details...</p>
-            </div>
-        </div>
-        <div style="padding: 15px 25px; background: var(--light-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
-            <button onclick="closeTopicPreviewModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                Close
-            </button>
-        </div>
-    </div>
-</div>
 
-<script>
-// Topic data passed from server
-var topicData = {};
-@if($material->allTopics)
-@foreach($material->allTopics as $topic)
-topicData[{{ $topic->id }}] = {
-    id: {{ $topic->id }},
-    name: '{{ json_encode($topic->topic_name) }}',
-    type: '{{ $topic->topic_type }}',
-    duration: {{ $topic->duration ?? 'null' }},
-    video_path: '{{ $topic->video_file_path ?? '' }}',
-    audio_path: '{{ $topic->audio_file_path ?? '' }}',
-    pdf_path: '{{ $topic->pdf_file_path ?? '' }}',
-    quiz: {{ $topic->quiz ? '{id: ' . $topic->quiz->id . ', title: ' . json_encode($topic->quiz->title) . '}' : 'null' }}
-};
-@endforeach
-@endif
-
-function showTopicPreview(element) {
-    var topicId = parseInt(element.dataset.topicId);
-    var topicName = element.dataset.topicName;
-    document.getElementById('topicPreviewTitle').textContent = topicName;
-    document.getElementById('topicPreviewModal').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    
-    renderTopicDetails(topicId);
-}
-
-function closeTopicPreviewModal() {
-    document.getElementById('topicPreviewModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-function closeTopicPreview(event) {
-    if (event.target.id === 'topicPreviewModal') {
-        closeTopicPreviewModal();
-    }
-}
-
-function renderTopicDetails(topicId) {
-    var contentDiv = document.getElementById('topicPreviewContent');
-    var topic = topicData[topicId];
-    
-    if (!topic) {
-        contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fa fa-exclamation-circle" style="font-size: 48px; color: var(--text-secondary);"></i><p style="margin-top: 15px; color: var(--text-secondary);">Topic not found.</p></div>';
-        return;
-    }
-    
-    var html = '';
-    
-    // Topic Info Card
-    html += '<div style="background: var(--light-bg); border-radius: 8px; padding: 20px; margin-bottom: 20px;">';
-    html += '<h4 style="margin: 0 0 15px 0; font-size: 16px; color: var(--text-primary);">' + topic.name + '</h4>';
-    html += '<div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">';
-    html += '<div style="display: flex; align-items: center; gap: 6px;"><i class="fa fa-clock-o" style="color: var(--primary-color);"></i><span style="font-size: 13px; color: var(--text-secondary);">' + (topic.duration ? topic.duration + ' minutes' : 'N/A') + '</span></div>';
-    html += '<div style="display: flex; align-items: center; gap: 6px;"><i class="fa fa-file-o" style="color: var(--primary-color);"></i><span style="font-size: 13px; color: var(--text-secondary); text-transform: capitalize;">' + topic.type + '</span></div>';
-    html += '</div>';
-    
-    if (topic.quiz) {
-        html += '<div style="background: rgba(40, 167, 69, 0.1); padding: 10px 15px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">';
-        html += '<i class="fa fa-check-circle" style="color: #28a745;"></i>';
-        html += '<span style="color: #28a745; font-weight: 500; font-size: 13px;">Quiz Available: ' + topic.quiz.title + '</span>';
-        html += '</div>';
-    } else {
-        html += '<div style="background: rgba(108, 117, 125, 0.1); padding: 10px 15px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">';
-        html += '<i class="fa fa-times-circle" style="color: #6c757d;"></i>';
-        html += '<span style="color: #6c757d; font-weight: 500; font-size: 13px;">No Quiz</span>';
-        html += '</div>';
-    }
-    html += '</div>';
-    
-    // File Resources
-    html += '<h5 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Available Resources</h5>';
-    html += '<div style="display: flex; flex-direction: column; gap: 10px;">';
-    
-    var hasResources = false;
-    
-    if (topic.video_path) {
-        hasResources = true;
-        html += '<a href="' + topic.video_path + '" target="_blank" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: rgba(74, 144, 226, 0.1); border-radius: 8px; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform=\'translateX(4px)\'" onmouseout="this.style.transform=\'translateX(0)\'">';
-        html += '<i class="fa fa-video-camera" style="color: var(--primary-color); font-size: 20px;"></i>';
-        html += '<div style="flex: 1;"><div style="font-weight: 600; color: var(--text-primary); font-size: 13px;">Video</div><div style="font-size: 11px; color: var(--text-secondary);">Click to watch</div></div>';
-        html += '<i class="fa fa-external-link" style="color: var(--text-secondary);"></i>';
-        html += '</a>';
-    }
-    
-    if (topic.audio_path) {
-        hasResources = true;
-        html += '<a href="' + topic.audio_path + '" target="_blank" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: rgba(40, 167, 69, 0.1); border-radius: 8px; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform=\'translateX(4px)\'" onmouseout="this.style.transform=\'translateX(0)\'">';
-        html += '<i class="fa fa-headphones" style="color: #28a745; font-size: 20px;"></i>';
-        html += '<div style="flex: 1;"><div style="font-weight: 600; color: var(--text-primary); font-size: 13px;">Audio</div><div style="font-size: 11px; color: var(--text-secondary);">Click to listen</div></div>';
-        html += '<i class="fa fa-external-link" style="color: var(--text-secondary);"></i>';
-        html += '</a>';
-    }
-    
-    if (topic.pdf_path) {
-        hasResources = true;
-        html += '<a href="' + topic.pdf_path + '" target="_blank" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: rgba(231, 76, 60, 0.1); border-radius: 8px; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform=\'translateX(4px)\'" onmouseout="this.style.transform=\'translateX(0)\'">';
-        html += '<i class="fa fa-file-pdf-o" style="color: #e74c3c; font-size: 20px;"></i>';
-        html += '<div style="flex: 1;"><div style="font-weight: 600; color: var(--text-primary); font-size: 13px;">PDF Document</div><div style="font-size: 11px; color: var(--text-secondary);">Click to view</div></div>';
-        html += '<i class="fa fa-external-link" style="color: var(--text-secondary);"></i>';
-        html += '</a>';
-    }
-    
-    if (!hasResources) {
-        html += '<div style="text-align: center; padding: 30px; background: var(--light-bg); border-radius: 8px; color: var(--text-secondary);">';
-        html += '<i class="fa fa-folder-open" style="font-size: 32px; margin-bottom: 10px;"></i>';
-        html += '<p style="margin: 0; font-size: 13px;">No resources available for this topic.</p>';
-        html += '</div>';
-    }
-    
-    html += '</div>';
-    
-    contentDiv.innerHTML = html;
-}
-</script>
 @endsection
