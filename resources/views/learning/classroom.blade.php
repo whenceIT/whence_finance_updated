@@ -704,7 +704,7 @@
     }
     
     .content-card-body {
-        padding: 1px 2px;
+        padding: 0px;
     }
     
     .content-icon {
@@ -783,6 +783,17 @@
 </style>
 
 <div class="classroom-page">
+    {{-- Preview Mode Banner --}}
+    @if(request()->get('preview') == 1)
+    <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 12px 30px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);">
+        <i class="fa fa-eye"></i>
+        <span>PREVIEW MODE</span>
+        <span style="font-weight: 400; opacity: 0.9; font-size: 13px;">- You are viewing this course as a trainer/administrator. Your progress is not being tracked.</span>
+        <a href="{{ url('learning/training-materials/' . (isset($material) ? $material->id : '') . '/topics') }}" style="position: absolute; right: 20px; color: white; font-size: 18px; opacity: 0.8; transition: opacity 0.2s;" title="Back to Topics" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+            <i class="fa fa-times"></i>
+        </a>
+    </div>
+    @endif
     <div class="classroom-container">
         <!-- Sidebar with Vertical Wizard -->
         <div class="classroom-sidebar" id="classroom-sidebar">
@@ -815,7 +826,7 @@
                         </div>
                         <div class="wizard-phase-info">
                             <div class="wizard-phase-title">{{ $phase['title'] }}</div>
-                            <div class="wizard-phase-description">{{ $phase['description'] }}</div>
+                            <div class="wizard-phase-description">{{ strlen($phase['description']) > 40 ? substr($phase['description'], 0, 40) . '...' : $phase['description'] }}</div>
                         </div>
                         <div class="wizard-phase-toggle" id="phase-toggle-{{ $loop->index }}">
                             <i class="fa fa-chevron-down"></i>
@@ -907,12 +918,12 @@
                     @endphp
                     @if(isset($material->file_path) && $material->file_path && strpos($material->file_path, 'http') === 0)
                         @if($fileType === '')
-                    <a href="{{ $material->file_path }}" class="btn btn-default btn-sm" target="_blank">
+                    <button class="btn btn-default btn-sm" onclick="previewExternalResource('{{ $material->file_path }}', 'file')">
                         <i class="fa fa-external-link"></i> Open Resource
-                    </a>
+                    </button>
                         @else
-                    <span class="btn btn-default btn-sm" style="opacity: 0.5; cursor: not-allowed;" title="Download disabled for {{ $fileType }} files">
-                        <i class="fa fa-external-link"></i> Open Resource
+                    <span class="btn btn-default btn-sm" style="opacity: 0.5; cursor: not-allowed;" title="Download disabled - preview in platform">
+                        <i class="fa fa-eye"></i> Preview
                     </span>
                         @endif
                     @endif
@@ -937,12 +948,7 @@
     </div>
 </div>
 
-<!-- Sticky Bottom Toolbar -->
-<div id="bottom-toolbar" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); padding: 15px 30px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 1000; align-items: center; justify-content: center; gap: 16px;">
-    <div id="toolbar-actions" style="display: flex; gap: 12px;">
-        <!-- Quiz and Next Topic buttons will be dynamically added here -->
-    </div>
-</div>
+
 
 <!-- Quiz Confirmation Modal -->
 <div class="modal fade" id="quizConfirmModal" tabindex="-1" role="dialog">
@@ -1138,6 +1144,32 @@ function exitFullScreenPreview() {
     const fullScreenPreview = document.querySelector('.full-screen-preview');
     if (fullScreenPreview) {
         fullScreenPreview.remove();
+    }
+}
+
+// Preview external resource in platform - prevents downloads
+function previewExternalResource(filePath, resourceType) {
+    console.log('Preview external resource:', filePath, resourceType);
+    
+    // Determine resource type from file extension if not provided
+    if (!resourceType || resourceType === 'file') {
+        const ext = filePath.split('.').pop().toLowerCase();
+        if (['pdf'].includes(ext)) resourceType = 'pdf';
+        else if (['ppt', 'pptx'].includes(ext)) resourceType = 'ppt';
+        else if (['doc', 'docx'].includes(ext)) resourceType = 'document';
+        else if (['mp4', 'webm', 'ogg'].includes(ext)) resourceType = 'video';
+        else if (['mp3', 'wav', 'ogg'].includes(ext)) resourceType = 'audio';
+        else resourceType = 'unknown';
+    }
+    
+    // Use the existing previewResource function
+    if (resourceType === 'unknown') {
+        // For unknown types, open in a new tab but warn user
+        if (confirm('This file type may not preview in the platform. Open in new tab instead?')) {
+            window.open(filePath, '_blank');
+        }
+    } else {
+        previewResource(resourceType, filePath);
     }
 }
 
@@ -1344,12 +1376,11 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         resourceContainer.style.display = 'none';
     }
     
-    // Update bottom toolbar - show/hide based on topic and quiz status
-    const bottomToolbar = document.getElementById('bottom-toolbar');
-    const toolbarActions = document.getElementById('toolbar-actions');
-    if (bottomToolbar && toolbarActions) {
+    // Update header actions - show/hide based on topic and quiz status
+    const headerActions = document.getElementById('header-actions');
+    if (headerActions) {
         // Clear existing actions
-        toolbarActions.innerHTML = '';
+        headerActions.innerHTML = '';
         
         // Check if there's a next topic
         const topics = document.querySelectorAll('.wizard-topic');
@@ -1368,17 +1399,16 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         }
         
         if (hasNextTopic) {
-            bottomToolbar.style.display = 'flex';
-            
             // Add quiz button if topic has a quiz
             if (quizId) {
                 const quizBtn = document.createElement('button');
                 quizBtn.className = 'btn btn-success btn-sm';
+                quizBtn.style.marginRight = '8px';
                 quizBtn.innerHTML = `<i class="fa fa-pencil"></i> ${currentQuizPassed ? 'Retake Quiz' : 'Take Quiz'}`;
                 quizBtn.onclick = function() {
                     confirmTakeQuiz(quizId, topicTitle);
                 };
-                toolbarActions.appendChild(quizBtn);
+                headerActions.appendChild(quizBtn);
             }
             
             // Add next topic button
@@ -1386,13 +1416,13 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             if (quizId && !currentQuizPassed) {
                 // Quiz required but not passed - disable button
                 nextBtn.className = 'btn btn-secondary btn-sm';
-                nextBtn.innerHTML = '<i class="fa fa-lock"></i> Pass Quiz to Continue';
+                nextBtn.innerHTML = '<i class="fa fa-lock"></i> Next Topic';
                 nextBtn.disabled = true;
                 nextBtn.style.opacity = '0.6';
                 nextBtn.style.cursor = 'not-allowed';
             } else {
                 // No quiz or quiz passed - enable button
-                nextBtn.className = 'btn btn-secondary btn-sm';
+                nextBtn.className = 'btn btn-primary btn-sm';
                 nextBtn.innerHTML = '<i class="fa fa-arrow-right"></i> Next Topic';
                 nextBtn.disabled = false;
                 nextBtn.style.opacity = '1';
@@ -1401,9 +1431,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                     skipQuiz();
                 };
             }
-            toolbarActions.appendChild(nextBtn);
-        } else {
-            bottomToolbar.style.display = 'none';
+            headerActions.appendChild(nextBtn);
         }
     }
 }
@@ -1428,12 +1456,6 @@ function skipQuiz() {
     if (currentQuizId && currentQuizId !== 'null' && !currentQuizPassed) {
         showFlashMessage('warning', 'Quiz Required', 'Please take and pass the quiz before proceeding to the next topic.', 'fa-exclamation-triangle');
         return;
-    }
-    
-    // Hide bottom toolbar
-    const bottomToolbar = document.getElementById('bottom-toolbar');
-    if (bottomToolbar) {
-        bottomToolbar.style.display = 'none';
     }
     
     // Move to next incomplete topic or show completion message
@@ -1477,17 +1499,69 @@ function skipQuiz() {
 
 // Expand first phase by default
 document.addEventListener('DOMContentLoaded', function() {
+    // Check URL parameters for topic and preview mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const topicParam = urlParams.get('topic');
+    const previewMode = urlParams.get('preview');
+    
     const firstToggle = document.getElementById('phase-toggle-0');
     if (firstToggle) {
         firstToggle.classList.add('expanded');
         document.getElementById('phase-topics-0').style.display = 'block';
     }
     
-    // Load first incomplete topic if exists
-    const firstIncomplete = document.querySelector('.wizard-topic[data-topic-completed="false"]');
-    if (firstIncomplete) {
-        const topicId = firstIncomplete.dataset.topicId;
-        openTopic(topicId, 'video', '');
+    // If topic parameter is passed (preview mode), load that specific topic
+    if (topicParam) {
+        // Find and open the topic from URL parameter
+        const topicElement = document.querySelector(`[data-topic-id="${topicParam}"]`);
+        if (topicElement) {
+            // Get topic details from the element
+            const topicId = topicElement.dataset.topicId;
+            const quizId = topicElement.dataset.quizId && topicElement.dataset.quizId !== 'null' ? topicElement.dataset.quizId : null;
+            
+            // Determine topic type from icon
+            let topicType = 'video';
+            if (topicElement.querySelector('.fa-file-pdf-o')) topicType = 'pdf';
+            else if (topicElement.querySelector('.fa-file-powerpoint-o')) topicType = 'ppt';
+            else if (topicElement.querySelector('.fa-file-word-o')) topicType = 'document';
+            else if (topicElement.querySelector('.fa-headphones')) topicType = 'audio';
+            
+            // Get file path from phases data
+            let filePath = '';
+            for (let phase of phases) {
+                for (let topic of phase.topics) {
+                    if (topic.id == topicParam) {
+                        filePath = topic.file_path || topic.video_file_path || '';
+                        break;
+                    }
+                }
+            }
+            
+            openTopic(topicId, topicType, filePath, quizId);
+            
+            // Expand the phase containing this topic
+            const phaseElement = topicElement.closest('.wizard-phase');
+            if (phaseElement) {
+                const phaseIndex = Array.from(phaseElement.parentElement.children).indexOf(phaseElement);
+                const toggleElement = document.getElementById('phase-toggle-' + phaseIndex);
+                const topicsElement = document.getElementById('phase-topics-' + phaseIndex);
+                if (toggleElement && topicsElement) {
+                    toggleElement.classList.add('expanded');
+                    topicsElement.style.display = 'block';
+                }
+            }
+            
+            if (previewMode == '1') {
+                console.log('Preview Mode: Loading topic ID ' + topicParam);
+            }
+        }
+    } else {
+        // Normal mode: Load first incomplete topic
+        const firstIncomplete = document.querySelector('.wizard-topic[data-topic-completed="false"]');
+        if (firstIncomplete) {
+            const topicId = firstIncomplete.dataset.topicId;
+            openTopic(topicId, 'video', '');
+        }
     }
     
     

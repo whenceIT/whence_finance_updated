@@ -77,7 +77,10 @@ class LearningController extends Controller
         // Share categories with all views
         view()->share('categories', $categories);
 
-        return view('learning.dashboard', compact('courses', 'stats'));
+        // Get general uploads
+        $uploads = \App\Models\GeneralUpload::orderBy('created_at', 'desc')->get();
+
+        return view('learning.dashboard', compact('courses', 'stats', 'uploads'));
     }
 
     /**
@@ -87,7 +90,22 @@ class LearningController extends Controller
      */
     public function courses()
     {
+        $user = Sentinel::getUser();
         $selectedCategory = request()->get('category');
+
+        // Calculate statistics for current user
+        $stats = [
+            'total_courses' => TrainingMaterial::where('is_active', 1)->count(),
+            'enrolled_courses' => Enrollment::where('user_id', $user->id)->count(),
+            'completed_courses' => Enrollment::where('user_id', $user->id)
+                ->whereNotNull('completed_at')
+                ->count(),
+            'total_hours' => 0,
+            'in_progress' => Enrollment::where('user_id', $user->id)
+                ->where('progress', '>', 0)
+                ->where('progress', '<', 100)
+                ->count(),
+        ];
 
         // If category is specified, show all available courses in that category
         if ($selectedCategory) {
@@ -122,7 +140,7 @@ class LearningController extends Controller
                 ];
             })->toArray();
 
-            return view('learning.courses', compact('courses', 'selectedCategory', 'category'));
+            return view('learning.courses', compact('courses', 'selectedCategory', 'category', 'stats'));
         }
 
         // Otherwise, show only enrolled courses (original behavior)
@@ -162,7 +180,7 @@ class LearningController extends Controller
         // Filter out null entries (enrollments without materials)
         $courses = array_filter($courses);
         
-        return view('learning.courses', compact('courses'));
+        return view('learning.courses', compact('courses', 'stats'));
     }
 
     /**
@@ -276,7 +294,7 @@ class LearningController extends Controller
     {
         
         $user = Sentinel::getUser();
-        $material = TrainingMaterial::with('topics.quiz.attempts')->findOrFail($id);
+        $material = TrainingMaterial::with(['topics.quiz.attempts', 'creator.roles'])->findOrFail($id);
         $isEnrolled = false;
         $progress = 0;
         $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);

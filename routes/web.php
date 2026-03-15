@@ -25,6 +25,7 @@ use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningSettingController;
 use App\Http\Controllers\TrainingMaterialController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\GeneralUploadsController;
 use App\Http\Controllers\StaffSurveyController;
 use App\Http\Controllers\Recoveries\RecoveryDashboardController;
 use App\Http\Controllers\Recoveries\RecoveryCaseController;
@@ -191,6 +192,7 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/platform', [LearningSettingController::class, 'platform'])->name('learning.settings.platform');
     Route::get('/settings/courses', [LearningSettingController::class, 'courses'])->name('learning.settings.courses');
     Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
+    Route::get('/settings/courses/resource-preview', [LearningSettingController::class, 'resourcePreview'])->name('learning.settings.courses.resource-preview');
     
     // Trainer Management Routes
     Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
@@ -225,10 +227,13 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
      Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
      Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
+     // Edit topic route
+     Route::get('/topic/{topicId}/edit', [TrainingMaterialController::class, 'editTopic'])->name('learning.training-materials.edit-topic');
+     Route::put('/topic/{topicId}/update', [TrainingMaterialController::class, 'updateTopic'])->name('learning.training-materials.update-topic');
      // Routes with parameters
      Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
      Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
-      Route::any('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
+     Route::put('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
      Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
      Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
      Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
@@ -236,6 +241,7 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::get('/topic/{topicId}/quiz/manage', [QuizController::class, 'manage'])->name('learning.quizzes.manage');
      Route::post('/topic/{topicId}/quiz/save', [QuizController::class, 'save'])->name('learning.quizzes.save');
      Route::delete('/quiz/{quizId}/delete', [QuizController::class, 'delete'])->name('learning.quizzes.delete');
+     Route::get('/quiz/{quizId}/questions', [QuizController::class, 'getQuestions'])->name('learning.quizzes.questions');
      
      // Quiz taking routes for students
      Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
@@ -243,6 +249,23 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      
       // Topics management route for trainers
      Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
+ });
+
+ // General Uploads Management Routes
+ Route::group(['prefix' => 'learning/general-uploads', 'middleware' => 'sentinel'], function () {
+     Route::get('/', [GeneralUploadsController::class, 'index'])->name('learning.general-uploads.index');
+     Route::get('/create', [GeneralUploadsController::class, 'create'])->name('learning.general-uploads.create');
+     Route::post('/', [GeneralUploadsController::class, 'store'])->name('learning.general-uploads.store');
+     // Chunk upload routes - must come before routes with parameters
+     Route::post('/upload-chunk', [GeneralUploadsController::class, 'uploadChunk'])->name('learning.general-uploads.upload-chunk');
+     Route::post('/merge-chunks', [GeneralUploadsController::class, 'mergeChunks'])->name('learning.general-uploads.merge-chunks');
+     // Routes with parameters
+     Route::get('/{id}', [GeneralUploadsController::class, 'show'])->name('learning.general-uploads.show');
+     Route::get('/{id}/edit', [GeneralUploadsController::class, 'edit'])->name('learning.general-uploads.edit');
+     Route::put('/{id}', [GeneralUploadsController::class, 'update'])->name('learning.general-uploads.update');
+     Route::delete('/{id}', [GeneralUploadsController::class, 'destroy'])->name('learning.general-uploads.destroy');
+     Route::get('/{id}/download', [GeneralUploadsController::class, 'download'])->name('learning.general-uploads.download');
+     Route::post('/{id}/toggle-status', [GeneralUploadsController::class, 'toggleStatus'])->name('learning.general-uploads.toggle-status');
  });
 
 //route for users
