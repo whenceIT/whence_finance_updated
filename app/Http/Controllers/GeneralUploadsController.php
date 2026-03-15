@@ -113,6 +113,12 @@ class GeneralUploadsController extends Controller
         
         $chunk->move($chunkDir, 'chunk_' . $index);
         
+        // Save poster if received in first chunk
+        if ($index === 0 && $request->hasFile('poster')) {
+            $poster = $request->file('poster');
+            $poster->move($chunkDir, 'poster.' . $poster->getClientOriginalExtension());
+        }
+        
         return response()->json([
             'success' => true,
             'message' => 'Chunk uploaded',
@@ -136,6 +142,22 @@ class GeneralUploadsController extends Controller
         
         if (!File::exists($chunkDir)) {
             return response()->json(['success' => false, 'message' => 'Chunks directory not found'], 400);
+        }
+        
+        // Check if poster file exists in chunk directory
+        $posterFiles = File::files($chunkDir);
+        foreach ($posterFiles as $file) {
+            if (strpos($file->getFilename(), 'poster.') === 0) {
+                // Create a temporary file instance for the poster
+                $poster = new \Illuminate\Http\UploadedFile(
+                    $file->getPathname(),
+                    'poster.' . $file->getExtension(),
+                    mime_content_type($file->getPathname()),
+                    filesize($file->getPathname()),
+                    true
+                );
+                break;
+            }
         }
         
         // Create temp file for merged content
@@ -173,6 +195,10 @@ class GeneralUploadsController extends Controller
         $extension = pathinfo($filename, PATHINFO_EXTENSION);
         $s3Key = $typeFolder . '/' . $sanitizedName . '_' . uniqid() . '.' . $extension;
         
+        // Get file size and mimetype before uploading
+        $fileSize = filesize($tempFilePath);
+        $mimeType = File::mimeType($tempFilePath);
+        
         // Upload to S3
         try {
             $result = $this->s3Client->putObject([
@@ -182,10 +208,6 @@ class GeneralUploadsController extends Controller
                 'ACL' => 'public-read',
                 'ContentType' => $mimeType,
             ]);
-            
-            // Get file size before deleting temp file
-            $fileSize = filesize($tempFilePath);
-            $mimeType = File::mimeType($tempFilePath);
             
             // Delete temp file
             unlink($tempFilePath);
@@ -233,6 +255,96 @@ class GeneralUploadsController extends Controller
     {
         $upload = GeneralUpload::findOrFail($id);
         return view('learning.general-uploads.show', compact('upload'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        $upload = GeneralUpload::findOrFail($id);
+        return view('learning.general-uploads.edit', compact('upload'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        $upload = GeneralUpload::findOrFail($id);
+        
+
+        // Update basic information
+        $upload->name = $request->input('name', $upload->name);
+        $upload->type = $request->input('type', $upload->type);
+        
+        // Handle file replacement
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $typeFolder = $this->getTypeFolder($upload->type);
+            
+            // Delete old file from S3
+            if ($upload->path) {
+                try {
+                    $parsedUrl = parse_url($upload->path);
+                    if ($parsedUrl && isset($parsedUrl['path'])) {
+                        $s3Key = ltrim($parsedUrl['path'], '/');
+                        if (!empty($s3Key)) {
+                            $this->s3Client->deleteObject([
+                                'Bucket' => $this->bucket,
+                                'Key' => $s3Key,
+                            ]);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('S3 Delete Error: ' . $e->getMessage());
+                    // Continue with new file upload even if old file deletion fails
+                }
+            }
+            
+            // Upload new file to S3
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+            $extension = $file->getClientOriginalExtension();
+            $s3Key = $typeFolder . '/' . $sanitizedName . '_' . uniqid() . '.' . $extension;
+            
+            try {
+                $result = $this->s3Client->putObject([
+                    'Bucket' => $this->bucket,
+                    'Key' => $s3Key,
+                    'Body' => fopen($file->getPathname(), 'r'),
+                    'ACL' => 'public-read',
+                    'ContentType' => $file->getMimeType(),
+                ]);
+                
+                $upload->path = $result['ObjectURL'];
+                $upload->file_size = $file->getSize();
+                $upload->mime_type = $file->getMimeType();
+                
+            } catch (\Aws\Exception\AwsException $e) {
+                Log::error('S3 Upload Error: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Failed to upload file to S3');
+            }
+        }
+        
+        // Handle poster upload
+        if ($request->hasFile('poster')) {
+            $poster = $request->file('poster');
+            $typeFolder = $this->getTypeFolder($upload->type);
+            $posterPath = $this->savePoster($poster, $typeFolder);
+            $upload->poster = $posterPath;
+        }
+        
+        $upload->save();
+        
+        return redirect()->route('learning.general-uploads.index')->with('success', 'File updated successfully');
     }
 
     /**

@@ -341,6 +341,85 @@ class QuizController extends Controller
     }
 
     /**
+     * Submit quiz from preview (returns JSON).
+     */
+    public function submitPreview(Request $request, $quizId)
+    {
+        try {
+            if (!Sentinel::check()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $user = Sentinel::getUser();
+            $quiz = Quiz::with('questions.options', 'topic.trainingMaterial')->findOrFail($quizId);
+
+            // Get answers from request
+            $answers = $request->answers ?? [];
+            $score = 0;
+            $totalPoints = 0;
+            $results = [];
+
+            foreach ($quiz->questions as $question) {
+                $totalPoints += $question->points;
+                $selectedOption = $answers[$question->id] ?? null;
+                $isCorrect = false;
+
+                if ($selectedOption) {
+                    $correctOption = $question->options->where('is_correct', true)->first();
+                    if ($correctOption && $correctOption->id == $selectedOption) {
+                        $isCorrect = true;
+                        $score += $question->points;
+                    }
+                }
+
+                $results[$question->id] = [
+                    'correct' => $isCorrect,
+                    'selected_option' => $selectedOption,
+                    'correct_option' => $question->options->where('is_correct', true)->first()?->id,
+                ];
+            }
+
+            $percentage = $totalPoints > 0 ? round(($score / $totalPoints) * 100) : 0;
+            $passed = $percentage >= $quiz->passing_score;
+
+            // Create attempt record
+            $attempt = QuizAttempt::create([
+                'quiz_id' => $quizId,
+                'user_id' => $user->id,
+                'score' => $score,
+                'total_points' => $totalPoints,
+                'percentage' => $percentage,
+                'passed' => $passed,
+                'started_at' => now()->subMinutes($quiz->time_limit ?? 30),
+                'completed_at' => now(),
+                'answers' => $results,
+            ]);
+
+            \Log::info('Quiz preview attempt saved', ['quiz_id' => $quizId, 'attempt_id' => $attempt->id, 'user_id' => $user->id, 'score' => $score, 'total_points' => $totalPoints, 'percentage' => $percentage, 'passed' => $passed]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Quiz preview completed!',
+                'result' => [
+                    'score' => $score,
+                    'total_points' => $totalPoints,
+                    'percentage' => $percentage,
+                    'passing_score' => $quiz->passing_score,
+                    'passed' => $passed,
+                    'results' => $results,
+                ]
+            ]);
+
+        } catch (\Throwable $th) {
+            \Log::error('Quiz preview submission error: ' . $th->getMessage(), ['quiz_id' => $quizId, 'user_id' => Sentinel::getUser() ? Sentinel::getUser()->id : null]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while processing your quiz submission'
+            ], 500);
+        }
+    }
+
+    /**
      * Delete quiz.
      */
     public function delete($quizId)

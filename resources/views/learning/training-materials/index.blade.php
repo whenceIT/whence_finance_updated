@@ -155,8 +155,12 @@ function applyFilters() {
         </span>
         @endif
         
-        <div class="course-image" style="background: {{ $material->type_color }};">
-            <i class="fa {{ $material->icon }}" style="font-size: 48px;"></i>
+        <div class="course-image" style="background: {{ $material->type_color }}; {{ $material->poster ? 'background: none;' : '' }}">
+            @if($material->poster)
+                <img src="{{ $material->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $material->title }}">
+            @else
+                <i class="fa {{ $material->icon }}" style="font-size: 48px;"></i>
+            @endif
         </div>
         <div class="course-body" style="padding-bottom: 16px;">
             <span class="course-category">{{ $material->department ?? 'General' }}</span>

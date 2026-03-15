@@ -392,7 +392,7 @@
                 <i class="fa fa-image"></i>
                 <p>Click to upload poster image</p>
                 <span style="font-size: 12px; color: var(--text-secondary);">Recommended: 1280x720 or 1920x1080 (JPG, PNG)</span>
-                <input type="file" id="posterInput" class="file-input" accept="image/*" onchange="handlePosterSelect(this)">
+                <input type="file" id="posterInput" name="poster" class="file-input" accept="image/*" onchange="handlePosterSelect(this)">
             </div>
             <div class="selected-poster" id="selectedPoster" style="display: none; margin-top: 10px;">
                 <div style="display: flex; align-items: center; gap: 10px;">

@@ -61,8 +61,12 @@
 <div class="courses-grid" id="courses-grid">
     @foreach($courses as $course)
     <div class="course-card" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'" style="cursor: pointer;">
-        <div class="course-image" style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%);">
-            <i class="fa {{ $course['icon'] }}" style="font-size: 48px;"></i>
+        <div class="course-image" style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); {{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
+            @if(isset($course['poster']) && $course['poster'])
+                <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
+            @else
+                <i class="fa {{ $course['icon'] }}" style="font-size: 48px;"></i>
+            @endif
             @if($course['is_featured'])
             <span class="featured-badge">Featured</span>
             @endif

@@ -83,6 +83,32 @@
             </select>
         </div>
         
+         <!-- Poster Upload (for videos) -->
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
+                Video Poster/Thumbnail (Optional)
+            </label>
+            <div style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 30px; text-align: center; background: var(--light-bg); cursor: pointer;" onclick="document.getElementById('posterInput').click()">
+                <i class="fa fa-image" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
+                    Upload a poster image for video playback
+                </p>
+                <input type="file" id="posterInput" name="poster" style="display: none;" accept="image/*">
+                <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
+                    Recommended: 1280x720 or 1920x1080 (JPG, PNG)
+                </p>
+            </div>
+            <div id="posterPreview" style="display: {{ $material->poster ? 'block' : 'none' }}; margin-top: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img id="posterImage" src="{{ $material->poster }}" style="width: 120px; height: 68px; object-fit: cover; border-radius: 6px;">
+                    <div>
+                        <div id="posterName" style="font-weight: 600; font-size: 13px;">{{ basename($material->poster) ?? 'Poster' }}</div>
+                        <button type="button" onclick="removePoster()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 12px;">Remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Options -->
         <div style="display: flex; gap: 30px; margin-bottom: 30px;">
             <div style="flex: 1;">
@@ -185,6 +211,29 @@
             });
         });
         
+        // Poster upload functionality
+        const posterInput = document.getElementById('posterInput');
+        const posterPreview = document.getElementById('posterPreview');
+        const posterImage = document.getElementById('posterImage');
+        const posterName = document.getElementById('posterName');
+        
+        if (posterInput) {
+            posterInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        posterImage.src = e.target.result;
+                        posterName.textContent = file.name;
+                        posterPreview.style.display = 'block';
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
         // Form submission with loading modal
         const form = document.querySelector('form');
         const modal = document.getElementById('loading-modal');
@@ -207,5 +256,18 @@
             });
         }
     });
+    
+    // Remove poster function
+    function removePoster() {
+        const posterInput = document.getElementById('posterInput');
+        const posterPreview = document.getElementById('posterPreview');
+        const posterImage = document.getElementById('posterImage');
+        const posterName = document.getElementById('posterName');
+        
+        posterInput.value = '';
+        posterPreview.style.display = 'none';
+        posterImage.src = '';
+        posterName.textContent = '';
+    }
 </script>
 @endsection

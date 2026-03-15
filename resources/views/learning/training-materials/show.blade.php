@@ -183,7 +183,9 @@ $breadcrumb = [
             <div class="panel-body" style="padding: 30px;">
                 <!-- Material Preview -->
                 <div style="background: var(--light-bg); border-radius: 8px; padding: 40px; text-align: center; margin-bottom: 24px;">
-                    @if($material->material_type == 'video')
+                    @if($material->poster)
+                        <img src="{{ $material->poster }}" alt="{{ $material->title }}" style="max-width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; margin-bottom: 16px;">
+                    @elseif($material->material_type == 'video')
                         <i class="fa fa-play-circle" style="font-size: 64px; color: var(--primary-color);"></i>
                         <p style="margin-top: 16px; color: var(--text-secondary);">Video Content</p>
                     @elseif($material->material_type == 'audio')
@@ -267,7 +269,7 @@ $breadcrumb = [
                                 ]);
                             }
                         @endphp
-                        <a href="{{ $previewUrl }}" class="topic-item" style="text-decoration: none; color: inherit; {{ !$previewUrl ? 'cursor: default;' : '' }}" {{ !$previewUrl ? 'onclick="alert(\'No resource available for this topic.\'); return false;"' : '' }}>
+                        <a href="{{ url('learning/course/' . $material->id . '/classroom?topic=' . $topic->id . '&preview=1') }}" class="topic-item" style="text-decoration: none; color: inherit;" target="_blank">
                             <div class="topic-number">{{ $index + 1 }}</div>
                             <div class="topic-info">
                                 <div class="topic-title">{{ $topic->topic_name }}</div>
@@ -290,11 +292,7 @@ $breadcrumb = [
                                         </span>
                                     @endif
                                 </div>
-                            @if($previewUrl)
-                                <i class="fa fa-play"></i> Video Preview
-                            @else
-                                <i class="text-muted"></i> No Preview
-                            @endif
+                                <i class="fa fa-play"></i> Preview
                             </div>
                         </a>
                         @endforeach

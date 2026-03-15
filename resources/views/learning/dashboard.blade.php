@@ -420,8 +420,12 @@
     <!-- Course Cards -->
     @foreach($courses as $course)
     <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
-        <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
+         <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); {{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
+            @if(isset($course['poster']) && $course['poster'])
+                <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
+            @else
+                <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
+            @endif
             <div class="card-badge">Course</div>
             <div class="play-overlay">
                 <div class="play-button">
@@ -449,8 +453,12 @@
     @foreach($uploads as $upload)
     <div class="content-card" data-type="{{ $upload->type }}" data-title="{{ $upload->name }}" data-category="{{ ucfirst($upload->type) }}" data-progress="0" 
          onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')">
-        <div class="card-image type-{{ $upload->type }}">
-            <i class="fa {{ $upload->icon ?? 'fa-file' }}"></i>
+        <div class="card-image type-{{ $upload->type }}" style="{{ $upload->poster ? 'background: none;' : '' }}">
+            @if($upload->poster)
+                <img src="{{ $upload->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $upload->name }}">
+            @else
+                <i class="fa {{ $upload->icon ?? 'fa-file' }}"></i>
+            @endif
             <div class="card-badge">{{ ucfirst($upload->type) }}</div>
             <div class="play-overlay">
                 <div class="play-button">

@@ -2,7 +2,28 @@
 
 @section('title', 'My Uploads - Whence Learn')
 
+<!-- Video.js CDN -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.css" />
+
 @section('content')
+<!-- Player Container (hidden by default, shown when playing media) -->
+<div id="dashboard-player" style="display: none; margin-bottom: 20px;">
+    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);">
+        <div style="position: relative; background: #000; min-height: 400px;" id="player-wrapper">
+            <!-- Player content loaded here -->
+        </div>
+        <div style="padding: 15px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 id="player-title" style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);"></h3>
+                <span id="player-type" style="font-size: 13px; color: var(--text-secondary);"></span>
+            </div>
+            <button onclick="closePlayer()" style="padding: 8px 16px; background: var(--light-bg); color: var(--text-secondary); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                <i class="fa fa-times"></i> Close
+            </button>
+        </div>
+    </div>
+</div>
 <!-- Professional Header with Gradient -->
 <div style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); border-radius: 16px; padding: 32px; margin-bottom: 30px; color: white;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
@@ -95,29 +116,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <!-- Files Grid -->
-<div class="courses-grid" id="uploads-grid">
+    <div class="courses-grid" id="uploads-grid">
     @forelse($uploads as $upload)
     <div class="course-card" style="position: relative;">
-        <!-- Action Menu (Three dots) -->
-        <div style="position: absolute; top: 12px; right: 12px; z-index: 10;">
-            <button onclick="toggleActionMenu({{ $upload->id }})" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.9); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                <i class="fa fa-ellipsis-v" style="color: var(--text-primary);"></i>
-            </button>
-            <div id="action-menu-{{ $upload->id }}" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); min-width: 140px; overflow: hidden; margin-top: 8px;">
-                <a href="{{ url('learning/general-uploads/' . $upload->id . '/edit') }}" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px; transition: background 0.2s;">
-                    <i class="fa fa-edit" style="color: var(--primary-color); width: 16px;"></i> Edit
-                </a>
-                <button onclick="likeUpload({{ $upload->id }})" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px; width: 100%; border: none; background: none; cursor: pointer; transition: background 0.2s;">
-                    <i class="fa fa-heart" style="color: var(--accent-color); width: 16px;"></i> Like
-                </button>
-                <button onclick="deleteUpload({{ $upload->id }}, '{{ addslashes($upload->name) }}')" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: var(--accent-color); text-decoration: none; font-size: 13px; width: 100%; border: none; background: none; cursor: pointer; transition: background 0.2s;">
-                    <i class="fa fa-trash" style="width: 16px;"></i> Delete
-                </button>
-            </div>
-        </div>
-        
-        <div class="course-image" style="background: {{ $upload->type_color }};">
-            <i class="fa {{ $upload->icon }}" style="font-size: 48px;"></i>
+        <div class="course-image" style="background: {{ $upload->type_color }}; {{ $upload->poster ? 'background: none;' : '' }}">
+            @if($upload->poster)
+                <img src="{{ $upload->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $upload->name }}">
+            @else
+                <i class="fa {{ $upload->icon }}" style="font-size: 48px;"></i>
+            @endif
         </div>
         <div class="course-body" style="padding-bottom: 16px;">
             <span class="course-category">{{ ucfirst($upload->type) }}</span>
@@ -132,9 +139,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     </span>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <a href="{{ $upload->path }}" target="_blank" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 12px; background: var(--primary-color); color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    <button onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 12px; background: var(--primary-color); color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500; border: none; cursor: pointer;">
                         <i class="fa fa-play"></i> View
+                    </button>
+                    <!-- Action Buttons -->
+                    <a href="{{ url('learning/general-uploads/' . $upload->id . '/edit') }}" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; transition: background 0.2s;" title="Edit">
+                        <i class="fa fa-edit" style="color: var(--primary-color);"></i>
                     </a>
+                    <button onclick="likeUpload({{ $upload->id }})" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-primary); border: none; cursor: pointer; transition: background 0.2s;" title="Like">
+                        <i class="fa fa-heart" style="color: var(--accent-color);"></i>
+                    </button>
+                    <button onclick="deleteUpload({{ $upload->id }}, '{{ addslashes($upload->name) }}')" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--accent-color); border: none; cursor: pointer; transition: background 0.2s;" title="Delete">
+                        <i class="fa fa-trash"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -158,19 +175,123 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-function toggleActionMenu(id) {
-    var menu = document.getElementById('action-menu-' + id);
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+// Play media inline (YouTube-like)
+function playMedia(type, path, name, size, poster = '') {
+    // Show player container
+    var playerContainer = document.getElementById('dashboard-player');
+    playerContainer.style.display = 'block';
+    playerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Update title and type
+    document.getElementById('player-title').textContent = name;
+    document.getElementById('player-type').textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' • ' + size;
+    
+    // Get player wrapper
+    var wrapper = document.getElementById('player-wrapper');
+    wrapper.innerHTML = '';
+    
+    if (type === 'video') {
+        // Video player with poster if available
+        var posterAttr = poster ? `poster="${poster}"` : '';
+        wrapper.innerHTML = `
+            <video id="dashboard-video-player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" style="width: 100%; height: 400px;" ${posterAttr}>
+                <source src="${path}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        `;
+        videojs('dashboard-video-player', {
+            controls: true,
+            autoplay: true,
+            preload: 'auto',
+            fluid: true,
+            playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2]
+        });
+    } else if (type === 'audio') {
+        // Audio player with custom styling
+        wrapper.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+        wrapper.style.padding = '60px 20px';
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.justifyContent = 'center';
+        wrapper.innerHTML = `
+            <div style="text-align: center;">
+                <div style="width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; margin: 0 auto 30px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa fa-music" style="font-size: 48px; color: var(--primary-color);"></i>
+                </div>
+                <audio id="dashboard-audio-player" controls style="width: 100%; max-width: 500px;">
+                    <source src="${path}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        `;
+        videojs('dashboard-audio-player', {
+            controls: true,
+            autoplay: true,
+            preload: 'auto',
+            fluid: true
+        });
+    } else if (type === 'book' || type === 'paper') {
+        // PDF/Document preview using Google Docs viewer
+        wrapper.innerHTML = `
+            <div style="position: relative; height: 100%;">
+                <iframe 
+                    src="https://docs.google.com/gview?url=${encodeURIComponent(path)}&embedded=true"
+                    style="width:100%;height:600px;border:none;"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        `;
+    } else if (type === 'document') {
+        // Office document preview
+        var ext = name.split('.').pop().toLowerCase();
+        if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) {
+            wrapper.innerHTML = `
+                <div style="position: relative; height: 100%;">
+                    <iframe 
+                        src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(path)}"
+                        style="width:100%;height:600px;border:none;"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            `;
+        } else {
+            wrapper.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px;">
+                    <i class="fa fa-file" style="font-size: 80px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                    <p style="color: var(--text-secondary);">Preview not available for this file type.</p>
+                </div>
+            `;
+        }
+    } else if (type === 'image') {
+        // Image preview
+        wrapper.style.background = '#000';
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.justifyContent = 'center';
+        wrapper.innerHTML = `
+            <img src="${path}" alt="${name}" style="max-width: 100%; max-height: 600px; object-fit: contain;">
+        `;
+    } else {
+        // Generic preview
+        wrapper.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px;">
+                <i class="fa fa-file" style="font-size: 80px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                <p style="color: var(--text-secondary);">Preview not available for this file type.</p>
+            </div>
+        `;
+    }
 }
 
-// Close all menus when clicking outside
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.action-menu-btn') && !e.target.closest('[id^="action-menu-"]')) {
-        document.querySelectorAll('[id^="action-menu-"]').forEach(menu => {
-            menu.style.display = 'none';
-        });
-    }
-});
+function closePlayer() {
+    var playerContainer = document.getElementById('dashboard-player');
+    playerContainer.style.display = 'none';
+    
+    // Stop any playing media
+    var wrapper = document.getElementById('player-wrapper');
+    wrapper.innerHTML = '';
+}
+
+
 
 function likeUpload(id) {
     // Like functionality - can be expanded later

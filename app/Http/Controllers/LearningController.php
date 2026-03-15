@@ -54,6 +54,7 @@ class LearningController extends Controller
                 'enrolled' => $isEnrolled,
                 'progress' => $progress,
                 'lessons' => 1,
+                'poster' => $material->poster,
             ];
         })->toArray();
 
@@ -137,6 +138,7 @@ class LearningController extends Controller
                     'progress' => 0,
                     'enrolled_at' => null,
                     'completed_at' => null,
+                    'poster' => $material->poster,
                 ];
             })->toArray();
 
@@ -174,6 +176,7 @@ class LearningController extends Controller
                 'progress' => $enrollment->progress,
                 'enrolled_at' => $enrollment->enrolled_at,
                 'completed_at' => $enrollment->completed_at,
+                'poster' => $material->poster,
             ];
         })->toArray();
 

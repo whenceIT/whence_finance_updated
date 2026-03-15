@@ -223,10 +223,10 @@ $breadcrumb = [
 
 
 <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
-    <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(40, 167, 69, 0.45)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(40, 167, 69, 0.35)'">
+    <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35); transition: all 0.3s;" onmouseover="this.style.transform = \"translateY(-2px)\"; this.style.boxShadow = \"0 6px 16px rgba(40, 167, 69, 0.45)\"" onmouseout="this.style.transform = \"translateY(0)\"; this.style.boxShadow = \"0 4px 12px rgba(40, 167, 69, 0.35)\"">
         <i class="fa fa-plus-circle"></i> Add Topics
     </a>
-    <a href="{{ url('learning/training-materials/' . $material->id . '/edit') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.35); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(74, 144, 226, 0.45)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(74, 144, 226, 0.35)'">
+    <a href="{{ url('learning/training-materials/' . $material->id . '/edit') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.35); transition: all 0.3s;" onmouseover="this.style.transform = \"translateY(-2px)\"; this.style.boxShadow = \"0 6px 16px rgba(74, 144, 226, 0.45)\"" onmouseout="this.style.transform = \"translateY(0)\"; this.style.boxShadow = \"0 4px 12px rgba(74, 144, 226, 0.35)\"">
         <i class="fa fa-edit"></i> Edit Material
     </a>
 </div>
@@ -325,7 +325,11 @@ $breadcrumb = [
 
 <script>
 // Quiz Preview Modal
+var currentQuizId = null;
+var quizData = null;
+
 function previewQuiz(topicId, quizTitle, quizId) {
+    currentQuizId = quizId;
     document.getElementById('quizPreviewTitle').textContent = quizTitle;
     document.getElementById('quizPreviewModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
@@ -337,6 +341,8 @@ function previewQuiz(topicId, quizTitle, quizId) {
 function closeQuizPreviewModal() {
     document.getElementById('quizPreviewModal').style.display = 'none';
     document.body.style.overflow = 'auto';
+    currentQuizId = null;
+    quizData = null;
 }
 
 function closeQuizPreview(event) {
@@ -359,7 +365,8 @@ function fetchQuizQuestions(quizId) {
     .then(response => response.json())
     .then(data => {
         if (data.questions && data.questions.length > 0) {
-            renderQuizQuestions(data.questions);
+            quizData = data;
+            renderQuizQuestions(data.questions, data.quiz);
         } else {
             contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fa fa-exclamation-circle" style="font-size: 48px; color: var(--text-secondary);"></i><p style="margin-top: 15px; color: var(--text-secondary);">No questions found for this quiz.</p></div>';
         }
@@ -376,9 +383,9 @@ function loadQuizFromPage(quizId) {
     
     // Check if quiz data is available in the page
     @if(isset($topicQuizzes))
-    var quizData = @json($topicQuizzes);
-    if (quizData && quizData[quizId]) {
-        renderQuizQuestions(quizData[quizId].questions || []);
+    var quizDataPage = @json($topicQuizzes);
+    if (quizDataPage && quizDataPage[quizId]) {
+        renderQuizQuestions(quizDataPage[quizId].questions || [], quizDataPage[quizId].quiz);
         return;
     }
     @endif
@@ -386,7 +393,7 @@ function loadQuizFromPage(quizId) {
     contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fa fa-exclamation-circle" style="font-size: 48px; color: var(--text-secondary);"></i><p style="margin-top: 15px; color: var(--text-secondary);">Unable to load quiz questions.</p><button onclick="window.location.href=\'{{ url('learning/training-materials/topic') }}/' + quizId + '/quiz/manage'\'" style="margin-top: 15px; padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer;">Manage Quiz</button></div>';
 }
 
-function renderQuizQuestions(questions) {
+function renderQuizQuestions(questions, quiz) {
     var contentDiv = document.getElementById('quizPreviewContent');
     
     if (!questions || questions.length === 0) {
@@ -394,7 +401,10 @@ function renderQuizQuestions(questions) {
         return;
     }
     
-    var html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
+    var passingScore = quiz ? quiz.passing_score : 70;
+    
+    var html = '<form id="quizPreviewForm" onsubmit="submitQuizPreview(event)">';
+    html += '<div style="display: flex; flex-direction: column; gap: 20px;">';
     
     questions.forEach(function(question, index) {
         var questionNumber = index + 1;
@@ -411,22 +421,13 @@ function renderQuizQuestions(questions) {
         if (question.options && question.options.length > 0) {
             html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
             question.options.forEach(function(option, optIndex) {
-                var isCorrect = option.is_correct;
-                html += '<div style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; background: ' + (isCorrect ? 'rgba(40, 167, 69, 0.1)' : 'white') + '; border: 1px solid ' + (isCorrect ? '#28a745' : 'var(--border-color)') + '; border-radius: 6px;">';
-                html += '<span style="width: 24px; height: 24px; border-radius: 50%; background: ' + (isCorrect ? '#28a745' : '#e9ecef') + '; color: ' + (isCorrect ? 'white' : '#6c757d') + '; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">' + String.fromCharCode(65 + optIndex) + '</span>';
-                html += '<span style="flex: 1; color: ' + (isCorrect ? '#28a745' : 'var(--text-primary)') + '; font-weight: ' + (isCorrect ? '600' : '400') + ';">' + option.option_text + '</span>';
-                if (isCorrect) {
-                    html += '<i class="fa fa-check-circle" style="color: #28a745;"></i>';
-                }
-                html += '</div>';
+                var optionLetter = String.fromCharCode(65 + optIndex);
+                 html += '<label style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; background: white; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor = \"var(--primary-color)\";" onmouseout="this.style.borderColor = \"var(--border-color)\";">';
+                html += '<input type="radio" name="answers[' + question.id + ']" value="' + option.id + '" style="width: 18px; height: 18px; accent-color: var(--primary-color);">';
+                html += '<span style="width: 24px; height: 24px; border-radius: 50%; background: #e9ecef; color: #6c757d; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">' + optionLetter + '</span>';
+                html += '<span style="flex: 1; color: var(--text-primary);">' + option.option_text + '</span>';
+                html += '</label>';
             });
-            html += '</div>';
-        }
-        
-        if (question.correct_answer) {
-            html += '<div style="margin-top: 12px; padding: 10px; background: rgba(40, 167, 69, 0.1); border-radius: 6px;">';
-            html += '<span style="font-size: 12px; color: #28a745; font-weight: 600;"><i class="fa fa-check"></i> Correct Answer: </span>';
-            html += '<span style="color: var(--text-primary);">' + question.correct_answer + '</span>';
             html += '</div>';
         }
         
@@ -434,9 +435,118 @@ function renderQuizQuestions(questions) {
     });
     
     html += '</div>';
-    html += '<div style="margin-top: 20px; padding: 15px; background: var(--light-bg); border-radius: 8px; text-align: center;">';
+    
+    // Add submit button and info
+    html += '<div style="margin-top: 20px; padding: 15px; background: var(--light-bg); border-radius: 8px;">';
+    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">';
     html += '<span style="color: var(--text-secondary); font-size: 14px;">Total Questions: </span>';
     html += '<span style="color: var(--text-primary); font-weight: 600;">' + questions.length + '</span>';
+    html += '</div>';
+    html += '<div style="display: flex; justify-content: space-between; align-items: center;">';
+    html += '<span style="color: var(--text-secondary); font-size: 14px;">Passing Score: </span>';
+    html += '<span style="color: var(--text-primary); font-weight: 600;">' + passingScore + '%</span>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">';
+    html += '<button type="button" onclick="closeQuizPreviewModal()" style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Close</button>';
+    html += '<button type="submit" style="padding: 12px 24px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;"><i class="fa fa-check"></i> Submit Quiz</button>';
+    html += '</div>';
+    
+    html += '</form>';
+    
+    contentDiv.innerHTML = html;
+}
+
+function submitQuizPreview(event) {
+    event.preventDefault();
+    
+    var form = document.getElementById('quizPreviewForm');
+    var formData = new FormData(form);
+    
+    // Show loading state
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+    submitBtn.disabled = true;
+    
+    // Submit via AJAX
+    fetch('{{ url('learning/quiz') }}/' + currentQuizId + '/submit-preview', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show results
+            showQuizResults(data.result);
+        } else {
+            alert('Error: ' + (data.message || 'Failed to submit quiz'));
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting quiz:', error);
+        alert('An error occurred while submitting your quiz');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function showQuizResults(result) {
+    var contentDiv = document.getElementById('quizPreviewContent');
+    
+    var isPassed = result.passed;
+    var resultClass = isPassed ? 'success' : 'danger';
+    var resultIcon = isPassed ? 'check-circle' : 'times-circle';
+    var resultColor = isPassed ? '#28a745' : '#dc3545';
+    
+    var html = '<div style="text-align: center; padding: 30px;">';
+    html += '<i class="fa fa-' + resultIcon + '" style="font-size: 64px; color: ' + resultColor + '; margin-bottom: 20px;"></i>';
+    html += '<h2 style="color: ' + resultColor + '; margin-bottom: 10px;">' + (isPassed ? 'Congratulations!' : 'Keep Trying!') + '</h2>';
+    html += '<p style="font-size: 18px; color: var(--text-primary); margin-bottom: 20px;">' + (isPassed ? 'You passed the quiz!' : 'You did not pass this time.') + '</p>';
+    
+    html += '<div style="background: var(--light-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px;">';
+    html += '<div style="display: flex; justify-content: space-around; text-align: center;">';
+    html += '<div><div style="font-size: 32px; font-weight: 700; color: var(--primary-color);">' + result.score + '</div><div style="color: var(--text-secondary); font-size: 14px;">Score</div></div>';
+    html += '<div><div style="font-size: 32px; font-weight: 700; color: var(--primary-color);">' + result.total_points + '</div><div style="color: var(--text-secondary); font-size: 14px;">Total Points</div></div>';
+    html += '<div><div style="font-size: 32px; font-weight: 700; color: ' + resultColor + ';">' + result.percentage + '%</div><div style="color: var(--text-secondary); font-size: 14px;">Percentage</div></div>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Passing Score: ' + result.passing_score + '%</p>';
+    
+    // Show detailed results
+    if (result.results) {
+        html += '<div style="text-align: left; margin-top: 20px;">';
+        html += '<h4 style="margin-bottom: 15px;">Detailed Results:</h4>';
+        
+        var questionIndex = 1;
+        for (var questionId in result.results) {
+            var questionResult = result.results[questionId];
+            var isCorrect = questionResult.correct;
+            
+            html += '<div style="background: ' + (isCorrect ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)') + '; border-radius: 8px; padding: 15px; margin-bottom: 10px; border-left: 4px solid ' + (isCorrect ? '#28a745' : '#dc3545') + ';">';
+            html += '<div style="display: flex; align-items: center; gap: 10px;">';
+            html += '<i class="fa fa-' + (isCorrect ? 'check-circle' : 'times-circle') + '" style="color: ' + (isCorrect ? '#28a745' : '#dc3545') + ';"></i>';
+            html += '<span style="font-weight: 600;">Question ' + questionIndex + '</span>';
+            html += '<span style="color: ' + (isCorrect ? '#28a745' : '#dc3545') + ';">' + (isCorrect ? 'Correct' : 'Incorrect') + '</span>';
+            html += '</div>';
+            html += '</div>';
+            
+            questionIndex++;
+        }
+        html += '</div>';
+    }
+    
+    html += '<div style="margin-top: 25px;">';
+    html += '<button onclick="closeQuizPreviewModal()" style="padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px;">Close</button>';
+    html += '</div>';
     html += '</div>';
     
     contentDiv.innerHTML = html;

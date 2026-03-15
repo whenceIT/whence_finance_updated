@@ -133,7 +133,9 @@ class TrainingMaterialController extends Controller
                 'target_role' => 'required',
                 'is_active' => 'nullable',
                 'is_featured' => 'nullable',
+                'poster' => 'nullable|image|max:5000', // Poster image: max 5MB, accept images
             ];
+
 
             $validator = Validator::make($request->all(), $rules);
 
@@ -160,6 +162,39 @@ class TrainingMaterialController extends Controller
                 'is_featured' => $request->has('is_featured'),
                 'published_at' => now(),
             ]);
+            
+            // Handle poster upload
+            if ($request->hasFile('poster')) {
+                $poster = $request->file('poster');
+                try {
+                    $originalName = pathinfo($poster->getClientOriginalName(), PATHINFO_FILENAME);
+                    $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+                    $fileName = $sanitizedName . '_' . uniqid() . '.' . $poster->getClientOriginalExtension();
+                    
+                    $s3Client = new \Aws\S3\S3Client([
+                        'version' => 'latest',
+                        'region' => 'nyc3',
+                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                        'credentials' => [
+                            'key' => 'DO00RP9FA3QZTA3JV637',
+                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                        ],
+                    ]);
+                    
+                    $result = $s3Client->putObject([
+                        'Bucket' => 'wfssystem',
+                        'Key' => 'posters/' . $fileName,
+                        'Body' => fopen($poster->getPathname(), 'r'),
+                        'ACL' => 'public-read',
+                        'ContentType' => $poster->getMimeType(),
+                    ]);
+                    
+                    $material->poster = $result['ObjectURL'];
+                    $material->save();
+                } catch (\Aws\Exception\AwsException $e) {
+                    Log::error('Training Material Poster Upload Error: ' . $e->getMessage());
+                }
+            }
 
             // Sync categories (many-to-many) - using attach for efficiency
             $categoryIds = $request->category_ids ?? [];
@@ -937,6 +972,7 @@ class TrainingMaterialController extends Controller
             'category_ids.*' => 'exists:course_categories,id',
             'target_role' => 'required|in:all,1,4,6,3,5,10',
             // is_active and is_featured are optional checkboxes, no validation needed
+            'poster' => 'nullable|image|max:5000', // Poster image: max 5MB, accept images
         ];
 
         if ($request->hasFile('file')) {
@@ -963,6 +999,39 @@ class TrainingMaterialController extends Controller
             'is_active' => $request->has('is_active') ? $request->is_active : true,
             'is_featured' => $request->has('is_featured') ? $request->is_featured : false,
         ]);
+        
+        // Handle poster upload
+        if ($request->hasFile('poster')) {
+            $poster = $request->file('poster');
+            try {
+                $originalName = pathinfo($poster->getClientOriginalName(), PATHINFO_FILENAME);
+                $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+                $fileName = $sanitizedName . '_' . uniqid() . '.' . $poster->getClientOriginalExtension();
+                
+                $s3Client = new \Aws\S3\S3Client([
+                    'version' => 'latest',
+                    'region' => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key' => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+                
+                $result = $s3Client->putObject([
+                    'Bucket' => 'wfssystem',
+                    'Key' => 'posters/' . $fileName,
+                    'Body' => fopen($poster->getPathname(), 'r'),
+                    'ACL' => 'public-read',
+                    'ContentType' => $poster->getMimeType(),
+                ]);
+                
+                $material->poster = $result['ObjectURL'];
+                $material->save();
+            } catch (\Aws\Exception\AwsException $e) {
+                Log::error('Training Material Poster Upload Error: ' . $e->getMessage());
+            }
+        }
 
         // Sync categories
         $categoryIds = $request->category_ids ?? [];

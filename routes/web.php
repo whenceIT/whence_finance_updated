@@ -246,6 +246,7 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      // Quiz taking routes for students
      Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
      Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
+     Route::post('/quiz/{quizId}/submit-preview', [QuizController::class, 'submitPreview'])->name('learning.quizzes.submit-preview');
      
       // Topics management route for trainers
      Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');

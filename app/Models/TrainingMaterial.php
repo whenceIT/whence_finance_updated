@@ -30,6 +30,7 @@ class TrainingMaterial extends Model
         'view_count',
         'download_count',
         'published_at',
+        'poster',
     ];
 
     /**
