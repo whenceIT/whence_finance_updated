@@ -1,0 +1,314 @@
+[30-Sep-2022 20:38:39 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php:277
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php on line 277
+[06-Oct-2022 13:20:04 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\Office' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php:332
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php on line 332
+[13-Oct-2022 12:59:51 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\OtherIncome' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/daily_transaction_report.blade.php:196
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/daily_transaction_report.blade.php on line 196
+[16-Oct-2022 08:18:11 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php:129
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php on line 129
+[20-Oct-2022 22:05:29 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[20-Oct-2022 22:05:29 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[22-Oct-2022 06:40:51 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_pdf.blade.php:276
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_pdf.blade.php on line 276
+[22-Oct-2022 11:39:31 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_pdf.blade.php:263
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_pdf.blade.php on line 263
+[26-Oct-2022 07:27:59 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_conso.blade.php:335
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_conso.blade.php on line 335
+[08-Nov-2022 09:33:26 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php:389
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php on line 389
+[12-Nov-2022 04:09:46 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php:360
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php on line 360
+[12-Nov-2022 04:10:43 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 349
+[12-Nov-2022 04:10:43 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php:373
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 373
+[12-Nov-2022 04:10:43 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[12-Nov-2022 04:10:43 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[14-Nov-2022 12:39:50 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php:360
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php on line 360
+[14-Nov-2022 12:41:58 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 349
+[14-Nov-2022 12:41:58 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php:373
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 373
+[14-Nov-2022 12:41:58 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[14-Nov-2022 12:41:58 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[15-Nov-2022 22:18:50 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php:277
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php on line 277
+[17-Nov-2022 22:06:56 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 349
+[17-Nov-2022 22:06:56 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php:373
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 373
+[17-Nov-2022 22:06:56 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[17-Nov-2022 22:06:56 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[17-Nov-2022 22:08:51 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php:360
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php on line 360
+[19-Nov-2022 05:56:03 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 349
+[19-Nov-2022 05:56:03 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php:373
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 373
+[19-Nov-2022 05:56:03 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[19-Nov-2022 05:56:03 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[19-Nov-2022 05:57:27 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php:360
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php on line 360
+[21-Nov-2022 21:10:59 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[21-Nov-2022 21:10:59 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[22-Nov-2022 16:21:03 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\Office' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php:332
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php on line 332
+[24-Nov-2022 06:29:49 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[24-Nov-2022 06:29:49 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[26-Nov-2022 07:57:54 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[26-Nov-2022 07:57:54 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[02-Dec-2022 07:54:55 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php:129
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php on line 129
+[09-Dec-2022 20:53:37 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php:277
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php on line 277
+[15-Dec-2022 13:38:16 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 349
+[15-Dec-2022 13:38:16 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php:373
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 373
+[28-Dec-2022 12:35:30 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[28-Dec-2022 12:35:30 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[10-Jan-2023 09:00:09 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_conso.blade.php:375
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_conso.blade.php on line 375
+[12-Jan-2023 10:55:57 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_conso.blade.php:393
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_conso.blade.php on line 393
+[17-Jan-2023 07:47:45 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php:389
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php on line 389
+[28-Apr-2023 11:44:38 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php:277
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php on line 277
+[29-Jun-2023 22:45:29 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_conso.blade.php:335
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_conso.blade.php on line 335
+[25-Jul-2023 14:26:10 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php:360
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php on line 360
+[10-Aug-2023 17:14:40 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement.blade.php:245
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement.blade.php on line 245
+[13-Aug-2023 13:30:27 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/daily_transaction_report.blade.php:54
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/daily_transaction_report.blade.php on line 54
+[13-Aug-2023 13:31:30 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_conso.blade.php:375
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_conso.blade.php on line 375
+[13-Aug-2023 13:31:50 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_pdf.blade.php:276
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_pdf.blade.php on line 276
+[13-Aug-2023 13:32:11 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php:255
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php on line 255
+[13-Aug-2023 13:34:39 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_conso.blade.php:335
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_conso.blade.php on line 335
+[13-Aug-2023 13:34:49 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement.blade.php:245
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement.blade.php on line 245
+[13-Aug-2023 13:47:59 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 349
+[13-Aug-2023 13:47:59 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php:373
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 373
+[13-Aug-2023 13:53:00 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance.blade.php:257
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance.blade.php on line 257
+[13-Aug-2023 13:59:08 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php:360
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php on line 360
+[13-Aug-2023 13:59:40 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[13-Aug-2023 13:59:40 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[13-Aug-2023 14:01:14 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php:277
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php on line 277
+[13-Aug-2023 14:01:58 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_conso.blade.php:393
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_conso.blade.php on line 393
+[13-Aug-2023 14:04:34 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_pdf.blade.php:263
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_pdf.blade.php on line 263
+[13-Aug-2023 14:04:45 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php:129
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php on line 129
+[13-Aug-2023 14:14:42 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php:269
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php on line 269
+[18-Aug-2023 14:15:35 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php:360
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php on line 360
+[03-Sep-2023 23:07:07 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/daily_transaction_report.blade.php:54
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/daily_transaction_report.blade.php on line 54
+[03-Sep-2023 23:07:40 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_conso.blade.php:375
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_conso.blade.php on line 375
+[03-Sep-2023 23:07:51 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_pdf.blade.php:276
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_pdf.blade.php on line 276
+[03-Sep-2023 23:08:02 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php:255
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php on line 255
+[03-Sep-2023 23:09:21 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_conso.blade.php:335
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_conso.blade.php on line 335
+[03-Sep-2023 23:09:26 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement.blade.php:245
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement.blade.php on line 245
+[03-Sep-2023 23:16:23 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 349
+[03-Sep-2023 23:16:23 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php:373
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning_pdf.blade.php on line 373
+[03-Sep-2023 23:19:04 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance.blade.php:257
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance.blade.php on line 257
+[03-Sep-2023 23:22:17 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php:360
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.bladeddddd.php on line 360
+[03-Sep-2023 23:22:34 America/Boise] PHP Warning:  Invalid argument supplied for foreach() in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 447
+[03-Sep-2023 23:22:34 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\LoanProvisioningCriteria' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php:471
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/provisioning.blade.php on line 471
+[03-Sep-2023 23:23:24 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php:277
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet_pdf.blade.php on line 277
+[03-Sep-2023 23:23:46 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_conso.blade.php:393
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_conso.blade.php on line 393
+[03-Sep-2023 23:25:10 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_pdf.blade.php:263
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_pdf.blade.php on line 263
+[03-Sep-2023 23:25:15 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php:129
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php on line 129
+[03-Sep-2023 23:30:30 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php:269
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php on line 269
+[14-Sep-2023 17:19:41 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_pdf.blade.php:263
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_pdf.blade.php on line 263
+[14-Sep-2023 22:49:04 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_pdf.blade.php:276
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/income_statement_pdf.blade.php on line 276
+[10-Oct-2023 13:52:10 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php:269
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/ledger_statement.blade.php on line 269
+[24-Oct-2023 12:27:28 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php:255
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/balance_sheet.blade.php on line 255
+[29-Oct-2023 14:45:45 America/Boise] PHP Fatal error:  Uncaught Error: Class 'Sentinel' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/daily_transaction_report.blade.php:54
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/daily_transaction_report.blade.php on line 54
+[01-Nov-2023 13:58:35 America/Boise] PHP Fatal error:  Uncaught Error: Class 'App\Models\GlJournalEntry' not found in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php:129
+Stack trace:
+#0 {main}
+  thrown in /home3/gipocred/public_html/nyali/resources/views/financial_report/trial_balance_sample.blade.php on line 129

@@ -8,6 +8,11 @@ class LoanTransactionUnapproved extends Model
 {
     protected $table = "loan_transactions_pp_fp";
 
+    // Payment apply to constants
+    const PAYMENT_FULL_PAYMENT = 'full_payment';
+    const PAYMENT_PART_PAYMENT = 'part_payment';
+    const PAYMENT_RELOAN_PAYMENT = 'reloan_payment';
+    const PAYMENT_DEBT_RECOVERY = 'debt_recovery';
 
     public function office()
     {

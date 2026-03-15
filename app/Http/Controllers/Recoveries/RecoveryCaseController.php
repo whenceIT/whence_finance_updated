@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
-use App\Models\Loan;
-use App\Models\Office;
 use App\Models\RecoveryCase;
-use App\Models\User;
 use App\Services\RecoveryCaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -90,18 +87,8 @@ class RecoveryCaseController extends Controller
 
     public function create()
     {
-        try {
-            $categories = RecoveryCase::CATEGORIES;
-            // Fetch loans with client, loan_product, office and first installment date
-            $loans = Loan::with('client')
-                    ->where('first_repayment_date', '>', now())
-                    ->get();
-            // Fetch all offices (branches)
-            $offices = Office::get();
-            return view('recoveries.cases.create', compact('categories', 'loans', 'offices'));
-        } catch (\Throwable $th) {
-            dd($th->getMessage());
-        }
+        $categories = RecoveryCase::CATEGORIES;
+        return view('recoveries.cases.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -140,8 +127,7 @@ class RecoveryCaseController extends Controller
     {
         $case       = RecoveryCase::findOrFail($id);
         $categories = RecoveryCase::CATEGORIES;
-        $specialists = User::orderBy('first_name')->get();
-        return view('recoveries.cases.edit', compact('case', 'categories', 'specialists'));
+        return view('recoveries.cases.edit', compact('case', 'categories'));
     }
 
     public function update(Request $request, $id)
