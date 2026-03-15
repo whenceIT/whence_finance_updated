@@ -1,11 +1,8 @@
 @extends('layouts.master')
-
 @section('title')
     Open New Recovery Case
 @endsection
-
 @section('content')
-
 <div class="row">
     <div class="col-md-10 col-lg-8">
 
@@ -362,5 +359,4 @@
     }());
 </script>
 @endpush
-
 @endsection
