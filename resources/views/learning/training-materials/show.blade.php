@@ -243,7 +243,7 @@ $breadcrumb = [
                 @if($material->allTopics && $material->allTopics->count() > 0)
                     <div style="max-height: 500px; overflow-y: auto;">
                         @foreach($material->allTopics as $index => $topic)
-                        <div class="topic-item" onclick="showTopicPreview({{ $topic->id }}, '{{ addslashes($topic->topic_name) }}')">
+                        <div class="topic-item" data-topic-id="{{ $topic->id }}" data-topic-name="{{ addslashes($topic->topic_name) }}" onclick="showTopicPreview(this)">
                             <div class="topic-number">{{ $index + 1 }}</div>
                             <div class="topic-info">
                                 <div class="topic-title">{{ $topic->topic_name }}</div>
@@ -314,8 +314,6 @@ $breadcrumb = [
                 </div>
             </div>
         </div>
-        @endif
-        @endif
         @endif
         @endif
         
@@ -508,18 +506,20 @@ var topicData = {};
 @foreach($material->allTopics as $topic)
 topicData[{{ $topic->id }}] = {
     id: {{ $topic->id }},
-    name: '{{ addslashes($topic->topic_name) }}',
+    name: '{{ json_encode($topic->topic_name) }}',
     type: '{{ $topic->topic_type }}',
     duration: {{ $topic->duration ?? 'null' }},
     video_path: '{{ $topic->video_file_path ?? '' }}',
     audio_path: '{{ $topic->audio_file_path ?? '' }}',
     pdf_path: '{{ $topic->pdf_file_path ?? '' }}',
-    quiz: {{ $topic->quiz ? '{id: ' . $topic->quiz->id . ', title: \'' . addslashes($topic->quiz->title) . '\'}' : 'null' }}
+    quiz: {{ $topic->quiz ? '{id: ' . $topic->quiz->id . ', title: ' . json_encode($topic->quiz->title) . '}' : 'null' }}
 };
 @endforeach
 @endif
 
-function showTopicPreview(topicId, topicName) {
+function showTopicPreview(element) {
+    var topicId = parseInt(element.dataset.topicId);
+    var topicName = element.dataset.topicName;
     document.getElementById('topicPreviewTitle').textContent = topicName;
     document.getElementById('topicPreviewModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
