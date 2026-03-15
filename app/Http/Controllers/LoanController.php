@@ -659,6 +659,49 @@ class LoanController extends Controller
         return view('loan.transactions', compact('data','HasPendingCarryOvers',));
     }
 
+    //Debt Recovery Transaction Approvals
+    public function recoveries_approvals()
+    {
+        if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+        $userId = Sentinel::getUser()->id;
+        $province_id = Sentinel::getUser()->province_id;
+        $office_id = Sentinel::getUser()->office_id;
+        $offices = Office::get();
+        $role = UserRole::where('user_id', $userId)->first();
+
+        // Query only debt_recovery payment transactions
+        if ($role->role_id == "6") {
+            // Province manager - see all offices in province
+            foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)
+                        ->where('payment_apply_to', 'debt_recovery')
+                        ->get();
+                    foreach ($transactions as $transaction) {
+                        array_push($province_transactions, $transaction);
+                    }
+                }
+            }
+            $data = $province_transactions ?? [];
+        } else {
+            if (Sentinel::hasAccess('settings')) {
+                // Admin sees all
+                $data = LoanTransactionUnapproved::where('payment_apply_to', 'debt_recovery')->get();
+            } else {
+                // Regular user sees office-specific
+                $data = LoanTransactionUnapproved::where('office_id', $office_id)
+                    ->where('payment_apply_to', 'debt_recovery')
+                    ->get();
+            }
+        }
+
+        return view('loan.recoveries_approvals', compact('data'));
+    }
+
     public function top_up_approvals()
     {
 
@@ -2872,7 +2915,21 @@ class LoanController extends Controller
             return redirect()->back();
         }
 
-        return view('loan.repayment.create', compact('loan'));
+        // Get the loan model from the ID - ensure we have an ID, not a model instance
+        $loanId = $loan instanceof \App\Models\Loan ? $loan->id : $loan;
+        $loan = Loan::find($loanId);
+        
+        if (!$loan) {
+            Flash::warning("Loan not found");
+            return redirect()->back();
+        }
+
+        // Get active recovery cases for this loan with client eager loading
+        $recoveryCases = \App\Models\RecoveryCase::with('client')
+            ->where('loan_id', $loan->id)
+            ->get();
+
+        return view('loan.repayment.create', compact('loan', 'recoveryCases'));
     }
 
 
@@ -2884,7 +2941,6 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-
 
         $todaysDate = date('Y-m-d');
 
@@ -2941,6 +2997,7 @@ class LoanController extends Controller
                 $loan_transaction->notes_pd = $request->notes;
                 // $loan_transaction->request_id = $request->$id;
                 $loan_transaction->save();
+                $this->store_dept_recovery($request);
                 $client_id = $loan->client_id;
                 $client = \App\Models\Client::find($client_id);
                 Http::post('https://notifications.whencefinancesystem.com/emit', [
@@ -3056,6 +3113,98 @@ class LoanController extends Controller
                 return redirect('loan/' . $loan->id . '/show');
             }
         }
+    }
+
+    public function store_dept_recovery(Request $request, $loan_transaction_id = null){
+        // Store recovery payment when payment_apply_to is 'debt_recovery'
+        if ($request->has('payment_apply_to') && $request->payment_apply_to == 'debt_recovery') {
+            $loanTransaction = null;
+            if ($loan_transaction_id) {
+                $loanTransaction = LoanTransaction::find($loan_transaction_id);
+            }
+            
+            // Get the recovery case
+            $recoveryCase = \App\Models\RecoveryCase::find($request->recovery_case_id);
+            
+            if ($recoveryCase) {
+                // Get payment details from form
+                $amount = $request->amount;
+                
+                // Get attribution details from recovery case (not from form)
+                $recoveriesDeptPct = $recoveryCase->recoveries_dept_attribution_pct ?? 0;
+                $originBranchPct = $recoveryCase->origin_branch_attribution_pct ?? 0;
+                $supportingBranchPct = $recoveryCase->supporting_branch_attribution_pct ?? 0;
+                
+                // Get branch details from recovery case
+                $originBranchId = $recoveryCase->origin_branch_id;
+                $supportingBranchId = $recoveryCase->supporting_branch_id;
+                $assignedSpecialistId = $recoveryCase->assigned_specialist_id;
+                
+                // Get outstanding from recovery case (not from form)
+                $outstandingBefore = $recoveryCase->loan_outstanding_amount;
+                $previousRecovered = $recoveryCase->amount_recovered ?? 0;
+                $outstandingAfter = max(0, $outstandingBefore - $amount);
+                
+                // Calculate attribution amounts from recovery case percentages
+                $recoveriesDeptAmount = $amount * ($recoveriesDeptPct / 100);
+                $originBranchAmount = $amount * ($originBranchPct / 100);
+                $supportingBranchAmount = $amount * ($supportingBranchPct / 100);
+                
+                // Create recovery payment record
+                $recoveryPayment = new \App\Models\RecoveryPayment();
+                $recoveryPayment->recovery_case_id = $recoveryCase->id;
+                $recoveryPayment->recorded_by = Sentinel::getUser()->id;
+                $recoveryPayment->receipt_number = $request->receipt_number ?? \App\Models\RecoveryPayment::generateReceiptNumber();
+                $recoveryPayment->amount = $amount;
+                
+                // Handle payment method - validate against allowed enum values
+                $allowedPaymentMethods = ['cash', 'mobile_money', 'bank_transfer', 'cheque', 'payroll_deduction'];
+                $paymentMethodInput = $request->payment_type_id;
+                
+                // If payment_method is numeric, get the actual name from PaymentType
+                if (is_numeric($paymentMethodInput)) {
+                    $paymentType = \App\Models\PaymentType::find($paymentMethodInput);
+                    if ($paymentType) {
+                        $paymentMethodInput = strtolower(str_replace(' ', '_', $paymentType->name));
+                    }
+                }
+                
+                // Validate and set payment method
+                if (in_array($paymentMethodInput, $allowedPaymentMethods)) {
+                    $recoveryPayment->payment_method = $paymentMethodInput;
+                } else {
+                    // Default to 'cash' if invalid value provided
+                    $recoveryPayment->payment_method = 'cash';
+                }
+                $recoveryPayment->payment_date = $request->date ?? date('Y-m-d');
+                $recoveryPayment->payment_reference = $request->payment_reference;
+                $recoveryPayment->bank_name = $request->bank_name;
+                $recoveryPayment->recoveries_dept_amount = $recoveriesDeptAmount;
+                $recoveryPayment->origin_branch_amount = $originBranchAmount;
+                $recoveryPayment->supporting_branch_amount = $supportingBranchAmount;
+                $recoveryPayment->is_settlement = $request->is_settlement ?? false;
+                $recoveryPayment->outstanding_before = $outstandingBefore;
+                $recoveryPayment->outstanding_after = $outstandingAfter;
+                $recoveryPayment->notes = $request->notes;
+                $recoveryPayment->save();
+                
+                // Update recovery case with amount recovered (from case, not form)
+                $recoveryCase->amount_recovered = $previousRecovered + $amount;
+                $recoveryCase->last_payment_date = $request->date ?? date('Y-m-d');
+                $recoveryCase->save();
+                
+                // If settlement, update case status
+                if ($request->is_settlement == 1 || $request->is_settlement == '1') {
+                    $recoveryCase->status = 'recovered_runaway';
+                    $recoveryCase->settlement_amount = $amount;
+                    $recoveryCase->resolved_date = date('Y-m-d');
+                    $recoveryCase->save();
+                }
+                
+                return $recoveryPayment;
+            }
+        }
+        return null;
     }
 
     public function edit_repayment($loan_transaction)

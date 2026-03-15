@@ -78,7 +78,7 @@ Route::model('loan_application', 'App\Models\LoanApplication');
 
 // Recovery model bindings
 Route::model('recovery_case', 'App\Models\RecoveryCase');
-Route::model('recovery_payment', 'App\Models\RecoveryPayment');
+Route::model('recovery_payment', 'App\Models\/repayment/store');
 Route::model('recovery_document', 'App\Models\RecoveryDocument');
 Route::model('recovery_nudge', 'App\Models\RecoveryNudge');
 Route::model('recovery_activity', 'App\Models\RecoveryActivity');
@@ -594,6 +594,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
+    Route::get('recoveries_approvals', 'LoanController@recoveries_approvals');
     Route::get('top_up_approvals', 'LoanController@top_up_approvals');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
