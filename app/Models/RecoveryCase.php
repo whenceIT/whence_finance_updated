@@ -113,7 +113,7 @@ class RecoveryCase extends Model
             str_contains($this->status, 'legal')             => 'danger',
             str_contains($this->status, 'skip_trace')        => 'info',
             str_contains($this->status, 'runaway')           => 'primary',
-            default                                           => 'warning',
+            default                                          => 'warning',
         };
     }
 

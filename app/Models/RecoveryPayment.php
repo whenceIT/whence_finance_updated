@@ -7,10 +7,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RecoveryPayment extends Model
 {
+    /**
+     * Boot the model.
+     * Register global scope to filter out payments where status = 1 (archived/deleted).
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::addGlobalScope('active', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            $builder->where('status', '==', 1);
+        });
+    }
+
     protected $fillable = [
         'recovery_case_id','recorded_by','receipt_number','amount','payment_method',
-        'payment_date','payment_reference','recoveries_dept_amount','origin_branch_amount',
+        'payment_date','payment_reference','bank_name','recoveries_dept_amount','origin_branch_amount',
         'supporting_branch_amount','is_settlement','outstanding_before','outstanding_after','notes',
+        'status',
     ];
 
     protected $casts = [
@@ -20,6 +34,11 @@ class RecoveryPayment extends Model
         'origin_branch_amount'     => 'decimal:2',
         'supporting_branch_amount' => 'decimal:2',
         'is_settlement'            => 'boolean',
+        'status'                   => 'integer',
+    ];
+
+    protected $attributes = [
+        'status' => 0,
     ];
 
     public function recoveryCase(): BelongsTo { return $this->belongsTo(RecoveryCase::class); }
@@ -39,5 +58,21 @@ class RecoveryPayment extends Model
     public static function generateReceiptNumber(): string
     {
         return 'RCP-' . strtoupper(uniqid());
+    }
+
+    /**
+     * Scope to include all payments including those with status = 1 (archived).
+     */
+    public function scopeWithArchived($query)
+    {
+        return $query->withoutGlobalScopes();
+    }
+
+    /**
+     * Scope to get only archived payments (status = 1).
+     */
+    public function scopeArchived($query)
+    {
+        return $query->withoutGlobalScopes()->where('status', 1);
     }
 }
