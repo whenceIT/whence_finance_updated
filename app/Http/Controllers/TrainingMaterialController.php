@@ -793,7 +793,9 @@ class TrainingMaterialController extends Controller
         $role = $user->roles->first();
         $roleId = $role ? $role->id : null;
 
-        $material = TrainingMaterial::findOrFail($id);
+        $material = TrainingMaterial::with(['creator', 'allTopics' => function($query) {
+            $query->ordered();
+        }, 'allTopics.quiz'])->findOrFail($id);
 
         // Check if user has permission to view this material
         if (!$material->is_active) {

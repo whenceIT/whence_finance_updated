@@ -210,6 +210,123 @@
     cursor: not-allowed;
     transform: none;
 }
+
+.poster-upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--light-bg);
+}
+
+.poster-upload-area:hover {
+    border-color: var(--primary-color);
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.poster-upload-area i {
+    font-size: 36px;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.poster-upload-area p {
+    margin: 5px 0;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Animated Progress Bar */
+.upload-progress {
+    display: none;
+    margin-top: 30px;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-color);
+}
+
+.upload-progress.active {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.progress-bar-container {
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color) 0%, #3bc9a5 50%, var(--primary-color) 100%);
+    background-size: 200% 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 6px;
+    position: relative;
+    animation: progressAnimation 2s ease-in-out infinite;
+}
+
+@keyframes progressAnimation {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.3) 50%,
+        rgba(255,255,255,0) 100%
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.progress-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.progress-percentage {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-align: center;
+    display: block;
+    margin-bottom: 5px;
+}
 </style>
 
 @section('content')
@@ -256,7 +373,7 @@
         <!-- File Type Selection -->
         <div class="form-group">
             <label class="form-label">File Type</label>
-            <select name="type" id="typeSelect" class="form-select" required>
+            <select name="type" id="typeSelect" class="form-select" required onchange="togglePosterField()">
                 <option value="">Select file type</option>
                 <option value="video">Video</option>
                 <option value="audio">Audio</option>
@@ -268,12 +385,33 @@
             </select>
         </div>
         
+        <!-- Poster Upload (for videos) -->
+        <div class="form-group" id="posterField" style="display: none;">
+            <label class="form-label">Video Poster/Thumbnail</label>
+            <div class="poster-upload-area" id="posterUploadArea" onclick="document.getElementById('posterInput').click()">
+                <i class="fa fa-image"></i>
+                <p>Click to upload poster image</p>
+                <span style="font-size: 12px; color: var(--text-secondary);">Recommended: 1280x720 or 1920x1080 (JPG, PNG)</span>
+                <input type="file" id="posterInput" class="file-input" accept="image/*" onchange="handlePosterSelect(this)">
+            </div>
+            <div class="selected-poster" id="selectedPoster" style="display: none; margin-top: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img id="posterPreview" src="" style="width: 120px; height: 68px; object-fit: cover; border-radius: 6px;">
+                    <div>
+                        <div id="posterName" style="font-weight: 600; font-size: 13px;"></div>
+                        <button type="button" onclick="removePoster()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 12px;">Remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Upload Progress -->
         <div class="upload-progress" id="uploadProgress">
+            <span class="progress-percentage" id="progressPercentage">0%</span>
             <div class="progress-bar-container">
                 <div class="progress-bar-fill" id="progressBar"></div>
             </div>
-            <div class="progress-text" id="progressText">Uploading... 0%</div>
+            <div class="progress-text" id="progressText">Preparing upload...</div>
             <div class="upload-status" id="uploadStatus"></div>
         </div>
         
@@ -286,7 +424,51 @@
 
 <script>
 var selectedFile = null;
+var selectedPoster = null;
 var chunkSize = 5 * 1024 * 1024; // 5MB chunks
+
+// Toggle poster field based on file type
+function togglePosterField() {
+    var type = document.getElementById('typeSelect').value;
+    var posterField = document.getElementById('posterField');
+    
+    if (type === 'video') {
+        posterField.style.display = 'block';
+    } else {
+        posterField.style.display = 'none';
+        selectedPoster = null;
+    }
+}
+
+// Handle poster selection
+function handlePosterSelect(input) {
+    if (input.files && input.files[0]) {
+        selectedPoster = input.files[0];
+        
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('posterPreview').src = e.target.result;
+            document.getElementById('posterName').textContent = selectedPoster.name;
+            document.getElementById('selectedPoster').style.display = 'block';
+        };
+        reader.readAsDataURL(selectedPoster);
+    }
+}
+
+// Remove poster
+function removePoster() {
+    selectedPoster = null;
+    document.getElementById('posterInput').value = '';
+    document.getElementById('selectedPoster').style.display = 'none';
+    document.getElementById('posterPreview').src = '';
+}
+
+// Update progress display
+function updateProgress(percent, text) {
+    document.getElementById('progressBar').style.width = percent + '%';
+    document.getElementById('progressPercentage').textContent = percent + '%';
+    document.getElementById('progressText').textContent = text;
+}
 
 // File input handling
 var fileInput = document.getElementById('fileInput');
@@ -402,17 +584,21 @@ function uploadRegular(file, type) {
     formData.append('file', file);
     formData.append('type', type);
     
+    // Add poster if selected
+    if (selectedPoster) {
+        formData.append('poster', selectedPoster);
+    }
+    
     var xhr = new XMLHttpRequest();
     
-    // Show progress
-    document.getElementById('uploadProgress').style.display = 'block';
+    // Show progress with animation
+    document.getElementById('uploadProgress').classList.add('active');
     document.getElementById('uploadBtn').disabled = true;
     
     xhr.upload.addEventListener('progress', function(e) {
         if (e.lengthComputable) {
             var percent = Math.round((e.loaded / e.total) * 100);
-            document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('progressText').textContent = 'Uploading... ' + percent + '%';
+            updateProgress(percent, 'Uploading file...');
         }
     });
     
@@ -420,6 +606,7 @@ function uploadRegular(file, type) {
         if (xhr.status === 200) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
+                updateProgress(100, 'Upload complete!');
                 document.getElementById('uploadStatus').className = 'upload-status success';
                 document.getElementById('uploadStatus').textContent = 'File uploaded successfully!';
                 setTimeout(function() {
@@ -453,8 +640,9 @@ function uploadChunked(file, type) {
     var totalChunks = Math.ceil(file.size / chunkSize);
     var chunkIndex = 0;
     
-    document.getElementById('uploadProgress').style.display = 'block';
+    document.getElementById('uploadProgress').classList.add('active');
     document.getElementById('uploadBtn').disabled = true;
+    updateProgress(0, 'Starting chunked upload...');
     
     function uploadNextChunk() {
         if (chunkIndex >= totalChunks) {
@@ -475,14 +663,18 @@ function uploadChunked(file, type) {
         formData.append('fileId', fileId);
         formData.append('type', type);
         
+        // Add poster to first chunk if available
+        if (chunkIndex === 0 && selectedPoster) {
+            formData.append('poster', selectedPoster);
+        }
+        
         var xhr = new XMLHttpRequest();
         
         xhr.upload.addEventListener('progress', function(e) {
             if (e.lengthComputable) {
                 var chunkProgress = (e.loaded / e.total) * 100;
                 var overallProgress = ((chunkIndex + (chunkProgress / 100)) / totalChunks) * 100;
-                document.getElementById('progressBar').style.width = overallProgress + '%';
-                document.getElementById('progressText').textContent = 'Uploading chunk ' + (chunkIndex + 1) + ' of ' + totalChunks + '... ' + Math.round(overallProgress) + '%';
+                updateProgress(Math.round(overallProgress), 'Uploading chunk ' + (chunkIndex + 1) + ' of ' + totalChunks);
             }
         });
         
@@ -518,7 +710,12 @@ function mergeChunks(fileId, filename, totalChunks, type) {
     formData.append('totalChunks', totalChunks);
     formData.append('type', type);
     
-    document.getElementById('progressText').textContent = 'Finalizing upload...';
+    // Add poster if selected
+    if (selectedPoster) {
+        formData.append('poster', selectedPoster);
+    }
+    
+    updateProgress(95, 'Finalizing upload...');
     
     var xhr = new XMLHttpRequest();
     
@@ -526,6 +723,7 @@ function mergeChunks(fileId, filename, totalChunks, type) {
         if (xhr.status === 200) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
+                updateProgress(100, 'Upload complete!');
                 document.getElementById('uploadStatus').className = 'upload-status success';
                 document.getElementById('uploadStatus').textContent = 'File uploaded successfully!';
                 setTimeout(function() {

@@ -395,4 +395,82 @@ class QuizController extends Controller
             ], 500);
         }
     }
+    
+    /**
+     * Get quiz questions for preview (JSON API).
+     */
+    public function getQuestions($quizId)
+    {
+        try {
+            if (!Sentinel::check()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $user = Sentinel::getUser();
+            $isAdmin = $user->roles->first() && in_array($user->roles->first()->id, ['1']);
+            $isTrainer = $user->istrainer == 1;
+
+            if (!$isAdmin && !$isTrainer) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+
+            $quiz = Quiz::with('questions.options')->findOrFail($quizId);
+            
+            $questions = $quiz->questions->map(function($question) {
+                return [
+                    'id' => $question->id,
+                    'question' => $question->question,
+                    'question_type' => $question->question_type,
+                    'points' => $question->points,
+                    'explanation' => $question->explanation,
+                    'options' => $question->options->map(function($option) {
+                        return [
+                            'id' => $option->id,
+                            'option_text' => $option->option_text,
+                            'is_correct' => (bool) $option->is_correct,
+                            'sort_order' => $option->sort_order,
+                        ];
+                    })->toArray(),
+                    'correct_answer' => $question->options->where('is_correct', true)->first()?->option_text,
+                ];
+            })->toArray();
+
+            return response()->json([
+                'success' => true,
+                'quiz' => [
+                    'id' => $quiz->id,
+                    'title' => $quiz->title,
+                    'passing_score' => $quiz->passing_score,
+                    'time_limit' => $quiz->time_limit,
+                ],
+                'questions' => $questions,
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error getting quiz questions: ' . $e->getMessage(), [
+                'quiz_id' => $quizId,
+                'user_id' => Sentinel::getUser() ? Sentinel::getUser()->id : null
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to load quiz questions. Please try again later.'
+            ], 500);
+        } catch (\Illuminate\Routing\Exceptions\UrlNotFoundException $e) {
+            \Log::error('Quiz not found: ' . $e->getMessage(), [
+                'quiz_id' => $quizId
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Quiz not found.'
+            ], 404);
+        } catch (\Throwable $e) {
+            \Log::error('Error getting quiz questions: ' . $e->getMessage(), [
+                'quiz_id' => $quizId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while loading the quiz.'
+            ], 500);
+        }
+    }
 }

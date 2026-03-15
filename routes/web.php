@@ -233,7 +233,7 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      // Routes with parameters
      Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
      Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
-      Route::any('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
+     Route::put('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
      Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
      Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
      Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
@@ -241,6 +241,7 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::get('/topic/{topicId}/quiz/manage', [QuizController::class, 'manage'])->name('learning.quizzes.manage');
      Route::post('/topic/{topicId}/quiz/save', [QuizController::class, 'save'])->name('learning.quizzes.save');
      Route::delete('/quiz/{quizId}/delete', [QuizController::class, 'delete'])->name('learning.quizzes.delete');
+     Route::get('/quiz/{quizId}/questions', [QuizController::class, 'getQuestions'])->name('learning.quizzes.questions');
      
      // Quiz taking routes for students
      Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
@@ -261,7 +262,7 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      // Routes with parameters
      Route::get('/{id}', [GeneralUploadsController::class, 'show'])->name('learning.general-uploads.show');
      Route::get('/{id}/edit', [GeneralUploadsController::class, 'edit'])->name('learning.general-uploads.edit');
-     Route::any('/{id}', [GeneralUploadsController::class, 'update'])->name('learning.general-uploads.update');
+     Route::put('/{id}', [GeneralUploadsController::class, 'update'])->name('learning.general-uploads.update');
      Route::delete('/{id}', [GeneralUploadsController::class, 'destroy'])->name('learning.general-uploads.destroy');
      Route::get('/{id}/download', [GeneralUploadsController::class, 'download'])->name('learning.general-uploads.download');
      Route::post('/{id}/toggle-status', [GeneralUploadsController::class, 'toggleStatus'])->name('learning.general-uploads.toggle-status');

@@ -72,8 +72,9 @@ class GeneralUploadsController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $type = $request->input('type', 'other');
+            $poster = $request->file('poster');
             
-            $upload = $this->saveUpload($file, $type);
+            $upload = $this->saveUpload($file, $type, $poster);
             
             return response()->json([
                 'success' => true,
@@ -129,6 +130,7 @@ class GeneralUploadsController extends Controller
         $fileId = $request->input('fileId');
         $type = $request->input('type', 'other');
         $totalChunks = $request->input('totalChunks');
+        $poster = $request->file('poster');
         
         $chunkDir = storage_path('app/chunks/' . $fileId);
         
@@ -196,6 +198,13 @@ class GeneralUploadsController extends Controller
             $upload->file_size = $fileSize;
             $upload->mime_type = $mimeType;
             $upload->uploaded_by = Sentinel::getUser()->id ?? null;
+            
+            // Handle poster upload
+            if ($poster) {
+                $posterPath = $this->savePoster($poster, $typeFolder);
+                $upload->poster = $posterPath;
+            }
+            
             $upload->save();
             
             return response()->json([
@@ -266,7 +275,7 @@ class GeneralUploadsController extends Controller
     /**
      * Save uploaded file directly to S3
      */
-    private function saveUpload($file, $type)
+    private function saveUpload($file, $type, $poster = null)
     {
         // Determine actual type if not provided
         if ($type === 'other') {
@@ -296,6 +305,13 @@ class GeneralUploadsController extends Controller
             $upload->file_size = $file->getSize();
             $upload->mime_type = $file->getMimeType();
             $upload->uploaded_by = Sentinel::getUser()->id ?? null;
+            
+            // Handle poster upload
+            if ($poster) {
+                $posterPath = $this->savePoster($poster, $typeFolder);
+                $upload->poster = $posterPath;
+            }
+            
             $upload->save();
             
             return $upload;
@@ -303,6 +319,33 @@ class GeneralUploadsController extends Controller
         } catch (\Aws\Exception\AwsException $e) {
             Log::error('S3 Upload Error: ' . $e->getMessage());
             throw new \Exception('Failed to upload file to S3: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Save poster/thumbnail to S3
+     */
+    private function savePoster($poster, $typeFolder)
+    {
+        $originalName = pathinfo($poster->getClientOriginalName(), PATHINFO_FILENAME);
+        $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+        $extension = $poster->getClientOriginalExtension();
+        $posterKey = 'posters/' . $sanitizedName . '_' . uniqid() . '.' . $extension;
+        
+        try {
+            $result = $this->s3Client->putObject([
+                'Bucket' => $this->bucket,
+                'Key' => $posterKey,
+                'Body' => fopen($poster->getPathname(), 'r'),
+                'ACL' => 'public-read',
+                'ContentType' => $poster->getMimeType(),
+            ]);
+            
+            return $result['ObjectURL'];
+            
+        } catch (\Aws\Exception\AwsException $e) {
+            Log::error('S3 Poster Upload Error: ' . $e->getMessage());
+            return null;
         }
     }
     
