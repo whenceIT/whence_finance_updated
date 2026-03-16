@@ -1,4 +1,10 @@
 @extends('layouts.master')
+
+@if(isset($usageStats))
+    <script>
+        console.log('Memory Usage Stats:', @json($usageStats));
+    </script>
+@endif
 @section('title')
     Open New Recovery Case
 @endsection

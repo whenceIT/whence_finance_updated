@@ -93,11 +93,11 @@ class RecoveryCaseController extends Controller
         try {
             $categories = RecoveryCase::CATEGORIES;
             // Only load necessary fields to reduce memory usage
-            $loans = Loan::with(['client' => function($query) {
+            $loans = \App\Models\Loan::with(['client' => function($query) {
                 $query->select('id', 'first_name', 'last_name');
             }])->select('id', 'client_id', 'principal')->orderBy('id', 'desc')->get();
-            $offices = Office::orderBy('name')->get();
-            $users = User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+            $offices = \App\Models\Office::orderBy('name')->get();
+            $users = \App\Models\User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
 
             return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'users'));
         } catch (\Throwable $th) {
