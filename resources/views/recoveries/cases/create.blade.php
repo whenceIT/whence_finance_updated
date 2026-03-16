@@ -37,13 +37,13 @@
                                 <select name="loan_id" class="form-control" required>
                                     <option value="">— Select Loan —</option>
                                     @foreach($loans as $loan)
-                                    <option value="{{ $loan->id }}" {{ old('loan_id') == $loan->id ? 'selected' : '' }}>
-                                        {{ $loan->loan_id ?? 'Loan #'.$loan->id }}
-                                        &mdash;
-                                        {{ ($loan->client->client_type ?? '') === 'business'
-                                            ? ($loan->client->full_name ?? '')
-                                            : trim(($loan->client->first_name ?? '') . ' ' . ($loan->client->last_name ?? '')) }}
-                                    </option>
+                                        @if($loan)
+                                            <option value="{{ $loan->id }}">
+                                                {{'Loan #'.$loan?->id }} K{{ $loan?->amount }}
+                                                    &mdash;
+                                                {{ $loan?->client?->first_name.' '.$loan?->client?->last_name }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                                 <span class="help-block">Client will be linked automatically from the selected loan</span>
@@ -59,9 +59,9 @@
                                 <select name="category" class="form-control" id="category-select" required>
                                     <option value="">— Select Category —</option>
                                     @foreach($categories as $key => $label)
-                                    <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
+                                        <option value="{{ $key }}">
+                                            {{ $label }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 @if($errors->has('category'))
@@ -357,3 +357,4 @@
 </script>
 @endpush
 @endsection
+
