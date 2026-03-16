@@ -39,7 +39,7 @@
                                     @foreach($loans as $loan)
                                         @if($loan)
                                             <option value="{{ $loan->id }}">
-                                                {{'Loan #'.$loan?->id }} K{{ $loan?->amount }}
+                                                {{'Loan #'.$loan?->id }} - K{{ $loan?->principal }}
                                                     &mdash;
                                                 {{ $loan?->client?->first_name.' '.$loan?->client?->last_name }}
                                             </option>
@@ -78,7 +78,7 @@
                                 <select name="origin_branch_id" class="form-control" required>
                                     <option value="">— Select Branch —</option>
                                     @foreach($offices as $branch)
-                                    <option value="{{ $branch->id }}" {{ old('origin_branch_id') == $branch->id ? 'selected' : '' }}>
+                                    <option value="{{ $branch->id }}" >
                                         {{ $branch->name }}
                                     </option>
                                     @endforeach
@@ -95,7 +95,7 @@
                                 <select name="supporting_branch_id" class="form-control">
                                     <option value="">— None —</option>
                                     @foreach($offices as $branch)
-                                    <option value="{{ $branch->id }}" {{ old('supporting_branch_id') == $branch->id ? 'selected' : '' }}>
+                                    <option value="{{ $branch->id }}">
                                         {{ $branch->name }}
                                     </option>
                                     @endforeach
@@ -127,7 +127,7 @@
                                     <option value="">— Assign Later —</option>
                                     @php $specialists = \App\Models\User::orderBy('first_name')->get(); @endphp
                                     @foreach($specialists as $u)
-                                    <option value="{{ $u->id }}" {{ old('assigned_specialist_id') == $u->id ? 'selected' : '' }}>
+                                    <option value="{{ $u->id }}">
                                         {{ $u->first_name }} {{ $u->last_name }}
                                     </option>
                                     @endforeach
@@ -161,7 +161,7 @@
                                                 <option value="">— Select —</option>
                                                 @php $allUsers = \App\Models\User::orderBy('first_name')->get(); @endphp
                                                 @foreach($allUsers as $u)
-                                                <option value="{{ $u->id }}" {{ old('escalated_by_user_id') == $u->id ? 'selected' : '' }}>
+                                                <option value="{{ $u->id }}">
                                                     {{ $u->first_name }} {{ $u->last_name }}
                                                 </option>
                                                 @endforeach
