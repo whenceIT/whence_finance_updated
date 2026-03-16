@@ -37,11 +37,13 @@
                                 <select name="loan_id" class="form-control" required>
                                     <option value="">— Select Loan —</option>
                                     @foreach($loans as $loan)
-                                    <option value="{{ $loan->id }}">
-                                        {{'Loan #'.$loan->id }} K{{ $loan->amount }}
-                                        &mdash;
-                                        {{ trim(($loan->client->first_name ?? '') . ' ' . ($loan->client->last_name ?? '')) }}
-                                    </option>
+                                        @if($loan)
+                                            <option value="{{ $loan->id }}">
+                                                {{'Loan #'.$loan?->id }} K{{ $loan?->amount }}
+                                                    &mdash;
+                                                {{ $loan?->client?->first_name.' '.$loan?->client?->last_name }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                                 <span class="help-block">Client will be linked automatically from the selected loan</span>
