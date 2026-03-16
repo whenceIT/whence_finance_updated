@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\GeneralHelper;
-
+use App\Models\BankAccount;
 use App\Models\Collateral;
 use App\Models\CollateralType;
 use App\Models\GlClosure;
@@ -11,6 +11,7 @@ use App\Models\GlJournalEntry;
 use App\Models\Loan;
 use App\Models\LoanProduct;
 use App\Models\PaymentDetail;
+use App\Models\Office;
 
 use App\Models\Setting;
 use App\Models\User;
@@ -119,6 +120,22 @@ class JournalController extends Controller
             return redirect($request->return_url);
         }
         return redirect('accounting/journal');
+    }
+
+    public function add_fund_transfers_and_payments(){
+
+           $user = Sentinel::getUser();
+
+        //Only Admin Account can see other offices when attempting to create an expense
+        if ($user->role->role_id == 1) {
+            $offices = Office::all();
+        } else {
+            //anyone else can only see their own office, and can not add expenses for other offices
+            $offices = Office::where('id', $user->office_id)->get();
+        } 
+        $bank_accounts = BankAccount::all();
+
+        return view('journal.add_fund_transfers_and_payments',compact('offices','bank_accounts'));
     }
 
     public function reconciliation(Request $request)
