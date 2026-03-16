@@ -272,6 +272,9 @@
                                data-toggle="tab">{{trans_choice('general.client',1)}} {{trans_choice('general.identification',1)}}</a>
                         </li>
                     @endif
+                    @if (Sentinel::hasAccess('clients.identification.view'))
+                       <li><a href="#locations" data-toggle="tab">Locations</a></li>
+                    @endif
                     @if (Sentinel::hasAccess('clients.documents.view'))
                         <li><a href="#documents" data-toggle="tab">{{trans_choice('general.document',2)}}</a></li>
                     @endif
@@ -395,6 +398,46 @@
                             </div>
                         </div>
                     @endif
+
+                    @if (Sentinel::hasAccess('clients.identification.view'))
+    <div class="tab-pane" id="locations">
+        <div class="row">
+            <div class="col-md-12">
+                @if (Sentinel::hasAccess('clients.identification.create'))
+                    <a href="#add_location_modal"
+                       data-toggle="modal" class="btn btn-info pull-right">
+                        <i class="fa fa-plus"></i> Location
+                    </a>
+                @endif
+            </div>
+            <div class="col-md-12 table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead>
+                    <tr>
+                     <th>{{ trans_choice('general.name',1) }}</th>
+<th>Map Link</th>
+<th>{{ trans_choice('general.description',1) }}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach(\App\Models\ClientLocation::where('client_id', $client->id)->get() as $key)
+                        <tr>
+               <td>{{ $key->name }}</td>
+<td>
+    @if(!empty($key->map_link))
+        <a href="{{ $key->map_link }}" target="_blank">
+            <i class="fa fa-map-marker"></i> Open
+        </a>
+    @endif
+</td>
+<td>{!! $key->description !!}</td>                 </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+@endif
                     @if (Sentinel::hasAccess('clients.documents.view'))
                         <div class="tab-pane" id="documents">
                             <div class="row">
@@ -822,6 +865,58 @@
         </div>
         <!-- /.modal-dialog -->
     </div>
+
+    <div class="modal fade" id="add_location_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Add Location</h4>
+            </div>
+            <form method="post" action="{{ url('client/'.$client->id.'/location/store') }}"
+                  class="form-horizontal" id="add_location_form">
+                {{ csrf_field() }}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="location_name"
+                               class="control-label col-md-3">{{ trans_choice('general.name',1) }}</label>
+                        <div class="col-md-9">
+                            <input type="text" name="location_name" class="form-control"
+                                   value="{{ old('name') }}"
+                                   required id="location_name">
+                        </div>
+                    </div>
+
+             <div class="form-group">
+    <label for="map_link"
+           class="control-label col-md-3">Map Link</label>
+    <div class="col-md-9">
+        <input type="url" name="map_link" class="form-control"
+               value="{{ old('map_link') }}"
+               id="map_link"
+               placeholder="Paste map link here">
+    </div>
+</div>
+
+                    <div class="form-group">
+                        <label for="location_notes"
+                               class="control-label col-md-3">{{ trans_choice('general.description',1) }}</label>
+                        <div class="col-md-9">
+                            <textarea name="description" class="form-control"
+                                      id="description" rows="3">{{ old('notes') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left"
+                            data-dismiss="modal">{{trans_choice('general.close',1)}}</button>
+                    <button type="submit" class="btn btn-primary">{{trans_choice('general.save',1)}}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
     <div class="modal fade" id="add_document_modal">
         <div class="modal-dialog">
             <div class="modal-content">

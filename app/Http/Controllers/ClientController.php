@@ -9,6 +9,7 @@ use App\Models\BlacklistHistory;
 use App\Models\BlacklistReason;
 use App\Models\Client;
 use App\Models\ClientIdentification;
+use App\Models\ClientLocation;
 use App\Models\ClientNextOfKin;
 use App\Models\ClientUser;
 use App\Models\CustomField;
@@ -932,6 +933,24 @@ class ClientController extends Controller
             return redirect()->back();
         }
     }
+
+public function store_client_location(Request $request, $id){
+
+    $request->validate([
+        'location_name' => 'required|string|max:255',
+        'map_link' => 'nullable|url|max:1000',
+    ]);
+
+    $location = new ClientLocation();
+    $location->name = $request->location_name;
+    $location->map_link = $request->map_link;
+    $location->client_id = $id;
+    $location->description = $request->description;
+    $location->save();
+
+    Flash::success(trans('general.successfully_saved'));
+    return redirect()->back();
+}
 
     public function delete_client_identification(Request $request, $id)
     {
