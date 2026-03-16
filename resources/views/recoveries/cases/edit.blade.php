@@ -74,7 +74,6 @@
                         <div class="col-md-4">
                             <div class="form-group {{ $errors->has('origin_branch_id') ? 'has-error' : '' }}">
                                 <label>Origin Branch <span class="text-danger">*</span></label>
-                                @php $offices = \App\Models\Office::orderBy('name')->get(); @endphp
                                 <select name="origin_branch_id" class="form-control" required>
                                     <option value="">— Select Branch —</option>
                                     @foreach($offices as $branch)

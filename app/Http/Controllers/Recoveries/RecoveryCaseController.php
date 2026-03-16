@@ -89,11 +89,14 @@ class RecoveryCaseController extends Controller
     {
         try {
             $categories = RecoveryCase::CATEGORIES;
-            return view('recoveries.cases.create', compact('categories'));
+            $loans = \App\Models\Loan::with('client')->orderBy('id', 'desc')->get();
+            $offices = \App\Models\Office::orderBy('name')->get();
+
+            return view('recoveries.cases.create', compact('categories', 'loans', 'offices'));
         } catch (\Throwable $th) {
             dd($th);
         }
-    }
+    }   
 
     public function store(Request $request)
     {
@@ -131,7 +134,8 @@ class RecoveryCaseController extends Controller
     {
         $case       = RecoveryCase::findOrFail($id);
         $categories = RecoveryCase::CATEGORIES;
-        return view('recoveries.cases.edit', compact('case', 'categories'));
+        $offices = \App\Models\Office::orderBy('name')->get();
+        return view('recoveries.cases.edit', compact('case', 'categories', 'offices'));
     }
 
     public function update(Request $request, $id)

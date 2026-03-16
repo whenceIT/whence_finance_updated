@@ -34,7 +34,6 @@
                         <div class="col-md-6">
                             <div class="form-group {{ $errors->has('loan_id') ? 'has-error' : '' }}">
                                 <label>Loan <span class="text-danger">*</span></label>
-                                @php $loans = \App\Models\Loan::with('client')->orderBy('id','desc')->get(); @endphp
                                 <select name="loan_id" class="form-control" required>
                                     <option value="">— Select Loan —</option>
                                     @foreach($loans as $loan)
@@ -78,7 +77,6 @@
                                 <label>Origin Branch <span class="text-danger">*</span></label>
                                 <select name="origin_branch_id" class="form-control" required>
                                     <option value="">— Select Branch —</option>
-                                    @php $offices = \App\Models\Office::orderBy('name')->get(); @endphp
                                     @foreach($offices as $branch)
                                     <option value="{{ $branch->id }}" {{ old('origin_branch_id') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
@@ -96,7 +94,6 @@
                                 <label>Supporting Branch <small class="text-muted">(optional)</small></label>
                                 <select name="supporting_branch_id" class="form-control">
                                     <option value="">— None —</option>
-                                    @php $offices = \App\Models\Office::orderBy('name')->get(); @endphp
                                     @foreach($offices as $branch)
                                     <option value="{{ $branch->id }}" {{ old('supporting_branch_id') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
