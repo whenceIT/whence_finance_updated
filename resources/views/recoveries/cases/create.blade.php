@@ -59,9 +59,9 @@
                                 <select name="category" class="form-control" id="category-select" required>
                                     <option value="">— Select Category —</option>
                                     @foreach($categories as $key => $label)
-                                    <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
+                                        <option value="{{ $key }}">
+                                            {{ $label }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 @if($errors->has('category'))
