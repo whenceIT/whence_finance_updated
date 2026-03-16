@@ -100,6 +100,30 @@
             </div>
         </div>
     </div>
+
+    <!-- Resource Preview Modal - prevents downloads, shows preview in platform -->
+    <div class="modal fade" id="resourcePreviewModal" tabindex="-1" role="dialog" aria-labelledby="resourcePreviewModalLabel">
+        <div class="modal-dialog modal-lg" role="document" style="width: 90%; max-width: 1200px;">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="resourcePreviewModalLabel">
+                        <i class="fa fa-eye"></i> Preview Resource
+                    </h4>
+                </div>
+                <div class="modal-body" id="resourcePreviewBody" style="padding: 0; background: #f5f5f5; min-height: 400px;">
+                    <!-- Preview content will be loaded here -->
+                </div>
+                <div class="modal-footer" style="border-top: none; padding: 15px;">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" style="background: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 6px; padding: 8px 16px;">
+                        <i class="fa fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('footer-scripts')
@@ -183,6 +207,17 @@
                                     '<span class="meta-value">' + course.all_topics.length + '</span>' +
                                 '</div>' +
                             '</div>' +
+                            '<div class="meta-card">' +
+                                '<div class="meta-icon"><i class="fa fa-graduation-cap"></i></div>' +
+                                '<div class="meta-content">' +
+                                    '<span class="meta-label">Access</span>' +
+                                    '<span class="meta-value">' +
+                                        '<a href="{{ route('learning.classroom', ['id' => '__course_id__']) }}'.replace('__course_id__', course.id) + '" target="_blank" class="classroom-link">' +
+                                            '<i class="fa fa-external-link"></i> Open Classroom' +
+                                        '</a>' +
+                                    '</span>' +
+                                '</div>' +
+                            '</div>' +
                         '</div>';
                     
                     if (course.all_topics.length > 0) {
@@ -243,7 +278,9 @@
                                     }
                                     
                                     if (resourcePath) {
-                                        html += '<a href="' + resourcePath + '" target="_blank" class="resource-tag" title="Open ' + resource + '">' +
+                                        // Build URL for dedicated preview page
+                                        var previewUrl = '{{ route("learning.settings.courses.resource-preview") }}?path=' + encodeURIComponent(resourcePath) + '&type=' + encodeURIComponent(resource) + '&topic=' + encodeURIComponent(topic.topic_name) + '&course=' + course.id;
+                                        html += '<a href="' + previewUrl + '" target="_blank" class="resource-tag" title="Watch ' + resource + '">' +
                                             '<i class="fa fa-' + resourceIcon + '"></i> ' + resource +
                                         '</a>';
                                     } else {
@@ -361,6 +398,83 @@
         // Helper functions (global scope)
         function capitalizeFirst(string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Preview resource in modal - prevents external downloads
+        function previewResource(resourcePath, resourceType) {
+            console.log('Preview resource:', resourcePath, resourceType);
+            
+            var modal = $('#resourcePreviewModal');
+            var modalBody = $('#resourcePreviewBody');
+            var modalTitle = $('#resourcePreviewModalLabel');
+            
+            // Update modal title based on resource type
+            var iconClass = '';
+            switch(resourceType) {
+                case 'PDF': iconClass = 'fa-file-pdf-o'; break;
+                case 'Video': iconClass = 'fa-video-camera'; break;
+                case 'Audio': iconClass = 'fa-music'; break;
+                case 'PPT': iconClass = 'fa-file-powerpoint-o'; break;
+                case 'Document': iconClass = 'fa-file-word-o'; break;
+                default: iconClass = 'fa-file';
+            }
+            modalTitle.html('<i class="fa ' + iconClass + '"></i> ' + resourceType + ' Preview');
+            
+            // Show loading
+            modalBody.html('<div class="text-center" style="padding: 60px 20px;">' +
+                '<div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">' +
+                    '<i class="fa fa-spinner fa-spin fa-2x" style="color: white;"></i>' +
+                '</div>' +
+                '<p style="margin-top: 15px; color: #6c757d;">Loading preview...</p>' +
+            '</div>');
+            
+            // Show modal
+            modal.modal('show');
+            
+            // Build preview content based on resource type
+            var previewContent = '';
+            
+            if (resourceType === 'Video' || resourceType === 'Audio') {
+                // Use video/audio player with controls but no download option
+                var tag = resourceType === 'Video' ? 'video' : 'audio';
+                previewContent = '<' + tag + ' controls controlsList="nodownload" style="width: 100%; max-height: 500px;" preload="metadata">' +
+                    '<source src="' + resourcePath + '" type="' + getMimeType(resourcePath) + '">' +
+                    'Your browser does not support ' + resourceType + ' playback.' +
+                '</' + tag + '>';
+            } else if (resourceType === 'PDF') {
+                // Use iframe for PDF preview
+                previewContent = '<iframe src="' + resourcePath + '" style="width: 100%; height: 500px; border: none;" ' +
+                    'sandbox="allow-same-origin allow-scripts allow-popups"></iframe>';
+            } else if (resourceType === 'PPT' || resourceType === 'Document') {
+                // For documents, try to embed or show download message
+                previewContent = '<div style="padding: 40px; text-align: center;">' +
+                    '<i class="fa fa-file-' + (resourceType === 'PPT' ? 'powerpoint-o' : 'word-o') + '" style="font-size: 64px; color: #667eea; margin-bottom: 20px;"></i>' +
+                    '<h4 style="color: #2c3e50; margin-bottom: 10px;">' + resourceType + ' Document</h4>' +
+                    '<p style="color: #6c757d; margin-bottom: 20px;">This document can be previewed in the platform.</p>' +
+                    '<a href="' + resourcePath + '" class="btn btn-sm" style="background: #667eea; color: white; border-radius: 6px; padding: 10px 20px; text-decoration: none;" download target="_blank">' +
+                        '<i class="fa fa-download"></i> Download (if needed)' +
+                    '</a>' +
+                '</div>';
+            }
+            
+            // Set preview content
+            setTimeout(function() {
+                modalBody.html(previewContent);
+            }, 300);
+        }
+
+        // Get MIME type based on file extension
+        function getMimeType(filePath) {
+            var ext = filePath.split('.').pop().toLowerCase();
+            var mimeTypes = {
+                'mp4': 'video/mp4',
+                'webm': 'video/webm',
+                'ogg': 'video/ogg',
+                'mp3': 'audio/mpeg',
+                'wav': 'audio/wav',
+                'ogg': 'audio/ogg'
+            };
+            return mimeTypes[ext] || 'application/octet-stream';
         }
 
         function formatDate(dateString) {
@@ -732,11 +846,46 @@
                     margin: 0 0 4px 0;
                 }
 
-                .user-designation {
-                    font-size: 12px;
-                    color: #667eea;
-                    margin: 0;
-                }
+                 .user-designation {
+                     font-size: 12px;
+                     color: #667eea;
+                     margin: 0;
+                 }
+
+                 .classroom-link {
+                     display: inline-flex;
+                     align-items: center;
+                     gap: 5px;
+                     padding: 6px 12px;
+                     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                     color: white;
+                     text-decoration: none;
+                     border-radius: 8px;
+                     font-size: 12px;
+                     font-weight: 600;
+                     transition: all 0.3s ease;
+                     box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+                 }
+
+                 .classroom-link:hover {
+                     transform: translateY(-1px);
+                     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+                     background: linear-gradient(135deg, #218838 0%, #198754 100%);
+                     text-decoration: none;
+                     color: white;
+                 }
+
+                 .classroom-link:visited {
+                     color: white;
+                 }
+
+                 .classroom-link:active {
+                     transform: translateY(0);
+                 }
+
+                 .classroom-link i {
+                     font-size: 12px;
+                 }
 
                 .empty-state {
                     text-align: center;

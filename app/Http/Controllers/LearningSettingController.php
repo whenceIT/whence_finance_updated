@@ -400,4 +400,30 @@ class LearningSettingController extends Controller
             ->with('toastr_type', 'success')
             ->with('toastr_message', "Successfully revoked trainer status from {$userToUpdate->first_name} {$userToUpdate->last_name}.");
     }
+
+    /**
+     * Display the resource preview page.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function resourcePreview(\Illuminate\Http\Request $request)
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $resourcePath = $request->query('path', '');
+        $resourceType = $request->query('type', 'Video');
+        $topicName = $request->query('topic', 'Resource');
+        $courseId = $request->query('course', '');
+
+        if (empty($resourcePath)) {
+            return redirect()->route('learning.settings.courses')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'Resource not found.');
+        }
+
+        return view('learning.settings.resource-preview', compact('resourcePath', 'resourceType', 'topicName', 'courseId'));
+    }
 }

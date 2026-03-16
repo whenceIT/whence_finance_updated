@@ -30,6 +30,7 @@ class TrainingMaterial extends Model
         'view_count',
         'download_count',
         'published_at',
+        'poster',
     ];
 
     /**
@@ -281,6 +282,16 @@ class TrainingMaterial extends Model
     public function allTopics()
     {
         return $this->hasMany(CourseTopic::class)->ordered();
+    }
+
+    /**
+     * Get the user who created this training material.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**

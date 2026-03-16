@@ -3,6 +3,14 @@
 @section('title', 'Classroom: ' . $material->title . ' - Whence Learn')
 
 @section('content')
+<!-- Video.js CDN -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.css" />
+
+<!-- Viewer.js CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/viewerjs@1.11.6/dist/viewer.min.css">
+<script src="https://cdn.jsdelivr.net/npm/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
 <style>
 /* Full width container - override layout constraints */
 .classroom-page {
@@ -175,115 +183,139 @@
     margin-top: 24px;
 }
 
-/* Resource Grid */
-.resource-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px;
-    margin: 10px 0;
-    padding: 8px;
-    background: linear-gradient(135deg, #f7f8fb 0%, #ffffff 100%);
+/* Resource List - Classroom Style */
+.resource-list {
+    margin: 20px 0;
+    padding: 0;
+    list-style: none;
+    background: #f8f9fa;
     border-radius: 12px;
-    position: relative;
     overflow: hidden;
+    border: 1px solid var(--border-color);
 }
 
-.resource-grid::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: pulse 3s ease-in-out infinite;
+.resource-list-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 0.5;
-    }
-    50% {
-        transform: scale(1.1);
-        opacity: 0.8;
-    }
+.resource-list-header i {
+    font-size: 16px;
 }
 
-.resource-item {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    padding: 10px;
-    text-align: center;
+.resource-list-item {
+    background: white;
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
     position: relative;
-    overflow: hidden;
-    z-index: 1;
 }
 
-.resource-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgb(255, 255, 255), transparent);
-    transition: left 0.6s ease;
-    z-index: -1;
+.resource-list-item:last-child {
+    border-bottom: none;
 }
 
-.resource-item:hover::before {
-    left: 100%;
+.resource-list-item:hover {
+    background: rgba(74, 144, 226, 0.05);
+    transform: translateX(4px);
+    box-shadow: inset 4px 0 0 var(--primary-color);
 }
 
-.resource-item:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
-    border-color: rgba(74, 144, 226, 0.4);
-    background: rgba(255, 255, 255, 0.98);
+.resource-list-item:active {
+    transform: translateX(2px);
 }
 
-.resource-icon {
-    font-size: 36px;
-    color: var(--primary-color);
-    margin-bottom: 6px;
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(74, 144, 226, 0.3));
+.resource-list-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
 }
 
-.resource-item:hover .resource-icon {
-    transform: scale(1.15) rotate(3deg);
+.resource-list-item[data-type="video"] .resource-list-icon {
+    background: linear-gradient(135deg, #FF6B6B, #FF8E53);
 }
 
-.resource-name {
+.resource-list-item[data-type="audio"] .resource-list-icon {
+    background: linear-gradient(135deg, #4ECDC4, #44A08D);
+}
+
+.resource-list-item[data-type="pdf"] .resource-list-icon {
+    background: linear-gradient(135deg, #FF6B6B, #C92A2A);
+}
+
+.resource-list-item[data-type="ppt"] .resource-list-icon {
+    background: linear-gradient(135deg, #FFC107, #FF8F00);
+}
+
+.resource-list-item[data-type="document"] .resource-list-icon {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+}
+
+.resource-list-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.resource-list-name {
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    position: relative;
-    z-index: 1;
+    font-size: 14px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.resource-item::after {
-    content: 'Click to view';
-    position: absolute;
-    bottom: -15px;
-    left: 0;
-    width: 100%;
-    font-size: 8px;
+.resource-list-name i {
     color: var(--text-secondary);
-    opacity: 0;
-    transition: all 0.3s ease;
+    font-size: 12px;
 }
 
-.resource-item:hover::after {
-    bottom: 3px;
-    opacity: 0.8;
+.resource-list-description {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resource-list-action {
+    color: var(--primary-color);
+    font-size: 18px;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.resource-list-item:hover .resource-list-action {
+    opacity: 1;
+    transform: translateX(4px);
+}
+
+.resource-list-item:hover .resource-list-action i {
+    animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
 }
 
 /* Resource Preview Area */
@@ -313,6 +345,10 @@
     height: 100%;
     background: white;
     z-index: 100;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .full-screen-preview .exit-button {
@@ -338,6 +374,24 @@
     width: 100%;
     height: 100%;
     padding: 0;
+}
+
+/* Disable right-click on preview */
+.full-screen-preview {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.full-screen-preview iframe {
+    pointer-events: none;
+}
+
+.full-screen-preview iframe[src*="view.officeapps.live.com"] {
+    pointer-events: auto;
 }
 
 /* Quiz Section */
@@ -650,7 +704,7 @@
     }
     
     .content-card-body {
-        padding: 1px 2px;
+        padding: 0px;
     }
     
     .content-icon {
@@ -729,6 +783,17 @@
 </style>
 
 <div class="classroom-page">
+    {{-- Preview Mode Banner --}}
+    @if(request()->get('preview') == 1)
+    <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 12px 30px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);">
+        <i class="fa fa-eye"></i>
+        <span>PREVIEW MODE</span>
+        <span style="font-weight: 400; opacity: 0.9; font-size: 13px;">- You are viewing this course as a trainer/administrator. Your progress is not being tracked.</span>
+        <a href="{{ url('learning/training-materials/' . (isset($material) ? $material->id : '') . '/topics') }}" style="position: absolute; right: 20px; color: white; font-size: 18px; opacity: 0.8; transition: opacity 0.2s;" title="Back to Topics" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+            <i class="fa fa-times"></i>
+        </a>
+    </div>
+    @endif
     <div class="classroom-container">
         <!-- Sidebar with Vertical Wizard -->
         <div class="classroom-sidebar" id="classroom-sidebar">
@@ -761,7 +826,7 @@
                         </div>
                         <div class="wizard-phase-info">
                             <div class="wizard-phase-title">{{ $phase['title'] }}</div>
-                            <div class="wizard-phase-description">{{ $phase['description'] }}</div>
+                            <div class="wizard-phase-description">{{ strlen($phase['description']) > 40 ? substr($phase['description'], 0, 40) . '...' : $phase['description'] }}</div>
                         </div>
                         <div class="wizard-phase-toggle" id="phase-toggle-{{ $loop->index }}">
                             <i class="fa fa-chevron-down"></i>
@@ -841,11 +906,26 @@
                     <i class="fa fa-arrow-left"></i>
                 </a>
                 <h1 id="topic-header-title">{{ $material->title }}</h1>
-                <div class="header-actions">
+                <div class="header-actions" id="header-actions">
+                    @php
+                    $fileType = '';
+                    if(isset($material->file_path)) {
+                        $ext = strtolower(pathinfo($material->file_path, PATHINFO_EXTENSION));
+                        if(in_array($ext, ['pdf'])) $fileType = 'pdf';
+                        elseif(in_array($ext, ['ppt','pptx'])) $fileType = 'ppt';
+                        elseif(in_array($ext, ['doc','docx'])) $fileType = 'document';
+                    }
+                    @endphp
                     @if(isset($material->file_path) && $material->file_path && strpos($material->file_path, 'http') === 0)
-                    <a href="{{ $material->file_path }}" class="btn btn-default btn-sm" target="_blank">
+                        @if($fileType === '')
+                    <button class="btn btn-default btn-sm" onclick="previewExternalResource('{{ $material->file_path }}', 'file')">
                         <i class="fa fa-external-link"></i> Open Resource
-                    </a>
+                    </button>
+                        @else
+                    <span class="btn btn-default btn-sm" style="opacity: 0.5; cursor: not-allowed;" title="Download disabled - preview in platform">
+                        <i class="fa fa-eye"></i> Preview
+                    </span>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -860,23 +940,15 @@
                         <div id="resource-container" style="display: none;">
                             <div class="resource-preview" id="resource-preview"></div>
                         </div>
-                        
 
                     </div>
                 </div>
-                
-
             </div>
         </div>
     </div>
 </div>
 
-<!-- Sticky Bottom Toolbar -->
-<div id="bottom-toolbar" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); padding: 15px 30px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 1000; align-items: center; justify-content: center; gap: 16px;">
-    <div id="toolbar-actions" style="display: flex; gap: 12px;">
-        <!-- Quiz and Next Topic buttons will be dynamically added here -->
-    </div>
-</div>
+
 
 <!-- Quiz Confirmation Modal -->
 <div class="modal fade" id="quizConfirmModal" tabindex="-1" role="dialog">
@@ -907,6 +979,70 @@
 <script>
 // Pass phases data from PHP to JavaScript
 const phases = @json($phases);
+
+// Disable browser download events for document protection
+document.addEventListener('DOMContentLoaded', function() {
+    // Disable right-click context menu on document
+    document.addEventListener('contextmenu', function(e) {
+        // Allow right-click on form inputs and text fields
+        const target = e.target;
+        const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+        if (!isInput) {
+            e.preventDefault();
+            return false;
+        }
+    }, false);
+
+    // Disable keyboard shortcuts for saving/printing
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+S, Ctrl+P, Ctrl+Shift+S, Ctrl+Shift+P, F12
+        if ((e.ctrlKey && (e.key === 's' || e.key === 'p' || e.key === 'S' || e.key === 'P')) ||
+            (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'p' || e.key === 'S' || e.key === 'P')) ||
+            e.key === 'F12') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    // Disable drag and drop download
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        return false;
+    }, false);
+
+    document.addEventListener('drop', function(e) {
+        e.preventDefault();
+        return false;
+    }, false);
+
+    // Disable pointer events on iframes for document types to prevent download
+    // This will be toggled when viewing protected documents
+    window.protectedDocumentTypes = ['pdf', 'ppt', 'document'];
+    
+    window.disableDocumentDownloads = function() {
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+            // Add overlay to prevent direct interaction
+            const parent = iframe.parentElement;
+            if (parent && !parent.querySelector('.download-blocker')) {
+                const blocker = document.createElement('div');
+                blocker.className = 'download-blocker';
+                blocker.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:100;cursor:not-allowed;';
+                parent.style.position = 'relative';
+                parent.appendChild(blocker);
+            }
+        });
+    };
+
+    // Disable Ctrl+U (View Source)
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'u') {
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+});
 
 let currentTopicId = null;
 let currentTopicFilePath = null;
@@ -945,32 +1081,95 @@ function previewResource(type, filePath) {
     
     if (type === 'video') {
         if (filePath.match(/\.(mp4|webm|ogg)$/i)) {
-            previewHTML += `<video src="${filePath}" controls style="width: 100%; height: 100%;"></video>`;
+            previewHTML += `<video-player>
+                <video-skin>
+                    <video slot="media" src="${filePath}" controls></video>
+                </video-skin>
+            </video-player>`;
         } else {
             previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-video-o"></i> Download Video</a>`;
         }
     } else if (type === 'audio') {
         if (filePath.match(/\.(mp3|wav|ogg)$/i)) {
-            previewHTML += `<audio src="${filePath}" controls style="width: 100%; height: 100%;"></audio>`;
+            previewHTML += `<video-player>
+                <video-skin>
+                    <audio slot="media" src="${filePath}" controls></audio>
+                </video-skin>
+            </video-player>`;
         } else {
             previewHTML += `<a href="${filePath}" class="btn btn-primary"><i class="fa fa-file-audio-o"></i> Download Audio</a>`;
         }
     } else if (type === 'pdf') {
-        previewHTML += `<iframe src="${filePath}" allowfullscreen style="width: 100%; height: 100%;"></iframe>`;
-    } else if (type === 'ppt') {
-        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;"></iframe>`;
-    } else if (type === 'document') {
-        previewHTML += `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+        previewHTML += `
+        <div style="position:relative;height:100%">
+            <iframe 
+            src="https://docs.google.com/gview?url=${encodeURIComponent(filePath)}&embedded=true"
+            style="width:100%;height:100%;border:none;"
+            allowfullscreen></iframe>
+
+            <div style="position:absolute;top:0;left:0;width:100%;height:45px;z-index:10;"></div>
+            <div class="download-blocker" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
+        </div>`;
+
+    } else if (type === 'ppt' || type === 'document') {
+
+        previewHTML += `
+        <div style="position:relative;height:100%">
+            <iframe 
+            src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}"
+            style="width:100%;height:100%;border:none;"
+            allowfullscreen></iframe>
+
+            <div style="position:absolute;top:0;left:0;width:100%;height:45px;z-index:10;"></div>
+            <div class="download-blocker" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
+        </div>`;
     }
     
     previewHTML += `</div></div>`;
     resourcePreview.innerHTML += previewHTML;
+    
+    // Prevent document download by disabling right-click
+    setTimeout(() => {
+        const iframe = document.querySelector('.full-screen-preview iframe');
+        if (iframe) {
+            iframe.oncontextmenu = function(e) {
+                e.preventDefault();
+                return false;
+            };
+        }
+    }, 1000);
 }
 
 function exitFullScreenPreview() {
     const fullScreenPreview = document.querySelector('.full-screen-preview');
     if (fullScreenPreview) {
         fullScreenPreview.remove();
+    }
+}
+
+// Preview external resource in platform - prevents downloads
+function previewExternalResource(filePath, resourceType) {
+    console.log('Preview external resource:', filePath, resourceType);
+    
+    // Determine resource type from file extension if not provided
+    if (!resourceType || resourceType === 'file') {
+        const ext = filePath.split('.').pop().toLowerCase();
+        if (['pdf'].includes(ext)) resourceType = 'pdf';
+        else if (['ppt', 'pptx'].includes(ext)) resourceType = 'ppt';
+        else if (['doc', 'docx'].includes(ext)) resourceType = 'document';
+        else if (['mp4', 'webm', 'ogg'].includes(ext)) resourceType = 'video';
+        else if (['mp3', 'wav', 'ogg'].includes(ext)) resourceType = 'audio';
+        else resourceType = 'unknown';
+    }
+    
+    // Use the existing previewResource function
+    if (resourceType === 'unknown') {
+        // For unknown types, open in a new tab but warn user
+        if (confirm('This file type may not preview in the platform. Open in new tab instead?')) {
+            window.open(filePath, '_blank');
+        }
+    } else {
+        previewResource(resourceType, filePath);
     }
 }
 
@@ -1074,57 +1273,100 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
     if (hasFile) {
         resourceContainer.style.display = 'block';
         
-        // Display resources in grid layout initially
-        let previewHTML = `<div class="resource-grid">`;
-        let resourceCount = 0;
+        // Display resources in classroom-style list layout
+        let previewHTML = `<div class="resource-list">
+            <div class="resource-list-header">
+                <i class="fa fa-folder-open"></i>
+                <span>Learning Resources</span>
+            </div>`;
         
         if (videoFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('video', '${videoFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="video" onclick="previewResource('video', '${videoFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-video-camera"></i>
                 </div>
-                <div class="resource-name">Video</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-play-circle"></i>
+                        <span>Video Lecture</span>
+                    </div>
+                    <div class="resource-list-description">Click to watch the video lesson</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
         if (audioFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('audio', '${audioFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="audio" onclick="previewResource('audio', '${audioFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-music"></i>
                 </div>
-                <div class="resource-name">Audio</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-volume-up"></i>
+                        <span>Audio Recording</span>
+                    </div>
+                    <div class="resource-list-description">Click to listen to the audio lesson</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
         if (pdfFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('pdf', '${pdfFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="pdf" onclick="previewResource('pdf', '${pdfFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-file-pdf-o"></i>
                 </div>
-                <div class="resource-name">PDF</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-file-text-o"></i>
+                        <span>PDF Document</span>
+                    </div>
+                    <div class="resource-list-description">Click to view the PDF document</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
         if (pptFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('ppt', '${pptFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="ppt" onclick="previewResource('ppt', '${pptFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-file-powerpoint-o"></i>
                 </div>
-                <div class="resource-name">PowerPoint</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-slideshare"></i>
+                        <span>PowerPoint Presentation</span>
+                    </div>
+                    <div class="resource-list-description">Click to view the slideshow</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
         if (documentFilePath) {
-            resourceCount++;
-            previewHTML += `<div class="resource-item" onclick="previewResource('document', '${documentFilePath}')">
-                <div class="resource-icon">
+            previewHTML += `<div class="resource-list-item" data-type="document" onclick="previewResource('document', '${documentFilePath}')">
+                <div class="resource-list-icon">
                     <i class="fa fa-file-word-o"></i>
                 </div>
-                <div class="resource-name">Document</div>
+                <div class="resource-list-info">
+                    <div class="resource-list-name">
+                        <i class="fa fa-file-text-o"></i>
+                        <span>Word Document</span>
+                    </div>
+                    <div class="resource-list-description">Click to view the document</div>
+                </div>
+                <div class="resource-list-action">
+                    <i class="fa fa-arrow-right"></i>
+                </div>
             </div>`;
         }
         
@@ -1134,12 +1376,11 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         resourceContainer.style.display = 'none';
     }
     
-    // Update bottom toolbar - show/hide based on topic and quiz status
-    const bottomToolbar = document.getElementById('bottom-toolbar');
-    const toolbarActions = document.getElementById('toolbar-actions');
-    if (bottomToolbar && toolbarActions) {
+    // Update header actions - show/hide based on topic and quiz status
+    const headerActions = document.getElementById('header-actions');
+    if (headerActions) {
         // Clear existing actions
-        toolbarActions.innerHTML = '';
+        headerActions.innerHTML = '';
         
         // Check if there's a next topic
         const topics = document.querySelectorAll('.wizard-topic');
@@ -1158,17 +1399,16 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
         }
         
         if (hasNextTopic) {
-            bottomToolbar.style.display = 'flex';
-            
             // Add quiz button if topic has a quiz
             if (quizId) {
                 const quizBtn = document.createElement('button');
                 quizBtn.className = 'btn btn-success btn-sm';
+                quizBtn.style.marginRight = '8px';
                 quizBtn.innerHTML = `<i class="fa fa-pencil"></i> ${currentQuizPassed ? 'Retake Quiz' : 'Take Quiz'}`;
                 quizBtn.onclick = function() {
                     confirmTakeQuiz(quizId, topicTitle);
                 };
-                toolbarActions.appendChild(quizBtn);
+                headerActions.appendChild(quizBtn);
             }
             
             // Add next topic button
@@ -1176,13 +1416,13 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
             if (quizId && !currentQuizPassed) {
                 // Quiz required but not passed - disable button
                 nextBtn.className = 'btn btn-secondary btn-sm';
-                nextBtn.innerHTML = '<i class="fa fa-lock"></i> Pass Quiz to Continue';
+                nextBtn.innerHTML = '<i class="fa fa-lock"></i> Next Topic';
                 nextBtn.disabled = true;
                 nextBtn.style.opacity = '0.6';
                 nextBtn.style.cursor = 'not-allowed';
             } else {
                 // No quiz or quiz passed - enable button
-                nextBtn.className = 'btn btn-secondary btn-sm';
+                nextBtn.className = 'btn btn-primary btn-sm';
                 nextBtn.innerHTML = '<i class="fa fa-arrow-right"></i> Next Topic';
                 nextBtn.disabled = false;
                 nextBtn.style.opacity = '1';
@@ -1191,9 +1431,7 @@ function updateTopicContent(topicId, topicType, topicFilePath) {
                     skipQuiz();
                 };
             }
-            toolbarActions.appendChild(nextBtn);
-        } else {
-            bottomToolbar.style.display = 'none';
+            headerActions.appendChild(nextBtn);
         }
     }
 }
@@ -1218,12 +1456,6 @@ function skipQuiz() {
     if (currentQuizId && currentQuizId !== 'null' && !currentQuizPassed) {
         showFlashMessage('warning', 'Quiz Required', 'Please take and pass the quiz before proceeding to the next topic.', 'fa-exclamation-triangle');
         return;
-    }
-    
-    // Hide bottom toolbar
-    const bottomToolbar = document.getElementById('bottom-toolbar');
-    if (bottomToolbar) {
-        bottomToolbar.style.display = 'none';
     }
     
     // Move to next incomplete topic or show completion message
@@ -1267,17 +1499,69 @@ function skipQuiz() {
 
 // Expand first phase by default
 document.addEventListener('DOMContentLoaded', function() {
+    // Check URL parameters for topic and preview mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const topicParam = urlParams.get('topic');
+    const previewMode = urlParams.get('preview');
+    
     const firstToggle = document.getElementById('phase-toggle-0');
     if (firstToggle) {
         firstToggle.classList.add('expanded');
         document.getElementById('phase-topics-0').style.display = 'block';
     }
     
-    // Load first incomplete topic if exists
-    const firstIncomplete = document.querySelector('.wizard-topic[data-topic-completed="false"]');
-    if (firstIncomplete) {
-        const topicId = firstIncomplete.dataset.topicId;
-        openTopic(topicId, 'video', '');
+    // If topic parameter is passed (preview mode), load that specific topic
+    if (topicParam) {
+        // Find and open the topic from URL parameter
+        const topicElement = document.querySelector(`[data-topic-id="${topicParam}"]`);
+        if (topicElement) {
+            // Get topic details from the element
+            const topicId = topicElement.dataset.topicId;
+            const quizId = topicElement.dataset.quizId && topicElement.dataset.quizId !== 'null' ? topicElement.dataset.quizId : null;
+            
+            // Determine topic type from icon
+            let topicType = 'video';
+            if (topicElement.querySelector('.fa-file-pdf-o')) topicType = 'pdf';
+            else if (topicElement.querySelector('.fa-file-powerpoint-o')) topicType = 'ppt';
+            else if (topicElement.querySelector('.fa-file-word-o')) topicType = 'document';
+            else if (topicElement.querySelector('.fa-headphones')) topicType = 'audio';
+            
+            // Get file path from phases data
+            let filePath = '';
+            for (let phase of phases) {
+                for (let topic of phase.topics) {
+                    if (topic.id == topicParam) {
+                        filePath = topic.file_path || topic.video_file_path || '';
+                        break;
+                    }
+                }
+            }
+            
+            openTopic(topicId, topicType, filePath, quizId);
+            
+            // Expand the phase containing this topic
+            const phaseElement = topicElement.closest('.wizard-phase');
+            if (phaseElement) {
+                const phaseIndex = Array.from(phaseElement.parentElement.children).indexOf(phaseElement);
+                const toggleElement = document.getElementById('phase-toggle-' + phaseIndex);
+                const topicsElement = document.getElementById('phase-topics-' + phaseIndex);
+                if (toggleElement && topicsElement) {
+                    toggleElement.classList.add('expanded');
+                    topicsElement.style.display = 'block';
+                }
+            }
+            
+            if (previewMode == '1') {
+                console.log('Preview Mode: Loading topic ID ' + topicParam);
+            }
+        }
+    } else {
+        // Normal mode: Load first incomplete topic
+        const firstIncomplete = document.querySelector('.wizard-topic[data-topic-completed="false"]');
+        if (firstIncomplete) {
+            const topicId = firstIncomplete.dataset.topicId;
+            openTopic(topicId, 'video', '');
+        }
     }
     
     

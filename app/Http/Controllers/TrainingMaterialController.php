@@ -133,7 +133,9 @@ class TrainingMaterialController extends Controller
                 'target_role' => 'required',
                 'is_active' => 'nullable',
                 'is_featured' => 'nullable',
+                'poster' => 'nullable|image|max:5000', // Poster image: max 5MB, accept images
             ];
+
 
             $validator = Validator::make($request->all(), $rules);
 
@@ -160,6 +162,39 @@ class TrainingMaterialController extends Controller
                 'is_featured' => $request->has('is_featured'),
                 'published_at' => now(),
             ]);
+            
+            // Handle poster upload
+            if ($request->hasFile('poster')) {
+                $poster = $request->file('poster');
+                try {
+                    $originalName = pathinfo($poster->getClientOriginalName(), PATHINFO_FILENAME);
+                    $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+                    $fileName = $sanitizedName . '_' . uniqid() . '.' . $poster->getClientOriginalExtension();
+                    
+                    $s3Client = new \Aws\S3\S3Client([
+                        'version' => 'latest',
+                        'region' => 'nyc3',
+                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                        'credentials' => [
+                            'key' => 'DO00RP9FA3QZTA3JV637',
+                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                        ],
+                    ]);
+                    
+                    $result = $s3Client->putObject([
+                        'Bucket' => 'wfssystem',
+                        'Key' => 'posters/' . $fileName,
+                        'Body' => fopen($poster->getPathname(), 'r'),
+                        'ACL' => 'public-read',
+                        'ContentType' => $poster->getMimeType(),
+                    ]);
+                    
+                    $material->poster = $result['ObjectURL'];
+                    $material->save();
+                } catch (\Aws\Exception\AwsException $e) {
+                    Log::error('Training Material Poster Upload Error: ' . $e->getMessage());
+                }
+            }
 
             // Sync categories (many-to-many) - using attach for efficiency
             $categoryIds = $request->category_ids ?? [];
@@ -235,10 +270,11 @@ class TrainingMaterialController extends Controller
             $rules = [
                 'topic_name' => 'required|string|max:255',
                 'topic_duration' => 'nullable|integer|min:1',
-                'video_topic_file' => 'nullable|file|max:204800|mimetypes:video/*',
-                'audio_topic_file' => 'nullable|file|max:204800|mimetypes:audio/*',
-                'pdf_topic_file' => 'nullable|file|max:204800|mimetypes:application/pdf',
-                'ppt_topic_file' => 'nullable|file|max:204800',
+                'video_file_path' => 'nullable|url',
+                'audio_file_path' => 'nullable|url',
+                'pdf_file_path' => 'nullable|url',
+                'ppt_file_path' => 'nullable|url',
+                'document_file_path' => 'nullable|url',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -261,191 +297,41 @@ class TrainingMaterialController extends Controller
                 'is_active' => true,
             ];
 
-            // Handle video file
-            $videoFile = $request->file('video_topic_file') ?? null;
-            if ($videoFile) {
-                try {
-                    $originalName = pathinfo($videoFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                    $fileName = $sanitizedName . '_' . uniqid() . '.' . $videoFile->getClientOriginalExtension();
-                    
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                    $result = $s3Client->putObject([
-                        'Bucket' => 'wfssystem',
-                        'Key' => $fileName,
-                        'Body' => fopen($videoFile->getPathname(), 'r'),
-                        'ACL' => 'public-read',
-                    ]);
-                    
-                    $topicData['video_file_path'] = $result['ObjectURL'];
-                    $topicData['file_name'] = $videoFile->getClientOriginalName();
-                } catch (\Aws\Exception\AwsException $e) {
-                    Log::error('Training Material Upload Error: ' . $e->getMessage());
-                    return redirect()->back()
-                        ->with('toastr_type', 'error')
-                        ->with('toastr_message', 'Failed to upload video file. Please try again.')
-                        ->withInput();
+            // Handle video file path
+            if ($request->video_file_path) {
+                $topicData['video_file_path'] = $request->video_file_path;
+                $topicData['file_name'] = $this->extractFileNameFromUrl($request->video_file_path);
+            }
+            
+            // Handle audio file path
+            if ($request->audio_file_path) {
+                $topicData['audio_file_path'] = $request->audio_file_path;
+                if (!isset($topicData['file_name'])) {
+                    $topicData['file_name'] = $this->extractFileNameFromUrl($request->audio_file_path);
                 }
             }
             
-            // Handle audio file
-            $audioFile = $request->file('audio_topic_file') ?? null;
-            if ($audioFile) {
-                try {
-                    $originalName = pathinfo($audioFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                    $fileName = $sanitizedName . '_' . uniqid() . '.' . $audioFile->getClientOriginalExtension();
-                    
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfssystem',
-                                'Key' => $fileName,
-                                'Body' => fopen($audioFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                            ]);
-                    
-                    $topicData['audio_file_path'] = $result['ObjectURL'];
-                    if (!isset($topicData['file_name'])) {
-                        $topicData['file_name'] = $audioFile->getClientOriginalName();
-                    }
-                } catch (\Aws\Exception\AwsException $e) {
-                    Log::error('Training Material Upload Error: ' . $e->getMessage());
-                    return redirect()->back()
-                        ->with('toastr_type', 'error')
-                        ->with('toastr_message', 'Failed to upload audio file. Please try again.')
-                        ->withInput();
+            // Handle PDF file path
+            if ($request->pdf_file_path) {
+                $topicData['pdf_file_path'] = $request->pdf_file_path;
+                if (!isset($topicData['file_name'])) {
+                    $topicData['file_name'] = $this->extractFileNameFromUrl($request->pdf_file_path);
                 }
             }
             
-            // Handle PDF file
-            $pdfFile = $request->file('pdf_topic_file') ?? null;
-            if ($pdfFile) {
-                try {
-                    $originalName = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                    $fileName = $sanitizedName . '_' . uniqid() . '.' . $pdfFile->getClientOriginalExtension();
-                    
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfssystem',
-                                'Key' => $fileName,
-                                'Body' => fopen($pdfFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                            ]);
-                    
-                    $topicData['pdf_file_path'] = $result['ObjectURL'];
-                    if (!isset($topicData['file_name'])) {
-                        $topicData['file_name'] = $pdfFile->getClientOriginalName();
-                    }
-                } catch (\Aws\Exception\AwsException $e) {
-                    Log::error('Training Material Upload Error: ' . $e->getMessage());
-                    return redirect()->back()
-                        ->with('toastr_type', 'error')
-                        ->with('toastr_message', 'Failed to upload PDF file. Please try again.')
-                        ->withInput();
-                }
-            }
-            
-            // Handle PPT file
-            $pptFile = $request->file('ppt_topic_file') ?? null;
-            if ($pptFile) {
-                try {
-                    $originalName = pathinfo($pptFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                    $fileName = $sanitizedName . '_' . uniqid() . '.' . $pptFile->getClientOriginalExtension();
-                    
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfssystem',
-                                'Key' => $fileName,
-                                'Body' => fopen($pptFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                            ]);
-                    
-                    $topicData['ppt_file_path'] = $result['ObjectURL'];
-                    if (!isset($topicData['file_name'])) {
-                        $topicData['file_name'] = $pptFile->getClientOriginalName();
-                    }
-                } catch (\Aws\Exception\AwsException $e) {
-                    Log::error('Training Material Upload Error: ' . $e->getMessage());
-                    return redirect()->back()
-                        ->with('toastr_type', 'error')
-                        ->with('toastr_message', 'Failed to upload PPT file. Please try again.')
-                        ->withInput();
+            // Handle PPT file path
+            if ($request->ppt_file_path) {
+                $topicData['ppt_file_path'] = $request->ppt_file_path;
+                if (!isset($topicData['file_name'])) {
+                    $topicData['file_name'] = $this->extractFileNameFromUrl($request->ppt_file_path);
                 }
             }
 
-            // Handle document file
-            $documentFile = $request->file('document_topic_file') ?? null;
-            if ($documentFile) {
-                try {
-                    $originalName = pathinfo($documentFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-                    $fileName = $sanitizedName . '_' . uniqid() . '.' . $documentFile->getClientOriginalExtension();
-                    
-                    $s3Client = new \Aws\S3\S3Client([
-                        'version' => 'latest',
-                        'region' => 'nyc3',
-                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                        'credentials' => [
-                            'key' => 'DO00RP9FA3QZTA3JV637',
-                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                        ],
-                    ]);
-                    
-                            $result = $s3Client->putObject([
-                                'Bucket' => 'wfssystem',
-                                'Key' => $fileName,
-                                'Body' => fopen($documentFile->getPathname(), 'r'),
-                                'ACL' => 'public-read',
-                            ]);
-                    
-                    $topicData['document_file_path'] = $result['ObjectURL'];
-                    if (!isset($topicData['file_name'])) {
-                        $topicData['file_name'] = $documentFile->getClientOriginalName();
-                    }
-                } catch (\Aws\Exception\AwsException $e) {
-                    Log::error('Training Material Upload Error: ' . $e->getMessage());
-                    return redirect()->back()
-                        ->with('toastr_type', 'error')
-                        ->with('toastr_message', 'Failed to upload document file. Please try again.')
-                        ->withInput();
+            // Handle document file path
+            if ($request->document_file_path) {
+                $topicData['document_file_path'] = $request->document_file_path;
+                if (!isset($topicData['file_name'])) {
+                    $topicData['file_name'] = $this->extractFileNameFromUrl($request->document_file_path);
                 }
             }
 
@@ -503,6 +389,111 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_message', 'Error removing topic: ' . $th->getMessage())
                 ->withInput();
         }
+    }
+
+    /**
+     * Show the form to edit a topic.
+     *
+     * @param int $topicId
+     * @return \Illuminate\Http\Response
+     */
+    public function editTopic($topicId)
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        
+        // Check if user is a trainer
+        if (!$user || $user->istrainer != 1) {
+            return redirect()->route('learning.training-materials.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to manage topics.');
+        }
+
+        $topic = CourseTopic::with('trainingMaterial')->findOrFail($topicId);
+        $material = $topic->trainingMaterial;
+        $topics = CourseTopic::where('training_material_id', $material->id)->orderBy('sort_order')->get();
+
+        return view('learning.training-materials.edit-topic', compact('topic', 'material', 'topics'));
+    }
+
+    /**
+     * Update a topic.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $topicId
+     * @return \Illuminate\Http\Response
+     */
+    public function updateTopic(Request $request, $topicId)
+    {
+        if (!Sentinel::check()) {
+            return redirect('login');
+        }
+
+        $user = Sentinel::getUser();
+        
+        // Check if user is a trainer
+        if (!$user || $user->istrainer != 1) {
+            return redirect()->route('learning.training-materials.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'You do not have permission to manage topics.');
+        }
+
+        $topic = CourseTopic::with('trainingMaterial')->findOrFail($topicId);
+        $material = $topic->trainingMaterial;
+
+        $request->validate([
+            'topic_name' => 'required|string|max:255',
+            'topic_duration' => 'nullable|integer|min:1',
+        ]);
+
+        // Update basic fields
+        $topic->topic_name = $request->topic_name;
+        $topic->duration = $request->topic_duration;
+
+        // Handle file path updates (only if new files are uploaded)
+        if ($request->filled('video_file_path')) {
+            $topic->video_file_path = $request->video_file_path;
+            if ($request->filled('video_file_name')) {
+                $topic->file_name = $request->video_file_name;
+            }
+        }
+
+        if ($request->filled('audio_file_path')) {
+            $topic->audio_file_path = $request->audio_file_path;
+            if (!isset($topic->file_name) && $request->filled('audio_file_name')) {
+                $topic->file_name = $request->audio_file_name;
+            }
+        }
+
+        if ($request->filled('pdf_file_path')) {
+            $topic->pdf_file_path = $request->pdf_file_path;
+            if (!isset($topic->file_name) && $request->filled('pdf_file_name')) {
+                $topic->file_name = $request->pdf_file_name;
+            }
+        }
+
+        if ($request->filled('ppt_file_path')) {
+            $topic->ppt_file_path = $request->ppt_file_path;
+            if (!isset($topic->file_name) && $request->filled('ppt_file_name')) {
+                $topic->file_name = $request->ppt_file_name;
+            }
+        }
+
+        if ($request->filled('document_file_path')) {
+            $topic->document_file_path = $request->document_file_path;
+            if (!isset($topic->file_name) && $request->filled('document_file_name')) {
+                $topic->file_name = $request->document_file_name;
+            }
+        }
+
+        $topic->save();
+
+        return redirect()->route('learning.training-materials.topics', ['materialId' => $material->id])
+            ->with('toastr_type', 'success')
+            ->with('toastr_message', 'Topic updated successfully.');
     }
 
     /**
@@ -837,7 +828,74 @@ class TrainingMaterialController extends Controller
         $role = $user->roles->first();
         $roleId = $role ? $role->id : null;
 
-        $material = TrainingMaterial::findOrFail($id);
+        $material = TrainingMaterial::with(['creator', 'allTopics' => function($query) {
+            $query->ordered();
+        }, 'allTopics.quiz', 'enrollments.user', 'enrollments.user.roles'])
+            ->findOrFail($id);
+
+        // Get enrolled users ordered by progress (highest to lowest)
+        $enrolledUsers = [];
+        foreach ($material->enrollments->sortByDesc('progress') as $enrollment) {
+            $user = $enrollment->user;
+            if (!$user) continue;
+            
+            // Get quiz stats for this user and material
+            $quizStats = [];
+            $topicsWithQuizzes = 0;
+            $completedQuizzes = 0;
+            
+            foreach ($material->allTopics as $topic) {
+                if ($topic->quiz) {
+                    $topicsWithQuizzes++;
+                    $attempt = \App\Models\QuizAttempt::where('user_id', $user->id)
+                        ->where('quiz_id', $topic->quiz->id)
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+                    
+                    if ($attempt) {
+                        $completedQuizzes++;
+                        $quizStats[] = [
+                            'topic_id' => $topic->id,
+                            'quiz_id' => $topic->quiz->id,
+                            'attempted' => true,
+                            'score' => $attempt->score ?? 0,
+                            'passed' => ($attempt->score ?? 0) >= ($topic->quiz->passing_score ?? 70),
+                        ];
+                    } else {
+                        $quizStats[] = [
+                            'topic_id' => $topic->id,
+                            'quiz_id' => $topic->quiz->id,
+                            'attempted' => false,
+                            'score' => 0,
+                            'passed' => false,
+                        ];
+                    }
+                }
+            }
+            
+            $scores = array_filter(array_column($quizStats, 'score'));
+            $averageScore = count($scores) > 0 ? round(array_sum($scores) / count($scores)) : 0;
+            
+            $enrolledUsers[] = [
+                'id' => $enrollment->id,
+                'user_id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+                'enrolled_at' => $enrollment->enrolled_at,
+                'progress' => $enrollment->progress ?? 0,
+                'completed_topics' => $enrollment->completed_topics ?? [],
+                'quiz_stats' => $quizStats,
+                'topics_with_quizzes' => $topicsWithQuizzes,
+                'completed_all_quizzes' => $completedQuizzes == $topicsWithQuizzes && $topicsWithQuizzes > 0,
+                'average_score' => $averageScore,
+            ];
+        }
+
+        // Get current user enrollment if logged in
+        $user = Sentinel::getUser();
+        $currentUserEnrollment = $material->enrollments->where('user_id', $user->id)->first();
+        $isEnrolled = $currentUserEnrollment ? true : false;
+        $isAdmin = in_array($role->id, ['1', '6', '4']);
 
         // Check if user has permission to view this material
         if (!$material->is_active) {
@@ -846,7 +904,8 @@ class TrainingMaterialController extends Controller
                 ->with('toastr_message', 'This training material is not available.');
         }
 
-        if ($roleId && $material->target_role != 'all' && $material->target_role != $roleId) {
+        // Important dont change this condition: $role->id != 1 || $user->istrainer != 1
+        if ($role->id != 1 || $user->istrainer != 1) {
             return redirect()->route('learning.training-materials.index')
                 ->with('toastr_type', 'warning')
                 ->with('toastr_message', 'You do not have permission to view this training material.');
@@ -855,7 +914,7 @@ class TrainingMaterialController extends Controller
         // Increment view count
         $material->incrementViewCount();
 
-        return view('learning.training-materials.show', compact('material'));
+        return view('learning.training-materials.show', compact('material', 'enrolledUsers', 'isEnrolled', 'isAdmin'));
     }
 
     /**
@@ -913,6 +972,7 @@ class TrainingMaterialController extends Controller
             'category_ids.*' => 'exists:course_categories,id',
             'target_role' => 'required|in:all,1,4,6,3,5,10',
             // is_active and is_featured are optional checkboxes, no validation needed
+            'poster' => 'nullable|image|max:5000', // Poster image: max 5MB, accept images
         ];
 
         if ($request->hasFile('file')) {
@@ -939,6 +999,39 @@ class TrainingMaterialController extends Controller
             'is_active' => $request->has('is_active') ? $request->is_active : true,
             'is_featured' => $request->has('is_featured') ? $request->is_featured : false,
         ]);
+        
+        // Handle poster upload
+        if ($request->hasFile('poster')) {
+            $poster = $request->file('poster');
+            try {
+                $originalName = pathinfo($poster->getClientOriginalName(), PATHINFO_FILENAME);
+                $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+                $fileName = $sanitizedName . '_' . uniqid() . '.' . $poster->getClientOriginalExtension();
+                
+                $s3Client = new \Aws\S3\S3Client([
+                    'version' => 'latest',
+                    'region' => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key' => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+                
+                $result = $s3Client->putObject([
+                    'Bucket' => 'wfssystem',
+                    'Key' => 'posters/' . $fileName,
+                    'Body' => fopen($poster->getPathname(), 'r'),
+                    'ACL' => 'public-read',
+                    'ContentType' => $poster->getMimeType(),
+                ]);
+                
+                $material->poster = $result['ObjectURL'];
+                $material->save();
+            } catch (\Aws\Exception\AwsException $e) {
+                Log::error('Training Material Poster Upload Error: ' . $e->getMessage());
+            }
+        }
 
         // Sync categories
         $categoryIds = $request->category_ids ?? [];
@@ -1086,6 +1179,119 @@ class TrainingMaterialController extends Controller
         }, 'topics.quiz'])->findOrFail($materialId);
 
         return view('learning.training-materials.topics', compact('material'));
+    }
+
+    /**
+     * Extract file name from URL.
+     *
+     * @param string $url
+     * @return string
+     */
+    private function extractFileNameFromUrl($url)
+    {
+        $parsedUrl = parse_url($url);
+        if ($parsedUrl && isset($parsedUrl['path'])) {
+            return basename($parsedUrl['path']);
+        }
+        return 'unknown_file';
+    }
+
+    /**
+     * Handle chunk upload.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function uploadChunk(Request $request)
+    {
+        $fileName = $request->filename;
+        $chunkIndex = $request->index;
+        $fileId = $request->fileId;
+        
+        $chunksPath = storage_path('app/chunks');
+        if (!file_exists($chunksPath)) {
+            mkdir($chunksPath, 0755, true);
+        }
+        
+        $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $chunkIndex;
+        $request->file('chunk')->move(dirname($chunkPath), basename($chunkPath));
+        
+        return response()->json(['status' => 'chunk uploaded']);
+    }
+    
+    /**
+     * Merge uploaded chunks.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function mergeChunks(Request $request)
+    {
+        $fileName = $request->filename;
+        $fileId = $request->fileId;
+        $type = $request->type;
+        $totalChunks = $request->totalChunks;
+        
+        $chunksPath = storage_path('app/chunks');
+        $uploadsPath = storage_path('app/uploads');
+        if (!file_exists($uploadsPath)) {
+            mkdir($uploadsPath, 0755, true);
+        }
+        
+        $finalPath = $uploadsPath . '/' . $fileName;
+        $output = fopen($finalPath, 'ab');
+        
+        for ($i = 0; $i < $totalChunks; $i++) {
+            $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $i;
+            
+            if (!file_exists($chunkPath)) {
+                return response()->json(['status' => 'error', 'message' => 'Chunk ' . $i . ' not found'], 400);
+            }
+            
+            $chunk = fopen($chunkPath, 'rb');
+            stream_copy_to_stream($chunk, $output);
+            fclose($chunk);
+            unlink($chunkPath);
+        }
+        
+        fclose($output);
+        
+        // Upload to S3
+        try {
+            $originalName = pathinfo($fileName, PATHINFO_FILENAME);
+            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+            $finalFileName = $sanitizedName . '_' . uniqid() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
+            
+            $s3Client = new \Aws\S3\S3Client([
+                'version' => 'latest',
+                'region' => 'nyc3',
+                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                'credentials' => [
+                    'key' => 'DO00RP9FA3QZTA3JV637',
+                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                ],
+            ]);
+            
+            $result = $s3Client->putObject([
+                'Bucket' => 'wfssystem',
+                'Key' => $finalFileName,
+                'Body' => fopen($finalPath, 'r'),
+                'ACL' => 'public-read',
+            ]);
+            
+            unlink($finalPath);
+            
+            return response()->json([
+                'status' => 'file merged',
+                'filePath' => $result['ObjectURL'],
+                'fileName' => $fileName
+            ]);
+            
+        } catch (\Aws\Exception\AwsException $e) {
+            Log::error('S3 Upload Error: ' . $e->getMessage());
+            unlink($finalPath);
+            return response()->json(['status' => 'error', 'message' => 'Failed to upload to S3'], 500);
+        }
     }
 
     /**

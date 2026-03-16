@@ -150,6 +150,16 @@ $breadcrumb = [
     background: #5a6268;
 }
 
+.btn-info {
+    background: #17a2b8;
+    color: white;
+    border: none;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
+
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -207,11 +217,18 @@ $breadcrumb = [
 </style>
 
 <div class="page-header">
-    <a href="{{ url('learning/training-materials') }}" class="back-link">
-        <i class="fa fa-arrow-left"></i> Back to Training Materials
-    </a>
     <h1>Manage Topics & Quizzes</h1>
     <p>Configure learning topics and quizzes for your training materials</p>
+</div>
+
+
+<div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+    <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35); transition: all 0.3s;" onmouseover="this.style.transform = \"translateY(-2px)\"; this.style.boxShadow = \"0 6px 16px rgba(40, 167, 69, 0.45)\"" onmouseout="this.style.transform = \"translateY(0)\"; this.style.boxShadow = \"0 4px 12px rgba(40, 167, 69, 0.35)\"">
+        <i class="fa fa-plus-circle"></i> Add Topics
+    </a>
+    <a href="{{ url('learning/training-materials/' . $material->id . '/edit') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.35); transition: all 0.3s;" onmouseover="this.style.transform = \"translateY(-2px)\"; this.style.boxShadow = \"0 6px 16px rgba(74, 144, 226, 0.45)\"" onmouseout="this.style.transform = \"translateY(0)\"; this.style.boxShadow = \"0 4px 12px rgba(74, 144, 226, 0.35)\"">
+        <i class="fa fa-edit"></i> Edit Material
+    </a>
 </div>
 
 <div class="topics-container">
@@ -247,7 +264,13 @@ $breadcrumb = [
                 </div>
             </div>
             <div class="topic-actions">
+                <a href="{{ url('/learning/training-materials/topic/' . $topic->id . '/edit') }}" class="btn btn-secondary btn-sm">
+                    <i class="fa fa-edit"></i> Edit Topic
+                </a>
                 @if($topic->quiz)
+                    <button type="button" class="btn btn-info btn-sm" onclick="previewQuiz({{ $topic->id }}, '{{ addslashes($topic->quiz->title) }}', {{ $topic->quiz->id }})">
+                        <i class="fa fa-eye"></i> Preview Quiz
+                    </button>
                     <a href="{{ url('/learning/training-materials/topic/' . $topic->id . '/quiz/manage') }}" class="btn btn-primary btn-sm">
                         <i class="fa fa-edit"></i> Edit Quiz
                     </a>
@@ -256,8 +279,8 @@ $breadcrumb = [
                         <i class="fa fa-plus"></i> Add Quiz
                     </a>
                 @endif
-                <a href="{{ url('learning/course/' . $material->id . '/classroom?topic=' . $topic->id) }}" class="btn btn-secondary btn-sm" target="_blank">
-                    <i class="fa fa-eye"></i> Preview
+                <a href="{{ url('learning/course/' . $material->id . '/classroom?topic=' . $topic->id . '&preview=1') }}" class="btn btn-secondary btn-sm" target="_blank">
+                    <i class="fa fa-play"></i> Preview
                 </a>
             </div>
         </div>
@@ -267,19 +290,266 @@ $breadcrumb = [
             <i class="fa fa-folder-open"></i>
             <h3>No Topics Found</h3>
             <p>This training material doesn't have any topics yet. Add topics to create a structured learning experience for your users.</p>
-            <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" class="btn btn-success" style="padding: 12px 30px; margin-top: 20px;">
-                <i class="fa fa-plus"></i> Add First Topic
+            <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35); transition: all 0.3s; margin-top: 20px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(40, 167, 69, 0.45)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(40, 167, 69, 0.35)'">
+                <i class="fa fa-plus-circle"></i> Add First Topic
             </a>
         </div>
     @endif
 </div>
 
-<div style="margin-top: 30px; text-align: center; display: flex; gap: 15px; justify-content: center;">
-    <a href="{{ route('learning.training-materials.add-topics', ['materialId' => $material->id]) }}" class="btn btn-success" style="padding: 12px 30px;">
-        <i class="fa fa-plus"></i> Add Topics
-    </a>
-    <a href="{{ url('learning/training-materials/' . $material->id . '/edit') }}" class="btn btn-primary" style="padding: 12px 30px;">
-        <i class="fa fa-edit"></i> Edit Training Material
-    </a>
+<!-- Quiz Preview Modal -->
+<div id="quizPreviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto;" onclick="closeQuizPreview(event)">
+    <div style="background: white; max-width: 700px; margin: 50px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
+        <div style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); padding: 20px 25px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; color: white; font-size: 18px;">
+                <i class="fa fa-list-alt"></i> <span id="quizPreviewTitle">Quiz Preview</span>
+            </h3>
+            <button onclick="closeQuizPreviewModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px;">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div id="quizPreviewContent" style="padding: 25px; max-height: 60vh; overflow-y: auto;">
+            <!-- Quiz questions will be loaded here -->
+            <div style="text-align: center; padding: 40px;">
+                <i class="fa fa-spinner fa-spin" style="font-size: 32px; color: var(--primary-color);"></i>
+                <p style="margin-top: 15px; color: var(--text-secondary);">Loading quiz...</p>
+            </div>
+        </div>
+        <div style="padding: 15px 25px; background: var(--light-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+            <button onclick="closeQuizPreviewModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                Close
+            </button>
+        </div>
+    </div>
 </div>
+
+<script>
+// Quiz Preview Modal
+var currentQuizId = null;
+var quizData = null;
+
+function previewQuiz(topicId, quizTitle, quizId) {
+    currentQuizId = quizId;
+    document.getElementById('quizPreviewTitle').textContent = quizTitle;
+    document.getElementById('quizPreviewModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Load quiz questions via AJAX
+    fetchQuizQuestions(quizId);
+}
+
+function closeQuizPreviewModal() {
+    document.getElementById('quizPreviewModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentQuizId = null;
+    quizData = null;
+}
+
+function closeQuizPreview(event) {
+    if (event.target.id === 'quizPreviewModal') {
+        closeQuizPreviewModal();
+    }
+}
+
+function fetchQuizQuestions(quizId) {
+    var contentDiv = document.getElementById('quizPreviewContent');
+    contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fa fa-spinner fa-spin" style="font-size: 32px; color: var(--primary-color);"></i><p style="margin-top: 15px; color: var(--text-secondary);">Loading quiz...</p></div>';
+    
+    // Make AJAX request to get quiz questions
+    fetch('{{ url('learning/quiz') }}/' + quizId + '/questions', {
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.questions && data.questions.length > 0) {
+            quizData = data;
+            renderQuizQuestions(data.questions, data.quiz);
+        } else {
+            contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fa fa-exclamation-circle" style="font-size: 48px; color: var(--text-secondary);"></i><p style="margin-top: 15px; color: var(--text-secondary);">No questions found for this quiz.</p></div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading quiz:', error);
+        // Try to load from the page data if available
+        loadQuizFromPage(quizId);
+    });
+}
+
+function loadQuizFromPage(quizId) {
+    var contentDiv = document.getElementById('quizPreviewContent');
+    
+    // Check if quiz data is available in the page
+    @if(isset($topicQuizzes))
+    var quizDataPage = @json($topicQuizzes);
+    if (quizDataPage && quizDataPage[quizId]) {
+        renderQuizQuestions(quizDataPage[quizId].questions || [], quizDataPage[quizId].quiz);
+        return;
+    }
+    @endif
+    
+    contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fa fa-exclamation-circle" style="font-size: 48px; color: var(--text-secondary);"></i><p style="margin-top: 15px; color: var(--text-secondary);">Unable to load quiz questions.</p><button onclick="window.location.href=\'{{ url('learning/training-materials/topic') }}/' + quizId + '/quiz/manage'\'" style="margin-top: 15px; padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer;">Manage Quiz</button></div>';
+}
+
+function renderQuizQuestions(questions, quiz) {
+    var contentDiv = document.getElementById('quizPreviewContent');
+    
+    if (!questions || questions.length === 0) {
+        contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fa fa-exclamation-circle" style="font-size: 48px; color: var(--text-secondary);"></i><p style="margin-top: 15px; color: var(--text-secondary);">No questions found for this quiz.</p></div>';
+        return;
+    }
+    
+    var passingScore = quiz ? quiz.passing_score : 70;
+    
+    var html = '<form id="quizPreviewForm" onsubmit="submitQuizPreview(event)">';
+    html += '<div style="display: flex; flex-direction: column; gap: 20px;">';
+    
+    questions.forEach(function(question, index) {
+        var questionNumber = index + 1;
+        var typeLabel = question.question_type === 'multiple_choice' ? 'Multiple Choice' : (question.question_type === 'true_false' ? 'True/False' : 'Short Answer');
+        var points = question.points || 1;
+        
+        html += '<div style="background: var(--light-bg); border-radius: 8px; padding: 20px; border-left: 4px solid var(--primary-color);">';
+        html += '<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">';
+        html += '<span style="background: var(--primary-color); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">Q' + questionNumber + '</span>';
+        html += '<span style="color: var(--text-secondary); font-size: 12px;">' + typeLabel + ' • ' + points + ' point' + (points > 1 ? 's' : '') + '</span>';
+        html += '</div>';
+        html += '<h4 style="margin: 0 0 15px 0; font-size: 16px; color: var(--text-primary);">' + question.question + '</h4>';
+        
+        if (question.options && question.options.length > 0) {
+            html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+            question.options.forEach(function(option, optIndex) {
+                var optionLetter = String.fromCharCode(65 + optIndex);
+                 html += '<label style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; background: white; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor = \"var(--primary-color)\";" onmouseout="this.style.borderColor = \"var(--border-color)\";">';
+                html += '<input type="radio" name="answers[' + question.id + ']" value="' + option.id + '" style="width: 18px; height: 18px; accent-color: var(--primary-color);">';
+                html += '<span style="width: 24px; height: 24px; border-radius: 50%; background: #e9ecef; color: #6c757d; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">' + optionLetter + '</span>';
+                html += '<span style="flex: 1; color: var(--text-primary);">' + option.option_text + '</span>';
+                html += '</label>';
+            });
+            html += '</div>';
+        }
+        
+        html += '</div>';
+    });
+    
+    html += '</div>';
+    
+    // Add submit button and info
+    html += '<div style="margin-top: 20px; padding: 15px; background: var(--light-bg); border-radius: 8px;">';
+    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">';
+    html += '<span style="color: var(--text-secondary); font-size: 14px;">Total Questions: </span>';
+    html += '<span style="color: var(--text-primary); font-weight: 600;">' + questions.length + '</span>';
+    html += '</div>';
+    html += '<div style="display: flex; justify-content: space-between; align-items: center;">';
+    html += '<span style="color: var(--text-secondary); font-size: 14px;">Passing Score: </span>';
+    html += '<span style="color: var(--text-primary); font-weight: 600;">' + passingScore + '%</span>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">';
+    html += '<button type="button" onclick="closeQuizPreviewModal()" style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Close</button>';
+    html += '<button type="submit" style="padding: 12px 24px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;"><i class="fa fa-check"></i> Submit Quiz</button>';
+    html += '</div>';
+    
+    html += '</form>';
+    
+    contentDiv.innerHTML = html;
+}
+
+function submitQuizPreview(event) {
+    event.preventDefault();
+    
+    var form = document.getElementById('quizPreviewForm');
+    var formData = new FormData(form);
+    
+    // Show loading state
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+    submitBtn.disabled = true;
+    
+    // Submit via AJAX
+    fetch('{{ url('learning/quiz') }}/' + currentQuizId + '/submit-preview', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show results
+            showQuizResults(data.result);
+        } else {
+            alert('Error: ' + (data.message || 'Failed to submit quiz'));
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting quiz:', error);
+        alert('An error occurred while submitting your quiz');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function showQuizResults(result) {
+    var contentDiv = document.getElementById('quizPreviewContent');
+    
+    var isPassed = result.passed;
+    var resultClass = isPassed ? 'success' : 'danger';
+    var resultIcon = isPassed ? 'check-circle' : 'times-circle';
+    var resultColor = isPassed ? '#28a745' : '#dc3545';
+    
+    var html = '<div style="text-align: center; padding: 30px;">';
+    html += '<i class="fa fa-' + resultIcon + '" style="font-size: 64px; color: ' + resultColor + '; margin-bottom: 20px;"></i>';
+    html += '<h2 style="color: ' + resultColor + '; margin-bottom: 10px;">' + (isPassed ? 'Congratulations!' : 'Keep Trying!') + '</h2>';
+    html += '<p style="font-size: 18px; color: var(--text-primary); margin-bottom: 20px;">' + (isPassed ? 'You passed the quiz!' : 'You did not pass this time.') + '</p>';
+    
+    html += '<div style="background: var(--light-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px;">';
+    html += '<div style="display: flex; justify-content: space-around; text-align: center;">';
+    html += '<div><div style="font-size: 32px; font-weight: 700; color: var(--primary-color);">' + result.score + '</div><div style="color: var(--text-secondary); font-size: 14px;">Score</div></div>';
+    html += '<div><div style="font-size: 32px; font-weight: 700; color: var(--primary-color);">' + result.total_points + '</div><div style="color: var(--text-secondary); font-size: 14px;">Total Points</div></div>';
+    html += '<div><div style="font-size: 32px; font-weight: 700; color: ' + resultColor + ';">' + result.percentage + '%</div><div style="color: var(--text-secondary); font-size: 14px;">Percentage</div></div>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Passing Score: ' + result.passing_score + '%</p>';
+    
+    // Show detailed results
+    if (result.results) {
+        html += '<div style="text-align: left; margin-top: 20px;">';
+        html += '<h4 style="margin-bottom: 15px;">Detailed Results:</h4>';
+        
+        var questionIndex = 1;
+        for (var questionId in result.results) {
+            var questionResult = result.results[questionId];
+            var isCorrect = questionResult.correct;
+            
+            html += '<div style="background: ' + (isCorrect ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)') + '; border-radius: 8px; padding: 15px; margin-bottom: 10px; border-left: 4px solid ' + (isCorrect ? '#28a745' : '#dc3545') + ';">';
+            html += '<div style="display: flex; align-items: center; gap: 10px;">';
+            html += '<i class="fa fa-' + (isCorrect ? 'check-circle' : 'times-circle') + '" style="color: ' + (isCorrect ? '#28a745' : '#dc3545') + ';"></i>';
+            html += '<span style="font-weight: 600;">Question ' + questionIndex + '</span>';
+            html += '<span style="color: ' + (isCorrect ? '#28a745' : '#dc3545') + ';">' + (isCorrect ? 'Correct' : 'Incorrect') + '</span>';
+            html += '</div>';
+            html += '</div>';
+            
+            questionIndex++;
+        }
+        html += '</div>';
+    }
+    
+    html += '<div style="margin-top: 25px;">';
+    html += '<button onclick="closeQuizPreviewModal()" style="padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px;">Close</button>';
+    html += '</div>';
+    html += '</div>';
+    
+    contentDiv.innerHTML = html;
+}
+</script>
 @endsection

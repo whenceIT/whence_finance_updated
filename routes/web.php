@@ -25,7 +25,13 @@ use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningSettingController;
 use App\Http\Controllers\TrainingMaterialController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\GeneralUploadsController;
 use App\Http\Controllers\StaffSurveyController;
+use App\Http\Controllers\Recoveries\RecoveryDashboardController;
+use App\Http\Controllers\Recoveries\RecoveryCaseController;
+use App\Http\Controllers\Recoveries\RecoveryNudgeController;
+use App\Http\Controllers\Recoveries\RecoverySpecialistController;
+use App\Http\Controllers\Recoveries\RecoveryReportController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -70,6 +76,13 @@ Route::model('expense_budget', 'App\Models\ExpenseBudget');
 Route::model('payroll', 'App\Models\Payroll');
 Route::model('loan_application', 'App\Models\LoanApplication');
 
+// Recovery model bindings
+Route::model('recovery_case', 'App\Models\RecoveryCase');
+Route::model('recovery_payment', 'App\Models\/repayment/store');
+Route::model('recovery_document', 'App\Models\RecoveryDocument');
+Route::model('recovery_nudge', 'App\Models\RecoveryNudge');
+Route::model('recovery_activity', 'App\Models\RecoveryActivity');
+Route::model('recovery_specialist_target', 'App\Models\RecoverySpecialistTarget');
 
 //development routes
 //route for audit trail
@@ -151,6 +164,11 @@ Route::post('induction/toggle_checklist_item', [InductionController::class, 'tog
 
 // Learning Management System Routes
 Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
+    // Test route for PDF generation
+    Route::get('/test-pdf', function () {
+        $pdf = \PDF::loadHTML('<h1>Test PDF Generation</h1><p>This is a test to see if dompdf works.</p>');
+        return $pdf->download('test.pdf');
+    })->name('learning.test-pdf');
     Route::get('/', [LearningController::class, 'index'])->name('learning.dashboard');
     Route::get('/courses', [LearningController::class, 'courses'])->name('learning.courses');
     Route::get('/calendar', [LearningController::class, 'calendar'])->name('learning.calendar');
@@ -174,6 +192,7 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/platform', [LearningSettingController::class, 'platform'])->name('learning.settings.platform');
     Route::get('/settings/courses', [LearningSettingController::class, 'courses'])->name('learning.settings.courses');
     Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
+    Route::get('/settings/courses/resource-preview', [LearningSettingController::class, 'resourcePreview'])->name('learning.settings.courses.resource-preview');
     
     // Trainer Management Routes
     Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
@@ -195,35 +214,60 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
     Route::post('/{id}/toggle-status', [CourseCategoryController::class, 'toggleStatus'])->name('course-categories.toggle-status');
 });
 
-// Training Materials Management Routes
-Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentinel'], function () {
-    Route::get('/', [TrainingMaterialController::class, 'index'])->name('learning.training-materials.index');
-    Route::get('/create', [TrainingMaterialController::class, 'create'])->name('learning.training-materials.create');
-    Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
-    // New routes for course creation process - must come before routes with parameters
-    Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
-    Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
-    Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
-    Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
-    // Routes with parameters
-    Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
-    Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
-     Route::any('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
-    Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
-    Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
-    Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
-    Route::get('/{id}/quiz', [QuizController::class, 'index'])->name('learning.quizzes.index');
-    Route::get('/topic/{topicId}/quiz/manage', [QuizController::class, 'manage'])->name('learning.quizzes.manage');
-    Route::post('/topic/{topicId}/quiz/save', [QuizController::class, 'save'])->name('learning.quizzes.save');
-    Route::delete('/quiz/{quizId}/delete', [QuizController::class, 'delete'])->name('learning.quizzes.delete');
-    
-    // Quiz taking routes for students
-    Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
-    Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
-    
-     // Topics management route for trainers
-    Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
-});
+ // Training Materials Management Routes
+ Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentinel'], function () {
+     Route::get('/', [TrainingMaterialController::class, 'index'])->name('learning.training-materials.index');
+     Route::get('/create', [TrainingMaterialController::class, 'create'])->name('learning.training-materials.create');
+     Route::post('/', [TrainingMaterialController::class, 'store'])->name('learning.training-materials.store');
+     // Chunk upload routes - must come before routes with parameters
+     Route::post('/upload-chunk', [TrainingMaterialController::class, 'uploadChunk'])->name('learning.training-materials.upload-chunk');
+     Route::post('/merge-chunks', [TrainingMaterialController::class, 'mergeChunks'])->name('learning.training-materials.merge-chunks');
+     // New routes for course creation process - must come before routes with parameters
+     Route::post('/store-course-info', [TrainingMaterialController::class, 'storeCourseInfo'])->name('learning.training-materials.store-course-info');
+     Route::get('/{materialId}/add-topics', [TrainingMaterialController::class, 'showAddTopics'])->name('learning.training-materials.add-topics');
+     Route::post('/{materialId}/store-topic', [TrainingMaterialController::class, 'storeTopic'])->name('learning.training-materials.store-topic');
+     Route::get('/{materialId}/remove-topic/{topicId}', [TrainingMaterialController::class, 'removeTopic'])->name('learning.training-materials.remove-topic');
+     // Edit topic route
+     Route::get('/topic/{topicId}/edit', [TrainingMaterialController::class, 'editTopic'])->name('learning.training-materials.edit-topic');
+     Route::put('/topic/{topicId}/update', [TrainingMaterialController::class, 'updateTopic'])->name('learning.training-materials.update-topic');
+     // Routes with parameters
+     Route::get('/{id}', [TrainingMaterialController::class, 'show'])->name('learning.training-materials.show');
+     Route::get('/{id}/edit', [TrainingMaterialController::class, 'edit'])->name('learning.training-materials.edit');
+     Route::put('/{id}', [TrainingMaterialController::class, 'update'])->name('learning.training-materials.update');
+     Route::delete('/{id}', [TrainingMaterialController::class, 'destroy'])->name('learning.training-materials.destroy');
+     Route::get('/{id}/download', [TrainingMaterialController::class, 'download'])->name('learning.training-materials.download');
+     Route::post('/{id}/toggle-status', [TrainingMaterialController::class, 'toggleStatus'])->name('learning.training-materials.toggle-status');
+     Route::get('/{id}/quiz', [QuizController::class, 'index'])->name('learning.quizzes.index');
+     Route::get('/topic/{topicId}/quiz/manage', [QuizController::class, 'manage'])->name('learning.quizzes.manage');
+     Route::post('/topic/{topicId}/quiz/save', [QuizController::class, 'save'])->name('learning.quizzes.save');
+     Route::delete('/quiz/{quizId}/delete', [QuizController::class, 'delete'])->name('learning.quizzes.delete');
+     Route::get('/quiz/{quizId}/questions', [QuizController::class, 'getQuestions'])->name('learning.quizzes.questions');
+     
+     // Quiz taking routes for students
+     Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
+     Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
+     Route::post('/quiz/{quizId}/submit-preview', [QuizController::class, 'submitPreview'])->name('learning.quizzes.submit-preview');
+     
+      // Topics management route for trainers
+     Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
+ });
+
+ // General Uploads Management Routes
+ Route::group(['prefix' => 'learning/general-uploads', 'middleware' => 'sentinel'], function () {
+     Route::get('/', [GeneralUploadsController::class, 'index'])->name('learning.general-uploads.index');
+     Route::get('/create', [GeneralUploadsController::class, 'create'])->name('learning.general-uploads.create');
+     Route::post('/', [GeneralUploadsController::class, 'store'])->name('learning.general-uploads.store');
+     // Chunk upload routes - must come before routes with parameters
+     Route::post('/upload-chunk', [GeneralUploadsController::class, 'uploadChunk'])->name('learning.general-uploads.upload-chunk');
+     Route::post('/merge-chunks', [GeneralUploadsController::class, 'mergeChunks'])->name('learning.general-uploads.merge-chunks');
+     // Routes with parameters
+     Route::get('/{id}', [GeneralUploadsController::class, 'show'])->name('learning.general-uploads.show');
+     Route::get('/{id}/edit', [GeneralUploadsController::class, 'edit'])->name('learning.general-uploads.edit');
+     Route::put('/{id}', [GeneralUploadsController::class, 'update'])->name('learning.general-uploads.update');
+     Route::delete('/{id}', [GeneralUploadsController::class, 'destroy'])->name('learning.general-uploads.destroy');
+     Route::get('/{id}/download', [GeneralUploadsController::class, 'download'])->name('learning.general-uploads.download');
+     Route::post('/{id}/toggle-status', [GeneralUploadsController::class, 'toggleStatus'])->name('learning.general-uploads.toggle-status');
+ });
 
 //route for users
 Route::group(['prefix' => 'user'], function () {
@@ -552,6 +596,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
+    Route::get('recoveries_approvals', 'LoanController@recoveries_approvals');
     Route::get('top_up_approvals', 'LoanController@top_up_approvals');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
@@ -1557,6 +1602,65 @@ Route::group(['prefix' => 'hybrid'], function () {
     });
 
     Route::get('institution_metrics', 'PerformanceMetricsController@institutionMetrics')->name('performance.institution_metrics');
+
+});
+
+// ============================================
+// RECOVERY MODULE ROUTES
+// ============================================
+Route::group(['prefix' => 'recovery'], function () {
+
+    Route::get('overview', 'Recoveries\RecoveryDashboardController@overview');
+
+    Route::group(['prefix' => 'case'], function () {
+        Route::get('data',                 'Recoveries\RecoveryCaseController@index');
+        Route::get('create',               'Recoveries\RecoveryCaseController@create');
+        Route::post('store',               'Recoveries\RecoveryCaseController@store');
+        Route::get('{id}/show',            'Recoveries\RecoveryCaseController@show');
+        Route::get('{id}/edit',            'Recoveries\RecoveryCaseController@edit');
+        Route::post('{id}/update',         'Recoveries\RecoveryCaseController@update');
+        Route::get('{id}/delete',          'Recoveries\RecoveryCaseController@destroy');
+        Route::post('{id}/status',         'Recoveries\RecoveryCaseController@updateStatus');
+        Route::post('{id}/payment/store',  'Recoveries\RecoveryCaseController@recordPayment');
+        Route::post('{id}/document/store', 'Recoveries\RecoveryCaseController@uploadDocument');
+        Route::post('{id}/assign',         'Recoveries\RecoveryCaseController@assign');
+        Route::post('{id}/cost/store',      'Recoveries\RecoveryCaseController@recordCost');
+        Route::get('{id}/document/{document_id}/download', 'Recoveries\RecoveryCaseController@downloadDocument');
+        Route::get('{id}/document/{document_id}/delete',   'Recoveries\RecoveryCaseController@deleteDocument');
+        Route::get('cross_branch',         'Recoveries\RecoveryCaseController@crossBranch');
+        Route::get('escalated',            'Recoveries\RecoveryCaseController@escalated');
+        Route::get('dormant',              'Recoveries\RecoveryCaseController@dormant');
+        Route::get('legal',                'Recoveries\RecoveryCaseController@legal');
+        Route::get('skip_trace',           'Recoveries\RecoveryCaseController@skipTrace');
+        Route::get('resolved',             'Recoveries\RecoveryCaseController@resolved');
+    });
+
+    // Nudge routes
+    Route::get('nudge/compose',   'Recoveries\RecoveryNudgeController@compose');
+    Route::post('nudge/send-bulk','Recoveries\RecoveryNudgeController@sendBulk');
+    Route::post('case/{id}/nudge/send', 'Recoveries\RecoveryNudgeController@sendSingle');
+
+    Route::group(['prefix' => 'specialist'], function () {
+        Route::get('data',                           'Recoveries\RecoverySpecialistController@index');
+        Route::get('{id}/show',                      'Recoveries\RecoverySpecialistController@show');
+        Route::post('{id}/target/store',             'Recoveries\RecoverySpecialistController@setTarget');
+        Route::get('{id}/target/{target_id}/delete', 'Recoveries\RecoverySpecialistController@deleteTarget');
+    });
+
+    Route::group(['prefix' => 'report'], function () {
+        // Monthly
+        Route::any('overview',              'Recoveries\RecoveryReportController@monthly');
+        Route::any('overview/pdf',          'Recoveries\RecoveryReportController@monthlyPdf');
+        Route::any('overview/excel',        'Recoveries\RecoveryReportController@monthlyExcel');
+        // Attribution
+        Route::any('attribution',           'Recoveries\RecoveryReportController@attribution');
+        Route::any('attribution/pdf',       'Recoveries\RecoveryReportController@attributionPdf');
+        Route::any('attribution/excel',     'Recoveries\RecoveryReportController@attributionExcel');
+        // Specialists
+        Route::any('specialist_report',     'Recoveries\RecoveryReportController@specialists');
+        Route::any('specialist_report/pdf', 'Recoveries\RecoveryReportController@specialistsPdf');
+        Route::any('specialist_report/excel','Recoveries\RecoveryReportController@specialistsExcel');
+    });
 
 });
 
