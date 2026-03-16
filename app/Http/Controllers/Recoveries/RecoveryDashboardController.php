@@ -32,7 +32,7 @@ class RecoveryDashboardController extends Controller
         $recoveryMix     = $this->dashboard->getRecoveryMix($period, $dateFrom, $dateTo);
 
         $categories = \App\Models\RecoveryCase::CATEGORIES;
-
+        
         return view('recoveries.dashboard.index', compact(
             'period', 'dateFrom', 'dateTo', 'kpis', 'pipeline', 'specialists', 'categories',
             'branchBreakdown', 'recentActivity', 'monthlyTrend', 'recoveryMix'

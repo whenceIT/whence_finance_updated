@@ -87,8 +87,12 @@ class RecoveryCaseController extends Controller
 
     public function create()
     {
-        $categories = RecoveryCase::CATEGORIES;
-        return view('recoveries.cases.create', compact('categories'));
+        try {
+            $categories = RecoveryCase::CATEGORIES;
+            return view('recoveries.cases.create', compact('categories'));
+        } catch (\Throwable $th) {
+            dd($th);
+        }
     }
 
     public function store(Request $request)
