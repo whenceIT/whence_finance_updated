@@ -79,10 +79,13 @@
                     <div class="col-md-3">
                         <select name="payment_apply_to" class="form-control select2"
                                 id="payment_apply_to" required>
+                            <option value="">--select--</option>
                             <option value="full_payment">Full Payment</option>
                             <option value="part_payment">Part Payment</option>
                             <option value="#reschedule_loan_modal">Reloan Payment</option>
-                            <option value="#recovery_modal">Debt. Recovery</option>
+                
+                            <option value="#recovery_modal">Debt Recovery Payment</option>
+                         
                         </select>
                     </div>
                 </div>
