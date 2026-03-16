@@ -125,8 +125,7 @@
                                 <label>Assign Specialist <small class="text-muted">(optional)</small></label>
                                 <select name="assigned_specialist_id" class="form-control">
                                     <option value="">— Assign Later —</option>
-                                    @php $specialists = \App\Models\User::orderBy('first_name')->get(); @endphp
-                                    @foreach($specialists as $u)
+                                    @foreach($users as $u)
                                     <option value="{{ $u->id }}">
                                         {{ $u->first_name }} {{ $u->last_name }}
                                     </option>
@@ -159,8 +158,7 @@
                                             <label>Escalated By (Loan Consultant)</label>
                                             <select name="escalated_by_user_id" class="form-control">
                                                 <option value="">— Select —</option>
-                                                @php $allUsers = \App\Models\User::orderBy('first_name')->get(); @endphp
-                                                @foreach($allUsers as $u)
+                                                @foreach($users as $u)
                                                 <option value="{{ $u->id }}">
                                                     {{ $u->first_name }} {{ $u->last_name }}
                                                 </option>
