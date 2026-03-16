@@ -84,7 +84,7 @@
                             <option value="part_payment">Part Payment</option>
                             <option value="#reschedule_loan_modal">Reloan Payment</option>
                 
-                            <option value="#recovery_modal">Debt Recovery Payment</option>
+                            <option disabled value="#recovery_modal">Debt Recovery Payment</option>
                          
                         </select>
                     </div>

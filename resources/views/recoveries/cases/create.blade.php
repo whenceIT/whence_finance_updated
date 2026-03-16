@@ -37,12 +37,10 @@
                                 <select name="loan_id" class="form-control" required>
                                     <option value="">— Select Loan —</option>
                                     @foreach($loans as $loan)
-                                    <option value="{{ $loan->id }}" {{ old('loan_id') == $loan->id ? 'selected' : '' }}>
-                                        {{ $loan->loan_id ?? 'Loan #'.$loan->id }}
+                                    <option value="{{ $loan->id }}">
+                                        {{'Loan #'.$loan->id }} K{{ $loan->amount }}
                                         &mdash;
-                                        {{ ($loan->client->client_type ?? '') === 'business'
-                                            ? ($loan->client->full_name ?? '')
-                                            : trim(($loan->client->first_name ?? '') . ' ' . ($loan->client->last_name ?? '')) }}
+                                        {{ trim(($loan->client->first_name ?? '') . ' ' . ($loan->client->last_name ?? '')) }}
                                     </option>
                                     @endforeach
                                 </select>
@@ -357,3 +355,4 @@
 </script>
 @endpush
 @endsection
+
