@@ -71,6 +71,11 @@ class GeneralUploadsController extends Controller
             $query->where('type', $request->type);
         }
         
+        // Filter by general topic if provided
+        if ($request->has('topic')) {
+            $query->where('general_topic_id', $request->topic);
+        }
+        
         $uploads = $query->get();
         return view('learning.general-uploads.index', compact('uploads'));
     }

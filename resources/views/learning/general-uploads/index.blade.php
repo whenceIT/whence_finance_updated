@@ -93,9 +93,19 @@
 <script>
 function applyFilter(type) {
     var url = '{{ url('learning/general-uploads') }}';
+    var params = new URLSearchParams(window.location.search);
+    
     if (type !== 'all') {
-        url += '?type=' + type;
+        params.set('type', type);
+    } else {
+        params.delete('type');
     }
+    
+    var queryString = params.toString();
+    if (queryString) {
+        url += '?' + queryString;
+    }
+    
     window.location.href = url;
 }
 

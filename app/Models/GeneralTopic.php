@@ -14,4 +14,9 @@ class GeneralTopic extends Model
         'description',
         'poster'
     ];
+
+    public function uploads()
+    {
+        return $this->hasMany(GeneralUpload::class, 'general_topic_id');
+    }
 }
