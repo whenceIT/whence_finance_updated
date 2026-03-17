@@ -46,6 +46,7 @@ use Carbon\Carbon;
 use App\Models\AuditLogs;
 
 
+
 class UserController extends Controller
 {
     public function __construct()
@@ -668,6 +669,16 @@ return redirect('user/carry_over_approvals');
 
     Flash::success(trans('general.successfully_saved'));
     return back()->with('success', 'Clients and their loans transferred successfully.');
+}
+
+
+
+public function downloadSingleQR($id)
+{
+    $user = User::where('id',$id)->first();
+    $nodeUrl = 'https://lms2backend.whencefinancesystem.com/download_qr_code/'.$id;
+
+   return redirect($nodeUrl);
 }
 
 
