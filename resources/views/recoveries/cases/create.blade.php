@@ -47,7 +47,7 @@
                                             <option value="{{ $loan->id }}">
                                                 {{'Loan #'.$loan?->id }} - K{{ $loan?->principal }}
                                                     &mdash;
-                                                {{ $loan?->client?->first_name.' '.$loan?->client?->last_name }}
+                                                {{ $loan?->first_name.' '.$loan?->last_name }}
                                             </option>
                                         @endif
                                     @endforeach
