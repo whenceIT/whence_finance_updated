@@ -7,6 +7,7 @@ use App\Models\RecoveryCase;
 use App\Models\Loan;
 use App\Models\Office;
 use App\Models\User;
+use Carbon\Carbon;
 use App\Services\RecoveryCaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -94,9 +95,12 @@ class RecoveryCaseController extends Controller
         try {
             $categories = RecoveryCase::CATEGORIES;
             Log::info('Loading create case form with optimized loan query');
-            $loans = Loan::with(['client' => function($query) {
-                $query->select('id', 'first_name', 'last_name');
-            }])->select('id', 'client_id', 'principal')->orderBy('id', 'desc')->get();
+
+            $loans = Loan::with(['client:id,first_name,last_name'])
+                ->whereNotNull('first_repayment_date')
+                ->whereDate('first_repayment_date', '<=', Carbon::today()->subDays(7))
+                ->get();
+
             Log::info('Loading create case form with optimized loan query 2');
             $offices = Office::orderBy('name')->get();
             Log::info('Loading create case form with optimized loan query 3');
