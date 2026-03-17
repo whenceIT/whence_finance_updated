@@ -393,6 +393,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::post('{id}/transfer', 'ClientController@transfer');
     Route::get('{id}/active', 'ClientController@active');
     Route::get('{id}/account', 'ClientController@account');
+    Route::any('{id}/location/store','ClientController@store_client_location');
     //identification
     Route::post('{id}/identification/store', 'ClientController@store_client_identification');
     Route::get('identification/{id}/delete', 'ClientController@delete_client_identification');
@@ -539,6 +540,7 @@ Route::group(['prefix' => 'accounting'], function () {
     Route::get('period/data', 'JournalController@period');
     Route::post('period/store', 'JournalController@store_period');
     Route::get('period/{id}/delete', 'JournalController@delete_period');
+    Route::get('add_fund_transfers_and_payments','JournalController@add_fund_transfers_and_payments');
 });
 //route for accounting
 Route::group(['prefix' => 'setting'], function () {
