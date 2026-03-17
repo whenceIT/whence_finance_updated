@@ -91,9 +91,8 @@ class RecoveryCaseController extends Controller
     public function create()
     {
         try {
-            dd('in create');
             $categories = RecoveryCase::CATEGORIES;
-            // Only load necessary fields to reduce memory usage
+            dd('in create');
             $loans = \App\Models\Loan::with(['client' => function($query) {
                 $query->select('id', 'first_name', 'last_name');
             }])->select('id', 'client_id', 'principal')->orderBy('id', 'desc')->get();
