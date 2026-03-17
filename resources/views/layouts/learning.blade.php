@@ -1444,9 +1444,10 @@
             <nav class="learning-nav">
                 <a href="{{ url('/learning') }}" class="active">Dashboard</a>
                 @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
-                <a href="{{ url('learning/settings/courses') }}">Manage Courses</a>
-                <a href="{{ url('learning/settings/students') }}">Manage Students</a>
-                <a href="{{ url('learning/settings/teachers') }}">Manage Trainers</a>
+                    <a href="{{ url('learning/settings/courses') }}">Manage Courses</a>
+                    <a href="{{ url('learning/settings/students') }}">Manage Students</a>
+                    <a href="{{ url('learning/settings/teachers') }}">Manage Trainers</a>
+                     <a href="{{ url('learning/settings/general-topics') }}">Manage Topics</a>
                 @endif
             </nav>
             
@@ -1534,9 +1535,9 @@
                             <i class="fa fa-book"></i> My Courses
                             @php
                             $enrolledCount = 0;
-                            if($user) {
-                                $enrolledCount = \App\Models\Enrollment::where('user_id', $user->id)->count();
-                            }
+                                if($user) {
+                                    $enrolledCount = \App\Models\Enrollment::where('user_id', $user->id)->count();
+                                }
                             @endphp
                             @if($enrolledCount > 0)
                                 <span class="badge badge-primary">{{ $enrolledCount }}</span>

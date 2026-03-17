@@ -385,9 +385,31 @@
             </select>
         </div>
         
-        <!-- Poster Upload (for videos) -->
-        <div class="form-group" id="posterField" style="display: none;">
-            <label class="form-label">Video Poster/Thumbnail</label>
+        <!-- General Topic -->
+        <div class="form-group">
+            <label class="form-label">General Topic</label>
+            <select name="general_topic_id" id="generalTopicSelect" class="form-select">
+                <option value="">Select a topic</option>
+                @foreach($generalTopics as $topic)
+                    <option value="{{ $topic->id }}">{{ $topic->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        
+        <!-- Position -->
+        <div class="form-group">
+            <label class="form-label">Position</label>
+            <select name="position_id" id="positionSelect" class="form-select">
+                <option value="">Select a position</option>
+                @foreach($positions as $id => $name)
+                    <option value="{{ $id }}">{{ $name }}</option>
+                @endforeach
+            </select>
+        </div>
+        
+        <!-- Poster Upload (for all file types) -->
+        <div class="form-group" id="posterField">
+            <label class="form-label">File Poster/Thumbnail</label>
             <div class="poster-upload-area" id="posterUploadArea" onclick="document.getElementById('posterInput').click()">
                 <i class="fa fa-image"></i>
                 <p>Click to upload poster image</p>
@@ -427,17 +449,10 @@ var selectedFile = null;
 var selectedPoster = null;
 var chunkSize = 5 * 1024 * 1024; // 5MB chunks
 
-// Toggle poster field based on file type
+// Toggle poster field - always show for all file types
 function togglePosterField() {
-    var type = document.getElementById('typeSelect').value;
     var posterField = document.getElementById('posterField');
-    
-    if (type === 'video') {
-        posterField.style.display = 'block';
-    } else {
-        posterField.style.display = 'none';
-        selectedPoster = null;
-    }
+    posterField.style.display = 'block';
 }
 
 // Handle poster selection
@@ -513,6 +528,8 @@ function handleFileSelect(file) {
     // Auto-detect file type
     var type = detectFileType(file);
     document.getElementById('typeSelect').value = type;
+    // Toggle poster field based on detected file type
+    togglePosterField();
 }
 
 function removeFile() {
@@ -587,6 +604,17 @@ function uploadRegular(file, type) {
     // Add poster if selected
     if (selectedPoster) {
         formData.append('poster', selectedPoster);
+    }
+    
+    // Add general topic and position
+    var generalTopicId = document.getElementById('generalTopicSelect').value;
+    if (generalTopicId) {
+        formData.append('general_topic_id', generalTopicId);
+    }
+    
+    var positionId = document.getElementById('positionSelect').value;
+    if (positionId) {
+        formData.append('position_id', positionId);
     }
     
     var xhr = new XMLHttpRequest();
@@ -713,6 +741,17 @@ function mergeChunks(fileId, filename, totalChunks, type) {
     // Add poster if selected
     if (selectedPoster) {
         formData.append('poster', selectedPoster);
+    }
+    
+    // Add general topic and position
+    var generalTopicId = document.getElementById('generalTopicSelect').value;
+    if (generalTopicId) {
+        formData.append('general_topic_id', generalTopicId);
+    }
+    
+    var positionId = document.getElementById('positionSelect').value;
+    if (positionId) {
+        formData.append('position_id', positionId);
     }
     
     updateProgress(95, 'Finalizing upload...');

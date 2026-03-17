@@ -408,6 +408,87 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2 id="content-title" style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin: 0;">
         <i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>
+        Featured Topics
+    </h2>
+    <span id="content-count" style="font-size: 13px; color: var(--text-secondary);">
+        Showing {{ count($courses) + $uploads->count() }} items
+    </span>
+</div>
+
+<!-- Unified Content Grid -->
+<div class="unified-grid" id="content-grid">
+    <!-- Course Cards -->
+    @foreach($courses as $course)
+    <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
+         <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); {{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
+            @if(isset($course['poster']) && $course['poster'])
+                <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
+            @else
+                <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
+            @endif
+            <div class="card-badge">Course</div>
+            <div class="play-overlay">
+                <div class="play-button">
+                    <i class="fa fa-play"></i>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="card-category">{{ $course['category'] }}</div>
+            <h3 class="card-title">{{ $course['title'] }}</h3>
+            @if($course['enrolled'] && $course['progress'] > 0)
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
+            </div>
+            @endif
+            <div class="card-meta">
+                <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
+                <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    <!-- Upload Cards -->
+    @foreach($uploads as $upload)
+    <div class="content-card" data-type="{{ $upload->type }}" data-title="{{ $upload->name }}" data-category="{{ ucfirst($upload->type) }}" data-progress="0" 
+         onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')">
+        <div class="card-image type-{{ $upload->type }}" style="{{ $upload->poster ? 'background: none;' : '' }}">
+            @if($upload->poster)
+                <img src="{{ $upload->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $upload->name }}">
+            @else
+                <i class="fa {{ $upload->icon ?? 'fa-file' }}"></i>
+            @endif
+            <div class="card-badge">{{ ucfirst($upload->type) }}</div>
+            <div class="play-overlay">
+                <div class="play-button">
+                    <i class="fa fa-play"></i>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="card-category">{{ ucfirst($upload->type) }}</div>
+            <h3 class="card-title">{{ $upload->name }}</h3>
+            <div class="card-meta">
+                <span><i class="fa fa-database"></i> {{ $upload->formatted_size ?? 'N/A' }}</span>
+                <span>{{ $upload->created_at->format('M d, Y') }}</span>
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    <!-- No Results Message (hidden by default) -->
+    <div class="no-results" id="no-results" style="display: none;">
+        <i class="fa fa-search"></i>
+        <h3>No Results Found</h3>
+        <p>Try adjusting your search or filter criteria</p>
+    </div>
+</div>
+<br><br>
+<!-- Content Count -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 id="content-title" style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin: 0;">
+        <i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>
         All Learning Materials
     </h2>
     <span id="content-count" style="font-size: 13px; color: var(--text-secondary);">

@@ -160,6 +160,28 @@
             <input type="text" name="name" id="name" class="form-input" value="{{ old('name', $upload->name) }}" required>
         </div>
         
+        <!-- General Topic -->
+        <div class="form-group">
+            <label class="form-label">General Topic</label>
+            <select name="general_topic_id" id="generalTopicSelect" class="form-select">
+                <option value="">Select a topic</option>
+                @foreach($generalTopics as $topic)
+                    <option value="{{ $topic->id }}" {{ $upload->general_topic_id == $topic->id ? 'selected' : '' }}>{{ $topic->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        
+        <!-- Position -->
+        <div class="form-group">
+            <label class="form-label">Position</label>
+            <select name="position_id" id="positionSelect" class="form-select">
+                <option value="">Select a position</option>
+                @foreach($positions as $id => $name)
+                    <option value="{{ $id }}" {{ $upload->position_id == $id ? 'selected' : '' }}>{{ $name }}</option>
+                @endforeach
+            </select>
+        </div>
+        
         <!-- File Type -->
         <div class="form-group">
             <label class="form-label">File Type</label>

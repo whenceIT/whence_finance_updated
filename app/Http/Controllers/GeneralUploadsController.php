@@ -17,6 +17,31 @@ class GeneralUploadsController extends Controller
     private $s3Client;
     private $bucket = 'wfssystem';
     
+    // Positions array
+    private $positions = [
+        1 => 'General Operations Manager (GOM)',
+        2 => 'Provincial Manager',
+        3 => 'District Regional Manager',
+        4 => 'District Manager',
+        5 => 'Branch Manager',
+        6 => 'IT Manager',
+        7 => 'Risk Manager',
+        8 => 'Management Accountant',
+        9 => 'Motor Vehicles Manager',
+        10 => 'Payroll Loans Manager',
+        11 => 'Policy & Training Manager',
+        12 => 'Manager Administration',
+        13 => 'R&D Coordinator',
+        14 => 'Recoveries Coordinator',
+        15 => 'IT Coordinator',
+        16 => 'General Operations Administrator (GOA)',
+        17 => 'Performance Operations Administrator (POA)',
+        18 => 'Creative Artwork & Marketing Representative Manager',
+        19 => 'Administration',
+        20 => 'Super Seer',
+        21 => 'Loan Consultant'
+    ];
+    
     public function __construct()
     {
         $this->s3Client = new \Aws\S3\S3Client([
@@ -57,7 +82,9 @@ class GeneralUploadsController extends Controller
      */
     public function create()
     {
-        return view('learning.general-uploads.create');
+        $generalTopics = \App\Models\GeneralTopic::all();
+        $positions = $this->positions;
+        return view('learning.general-uploads.create', compact('generalTopics', 'positions'));
     }
 
     /**
@@ -73,8 +100,10 @@ class GeneralUploadsController extends Controller
             $file = $request->file('file');
             $type = $request->input('type', 'other');
             $poster = $request->file('poster');
+            $generalTopicId = $request->input('general_topic_id');
+            $positionId = $request->input('position_id');
             
-            $upload = $this->saveUpload($file, $type, $poster);
+            $upload = $this->saveUpload($file, $type, $poster, $generalTopicId, $positionId);
             
             return response()->json([
                 'success' => true,
@@ -227,6 +256,10 @@ class GeneralUploadsController extends Controller
                 $upload->poster = $posterPath;
             }
             
+            // Handle new fields
+            $upload->general_topic_id = $request->input('general_topic_id');
+            $upload->position_id = $request->input('position_id');
+            
             $upload->save();
             
             return response()->json([
@@ -266,7 +299,9 @@ class GeneralUploadsController extends Controller
     public function edit($id)
     {
         $upload = GeneralUpload::findOrFail($id);
-        return view('learning.general-uploads.edit', compact('upload'));
+        $generalTopics = \App\Models\GeneralTopic::all();
+        $positions = $this->positions;
+        return view('learning.general-uploads.edit', compact('upload', 'generalTopics', 'positions'));
     }
 
     /**
@@ -342,6 +377,10 @@ class GeneralUploadsController extends Controller
             $upload->poster = $posterPath;
         }
         
+        // Handle new fields
+        $upload->general_topic_id = $request->input('general_topic_id');
+        $upload->position_id = $request->input('position_id');
+        
         $upload->save();
         
         return redirect()->route('learning.general-uploads.index')->with('success', 'File updated successfully');
@@ -387,7 +426,7 @@ class GeneralUploadsController extends Controller
     /**
      * Save uploaded file directly to S3
      */
-    private function saveUpload($file, $type, $poster = null)
+    private function saveUpload($file, $type, $poster = null, $generalTopicId = null, $positionId = null)
     {
         // Determine actual type if not provided
         if ($type === 'other') {
@@ -423,6 +462,10 @@ class GeneralUploadsController extends Controller
                 $posterPath = $this->savePoster($poster, $typeFolder);
                 $upload->poster = $posterPath;
             }
+            
+            // Handle new fields
+            $upload->general_topic_id = $generalTopicId;
+            $upload->position_id = $positionId;
             
             $upload->save();
             
