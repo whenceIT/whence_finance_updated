@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
 use App\Models\RecoveryCase;
+use App\Models\Loan;
+use App\Models\Office;
+use App\Models\User;
 use App\Services\RecoveryCaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -89,10 +92,14 @@ class RecoveryCaseController extends Controller
     {
         try {
             $categories = RecoveryCase::CATEGORIES;
-            $loans = \App\Models\Loan::with('client')->orderBy('id', 'desc')->get();
+            // Only load necessary fields to reduce memory usage
+            $loans = \App\Models\Loan::with(['client' => function($query) {
+                $query->select('id', 'first_name', 'last_name');
+            }])->select('id', 'client_id', 'principal')->orderBy('id', 'desc')->get();
             $offices = \App\Models\Office::orderBy('name')->get();
+            $users = \App\Models\User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
 
-            return view('recoveries.cases.create', compact('categories', 'loans', 'offices'));
+            return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'users'));
         } catch (\Throwable $th) {
             dd($th);
         }
