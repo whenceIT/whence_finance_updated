@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\RecoveryCaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class RecoveryCaseController extends Controller
 {
@@ -91,18 +92,20 @@ class RecoveryCaseController extends Controller
     public function create()
     {
         try {
-            dd('in create');
             $categories = RecoveryCase::CATEGORIES;
-            // Only load necessary fields to reduce memory usage
-            $loans = \App\Models\Loan::with(['client' => function($query) {
+            Log::info('Loading create case form with optimized loan query');
+            $loans = Loan::with(['client' => function($query) {
                 $query->select('id', 'first_name', 'last_name');
             }])->select('id', 'client_id', 'principal')->orderBy('id', 'desc')->get();
-            $offices = \App\Models\Office::orderBy('name')->get();
-            $users = \App\Models\User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+            Log::info('Loading create case form with optimized loan query 2');
+            $offices = Office::orderBy('name')->get();
+            Log::info('Loading create case form with optimized loan query 3');
+            $users = User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+            Log::info('Loading create case form with optimized loan query 4');
 
             return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'users'));
         } catch (\Throwable $th) {
-            dd($th);
+            Log::info($th->getMessage());
         }
     }   
 
