@@ -11,8 +11,7 @@
 @section('content')
 <div class="row">
     <div class="col-md-10 col-lg-8">
-
-    @dd('on page')
+        
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h3 class="box-title"><i class="fa fa-folder-open"></i> New Recovery Case</h3>
