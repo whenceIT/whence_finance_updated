@@ -12,6 +12,7 @@ use App\Services\RecoveryCaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class RecoveryCaseController extends Controller
 {
@@ -96,9 +97,11 @@ class RecoveryCaseController extends Controller
             $categories = RecoveryCase::CATEGORIES;
             Log::info('Loading create case form with optimized loan query');
 
-            $loans = Loan::with(['client:id,first_name,last_name'])
-                ->whereNotNull('first_repayment_date')
-                ->whereDate('first_repayment_date', '<=', Carbon::today()->subDays(7))
+            $loans = DB::table('loans')
+                ->select('loans.*', 'clients.first_name', 'clients.last_name')
+                ->leftJoin('clients', 'loans.client_id', '=', 'clients.id')
+                ->whereNotNull('loans.first_repayment_date')
+                ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
                 ->get();
 
             Log::info('Loading create case form with optimized loan query 2');
