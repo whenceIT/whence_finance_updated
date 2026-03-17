@@ -15,12 +15,19 @@ class GeneralUpload extends Model
         'file_size',
         'mime_type',
         'uploaded_by',
-        'poster'
+        'poster',
+        'general_topic_id',
+        'position_id'
     ];
     
     public function user()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+    
+    public function generalTopic()
+    {
+        return $this->belongsTo(GeneralTopic::class);
     }
     
     /**

@@ -352,29 +352,17 @@
 
 <!-- Tab Pills Container -->
 <div class="tab-pills-container">
+    <button onclick="switchTab('featured')" id="tab-featured" class="tab-pill">
+        <i class="fa fa-star"></i> Featured
+    </button>
     <button onclick="switchTab('all')" id="tab-all" class="tab-pill">
         <i class="fa fa-th-large"></i> All
     </button>
     <button onclick="switchTab('courses')" id="tab-courses" class="tab-pill">
         <i class="fa fa-graduation-cap"></i> Courses
     </button>
-    <button onclick="switchTab('in_progress')" id="tab-in_progress" class="tab-pill">
-        <i class="fa fa-play-circle"></i> In Progress
-    </button>
     <button onclick="switchTab('uploads')" id="tab-uploads" class="tab-pill">
         <i class="fa fa-cloud-upload"></i> Uploads
-    </button>
-    <button onclick="switchTab('video')" id="tab-video" class="tab-pill">
-        <i class="fa fa-video-camera"></i> Videos
-    </button>
-    <button onclick="switchTab('audio')" id="tab-audio" class="tab-pill">
-        <i class="fa fa-headphones"></i> Audio
-    </button>
-    <button onclick="switchTab('book')" id="tab-book" class="tab-pill">
-        <i class="fa fa-book"></i> Books
-    </button>
-    <button onclick="switchTab('document')" id="tab-document" class="tab-pill">
-        <i class="fa fa-file-text"></i> Documents
     </button>
 </div>
 
@@ -408,74 +396,104 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2 id="content-title" style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin: 0;">
         <i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>
-        All Learning Materials
+        Featured Topics
     </h2>
     <span id="content-count" style="font-size: 13px; color: var(--text-secondary);">
-        Showing {{ count($courses) + $uploads->count() }} items
-    </span>
+    Showing {{ $isFeaturedTab ? $topicsWithUploads->count() : (count($courses) + $uploads->count()) }} items
+</span>
 </div>
+
+<!-- Featured Topics Container (for featured tab) -->
+<div id="featured-topics-container">
+        <!-- General Topics as Folders -->
+        @foreach($topicsWithUploads as $topic)
+                <div class="col-12 col-md-6 col-lg-3 topic-card" style="margin-bottom: 20px;" data-title="{{ $topic['name'] }}">
+                        <div class="content-card" onclick='window.location.href="{{ url('learning/general-uploads?topic=' . $topic['id']) }}"'>
+                                <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 160px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa fa-folder-open" style="color: white; font-size: 48px;"></i>
+                                </div>
+                                <div class="card-body" style="text-align: center;">
+                                        <h3 class="card-title" style="color: var(--text-primary); margin: 0 0 8px 0; font-size: 18px; font-weight: 600; line-height: 1.3;">{{ $topic['name'] }}</h3>
+                                        <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">{{ count($topic['uploads']) }} resources</p>
+                                </div>
+                        </div>
+                </div>
+        @endforeach
+        
+        <!-- No Results Message for Topics -->
+        <div class="no-results" id="no-topics-results" style="display: none;">
+            <i class="fa fa-search"></i>
+            <h3>No Topics Found</h3>
+            <p>Try adjusting your search query</p>
+        </div>
+</div>
+
 
 <!-- Unified Content Grid -->
 <div class="unified-grid" id="content-grid">
-    <!-- Course Cards -->
-    @foreach($courses as $course)
-    <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
-         <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); {{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
-            @if(isset($course['poster']) && $course['poster'])
-                <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
-            @else
-                <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
-            @endif
-            <div class="card-badge">Course</div>
-            <div class="play-overlay">
-                <div class="play-button">
-                    <i class="fa fa-play"></i>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="card-category">{{ $course['category'] }}</div>
-            <h3 class="card-title">{{ $course['title'] }}</h3>
-            @if($course['enrolled'] && $course['progress'] > 0)
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
-            </div>
-            @endif
-            <div class="card-meta">
-                <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
-                <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
-            </div>
-        </div>
-    </div>
-    @endforeach
-
-    <!-- Upload Cards -->
-    @foreach($uploads as $upload)
-    <div class="content-card" data-type="{{ $upload->type }}" data-title="{{ $upload->name }}" data-category="{{ ucfirst($upload->type) }}" data-progress="0" 
-         onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')">
-        <div class="card-image type-{{ $upload->type }}" style="{{ $upload->poster ? 'background: none;' : '' }}">
-            @if($upload->poster)
-                <img src="{{ $upload->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $upload->name }}">
-            @else
-                <i class="fa {{ $upload->icon ?? 'fa-file' }}"></i>
-            @endif
-            <div class="card-badge">{{ ucfirst($upload->type) }}</div>
-            <div class="play-overlay">
-                <div class="play-button">
-                    <i class="fa fa-play"></i>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="card-category">{{ ucfirst($upload->type) }}</div>
-            <h3 class="card-title">{{ $upload->name }}</h3>
-            <div class="card-meta">
-                <span><i class="fa fa-database"></i> {{ $upload->formatted_size ?? 'N/A' }}</span>
-                <span>{{ $upload->created_at->format('M d, Y') }}</span>
-            </div>
-        </div>
-    </div>
-    @endforeach
+      @if(!$isFeaturedTab)
+              <!-- Course Cards -->
+              @foreach($courses as $course)
+              <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
+               <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); {{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
+                 @if(isset($course['poster']) && $course['poster'])
+                       <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
+                 @else
+                       <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
+                 @endif
+                 <div class="card-badge">Course</div>
+                 <div class="play-overlay">
+                       <div class="play-button">
+                             <i class="fa fa-play"></i>
+                       </div>
+                 </div>
+               </div>
+               <div class="card-body">
+                       <div class="card-category">{{ $course['category'] }}</div>
+                       <h3 class="card-title">{{ $course['title'] }}</h3>
+                       @if($course['enrolled'] && $course['progress'] > 0)
+                       <div class="progress-bar">
+                             <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
+                       </div>
+                       @endif
+                       <div class="card-meta">
+                             <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
+                             <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
+                       </div>
+               </div>
+              </div>
+              @endforeach
+      @endif
+      
+      <!-- Regular Upload Cards (for other tabs) -->
+      @if(!$isFeaturedTab)
+              @foreach($uploads as $upload)
+              <div class="content-card" data-type="{{ $upload->type }}" data-title="{{ $upload->name }}" data-category="{{ ucfirst($upload->type) }}" data-progress="0"
+                       onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')">
+                      <div class="card-image type-{{ $upload->type }}" style="{{ $upload->poster ? 'background: none;' : '' }}">
+                              @if($upload->poster)
+                                      <img src="{{ $upload->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $upload->name }}">
+                              @else
+                                      <i class="fa {{ $upload->icon ?? 'fa-file' }}"></i>
+                              @endif
+                              <div class="card-badge">{{ ucfirst($upload->type) }}</div>
+                              <div class="play-overlay">
+                                      <div class="play-button">
+                                              <i class="fa fa-play"></i>
+                                      </div>
+                              </div>
+                      </div>
+                      <div class="card-body">
+                              <div class="card-category">{{ ucfirst($upload->type) }}</div>
+                              <h3 class="card-title">{{ $upload->name }}</h3>
+                              <div class="card-meta">
+                                      <span><i class="fa fa-database"></i> {{ $upload->formatted_size ?? 'N/A' }}</span>
+                                      <span>{{ $upload->created_at->format('M d, Y') }}</span>
+                              </div>
+                      </div>
+              </div>
+              @endforeach
+      @endif
 
     <!-- No Results Message (hidden by default) -->
     <div class="no-results" id="no-results" style="display: none;">
@@ -497,13 +515,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var grid = document.getElementById('content-grid');
     allCards = Array.from(grid.querySelectorAll('.content-card'));
     
-    // Set 'All' tab as active by default
-    var randomTab = 'all';
+    // Set default tab to 'featured'
+    var randomTab = 'featured';
     
     // Check for URL parameter
     var urlParams = new URLSearchParams(window.location.search);
     var tabParam = urlParams.get('tab');
-    var validTabs = ['all', 'courses', 'in_progress', 'uploads', 'video', 'audio', 'book', 'document'];
+    var validTabs = ['all', 'courses', 'in_progress', 'uploads', 'video', 'audio', 'book', 'document', 'featured'];
     if (tabParam && validTabs.includes(tabParam)) {
         randomTab = tabParam;
     }
@@ -538,7 +556,8 @@ function switchTab(tab) {
         'video': 'Video Materials',
         'audio': 'Audio Materials',
         'book': 'Books',
-        'document': 'Documents'
+        'document': 'Documents',
+        'featured': 'Featured Topics'
     };
     document.getElementById('content-title').innerHTML = '<i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>' + titles[tab];
     
@@ -572,8 +591,49 @@ function handleSearch(query) {
 
 function applyFilters() {
     var grid = document.getElementById('content-grid');
+    var featuredContainer = document.getElementById('featured-topics-container');
     var visibleCount = 0;
     var hasVisibleCards = false;
+    
+    // Handle featured tab - show featured topics container, hide content grid
+    if (currentTab === 'featured') {
+        grid.style.display = 'none';
+        featuredContainer.style.display = 'block';
+        
+        // Search through featured topics
+        var topicCards = document.querySelectorAll('.topic-card');
+        var visibleTopics = 0;
+        
+        topicCards.forEach(function(card) {
+            var topicTitle = (card.dataset.title || '').toLowerCase();
+            
+            if (searchQuery === '' || topicTitle.includes(searchQuery)) {
+                card.style.display = '';
+                visibleTopics++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Update count for featured tab
+        document.getElementById('content-count').textContent = 'Showing ' + visibleTopics + ' items';
+        
+        // Show/hide no results message for topics
+        var noTopicsResults = document.getElementById('no-topics-results');
+        if (visibleTopics === 0) {
+            noTopicsResults.style.display = 'block';
+        } else {
+            noTopicsResults.style.display = 'none';
+        }
+        
+        // Hide other no results message
+        document.getElementById('no-results').style.display = 'none';
+        return;
+    }
+    
+    // For all other tabs, show content grid, hide featured container
+    grid.style.display = 'grid';
+    featuredContainer.style.display = 'none';
     
     allCards.forEach(function(card) {
         var cardType = card.dataset.type;
@@ -584,8 +644,8 @@ function applyFilters() {
         var showByTab = false;
         var showByFilter = currentFilter === 'all' || cardType === currentFilter;
         var showBySearch = searchQuery === '' || 
-                           cardTitle.includes(searchQuery) || 
-                           cardCategory.includes(searchQuery);
+                            cardTitle.includes(searchQuery) || 
+                            cardCategory.includes(searchQuery);
         
         if (currentTab === 'all') {
             showByTab = true;

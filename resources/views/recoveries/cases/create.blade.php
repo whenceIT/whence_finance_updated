@@ -1,11 +1,17 @@
 @extends('layouts.master')
+
+@if(isset($usageStats))
+    <script>
+        console.log('Memory Usage Stats:', @json($usageStats));
+    </script>
+@endif
 @section('title')
     Open New Recovery Case
 @endsection
 @section('content')
 <div class="row">
     <div class="col-md-10 col-lg-8">
-
+        
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h3 class="box-title"><i class="fa fa-folder-open"></i> New Recovery Case</h3>
@@ -41,7 +47,7 @@
                                             <option value="{{ $loan->id }}">
                                                 {{'Loan #'.$loan?->id }} - K{{ $loan?->principal }}
                                                     &mdash;
-                                                {{ $loan?->client?->first_name.' '.$loan?->client?->last_name }}
+                                                {{ $loan?->first_name.' '.$loan?->last_name }}
                                             </option>
                                         @endif
                                     @endforeach
@@ -125,8 +131,7 @@
                                 <label>Assign Specialist <small class="text-muted">(optional)</small></label>
                                 <select name="assigned_specialist_id" class="form-control">
                                     <option value="">— Assign Later —</option>
-                                    @php $specialists = \App\Models\User::orderBy('first_name')->get(); @endphp
-                                    @foreach($specialists as $u)
+                                    @foreach($users as $u)
                                     <option value="{{ $u->id }}">
                                         {{ $u->first_name }} {{ $u->last_name }}
                                     </option>
@@ -159,8 +164,7 @@
                                             <label>Escalated By (Loan Consultant)</label>
                                             <select name="escalated_by_user_id" class="form-control">
                                                 <option value="">— Select —</option>
-                                                @php $allUsers = \App\Models\User::orderBy('first_name')->get(); @endphp
-                                                @foreach($allUsers as $u)
+                                                @foreach($users as $u)
                                                 <option value="{{ $u->id }}">
                                                     {{ $u->first_name }} {{ $u->last_name }}
                                                 </option>

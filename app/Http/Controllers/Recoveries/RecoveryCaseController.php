@@ -4,9 +4,15 @@ namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
 use App\Models\RecoveryCase;
+use App\Models\Loan;
+use App\Models\Office;
+use App\Models\User;
+use Carbon\Carbon;
 use App\Services\RecoveryCaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class RecoveryCaseController extends Controller
 {
@@ -89,12 +95,24 @@ class RecoveryCaseController extends Controller
     {
         try {
             $categories = RecoveryCase::CATEGORIES;
-            $loans = \App\Models\Loan::with('client')->orderBy('id', 'desc')->get();
-            $offices = \App\Models\Office::orderBy('name')->get();
+            Log::info('Loading create case form with optimized loan query');
 
-            return view('recoveries.cases.create', compact('categories', 'loans', 'offices'));
+            $loans = DB::table('loans')
+                ->select('loans.*', 'clients.first_name', 'clients.last_name')
+                ->leftJoin('clients', 'loans.client_id', '=', 'clients.id')
+                ->whereNotNull('loans.first_repayment_date')
+                ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
+                ->get();
+
+            Log::info('Loading create case form with optimized loan query 2');
+            $offices = Office::orderBy('name')->get();
+            Log::info('Loading create case form with optimized loan query 3');
+            $users = User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+            Log::info('Loading create case form with optimized loan query 4');
+
+            return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'users'));
         } catch (\Throwable $th) {
-            dd($th);
+            Log::info($th->getMessage());
         }
     }   
 

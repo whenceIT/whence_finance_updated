@@ -19,7 +19,7 @@ class LearningController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         $user = Sentinel::getUser();
         
@@ -27,12 +27,12 @@ class LearningController extends Controller
         $allMaterials = TrainingMaterial::where('is_active', 1)
             ->orderBy('created_at', 'desc')
             ->get();
-
+        
         // Get enrolled materials for current user
         $enrollments = Enrollment::where('user_id', $user->id)->get();
         $enrolledMaterialIds = $enrollments->pluck('training_material_id')->toArray();
         $enrollmentMap = $enrollments->keyBy('training_material_id');
-
+        
         // Prepare courses data with enrollment status
         $courses = $allMaterials->map(function ($material) use ($enrolledMaterialIds, $enrollmentMap) {
             $isEnrolled = in_array($material->id, $enrolledMaterialIds);
@@ -57,7 +57,7 @@ class LearningController extends Controller
                 'poster' => $material->poster,
             ];
         })->toArray();
-
+        
         // Calculate statistics for current user
         $stats = [
             'total_courses' => $allMaterials->count(),
@@ -71,17 +71,51 @@ class LearningController extends Controller
                 ->where('progress', '<', 100)
                 ->count(),
         ];
-
+        
         // Get unique categories from CourseCategory model
         $categories = CourseCategory::active()->ordered()->get();
-
+        
         // Share categories with all views
         view()->share('categories', $categories);
-
-        // Get general uploads
-        $uploads = \App\Models\GeneralUpload::orderBy('created_at', 'desc')->get();
-
-        return view('learning.dashboard', compact('courses', 'stats', 'uploads'));
+        
+        // Check if featured tab is active
+        $isFeaturedTab = $request->input('tab') === 'featured' ? true : false;
+        
+        if ($isFeaturedTab) {
+            // For featured tab, get uploads grouped by general topic (only videos)
+            $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) {
+                $query->where('type', 'video');
+            }])->get()->map(function($topic) {
+                return [
+                    'id' => $topic->id,
+                    'name' => $topic->name,
+                    'description' => $topic->description,
+                    'poster' => $topic->poster,
+                    'uploads' => $topic->uploads
+                ];
+            })->filter(function($topic) {
+                return $topic['uploads']->count() > 0;
+            })->toArray();
+            
+            // Flatten uploads for statistics and backward compatibility (only videos)
+            $uploads = \App\Models\GeneralUpload::where('type', 'video')->orderBy('created_at', 'desc')->get();
+        } else {
+            // For other tabs, get general uploads normally
+            $uploads = \App\Models\GeneralUpload::orderBy('created_at', 'desc')->get();
+            $topicsWithUploads = \App\Models\GeneralTopic::with('uploads')->get()->map(function($topic) {
+                return [
+                    'id' => $topic->id,
+                    'name' => $topic->name,
+                    'description' => $topic->description,
+                    'poster' => $topic->poster,
+                    'uploads' => $topic->uploads
+                ];
+            })->filter(function($topic) {
+                return $topic['uploads']->count() > 0;
+            })->toArray();
+        }
+        
+        return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab'));
     }
 
     /**
