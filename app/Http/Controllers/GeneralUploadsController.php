@@ -100,6 +100,13 @@ class GeneralUploadsController extends Controller
      */
     public function store(Request $request)
     {
+        // Increase PHP upload limits to handle large files
+        ini_set('upload_max_filesize', '200M');
+        ini_set('post_max_size', '200M');
+        ini_set('max_execution_time', 600); // 10 minutes
+        ini_set('max_input_time', 600); // 10 minutes
+        ini_set('memory_limit', '256M');
+        
         // Handle regular file upload (non-chunked)
         if ($request->hasFile('file')) {
             $file = $request->file('file');
@@ -166,10 +173,20 @@ class GeneralUploadsController extends Controller
      */
     public function mergeChunks(Request $request)
     {
-        $filename = $request->input('filename');
-        $fileId = $request->input('fileId');
-        $type = $request->input('type', 'other');
-        $totalChunks = $request->input('totalChunks');
+        // Increase PHP limits to handle large file merging
+        ini_set('upload_max_filesize', '200M');
+        ini_set('post_max_size', '200M');
+        ini_set('max_execution_time', 600); // 10 minutes
+        ini_set('max_input_time', 600); // 10 minutes
+        ini_set('memory_limit', '256M');
+        
+        // Get request data from JSON or form data
+        $data = $request->json() ? $request->json()->all() : $request->all();
+        
+        $filename = $data['filename'];
+        $fileId = $data['fileId'];
+        $type = $data['type'] ?? 'other';
+        $totalChunks = $data['totalChunks'];
         $poster = $request->file('poster');
         
         $chunkDir = storage_path('app/chunks/' . $fileId);
@@ -262,8 +279,8 @@ class GeneralUploadsController extends Controller
             }
             
             // Handle new fields
-            $upload->general_topic_id = $request->input('general_topic_id');
-            $upload->position_id = $request->input('position_id');
+            $upload->general_topic_id = $data['general_topic_id'] ?? null;
+            $upload->position_id = $data['position_id'] ?? null;
             
             $upload->save();
             
