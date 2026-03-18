@@ -1039,6 +1039,27 @@
                     </li>
                     @endif
 
+
+                         <!-- Deposits -->
+                    @if(Sentinel::hasAccess('reports.client_reports'))
+                    <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
+                        <a href="#">
+                            <i class="fa fa-exchange"></i> <span>Fund Transfers and Payments</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            <li><a href="{{ url('accounting/add_fund_transfers_and_payments') }}"><i class="fa fa-circle-o"></i>Add Funds Transfer</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            <li><a href="{{ url('accounting/pending_fund_movements') }}"><i class="fa fa-circle-o"></i>Pending Fund Transfers</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
                     <!-- Ledger -->
                     @if(Sentinel::hasAccess('reports.client_reports'))
                     <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">

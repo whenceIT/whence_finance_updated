@@ -1438,6 +1438,105 @@ $total_loans = 0;
                   </div>
                 </div>
 
+                 
+
+<div class="panel box box-warning">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseFundMovements">
+                Funds Movements
+            </a>
+        </h4>
+    </div>
+    <div id="collapseFundMovements" class="panel-collapse collapse">
+        <div class="box-body">
+
+            <table class="table table-condensed table-hover">
+                <tbody>
+                    <tr>
+                        <td><strong>Date</strong></td>
+                        <td><strong>Branch</strong></td>
+                        <td><strong>Added By</strong></td>
+                        <td><strong>Movement Type</strong></td>
+                        <td><strong>From Account</strong></td>
+                        <td><strong>Payee / Destination</strong></td>
+                        <td><strong>Amount</strong></td>
+                        <td><strong>Reference No.</strong></td>
+                        <td><strong>Status</strong></td>
+                    </tr>
+
+                    @foreach($funds_transfered as $key)
+                        <tr>
+                            <td>{{ $key->transaction_date }}</td>
+                            <td>{{ optional($key->office)->name }}</td>
+                            <td>
+                                {{ optional($key->user)->first_name }}
+                                {{ optional($key->user)->last_name }}
+                            </td>
+                            <td>
+                                @php
+                                    $type = $key->movement_type;
+                                    $typeColor = 'black';
+
+                                    if($type == 'payment'){
+                                        $typeColor = 'blue';
+                                    } elseif($type == 'transfer'){
+                                        $typeColor = 'green';
+                                    } elseif($type == 'bank_charge'){
+                                        $typeColor = 'orange';
+                                    } elseif($type == 'withdrawal'){
+                                        $typeColor = 'red';
+                                    } elseif($type == 'refund'){
+                                        $typeColor = 'purple';
+                                    }
+                                @endphp
+
+                                <span style="color: {{ $typeColor }}; font-weight: bold;">
+                                    {{ ucwords(str_replace('_', ' ', $type)) }}
+                                </span>
+                            </td>
+                            <td>{{ optional($key->account)->name }}</td>
+                            <td>
+                                @if(!empty($key->payee_name))
+                                    {{ $key->payee_name }}
+                                @elseif(!empty($key->destination_account))
+                                    {{ $key->destination_account }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>{{ number_format($key->amount, 2) }}</td>
+                            <td>{{ $key->reference_no ?? '-' }}</td>
+                            <td>
+                                @php
+                                    $status = $key->status;
+                                    $statusColor = 'gray';
+
+                                    if($status == 'approved'){
+                                        $statusColor = 'green';
+                                    } elseif($status == 'submitted'){
+                                        $statusColor = 'orange';
+                                    } elseif($status == 'rejected'){
+                                        $statusColor = 'red';
+                                    } elseif($status == 'draft'){
+                                        $statusColor = 'gray';
+                                    }
+                                @endphp
+
+                                <span style="color: {{ $statusColor }}; font-weight: bold;">
+                                    {{ ucfirst($status) }}
+                                </span>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+
 
 <div class="panel box box-success">
     <div class="box-header with-border">

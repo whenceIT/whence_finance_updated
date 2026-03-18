@@ -6,13 +6,13 @@ use App\Helpers\GeneralHelper;
 use App\Models\BankAccount;
 use App\Models\Collateral;
 use App\Models\CollateralType;
+use App\Models\FundMovements;
 use App\Models\GlClosure;
 use App\Models\GlJournalEntry;
 use App\Models\Loan;
 use App\Models\LoanProduct;
 use App\Models\PaymentDetail;
 use App\Models\Office;
-
 use App\Models\Setting;
 use App\Models\User;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -136,6 +136,121 @@ class JournalController extends Controller
         $bank_accounts = BankAccount::all();
 
         return view('journal.add_fund_transfers_and_payments',compact('offices','bank_accounts'));
+    }
+
+
+     public function fund_movement_approvals()
+    {
+
+        $office_id = Sentinel::getUser()->office_id;
+        if(Sentinel::hasAccess('settings')){
+             $fund_movements = FundMovements::where('status', 'submitted')
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+        }else{
+             $fund_movements = FundMovements::where('status', 'submitted')->where('office_id',$office_id)
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+        }
+       
+        return view('journal.fund_movement_approvals', compact('fund_movements'));
+    }
+
+    public function show_fund_movement($id)
+{
+    $movement = FundMovements::findOrFail($id);
+
+    return view('journal.show_fund_movement', compact('movement'));
+}
+
+     public function approve_fund($id)
+    {
+        $movement = FundMovements::findOrFail($id);
+
+        if ($movement->status !== 'submitted') {
+            return redirect()->back()->with('error', 'Only submitted fund movements can be approved.');
+        }
+
+        $movement->status = 'approved';
+        $movement->save();
+
+        return redirect()->back()->with('success', 'Fund movement approved successfully.');
+    }
+
+    public function reject_fund($id)
+    {
+      
+
+        $movement = FundMovements::findOrFail($id);
+
+        if ($movement->status !== 'submitted') {
+            return redirect()->back()->with('error', 'Only submitted fund movements can be rejected.');
+        }
+
+        $movement->status = 'rejected';
+        $movement->save();
+
+        return redirect()->back()->with('success', 'Fund movement rejected successfully.');
+    }
+
+
+    public function store_funds_transfers_and_payments(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'office_id' => 'required',
+            'movement_type' => 'required',
+            'from_account' => 'required',
+            'amount' => 'required',
+            'date' => 'required|date',
+        ]);
+
+        $movement = new FundMovements();
+
+        $movement->office_id = $request->office_id;
+        $movement->movement_type = $request->movement_type;
+
+        $movement->source_account = $request->from_account;
+        $movement->destination_account = $request->to_account;
+
+        $movement->payee_name = $request->payee_name;
+        $movement->expense_category = $request->expense_category;
+
+        $movement->title = $request->title;
+
+        $movement->amount = $request->amount;
+
+        $movement->payment_method = $request->payment_method;
+        $movement->reference_no = $request->reference_no;
+
+        $movement->transaction_date = $request->date;
+
+        $movement->description = $request->description;
+        $movement->remarks = $request->remarks;
+
+      //  $movement->status = $request->status ?? 'draft';
+       // $movement->requires_approval = $request->requires_approval ?? 1;
+
+        $movement->created_by = Sentinel::getUser()->id;
+
+        // Handle file upload
+        if ($request->hasFile('attachment')) {
+
+            $file = $request->file('attachment');
+
+            $filename = time() . '_' . $file->getClientOriginalName();
+
+            $file->move(public_path('uploads/fund_movements'), $filename);
+
+            $movement->attachment = 'uploads/fund_movements/' . $filename;
+        }
+
+        $movement->document_note = $request->document_note;
+
+        $movement->save();
+    return redirect()->back();
+        // return redirect('')
+        //     ->with('success', 'Fund movement saved successfully');
     }
 
     public function reconciliation(Request $request)
