@@ -48,8 +48,11 @@ $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
     </div>
 </div>
 <!-- Professional Header with Gradient -->
-<div style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); border-radius: 16px; padding: 32px; margin-bottom: 30px; color: white;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+<div style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); border-radius: 16px; padding: 32px; margin-bottom: 30px; color: white; position: relative; overflow: hidden;">
+    @if(isset($topicPoster))
+    <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 550px; background-image: url('{{ $topicPoster }}'); background-size: cover; background-position: center; opacity: 0.15; z-index: 0;"></div>
+    @endif
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; position: relative; z-index: 1;">
         <div>
             <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; color: white;">
                 <i class="fa fa-cloud-upload"></i> {{ $isAdmin ? 'All Uploads' : 'My Uploads' }}
