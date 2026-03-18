@@ -168,7 +168,7 @@
 
                 <hr>
 
-                <div class="row" style="margin-bottom: 10px;">
+                <!-- <div class="row" style="margin-bottom: 10px;">
                     <div class="col-md-12">
                         <h4 style="margin-top: 0; margin-bottom: 15px; color: #3c8dbc;">4. Supporting Documents</h4>
                     </div>
@@ -184,7 +184,7 @@
                     <div class="col-md-4">
                         <input type="text" name="document_note" id="document_note" class="form-control" placeholder="e.g. Invoice, transfer slip, receipt">
                     </div>
-                </div>
+                </div> -->
 
                 <hr>
 

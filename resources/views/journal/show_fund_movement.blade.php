@@ -92,7 +92,7 @@
             <hr>
 
             {{-- SECTION 4 --}}
-            <h4 style="color:#3c8dbc;">4. Supporting Document</h4>
+            <!-- <h4 style="color:#3c8dbc;">4. Supporting Document</h4>
             <table class="table table-bordered">
                 <tr>
                     <th width="25%">Document</th>
@@ -110,7 +110,7 @@
                     <th>Document Note</th>
                     <td>{{ $movement->document_note ?? '-' }}</td>
                 </tr>
-            </table>
+            </table> -->
 
             <hr>
 
