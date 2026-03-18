@@ -81,12 +81,17 @@ class GeneralUploadsController extends Controller
         }
         
         // Filter by general topic if provided
+        $topicName = null;
         if ($request->has('topic')) {
             $query->where('general_topic_id', $request->topic);
+            $topic = \App\Models\GeneralTopic::find($request->topic);
+            if ($topic) {
+                $topicName = $topic->name;
+            }
         }
         
         $uploads = $query->get();
-        return view('learning.general-uploads.index', compact('uploads'));
+        return view('learning.general-uploads.index', compact('uploads', 'topicName'));
     }
 
     /**

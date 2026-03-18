@@ -35,8 +35,16 @@ $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
         <div>
             <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; color: white;">
                 <i class="fa fa-cloud-upload"></i> {{ $isAdmin ? 'All Uploads' : 'My Uploads' }}
+                @if(isset($topicName))
+                <span style="font-size: 20px; opacity: 0.9; margin-left: 10px;">- {{ $topicName }}</span>
+                @endif
             </h1>
-            <p style="font-size: 14px; opacity: 0.9; margin: 0;">{{ $isAdmin ? 'Manage all files uploaded by users' : 'Manage and organize your uploaded files' }}</p>
+            <p style="font-size: 14px; opacity: 0.9; margin: 0;">
+                {{ $isAdmin ? 'Manage all files uploaded by users' : 'Manage and organize your uploaded files' }}
+                @if(isset($topicName))
+                <br><span style="font-size: 12px; opacity: 0.8;">Viewing resources for topic: {{ $topicName }}</span>
+                @endif
+            </p>
             @if($isAdmin)
             <div style="margin-top: 8px; padding: 8px 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 12px;">
                 <i class="fa fa-info-circle"></i> You are viewing all uploads from all users
