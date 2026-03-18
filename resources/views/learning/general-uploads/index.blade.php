@@ -2,6 +2,11 @@
 
 @section('title', 'My Uploads - Whence Learn')
 
+@php
+$user = Sentinel::getUser();
+$isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
+@endphp
+
 <!-- Video.js CDN -->
 <script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.css" />
@@ -29,9 +34,14 @@
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
         <div>
             <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; color: white;">
-                <i class="fa fa-cloud-upload"></i> My Uploads
+                <i class="fa fa-cloud-upload"></i> {{ $isAdmin ? 'All Uploads' : 'My Uploads' }}
             </h1>
-            <p style="font-size: 14px; opacity: 0.9; margin: 0;">Manage and organize your uploaded files</p>
+            <p style="font-size: 14px; opacity: 0.9; margin: 0;">{{ $isAdmin ? 'Manage all files uploaded by users' : 'Manage and organize your uploaded files' }}</p>
+            @if($isAdmin)
+            <div style="margin-top: 8px; padding: 8px 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 12px;">
+                <i class="fa fa-info-circle"></i> You are viewing all uploads from all users
+            </div>
+            @endif
         </div>
         <a href="{{ url('learning/general-uploads/create') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: white; color: var(--primary-color); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <i class="fa fa-upload"></i> Upload New File
