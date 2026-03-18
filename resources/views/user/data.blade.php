@@ -75,6 +75,13 @@
                                                 {{ trans('general.edit') }}</a>
                                         </li>
                                     @endif
+                                        @if(Sentinel::hasAccess('users.view'))
+                                        <li>
+                                            <a href="{{ url('user/'.$key->id.'/qr-download') }}"><i
+                                                        class="fa fa-search"></i>
+                                                Download QRCode</a>
+                                        </li>
+                                    @endif
                                     @if(Sentinel::hasAccess('users.delete'))
                                         <li>
                                             <a href="{{ url('user/'.$key->id.'/delete') }}"
