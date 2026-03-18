@@ -427,8 +427,12 @@
         @foreach($topicsWithUploads as $topic)
                 <div class="col-12 col-md-6 col-lg-3 topic-card" style="margin-bottom: 20px;" data-title="{{ $topic['name'] }}">
                         <div class="content-card" onclick='window.location.href="{{ url('learning/general-uploads?topic=' . $topic['id']) }}"'>
-                                <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 160px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fa fa-folder-open" style="color: white; font-size: 48px;"></i>
+                                <div class="card-image" style="{{ $topic['poster'] ? 'background: none;' : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);' }} height: 160px; display: flex; align-items: center; justify-content: center;">
+                                        @if($topic['poster'])
+                                                <img src="{{ $topic['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $topic['name'] }}">
+                                        @else
+                                                <i class="fa fa-folder-open" style="color: white; font-size: 48px;"></i>
+                                        @endif
                                 </div>
                                 <div class="card-body" style="text-align: center;">
                                         <h3 class="card-title" style="color: var(--text-primary); margin: 0 0 8px 0; font-size: 18px; font-weight: 600; line-height: 1.3;">{{ $topic['name'] }}</h3>
