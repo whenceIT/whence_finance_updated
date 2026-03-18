@@ -54,8 +54,10 @@ $breadcrumb = [
                         </td>
                         <td style="padding: 15px; text-align: right;">
                             <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                
-                                 <form action="{{ route('learning.settings.general-topics.destroy', $topic->id) }}" method="POST" style="display: inline;">
+                                <a href="{{ route('learning.settings.general-topics.edit', $topic->id) }}" class="btn btn-sm btn-default" style="padding: 6px 12px; border-radius: 6px;" title="Edit">
+                                    <i class="fa fa-edit" style="color: var(--primary-color);"></i>
+                                </a>
+                                <form action="{{ route('learning.settings.general-topics.destroy', $topic->id) }}" method="POST" style="display: inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-default" style="padding: 6px 12px; border-radius: 6px;" title="Delete" onclick="return confirm('Are you sure you want to delete this topic? This action cannot be undone.')">

@@ -27,7 +27,7 @@ $breadcrumb = [
         </h3>
     </div>
     <div class="box-body" style="padding: 20px;">
-         <form action="{{ route('learning.settings.general-topics.update', $topic->id) }}" method="POST">
+         <form action="{{ route('learning.settings.general-topics.update', $topic->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             
@@ -71,7 +71,7 @@ $breadcrumb = [
                     <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
                         Upload a poster image for the topic
                     </p>
-                    <input type="file" id="posterInput" name="poster" style="display: none;" accept="image/*">
+                    <input type="file" id="posterInput" name="poster" style="display: none;" accept="image/*" onchange="handlePosterSelect(this)">
                     <p style="color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
                         Supported formats: JPG, PNG, GIF (Max: 2MB)
                     </p>
