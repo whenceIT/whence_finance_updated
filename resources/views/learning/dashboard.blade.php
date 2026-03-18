@@ -350,6 +350,24 @@
     </div>
 </div>
 
+<!-- Document Preview Container (hidden by default) -->
+<div id="document-preview" style="display: none; margin-bottom: 20px;">
+    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);">
+        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 id="document-title" style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);"></h3>
+                <span id="document-type" style="font-size: 13px; color: var(--text-secondary);"></span>
+            </div>
+            <button onclick="closeDocumentPreview()" style="padding: 8px 16px; background: var(--light-bg); color: var(--text-secondary); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                <i class="fa fa-times"></i> Close
+            </button>
+        </div>
+        <div style="position: relative;" id="document-wrapper">
+            <!-- Document content loaded here -->
+        </div>
+    </div>
+</div>
+
 <!-- Tab Pills Container -->
 <div class="tab-pills-container">
     <button onclick="switchTab('featured')" id="tab-featured" class="tab-pill">
@@ -682,7 +700,17 @@ function applyFilters() {
 
 // Play media inline (YouTube-like)
 function playMedia(type, path, name, size, poster = '') {
-    // Show player container
+    var ext = name.split('.').pop().toLowerCase();
+    var isOfficeDoc = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext);
+    var isPDF = ext === 'pdf';
+    
+    // For documents (DOCX, PPT, PDF), use separate document preview container
+    if (isOfficeDoc || isPDF) {
+        showDocumentPreview(type, path, name, size);
+        return;
+    }
+    
+    // For other media types, use the original player container
     var playerContainer = document.getElementById('dashboard-player');
     playerContainer.style.display = 'block';
     playerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -735,38 +763,6 @@ function playMedia(type, path, name, size, poster = '') {
             preload: 'auto',
             fluid: true
         });
-    } else if (type === 'book' || type === 'paper') {
-        // PDF/Document preview using Google Docs viewer
-        wrapper.innerHTML = `
-            <div style="position: relative; height: 100%;">
-                <iframe 
-                    src="https://docs.google.com/gview?url=${encodeURIComponent(path)}&embedded=true"
-                    style="width:100%;height:600px;border:none;"
-                    allowfullscreen>
-                </iframe>
-            </div>
-        `;
-    } else if (type === 'document') {
-        // Office document preview
-        var ext = name.split('.').pop().toLowerCase();
-        if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) {
-            wrapper.innerHTML = `
-                <div style="position: relative; height: 100%;">
-                    <iframe 
-                        src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(path)}"
-                        style="width:100%;height:600px;border:none;"
-                        allowfullscreen>
-                    </iframe>
-                </div>
-            `;
-        } else {
-            wrapper.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px;">
-                    <i class="fa fa-file" style="font-size: 80px; color: var(--text-secondary); margin-bottom: 20px;"></i>
-                    <p style="color: var(--text-secondary);">Preview not available for this file type.</p>
-                </div>
-            `;
-        }
     } else if (type === 'image') {
         // Image preview
         wrapper.style.background = '#000';
@@ -784,6 +780,86 @@ function playMedia(type, path, name, size, poster = '') {
                 <p style="color: var(--text-secondary);">Preview not available for this file type.</p>
             </div>
         `;
+    }
+}
+
+// Show document preview in separate container
+function showDocumentPreview(type, path, name, size) {
+    var ext = name.split('.').pop().toLowerCase();
+    var isOfficeDoc = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext);
+    var isPDF = ext === 'pdf';
+    
+    // Show document preview container
+    var documentContainer = document.getElementById('document-preview');
+    documentContainer.style.display = 'block';
+    documentContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Update title and type
+    document.getElementById('document-title').textContent = name;
+    document.getElementById('document-type').textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' • ' + size;
+    
+    // Get document wrapper
+    var wrapper = document.getElementById('document-wrapper');
+    wrapper.innerHTML = '';
+    
+    if (isOfficeDoc || isPDF) {
+        // Choose appropriate viewer based on file type
+        var viewerUrl = '';
+        if (isOfficeDoc) {
+            viewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(path)}`;
+        } else if (isPDF) {
+            viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(path)}&embedded=true`;
+        }
+        
+        wrapper.innerHTML = `
+            <div style="position: relative;">
+                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                    <button onclick="fullscreenDocumentPreview()" style="padding: 8px 16px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.3s;">
+                        <i class="fa fa-expand"></i> Fullscreen
+                    </button>
+                </div>
+                <iframe 
+                    src="${viewerUrl}"
+                    style="width:100%;height:800px;border:none;"
+                    allowfullscreen
+                    sandbox="allow-scripts allow-same-origin allow-presentation">
+                </iframe>
+            </div>
+        `;
+    } else {
+        // Preview not available for other document types
+        wrapper.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px;">
+                <i class="fa fa-file" style="font-size: 80px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                <p style="color: var(--text-secondary);">Preview not available for this file type.</p>
+            </div>
+        `;
+    }
+}
+
+// Close document preview
+function closeDocumentPreview() {
+    var documentContainer = document.getElementById('document-preview');
+    documentContainer.style.display = 'none';
+    
+    // Clear document wrapper
+    var wrapper = document.getElementById('document-wrapper');
+    wrapper.innerHTML = '';
+}
+
+// Fullscreen document preview
+function fullscreenDocumentPreview() {
+    var wrapper = document.getElementById('document-wrapper');
+    var iframe = wrapper.querySelector('iframe');
+    
+    if (iframe && iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+    } else if (iframe && iframe.webkitRequestFullscreen) {
+        iframe.webkitRequestFullscreen();
+    } else if (iframe && iframe.mozRequestFullScreen) {
+        iframe.mozRequestFullScreen();
+    } else if (iframe && iframe.msRequestFullscreen) {
+        iframe.msRequestFullscreen();
     }
 }
 
