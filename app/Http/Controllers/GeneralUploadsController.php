@@ -64,7 +64,16 @@ class GeneralUploadsController extends Controller
     {
         $user = Sentinel::getUser();
         
-        $query = GeneralUpload::where('uploaded_by', $user->id)->orderBy('created_at', 'desc');
+        // Check if user is admin (role id 1)
+        $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
+        
+        if ($isAdmin) {
+            // Admin sees all uploads
+            $query = GeneralUpload::orderBy('created_at', 'desc');
+        } else {
+            // Regular user sees only their own uploads
+            $query = GeneralUpload::where('uploaded_by', $user->id)->orderBy('created_at', 'desc');
+        }
         
         // Filter by type if provided
         if ($request->has('type') && $request->type != 'all') {
@@ -72,12 +81,19 @@ class GeneralUploadsController extends Controller
         }
         
         // Filter by general topic if provided
+        $topicName = null;
+        $topicPoster = null;
         if ($request->has('topic')) {
             $query->where('general_topic_id', $request->topic);
+            $topic = \App\Models\GeneralTopic::find($request->topic);
+            if ($topic) {
+                $topicName = $topic->name;
+                $topicPoster = $topic->poster;
+            }
         }
         
         $uploads = $query->get();
-        return view('learning.general-uploads.index', compact('uploads'));
+        return view('learning.general-uploads.index', compact('uploads', 'topicName', 'topicPoster'));
     }
 
     /**

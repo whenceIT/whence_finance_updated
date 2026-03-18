@@ -166,7 +166,7 @@
             <select name="general_topic_id" id="generalTopicSelect" class="form-select">
                 <option value="">Select a topic</option>
                 @foreach($generalTopics as $topic)
-                    <option value="{{ $topic->id }}" {{ $upload->general_topic_id == $topic->id ? 'selected' : '' }}>{{ $topic->name }}</option>
+                    <option value="{{ $topic->id }}" {{ old('general_topic_id', $upload->general_topic_id) == $topic->id ? 'selected' : '' }}>{{ $topic->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -177,7 +177,7 @@
             <select name="position_id" id="positionSelect" class="form-select">
                 <option value="">Select a position</option>
                 @foreach($positions as $id => $name)
-                    <option value="{{ $id }}" {{ $upload->position_id == $id ? 'selected' : '' }}>{{ $name }}</option>
+                    <option value="{{ $id }}" {{ old('position_id', $upload->position_id) == $id ? 'selected' : '' }}>{{ $name }}</option>
                 @endforeach
             </select>
         </div>
@@ -187,18 +187,18 @@
             <label class="form-label">File Type</label>
             <select name="type" id="typeSelect" class="form-select" required onchange="togglePosterField()">
                 <option value="">Select file type</option>
-                <option value="video" {{ $upload->type == 'video' ? 'selected' : '' }}>Video</option>
-                <option value="audio" {{ $upload->type == 'audio' ? 'selected' : '' }}>Audio</option>
-                <option value="book" {{ $upload->type == 'book' ? 'selected' : '' }}>Book</option>
-                <option value="paper" {{ $upload->type == 'paper' ? 'selected' : '' }}>Paper</option>
-                <option value="document" {{ $upload->type == 'document' ? 'selected' : '' }}>Document</option>
-                <option value="image" {{ $upload->type == 'image' ? 'selected' : '' }}>Image</option>
-                <option value="other" {{ $upload->type == 'other' ? 'selected' : '' }}>Other</option>
+                <option value="video" {{ old('type', $upload->type) == 'video' ? 'selected' : '' }}>Video</option>
+                <option value="audio" {{ old('type', $upload->type) == 'audio' ? 'selected' : '' }}>Audio</option>
+                <option value="book" {{ old('type', $upload->type) == 'book' ? 'selected' : '' }}>Book</option>
+                <option value="paper" {{ old('type', $upload->type) == 'paper' ? 'selected' : '' }}>Paper</option>
+                <option value="document" {{ old('type', $upload->type) == 'document' ? 'selected' : '' }}>Document</option>
+                <option value="image" {{ old('type', $upload->type) == 'image' ? 'selected' : '' }}>Image</option>
+                <option value="other" {{ old('type', $upload->type) == 'other' ? 'selected' : '' }}>Other</option>
             </select>
         </div>
         
         <!-- Poster Upload (for videos) -->
-        <div class="form-group" id="posterField" style="display: {{ $upload->type == 'video' ? 'block' : 'none' }};">
+        <div class="form-group" id="posterField" style="display: {{ old('type', $upload->type) == 'video' ? 'block' : 'none' }};">
             <label class="form-label">Video Poster/Thumbnail</label>
             <div class="poster-upload-area" id="posterUploadArea" onclick="document.getElementById('posterInput').click()">
                 <i class="fa fa-image"></i>
@@ -206,11 +206,11 @@
                 <span style="font-size: 12px; color: var(--text-secondary);">Recommended: 1280x720 or 1920x1080 (JPG, PNG)</span>
                 <input type="file" id="posterInput" name="poster" class="file-input" accept="image/*" onchange="handlePosterSelect(this)">
             </div>
-            <div class="selected-poster" id="selectedPoster" style="display: {{ $upload->poster ? 'block' : 'none' }}; margin-top: 10px;">
+            <div class="selected-poster" id="selectedPoster" style="display: {{ old('poster', $upload->poster) ? 'block' : 'none' }}; margin-top: 10px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <img id="posterPreview" src="{{ $upload->poster }}" style="width: 120px; height: 68px; object-fit: cover; border-radius: 6px;">
+                    <img id="posterPreview" src="{{ old('poster', $upload->poster) }}" style="width: 120px; height: 68px; object-fit: cover; border-radius: 6px;">
                     <div>
-                        <div id="posterName" style="font-weight: 600; font-size: 13px;">{{ basename($upload->poster) ?? 'Poster' }}</div>
+                        <div id="posterName" style="font-weight: 600; font-size: 13px;">{{ old('poster', $upload->poster) ? basename($upload->poster) : 'Poster' }}</div>
                         <button type="button" onclick="removePoster()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 12px;">Remove</button>
                     </div>
                 </div>
@@ -269,7 +269,7 @@
 </div>
 
 <script>
-var selectedPoster = {{ $upload->poster ? 'true' : 'false' }};
+var selectedPoster = {{ old('poster', $upload->poster) ? 'true' : 'false' }};
 var selectedFile = null;
 
 // Toggle poster field based on file type

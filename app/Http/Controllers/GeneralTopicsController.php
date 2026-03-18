@@ -5,9 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\GeneralTopic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class GeneralTopicsController extends Controller
 {
+    /**
+     * S3 Configuration
+     */
+    private $s3Client;
+    private $bucket = 'wfssystem';
+    
+    public function __construct()
+    {
+        $this->s3Client = new \Aws\S3\S3Client([
+            'version' => 'latest',
+            'region' => 'nyc3',
+            'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+            'credentials' => [
+                'key' => 'DO00RP9FA3QZTA3JV637',
+                'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+            ],
+        ]);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -87,9 +107,23 @@ class GeneralTopicsController extends Controller
         $data = $request->all();
         
         if ($request->hasFile('poster')) {
-            // Delete old poster if exists
+            // Delete old poster from S3 if exists
             if ($topic->poster) {
-                Storage::disk('public')->delete($topic->poster);
+                try {
+                    $parsedUrl = parse_url($topic->poster);
+                    if ($parsedUrl && isset($parsedUrl['path'])) {
+                        $s3Key = ltrim($parsedUrl['path'], '/');
+                        if (!empty($s3Key)) {
+                            $this->s3Client->deleteObject([
+                                'Bucket' => $this->bucket,
+                                'Key' => $s3Key,
+                            ]);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('S3 Delete Error: ' . $e->getMessage());
+                    // Continue with new poster upload even if old poster deletion fails
+                }
             }
             $data['poster'] = $this->savePoster($request->file('poster'));
         }
@@ -110,9 +144,23 @@ class GeneralTopicsController extends Controller
     {
         $topic = GeneralTopic::findOrFail($id);
         
-        // Delete poster if exists
+        // Delete poster from S3 if exists
         if ($topic->poster) {
-            Storage::disk('public')->delete($topic->poster);
+            try {
+                $parsedUrl = parse_url($topic->poster);
+                if ($parsedUrl && isset($parsedUrl['path'])) {
+                    $s3Key = ltrim($parsedUrl['path'], '/');
+                    if (!empty($s3Key)) {
+                        $this->s3Client->deleteObject([
+                            'Bucket' => $this->bucket,
+                            'Key' => $s3Key,
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('S3 Delete Error: ' . $e->getMessage());
+                // Continue with database deletion even if S3 deletion fails
+            }
         }
         
         $topic->delete();
@@ -122,14 +170,32 @@ class GeneralTopicsController extends Controller
     }
     
     /**
-     * Save poster image to storage
+     * Save poster image to S3 storage
      *
      * @param  \Illuminate\Http\UploadedFile  $file
      * @return string
      */
     private function savePoster($file)
     {
-        $path = $file->store('general_topic_posters', 'public');
-        return $path;
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+        $extension = $file->getClientOriginalExtension();
+        $posterKey = 'general_topic_posters/' . $sanitizedName . '_' . uniqid() . '.' . $extension;
+        
+        try {
+            $result = $this->s3Client->putObject([
+                'Bucket' => $this->bucket,
+                'Key' => $posterKey,
+                'Body' => fopen($file->getPathname(), 'r'),
+                'ACL' => 'public-read',
+                'ContentType' => $file->getMimeType(),
+            ]);
+            
+            return $result['ObjectURL'];
+            
+        } catch (\Aws\Exception\AwsException $e) {
+            Log::error('S3 Poster Upload Error: ' . $e->getMessage());
+            return null;
+        }
     }
 }
