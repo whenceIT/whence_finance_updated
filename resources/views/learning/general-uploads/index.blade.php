@@ -364,7 +364,7 @@ function showDocumentPreview(type, path, name, size) {
                     src="${viewerUrl}"
                     style="width:100%;height:800px;border:none;"
                     allowfullscreen
-                    sandbox="allow-scripts allow-same-origin allow-presentation">
+                    >
                 </iframe>
             </div>
         `;
