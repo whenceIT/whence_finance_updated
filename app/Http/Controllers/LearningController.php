@@ -23,10 +23,14 @@ class LearningController extends Controller
     {
         $user = Sentinel::getUser();
         
-        // Get all active training materials
+        // Get page number from request
+        $page = $request->input('page', 1);
+        $perPage = 20;
+        
+        // Get all active training materials with pagination
         $allMaterials = TrainingMaterial::where('is_active', 1)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate($perPage, ['*'], 'courses_page', $page);
         
         // Get enrolled materials for current user
         $enrollments = Enrollment::where('user_id', $user->id)->get();
@@ -34,7 +38,7 @@ class LearningController extends Controller
         $enrollmentMap = $enrollments->keyBy('training_material_id');
         
         // Prepare courses data with enrollment status
-        $courses = $allMaterials->map(function ($material) use ($enrolledMaterialIds, $enrollmentMap) {
+        $courses = $allMaterials->getCollection()->map(function ($material) use ($enrolledMaterialIds, $enrollmentMap) {
             $isEnrolled = in_array($material->id, $enrolledMaterialIds);
             $progress = $isEnrolled ? $enrollmentMap[$material->id]->progress : 0;
             
@@ -60,7 +64,7 @@ class LearningController extends Controller
         
         // Calculate statistics for current user
         $stats = [
-            'total_courses' => $allMaterials->count(),
+            'total_courses' => TrainingMaterial::where('is_active', 1)->count(),
             'enrolled_courses' => count($enrolledMaterialIds),
             'completed_courses' => Enrollment::where('user_id', $user->id)
                 ->whereNotNull('completed_at')
@@ -85,7 +89,7 @@ class LearningController extends Controller
             // For featured tab, get uploads grouped by general topic (only videos)
             $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) {
                 $query->where('type', 'video');
-            }])->get()->map(function($topic) {
+            }])->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
                 return [
                     'id' => $topic->id,
                     'name' => $topic->name,
@@ -98,11 +102,11 @@ class LearningController extends Controller
             })->toArray();
             
             // Flatten uploads for statistics and backward compatibility (only videos)
-            $uploads = \App\Models\GeneralUpload::where('type', 'video')->orderBy('created_at', 'desc')->get();
+            $uploads = \App\Models\GeneralUpload::where('type', 'video')->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
         } else {
             // For other tabs, get general uploads normally
-            $uploads = \App\Models\GeneralUpload::orderBy('created_at', 'desc')->get();
-            $topicsWithUploads = \App\Models\GeneralTopic::with('uploads')->get()->map(function($topic) {
+            $uploads = \App\Models\GeneralUpload::orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
+            $topicsWithUploads = \App\Models\GeneralTopic::with('uploads')->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
                 return [
                     'id' => $topic->id,
                     'name' => $topic->name,
@@ -115,7 +119,7 @@ class LearningController extends Controller
             })->toArray();
         }
         
-        return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab'));
+        return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab', 'page', 'perPage'));
     }
 
     /**

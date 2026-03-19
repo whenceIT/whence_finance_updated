@@ -38,6 +38,7 @@ $breadcrumb = [
             <table class="table table-striped" style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background: var(--light-bg);">
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Poster</th>
                         <th style="padding: 15px; text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Name</th>
                         <th style="padding: 15px; text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Description</th>
                         <th style="padding: 15px; text-align: right; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Actions</th>
@@ -46,6 +47,13 @@ $breadcrumb = [
                 <tbody>
                     @foreach($topics as $topic)
                     <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 15px;">
+                            @if($topic->poster)
+                            <img src="{{ $topic->poster }}" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;" alt="{{ $topic->name }}">
+                            @else
+                            <i class="fa fa-image" style="font-size: 24px; color: var(--text-secondary);"></i>
+                            @endif
+                        </td>
                         <td style="padding: 15px;">
                             <strong style="font-size: 15px; color: var(--text-primary);">{{ $topic->name }}</strong>
                         </td>
