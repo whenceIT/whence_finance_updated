@@ -26,6 +26,8 @@
                     <th>{{ trans('general.phone') }}</th>
                     <th>{{ trans_choice('general.email',1) }}</th>
                     <th>NRC ID</th>
+                    <th>Role</th>
+                    <th>Position</th>
                     <th>{{ trans_choice('general.action',1) }}</th>
                 </tr>
                 </thead>
@@ -54,6 +56,8 @@
                         <td>{{ $key->phone }}</td>
                         <td>{{ $key->email }}</td>
                         <td>{{ $key->nrc_id }}</td>
+                        <td>{{ $key->role->role->name ?? '' }}</td>
+                        <td>{{ $key->position_name }}</td>
 
                         <td>
                             <div class="btn-group">
@@ -113,9 +117,9 @@ $('#data-table').DataTable({
     "info": true,
     "autoWidth": true,
     "order": [[0, "asc"]],
-    "columnDefs": [
-        {"orderable": false, "targets": [7]} // fixed index
-    ],
+     "columnDefs": [
+         {"orderable": false, "targets": [9]} // fixed index
+     ],
     "language": {
         "lengthMenu": "{{ trans('general.lengthMenu') }}",
         "zeroRecords": "{{ trans('general.zeroRecords') }}",
