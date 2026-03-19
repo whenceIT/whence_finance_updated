@@ -1695,7 +1695,7 @@ public function downloadSingleQR($id)
         }
 
         $user = Sentinel::getUser();
-        $query = User::with('role', 'office', 'province');
+        $query = User::with('role.role', 'office', 'province');
 
         if ($user->inRole(1)) {
             // Admin sees all
