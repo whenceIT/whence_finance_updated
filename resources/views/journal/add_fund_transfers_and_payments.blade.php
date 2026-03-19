@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <form method="post" action="{{ url('fund-movements/store') }}" class="form-horizontal" enctype="multipart/form-data">
+        <form method="post" action="{{ url('/accounting/store_fund_transfers_and_payments') }}" class="form-horizontal" enctype="multipart/form-data">
             {{ csrf_field() }}
 
             <div class="box-body">
@@ -58,7 +58,7 @@
 
                     <label for="amount" class="control-label col-md-2">Amount</label>
                     <div class="col-md-4">
-                        <input type="number" step="0.01" min="0" name="amount" id="amount" class="form-control" placeholder="Enter amount" required>
+                        <input type="number" min="0" name="amount" id="amount" class="form-control" placeholder="Enter amount" required>
                     </div>
                 </div>
 
@@ -96,7 +96,7 @@
                             <option value="">Select source account</option>
                             @foreach($bank_accounts as $account)
                                 <option value="{{ $account->id }}">
-                                    {{ $account->bank_name }} - {{ $account->account_name }}
+                                    {{ $account->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -108,7 +108,7 @@
                             <option value="">Select destination account</option>
                             @foreach($bank_accounts as $account)
                                 <option value="{{ $account->id }}">
-                                    {{ $account->bank_name }} - {{ $account->account_name }}
+                                     {{ $account->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -168,7 +168,7 @@
 
                 <hr>
 
-                <div class="row" style="margin-bottom: 10px;">
+                <!-- <div class="row" style="margin-bottom: 10px;">
                     <div class="col-md-12">
                         <h4 style="margin-top: 0; margin-bottom: 15px; color: #3c8dbc;">4. Supporting Documents</h4>
                     </div>
@@ -184,17 +184,17 @@
                     <div class="col-md-4">
                         <input type="text" name="document_note" id="document_note" class="form-control" placeholder="e.g. Invoice, transfer slip, receipt">
                     </div>
-                </div>
+                </div> -->
 
                 <hr>
 
-                <div class="row" style="margin-bottom: 10px;">
+                <!-- <div class="row" style="margin-bottom: 10px;">
                     <div class="col-md-12">
                         <h4 style="margin-top: 0; margin-bottom: 15px; color: #3c8dbc;">5. Submission</h4>
                     </div>
-                </div>
+                </div> -->
 
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="status" class="control-label col-md-2">Save As</label>
                     <div class="col-md-4">
                         <select name="status" id="status" class="form-control select2" required>
@@ -212,12 +212,12 @@
                             <input type="radio" name="requires_approval" value="0"> No
                         </label>
                     </div>
-                </div>
+                </div> -->
 
             </div>
 
             <div class="box-footer">
-                <a href="{{ url('fund-movements') }}" class="btn btn-default">Cancel</a>
+             
                 <button type="submit" class="btn btn-primary pull-right">Save Fund Movement</button>
             </div>
         </form>

@@ -13,7 +13,7 @@ class CourseCategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (!Sentinel::check()) {
             return redirect('login');
@@ -23,9 +23,15 @@ class CourseCategoryController extends Controller
         $role = $user->roles->first();
         $isAdmin = $role && in_array($role->id, ['1']);
 
-        $categories = CourseCategory::ordered()->get();
+        $search = $request->get('search', '');
+        $categories = CourseCategory::ordered()
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->get();
 
-        return view('course-categories.index', compact('categories', 'isAdmin'));
+        return view('learning.course-categories.index', compact('categories', 'isAdmin', 'search'));
     }
 
     /**
@@ -49,7 +55,7 @@ class CourseCategoryController extends Controller
                 ->with('toastr_message', 'You do not have permission to create categories.');
         }
 
-        return view('course-categories.create');
+        return view('learning.course-categories.create');
     }
 
     /**
@@ -113,7 +119,7 @@ class CourseCategoryController extends Controller
 
         $category = CourseCategory::findOrFail($id);
 
-        return view('course-categories.edit', compact('category'));
+        return view('learning.course-categories.edit', compact('category'));
     }
 
     /**

@@ -26,6 +26,7 @@ use App\Http\Controllers\LearningSettingController;
 use App\Http\Controllers\TrainingMaterialController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\GeneralUploadsController;
+use App\Http\Controllers\GeneralTopicsController;
 use App\Http\Controllers\StaffSurveyController;
 use App\Http\Controllers\Recoveries\RecoveryDashboardController;
 use App\Http\Controllers\Recoveries\RecoveryCaseController;
@@ -186,6 +187,12 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     
     // Settings Routes
     Route::get('/settings', [LearningSettingController::class, 'index'])->name('learning.settings');
+      Route::get('/settings/general-topics', [GeneralTopicsController::class, 'index'])->name('learning.settings.general-topics.index');
+      Route::get('/settings/general-topics/create', [GeneralTopicsController::class, 'create'])->name('learning.settings.general-topics.create');
+      Route::post('/settings/general-topics', [GeneralTopicsController::class, 'store'])->name('learning.settings.general-topics.store');
+      Route::get('/settings/general-topics/{id}/edit', [GeneralTopicsController::class, 'edit'])->name('learning.settings.general-topics.edit');
+      Route::put('/settings/general-topics/{id}', [GeneralTopicsController::class, 'update'])->name('learning.settings.general-topics.update');
+      Route::delete('/settings/general-topics/{id}', [GeneralTopicsController::class, 'destroy'])->name('learning.settings.general-topics.destroy');
     Route::get('/settings/categories', [LearningSettingController::class, 'categories'])->name('learning.settings.categories');
     Route::get('/settings/students', [LearningSettingController::class, 'students'])->name('learning.settings.students');
     Route::get('/settings/teachers', [LearningSettingController::class, 'teachers'])->name('learning.settings.teachers');
@@ -274,6 +281,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');
     Route::get('{id}/branch_page', 'UserController@branch_page');
     Route::get('{id}/province_page', 'UserController@province_page');
+    Route::any('{id}/qr-download', 'UserController@downloadSingleQR');
     Route::get('client_users/data', 'UserController@client_users_index');
     Route::get('daily_figures', 'UserController@daily_figures');
     Route::get('create', 'UserController@create');
@@ -534,6 +542,12 @@ Route::group(['prefix' => 'accounting'], function () {
     Route::post('period/store', 'JournalController@store_period');
     Route::get('period/{id}/delete', 'JournalController@delete_period');
     Route::get('add_fund_transfers_and_payments','JournalController@add_fund_transfers_and_payments');
+    Route::any('store_fund_transfers_and_payments','JournalController@store_funds_transfers_and_payments');
+    Route::get('pending_fund_movements','JournalController@fund_movement_approvals');
+    Route::any('{id}/approve_fund', 'JournalController@approve_fund');
+    Route::any('{id}/reject_fund', 'JournalController@reject_fund');
+    Route::any('{id}/show_fund_movements','JournalController@show_fund_movement');
+
 });
 //route for accounting
 Route::group(['prefix' => 'setting'], function () {

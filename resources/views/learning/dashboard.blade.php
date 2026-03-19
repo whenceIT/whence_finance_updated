@@ -350,31 +350,37 @@
     </div>
 </div>
 
+<!-- Document Preview Container (hidden by default) -->
+<div id="document-preview" style="display: none; margin-bottom: 20px;">
+    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);">
+        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 id="document-title" style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);"></h3>
+                <span id="document-type" style="font-size: 13px; color: var(--text-secondary);"></span>
+            </div>
+            <button onclick="closeDocumentPreview()" style="padding: 8px 16px; background: var(--light-bg); color: var(--text-secondary); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                <i class="fa fa-times"></i> Close
+            </button>
+        </div>
+        <div style="position: relative;" id="document-wrapper">
+            <!-- Document content loaded here -->
+        </div>
+    </div>
+</div>
+
 <!-- Tab Pills Container -->
 <div class="tab-pills-container">
+    <button onclick="switchTab('featured')" id="tab-featured" class="tab-pill">
+        <i class="fa fa-star"></i> Featured
+    </button>
     <button onclick="switchTab('all')" id="tab-all" class="tab-pill">
         <i class="fa fa-th-large"></i> All
     </button>
     <button onclick="switchTab('courses')" id="tab-courses" class="tab-pill">
         <i class="fa fa-graduation-cap"></i> Courses
     </button>
-    <button onclick="switchTab('in_progress')" id="tab-in_progress" class="tab-pill">
-        <i class="fa fa-play-circle"></i> In Progress
-    </button>
     <button onclick="switchTab('uploads')" id="tab-uploads" class="tab-pill">
         <i class="fa fa-cloud-upload"></i> Uploads
-    </button>
-    <button onclick="switchTab('video')" id="tab-video" class="tab-pill">
-        <i class="fa fa-video-camera"></i> Videos
-    </button>
-    <button onclick="switchTab('audio')" id="tab-audio" class="tab-pill">
-        <i class="fa fa-headphones"></i> Audio
-    </button>
-    <button onclick="switchTab('book')" id="tab-book" class="tab-pill">
-        <i class="fa fa-book"></i> Books
-    </button>
-    <button onclick="switchTab('document')" id="tab-document" class="tab-pill">
-        <i class="fa fa-file-text"></i> Documents
     </button>
 </div>
 
@@ -408,74 +414,117 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2 id="content-title" style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin: 0;">
         <i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>
-        All Learning Materials
+        Featured Topics
     </h2>
     <span id="content-count" style="font-size: 13px; color: var(--text-secondary);">
-        Showing {{ count($courses) + $uploads->count() }} items
+    Showing {{ $isFeaturedTab ? count($topicsWithUploads) : (count($courses) + $uploads->count()) }} items
     </span>
 </div>
 
+<!-- Featured Topics Container (for featured tab) -->
+<div id="featured-topics-container">
+        <!-- General Topics as Folders -->
+        @foreach($topicsWithUploads as $topic)
+                <div class="col-12 col-md-6 col-lg-3 topic-card" style="margin-bottom: 20px;" data-title="{{ $topic['name'] }}">
+                        <div class="content-card" onclick='window.location.href="{{ url('learning/general-uploads?topic=' . $topic['id']) }}"'>
+                                <div class="card-image" style="{{ $topic['poster'] ? 'background: none;' : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);' }} height: 160px; display: flex; align-items: center; justify-content: center;">
+                                        @if($topic['poster'])
+                                                <img src="{{ $topic['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $topic['name'] }}">
+                                        @else
+                                                <i class="fa fa-folder-open" style="color: white; font-size: 48px;"></i>
+                                        @endif
+                                </div>
+                                <div class="card-body" style="text-align: center;">
+                                        <h3 class="card-title" style="color: var(--text-primary); margin: 0 0 8px 0; font-size: 18px; font-weight: 600; line-height: 1.3;">{{ $topic['name'] }}</h3>
+                                        <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">{{ count($topic['uploads']) }} resources</p>
+                                </div>
+                        </div>
+                </div>
+        @endforeach
+        
+        <!-- No Results Message for Topics -->
+        <div class="no-results" id="no-topics-results" style="display: none;">
+            <i class="fa fa-search"></i>
+            <h3>No Topics Found</h3>
+            <p>Try adjusting your search query</p>
+        </div>
+        
+        <!-- Load More Button for Featured Tab -->
+        @if($isFeaturedTab)
+        <div class="load-more-container" id="load-more-container">
+            <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
+                <i class="fa fa-plus"></i> Load More
+            </button>
+        </div>
+        @endif
+</div>
+
+
 <!-- Unified Content Grid -->
 <div class="unified-grid" id="content-grid">
-    <!-- Course Cards -->
-    @foreach($courses as $course)
-    <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
-         <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); {{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
-            @if(isset($course['poster']) && $course['poster'])
-                <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
-            @else
-                <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
-            @endif
-            <div class="card-badge">Course</div>
-            <div class="play-overlay">
-                <div class="play-button">
-                    <i class="fa fa-play"></i>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="card-category">{{ $course['category'] }}</div>
-            <h3 class="card-title">{{ $course['title'] }}</h3>
-            @if($course['enrolled'] && $course['progress'] > 0)
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
-            </div>
-            @endif
-            <div class="card-meta">
-                <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
-                <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
-            </div>
-        </div>
-    </div>
-    @endforeach
-
-    <!-- Upload Cards -->
-    @foreach($uploads as $upload)
-    <div class="content-card" data-type="{{ $upload->type }}" data-title="{{ $upload->name }}" data-category="{{ ucfirst($upload->type) }}" data-progress="0" 
-         onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')">
-        <div class="card-image type-{{ $upload->type }}" style="{{ $upload->poster ? 'background: none;' : '' }}">
-            @if($upload->poster)
-                <img src="{{ $upload->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $upload->name }}">
-            @else
-                <i class="fa {{ $upload->icon ?? 'fa-file' }}"></i>
-            @endif
-            <div class="card-badge">{{ ucfirst($upload->type) }}</div>
-            <div class="play-overlay">
-                <div class="play-button">
-                    <i class="fa fa-play"></i>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="card-category">{{ ucfirst($upload->type) }}</div>
-            <h3 class="card-title">{{ $upload->name }}</h3>
-            <div class="card-meta">
-                <span><i class="fa fa-database"></i> {{ $upload->formatted_size ?? 'N/A' }}</span>
-                <span>{{ $upload->created_at->format('M d, Y') }}</span>
-            </div>
-        </div>
-    </div>
-    @endforeach
+      @if(!$isFeaturedTab)
+              <!-- Course Cards -->
+              @foreach($courses as $course)
+              <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
+               <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); {{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
+                 @if(isset($course['poster']) && $course['poster'])
+                       <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
+                 @else
+                       <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
+                 @endif
+                 <div class="card-badge">Course</div>
+                 <div class="play-overlay">
+                       <div class="play-button">
+                             <i class="fa fa-play"></i>
+                       </div>
+                 </div>
+               </div>
+               <div class="card-body">
+                       <div class="card-category">{{ $course['category'] }}</div>
+                       <h3 class="card-title">{{ $course['title'] }}</h3>
+                       @if($course['enrolled'] && $course['progress'] > 0)
+                       <div class="progress-bar">
+                             <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
+                       </div>
+                       @endif
+                       <div class="card-meta">
+                             <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
+                             <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
+                       </div>
+               </div>
+              </div>
+              @endforeach
+      @endif
+      
+      <!-- Regular Upload Cards (for other tabs) -->
+      @if(!$isFeaturedTab)
+              @foreach($uploads as $upload)
+              <div class="content-card" data-type="{{ $upload->type }}" data-title="{{ $upload->name }}" data-category="{{ ucfirst($upload->type) }}" data-progress="0"
+                       onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')">
+                      <div class="card-image type-{{ $upload->type }}" style="{{ $upload->poster ? 'background: none;' : '' }}">
+                              @if($upload->poster)
+                                      <img src="{{ $upload->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $upload->name }}">
+                              @else
+                                      <i class="fa {{ $upload->icon ?? 'fa-file' }}"></i>
+                              @endif
+                              <div class="card-badge">{{ ucfirst($upload->type) }}</div>
+                              <div class="play-overlay">
+                                      <div class="play-button">
+                                              <i class="fa fa-play"></i>
+                                      </div>
+                              </div>
+                      </div>
+                      <div class="card-body">
+                              <div class="card-category">{{ ucfirst($upload->type) }}</div>
+                              <h3 class="card-title">{{ $upload->name }}</h3>
+                              <div class="card-meta">
+                                      <span><i class="fa fa-database"></i> {{ $upload->formatted_size ?? 'N/A' }}</span>
+                                      <span>{{ $upload->created_at->format('M d, Y') }}</span>
+                              </div>
+                      </div>
+              </div>
+              @endforeach
+      @endif
 
     <!-- No Results Message (hidden by default) -->
     <div class="no-results" id="no-results" style="display: none;">
@@ -483,6 +532,15 @@
         <h3>No Results Found</h3>
         <p>Try adjusting your search or filter criteria</p>
     </div>
+    
+    <!-- Load More Button for Other Tabs -->
+    @if(!$isFeaturedTab)
+    <div class="load-more-container" id="load-more-container">
+        <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
+            <i class="fa fa-plus"></i> Load More
+        </button>
+    </div>
+    @endif
 </div>
 
 <script>
@@ -497,18 +555,29 @@ document.addEventListener('DOMContentLoaded', function() {
     var grid = document.getElementById('content-grid');
     allCards = Array.from(grid.querySelectorAll('.content-card'));
     
-    // Set 'All' tab as active by default
-    var randomTab = 'all';
+    // Set default tab to 'featured'
+    var randomTab = 'featured';
     
     // Check for URL parameter
     var urlParams = new URLSearchParams(window.location.search);
     var tabParam = urlParams.get('tab');
-    var validTabs = ['all', 'courses', 'in_progress', 'uploads', 'video', 'audio', 'book', 'document'];
+    var validTabs = ['all', 'courses', 'in_progress', 'uploads', 'video', 'audio', 'book', 'document', 'featured'];
     if (tabParam && validTabs.includes(tabParam)) {
         randomTab = tabParam;
     }
     
     switchTab(randomTab);
+    
+    // Hide load more button if there are no more items to load
+    const totalItems = {{ $isFeaturedTab ? count($topicsWithUploads) : (count($courses) + $uploads->count()) }};
+    const perPage = {{ $perPage }};
+    
+    if (totalItems < perPage) {
+        const loadMoreContainer = document.getElementById('load-more-container');
+        if (loadMoreContainer) {
+            loadMoreContainer.style.display = 'none';
+        }
+    }
 });
 
 function switchTab(tab) {
@@ -538,7 +607,8 @@ function switchTab(tab) {
         'video': 'Video Materials',
         'audio': 'Audio Materials',
         'book': 'Books',
-        'document': 'Documents'
+        'document': 'Documents',
+        'featured': 'Featured Topics'
     };
     document.getElementById('content-title').innerHTML = '<i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>' + titles[tab];
     
@@ -572,8 +642,49 @@ function handleSearch(query) {
 
 function applyFilters() {
     var grid = document.getElementById('content-grid');
+    var featuredContainer = document.getElementById('featured-topics-container');
     var visibleCount = 0;
     var hasVisibleCards = false;
+    
+    // Handle featured tab - show featured topics container, hide content grid
+    if (currentTab === 'featured') {
+        grid.style.display = 'none';
+        featuredContainer.style.display = 'block';
+        
+        // Search through featured topics
+        var topicCards = document.querySelectorAll('.topic-card');
+        var visibleTopics = 0;
+        
+        topicCards.forEach(function(card) {
+            var topicTitle = (card.dataset.title || '').toLowerCase();
+            
+            if (searchQuery === '' || topicTitle.includes(searchQuery)) {
+                card.style.display = '';
+                visibleTopics++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Update count for featured tab
+        document.getElementById('content-count').textContent = 'Showing ' + visibleTopics + ' items';
+        
+        // Show/hide no results message for topics
+        var noTopicsResults = document.getElementById('no-topics-results');
+        if (visibleTopics === 0) {
+            noTopicsResults.style.display = 'block';
+        } else {
+            noTopicsResults.style.display = 'none';
+        }
+        
+        // Hide other no results message
+        document.getElementById('no-results').style.display = 'none';
+        return;
+    }
+    
+    // For all other tabs, show content grid, hide featured container
+    grid.style.display = 'grid';
+    featuredContainer.style.display = 'none';
     
     allCards.forEach(function(card) {
         var cardType = card.dataset.type;
@@ -584,8 +695,8 @@ function applyFilters() {
         var showByTab = false;
         var showByFilter = currentFilter === 'all' || cardType === currentFilter;
         var showBySearch = searchQuery === '' || 
-                           cardTitle.includes(searchQuery) || 
-                           cardCategory.includes(searchQuery);
+                            cardTitle.includes(searchQuery) || 
+                            cardCategory.includes(searchQuery);
         
         if (currentTab === 'all') {
             showByTab = true;
@@ -622,7 +733,17 @@ function applyFilters() {
 
 // Play media inline (YouTube-like)
 function playMedia(type, path, name, size, poster = '') {
-    // Show player container
+    var ext = name.split('.').pop().toLowerCase();
+    var isOfficeDoc = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext);
+    var isPDF = ext === 'pdf';
+    
+    // For documents (DOCX, PPT, PDF), use separate document preview container
+    if (isOfficeDoc || isPDF) {
+        showDocumentPreview(type, path, name, size);
+        return;
+    }
+    
+    // For other media types, use the original player container
     var playerContainer = document.getElementById('dashboard-player');
     playerContainer.style.display = 'block';
     playerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -675,38 +796,6 @@ function playMedia(type, path, name, size, poster = '') {
             preload: 'auto',
             fluid: true
         });
-    } else if (type === 'book' || type === 'paper') {
-        // PDF/Document preview using Google Docs viewer
-        wrapper.innerHTML = `
-            <div style="position: relative; height: 100%;">
-                <iframe 
-                    src="https://docs.google.com/gview?url=${encodeURIComponent(path)}&embedded=true"
-                    style="width:100%;height:600px;border:none;"
-                    allowfullscreen>
-                </iframe>
-            </div>
-        `;
-    } else if (type === 'document') {
-        // Office document preview
-        var ext = name.split('.').pop().toLowerCase();
-        if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) {
-            wrapper.innerHTML = `
-                <div style="position: relative; height: 100%;">
-                    <iframe 
-                        src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(path)}"
-                        style="width:100%;height:600px;border:none;"
-                        allowfullscreen>
-                    </iframe>
-                </div>
-            `;
-        } else {
-            wrapper.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px;">
-                    <i class="fa fa-file" style="font-size: 80px; color: var(--text-secondary); margin-bottom: 20px;"></i>
-                    <p style="color: var(--text-secondary);">Preview not available for this file type.</p>
-                </div>
-            `;
-        }
     } else if (type === 'image') {
         // Image preview
         wrapper.style.background = '#000';
@@ -724,6 +813,86 @@ function playMedia(type, path, name, size, poster = '') {
                 <p style="color: var(--text-secondary);">Preview not available for this file type.</p>
             </div>
         `;
+    }
+}
+
+// Show document preview in separate container
+function showDocumentPreview(type, path, name, size) {
+    var ext = name.split('.').pop().toLowerCase();
+    var isOfficeDoc = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext);
+    var isPDF = ext === 'pdf';
+    
+    // Show document preview container
+    var documentContainer = document.getElementById('document-preview');
+    documentContainer.style.display = 'block';
+    documentContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Update title and type
+    document.getElementById('document-title').textContent = name;
+    document.getElementById('document-type').textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' • ' + size;
+    
+    // Get document wrapper
+    var wrapper = document.getElementById('document-wrapper');
+    wrapper.innerHTML = '';
+    
+    if (isOfficeDoc || isPDF) {
+        // Choose appropriate viewer based on file type
+        var viewerUrl = '';
+        if (isOfficeDoc) {
+            viewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(path)}`;
+        } else if (isPDF) {
+            viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(path)}&embedded=true`;
+        }
+        
+        wrapper.innerHTML = `
+            <div style="position: relative;">
+                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                    <button onclick="fullscreenDocumentPreview()" style="padding: 8px 16px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.3s;">
+                        <i class="fa fa-expand"></i> Fullscreen
+                    </button>
+                </div>
+                <iframe 
+                    src="${viewerUrl}"
+                    style="width:100%;height:800px;border:none;"
+                    allowfullscreen
+                    >
+                </iframe>
+            </div>
+        `;
+    } else {
+        // Preview not available for other document types
+        wrapper.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px;">
+                <i class="fa fa-file" style="font-size: 80px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                <p style="color: var(--text-secondary);">Preview not available for this file type.</p>
+            </div>
+        `;
+    }
+}
+
+// Close document preview
+function closeDocumentPreview() {
+    var documentContainer = document.getElementById('document-preview');
+    documentContainer.style.display = 'none';
+    
+    // Clear document wrapper
+    var wrapper = document.getElementById('document-wrapper');
+    wrapper.innerHTML = '';
+}
+
+// Fullscreen document preview
+function fullscreenDocumentPreview() {
+    var wrapper = document.getElementById('document-wrapper');
+    var iframe = wrapper.querySelector('iframe');
+    
+    if (iframe && iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+    } else if (iframe && iframe.webkitRequestFullscreen) {
+        iframe.webkitRequestFullscreen();
+    } else if (iframe && iframe.mozRequestFullScreen) {
+        iframe.mozRequestFullScreen();
+    } else if (iframe && iframe.msRequestFullscreen) {
+        iframe.msRequestFullscreen();
     }
 }
 
@@ -757,6 +926,19 @@ var debouncedSearch = debounce(function(query) {
 document.getElementById('search-input').addEventListener('input', function(e) {
     debouncedSearch(e.target.value);
 });
+
+// Load more functionality
+function loadMore() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading...';
+    
+    const nextPage = parseInt('{{ $page }}') + 1;
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('page', nextPage);
+    
+    window.location.href = window.location.pathname + '?' + urlParams.toString();
+}
 </script>
 
 @endsection

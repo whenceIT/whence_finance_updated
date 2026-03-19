@@ -17,6 +17,31 @@ class GeneralUploadsController extends Controller
     private $s3Client;
     private $bucket = 'wfssystem';
     
+    // Positions array
+    private $positions = [
+        1 => 'General Operations Manager (GOM)',
+        2 => 'Provincial Manager',
+        3 => 'District Regional Manager',
+        4 => 'District Manager',
+        5 => 'Branch Manager',
+        6 => 'IT Manager',
+        7 => 'Risk Manager',
+        8 => 'Management Accountant',
+        9 => 'Motor Vehicles Manager',
+        10 => 'Payroll Loans Manager',
+        11 => 'Policy & Training Manager',
+        12 => 'Manager Administration',
+        13 => 'R&D Coordinator',
+        14 => 'Recoveries Coordinator',
+        15 => 'IT Coordinator',
+        16 => 'General Operations Administrator (GOA)',
+        17 => 'Performance Operations Administrator (POA)',
+        18 => 'Creative Artwork & Marketing Representative Manager',
+        19 => 'Administration',
+        20 => 'Super Seer',
+        21 => 'Loan Consultant'
+    ];
+    
     public function __construct()
     {
         $this->s3Client = new \Aws\S3\S3Client([
@@ -39,15 +64,36 @@ class GeneralUploadsController extends Controller
     {
         $user = Sentinel::getUser();
         
-        $query = GeneralUpload::where('uploaded_by', $user->id)->orderBy('created_at', 'desc');
+        // Check if user is admin (role id 1)
+        $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
+        
+        if ($isAdmin) {
+            // Admin sees all uploads
+            $query = GeneralUpload::orderBy('created_at', 'desc');
+        } else {
+            // Regular user sees only their own uploads
+            $query = GeneralUpload::where('uploaded_by', $user->id)->orderBy('created_at', 'desc');
+        }
         
         // Filter by type if provided
         if ($request->has('type') && $request->type != 'all') {
             $query->where('type', $request->type);
         }
         
+        // Filter by general topic if provided
+        $topicName = null;
+        $topicPoster = null;
+        if ($request->has('topic')) {
+            $query->where('general_topic_id', $request->topic);
+            $topic = \App\Models\GeneralTopic::find($request->topic);
+            if ($topic) {
+                $topicName = $topic->name;
+                $topicPoster = $topic->poster;
+            }
+        }
+        
         $uploads = $query->get();
-        return view('learning.general-uploads.index', compact('uploads'));
+        return view('learning.general-uploads.index', compact('uploads', 'topicName', 'topicPoster'));
     }
 
     /**
@@ -57,7 +103,9 @@ class GeneralUploadsController extends Controller
      */
     public function create()
     {
-        return view('learning.general-uploads.create');
+        $generalTopics = \App\Models\GeneralTopic::all();
+        $positions = $this->positions;
+        return view('learning.general-uploads.create', compact('generalTopics', 'positions'));
     }
 
     /**
@@ -68,13 +116,22 @@ class GeneralUploadsController extends Controller
      */
     public function store(Request $request)
     {
+        // Increase PHP upload limits to handle large files
+        ini_set('upload_max_filesize', '200M');
+        ini_set('post_max_size', '200M');
+        ini_set('max_execution_time', 600); // 10 minutes
+        ini_set('max_input_time', 600); // 10 minutes
+        ini_set('memory_limit', '256M');
+        
         // Handle regular file upload (non-chunked)
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $type = $request->input('type', 'other');
             $poster = $request->file('poster');
+            $generalTopicId = $request->input('general_topic_id');
+            $positionId = $request->input('position_id');
             
-            $upload = $this->saveUpload($file, $type, $poster);
+            $upload = $this->saveUpload($file, $type, $poster, $generalTopicId, $positionId);
             
             return response()->json([
                 'success' => true,
@@ -132,10 +189,20 @@ class GeneralUploadsController extends Controller
      */
     public function mergeChunks(Request $request)
     {
-        $filename = $request->input('filename');
-        $fileId = $request->input('fileId');
-        $type = $request->input('type', 'other');
-        $totalChunks = $request->input('totalChunks');
+        // Increase PHP limits to handle large file merging
+        ini_set('upload_max_filesize', '200M');
+        ini_set('post_max_size', '200M');
+        ini_set('max_execution_time', 600); // 10 minutes
+        ini_set('max_input_time', 600); // 10 minutes
+        ini_set('memory_limit', '256M');
+        
+        // Get request data from JSON or form data
+        $data = $request->json() ? $request->json()->all() : $request->all();
+        
+        $filename = $data['filename'];
+        $fileId = $data['fileId'];
+        $type = $data['type'] ?? 'other';
+        $totalChunks = $data['totalChunks'];
         $poster = $request->file('poster');
         
         $chunkDir = storage_path('app/chunks/' . $fileId);
@@ -227,6 +294,10 @@ class GeneralUploadsController extends Controller
                 $upload->poster = $posterPath;
             }
             
+            // Handle new fields
+            $upload->general_topic_id = $data['general_topic_id'] ?? null;
+            $upload->position_id = $data['position_id'] ?? null;
+            
             $upload->save();
             
             return response()->json([
@@ -266,7 +337,9 @@ class GeneralUploadsController extends Controller
     public function edit($id)
     {
         $upload = GeneralUpload::findOrFail($id);
-        return view('learning.general-uploads.edit', compact('upload'));
+        $generalTopics = \App\Models\GeneralTopic::all();
+        $positions = $this->positions;
+        return view('learning.general-uploads.edit', compact('upload', 'generalTopics', 'positions'));
     }
 
     /**
@@ -342,6 +415,10 @@ class GeneralUploadsController extends Controller
             $upload->poster = $posterPath;
         }
         
+        // Handle new fields
+        $upload->general_topic_id = $request->input('general_topic_id');
+        $upload->position_id = $request->input('position_id');
+        
         $upload->save();
         
         return redirect()->route('learning.general-uploads.index')->with('success', 'File updated successfully');
@@ -387,7 +464,7 @@ class GeneralUploadsController extends Controller
     /**
      * Save uploaded file directly to S3
      */
-    private function saveUpload($file, $type, $poster = null)
+    private function saveUpload($file, $type, $poster = null, $generalTopicId = null, $positionId = null)
     {
         // Determine actual type if not provided
         if ($type === 'other') {
@@ -423,6 +500,10 @@ class GeneralUploadsController extends Controller
                 $posterPath = $this->savePoster($poster, $typeFolder);
                 $upload->poster = $posterPath;
             }
+            
+            // Handle new fields
+            $upload->general_topic_id = $generalTopicId;
+            $upload->position_id = $positionId;
             
             $upload->save();
             

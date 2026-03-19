@@ -1444,9 +1444,10 @@
             <nav class="learning-nav">
                 <a href="{{ url('/learning') }}" class="active">Dashboard</a>
                 @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
-                <a href="{{ url('learning/settings/courses') }}">Manage Courses</a>
-                <a href="{{ url('learning/settings/students') }}">Manage Students</a>
-                <a href="{{ url('learning/settings/teachers') }}">Manage Trainers</a>
+                    <a href="{{ url('learning/settings/courses') }}">Manage Courses</a>
+                    <a href="{{ url('learning/settings/students') }}">Manage Students</a>
+                    <a href="{{ url('learning/settings/teachers') }}">Manage Trainers</a>
+                     <a href="{{ url('learning/settings/general-topics') }}">Manage Topics</a>
                 @endif
             </nav>
             
@@ -1507,8 +1508,8 @@
             </button>
             
             @php
-            $user = Sentinel::getUser();
-            $role = $user ? $user->roles->first() : null;
+                $user = Sentinel::getUser();
+                $role = $user ? $user->roles->first() : null;
             @endphp
             
             <!-- User Details Panel -->
@@ -1528,15 +1529,15 @@
             <div class="sidebar-section">
                 <div class="sidebar-title">Quick Links</div>
                 <ul class="sidebar-menu">
-                    <li><a href="{{ url('/learning') }}" class="active"><i class="fa fa-home"></i> Home</a></li>
+                    <li><a href="{{ url('/learning') }}" class="{{ request()->is('learning') ? 'active' : '' }}"><i class="fa fa-home"></i> Home</a></li>
                     <li>
-                        <a href="{{ url('/learning/courses') }}">
+                        <a href="{{ url('/learning/courses') }}" class="{{ request()->is('learning/courses*') ? 'active' : '' }}">
                             <i class="fa fa-book"></i> My Courses
                             @php
                             $enrolledCount = 0;
-                            if($user) {
-                                $enrolledCount = \App\Models\Enrollment::where('user_id', $user->id)->count();
-                            }
+                                if($user) {
+                                    $enrolledCount = \App\Models\Enrollment::where('user_id', $user->id)->count();
+                                }
                             @endphp
                             @if($enrolledCount > 0)
                                 <span class="badge badge-primary">{{ $enrolledCount }}</span>
@@ -1544,7 +1545,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url('/learning/calendar') }}">
+                        <a href="{{ url('/learning/calendar') }}" class="{{ request()->is('learning/calendar*') ? 'active' : '' }}">
                             <i class="fa fa-calendar"></i> Calendar
                             @php $upcomingCount = isset($upcomingLessons) ? count($upcomingLessons) : 0; @endphp
                             @if($upcomingCount > 0)
@@ -1554,13 +1555,13 @@
                     </li>
                     @if($role && $role->id != 1 && $user->istrainer != 1)
                     <li>
-                        <a href="{{ url('/learning/progress') }}">
+                        <a href="{{ url('/learning/progress') }}" class="{{ request()->is('learning/progress*') ? 'active' : '' }}">
                             <i class="fa fa-tasks"></i> My Progress
                         </a>
                     </li>
                     @endif
                     <li>
-                        <a href="{{ url('/learning/certificates') }}">
+                        <a href="{{ url('/learning/certificates') }}" class="{{ request()->is('learning/certificates*') ? 'active' : '' }}">
                             <i class="fa fa-certificate"></i> Certificates
                             @php $certCount = isset($certificates) ? count($certificates) : 0; @endphp
                             @if($certCount > 0)
@@ -1570,7 +1571,7 @@
                     </li>
                     @if($user && $user->istrainer == 1)
                     <li>
-                        <a href="{{ url('/learning/training-materials') }}">
+                        <a href="{{ url('/learning/training-materials') }}" class="{{ request()->is('learning/training-materials*') ? 'active' : '' }}">
                             <i class="fa fa-folder-open"></i> Training Materials
                             @php $materialsCount = isset($trainingMaterials) ? count($trainingMaterials) : 0; @endphp
                             @if($materialsCount > 0)
@@ -1579,13 +1580,13 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url('/learning/general-uploads') }}">
+                        <a href="{{ url('/learning/general-uploads') }}" class="{{ request()->is('learning/general-uploads*') ? 'active' : '' }}">
                             <i class="fa fa-cloud-upload"></i> General Uploads
                         </a>
                     </li>
                     @endif
                     <li>
-                        <a href="{{ url('/course-categories') }}">
+                        <a href="{{ url('/course-categories') }}" class="{{ request()->is('course-categories*') ? 'active' : '' }}">
                             <i class="fa fa-folder"></i> Categories
                             @php $categoryCount = isset($categories) ? count($categories) : (isset($sidebarCategories) ? count($sidebarCategories) : 0); @endphp
                             @if($categoryCount > 0)

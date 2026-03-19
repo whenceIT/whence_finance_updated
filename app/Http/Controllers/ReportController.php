@@ -10,6 +10,7 @@ use App\Models\ExpenseType;
 use App\Exports\ExportReport;
 use App\Helpers\GeneralHelper;
 use App\Models\Client;
+use App\Models\FundMovements;
 use Illuminate\Support\Carbon;
 use App\Models\GlAccount;
 use App\Models\GlJournalEntry;
@@ -877,6 +878,7 @@ class ReportController extends Controller
         $expenses = [];
         $pending_loans = [];
         $pending_loans_grouped = [];
+        $funds_transfered = [];
         $branches = Office::select('id', 'name')->orderBy('name')->get();
 
         $selected_expense_type = $request->selected_expense_type ?? null;
@@ -942,6 +944,8 @@ class ReportController extends Controller
 
                 $targets_met = TargetsMet::whereBetween('date',[$start_date,$end_date])->get();
 
+                $funds_transfered = FundMovements::where('status','approved')->whereBetween('transaction_date',[$start_date,$end_date])->where('office_id',$office_id)->get();
+
 
             } else {
                 $data = LoanTransaction::where(
@@ -988,13 +992,14 @@ class ReportController extends Controller
                     })->get();
 
                 $targets_met = TargetsMet::whereBetween('date',[$start_date,$end_date])->get();
+                $funds_transfered = FundMovements::where('status','approved')->whereBetween('transaction_date',[$start_date,$end_date])->get();
             }
 
             $pending_loans_grouped = $pending_loans->groupBy('office_id');
 
         }
 
-        return view('loan_report.repayment_break_down', compact('start_date', 'end_date', 'data', 'part_data', 'reloans_data', 'new_loans', 'office_id', 'top_up', 'expenses', 'advances', 'expenseTypes', 'selected_expense_type', 'pending_loans_grouped','branches','targets_met', ));
+        return view('loan_report.repayment_break_down', compact('start_date', 'end_date', 'data', 'part_data', 'reloans_data', 'new_loans', 'office_id', 'top_up', 'expenses', 'advances', 'expenseTypes', 'selected_expense_type', 'pending_loans_grouped','branches','targets_met','funds_transfered' ));
     }
 
 
