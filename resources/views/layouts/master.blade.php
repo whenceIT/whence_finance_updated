@@ -895,8 +895,9 @@
             });
 
               socket.on('ticket.created', (data) => {
-              
+                  if ("{{ $role }}" === "1") {
                 showTicketNotification(data)
+                  }
             });
            
 

@@ -678,7 +678,7 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
                                                                                                                                                                                                           border-top-right-radius: 100% 200%;
                                                                                                                                                                                                           overflow: hidden;">
 
-                                @if(($tots) < 0.75)
+                                @if(($data['pdua']) < 0.75)
                                     <div class="gauge__fill"
                                         style=" position: absolute;
                                                                                                                                                                                                                                                                                           top: 100%;
@@ -691,7 +691,7 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
                                                                                                                                                                                                                                                                                           transition: transform 0.2s ease-out;">
                                     </div>
 
-                                @elseif(($tots) >= 0.90)
+                                @elseif(($data['pdua']) >= 0.90)
                                     <div class="gauge__fill"
                                         style=" position: absolute;
                                                                                                                                                                                                                                                                                           top: 100%;
@@ -3781,7 +3781,7 @@ function fetchGivenOutTable() {
                 }
                 console.log(test1)
                 console.log(test2)
-                setGaugeValue(gaugeElement, '{{($tots)}}');
+               setGaugeValue(gaugeElement, "{{ $data['pdua'] }}");
 
                 $('#data-table').DataTable({
                     dom: 'frtip',
