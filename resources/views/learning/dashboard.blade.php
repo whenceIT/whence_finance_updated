@@ -417,8 +417,8 @@
         Featured Topics
     </h2>
     <span id="content-count" style="font-size: 13px; color: var(--text-secondary);">
-    Showing {{ $isFeaturedTab ? $topicsWithUploads->count() : (count($courses) + $uploads->count()) }} items
-</span>
+    Showing {{ $isFeaturedTab ? count($topicsWithUploads) : (count($courses) + $uploads->count()) }} items
+    </span>
 </div>
 
 <!-- Featured Topics Container (for featured tab) -->
@@ -448,6 +448,15 @@
             <h3>No Topics Found</h3>
             <p>Try adjusting your search query</p>
         </div>
+        
+        <!-- Load More Button for Featured Tab -->
+        @if($isFeaturedTab)
+        <div class="load-more-container" id="load-more-container">
+            <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
+                <i class="fa fa-plus"></i> Load More
+            </button>
+        </div>
+        @endif
 </div>
 
 
@@ -523,6 +532,15 @@
         <h3>No Results Found</h3>
         <p>Try adjusting your search or filter criteria</p>
     </div>
+    
+    <!-- Load More Button for Other Tabs -->
+    @if(!$isFeaturedTab)
+    <div class="load-more-container" id="load-more-container">
+        <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
+            <i class="fa fa-plus"></i> Load More
+        </button>
+    </div>
+    @endif
 </div>
 
 <script>
@@ -549,6 +567,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     switchTab(randomTab);
+    
+    // Hide load more button if there are no more items to load
+    const totalItems = {{ $isFeaturedTab ? count($topicsWithUploads) : (count($courses) + $uploads->count()) }};
+    const perPage = {{ $perPage }};
+    
+    if (totalItems < perPage) {
+        const loadMoreContainer = document.getElementById('load-more-container');
+        if (loadMoreContainer) {
+            loadMoreContainer.style.display = 'none';
+        }
+    }
 });
 
 function switchTab(tab) {
@@ -897,6 +926,19 @@ var debouncedSearch = debounce(function(query) {
 document.getElementById('search-input').addEventListener('input', function(e) {
     debouncedSearch(e.target.value);
 });
+
+// Load more functionality
+function loadMore() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading...';
+    
+    const nextPage = parseInt('{{ $page }}') + 1;
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('page', nextPage);
+    
+    window.location.href = window.location.pathname + '?' + urlParams.toString();
+}
 </script>
 
 @endsection

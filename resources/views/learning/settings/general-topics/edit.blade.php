@@ -88,8 +88,9 @@ $breadcrumb = [
             </div>
 
             <div style="display: flex; gap: 12px; margin-top: 24px;">
-                <button type="submit" class="btn btn-primary" style="padding: 12px 24px; border-radius: 8px; border: none; background: var(--primary-color); color: white; font-weight: 600;">
-                    <i class="fa fa-save"></i> Update Topic
+                <button type="submit" class="btn btn-primary" id="updateBtn" style="padding: 12px 24px; border-radius: 8px; border: none; background: var(--primary-color); color: white; font-weight: 600;">
+                    <span id="updateBtnText"><i class="fa fa-save"></i> Update Topic</span>
+                    <span id="updateBtnLoader" style="display: none;"><i class="fa fa-spinner fa-spin"></i> Updating...</span>
                 </button>
                  <a href="{{ route('learning.settings.general-topics.index') }}" class="btn btn-default" style="padding: 12px 24px; border-radius: 8px; border: 1px solid var(--border-color); background: white; color: var(--text-primary); font-weight: 600;">
                     <i class="fa fa-times"></i> Cancel
@@ -159,6 +160,20 @@ $(document).ready(function() {
     // Handle user dropdown active state
     if (currentPath.includes('/settings')) {
         $('.user-dropdown-item[href*="settings"]').addClass('active');
+    }
+    
+    // Handle form submission with loading state
+    var form = document.querySelector('form');
+    var updateBtn = document.getElementById('updateBtn');
+    var updateBtnText = document.getElementById('updateBtnText');
+    var updateBtnLoader = document.getElementById('updateBtnLoader');
+    
+    if (form && updateBtn) {
+        form.addEventListener('submit', function() {
+            updateBtn.disabled = true;
+            updateBtnText.style.display = 'none';
+            updateBtnLoader.style.display = 'inline';
+        });
     }
 });
 

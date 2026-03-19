@@ -69,6 +69,7 @@ class User extends EloquentUser
         'internal_designation',
         'internal_from_date',
         'internal_to_date',
+        'position_id',
     ];
     public function payroll()
     {
@@ -132,5 +133,15 @@ class User extends EloquentUser
         return $this->hasMany(InductionChecklist::class);
     }
 
+    public function position()
+    {
+        return $this->hasOne(\Illuminate\Database\Eloquent\Model::class, 'id', 'position_id');
+    }
 
+    public function getPositionNameAttribute()
+    {
+
+        $position = \Illuminate\Support\Facades\DB::table('job_positions')->where('id', $this->position_id)->first();
+        return $position ? $position->id : '';
+    }
 }

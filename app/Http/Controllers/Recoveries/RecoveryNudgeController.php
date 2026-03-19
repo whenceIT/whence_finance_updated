@@ -9,7 +9,10 @@ use Illuminate\Http\Request;
 
 class RecoveryNudgeController extends Controller
 {
-    public function __construct(private NudgeService $nudge) {}
+    public function __construct(public NudgeService $nudge)
+    {
+        $this->middleware('sentinel');
+    }
 
     /**
      * Show the bulk nudge compose page.
