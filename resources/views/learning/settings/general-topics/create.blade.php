@@ -87,8 +87,9 @@ $breadcrumb = [
             </div>
 
             <div style="display: flex; gap: 12px; margin-top: 24px;">
-                <button type="submit" class="btn btn-primary" style="padding: 12px 24px; border-radius: 8px; border: none; background: var(--primary-color); color: white; font-weight: 600;">
-                    <i class="fa fa-save"></i> Save Topic
+                <button type="submit" class="btn btn-primary" id="saveBtn" style="padding: 12px 24px; border-radius: 8px; border: none; background: var(--primary-color); color: white; font-weight: 600;">
+                    <span id="saveBtnText"><i class="fa fa-save"></i> Save Topic</span>
+                    <span id="saveBtnLoader" style="display: none;"><i class="fa fa-spinner fa-spin"></i> Saving...</span>
                 </button>
                  <a href="{{ route('learning.settings.general-topics.index') }}" class="btn btn-default" style="padding: 12px 24px; border-radius: 8px; border: 1px solid var(--border-color); background: white; color: var(--text-primary); font-weight: 600;">
                     <i class="fa fa-times"></i> Cancel
@@ -158,6 +159,20 @@ $(document).ready(function() {
     // Handle user dropdown active state
     if (currentPath.includes('/settings')) {
         $('.user-dropdown-item[href*="settings"]').addClass('active');
+    }
+    
+    // Handle form submission with loading state
+    var form = document.querySelector('form');
+    var saveBtn = document.getElementById('saveBtn');
+    var saveBtnText = document.getElementById('saveBtnText');
+    var saveBtnLoader = document.getElementById('saveBtnLoader');
+    
+    if (form && saveBtn) {
+        form.addEventListener('submit', function() {
+            saveBtn.disabled = true;
+            saveBtnText.style.display = 'none';
+            saveBtnLoader.style.display = 'inline';
+        });
     }
 });
 
