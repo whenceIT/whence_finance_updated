@@ -141,7 +141,7 @@ Route::post('/nextjs-login', function (Request $request) {
 });
 
 Route::get('/', [HomeController::class, 'index']);
-Route::get('login', 'HomeController@login');
+Route::get('login', 'HomeController@login')->name('login');
 Route::get('create_account', 'HomeController@create_account');
 Route::get('signup', 'HomeController@signup');
 Route::post('create_client_user', 'HomeController@create_client_account');
