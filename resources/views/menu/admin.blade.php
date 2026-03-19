@@ -1174,12 +1174,12 @@
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
             {{-- ====================================================== --}}
-            @if($role == 1)
+            @if($role == 1 || $role == 8)
                 <li class="treeview @if(Request::is('recovery/*')) active @endif">
                     <a href="#">
                         <i class="fa fa-refresh"></i> <span>Recoveries</span>
                         <span class="pull-right-container">
-                            @if($role == 1)<span class="label label-danger pull-right" style="background-color: #ff1900; animation: pulse-red 2s infinite;">Beta</span>@endif
+                            @if($role == 1 || $role == 8)<span class="label label-danger pull-right" style="background-color: #ff1900; animation: pulse-red 2s infinite;">Beta</span>@endif
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>

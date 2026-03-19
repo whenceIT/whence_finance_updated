@@ -8,10 +8,19 @@ use Illuminate\Http\Request;
 
 class RecoveryDashboardController extends Controller
 {
-    public function __construct(private RecoveryDashboardService $dashboard) {}
+    public function __construct(public RecoveryDashboardService $dashboard)
+    {
+        $this->middleware('sentinel');
+    }
 
     public function overview(Request $request)
     {
+        
+        // Increase PHP upload limits to handle large files
+        ini_set('max_execution_time', 600); // 10 minutes
+        ini_set('max_input_time', 600); // 10 minutes
+        ini_set('memory_limit', '256M');
+
         $period   = $request->get('period', 'month');
         $dateFrom = $request->get('date_from');
         $dateTo   = $request->get('date_to');
@@ -22,8 +31,8 @@ class RecoveryDashboardController extends Controller
             $dateFrom = null;
             $dateTo   = null;
         }
-
         $kpis            = $this->dashboard->getExecutiveKpis($period, $dateFrom, $dateTo);
+
         $pipeline        = $this->dashboard->getPipelineData($dateFrom, $dateTo);
         $specialists     = $this->dashboard->getSpecialistPerformance($period, $dateFrom, $dateTo);
         $branchBreakdown = $this->dashboard->getBranchBreakdown($period, $dateFrom, $dateTo);

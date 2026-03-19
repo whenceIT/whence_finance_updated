@@ -16,7 +16,10 @@ use Illuminate\Support\Facades\DB;
 
 class RecoveryCaseController extends Controller
 {
-    public function __construct(private RecoveryCaseService $caseService) {}
+    public function __construct(public RecoveryCaseService $caseService)
+    {
+        $this->middleware('sentinel');
+    }
 
     // ── Index / filtered list views ──────────────────────────────────
 

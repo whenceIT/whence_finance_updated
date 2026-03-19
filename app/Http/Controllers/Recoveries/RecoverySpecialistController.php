@@ -9,7 +9,10 @@ use Illuminate\Http\Request;
 
 class RecoverySpecialistController extends Controller
 {
-    public function __construct(private RecoveryDashboardService $dashboard) {}
+    public function __construct(public RecoveryDashboardService $dashboard)
+    {
+        $this->middleware('sentinel');
+    }
 
     public function index(Request $request)
     {
