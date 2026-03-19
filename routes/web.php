@@ -542,6 +542,12 @@ Route::group(['prefix' => 'accounting'], function () {
     Route::post('period/store', 'JournalController@store_period');
     Route::get('period/{id}/delete', 'JournalController@delete_period');
     Route::get('add_fund_transfers_and_payments','JournalController@add_fund_transfers_and_payments');
+    Route::any('store_fund_transfers_and_payments','JournalController@store_funds_transfers_and_payments');
+    Route::get('pending_fund_movements','JournalController@fund_movement_approvals');
+    Route::any('{id}/approve_fund', 'JournalController@approve_fund');
+    Route::any('{id}/reject_fund', 'JournalController@reject_fund');
+    Route::any('{id}/show_fund_movements','JournalController@show_fund_movement');
+
 });
 //route for accounting
 Route::group(['prefix' => 'setting'], function () {
