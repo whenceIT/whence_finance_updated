@@ -7,6 +7,15 @@ $user = Sentinel::getUser();
 $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
 @endphp
 
+<!-- Toastr Notifications -->
+@if(Session::has('toastr_type'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        toastr.{{ Session::get('toastr_type') }}('{{ Session::get('toastr_message') }}', '{{ Session::get('toastr_title', 'Notification') }}');
+    });
+</script>
+@endif
+
 <!-- Video.js CDN -->
 <script type="module" src="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@videojs/html/cdn/video.css" />

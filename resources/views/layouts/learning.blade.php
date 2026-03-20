@@ -28,6 +28,7 @@
         :root {
             --primary-color: #4ae2bc;
             --secondary-color: #50c878;
+            --success-color: #28a745;
             --accent-color: #ff6b6b;
             --dark-bg: #1a1a2e;
             --light-bg: #f8f9fa;
@@ -58,19 +59,33 @@
 
         /* Header Styles */
         .learning-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%);
+            background: linear-gradient(135deg, #00b5a3 0%, #63bea3 100%);
             color: white;
-            padding: 10px 0;
-            box-shadow: var(--shadow);
+            padding: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             position: sticky;
             top: 0;
             z-index: 1000;
+            border-radius: 0 0 16px 16px;
         }
 
         .learning-header .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 30px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .learning-logo {
@@ -78,27 +93,37 @@
             align-items: center;
             text-decoration: none;
             color: white;
+            gap: 12px;
         }
 
         .learning-logo-img {
-            height: 38px;
+            height: 45px;
             width: auto;
-            margin-right: 10px;
-            border-radius: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .learning-logo:hover .learning-logo-img {
-            opacity: 0.9;
-            transition: opacity 0.3s ease;
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
         }
 
-        .learning-logo span {
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-main {
             font-size: 18px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.9) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            opacity: 0.8;
+            font-weight: 400;
+            letter-spacing: 0.3px;
         }
 
         .learning-nav {
@@ -109,7 +134,7 @@
 
         .learning-nav a {
             color: white;
-            text-decoration: none;
+            text-decoration: none !important;
             padding: 6px 12px;
             border-radius: 6px;
             transition: all 0.2s ease;
@@ -123,6 +148,11 @@
 
         .learning-nav a.active {
             background: rgba(255,255,255,0.25);
+        }
+
+        /* Ensure all links in header have no text decoration */
+        .learning-header a {
+            text-decoration: none !important;
         }
 
         .user-menu {
@@ -1431,67 +1461,87 @@
     @endphp
     <header class="learning-header">
         <div class="container">
-            <div style="display: flex; align-items: center;">
-                <button class="mobile-menu-btn" id="mobile-menu-toggle">
-                    <i class="fa fa-bars"></i>
-                </button>
-                <a href="{{ url('/learning') }}" class="learning-logo" id="learning-logo">
-                    <img src="/images/w/logo.jpg" alt="Whence Learn" class="learning-logo-img">
-                    <span>Whence Learn</span>
-                </a>
-            </div>
-            
-            <nav class="learning-nav">
-                <a href="{{ url('/learning') }}" class="active">Dashboard</a>
-                @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
-                    <a href="{{ url('learning/settings/courses') }}">Manage Courses</a>
-                    <a href="{{ url('learning/settings/students') }}">Manage Students</a>
-                    <a href="{{ url('learning/settings/teachers') }}">Manage Trainers</a>
-                     <a href="{{ url('learning/settings/general-topics') }}">Manage Topics</a>
-                @endif
-            </nav>
-            
-            <div class="user-menu">
-                
-                @if($user)
-                <div class="user-profile" id="user-profile-toggle">
-                    <div class="user-profile-avatar">
-                        <i class="fa fa-user"></i>
-                    </div>
-                    <div class="user-profile-info">
-                        <p class="user-profile-name">{{ $user->first_name }} {{ $user->last_name }}</p>
-                        <p class="user-profile-role">{{ $role ? $role->name : 'Staff' }}</p>
-                    </div>
-                    <i class="fa fa-chevron-down" style="color: rgba(255,255,255,0.7); font-size: 12px;"></i>
-                </div>
-                
-                <!-- User Dropdown Menu -->
-                <div class="user-dropdown" id="user-dropdown">
-                    <a href="javascript:void(0)" onclick="restartTour()" class="user-dropdown-item">
-                        <i class="fa fa-question-circle"></i>
-                        Restart Tour
-                    </a>
-                    <a href="{{ url('learning/progress') }}" class="user-dropdown-item">
-                        <i class="fa fa-tasks"></i>
-                        My Progres
-                    </a>
-                    <a href="{{ url('learning/settings') }}" class="user-dropdown-item">
-                        <i class="fa fa-cog"></i>
-                        Settings
-                    </a>
-                    <div class="user-dropdown-divider"></div>
-                    <a href="{{ url('/') }}" class="user-dropdown-item">
-                        <i class="fa fa-arrow-left"></i>
-                        <span>Back to Main</span>
-                    </a>
-                    <div class="user-dropdown-divider"></div>
-                    <a href="{{ url('logout') }}" class="user-dropdown-item" style="color: var(--accent-color);">
-                        <i class="fa fa-sign-out"></i>
-                        Logout
+            <div class="header-content">
+                <!-- Mobile Menu and Logo -->
+                <div class="header-left">
+                    <button class="mobile-menu-btn" id="mobile-menu-toggle">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <a href="{{ url('/learning') }}" class="learning-logo" id="learning-logo">
+                        <img src="/images/wlh.jpg" alt="Whence Training Hub" class="learning-logo-img">
+                        <div class="logo-text">
+                            <span class="logo-main">Whence<br>Training Hub</span>
+                        </div>
                     </a>
                 </div>
-                @endif
                 
+                <!-- Navigation -->
+                <nav class="learning-nav">
+                    <a href="{{ url('/learning') }}" class="nav-link active">
+                        <i class="fa fa-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
+                        <a href="{{ url('learning/settings/courses') }}" class="nav-link">
+                            <i class="fa fa-book"></i>
+                            <span>Manage Courses</span>
+                        </a>
+                        <a href="{{ url('learning/settings/students') }}" class="nav-link">
+                            <i class="fa fa-users"></i>
+                            <span>Manage Students</span>
+                        </a>
+                        <a href="{{ url('learning/settings/teachers') }}" class="nav-link">
+                            <i class="fa fa-graduation-cap"></i>
+                            <span>Manage Trainers</span>
+                        </a>
+                        <a href="{{ url('learning/settings/general-topics') }}" class="nav-link">
+                            <i class="fa fa-folder-open"></i>
+                            <span>Manage Topics</span>
+                        </a>
+                    @endif
+                </nav>
+                
+                <!-- User Menu -->
+                <div class="user-menu">
+                    @if($user)
+                        <div class="user-profile" id="user-profile-toggle">
+                            <div class="user-profile-avatar">
+                                <i class="fa fa-user-circle"></i>
+                            </div>
+                            <div class="user-profile-info">
+                                <p class="user-profile-name">{{ $user->first_name }} {{ $user->last_name }}</p>
+                                <p class="user-profile-role">{{ $role ? $role->name : 'Staff' }}</p>
+                            </div>
+                            <i class="fa fa-chevron-down" style="color: rgba(255,255,255,0.7); font-size: 12px;"></i>
+                        </div>
+                        
+                        <!-- User Dropdown Menu -->
+                        <div class="user-dropdown" id="user-dropdown">
+                            <a href="javascript:void(0)" onclick="restartTour()" class="user-dropdown-item">
+                                <i class="fa fa-question-circle"></i>
+                                Restart Tour
+                            </a>
+                            <a href="{{ url('learning/progress') }}" class="user-dropdown-item">
+                                <i class="fa fa-tasks"></i>
+                                My Progress
+                            </a>
+                            <a href="{{ url('learning/settings') }}" class="user-dropdown-item">
+                                <i class="fa fa-cog"></i>
+                                Settings
+                            </a>
+                            <div class="user-dropdown-divider"></div>
+                            <a href="{{ url('/') }}" class="user-dropdown-item">
+                                <i class="fa fa-arrow-left"></i>
+                                <span>Back to Main</span>
+                            </a>
+                            <div class="user-dropdown-divider"></div>
+                            <a href="{{ url('logout') }}" class="user-dropdown-item" style="color: var(--accent-color);">
+                                <i class="fa fa-sign-out"></i>
+                                Logout
+                            </a>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </header>
@@ -1715,9 +1765,9 @@
     <div id="loader">
         <div class="loader-content">
              <div class="loader-logo">
-                 <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Learn" style="width: 60px; height: auto;">
+                 <img src="{{ asset('images/wlh.jpg') }}" alt="Whence Learn" style="width: 60px; height: auto;">
              </div>
-            <div class="loader-text">Whence Learn</div>
+            <div class="loader-text">Whence Training Hub</div>
             <div class="loader-subtext">Loading your learning experience...</div>
             <div class="loader-progress">
                 <div class="loader-progress-bar"></div>

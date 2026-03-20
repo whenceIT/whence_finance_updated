@@ -16,8 +16,7 @@ return new class extends Migration
         if (!Schema::hasTable('staff_surveys')) {
             Schema::create('staff_surveys', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->unsignedInteger('user_id')->unsigned();
-                $table->unsignedInteger('user_id');
+                $table->unsignedBigInteger('user_id');
                 
                 // Question 1: Branch
                 $table->string('branch');
