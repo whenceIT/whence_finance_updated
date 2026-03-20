@@ -16,9 +16,17 @@ class GeneralUpload extends Model
         'mime_type',
         'uploaded_by',
         'poster',
-        'general_topic_id',
-        'position_id'
+        'general_topic_id'
     ];
+    
+    /**
+     * Get all the positions associated with the general upload.
+     */
+    public function positions()
+    {
+        return $this->belongsToMany(\App\Models\Position::class, 'general_upload_position')
+                    ->withTimestamps();
+    }
     
     public function user()
     {

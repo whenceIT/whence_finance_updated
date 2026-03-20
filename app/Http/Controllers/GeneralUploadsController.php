@@ -192,23 +192,14 @@ class GeneralUploadsController extends Controller
         Log::info("Processing chunk $index of $totalChunks for file $filename ($fileId), type: $type");
         
         // Store chunk temporarily in local storage
-        $chunkDir = storage_path('app/chunks/' . $fileId);
-        if (!File::exists($chunkDir)) {
-            File::makeDirectory($chunkDir, 0755, true);
-            Log::info("Created chunks directory: $chunkDir");
+        $chunksPath = storage_path('app/chunks');
+        if (!file_exists($chunksPath)) {
+            mkdir($chunksPath, 0755, true);
         }
         
-        $chunkPath = $chunkDir . '/chunk_' . $index;
-        $chunk->move($chunkDir, 'chunk_' . $index);
+        $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $index;
+        $chunk->move($chunksPath, $fileId . '_part_' . $index);
         Log::info("Chunk saved to: $chunkPath, size: " . filesize($chunkPath) . " bytes");
-        
-        // Save poster if received in first chunk
-        if ($index === 0 && $request->hasFile('poster')) {
-            $poster = $request->file('poster');
-            $posterPath = $chunkDir . '/poster.' . $poster->getClientOriginalExtension();
-            $poster->move($chunkDir, 'poster.' . $poster->getClientOriginalExtension());
-            Log::info("Poster saved to: $posterPath, size: " . filesize($posterPath) . " bytes");
-        }
         
         return response()->json([
             'success' => true,
@@ -219,162 +210,77 @@ class GeneralUploadsController extends Controller
     }
 
     /**
-     * Merge chunks endpoint - uploads to S3 after merging (optimized for speed)
+     * Merge uploaded chunks.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
      */
     public function mergeChunks(Request $request)
     {
+        $fileName = $request->filename;
+        $fileId = $request->fileId;
+        $type = $request->type;
+        $totalChunks = $request->totalChunks;
+        
+        $chunksPath = storage_path('app/chunks');
+        $uploadsPath = storage_path('app/uploads');
+        if (!file_exists($uploadsPath)) {
+            mkdir($uploadsPath, 0755, true);
+        }
+        
+        $finalPath = $uploadsPath . '/' . $fileName;
+        $output = fopen($finalPath, 'ab');
+        
+        for ($i = 0; $i < $totalChunks; $i++) {
+            $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $i;
+            
+            if (!file_exists($chunkPath)) {
+                return response()->json(['status' => 'error', 'message' => 'Chunk ' . $i . ' not found'], 400);
+            }
+            
+            $chunk = fopen($chunkPath, 'rb');
+            stream_copy_to_stream($chunk, $output);
+            fclose($chunk);
+            unlink($chunkPath);
+        }
+        
+        fclose($output);
+        
+        // Upload to S3
         try {
-            // Increase PHP limits to handle large file merging
-            ini_set('upload_max_filesize', '300M');
-            ini_set('post_max_size', '300M');
-            ini_set('max_execution_time', 900); // 15 minutes
-            ini_set('max_input_time', 900); // 15 minutes
-            ini_set('memory_limit', '512M');
-            
-            // Validate request
-            $request->validate([
-                'filename' => 'required|string',
-                'fileId' => 'required|string',
-                'type' => 'required|in:video,audio,book,paper,document,image,other',
-                'totalChunks' => 'required|integer|min:1',
-                'general_topic_id' => 'nullable|exists:general_topics,id',
-                'position_id' => 'nullable|integer|between:1,21'
-            ]);
-            
-            // Get request data from JSON or form data
-            $data = $request->json() ? $request->json()->all() : $request->all();
-            
-            $filename = $data['filename'];
-            $fileId = $data['fileId'];
-            $type = $data['type'] ?? 'other';
-            $totalChunks = $data['totalChunks'];
-            $poster = $request->file('poster');
-            
-            $chunkDir = storage_path('app/chunks/' . $fileId);
-            
-            if (!File::exists($chunkDir)) {
-                return response()->json(['success' => false, 'message' => 'Chunks directory not found'], 400);
-            }
-            
-            // Check if poster file exists in chunk directory
-            $posterFiles = File::files($chunkDir);
-            foreach ($posterFiles as $file) {
-                if (strpos($file->getFilename(), 'poster.') === 0) {
-                    // Create a temporary file instance for the poster
-                    $poster = new \Illuminate\Http\UploadedFile(
-                        $file->getPathname(),
-                        'poster.' . $file->getExtension(),
-                        mime_content_type($file->getPathname()),
-                        filesize($file->getPathname()),
-                        true
-                    );
-                    break;
-                }
-            }
-            
-            // Create temp file for merged content
-            $tempDir = storage_path('app/temp');
-            if (!File::exists($tempDir)) {
-                File::makeDirectory($tempDir, 0755, true);
-            }
-            
-            $tempFilePath = $tempDir . '/' . $fileId . '_' . $filename;
-            
-            // Merge chunks into temp file (optimized)
-            $outputFile = fopen($tempFilePath, 'wb');
-            stream_set_write_buffer($outputFile, 0); // Disable output buffering for faster writes
-            
-            for ($i = 0; $i < $totalChunks; $i++) {
-                $chunkFile = $chunkDir . '/chunk_' . $i;
-                if (File::exists($chunkFile)) {
-                    $chunkHandle = fopen($chunkFile, 'rb');
-                    stream_copy_to_stream($chunkHandle, $outputFile); // Faster than file_get_contents
-                    fclose($chunkHandle);
-                    @unlink($chunkFile);
-                }
-            }
-            
-            fclose($outputFile);
-            
-            // Remove chunks directory
-            @rmdir($chunkDir);
-            
-            // Determine actual file type if not provided
-            if ($type === 'other') {
-                $type = $this->detectFileType($tempFilePath, $filename);
-            }
-            
-            // Generate S3 key
-            $typeFolder = $this->getTypeFolder($type);
-            $originalName = pathinfo($filename, PATHINFO_FILENAME);
+            $originalName = pathinfo($fileName, PATHINFO_FILENAME);
             $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-            $extension = pathinfo($filename, PATHINFO_EXTENSION);
-            $s3Key = $typeFolder . '/' . $sanitizedName . '_' . uniqid() . '.' . $extension;
+            $finalFileName = $sanitizedName . '_' . uniqid() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
             
-            // Get file size and mimetype before uploading
-            $fileSize = filesize($tempFilePath);
-            $mimeType = File::mimeType($tempFilePath);
+            $s3Client = new \Aws\S3\S3Client([
+                'version' => 'latest',
+                'region' => 'nyc3',
+                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                'credentials' => [
+                    'key' => 'DO00RP9FA3QZTA3JV637',
+                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                ],
+            ]);
             
-            // Upload to S3
-            $result = $this->s3Client->putObject([
-                'Bucket' => $this->bucket,
-                'Key' => $s3Key,
-                'Body' => fopen($tempFilePath, 'rb'),
+            $result = $s3Client->putObject([
+                'Bucket' => 'wfssystem',
+                'Key' => $finalFileName,
+                'Body' => fopen($finalPath, 'r'),
                 'ACL' => 'public-read',
-                'ContentType' => $mimeType,
             ]);
             
-            // Delete temp file
-            unlink($tempFilePath);
-            
-            // Save to database
-            $upload = new GeneralUpload();
-            $upload->name = $filename;
-            $upload->path = $result['ObjectURL'];
-            $upload->type = $type;
-            $upload->file_size = $fileSize;
-            $upload->mime_type = $mimeType;
-            $upload->uploaded_by = Sentinel::getUser()->id ?? null;
-            
-            // Handle poster upload
-            if ($poster) {
-                $posterPath = $this->savePoster($poster, $typeFolder);
-                $upload->poster = $posterPath;
-            }
-            
-            // Handle new fields
-            $upload->general_topic_id = $data['general_topic_id'] ?? null;
-            $upload->position_id = $data['position_id'] ?? null;
-            
-            $upload->save();
+            unlink($finalPath);
             
             return response()->json([
-                'success' => true,
-                'filePath' => $upload->path,
-                'upload' => $upload
+                'status' => 'file merged',
+                'filePath' => $result['ObjectURL'],
+                'fileName' => $fileName
             ]);
             
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validation Error in mergeChunks: ' . json_encode($e->errors()));
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
         } catch (\Aws\Exception\AwsException $e) {
             Log::error('S3 Upload Error: ' . $e->getMessage());
-            // Clean up temp file if it exists
-            if (isset($tempFilePath) && file_exists($tempFilePath)) {
-                unlink($tempFilePath);
-            }
-            return response()->json(['success' => false, 'message' => 'Failed to upload to S3: ' . $e->getMessage()], 500);
-        } catch (\Exception $e) {
-            Log::error('Merge Chunks Error: ' . $e->getMessage());
-            // Clean up temp file if it exists
-            if (isset($tempFilePath) && file_exists($tempFilePath)) {
-                unlink($tempFilePath);
-            }
-            return response()->json(['success' => false, 'message' => 'Merge failed: ' . $e->getMessage()], 500);
+            unlink($finalPath);
+            return response()->json(['status' => 'error', 'message' => 'Failed to upload to S3'], 500);
         }
     }
 
