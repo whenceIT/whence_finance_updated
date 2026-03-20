@@ -21,10 +21,72 @@
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     
-    <!-- Google Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
-    
     <style>
+        /* Iosevka Charon Mono Font */
+        @font-face {
+            font-family: 'IosevkaCharonMono';
+            src: url('{{ asset('fonts/IosevkaCharonMono-Regular.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'IosevkaCharonMono';
+            src: url('{{ asset('fonts/IosevkaCharonMono-Italic.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: italic;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'IosevkaCharonMono';
+            src: url('{{ asset('fonts/IosevkaCharonMono-Light.ttf') }}') format('truetype');
+            font-weight: 300;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'IosevkaCharonMono';
+            src: url('{{ asset('fonts/IosevkaCharonMono-LightItalic.ttf') }}') format('truetype');
+            font-weight: 300;
+            font-style: italic;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'IosevkaCharonMono';
+            src: url('{{ asset('fonts/IosevkaCharonMono-Medium.ttf') }}') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'IosevkaCharonMono';
+            src: url('{{ asset('fonts/IosevkaCharonMono-MediumItalic.ttf') }}') format('truetype');
+            font-weight: 500;
+            font-style: italic;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'IosevkaCharonMono';
+            src: url('{{ asset('fonts/IosevkaCharonMono-Bold.ttf') }}') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'IosevkaCharonMono';
+            src: url('{{ asset('fonts/IosevkaCharonMono-BoldItalic.ttf') }}') format('truetype');
+            font-weight: 700;
+            font-style: italic;
+            font-display: swap;
+        }
+
         :root {
             --primary-color: #4ae2bc;
             --secondary-color: #50c878;
@@ -51,7 +113,7 @@
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'IosevkaCharonMono', monospace;
             background-color: var(--light-bg);
             color: var(--text-primary);
             line-height: 1.6;
@@ -1167,11 +1229,13 @@
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
+            /* border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2); */
         }
 
         .loader-logo img {
             max-width: 100%;
-            height: auto;
+            height: 90%;
         }
 
         .loader-text {
@@ -1765,7 +1829,7 @@
     <div id="loader">
         <div class="loader-content">
              <div class="loader-logo">
-                 <img src="{{ asset('images/wlh.jpg') }}" alt="Whence Learn" style="width: 60px; height: auto;">
+                 <img style="border-radius: 40px; background: rgba(255, 255, 255, 0.2);" src="{{ asset('images/wlh.jpg') }}" alt="Whence Learn" style="width: 100%; height: auto;">
              </div>
             <div class="loader-text">Whence Training Hub</div>
             <div class="loader-subtext">Loading your learning experience...</div>
@@ -2088,7 +2152,7 @@
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-            font-family: 'Roboto', sans-serif;
+            font-family: 'IosevkaCharonMono', monospace;
             max-width: 420px;
             border: none;
             overflow: hidden;

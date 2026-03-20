@@ -957,6 +957,15 @@ async function uploadFile(file, type, onProgress) {
     
     const data = await mergeResponse.json();
     document.getElementById(`${type}_file_path`).value = data.filePath;
+    
+    // Set filename for form submission
+    if (type === 'file') {
+        const filenameInput = document.createElement('input');
+        filenameInput.type = 'hidden';
+        filenameInput.name = 'filename';
+        filenameInput.value = file.name;
+        document.getElementById('uploadForm').appendChild(filenameInput);
+    }
 }
 
 function generateFileId(file) {

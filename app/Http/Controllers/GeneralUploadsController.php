@@ -128,17 +128,17 @@ class GeneralUploadsController extends Controller
         ini_set('memory_limit', '256M');
         
         try {
-            // Validate request
-            $request->validate([
-                'file' => 'required|file|max:200000', // 200MB max size
-                'type' => 'required|in:video,audio,book,paper,document,image,other',
-                'general_topic_id' => 'nullable|exists:general_topics,id',
-                'position_id' => 'nullable|integer|between:1,21',
-                'poster' => 'nullable|file|image|max:10000' // 10MB max size for poster
-            ]);
-            
-            // Handle regular file upload (non-chunked)
+            // Validate request for both regular and chunked uploads
             if ($request->hasFile('file')) {
+                $request->validate([
+                    'file' => 'required|file|max:200000', // 200MB max size
+                    'type' => 'required|in:video,audio,book,paper,document,image,other',
+                    'general_topic_id' => 'nullable|exists:general_topics,id',
+                    'position_id' => 'nullable|integer|between:1,21',
+                    'poster' => 'nullable|file|image|max:10000' // 10MB max size for poster
+                ]);
+                
+                // Handle regular file upload (non-chunked)
                 $file = $request->file('file');
                 $type = $request->input('type', 'other');
                 $poster = $request->file('poster');
@@ -146,15 +146,39 @@ class GeneralUploadsController extends Controller
                 $positionId = $request->input('position_id');
                 
                 $upload = $this->saveUpload($file, $type, $poster, $generalTopicId, $positionId);
+            } else {
+                $request->validate([
+                    'file_path' => 'required|url',
+                    'type' => 'required|in:video,audio,book,paper,document,image,other',
+                    'general_topic_id' => 'nullable|exists:general_topics,id',
+                    'position_id' => 'nullable|integer|between:1,21',
+                    'poster_path' => 'nullable|url'
+                ]);
                 
-                return redirect()->route('learning.general-uploads.index')
-                    ->with('toastr_type', 'success')
-                    ->with('toastr_message', 'File uploaded successfully');
+                // Handle chunked upload with file path
+                $upload = new GeneralUpload();
+                $upload->name = $request->input('filename', 'Unknown File');
+                $upload->path = $request->input('file_path');
+                $upload->type = $request->input('type', 'other');
+                $upload->file_size = 0; // We don't have the file size from chunked upload
+                $upload->mime_type = ''; // We don't have the mime type from chunked upload
+                $upload->uploaded_by = Sentinel::getUser()->id ?? null;
+                
+                // Handle poster path
+                if ($request->has('poster_path')) {
+                    $upload->poster = $request->input('poster_path');
+                }
+                
+                // Handle new fields
+                $upload->general_topic_id = $request->input('general_topic_id');
+                $upload->position_id = $request->input('position_id');
+                
+                $upload->save();
             }
             
             return redirect()->route('learning.general-uploads.index')
-                ->with('toastr_type', 'error')
-                ->with('toastr_message', 'No file uploaded');
+                ->with('toastr_type', 'success')
+                ->with('toastr_message', 'File uploaded successfully');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
             
@@ -271,10 +295,29 @@ class GeneralUploadsController extends Controller
             
             unlink($finalPath);
             
+            // Handle poster upload
+            $posterPath = null;
+            if ($request->hasFile('poster')) {
+                $poster = $request->file('poster');
+                $posterOriginalName = pathinfo($poster->getClientOriginalName(), PATHINFO_FILENAME);
+                $posterSanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $posterOriginalName);
+                $posterFinalFileName = 'posters/' . $posterSanitizedName . '_' . uniqid() . '.' . $poster->getClientOriginalExtension();
+                
+                $posterResult = $s3Client->putObject([
+                    'Bucket' => 'wfssystem',
+                    'Key' => $posterFinalFileName,
+                    'Body' => fopen($poster->getPathname(), 'r'),
+                    'ACL' => 'public-read',
+                ]);
+                
+                $posterPath = $posterResult['ObjectURL'];
+            }
+            
             return response()->json([
                 'status' => 'file merged',
                 'filePath' => $result['ObjectURL'],
-                'fileName' => $fileName
+                'fileName' => $fileName,
+                'posterPath' => $posterPath
             ]);
             
         } catch (\Aws\Exception\AwsException $e) {
