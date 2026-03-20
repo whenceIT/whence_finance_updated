@@ -140,8 +140,7 @@ class User extends EloquentUser
 
     public function getPositionNameAttribute()
     {
-
         $position = \Illuminate\Support\Facades\DB::table('job_positions')->where('id', $this->position_id)->first();
-        return $position ? $position->id : '';
+        return $position ? $position->name : '';
     }
 }
