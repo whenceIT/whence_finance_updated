@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class RecoveryReportController extends Controller
 {
-    public function __construct(private RecoveryDashboardService $dashboard) {}
+    public function __construct(public RecoveryDashboardService $dashboard)
+    {
+        $this->middleware('sentinel');
+    }
 
     // ═══════════════════════════════════════════════
     // MONTHLY REPORT
