@@ -1108,7 +1108,7 @@ function previewResource(type, filePath) {
             allowfullscreen></iframe>
 
             <div style="position:absolute;top:0;left:0;width:100%;height:45px;z-index:10;"></div>
-            <div class="download-blocker" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
+            <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
         </div>`;
 
     } else if (type === 'ppt' || type === 'document') {
@@ -1121,7 +1121,7 @@ function previewResource(type, filePath) {
             allowfullscreen></iframe>
 
             <div style="position:absolute;top:0;left:0;width:100%;height:45px;z-index:10;"></div>
-            <div class="download-blocker" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
+            <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
         </div>`;
     }
     
