@@ -14,20 +14,9 @@ class CreateGeneralUploadPositionTable extends Migration
     public function up()
     {
         Schema::create('general_upload_position', function (Blueprint $table) {
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('general_upload_id');
             $table->unsignedInteger('position_id');
-            
-            $table->foreign('general_upload_id')
-                  ->references('id')
-                  ->on('general_uploads')
-                  ->onDelete('cascade');
-            
-            $table->foreign('position_id')
-                  ->references('id')
-                  ->on('positions') // Assuming positions table exists
-                  ->onDelete('cascade');
-            
-            $table->primary(['general_upload_id', 'position_id']);
         });
     }
 
