@@ -351,6 +351,23 @@
     user-select: none;
 }
 
+/* Hide the "More" button in Office Online Viewer */
+.full-screen-preview iframe#iframe-office-viewer {
+    pointer-events: none;
+}
+
+.full-screen-preview iframe#iframe-office-viewer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 45px;
+    background: #fff;
+    z-index: 1001;
+    pointer-events: none;
+}
+
 .full-screen-preview .exit-button {
     position: absolute;
     top: 10px;
@@ -387,10 +404,6 @@
 }
 
 .full-screen-preview iframe {
-    pointer-events: none;
-}
-
-.full-screen-preview iframe[src*="view.officeapps.live.com"] {
     pointer-events: auto;
 }
 
@@ -1103,25 +1116,20 @@ function previewResource(type, filePath) {
         previewHTML += `
         <div style="position:relative;height:100%">
             <iframe 
-            src="https://docs.google.com/gview?url=${encodeURIComponent(filePath)}&embedded=true"
+            src="https://docs.google.com/gview?url=${encodeURIComponent(filePath)}&embedded=true&chrome=false"
             style="width:100%;height:100%;border:none;"
             allowfullscreen></iframe>
-
-            <div style="position:absolute;top:0;left:0;width:100%;height:45px;z-index:10;"></div>
-            <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
         </div>`;
 
     } else if (type === 'ppt' || type === 'document') {
-
         previewHTML += `
         <div style="position:relative;height:100%">
             <iframe 
-            src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}"
+            src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(filePath)}&action=embedview&wdAllowInteractivity=0"
             style="width:100%;height:100%;border:none;"
-            allowfullscreen></iframe>
-
-            <div style="position:absolute;top:0;left:0;width:100%;height:45px;z-index:10;"></div>
-            <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;cursor:not-allowed;"></div>
+            allowfullscreen id="office-viewer-iframe"></iframe>
+            <!-- Overlay to hide the toolbar -->
+            <div style="position:absolute;top:0;left:0;width:100%;height:90px;background:#f3f2f1;z-index:1001;pointer-events:auto;"></div>
         </div>`;
     }
     

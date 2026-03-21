@@ -22,10 +22,27 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     
     <style>
-        /* Iosevka Charon Mono Font */
+        /* Nunito Sans Variable Font */
+        @font-face {
+            font-family: 'NunitoSans';
+            src: url('{{ asset('fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf') }}') format('truetype');
+            font-weight: 300 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'NunitoSans';
+            src: url('{{ asset('fonts/Nunito_Sans/NunitoSans-Italic-VariableFont_YTLC,opsz,wdth,wght.ttf') }}') format('truetype');
+            font-weight: 300 900;
+            font-style: italic;
+            font-display: swap;
+        }
+
+        /* Iosevka Charon Mono Font (for code/monospace) */
         @font-face {
             font-family: 'IosevkaCharonMono';
-            src: url('{{ asset('fonts/IosevkaCharonMono-Regular.ttf') }}') format('truetype');
+            src: url('{{ asset('fonts/Iosevka_Charon_Mono/IosevkaCharonMono-Regular.ttf') }}') format('truetype');
             font-weight: 400;
             font-style: normal;
             font-display: swap;
@@ -33,7 +50,7 @@
 
         @font-face {
             font-family: 'IosevkaCharonMono';
-            src: url('{{ asset('fonts/IosevkaCharonMono-Italic.ttf') }}') format('truetype');
+            src: url('{{ asset('fonts/Iosevka_Charon_Mono/IosevkaCharonMono-Italic.ttf') }}') format('truetype');
             font-weight: 400;
             font-style: italic;
             font-display: swap;
@@ -41,7 +58,7 @@
 
         @font-face {
             font-family: 'IosevkaCharonMono';
-            src: url('{{ asset('fonts/IosevkaCharonMono-Light.ttf') }}') format('truetype');
+            src: url('{{ asset('fonts/Iosevka_Charon_Mono/IosevkaCharonMono-Light.ttf') }}') format('truetype');
             font-weight: 300;
             font-style: normal;
             font-display: swap;
@@ -49,7 +66,7 @@
 
         @font-face {
             font-family: 'IosevkaCharonMono';
-            src: url('{{ asset('fonts/IosevkaCharonMono-LightItalic.ttf') }}') format('truetype');
+            src: url('{{ asset('fonts/Iosevka_Charon_Mono/IosevkaCharonMono-LightItalic.ttf') }}') format('truetype');
             font-weight: 300;
             font-style: italic;
             font-display: swap;
@@ -57,7 +74,7 @@
 
         @font-face {
             font-family: 'IosevkaCharonMono';
-            src: url('{{ asset('fonts/IosevkaCharonMono-Medium.ttf') }}') format('truetype');
+            src: url('{{ asset('fonts/Iosevka_Charon_Mono/IosevkaCharonMono-Medium.ttf') }}') format('truetype');
             font-weight: 500;
             font-style: normal;
             font-display: swap;
@@ -65,7 +82,7 @@
 
         @font-face {
             font-family: 'IosevkaCharonMono';
-            src: url('{{ asset('fonts/IosevkaCharonMono-MediumItalic.ttf') }}') format('truetype');
+            src: url('{{ asset('fonts/Iosevka_Charon_Mono/IosevkaCharonMono-MediumItalic.ttf') }}') format('truetype');
             font-weight: 500;
             font-style: italic;
             font-display: swap;
@@ -73,7 +90,7 @@
 
         @font-face {
             font-family: 'IosevkaCharonMono';
-            src: url('{{ asset('fonts/IosevkaCharonMono-Bold.ttf') }}') format('truetype');
+            src: url('{{ asset('fonts/Iosevka_Charon_Mono/IosevkaCharonMono-Bold.ttf') }}') format('truetype');
             font-weight: 700;
             font-style: normal;
             font-display: swap;
@@ -81,7 +98,7 @@
 
         @font-face {
             font-family: 'IosevkaCharonMono';
-            src: url('{{ asset('fonts/IosevkaCharonMono-BoldItalic.ttf') }}') format('truetype');
+            src: url('{{ asset('fonts/Iosevka_Charon_Mono/IosevkaCharonMono-BoldItalic.ttf') }}') format('truetype');
             font-weight: 700;
             font-style: italic;
             font-display: swap;
@@ -113,7 +130,7 @@
         }
 
         body {
-            font-family: 'IosevkaCharonMono', monospace;
+            font-family: 'NunitoSans', sans-serif;
             background-color: var(--light-bg);
             color: var(--text-primary);
             line-height: 1.6;
@@ -1776,11 +1793,11 @@
     </div>
 
     <!-- Footer -->
-    <!-- <footer class="learning-footer">
+    <footer class="learning-footer">
         <div class="container">
             <p>&copy; {{ date('Y') }} Whence Financial Services. All rights reserved.</p>
         </div>
-    </footer> -->
+    </footer>
 
     <!-- Enrollment Modal -->
     <div class="modal fade" id="enrollModal" tabindex="-1" role="dialog">
@@ -2148,11 +2165,11 @@
     <!-- IntroJS Initialization -->
     <style>
         /* Custom IntroJS Tour Styling */
-        .introjs-tooltip {
+         .introjs-tooltip {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-            font-family: 'IosevkaCharonMono', monospace;
+            font-family: 'NunitoSans', sans-serif;
             max-width: 420px;
             border: none;
             overflow: hidden;

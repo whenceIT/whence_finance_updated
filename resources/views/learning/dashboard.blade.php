@@ -839,9 +839,9 @@ function showDocumentPreview(type, path, name, size) {
         // Choose appropriate viewer based on file type
         var viewerUrl = '';
         if (isOfficeDoc) {
-            viewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(path)}`;
+            viewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(path)}&action=embedview&wdAllowInteractivity=0`;
         } else if (isPDF) {
-            viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(path)}&embedded=true`;
+            viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(path)}&embedded=true&chrome=false`;
         }
         
         wrapper.innerHTML = `
@@ -857,6 +857,7 @@ function showDocumentPreview(type, path, name, size) {
                     allowfullscreen
                     >
                 </iframe>
+                ${isOfficeDoc ? '<div style="position:absolute;top:0;left:0;width:100%;height:50px;background:#f3f2f1;z-index:1001;pointer-events:auto;"></div>' : ''}
             </div>
         `;
     } else {

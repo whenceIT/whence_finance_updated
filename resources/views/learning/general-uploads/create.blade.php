@@ -400,6 +400,84 @@
     font-size: 14px;
 }
 
+/* Multi-select styles */
+.multi-select-container {
+    position: relative;
+}
+
+.multi-select {
+    position: relative;
+    width: 100%;
+}
+
+.multi-select-selected {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text-secondary);
+    transition: border-color 0.3s ease;
+}
+
+.multi-select-selected:hover {
+    border-color: var(--primary-color);
+}
+
+.multi-select-selected.active {
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+.multi-select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.multi-select-options.active {
+    display: block;
+}
+
+.multi-select-option {
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.multi-select-option:hover {
+    background-color: var(--light-bg);
+}
+
+.multi-select-option input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.multi-select-option label {
+    margin: 0;
+    cursor: pointer;
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
 /* Loading Modal */
 #loading-modal {
     position: fixed;
@@ -571,12 +649,19 @@
                 <!-- Position -->
                 <div class="form-group">
                     <label class="form-label">Position</label>
-                    <select name="position_id" id="positionSelect" class="form-select">
-                        <option value="">Select a position</option>
-                        @foreach($positions as $id => $name)
-                            <option value="{{ $id }}">{{ $name }}</option>
-                        @endforeach
-                    </select>
+                    <div class="multi-select-container">
+                        <div class="multi-select" id="positionMultiSelect">
+                            <div class="multi-select-selected" id="positionSelected">Select positions</div>
+                            <div class="multi-select-options" id="positionOptions">
+                                @foreach($positions as $id => $name)
+                                    <div class="multi-select-option" data-value="{{ $id }}">
+                                        <input type="checkbox" id="position_{{ $id }}" name="position_id[]" value="{{ $id }}">
+                                        <label for="position_{{ $id }}">{{ $name }}</label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -667,6 +752,49 @@ var currentStep = 1;
 var totalSteps = 3;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Multi-select functionality
+    var positionMultiSelect = document.getElementById('positionMultiSelect');
+    var positionSelected = document.getElementById('positionSelected');
+    var positionOptions = document.getElementById('positionOptions');
+    var positionCheckboxes = document.querySelectorAll('#positionOptions input[type="checkbox"]');
+    
+    positionSelected.addEventListener('click', function() {
+        positionOptions.classList.toggle('active');
+        positionSelected.classList.toggle('active');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!positionMultiSelect.contains(event.target)) {
+            positionOptions.classList.remove('active');
+            positionSelected.classList.remove('active');
+        }
+    });
+    
+    // Update selected text
+    positionCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            var selectedValues = [];
+            positionCheckboxes.forEach(function(cb) {
+                if (cb.checked) {
+                    selectedValues.push(cb.labels[0].textContent);
+                }
+            });
+            
+            if (selectedValues.length > 0) {
+                if (selectedValues.length > 2) {
+                    positionSelected.textContent = selectedValues.length + ' positions selected';
+                } else {
+                    positionSelected.textContent = selectedValues.join(', ');
+                }
+                positionSelected.classList.add('active');
+            } else {
+                positionSelected.textContent = 'Select positions';
+                positionSelected.classList.remove('active');
+            }
+        });
+    });
+    
     // File input handling
     var fileInput = document.getElementById('fileInput');
     var uploadArea = document.getElementById('uploadArea');
@@ -822,41 +950,42 @@ function showSummary() {
         document.getElementById('file-summary').style.display = 'block';
         document.getElementById('file-summary-name').textContent = selectedFile.name;
         document.getElementById('file-summary-size').textContent = formatFileSize(selectedFile.size);
-        
+
         const fileType = detectFileType(selectedFile);
-        const icon = fileType === 'video' ? 'fa-file-video-o' : 
-                     fileType === 'audio' ? 'fa-file-audio-o' : 
+        const icon = fileType === 'video' ? 'fa-file-video-o' :
+                     fileType === 'audio' ? 'fa-file-audio-o' :
                      fileType === 'image' ? 'fa-file-image-o' : 'fa-file';
         document.getElementById('file-summary-icon').className = `fa ${icon}`;
     }
-    
+
     // Poster info
     if (selectedPoster) {
         document.getElementById('poster-summary').style.display = 'block';
         document.getElementById('poster-summary-name').textContent = selectedPoster.name;
         document.getElementById('poster-summary-size').textContent = formatFileSize(selectedPoster.size);
     }
-    
+
     // File type
     const typeSelect = document.getElementById('typeSelect');
     if (typeSelect.value) {
         document.getElementById('type-summary').style.display = 'block';
         document.getElementById('type-summary-text').textContent = typeSelect.options[typeSelect.selectedIndex].text;
     }
-    
+
     // Additional info
     const topicSelect = document.getElementById('generalTopicSelect');
-    const positionSelect = document.getElementById('positionSelect');
-    
-    if (topicSelect.value || positionSelect.value) {
+    const positionCheckboxes = document.querySelectorAll('#positionOptions input[type="checkbox"]:checked');
+    const selectedPositions = Array.from(positionCheckboxes).map(cb => cb.labels[0].textContent);
+
+    if (topicSelect.value || selectedPositions.length > 0) {
         document.getElementById('additional-info-summary').style.display = 'block';
-        
+
         if (topicSelect.value) {
             document.getElementById('topic-summary').textContent = `Topic: ${topicSelect.options[topicSelect.selectedIndex].text}`;
         }
-        
-        if (positionSelect.value) {
-            document.getElementById('position-summary').textContent = `Position: ${positionSelect.options[positionSelect.selectedIndex].text}`;
+
+        if (selectedPositions.length > 0) {
+            document.getElementById('position-summary').textContent = `Positions: ${selectedPositions.join(', ')}`;
         }
     }
 }
@@ -935,6 +1064,9 @@ async function uploadFile(file, type, onProgress) {
     }
     
     // Merge chunks and get file path
+    const positionCheckboxes = document.querySelectorAll('#positionOptions input[type="checkbox"]:checked');
+    const positionIds = Array.from(positionCheckboxes).map(cb => cb.value);
+
     const mergeResponse = await fetch('{{ url("learning/general-uploads/merge-chunks") }}', {
         method: 'POST',
         headers: {
@@ -947,7 +1079,7 @@ async function uploadFile(file, type, onProgress) {
             type: type,
             totalChunks: totalChunks,
             general_topic_id: document.getElementById('generalTopicSelect').value,
-            position_id: document.getElementById('positionSelect').value
+            position_id: positionIds
         })
     });
     

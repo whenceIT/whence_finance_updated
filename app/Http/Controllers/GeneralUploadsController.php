@@ -134,7 +134,8 @@ class GeneralUploadsController extends Controller
                     'file' => 'required|file|max:200000', // 200MB max size
                     'type' => 'required|in:video,audio,book,paper,document,image,other',
                     'general_topic_id' => 'nullable|exists:general_topics,id',
-                    'position_id' => 'nullable|integer|between:1,21',
+                    'position_id' => 'nullable|array',
+                    'position_id.*' => 'integer|between:1,21',
                     'poster' => 'nullable|file|image|max:10000' // 10MB max size for poster
                 ]);
                 
@@ -143,15 +144,16 @@ class GeneralUploadsController extends Controller
                 $type = $request->input('type', 'other');
                 $poster = $request->file('poster');
                 $generalTopicId = $request->input('general_topic_id');
-                $positionId = $request->input('position_id');
+                $positionIds = $request->input('position_id', []);
                 
-                $upload = $this->saveUpload($file, $type, $poster, $generalTopicId, $positionId);
+                $upload = $this->saveUpload($file, $type, $poster, $generalTopicId, $positionIds);
             } else {
                 $request->validate([
                     'file_path' => 'required|url',
                     'type' => 'required|in:video,audio,book,paper,document,image,other',
                     'general_topic_id' => 'nullable|exists:general_topics,id',
-                    'position_id' => 'nullable|integer|between:1,21',
+                    'position_id' => 'nullable|array',
+                    'position_id.*' => 'integer|between:1,21',
                     'poster_path' => 'nullable|url'
                 ]);
                 
@@ -171,9 +173,12 @@ class GeneralUploadsController extends Controller
                 
                 // Handle new fields
                 $upload->general_topic_id = $request->input('general_topic_id');
-                $upload->position_id = $request->input('position_id');
-                
                 $upload->save();
+                
+                // Attach positions
+                if (!empty($positionIds)) {
+                    $upload->positions()->sync($positionIds);
+                }
             }
             
             return redirect()->route('learning.general-uploads.index')
@@ -428,9 +433,11 @@ class GeneralUploadsController extends Controller
         
         // Handle new fields
         $upload->general_topic_id = $request->input('general_topic_id');
-        $upload->position_id = $request->input('position_id');
-        
         $upload->save();
+        
+        // Sync positions
+        $positionIds = $request->input('position_id', []);
+        $upload->positions()->sync($positionIds);
         
         return redirect()->route('learning.general-uploads.index')->with('success', 'File updated successfully');
     }
@@ -475,7 +482,7 @@ class GeneralUploadsController extends Controller
     /**
      * Save uploaded file directly to S3
      */
-    private function saveUpload($file, $type, $poster = null, $generalTopicId = null, $positionId = null)
+    private function saveUpload($file, $type, $poster = null, $generalTopicId = null, $positionIds = [])
     {
         // Determine actual type if not provided
         if ($type === 'other') {
@@ -514,9 +521,12 @@ class GeneralUploadsController extends Controller
             
             // Handle new fields
             $upload->general_topic_id = $generalTopicId;
-            $upload->position_id = $positionId;
-            
             $upload->save();
+            
+            // Attach positions
+            if (!empty($positionIds)) {
+                $upload->positions()->sync($positionIds);
+            }
             
             return $upload;
             
