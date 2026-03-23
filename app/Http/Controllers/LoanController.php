@@ -2957,7 +2957,7 @@ class LoanController extends Controller
                 $loan_transaction->notes_pd = $request->notes;
                 // $loan_transaction->request_id = $request->$id;
                 $loan_transaction->save();
-                $this->store_dept_recovery($request, $loan_transaction->id);
+                // $this->store_dept_recovery($request, $loan_transaction->id);
                 $client_id = $loan->client_id;
                 $client = \App\Models\Client::find($client_id);
                 Http::post('https://notifications.whencefinancesystem.com/emit', [
@@ -3062,11 +3062,6 @@ class LoanController extends Controller
 
 
                 event(new RepaymentCreated($loan_transaction));
-                // Update RecoveryPayment if exists
-                $recoveryPayment = \App\Models\RecoveryPayment::where('transaction_id', $Trans->id)->first();
-                if ($recoveryPayment) {
-                    $recoveryPayment->update(['transaction_id' => $loan_transaction->id, 'status' => 1]);
-                }
                 if ($Trans->payment_apply_to == 'full_payment') {
                     $loan = Loan::find($loan->id);
                     $loan->status = "closed";
