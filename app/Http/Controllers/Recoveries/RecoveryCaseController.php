@@ -455,7 +455,7 @@ class RecoveryCaseController extends Controller
             Flash::success('Recovery payment approved successfully.');
             return redirect('loan/recoveries_approvals');
         } catch (\Throwable $th) {
-            dd($th->getMessage());
+            // dd($th->getMessage());
              Flash::error('An error occurred while approving the recovery payment.');
              return redirect('loan/recoveries_approvals');
         }
