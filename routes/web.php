@@ -278,6 +278,12 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::post('/{id}/increment-view', [GeneralUploadsController::class, 'incrementView'])->name('learning.general-uploads.increment-view');
  });
 
+
+Route::group(['prefix' => 'hr'],function(){
+    Route::get('employees','HRController@employees');
+    Route::get('{id}/employee','HRController@employee');
+});
+
 //route for users
 Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');
