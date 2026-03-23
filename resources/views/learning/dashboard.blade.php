@@ -352,6 +352,7 @@
 
 <!-- Document Preview Container (hidden by default) -->
 <div id="document-preview" style="display: none; margin-bottom: 20px;">
+    <div style="position:absolute;top:0;left:0;width:100%;height:90px;background:#f3f2f1;z-index:9999;pointer-events:auto;"></div>
     <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);">
         <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -363,9 +364,11 @@
             </button>
         </div>
         <div style="position: relative;" id="document-wrapper">
-            <!-- Document content loaded here -->
         </div>
-    </div>
+      
+    </div>      
+    <!-- Overlay to hide the toolbar -->
+    <!-- Document content loaded here -->
 </div>
 
 <!-- Tab Pills Container -->
@@ -856,9 +859,12 @@ function showDocumentPreview(type, path, name, size) {
                     style="width:100%;height:800px;border:none;"
                     allowfullscreen
                     >
-                </iframe>
+                </iframe> 
+                <!-- Overlay to hide the toolbar -->
+                <div style="position:absolute;top:0;left:0;width:100%;height:90px;background:#f3f2f1;z-index:1001;pointer-events:auto;"></div>
                 ${isOfficeDoc ? '<div style="position:absolute;top:0;left:0;width:100%;height:50px;background:#f3f2f1;z-index:1001;pointer-events:auto;"></div>' : ''}
             </div>
+            
         `;
     } else {
         // Preview not available for other document types

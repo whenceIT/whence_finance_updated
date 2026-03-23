@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateGeneralUploadPositionTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,13 @@ class CreateGeneralUploadPositionTable extends Migration
      */
     public function up()
     {
-        // Table already exists with different structure - skip
-        if (Schema::hasTable('general_upload_position')) {
-            return;
-        }
-
-        Schema::create('general_upload_position', function (Blueprint $table) {
+        Schema::create('general_upload_likes', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('general_upload_id');
-            $table->unsignedInteger('position_id');
+            $table->timestamps();
+
+            $table->unique(['user_id', 'general_upload_id']);
         });
     }
 
@@ -32,6 +30,6 @@ class CreateGeneralUploadPositionTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('general_upload_position');
+        Schema::dropIfExists('general_upload_likes');
     }
-}
+};

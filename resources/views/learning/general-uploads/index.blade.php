@@ -196,22 +196,25 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="course-meta">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <span style="color: var(--text-secondary); font-size: 12px;">
-                        <i class="fa fa-database"></i> {{ $upload->formatted_size }}
+                        <i class="fa fa-eye"></i> {{ $upload->views_count ?? 0 }} views
+                    </span>                    
+                    <span style="color: var(--text-secondary); font-size: 12px;">
+                        <i class="fa fa-heart"></i> {{ $upload->likes_count ?? 0 }} likes
                     </span>
                     <span style="color: var(--text-secondary); font-size: 12px;">
                         {{ $upload->created_at->format('M d, Y') }}
                     </span>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 12px; background: var(--primary-color); color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500; border: none; cursor: pointer;">
+                    <button onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}', {{ $upload->id }})" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 12px; background: var(--primary-color); color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500; border: none; cursor: pointer;">
                         <i class="fa fa-play"></i> View
                     </button>
                     <!-- Action Buttons -->
                     <a href="{{ url('learning/general-uploads/' . $upload->id . '/edit') }}" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; transition: background 0.2s;" title="Edit">
                         <i class="fa fa-edit" style="color: var(--primary-color);"></i>
                     </a>
-                    <button onclick="likeUpload({{ $upload->id }})" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-primary); border: none; cursor: pointer; transition: background 0.2s;" title="Like">
-                        <i class="fa fa-heart" style="color: var(--accent-color);"></i>
+                    <button onclick="likeUpload({{ $upload->id }}, this)" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-primary); border: none; cursor: pointer; transition: background 0.2s;" title="{{ $upload->isLikedBy(Sentinel::getUser()->id) ? 'Unlike' : 'Like' }}" data-liked="{{ $upload->isLikedBy(Sentinel::getUser()->id) ? 'true' : 'false' }}">
+                        <i class="fa fa-heart" style="color: {{ $upload->isLikedBy(Sentinel::getUser()->id) ? '#e74c3c' : 'var(--accent-color)' }};"></i>
                     </button>
                     <button onclick="deleteUpload({{ $upload->id }}, '{{ addslashes($upload->name) }}')" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--accent-color); border: none; cursor: pointer; transition: background 0.2s;" title="Delete">
                         <i class="fa fa-trash"></i>
@@ -239,15 +242,83 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
+// Variables for tracking engagement time
+let currentUploadId = null;
+let startTime = null;
+let hasIncremented = false;
+let engagementTimer = null;
+
+// Function to start engagement tracking
+function startEngagementTracking(uploadId) {
+    if (currentUploadId !== uploadId) {
+        // Reset previous tracking
+        stopEngagementTracking();
+        currentUploadId = uploadId;
+        startTime = Date.now();
+        hasIncremented = false;
+
+        // Check every 5 seconds if 2 minutes have passed
+        engagementTimer = setInterval(() => {
+            if (!hasIncremented && startTime && (Date.now() - startTime) >= 120000) { // 120 seconds = 2 minutes
+                incrementView(uploadId);
+                hasIncremented = true;
+                stopEngagementTracking();
+            }
+        }, 5000);
+    }
+}
+
+// Function to stop engagement tracking
+function stopEngagementTracking() {
+    if (engagementTimer) {
+        clearInterval(engagementTimer);
+        engagementTimer = null;
+    }
+    currentUploadId = null;
+    startTime = null;
+    hasIncremented = false;
+}
+
+// Function to increment view count
+function incrementView(uploadId) {
+    // Increment view
+    fetch('{{ url('learning/general-uploads') }}/' + uploadId + '/increment-view', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update views count in UI
+            updateCountsInUI();
+        }
+    })
+    .catch(error => console.error('Error incrementing view:', error));
+}
+
+// Function to update counts in UI
+function updateCountsInUI() {
+    // Refresh the page or update specific elements
+    // For simplicity, we'll reload to show updated counts
+    // In a production app, you might fetch and update specific elements
+    location.reload();
+}
+
 // Play media inline (YouTube-like)
-function playMedia(type, path, name, size, poster = '') {
+function playMedia(type, path, name, size, poster = '', uploadId) {
+    // Start engagement tracking
+    startEngagementTracking(uploadId);
+
     var ext = name.split('.').pop().toLowerCase();
     var isOfficeDoc = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext);
     var isPDF = ext === 'pdf';
-    
+
     // For documents (DOCX, PPT, PDF), use separate document preview container
     if (isOfficeDoc || isPDF) {
-        showDocumentPreview(type, path, name, size);
+        showDocumentPreview(type, path, name, size, uploadId);
         return;
     }
     
@@ -338,11 +409,14 @@ function playMedia(type, path, name, size, poster = '') {
 }
 
 // Show document preview in separate container
-function showDocumentPreview(type, path, name, size) {
+function showDocumentPreview(type, path, name, size, uploadId) {
+    // Start engagement tracking
+    startEngagementTracking(uploadId);
+
     var ext = name.split('.').pop().toLowerCase();
     var isOfficeDoc = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext);
     var isPDF = ext === 'pdf';
-    
+
     // Show document preview container
     var documentContainer = document.getElementById('document-preview');
     documentContainer.style.display = 'block';
@@ -395,10 +469,13 @@ function showDocumentPreview(type, path, name, size) {
 function closeDocumentPreview() {
     var documentContainer = document.getElementById('document-preview');
     documentContainer.style.display = 'none';
-    
+
     // Clear document wrapper
     var wrapper = document.getElementById('document-wrapper');
     wrapper.innerHTML = '';
+
+    // Stop engagement tracking
+    stopEngagementTracking();
 }
 
 // Fullscreen document preview
@@ -420,10 +497,13 @@ function fullscreenDocumentPreview() {
 function closePlayer() {
     var playerContainer = document.getElementById('dashboard-player');
     playerContainer.style.display = 'none';
-    
+
     // Stop any playing media
     var wrapper = document.getElementById('player-wrapper');
     wrapper.innerHTML = '';
+
+    // Stop engagement tracking
+    stopEngagementTracking();
 }
 
 function fullscreenPreview() {
@@ -443,9 +523,47 @@ function fullscreenPreview() {
 
 
 
-function likeUpload(id) {
-    // Like functionality - can be expanded later
-    toastr.success('File liked!', 'Success');
+function likeUpload(id, buttonElement) {
+    fetch('{{ url('learning/general-uploads') }}/' + id + '/like', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the likes count in the UI
+            const likeElements = document.querySelectorAll('.course-meta span i.fa-heart');
+            likeElements.forEach(el => {
+                const parent = el.parentElement;
+                if (parent && parent.textContent.includes('likes')) {
+                    parent.innerHTML = '<i class="fa fa-heart"></i> ' + data.likes_count + ' likes';
+                }
+            });
+
+            // Update button state
+            const heartIcon = buttonElement.querySelector('i.fa-heart');
+            if (data.liked) {
+                heartIcon.style.color = '#e74c3c';
+                buttonElement.setAttribute('data-liked', 'true');
+                buttonElement.setAttribute('title', 'Unlike');
+                toastr.success('File liked!', 'Success');
+            } else {
+                heartIcon.style.color = 'var(--accent-color)';
+                buttonElement.setAttribute('data-liked', 'false');
+                buttonElement.setAttribute('title', 'Like');
+                toastr.success('File unliked!', 'Success');
+            }
+        } else {
+            toastr.error('Failed to toggle like', 'Error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error('An error occurred', 'Error');
+    });
 }
 </script>
 
@@ -522,6 +640,11 @@ document.getElementById('deleteModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeDeleteModal();
     }
+});
+
+// Stop tracking when page unloads
+window.addEventListener('beforeunload', function() {
+    stopEngagementTracking();
 });
 </script>
 @endsection

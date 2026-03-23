@@ -16,7 +16,9 @@ class GeneralUpload extends Model
         'mime_type',
         'uploaded_by',
         'poster',
-        'general_topic_id'
+        'general_topic_id',
+        'views_count',
+        'likes_count'
     ];
     
     /**
@@ -36,6 +38,28 @@ class GeneralUpload extends Model
     public function generalTopic()
     {
         return $this->belongsTo(GeneralTopic::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(GeneralUploadLike::class);
+    }
+
+    public function scopeUserViews($query, $userId)
+    {
+        return $query->whereHas('likes', function($q) use ($userId) {
+            $q->where('user_id', $userId);
+        });
+    }
+
+    public function getLikesCountAttribute()
+    {
+        return $this->likes()->count();
+    }
+
+    public function isLikedBy($userId)
+    {
+        return $this->likes()->where('user_id', $userId)->exists();
     }
     
     /**

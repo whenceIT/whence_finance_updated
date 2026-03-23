@@ -451,7 +451,7 @@ class GeneralUploadsController extends Controller
     public function destroy($id)
     {
         $upload = GeneralUpload::findOrFail($id);
-        
+
         // Delete file from S3
         if ($upload->path) {
             try {
@@ -470,12 +470,67 @@ class GeneralUploadsController extends Controller
                 // Continue with database deletion even if S3 deletion fails
             }
         }
-        
+
         $upload->delete();
-        
+
         return response()->json([
             'success' => true,
             'message' => 'File deleted successfully'
+        ]);
+    }
+
+    /**
+     * Toggle like for the specified upload.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function like($id)
+    {
+        $upload = GeneralUpload::findOrFail($id);
+        $userId = Sentinel::getUser()->id;
+
+        // Check if user already liked this upload
+        $existingLike = \App\Models\GeneralUploadLike::where('user_id', $userId)
+            ->where('general_upload_id', $id)
+            ->first();
+
+        if ($existingLike) {
+            // Unlike: remove the like
+            $existingLike->delete();
+            $liked = false;
+        } else {
+            // Like: create new like
+            \App\Models\GeneralUploadLike::create([
+                'user_id' => $userId,
+                'general_upload_id' => $id
+            ]);
+            $liked = true;
+        }
+
+        return response()->json([
+            'success' => true,
+            'liked' => $liked,
+            'likes_count' => $upload->fresh()->likes_count
+        ]);
+    }
+
+    /**
+     * Increment view count for the specified upload.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function incrementView($id)
+    {
+        $upload = GeneralUpload::findOrFail($id);
+
+        // Increment views_count
+        $upload->increment('views_count');
+
+        return response()->json([
+            'success' => true,
+            'views_count' => $upload->views_count
         ]);
     }
     
