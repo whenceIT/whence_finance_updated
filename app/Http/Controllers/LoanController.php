@@ -3057,6 +3057,10 @@ class LoanController extends Controller
                         $custom_field->save();
                     }
                 }
+
+                LoanTransactionUnapproved::where('id', $trans_id)->delete();
+
+
                 event(new RepaymentCreated($loan_transaction));
                 // Update RecoveryPayment if exists
                 $recoveryPayment = \App\Models\RecoveryPayment::where('transaction_id', $Trans->id)->first();
@@ -3071,8 +3075,6 @@ class LoanController extends Controller
 
 
                 GeneralHelper::audit_trail("Create Repayment", "Loans", $id);
-
-                LoanTransactionUnapproved::where('id', $trans_id)->delete();
 
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');
