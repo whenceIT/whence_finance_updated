@@ -833,6 +833,7 @@ class TrainingMaterialController extends Controller
         }, 'allTopics.quiz', 'enrollments.user', 'enrollments.user.roles'])
             ->findOrFail($id);
 
+        
         // Get enrolled users ordered by progress (highest to lowest)
         $enrolledUsers = [];
         foreach ($material->enrollments->sortByDesc('progress') as $enrollment) {
@@ -898,7 +899,7 @@ class TrainingMaterialController extends Controller
         $isAdmin = in_array($role->id, ['1', '6', '4']);
 
         // Check if user has permission to view this material
-        if (!$material->is_active) {
+        if (!$material->is_active && !$isAdmin) {
             return redirect()->route('learning.training-materials.index')
                 ->with('toastr_type', 'warning')
                 ->with('toastr_message', 'This training material is not available.');
@@ -990,13 +991,16 @@ class TrainingMaterialController extends Controller
                 ->withInput();
         }
 
+        $status = $request->has('is_active') ? $request->is_active : true;
+        $status = $status == 'on' ? true : false;
+
         // Update other fields
         $material->update([
             'title' => $request->title,
             'description' => $request->description,
             'department' => $request->department,
             'target_role' => $request->target_role,
-            'is_active' => $request->has('is_active') ? $request->is_active : true,
+            'is_active' => $status,
             'is_featured' => $request->has('is_featured') ? $request->is_featured : false,
         ]);
         

@@ -67,7 +67,7 @@ class GeneralTopicsController extends Controller
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+                'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,avif|max:2048'
             ]);
 
             $data = $validatedData;
@@ -92,20 +92,20 @@ class GeneralTopicsController extends Controller
                 ->with('toastr_message', 'General topic created successfully.')
                 ->with('toastr_title', 'Success');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            dd($th);
+            
             Log::error('Validation Error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->withErrors($e->errors())
                 ->with('toastr_type', 'error')
-                ->with('toastr_message', 'Validation failed. Please check your input.')
+                ->with('toastr_message', $e->getMessage())
                 ->with('toastr_title', 'Validation Error');
         } catch (\Exception $e) {
             Log::error('General Topic Creation Error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('toastr_type', 'error')
-                ->with('toastr_message', 'Failed to create general topic. Please try again.')
+                ->with('toastr_message', $e->getMessage())
                 ->with('toastr_title', 'Error');
         }
     }

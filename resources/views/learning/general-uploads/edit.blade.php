@@ -174,10 +174,10 @@
         <!-- Position -->
         <div class="form-group">
             <label class="form-label">Position</label>
-            <select name="position_id" id="positionSelect" class="form-select">
-                <option value="">Select a position</option>
+            <select name="position_id[]" id="positionSelect" class="form-select" multiple>
+                <option value="">Select positions</option>
                 @foreach($positions as $id => $name)
-                    <option value="{{ $id }}" {{ old('position_id', $upload->position_id) == $id ? 'selected' : '' }}>{{ $name }}</option>
+                    <option value="{{ $id }}" {{ in_array($id, old('position_id', $upload->positions->pluck('id')->toArray())) ? 'selected' : '' }}>{{ $name }}</option>
                 @endforeach
             </select>
         </div>

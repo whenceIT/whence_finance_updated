@@ -52,6 +52,10 @@ class GeneralUploadsController extends Controller
                 'key' => 'DO00RP9FA3QZTA3JV637',
                 'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
             ],
+            'retries' => 3,
+            'timeout' => 300,
+            'connect_timeout' => 60,
+            'force_path_style' => true, // Required for DigitalOcean Spaces
         ]);
     }
 
@@ -123,27 +127,76 @@ class GeneralUploadsController extends Controller
         ini_set('max_input_time', 600); // 10 minutes
         ini_set('memory_limit', '256M');
         
-        // Handle regular file upload (non-chunked)
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $type = $request->input('type', 'other');
-            $poster = $request->file('poster');
-            $generalTopicId = $request->input('general_topic_id');
-            $positionId = $request->input('position_id');
+        try {
+            // Validate request for both regular and chunked uploads
+            if ($request->hasFile('file')) {
+                $request->validate([
+                    'file' => 'required|file|max:200000', // 200MB max size
+                    'type' => 'required|in:video,audio,book,paper,document,image,other',
+                    'general_topic_id' => 'nullable|exists:general_topics,id',
+                    'position_id' => 'nullable|array',
+                    'position_id.*' => 'integer|between:1,21',
+                    'poster' => 'nullable|file|image|max:10000' // 10MB max size for poster
+                ]);
+                
+                // Handle regular file upload (non-chunked)
+                $file = $request->file('file');
+                $type = $request->input('type', 'other');
+                $poster = $request->file('poster');
+                $generalTopicId = $request->input('general_topic_id');
+                $positionIds = $request->input('position_id', []);
+                
+                $upload = $this->saveUpload($file, $type, $poster, $generalTopicId, $positionIds);
+            } else {
+                $request->validate([
+                    'file_path' => 'required|url',
+                    'type' => 'required|in:video,audio,book,paper,document,image,other',
+                    'general_topic_id' => 'nullable|exists:general_topics,id',
+                    'position_id' => 'nullable|array',
+                    'position_id.*' => 'integer|between:1,21',
+                    'poster_path' => 'nullable|url'
+                ]);
+                
+                // Handle chunked upload with file path
+                $upload = new GeneralUpload();
+                $upload->name = $request->input('filename', 'Unknown File');
+                $upload->path = $request->input('file_path');
+                $upload->type = $request->input('type', 'other');
+                $upload->file_size = 0; // We don't have the file size from chunked upload
+                $upload->mime_type = ''; // We don't have the mime type from chunked upload
+                $upload->uploaded_by = Sentinel::getUser()->id ?? null;
+                
+                // Handle poster path
+                if ($request->has('poster_path')) {
+                    $upload->poster = $request->input('poster_path');
+                }
+                
+                // Handle new fields
+                $upload->general_topic_id = $request->input('general_topic_id');
+                $upload->save();
+                
+                // Attach positions
+                if (!empty($positionIds)) {
+                    $upload->positions()->sync($positionIds);
+                }
+            }
             
-            $upload = $this->saveUpload($file, $type, $poster, $generalTopicId, $positionId);
+            return redirect()->route('learning.general-uploads.index')
+                ->with('toastr_type', 'success')
+                ->with('toastr_message', 'File uploaded successfully');
             
-            return response()->json([
-                'success' => true,
-                'message' => 'File uploaded successfully',
-                'upload' => $upload
-            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            
+            Log::error('Validation Error: ' . json_encode($e->errors()));
+            return redirect()->route('learning.general-uploads.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'Validation failed: ' . implode(', ', collect($e->errors())->flatten()->toArray()));
+        } catch (\Exception $e) {
+            Log::error('Upload Error: ' . $e->getMessage());
+            return redirect()->route('learning.general-uploads.index')
+                ->with('toastr_type', 'error')
+                ->with('toastr_message', 'Upload failed: ' . $e->getMessage());
         }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'No file uploaded'
-        ], 400);
     }
 
     /**
@@ -151,7 +204,10 @@ class GeneralUploadsController extends Controller
      */
     public function uploadChunk(Request $request)
     {
+        Log::info('Upload chunk endpoint called', $request->all());
+        
         if (!$request->hasFile('chunk')) {
+            Log::error('No chunk file provided');
             return response()->json(['success' => false, 'message' => 'No chunk file provided'], 400);
         }
         
@@ -162,19 +218,17 @@ class GeneralUploadsController extends Controller
         $fileId = $request->input('fileId');
         $type = $request->input('type', 'other');
         
+        Log::info("Processing chunk $index of $totalChunks for file $filename ($fileId), type: $type");
+        
         // Store chunk temporarily in local storage
-        $chunkDir = storage_path('app/chunks/' . $fileId);
-        if (!File::exists($chunkDir)) {
-            File::makeDirectory($chunkDir, 0755, true);
+        $chunksPath = storage_path('app/chunks');
+        if (!file_exists($chunksPath)) {
+            mkdir($chunksPath, 0755, true);
         }
         
-        $chunk->move($chunkDir, 'chunk_' . $index);
-        
-        // Save poster if received in first chunk
-        if ($index === 0 && $request->hasFile('poster')) {
-            $poster = $request->file('poster');
-            $poster->move($chunkDir, 'poster.' . $poster->getClientOriginalExtension());
-        }
+        $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $index;
+        $chunk->move($chunksPath, $fileId . '_part_' . $index);
+        Log::info("Chunk saved to: $chunkPath, size: " . filesize($chunkPath) . " bytes");
         
         return response()->json([
             'success' => true,
@@ -185,134 +239,96 @@ class GeneralUploadsController extends Controller
     }
 
     /**
-     * Merge chunks endpoint - uploads to S3 after merging
+     * Merge uploaded chunks.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
      */
     public function mergeChunks(Request $request)
     {
-        // Increase PHP limits to handle large file merging
-        ini_set('upload_max_filesize', '200M');
-        ini_set('post_max_size', '200M');
-        ini_set('max_execution_time', 600); // 10 minutes
-        ini_set('max_input_time', 600); // 10 minutes
-        ini_set('memory_limit', '256M');
+        $fileName = $request->filename;
+        $fileId = $request->fileId;
+        $type = $request->type;
+        $totalChunks = $request->totalChunks;
         
-        // Get request data from JSON or form data
-        $data = $request->json() ? $request->json()->all() : $request->all();
-        
-        $filename = $data['filename'];
-        $fileId = $data['fileId'];
-        $type = $data['type'] ?? 'other';
-        $totalChunks = $data['totalChunks'];
-        $poster = $request->file('poster');
-        
-        $chunkDir = storage_path('app/chunks/' . $fileId);
-        
-        if (!File::exists($chunkDir)) {
-            return response()->json(['success' => false, 'message' => 'Chunks directory not found'], 400);
+        $chunksPath = storage_path('app/chunks');
+        $uploadsPath = storage_path('app/uploads');
+        if (!file_exists($uploadsPath)) {
+            mkdir($uploadsPath, 0755, true);
         }
         
-        // Check if poster file exists in chunk directory
-        $posterFiles = File::files($chunkDir);
-        foreach ($posterFiles as $file) {
-            if (strpos($file->getFilename(), 'poster.') === 0) {
-                // Create a temporary file instance for the poster
-                $poster = new \Illuminate\Http\UploadedFile(
-                    $file->getPathname(),
-                    'poster.' . $file->getExtension(),
-                    mime_content_type($file->getPathname()),
-                    filesize($file->getPathname()),
-                    true
-                );
-                break;
-            }
-        }
-        
-        // Create temp file for merged content
-        $tempDir = storage_path('app/temp');
-        if (!File::exists($tempDir)) {
-            File::makeDirectory($tempDir, 0755, true);
-        }
-        
-        $tempFilePath = $tempDir . '/' . $fileId . '_' . $filename;
-        
-        // Merge chunks into temp file
-        $outputFile = fopen($tempFilePath, 'wb');
+        $finalPath = $uploadsPath . '/' . $fileName;
+        $output = fopen($finalPath, 'ab');
         
         for ($i = 0; $i < $totalChunks; $i++) {
-            $chunkFile = $chunkDir . '/chunk_' . $i;
-            $chunkContent = File::get($chunkFile);
-            fwrite($outputFile, $chunkContent);
-            @unlink($chunkFile);
+            $chunkPath = $chunksPath . '/' . $fileId . '_part_' . $i;
+            
+            if (!file_exists($chunkPath)) {
+                return response()->json(['status' => 'error', 'message' => 'Chunk ' . $i . ' not found'], 400);
+            }
+            
+            $chunk = fopen($chunkPath, 'rb');
+            stream_copy_to_stream($chunk, $output);
+            fclose($chunk);
+            unlink($chunkPath);
         }
         
-        fclose($outputFile);
-        
-        // Remove chunks directory
-        @rmdir($chunkDir);
-        
-        // Determine actual file type if not provided
-        if ($type === 'other') {
-            $type = $this->detectFileType($tempFilePath, $filename);
-        }
-        
-        // Generate S3 key
-        $typeFolder = $this->getTypeFolder($type);
-        $originalName = pathinfo($filename, PATHINFO_FILENAME);
-        $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
-        $extension = pathinfo($filename, PATHINFO_EXTENSION);
-        $s3Key = $typeFolder . '/' . $sanitizedName . '_' . uniqid() . '.' . $extension;
-        
-        // Get file size and mimetype before uploading
-        $fileSize = filesize($tempFilePath);
-        $mimeType = File::mimeType($tempFilePath);
+        fclose($output);
         
         // Upload to S3
         try {
-            $result = $this->s3Client->putObject([
-                'Bucket' => $this->bucket,
-                'Key' => $s3Key,
-                'Body' => fopen($tempFilePath, 'r'),
-                'ACL' => 'public-read',
-                'ContentType' => $mimeType,
+            $originalName = pathinfo($fileName, PATHINFO_FILENAME);
+            $sanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $originalName);
+            $finalFileName = $sanitizedName . '_' . uniqid() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
+            
+            $s3Client = new \Aws\S3\S3Client([
+                'version' => 'latest',
+                'region' => 'nyc3',
+                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                'credentials' => [
+                    'key' => 'DO00RP9FA3QZTA3JV637',
+                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                ],
             ]);
             
-            // Delete temp file
-            unlink($tempFilePath);
+            $result = $s3Client->putObject([
+                'Bucket' => 'wfssystem',
+                'Key' => $finalFileName,
+                'Body' => fopen($finalPath, 'r'),
+                'ACL' => 'public-read',
+            ]);
             
-            // Save to database
-            $upload = new GeneralUpload();
-            $upload->name = $filename;
-            $upload->path = $result['ObjectURL'];
-            $upload->type = $type;
-            $upload->file_size = $fileSize;
-            $upload->mime_type = $mimeType;
-            $upload->uploaded_by = Sentinel::getUser()->id ?? null;
+            unlink($finalPath);
             
             // Handle poster upload
-            if ($poster) {
-                $posterPath = $this->savePoster($poster, $typeFolder);
-                $upload->poster = $posterPath;
+            $posterPath = null;
+            if ($request->hasFile('poster')) {
+                $poster = $request->file('poster');
+                $posterOriginalName = pathinfo($poster->getClientOriginalName(), PATHINFO_FILENAME);
+                $posterSanitizedName = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $posterOriginalName);
+                $posterFinalFileName = 'posters/' . $posterSanitizedName . '_' . uniqid() . '.' . $poster->getClientOriginalExtension();
+                
+                $posterResult = $s3Client->putObject([
+                    'Bucket' => 'wfssystem',
+                    'Key' => $posterFinalFileName,
+                    'Body' => fopen($poster->getPathname(), 'r'),
+                    'ACL' => 'public-read',
+                ]);
+                
+                $posterPath = $posterResult['ObjectURL'];
             }
             
-            // Handle new fields
-            $upload->general_topic_id = $data['general_topic_id'] ?? null;
-            $upload->position_id = $data['position_id'] ?? null;
-            
-            $upload->save();
-            
             return response()->json([
-                'success' => true,
-                'filePath' => $upload->path,
-                'upload' => $upload
+                'status' => 'file merged',
+                'filePath' => $result['ObjectURL'],
+                'fileName' => $fileName,
+                'posterPath' => $posterPath
             ]);
             
         } catch (\Aws\Exception\AwsException $e) {
             Log::error('S3 Upload Error: ' . $e->getMessage());
-            // Clean up temp file
-            if (file_exists($tempFilePath)) {
-                unlink($tempFilePath);
-            }
-            return response()->json(['success' => false, 'message' => 'Failed to upload to S3: ' . $e->getMessage()], 500);
+            unlink($finalPath);
+            return response()->json(['status' => 'error', 'message' => 'Failed to upload to S3'], 500);
         }
     }
 
@@ -417,9 +433,11 @@ class GeneralUploadsController extends Controller
         
         // Handle new fields
         $upload->general_topic_id = $request->input('general_topic_id');
-        $upload->position_id = $request->input('position_id');
-        
         $upload->save();
+        
+        // Sync positions
+        $positionIds = $request->input('position_id', []);
+        $upload->positions()->sync($positionIds);
         
         return redirect()->route('learning.general-uploads.index')->with('success', 'File updated successfully');
     }
@@ -433,7 +451,7 @@ class GeneralUploadsController extends Controller
     public function destroy($id)
     {
         $upload = GeneralUpload::findOrFail($id);
-        
+
         // Delete file from S3
         if ($upload->path) {
             try {
@@ -452,19 +470,74 @@ class GeneralUploadsController extends Controller
                 // Continue with database deletion even if S3 deletion fails
             }
         }
-        
+
         $upload->delete();
-        
+
         return response()->json([
             'success' => true,
             'message' => 'File deleted successfully'
+        ]);
+    }
+
+    /**
+     * Toggle like for the specified upload.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function like($id)
+    {
+        $upload = GeneralUpload::findOrFail($id);
+        $userId = Sentinel::getUser()->id;
+
+        // Check if user already liked this upload
+        $existingLike = \App\Models\GeneralUploadLike::where('user_id', $userId)
+            ->where('general_upload_id', $id)
+            ->first();
+
+        if ($existingLike) {
+            // Unlike: remove the like
+            $existingLike->delete();
+            $liked = false;
+        } else {
+            // Like: create new like
+            \App\Models\GeneralUploadLike::create([
+                'user_id' => $userId,
+                'general_upload_id' => $id
+            ]);
+            $liked = true;
+        }
+
+        return response()->json([
+            'success' => true,
+            'liked' => $liked,
+            'likes_count' => $upload->fresh()->likes_count
+        ]);
+    }
+
+    /**
+     * Increment view count for the specified upload.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function incrementView($id)
+    {
+        $upload = GeneralUpload::findOrFail($id);
+
+        // Increment views_count
+        $upload->increment('views_count');
+
+        return response()->json([
+            'success' => true,
+            'views_count' => $upload->views_count
         ]);
     }
     
     /**
      * Save uploaded file directly to S3
      */
-    private function saveUpload($file, $type, $poster = null, $generalTopicId = null, $positionId = null)
+    private function saveUpload($file, $type, $poster = null, $generalTopicId = null, $positionIds = [])
     {
         // Determine actual type if not provided
         if ($type === 'other') {
@@ -503,9 +576,12 @@ class GeneralUploadsController extends Controller
             
             // Handle new fields
             $upload->general_topic_id = $generalTopicId;
-            $upload->position_id = $positionId;
-            
             $upload->save();
+            
+            // Attach positions
+            if (!empty($positionIds)) {
+                $upload->positions()->sync($positionIds);
+            }
             
             return $upload;
             

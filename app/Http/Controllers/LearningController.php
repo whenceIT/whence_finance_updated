@@ -87,8 +87,13 @@ class LearningController extends Controller
         
         if ($isFeaturedTab) {
             // For featured tab, get uploads grouped by general topic (only videos)
-            $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) {
-                $query->where('type', 'video');
+            $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) use ($user) {
+                $query->where('type', 'video')
+                      ->whereHas('positions', function($q) use ($user) {
+                          if ($user->position_id) {
+                              $q->where('id', $user->position_id);
+                          }
+                      });
             }])->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
                 return [
                     'id' => $topic->id,
@@ -100,13 +105,28 @@ class LearningController extends Controller
             })->filter(function($topic) {
                 return $topic['uploads']->count() > 0;
             })->toArray();
-            
+
             // Flatten uploads for statistics and backward compatibility (only videos)
-            $uploads = \App\Models\GeneralUpload::where('type', 'video')->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
+            $uploads = \App\Models\GeneralUpload::where('type', 'video')
+                ->whereHas('positions', function($q) use ($user) {
+                    // if ($user->position_id) {
+                    //     $q->where('id', $user->position_id);
+                    // }
+                })->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
         } else {
             // For other tabs, get general uploads normally
-            $uploads = \App\Models\GeneralUpload::orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
-            $topicsWithUploads = \App\Models\GeneralTopic::with('uploads')->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
+            $uploads = \App\Models\GeneralUpload::whereHas('positions', function($q) use ($user) {
+                if ($user->position_id) {
+                    $q->where('id', $user->position_id);
+                }
+            })->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
+            $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) use ($user) {
+                // $query->whereHas('positions', function($q) use ($user) {
+                //     if ($user->position_id) {
+                //         $q->where('id', $user->position_id);
+                //     }
+                // });
+            }])->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
                 return [
                     'id' => $topic->id,
                     'name' => $topic->name,
