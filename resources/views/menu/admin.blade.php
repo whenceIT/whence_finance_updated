@@ -623,8 +623,15 @@
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/transaction_approvals') }}"><i class="fa fa-circle-o"></i> Transaction Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
-                 
-              
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('loan/recovery_case_approvals') }}"><i class="fa fa-circle-o"></i> Cases of Recoveries </a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals </a></li>
+                    @endif
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/reloan_approvals') }}"><i class="fa fa-circle-o"></i> Reloan Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() }}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
