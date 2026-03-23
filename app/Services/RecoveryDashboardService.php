@@ -13,31 +13,35 @@ class RecoveryDashboardService
      */
     public function getExecutiveKpis(string $period = 'month', ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $cases    = RecoveryCase::forPeriod($period, $dateFrom, $dateTo);
-        $payments = RecoveryPayment::whereHas('recoveryCase', fn($q) => $q->forPeriod($period, $dateFrom, $dateTo));
+        $cases    = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date');
+        
+        $payments = RecoveryPayment::whereHas('recoveryCase', fn($q) => $q->forPeriod($period, $dateFrom, $dateTo))->where('status', 1);
 
-        // Use amount_recovered on cases as source of truth; payments for attribution split
-        $totalRecovered   = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->sum('amount_recovered');
+        // dd($payments->get());
+        // Use amount_recovered on cases that have payments with status=1
+        $totalRecovered   = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date')->whereHas('payments', fn($q) => $q->where('status', 1))->sum('amount_recovered');
         $deptRecovered    = (clone $payments)->sum('recoveries_dept_amount');
-        $activeCases      = RecoveryCase::active()->count();
-        $resolvedCases    = RecoveryCase::forPeriod($period)->resolved()->count();
+        $activeCases      = RecoveryCase::active()->whereNotNull('approved_date')->count();
+        $resolvedCases    = RecoveryCase::forPeriod($period)->whereNotNull('approved_date')->resolved()->count();
         $totalCases       = (clone $cases)->count();
         $resolutionRate   = $totalCases > 0 ? round(($resolvedCases / $totalCases) * 100, 1) : 0;
-        $portfolioAtRisk  = RecoveryCase::active()->sum('loan_outstanding_amount');
-        $totalCosts       = RecoveryCase::forPeriod($period)->sum(
+        $portfolioAtRisk  = RecoveryCase::active()->whereNotNull('approved_date')->sum('loan_outstanding_amount');
+        $totalCosts       = RecoveryCase::forPeriod($period)->whereNotNull('approved_date')->sum(
             DB::raw('recovery_costs + legal_costs_incurred + skip_trace_costs')
         );
         $netRecovered     = $totalRecovered - $totalCosts;
 
+        // dd($deptRecovered);
         // Compare to previous period
         $prevRecovered = RecoveryPayment::whereHas('recoveryCase', function($q) use ($period) {
-            match($period) {
+            $query = match($period) {
                 'month'   => $q->whereMonth('created_at', now()->subMonth()->month)
                               ->whereYear('created_at', now()->subMonth()->year),
                 'quarter' => $q->whereBetween('created_at', [now()->subQuarter()->startOfQuarter(), now()->subQuarter()->endOfQuarter()]),
                 'year'    => $q->whereYear('created_at', now()->subYear()->year),
                 default   => $q,
             };
+            return $query->where('status', '=', 1);
         })->sum('amount');
 
         $recoveredChange = $prevRecovered > 0
@@ -61,15 +65,15 @@ class RecoveryDashboardService
 
         foreach ($categories as $cat) {
             // All non-resolved cases in this category
-            $active   = RecoveryCase::byCategory($cat)->active();
-            $allCases = RecoveryCase::byCategory($cat);
+            $active   = RecoveryCase::byCategory($cat)->active()->whereNotNull('approved_date');
+            $allCases = RecoveryCase::byCategory($cat)->whereNotNull('approved_date');
 
             $pipeline[$cat] = [
                 'label'           => RecoveryCase::CATEGORIES[$cat],
                 'count'           => (clone $active)->count(),
                 'total_cases'     => (clone $allCases)->count(),
                 'total_value'     => (clone $active)->sum('loan_outstanding_amount'),
-                'amount_recovered'=> (clone $allCases)->sum('amount_recovered'),
+                'amount_recovered'=> (clone $allCases)->whereHas('payments', fn($q) => $q->where('status', 1))->sum('amount_recovered'),
                 'recent_cases'    => (clone $active)
                     ->with(['client', 'originBranch'])
                     ->latest()
@@ -90,16 +94,16 @@ class RecoveryDashboardService
             ->map(function (User $specialist) use ($period, $dateFrom, $dateTo) {
 
                 // All cases ever assigned — for active/resolved counts (not period-filtered)
-                $allCases = RecoveryCase::assignedTo($specialist->id);
+                $allCases = RecoveryCase::assignedTo($specialist->id)->whereNotNull('approved_date');
 
                 // Period-filtered cases — for recovered amount this period
-                $periodCases = RecoveryCase::assignedTo($specialist->id)->forPeriod($period, $dateFrom, $dateTo);
+                $periodCases = RecoveryCase::assignedTo($specialist->id)->forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date');
 
                 $activeCases   = (clone $allCases)->active()->count();
                 $resolvedCases = (clone $allCases)->resolved()->count();
 
                 // Amount recovered — sum directly from period cases (source of truth)
-                $totalRecovered = RecoveryCase::assignedTo($specialist->id)->forPeriod($period, $dateFrom, $dateTo)->sum('amount_recovered');
+                $totalRecovered = RecoveryCase::assignedTo($specialist->id)->forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date')->whereHas('payments', fn($q) => $q->where('status', 1))->sum('amount_recovered');
 
                 // Most common category across ALL assigned cases
                 $category = (clone $allCases)
@@ -136,7 +140,7 @@ class RecoveryDashboardService
                     },
                 ];
             })
-            ->filter(fn($row) => RecoveryCase::assignedTo($row['specialist']->id)->exists());
+            ->filter(fn($row) => RecoveryCase::assignedTo($row['specialist']->id)->whereNotNull('approved_date')->exists());
     }
 
     /**
@@ -153,6 +157,7 @@ class RecoveryDashboardService
                 DB::raw('SUM(recovery_payments.amount) as total_recovered'),
                 DB::raw('COUNT(DISTINCT recovery_cases.id) as case_count')
             )
+            ->whereNotNull('recovery_cases.approved_date')
             ->when($period === 'custom' && $dateFrom && $dateTo, fn($q) =>
                 $q->whereBetween('recovery_payments.payment_date', [$dateFrom, $dateTo])
             )
@@ -172,6 +177,7 @@ class RecoveryDashboardService
     public function getRecentActivity(int $limit = 10): Collection
     {
         return \App\Models\RecoveryActivity::with(['recoveryCase.client', 'performedBy'])
+            ->whereHas('recoveryCase', fn($q) => $q->whereNotNull('approved_date'))
             ->latest()
             ->limit($limit)
             ->get();
@@ -185,7 +191,8 @@ class RecoveryDashboardService
         $months = [];
         for ($i = 5; $i >= 0; $i--) {
             $date  = now()->subMonths($i);
-            $total = RecoveryPayment::whereMonth('payment_date', $date->month)
+            $total = RecoveryPayment::whereHas('recoveryCase', fn($q) => $q->whereNotNull('approved_date'))
+                ->whereMonth('payment_date', $date->month)
                 ->whereYear('payment_date', $date->year)
                 ->sum('amount');
             $months[] = [
@@ -201,12 +208,12 @@ class RecoveryDashboardService
      */
     public function getRecoveryMix(string $period = 'month', ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $total = RecoveryCase::active()->count(); // active is always all-time for mix
+        $total = RecoveryCase::active()->whereNotNull('approved_date')->count(); // active is always all-time for mix
         if ($total === 0) return [];
 
         $mix = [];
         foreach (array_keys(RecoveryCase::CATEGORIES) as $cat) {
-            $count = RecoveryCase::byCategory($cat)->active()->count();
+            $count = RecoveryCase::byCategory($cat)->active()->whereNotNull('approved_date')->count();
             $mix[$cat] = [
                 'label'      => RecoveryCase::CATEGORIES[$cat],
                 'count'      => $count,

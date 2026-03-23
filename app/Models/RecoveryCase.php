@@ -22,7 +22,7 @@ class RecoveryCase extends Model
         'skip_trace_tracking_code','client_located','located_date','skip_trace_costs',
         'last_payment_date','dormant_days','revival_method',
         'client_last_known_location','client_new_location','joint_field_visit_done',
-        'notes','target_resolution_date','resolved_date',
+        'notes','target_resolution_date','resolved_date','approved_date',
     ];
 
     protected $casts = [
@@ -33,6 +33,7 @@ class RecoveryCase extends Model
         'last_payment_date'      => 'date',
         'target_resolution_date' => 'date',
         'resolved_date'          => 'date',
+        'approved_date'          => 'date',
         'loan_outstanding_amount'=> 'decimal:2',
         'amount_recovered'       => 'decimal:2',
         'recovery_costs'         => 'decimal:2',

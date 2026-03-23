@@ -66,11 +66,11 @@
                         </td>
                         <td>{{ $key->receipt_number ?? '-' }}</td>
                         <td>
-                            <a href="{{ url('loan/'.$key->loan_id.'/'.$key->id.'/create_transactiontt') }}" 
+                            <a href="{{ url('loan/recoveries_approve/'.$key->id) }}"
                                onclick="return confirm('Are you sure you want to approve this recovery payment?')">
                                 <span class="label label-success">Approve</span>
                             </a>
-                            <a href="{{ url('loan/'.$key->id.'/delete_pending_transaction_fp_pp')}}" 
+                            <a href="{{ url('loan/recoveries_decline/'.$key->id) }}"
                                onclick="return confirm('Are you sure you want to decline this recovery payment?')">
                                 <span class="label label-danger">Decline</span>
                             </a>

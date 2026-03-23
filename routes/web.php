@@ -612,7 +612,12 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
-    Route::get('recoveries_approvals', 'LoanController@recoveries_approvals');
+    Route::get('recoveries_approvals', 'Recoveries\RecoveryCaseController@recoveriesApprovals');
+    Route::get('recoveries_approve/{id}', 'Recoveries\RecoveryCaseController@recoveriesApprove');
+    Route::get('recoveries_decline/{id}', 'Recoveries\RecoveryCaseController@recoveriesDecline');
+    Route::get('recovery_case_approvals', 'Recoveries\RecoveryCaseController@recoveryCaseApprovals');
+    Route::get('recovery_case_approve/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseApprove');
+    Route::get('recovery_case_decline/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseDecline');
     Route::get('top_up_approvals', 'LoanController@top_up_approvals');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
