@@ -627,6 +627,12 @@
                         <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
                     @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('loan/recovery_case_approvals') }}"><i class="fa fa-circle-o"></i> Cases of Recoveries @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\RecoveryCase::whereNull('approved_date')->count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\RecoveryCase::where('office_id',$office_id)->whereNull('approved_date')->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('payment_apply_to', 'debt_recovery')->count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->where('payment_apply_to', 'debt_recovery')->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/reloan_approvals') }}"><i class="fa fa-circle-o"></i> Reloan Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() }}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
                     @if(Sentinel::hasAccess('expenses'))

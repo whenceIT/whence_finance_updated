@@ -7,21 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RecoveryPayment extends Model
 {
-    /**
-     * Boot the model.
-     * Register global scope to filter out payments where status = 1 (archived/deleted).
-     */
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        static::addGlobalScope('active', function (\Illuminate\Database\Eloquent\Builder $builder) {
-            $builder->where('status', '==', 1);
-        });
-    }
 
     protected $fillable = [
-        'recovery_case_id','recorded_by','receipt_number','amount','payment_method',
+        'recovery_case_id','transaction_id','recorded_by','receipt_number','amount','payment_method',
         'payment_date','payment_reference','bank_name','recoveries_dept_amount','origin_branch_amount',
         'supporting_branch_amount','is_settlement','outstanding_before','outstanding_after','notes',
         'status',
@@ -42,6 +30,7 @@ class RecoveryPayment extends Model
     ];
 
     public function recoveryCase(): BelongsTo { return $this->belongsTo(RecoveryCase::class); }
+    public function transaction(): BelongsTo   { return $this->belongsTo(\App\Models\LoanTransaction::class); }
     public function recordedBy(): BelongsTo   { return $this->belongsTo(User::class, 'recorded_by'); }
 
     /**
@@ -69,10 +58,10 @@ class RecoveryPayment extends Model
     }
 
     /**
-     * Scope to get only archived payments (status = 1).
+     * Scope to get only archived payments (status != 1).
      */
     public function scopeArchived($query)
     {
-        return $query->withoutGlobalScopes()->where('status', 1);
+        return $query->withoutGlobalScopes()->where('status', '!=', 1);
     }
 }
