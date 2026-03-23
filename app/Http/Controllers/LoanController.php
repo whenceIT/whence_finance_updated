@@ -3058,11 +3058,6 @@ class LoanController extends Controller
                     }
                 }
                 event(new RepaymentCreated($loan_transaction));
-                // Update RecoveryPayment if exists
-                $recoveryPayment = \App\Models\RecoveryPayment::where('transaction_id', $Trans->id)->first();
-                if ($recoveryPayment) {
-                    $recoveryPayment->update(['transaction_id' => $loan_transaction->id, 'status' => 1]);
-                }
                 if ($Trans->payment_apply_to == 'full_payment') {
                     $loan = Loan::find($loan->id);
                     $loan->status = "closed";
