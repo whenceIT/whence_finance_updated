@@ -17,8 +17,18 @@ class GeneralUpload extends Model
         'uploaded_by',
         'poster',
         'general_topic_id',
-        'position_id'
+        'views_count',
+        'likes_count'
     ];
+    
+    /**
+     * Get all the positions associated with the general upload.
+     */
+    public function positions()
+    {
+        return $this->belongsToMany(\App\Models\Position::class, 'general_upload_position')
+                    ->withTimestamps();
+    }
     
     public function user()
     {
@@ -28,6 +38,28 @@ class GeneralUpload extends Model
     public function generalTopic()
     {
         return $this->belongsTo(GeneralTopic::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(GeneralUploadLike::class);
+    }
+
+    public function scopeUserViews($query, $userId)
+    {
+        return $query->whereHas('likes', function($q) use ($userId) {
+            $q->where('user_id', $userId);
+        });
+    }
+
+    public function getLikesCountAttribute()
+    {
+        return $this->likes()->count();
+    }
+
+    public function isLikedBy($userId)
+    {
+        return $this->likes()->where('user_id', $userId)->exists();
     }
     
     /**

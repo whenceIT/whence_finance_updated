@@ -330,6 +330,40 @@
     </div>
 </div>
 
+<!-- Tools Menu Bottom Sheet -->
+<div class="bottom-sheet-overlay" id="toolsBottomSheetOverlay">
+    <div class="bottom-sheet" id="toolsBottomSheet">
+        <button class="bottom-sheet-close" id="closeToolsBottomSheet">&times;</button>
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content">
+            <h3 class="bottom-sheet-title">Tools</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                @if($role && in_array($role, ['1','4','6','9','10']))
+                <!-- <a href="https://erp.whencefinancesystem.com/app" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                    <i class="fa fa-cogs" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                    <span style="font-size: 12px;">ERPNext</span>
+                </a> -->
+                @endif
+
+                <a href="{{ url('learning') }}" title="Whence Learn" style="text-decoration: none; color: #333; text-align: center; padding: 8px; border-radius: 8px; background: transparent; display: inline-block; transition: all 0.3s;">
+                    <img src="{{ asset('images/education.gif') }}" alt="Education" style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
+                    <span style="font-size: 11px; font-weight: 500;">Whence Learn</span>
+                </a>
+
+                <a href="https://meet.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                    <i class="fa fa-video-camera" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                    <span style="font-size: 12px;">Google Meet</span>
+                </a>
+
+                <a href="https://mail.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                    <i class="fa fa-envelope" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                    <span style="font-size: 12px;">Gmail</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 
@@ -339,19 +373,56 @@
 
         <header class="main-header">
 
-            <!-- Logo -->
-            <a href="{{url('/')}}" class="logo"
-                style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
-                <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
-                    style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
-                <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence
-                    Finance</span>
-            </a>
+            <!-- Logo and Toggle Button for Mobile (only visible on small screens) -->
+            <div style="display: none; justify-content: center; align-items: center; height: 50px; width: 100%; position: relative;">
+                <a href="{{url('/')}}" class="logo"
+                    style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
+                    <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
+                        style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
+                    <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence
+                        Finance</span>
+                </a>
+                
+                <!-- Tools Menu -->
+                <a href="#" class="sidebar-toggle" data-toggle="" role="button" style="color: #ffffff; position: absolute; right: 15px;" onclick="toggleUserDropdown(event)">
+                    <span class="sr-only">
+                        Toggle navigation
+                    </span>
+                </a>
+            </div>
+            
+            <style>
+                /* Show mobile header only on screens <= 767px */
+                @media (max-width: 767px) {
+                    .main-header > div:first-child {
+                        display: flex !important;
+                    }
+                }
+                
+                /* Hide desktop navbar elements except toggle button on mobile */
+                @media (max-width: 767px) {
+                    .main-header .navbar > .navbar-custom-menu,
+                    .main-header .navbar > .navbar-search {
+                        display: none !important;
+                    }
+                    .main-header .navbar {
+                        display: flex !important;
+                        justify-content: flex-start !important;
+                    }
+                }
+                
+                /* Show desktop header only on screens > 767px */
+                @media (min-width: 768px) {
+                    .main-header > div:first-child {
+                        display: none !important;
+                    }
+                }
+            </style>
 
             <!-- Header Navbar: style can be found in header.less -->
             <nav class="navbar navbar-static-top" style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
                 <!-- Sidebar toggle button-->
-                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" style="color: #ffffff">
+                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" style="color: #ffffff" onclick="toggleUserDropdown(event)">
                     <span class="sr-only">
                         Toggle navigation
                     </span>
@@ -378,7 +449,7 @@
                     <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ddd; width: 350px; max-height: 250px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; margin-top: 5px;"></div>
                 </div>
                 @else
-                <div class="col-md-10"></div>
+                <!-- <div class="col-md-10"></div> -->
                 @endif
 
                 <!-- Navbar Right Menu -->
@@ -1023,6 +1094,29 @@
                     $('#surveyBottomSheetOverlay').addClass('active');
                     $('#surveyBottomSheet').addClass('active');
                 }, 2000);
+            }
+        });
+    </script>
+
+    <!-- Toggle User Dropdown Script -->
+    <script>
+        function toggleUserDropdown(event) {
+            event.preventDefault();
+            $('#toolsBottomSheetOverlay').toggleClass('active');
+            $('#toolsBottomSheet').toggleClass('active');
+        }
+
+        // Close tools bottom sheet when clicking close button
+        $('#closeToolsBottomSheet').on('click', function() {
+            $('#toolsBottomSheetOverlay').removeClass('active');
+            $('#toolsBottomSheet').removeClass('active');
+        });
+
+        // Close tools bottom sheet when clicking overlay
+        $('#toolsBottomSheetOverlay').on('click', function(e) {
+            if (e.target === this) {
+                $('#toolsBottomSheetOverlay').removeClass('active');
+                $('#toolsBottomSheet').removeClass('active');
             }
         });
     </script>

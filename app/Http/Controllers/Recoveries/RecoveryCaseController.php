@@ -7,12 +7,16 @@ use App\Models\RecoveryCase;
 use App\Models\Loan;
 use App\Models\Office;
 use App\Models\User;
+use App\Models\LoanTransactionUnapproved;
+use App\Models\UserRole;
 use Carbon\Carbon;
 use App\Services\RecoveryCaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Laracasts\Flash\Flash;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class RecoveryCaseController extends Controller
 {
@@ -67,6 +71,7 @@ class RecoveryCaseController extends Controller
     private function listCases(Request $request, ?string $category)
     {
         $query = RecoveryCase::with(['client', 'assignedSpecialist', 'originBranch'])
+            ->whereNotNull('approved_date')
             ->latest();
 
         if ($category) {
@@ -290,4 +295,179 @@ class RecoveryCaseController extends Controller
 
         return redirect()->back()->with('success', 'Specialist assigned.');
     }
+
+    // Recovery Case Approvals
+    public function recoveryCaseApprovals(Request $request)
+    {
+        if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+      
+        $userId = Sentinel::getUser()->id;
+        $province_id = Sentinel::getUser()->province_id;
+        $office_id = Sentinel::getUser()->office_id;
+        $offices = Office::get();
+        $role = UserRole::where('user_id', $userId)->first();
+
+        if ($role->role_id == "6") {
+            // Province manager - see all offices in province
+            $province_cases = [];
+            foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $cases = \App\Models\RecoveryCase::where('office_id', $office->id)
+                        ->whereNull('approved_date')
+                        ->with(['client', 'loan', 'assignedSpecialist'])
+                        ->get();
+                    foreach ($cases as $case) {
+                        $province_cases[] = $case;
+                    }
+                }
+            }
+            $data = $province_cases;
+        } else {
+            if (Sentinel::hasAccess('settings')) {
+                // Admin sees all
+                $data = \App\Models\RecoveryCase::whereNull('approved_date')
+                    ->with(['client', 'loan', 'assignedSpecialist'])
+                    ->get();
+            } else {
+                // Regular user sees office-specific
+                $data = \App\Models\RecoveryCase::where('office_id', $office_id)
+                    ->whereNull('approved_date')
+                    ->with(['client', 'loan', 'assignedSpecialist'])
+                    ->get();
+            }
+        }
+
+        return view('loan.recovery_case_approvals', compact('data'));
+    }
+
+    public function recoveryCaseApprove($id)
+    {
+        $case = \App\Models\RecoveryCase::findOrFail($id);
+        $case->update(['approved_date' => now()]);
+        Flash::success('Recovery case approved successfully.');
+        return redirect('loan/recovery_case_approvals');
+    }
+
+    public function recoveryCaseDecline($id)
+    {
+        $case = \App\Models\RecoveryCase::findOrFail($id);
+        $case->delete();
+        Flash::success('Recovery case declined and deleted successfully.');
+        return redirect('loan/recovery_case_approvals');
+    }
+
+    // Debt Recovery Transaction Approvals
+    public function recoveriesApprovals(Request $request)
+    {
+        if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+        $userId = Sentinel::getUser()->id;
+        $province_id = Sentinel::getUser()->province_id;
+        $office_id = Sentinel::getUser()->office_id;
+        $offices = Office::get();
+        $role = UserRole::where('user_id', $userId)->first();
+
+        // Query only debt_recovery payment transactions
+        $province_transactions = [];
+        if ($role->role_id == "6") {
+            // Province manager - see all offices in province
+            foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)
+                        ->where('payment_apply_to', 'debt_recovery')
+                        ->get();
+                    foreach ($transactions as $transaction) {
+                        array_push($province_transactions, $transaction);
+                    }
+                }
+            }
+            $data = $province_transactions;
+        } else {
+            if ($role->role_id == "1") {
+                // Admin sees all
+                $data = LoanTransactionUnapproved::where('payment_apply_to', 'debt_recovery')->get();
+            } else {
+                // Regular user sees office-specific
+                $data = LoanTransactionUnapproved::where('office_id', $office_id)
+                    ->where('payment_apply_to', 'debt_recovery')
+                    ->get();
+            }
+        }
+
+        return view('loan.recoveries_approvals', compact('data'));
+    }
+
+    public function recoveriesApprove($id)
+    {
+        try {
+            $transaction = \App\Models\LoanTransactionUnapproved::findOrFail($id);
+            // Approve the transaction using existing logic
+            $loan = $transaction->loan;
+            $pending_transactions = LoanTransactionUnapproved::where('loan_id', $loan->id)->get();
+            $count = count($pending_transactions);
+            if ($count > 1) {
+                Flash::warning("This loan has more than one pending transaction!!");
+                return redirect('loan/recoveries_approvals');
+            }
+
+            // Create approved transaction
+            $payment_detail = new \App\Models\PaymentDetail();
+            $payment_detail->payment_type_id = $transaction->payment_type_id_pd;
+            $payment_detail->account_number = $transaction->account_number;
+            $payment_detail->cheque_number = $transaction->cheque_number;
+            $payment_detail->routing_code = $transaction->routing_code;
+            $payment_detail->receipt_number = $transaction->receipt_number;
+            $payment_detail->bank = $transaction->bank;
+            $payment_detail->notes = $transaction->notes_pd;
+            $payment_detail->save();
+
+            $loan_transaction = new \App\Models\LoanTransaction();
+            $loan_transaction->created_by_id = $transaction->created_by_id;
+            $loan_transaction->office_id = $loan->office_id;
+            $loan_transaction->loan_id = $loan->id;
+            $loan_transaction->reversible = 1;
+            $loan_transaction->payment_apply_to = $transaction->payment_apply_to;
+            $loan_transaction->payment_detail_id = $payment_detail->id;
+            $loan_transaction->transaction_type = "repayment";
+            $loan_transaction->date = $transaction->date;
+            $date = explode('-', $transaction->date);
+            $loan_transaction->year = $date[0];
+            $loan_transaction->month = $date[1];
+            $loan_transaction->credit = $transaction->credit;
+            $loan_transaction->notes = $transaction->notes;
+            $loan_transaction->temp_id = $id;
+            $loan_transaction->save();
+
+            // Update RecoveryPayment status
+            $recoveryPayment = \App\Models\RecoveryPayment::where('transaction_id', $transaction->id)->first();
+            if ($recoveryPayment) {
+                $recoveryPayment->update(['transaction_id' => $loan_transaction->id, 'status' => 1]);
+            }
+
+            LoanTransactionUnapproved::where('id', $id)->delete();
+            Flash::success('Recovery payment approved successfully.');
+            return redirect('loan/recoveries_approvals');
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+             Flash::error('An error occurred while approving the recovery payment.');
+             return redirect('loan/recoveries_approvals');
+        }
+    }
+
+    public function recoveriesDecline($id)
+    {
+        $transaction = \App\Models\LoanTransactionUnapproved::findOrFail($id);
+        // Delete the transaction
+        $transaction->delete();
+        Flash::success('Recovery payment declined and deleted successfully.');
+        return redirect('loan/recoveries_approvals');
+    }
+
 }
