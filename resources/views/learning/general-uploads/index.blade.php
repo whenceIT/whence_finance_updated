@@ -198,9 +198,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span style="color: var(--text-secondary); font-size: 12px;">
                         <i class="fa fa-eye"></i> {{ $upload->views_count ?? 0 }} views
                     </span>                    
-                    <span style="color: var(--text-secondary); font-size: 12px;">
+                    <!-- <span style="color: var(--text-secondary); font-size: 12px;">
                         <i class="fa fa-heart"></i> {{ $upload->likes_count ?? 0 }} likes
-                    </span>
+                    </span> -->
                     <span style="color: var(--text-secondary); font-size: 12px;">
                         {{ $upload->created_at->format('M d, Y') }}
                     </span>
@@ -213,9 +213,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <a href="{{ url('learning/general-uploads/' . $upload->id . '/edit') }}" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; transition: background 0.2s;" title="Edit">
                         <i class="fa fa-edit" style="color: var(--primary-color);"></i>
                     </a>
-                    <button onclick="likeUpload({{ $upload->id }}, this)" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-primary); border: none; cursor: pointer; transition: background 0.2s;" title="{{ $upload->isLikedBy(Sentinel::getUser()->id) ? 'Unlike' : 'Like' }}" data-liked="{{ $upload->isLikedBy(Sentinel::getUser()->id) ? 'true' : 'false' }}">
+                    <!-- <button onclick="likeUpload({{ $upload->id }}, this)" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-primary); border: none; cursor: pointer; transition: background 0.2s;" title="{{ $upload->isLikedBy(Sentinel::getUser()->id) ? 'Unlike' : 'Like' }}" data-liked="{{ $upload->isLikedBy(Sentinel::getUser()->id) ? 'true' : 'false' }}">
                         <i class="fa fa-heart" style="color: {{ $upload->isLikedBy(Sentinel::getUser()->id) ? '#e74c3c' : 'var(--accent-color)' }};"></i>
-                    </button>
+                    </button> -->
                     <button onclick="deleteUpload({{ $upload->id }}, '{{ addslashes($upload->name) }}')" style="width: 36px; height: 36px; border-radius: 6px; background: var(--light-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--accent-color); border: none; cursor: pointer; transition: background 0.2s;" title="Delete">
                         <i class="fa fa-trash"></i>
                     </button>
