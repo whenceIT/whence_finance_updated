@@ -109,6 +109,7 @@ class RecoveryCaseController extends Controller
                 ->select('loans.*', 'clients.first_name', 'clients.last_name')
                 ->leftJoin('clients', 'loans.client_id', '=', 'clients.id')
                 ->whereNotNull('loans.first_repayment_date')
+                ->where('loans.status', '!=', 'closed')
                 ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
                 ->get();
 
@@ -408,6 +409,7 @@ class RecoveryCaseController extends Controller
     {
         try {
             $transaction = \App\Models\LoanTransactionUnapproved::findOrFail($id);
+            // dd($transaction);
             // Approve the transaction using existing logic
             $loan = $transaction->loan;
             $pending_transactions = LoanTransactionUnapproved::where('loan_id', $loan->id)->get();
@@ -445,17 +447,22 @@ class RecoveryCaseController extends Controller
             $loan_transaction->temp_id = $id;
             $loan_transaction->save();
 
+
             // Update RecoveryPayment status
             $recoveryPayment = \App\Models\RecoveryPayment::where('transaction_id', $transaction->id)->first();
+            
             if ($recoveryPayment) {
-                $recoveryPayment->update(['transaction_id' => $loan_transaction->id, 'status' => 1]);
+                // dd($recoveryPayment);
+                $recoveryPayment->transaction_id = $loan_transaction->id;
+                $recoveryPayment->status = 1;
+                $recoveryPayment->save();
             }
 
             LoanTransactionUnapproved::where('id', $id)->delete();
             Flash::success('Recovery payment approved successfully.');
             return redirect('loan/recoveries_approvals');
         } catch (\Throwable $th) {
-            // dd($th->getMessage());
+            dd($th->getMessage());
              Flash::error('An error occurred while approving the recovery payment.');
              return redirect('loan/recoveries_approvals');
         }
