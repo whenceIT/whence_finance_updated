@@ -623,9 +623,7 @@
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/transaction_approvals') }}"><i class="fa fa-circle-o"></i> Transaction Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
-                    @if(Sentinel::hasAccess('expenses'))
-                        <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
-                    @endif
+                 
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/reloan_approvals') }}"><i class="fa fa-circle-o"></i> Reloan Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() }}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
@@ -1191,6 +1189,25 @@
             </li>
             @endif
 
+                          {{-- ====================================================== --}}
+            {{-- HUMAN RESOURCES MODULE                                 --}}
+            {{-- ====================================================== --}}
+            <li class="treeview @if(Request::is('hr/*')) active @endif">
+                <a href="#">
+                    <i class="fa fa-users"></i> <span>Human Resources</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li class="@if(Request::is('hr/employees')) active @endif">
+                        <a href="{{ url('hr/employees') }}">
+                            <i class="fa fa-circle-o"></i> Employee Records
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
 
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
@@ -1266,6 +1283,15 @@
                 </li>
             </ul>
             @endif
+
+
+          
+
+
+             
+
+
+
             <!-- Sticky Logout Button -->
             <!-- <div class="sidebar-footer" style="position: fixed; bottom: 0; left: 0; background: linear-gradient(135deg, #667eea 0%, #100E3D 100%); padding: 15px; width: 230px; border-radius: 0 0 0 8px; z-index: 1000;">
                 <a href="{{ url('logout') }}" class="btn btn-danger btn-block" style="color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); font-weight: bold;">

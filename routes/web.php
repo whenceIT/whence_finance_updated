@@ -276,6 +276,12 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::post('/{id}/toggle-status', [GeneralUploadsController::class, 'toggleStatus'])->name('learning.general-uploads.toggle-status');
  });
 
+
+Route::group(['prefix' => 'hr'],function(){
+    Route::get('employees','HRController@employees');
+    Route::get('{id}/employee','HRController@employee');
+});
+
 //route for users
 Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');
