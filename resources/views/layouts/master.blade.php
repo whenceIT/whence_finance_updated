@@ -359,6 +359,11 @@
                     <i class="fa fa-envelope" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
                     <span style="font-size: 12px;">Gmail</span>
                 </a>
+
+                <a href="{{ url('logout') }}" style="text-decoration: none; color: #fff; text-align: center; padding: 10px; border-radius: 8px; background: #dc3545; transition: background 0.3s;">
+                    <i class="fa fa-sign-out" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                    <span style="font-size: 12px;">Logout</span>
+                </a>
             </div>
         </div>
     </div>
@@ -505,10 +510,7 @@
                                                 <span style="font-size: 12px;">Gmail</span>
                                             </a>
                             
-                                            <div style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #dc3545; transition: background 0.3s; cursor: pointer;" onclick="window.location.href='{{ url('logout') }}'">
-                                                <i class="fa fa-sign-out" style="font-size: 24px; display: block; margin-bottom: 5px; color: white;"></i>
-                                                <span style="font-size: 12px; color: white; font-weight: bold;">Logout</span>
-                                            </div>
+
                                         </div>
                                     </li>
 
