@@ -255,9 +255,11 @@
 
 /* Light Blue Badge */
 .light-blue-badge {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    background: linear-gradient(135deg, #3c3d3f 0%, #000000 100%) !important;
     color: white !important;
     border: none !important;
+    border-radius: 30%;
+    padding:2%;
 }
 
 /* Play Button Overlay */
@@ -400,7 +402,7 @@
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.8);
+    color: rgb(255, 196, 0);
     margin-bottom: 8px;
     letter-spacing: 0.5px;
 }
@@ -750,8 +752,10 @@
                                 $totalTopicViews = collect($topic['uploads'])->sum('views_count');
                             @endphp
                             <div class="meta-item">
+                                <div class="light-blue-badge">
                                     <i class="fa fa-eye"></i>
-                                    <span class="light-blue-badge">{{ number_format($totalTopicViews) }} views</span>
+                                    <span>{{ number_format($totalTopicViews) }} views</span>
+                                </div>
                             </div>
                         </div>
 
@@ -824,17 +828,13 @@
                                 <!-- Meta Information -->
                                 <div class="course-meta">
                                   <div class="meta-item">
-                                    <i class="fa fa-clock-o"></i>
-                                    <span>{{ $course['duration'] }}</span>
-                                  </div>
-                                  <div class="meta-item">
-                                    <i class="fa fa-eye"></i>
                                     <span class="light-blue-badge">
-                                      @php
-                                          $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
-                                          $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
-                                      @endphp
-                                      {{ number_format($totalTopicViews) }} views
+                                        <i class="fa fa-eye"></i>
+                                        @php
+                                            $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
+                                            $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
+                                        @endphp
+                                        {{ number_format($totalTopicViews) }} views
                                     </span>
                                   </div>
                                 </div>
