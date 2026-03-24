@@ -1348,20 +1348,7 @@ if($branchUser->role){
                 @endforeach
 
 
-                <div class="col-lg-4 col-xs-12">
-                    <div class="small-box bg-aqua">
-                        <div class="inner">
-                            <p style="font-weight: bold;">Branch cycle ends on</p>
-                            <div class="icon">
-                                <i class="fa fa-clock-o"></i>
-                            </div>
-                            <h3 id='branchCycle'></h3>
-                        </div>
-                        <div class="small-box-footer">
-                            <p></p>
-                        </div>
-                    </div>
-                </div>
+    
 
                 <div class="col-lg-4 col-xs-12">
                     <div class="small-box bg-yellow">
@@ -1370,7 +1357,7 @@ if($branchUser->role){
                             <div class="icon">
                                 <i class="fa fa-usd"></i>
                             </div>
-                            <h3>{{number_format($cycle_opening_uncollected_amount, 2)}}</h3>
+                            <h3>{{ number_format($branch_data['total_uncollected']) }}</h3>
                         </div>
                         <div class="small-box-footer">
                             <p></p>
@@ -1385,7 +1372,39 @@ if($branchUser->role){
                             <div class="icon">
                                 <i class="fa fa-usd"></i>
                             </div>
-                            <h3>{{number_format($collected_total, 2)}}</h3>
+                            <h3>{{ number_format($branch_data['total_collected']) }}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+
+                          <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-aqua">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Branch Given Out</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3 >{{ number_format($branch_data['given_out']) }}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+
+                          <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-red">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Branch Still Uncollected</p>
+                            <div class="icon">
+                                <i class="fa fa-usd"></i>
+                            </div>
+                            <h3 >{{ number_format(max(0, $branch_data['still_uncollected'])) }}</h3>
                         </div>
                         <div class="small-box-footer">
                             <p></p>
@@ -1424,7 +1443,7 @@ if($branchUser->role){
                                                                                                                                   border-top-right-radius: 100% 200%;
                                                                                                                                   overflow: hidden;">
 
-                            @if(($collected_total / $cycle_opening_uncollected_amount) < 0.75)
+                            @if(($branch_data['pdua']) < 0.75)
                                 <div class="gauge__fill"
                                     style=" position: absolute;
                                                                                                                                                                                                                   top: 100%;
@@ -1437,7 +1456,7 @@ if($branchUser->role){
                                                                                                                                                                                                                   transition: transform 0.2s ease-out;">
                                 </div>
 
-                            @elseif(($collected_total / $cycle_opening_uncollected_amount) >= 0.90)
+                            @elseif(($branch_data['pdua']) >= 0.90)
                                 <div class="gauge__fill"
                                     style=" position: absolute;
                                                                                                                                                                                                                   top: 100%;
@@ -1518,7 +1537,7 @@ if($branchUser->role){
                 </div>
             </div>
 
-            <canvas id='branchgraph'></canvas>
+          
 
         </div>
 
@@ -3337,11 +3356,7 @@ if($branchUser->role){
             }
 
 
-            const branchmonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            let branchtargetDateName = branchmonths[new Date('{{$branchtargetDate}}').getMonth()]
-            var branchCycleDate = document.getElementById('branchCycle').innerHTML = '24th ' + branchtargetDateName
-            let branchfirstDateName = branchmonths[new Date('{{$branchfirstDate}}').getMonth()];
-            let branchsecondDateName = branchmonths[new Date('{{$branchsecondDate}}').getMonth()]
+      
 
             const gaugeElementBranch = document.querySelector(".gauge");
 
@@ -3357,7 +3372,7 @@ if($branchUser->role){
                 )}%`;
             }
 
-            setGaugeValue(gaugeElementBranch, '{{($collected_total / $cycle_opening_uncollected_amount)}}');
+            setGaugeValue(gaugeElementBranch, "{{ $branch_data['pdua'] }}");
 
 
             const cty = document.getElementById('branchgraph');

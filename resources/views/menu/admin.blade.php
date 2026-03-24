@@ -56,6 +56,15 @@
                 </a>
 	        </li>
 
+              @if($role == 4 || $role == 6)
+               <li class="@if(Request::is('dashboard')) active @endif">
+                <a href="{{ url('user/manager_performance') }}">
+                    <i class="fa fa-line-chart"></i> <span>Manager Performance</span>
+                </a>
+	        </li>
+            @endif
+
+
             <li class="@if(Request::is('ticket*')) active @endif">
                 <a href="{{ url('ticket') }}">
                     <i class="fa fa-ticket"></i> <span>Tickets</span>
