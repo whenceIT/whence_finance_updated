@@ -504,7 +504,7 @@ $data = $json ? json_decode($json, true) : null;
 
             }
             $branchId = Sentinel::getUser()->office_id;
-            $url = "https://lms2backend.whencefinancesystem.com/branch-performance?office_id=$branchId";
+            $url = "https://lms2backend.whencefinancesystem.com/branch-performance-new?office_id=$branchId";
             $json = @file_get_contents($url);
             $branch_data = $json ? json_decode($json, true) : null;
 
