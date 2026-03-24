@@ -10,7 +10,7 @@
 @endsection
 @section('content')
 <div class="row">
-    <div class="col-md-10 col-lg-8">
+    <div class="col-md-12 col-lg-12">
         
         <div class="box box-primary">
             <div class="box-header with-border">
@@ -40,7 +40,7 @@
                         <div class="col-md-6">
                             <div class="form-group {{ $errors->has('loan_id') ? 'has-error' : '' }}">
                                 <label>Loan <span class="text-danger">*</span></label>
-                                <select name="loan_id" class="form-control" required>
+                                <select name="loan_id" class="form-control select2" required>
                                     <option value="">— Select Loan —</option>
                                     @foreach($loans as $loan)
                                         @if($loan)
