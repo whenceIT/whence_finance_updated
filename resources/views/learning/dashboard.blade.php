@@ -253,6 +253,15 @@
 .type-document { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
 .type-course { background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); }
 
+/* Light Blue Badge */
+.light-blue-badge {
+    background: linear-gradient(135deg, #3c3d3f 0%, #000000 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 30%;
+    padding:2%;
+}
+
 /* Play Button Overlay */
 .play-overlay {
     position: absolute;
@@ -393,7 +402,7 @@
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.8);
+    color: rgb(255, 196, 0);
     margin-bottom: 8px;
     letter-spacing: 0.5px;
 }
@@ -742,17 +751,12 @@
                             @php
                                 $totalTopicViews = collect($topic['uploads'])->sum('views_count');
                             @endphp
-                            @if($totalTopicViews > 0)
                             <div class="meta-item">
+                                <div class="light-blue-badge">
                                     <i class="fa fa-eye"></i>
                                     <span>{{ number_format($totalTopicViews) }} views</span>
+                                </div>
                             </div>
-                            @else
-                            <div class="meta-item">
-                                    <i class="fa fa-eye"></i>
-                                    <span>0 views</span>
-                            </div>
-                            @endif
                         </div>
 
                         <!-- Play Overlay -->
@@ -824,17 +828,13 @@
                                 <!-- Meta Information -->
                                 <div class="course-meta">
                                   <div class="meta-item">
-                                    <i class="fa fa-clock-o"></i>
-                                    <span>{{ $course['duration'] }}</span>
-                                  </div>
-                                  <div class="meta-item">
-                                    <i class="fa fa-eye"></i>
-                                    <span>
-                                      @php
-                                          $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
-                                          $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
-                                      @endphp
-                                      {{ number_format($totalTopicViews) }} views
+                                    <span class="light-blue-badge">
+                                        <i class="fa fa-eye"></i>
+                                        @php
+                                            $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
+                                            $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
+                                        @endphp
+                                        {{ number_format($totalTopicViews) }} views
                                     </span>
                                   </div>
                                 </div>
