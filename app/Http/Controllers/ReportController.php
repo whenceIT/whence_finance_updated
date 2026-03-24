@@ -941,8 +941,15 @@ class ReportController extends Controller
                         $query->where('office_id', '=', $office_id);
                     }
                 })->get();
-
-                $targets_met = TargetsMet::whereBetween('date',[$start_date,$end_date])->get();
+$targets_met = TargetsMet::whereBetween('date', [$start_date, $end_date])
+    ->get()
+    ->groupBy(function ($item) {
+        return $item->user_id . '_' . $item->date;
+    })
+    ->map(function ($group) {
+        return $group->sortByDesc('target_level')->first();
+    })
+    ->values();
 
                 $funds_transfered = FundMovements::where('status','approved')->whereBetween('transaction_date',[$start_date,$end_date])->where('office_id',$office_id)->get();
 
@@ -991,7 +998,15 @@ class ReportController extends Controller
                         }
                     })->get();
 
-                $targets_met = TargetsMet::whereBetween('date',[$start_date,$end_date])->get();
+                $targets_met = TargetsMet::whereBetween('date', [$start_date, $end_date])
+    ->get()
+    ->groupBy(function ($item) {
+        return $item->user_id . '_' . $item->date;
+    })
+    ->map(function ($group) {
+        return $group->sortByDesc('target_level')->first();
+    })
+    ->values();
                 $funds_transfered = FundMovements::where('status','approved')->whereBetween('transaction_date',[$start_date,$end_date])->get();
             }
 

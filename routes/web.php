@@ -291,6 +291,7 @@ Route::group(['prefix' => 'hr'],function(){
 //route for users
 Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');
+    Route::get('manager_performance','UserController@manager_performance');
     Route::get('{id}/branch_page', 'UserController@branch_page');
     Route::get('{id}/province_page', 'UserController@province_page');
     Route::any('{id}/qr-download', 'UserController@downloadSingleQR');

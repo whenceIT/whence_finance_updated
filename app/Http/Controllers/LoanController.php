@@ -2897,7 +2897,8 @@ class LoanController extends Controller
 
     public function transaction_fp_pp(Request $request, $id)
     {
-        if (!Sentinel::hasAccess('loans.transactions.create')) {
+       try {
+         if (!Sentinel::hasAccess('loans.transactions.create')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
@@ -2957,7 +2958,7 @@ class LoanController extends Controller
                 $loan_transaction->notes_pd = $request->notes;
                 // $loan_transaction->request_id = $request->$id;
                 $loan_transaction->save();
-                // $this->store_dept_recovery($request, $loan_transaction->id);
+                $this->store_dept_recovery($request, $loan_transaction->id);
                 $client_id = $loan->client_id;
                 $client = \App\Models\Client::find($client_id);
                 Http::post('https://notifications.whencefinancesystem.com/emit', [
@@ -2976,6 +2977,9 @@ class LoanController extends Controller
                 return redirect('loan/' . $loan->id . '/show');
             }
         }
+       } catch (\Throwable $th) {
+         dd($th);
+       }
     }
 
 
@@ -3057,6 +3061,10 @@ class LoanController extends Controller
                         $custom_field->save();
                     }
                 }
+
+                LoanTransactionUnapproved::where('id', $trans_id)->delete();
+
+
                 event(new RepaymentCreated($loan_transaction));
                 if ($Trans->payment_apply_to == 'full_payment') {
                     $loan = Loan::find($loan->id);
@@ -3066,8 +3074,6 @@ class LoanController extends Controller
 
 
                 GeneralHelper::audit_trail("Create Repayment", "Loans", $id);
-
-                LoanTransactionUnapproved::where('id', $trans_id)->delete();
 
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');

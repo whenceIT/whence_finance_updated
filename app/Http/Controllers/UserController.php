@@ -57,6 +57,84 @@ class UserController extends Controller
 
    
 
+public function manager_performance(Request $request){
+ 
+    $user = Sentinel::getUser();
+    $userId = Sentinel::getUser()->id;
+    $cycle_end = $user->cycle_dates
+    ? (int) $user->cycle_dates->cycle_end_date
+    : 24;
+    $today = Carbon::today();
+
+    $buildCycleDate = function (Carbon $month) use ($cycle_end) {
+    $month = $month->copy()->startOfMonth();
+    $cycleDay = min($cycle_end, $month->daysInMonth);
+    return $month->day($cycleDay)->addDay();
+};
+
+    $cycleDate = $buildCycleDate(Carbon::now());
+    if ($today->lt($cycleDate)) {
+    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
+}
+
+$cycle_date = $cycleDate->format('Y-m-d');
+$true_date = $cycle_date;
+
+
+$cycle_close_date = Carbon::parse($cycle_date)
+    ->addMonthNoOverflow()
+    ->subDay()
+    ->format('Y-m-d');
+
+                $fixedDay = $cycle_end;
+$userId = Sentinel::getUser()->id;
+
+// Convert cycle_date/close_date to Carbon
+$cycleStart = Carbon::parse($cycle_date);
+$cycleEnd = Carbon::parse($cycle_close_date);
+
+// ORIGINAL
+$start = $cycleStart->copy()
+    ->format('Y-m-d');
+
+$end = $cycleEnd->copy()
+    ->day(min($fixedDay, $cycleEnd->daysInMonth))
+    ->format('Y-m-d');
+
+
+$startMonth = $request->input('start_month');
+$endMonth   = $request->input('end_month');
+
+if ($startMonth) {
+    $start = Carbon::parse($startMonth)
+        ->day(min($fixedDay, Carbon::parse($startMonth)->daysInMonth))
+        ->addDay()
+        ->format('Y-m-d');
+}
+
+if ($endMonth) {
+    $end = Carbon::parse($endMonth)
+        ->day(min($fixedDay, Carbon::parse($endMonth)->daysInMonth))
+        ->format('Y-m-d');
+}
+
+
+// Build query
+$query = http_build_query([
+    'user_id' => $userId,
+    'start_date' => $start,
+    'end_date' => $end,
+]);
+
+$url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
+
+$json = @file_get_contents($url);
+$data = $json ? json_decode($json, true) : null;
+
+return view('user.manager_performance',compact('data','start','end','userId'));
+
+}
+
 public function create_carry_over(Request $request)
 {
     $request->validate([
@@ -115,6 +193,8 @@ public function create_carry_over(Request $request)
     // Renders on dashboard
     public function dashboard(Request $request)
     {
+
+        $branch_data = [];
           $HasPendingCarryOvers = false;
            $pendingApproval = false;
             $launchNewCarryOver = false;
@@ -122,6 +202,11 @@ public function create_carry_over(Request $request)
             $has_carry_over = null;
 
         $role = Sentinel::getUser()->roles->first();
+
+        $is_user_active =  Sentinel::getUser();
+        $is_user_active->status = 'active';
+        $is_user_active->save();
+
 
 
         $userId = Sentinel::getUser()->id;
@@ -423,6 +508,10 @@ $data = $json ? json_decode($json, true) : null;
                 $HasPendingCarryOvers = true;
 
             }
+            $branchId = Sentinel::getUser()->office_id;
+            $url = "https://lms2backend.whencefinancesystem.com/branch-performance-new?office_id=$branchId";
+            $json = @file_get_contents($url);
+            $branch_data = $json ? json_decode($json, true) : null;
 
             $data = [];
             $start = null;
@@ -463,7 +552,7 @@ $data = $json ? json_decode($json, true) : null;
 
         $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date','numbers_status',));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date','numbers_status','branch_data'));
         } else {
             return view('dashboard', compact('role', 'user', 'client', 'clientBranch', 'staff', 'clientLoan'));
         }
