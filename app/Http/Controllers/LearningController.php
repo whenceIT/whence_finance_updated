@@ -126,7 +126,7 @@ class LearningController extends Controller
                 //         $q->where('id', $user->position_id);
                 //     }
                 // });
-            }])->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
+            }])->inRandomOrder()->paginate($perPage, ['*'], 'topics_page', $page)->map(function($topic) {
                 return [
                     'id' => $topic->id,
                     'name' => $topic->name,
