@@ -203,6 +203,11 @@ public function create_carry_over(Request $request)
 
         $role = Sentinel::getUser()->roles->first();
 
+        $is_user_active =  Sentinel::getUser();
+        $is_user_active->status = 'active';
+        $is_user_active->save();
+
+
 
         $userId = Sentinel::getUser()->id;
         //BELOW THIS
