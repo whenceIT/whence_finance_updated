@@ -253,6 +253,13 @@
 .type-document { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
 .type-course { background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); }
 
+/* Light Blue Badge */
+.light-blue-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
 /* Play Button Overlay */
 .play-overlay {
     position: absolute;
@@ -742,17 +749,10 @@
                             @php
                                 $totalTopicViews = collect($topic['uploads'])->sum('views_count');
                             @endphp
-                            @if($totalTopicViews > 0)
                             <div class="meta-item">
                                     <i class="fa fa-eye"></i>
-                                    <span>{{ number_format($totalTopicViews) }} views</span>
+                                    <span class="light-blue-badge">{{ number_format($totalTopicViews) }} views</span>
                             </div>
-                            @else
-                            <div class="meta-item">
-                                    <i class="fa fa-eye"></i>
-                                    <span>0 views</span>
-                            </div>
-                            @endif
                         </div>
 
                         <!-- Play Overlay -->
@@ -829,7 +829,7 @@
                                   </div>
                                   <div class="meta-item">
                                     <i class="fa fa-eye"></i>
-                                    <span>
+                                    <span class="light-blue-badge">
                                       @php
                                           $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
                                           $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
