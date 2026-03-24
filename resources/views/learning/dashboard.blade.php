@@ -660,17 +660,17 @@
 <!-- Tab Pills Container -->
 <div class="tab-pills-container">
     <button onclick="switchTab('featured')" id="tab-featured" class="tab-pill">
-        <i class="fa fa-star"></i> Featured
+        <i class="fa fa-star"></i> Featured Topics
     </button>
-    <button onclick="switchTab('all')" id="tab-all" class="tab-pill">
+    <!-- <button onclick="switchTab('all')" id="tab-all" class="tab-pill">
         <i class="fa fa-th-large"></i> All
-    </button>
+    </button> -->
     <button onclick="switchTab('courses')" id="tab-courses" class="tab-pill">
-        <i class="fa fa-graduation-cap"></i> Courses
+        <i class="fa fa-graduation-cap"></i> Training Courses 
     </button>
-    <button onclick="switchTab('uploads')" id="tab-uploads" class="tab-pill">
+    <!-- <button onclick="switchTab('uploads')" id="tab-uploads" class="tab-pill">
         <i class="fa fa-cloud-upload"></i> Uploads
-    </button>
+    </button> -->
 </div>
 
 <!-- Search Bar -->
@@ -724,7 +724,7 @@
                     @endif
                 </div>
 
-                                <!-- Gradient Blur Overlay -->
+                <!-- Gradient Blur Overlay -->
                 <div class="topic-overlay">
                     <div class="topic-content">
                         <!-- Badge -->
@@ -910,8 +910,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var grid = document.getElementById('content-grid');
     allCards = Array.from(grid.querySelectorAll('.content-card'));
 
-    // Set default tab to 'all' (shows both featured and courses)
-    var defaultTab = 'all';
+    // Set default tab to 'featured' (shows featured topics)
+    var defaultTab = 'featured';
 
     // Check for URL parameter
     var urlParams = new URLSearchParams(window.location.search);
@@ -1120,7 +1120,10 @@ function applyFilters() {
         } else if (currentTab === 'in_progress') {
             showByTab = cardType === 'course' && cardProgress > 0 && cardProgress < 100;
         } else if (currentTab === 'uploads') {
+            // Show ALL uploads without topic grouping
             showByTab = cardType !== 'course';
+            // For uploads tab, ignore filter pills and show all uploads
+            showByFilter = true;
         } else {
             showByTab = cardType === currentTab;
         }
