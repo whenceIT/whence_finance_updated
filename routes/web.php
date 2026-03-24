@@ -188,11 +188,14 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     // Settings Routes
     Route::get('/settings', [LearningSettingController::class, 'index'])->name('learning.settings');
       Route::get('/settings/general-topics', [GeneralTopicsController::class, 'index'])->name('learning.settings.general-topics.index');
-      Route::get('/settings/general-topics/create', [GeneralTopicsController::class, 'create'])->name('learning.settings.general-topics.create');
-      Route::post('/settings/general-topics', [GeneralTopicsController::class, 'store'])->name('learning.settings.general-topics.store');
-      Route::get('/settings/general-topics/{id}/edit', [GeneralTopicsController::class, 'edit'])->name('learning.settings.general-topics.edit');
-      Route::put('/settings/general-topics/{id}', [GeneralTopicsController::class, 'update'])->name('learning.settings.general-topics.update');
-      Route::delete('/settings/general-topics/{id}', [GeneralTopicsController::class, 'destroy'])->name('learning.settings.general-topics.destroy');
+        Route::get('/settings/general-topics/create', [GeneralTopicsController::class, 'create'])->name('learning.settings.general-topics.create');
+        Route::post('/settings/general-topics', [GeneralTopicsController::class, 'store'])->name('learning.settings.general-topics.store');
+        Route::get('/settings/general-topics/{id}/edit', [GeneralTopicsController::class, 'edit'])->name('learning.settings.general-topics.edit');
+        Route::put('/settings/general-topics/{id}', [GeneralTopicsController::class, 'update'])->name('learning.settings.general-topics.update');
+        Route::delete('/settings/general-topics/{id}', [GeneralTopicsController::class, 'destroy'])->name('learning.settings.general-topics.destroy');
+ 
+      // Analytics
+      Route::get('/analytics', [App\Http\Controllers\LearningAnalyticsController::class, 'index'])->name('learning.analytics');
     Route::get('/settings/categories', [LearningSettingController::class, 'categories'])->name('learning.settings.categories');
     Route::get('/settings/students', [LearningSettingController::class, 'students'])->name('learning.settings.students');
     Route::get('/settings/teachers', [LearningSettingController::class, 'teachers'])->name('learning.settings.teachers');
@@ -257,6 +260,7 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      
       // Topics management route for trainers
      Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
+     Route::post('/topic/{topicId}/increment-view', [TrainingMaterialController::class, 'incrementTopicView'])->name('learning.training-materials.increment-topic-view');
  });
 
  // General Uploads Management Routes

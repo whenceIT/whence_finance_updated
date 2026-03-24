@@ -49,10 +49,6 @@
                 
                 <!-- Navigation -->
                 <nav class="learning-nav">
-                    <a href="{{ url('/learning') }}" class="nav-link active">
-                        <i class="fa fa-dashboard"></i>
-                        <span>Dashboard</span>
-                    </a>
                     @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
                         <a href="{{ url('learning/settings/courses') }}" class="nav-link">
                             <i class="fa fa-book"></i>
@@ -69,6 +65,10 @@
                         <a href="{{ url('learning/settings/general-topics') }}" class="nav-link">
                             <i class="fa fa-folder-open"></i>
                             <span>Manage Topics</span>
+                        </a>
+                        <a href="{{ url('learning/analytics') }}" class="nav-link">
+                            <i class="fa fa-chart-bar"></i>
+                            <span>Analytics</span>
                         </a>
                     @endif
                 </nav>
@@ -122,9 +122,9 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <!-- Main Container -->
-    <div class="learning-container">
+    <div class="learning-container" style="border:0px; border:none">
         <!-- Sidebar -->
-        <aside class="learning-sidebar" id="learning-sidebar">
+        <aside class="learning-sidebar" id="learning-sidebar" style="border:0px; border:none; border-radius: 0 10% 0% 0;">
             <button class="sidebar-close-btn" id="sidebar-close">
                 <i class="fa fa-times"></i>
             </button>

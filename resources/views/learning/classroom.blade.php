@@ -1064,6 +1064,11 @@ let currentTopicCompleted = false;
 let currentQuizId = null;
 let currentQuizPassed = false;
 
+// Engagement tracking variables
+let engagementTimer = null;
+let engagementStartTime = null;
+let hasIncrementedView = false;
+
 function togglePhase(phaseIndex) {
     const topicsDiv = document.getElementById('phase-topics-' + phaseIndex);
     const toggleIcon = document.getElementById('phase-toggle-' + phaseIndex);
@@ -1083,8 +1088,11 @@ function toggleSidebar() {
 }
 
 function previewResource(type, filePath) {
+    // Start engagement tracking for topic views
+    startEngagementTracking();
+
     const resourcePreview = document.getElementById('resource-preview');
-    
+
     // Create full screen preview
     let previewHTML = `<div class="full-screen-preview">
         <button class="exit-button" onclick="exitFullScreenPreview()">
@@ -1183,23 +1191,26 @@ function previewExternalResource(filePath, resourceType) {
 
 function openTopic(topicId, topicType, topicFilePath, quizId = null) {
     console.log('Opening topic:', topicId, 'Type:', topicType, 'File:', topicFilePath, 'Quiz:', quizId);
-    
+
+    // Reset engagement tracking when switching topics
+    resetEngagementTracking();
+
     currentTopicId = topicId;
     currentTopicType = topicType;
     currentTopicFilePath = topicFilePath;
     currentQuizId = quizId;
-    
+
     // Find topic completed status from the clicked element
     const topicElement = document.querySelector(`[data-topic-id="${topicId}"]`);
     currentTopicCompleted = topicElement ? topicElement.dataset.topicCompleted === 'true' : false;
     currentQuizPassed = topicElement ? topicElement.dataset.quizPassed === 'true' : false;
-    
+
     // Update sidebar selection
     document.querySelectorAll('.wizard-topic').forEach(el => el.classList.remove('selected'));
     if (topicElement) {
         topicElement.classList.add('selected');
     }
-    
+
     // Update content area with topic info
     updateTopicContent(topicId, topicType, topicFilePath);
 }
@@ -1580,10 +1591,71 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Quiz confirmation dialog
 function confirmTakeQuiz(quizId, topicTitle) {
-    document.getElementById('quizConfirmMessage').innerHTML = 
+    document.getElementById('quizConfirmMessage').innerHTML =
         'Are you ready to take the quiz for <strong style="color: var(--primary-color);">' + topicTitle + '</strong>?\n        <p style="margin-top: 10px; font-size: 13px;">You need to pass this quiz to complete the topic.</p>';
     document.getElementById('quizConfirmLink').href = '/learning/training-materials/quiz/' + quizId + '/take';
     $('#quizConfirmModal').modal('show');
 }
+
+// Engagement tracking functions for topic view counting
+function startEngagementTracking() {
+    if (!currentTopicId || hasIncrementedView) {
+        return; // No topic selected or already incremented
+    }
+
+    engagementStartTime = new Date();
+    hasIncrementedView = false;
+
+    // Clear any existing timer
+    if (engagementTimer) {
+        clearTimeout(engagementTimer);
+    }
+
+    // Set timer for 2 minutes (120,000 milliseconds)
+    engagementTimer = setTimeout(function() {
+        incrementTopicView();
+    }, 120000);
+}
+
+function resetEngagementTracking() {
+    // Clear timer and reset flags
+    if (engagementTimer) {
+        clearTimeout(engagementTimer);
+        engagementTimer = null;
+    }
+    engagementStartTime = null;
+    hasIncrementedView = false;
+}
+
+function incrementTopicView() {
+    if (!currentTopicId || hasIncrementedView) {
+        return; // No topic or already incremented
+    }
+
+    // Make AJAX call to increment view count
+    fetch('/learning/training-materials/topic/' + currentTopicId + '/increment-view', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            hasIncrementedView = true;
+            console.log('Topic view count incremented for topic:', currentTopicId);
+        }
+    })
+    .catch(error => {
+        console.error('Error incrementing topic view:', error);
+    });
+}
+
+// Reset engagement tracking when user leaves the page
+window.addEventListener('beforeunload', function() {
+    resetEngagementTracking();
+});
 </script>
 @endsection

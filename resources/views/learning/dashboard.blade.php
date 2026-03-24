@@ -328,6 +328,292 @@
 .load-more-btn .fa-spinner {
     margin-right: 8px;
 }
+
+/* Course Card Enhanced Design */
+.course-card {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+}
+
+.course-bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+.course-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        135deg,
+        rgba(0,0,0,0.7) 0%,
+        rgba(0,0,0,0.4) 50%,
+        rgba(0,0,0,0.2) 100%
+    );
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+}
+
+.course-content {
+    padding: 20px;
+    width: 100%;
+    color: white;
+    z-index: 3;
+}
+
+.course-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.9);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 4;
+}
+
+.course-category {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.course-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.3;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.course-progress {
+    margin-bottom: 15px;
+}
+
+.course-progress .progress-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+
+.course-progress .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #fff, rgba(255,255,255,0.8));
+    border-radius: 2px;
+}
+
+.course-progress .progress-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 600;
+}
+
+.course-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+}
+
+.meta-item i {
+    opacity: 0.8;
+}
+
+.course-card .play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 5;
+}
+
+.course-card:hover .play-overlay {
+    opacity: 1;
+}
+
+.course-card:hover .course-overlay {
+    background: linear-gradient(
+        135deg,
+        rgba(0,0,0,0.8) 0%,
+        rgba(0,0,0,0.5) 50%,
+        rgba(0,0,0,0.3) 100%
+    );
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+/* All Tab Layout - Show both featured and content grid */
+#featured-topics-container + .unified-grid {
+    margin-top: 20px;
+}
+
+/* Topic Folder Card Enhanced Design */
+.topic-folder-card {
+    position: relative;
+    height: 280px;
+    overflow: hidden;
+}
+
+.topic-bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+.topic-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        135deg,
+        rgba(0,0,0,0.75) 0%,
+        rgba(0,0,0,0.5) 50%,
+        rgba(0,0,0,0.25) 100%
+    );
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+}
+
+.topic-content {
+    padding: 20px;
+    width: 100%;
+    color: white;
+    z-index: 3;
+}
+
+.topic-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.9);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 4;
+}
+
+.topic-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    line-height: 1.3;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.topic-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.topic-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+}
+
+.topic-meta .meta-item i {
+    opacity: 0.8;
+    font-size: 14px;
+}
+
+.topic-folder-card .play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 5;
+}
+
+.topic-folder-card:hover .play-overlay {
+    opacity: 1;
+}
+
+.topic-folder-card .play-button i {
+    color: var(--primary-color);
+    font-size: 24px;
+}
+
+.topic-folder-card:hover .topic-overlay {
+    background: linear-gradient(
+        135deg,
+        rgba(0,0,0,0.85) 0%,
+        rgba(0,0,0,0.6) 50%,
+        rgba(0,0,0,0.35) 100%
+    );
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
 </style>
 
 @section('content')
@@ -413,6 +699,7 @@
     </button>
 </div>
 
+
 <!-- Content Count -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2 id="content-title" style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin: 0;">
@@ -428,21 +715,57 @@
 <div id="featured-topics-container">
         <!-- General Topics as Folders -->
         @foreach($topicsWithUploads as $topic)
-                <div class="col-12 col-md-6 col-lg-3 topic-card" style="margin-bottom: 20px;" data-title="{{ $topic['name'] }}">
-                        <div class="content-card" onclick='window.location.href="{{ url('learning/general-uploads?topic=' . $topic['id']) }}"'>
-                                <div class="card-image" style="{{ $topic['poster'] ? 'background: none;' : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);' }} height: 160px; display: flex; align-items: center; justify-content: center;">
-                                        @if($topic['poster'])
-                                                <img src="{{ $topic['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $topic['name'] }}">
-                                        @else
-                                                <i class="fa fa-folder-open" style="color: white; font-size: 48px;"></i>
-                                        @endif
-                                </div>
-                                <div class="card-body" style="text-align: center;">
-                                        <h3 class="card-title" style="color: var(--text-primary); margin: 0 0 8px 0; font-size: 18px; font-weight: 600; line-height: 1.3;">{{ $topic['name'] }}</h3>
-                                        <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">{{ count($topic['uploads']) }} resources</p>
-                                </div>
-                        </div>
+        <div class="col-12 col-md-6 col-lg-3 topic-card" style="margin-bottom: 20px;" data-title="{{ $topic['name'] }}">
+            <div class="content-card topic-folder-card" onclick='window.location.href="{{ url('learning/general-uploads?topic=' . $topic['id']) }}"'>
+                <!-- Full Background Image or Gradient -->
+                <div class="topic-bg-image" style="{{ isset($topic['poster']) && $topic['poster'] ? 'background-image: url(\'' . $topic['poster'] . '\');' : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);' }}">
+                    @if(!isset($topic['poster']) || !$topic['poster'])
+                        <i class="fa fa-folder-open" style="font-size: 48px; color: rgba(255,255,255,0.9);"></i>
+                    @endif
                 </div>
+
+                                <!-- Gradient Blur Overlay -->
+                <div class="topic-overlay">
+                    <div class="topic-content">
+                        <!-- Badge -->
+                        <div class="topic-badge">Topic</div>
+
+                        <!-- Title -->
+                        <h3 class="topic-title">{{ $topic['name'] }}</h3>
+
+                        <!-- Meta Information -->
+                        <div class="topic-meta">
+                            <div class="meta-item">
+                                    <i class="fa fa-file"></i>
+                                    <span>{{ count($topic['uploads']) }} resources</span>
+                            </div>
+                            @php
+                                $totalTopicViews = collect($topic['uploads'])->sum('views_count');
+                            @endphp
+                            @if($totalTopicViews > 0)
+                            <div class="meta-item">
+                                    <i class="fa fa-eye"></i>
+                                    <span>{{ number_format($totalTopicViews) }} views</span>
+                            </div>
+                            @else
+                            <div class="meta-item">
+                                    <i class="fa fa-eye"></i>
+                                    <span>0 views</span>
+                            </div>
+                            @endif
+                        </div>
+
+                        <!-- Play Overlay -->
+                        <div class="play-overlay">
+                            <div class="play-button">
+                                <i class="fa fa-folder-open"></i>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
         @endforeach
         
         <!-- No Results Message for Topics -->
@@ -468,34 +791,63 @@
       @if(!$isFeaturedTab)
               <!-- Course Cards -->
               @foreach($courses as $course)
-              <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
-               <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); {{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
-                 @if(isset($course['poster']) && $course['poster'])
-                       <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
-                 @else
-                       <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
-                 @endif
-                 <div class="card-badge">Course</div>
-                 <div class="play-overlay">
-                       <div class="play-button">
-                             <i class="fa fa-play"></i>
-                       </div>
-                 </div>
-               </div>
-               <div class="card-body">
-                       <div class="card-category">{{ $course['category'] }}</div>
-                       <h3 class="card-title">{{ $course['title'] }}</h3>
-                       @if($course['enrolled'] && $course['progress'] > 0)
-                       <div class="progress-bar">
-                             <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
-                       </div>
-                       @endif
-                       <div class="card-meta">
-                             <span><i class="fa fa-clock-o"></i> {{ $course['duration'] }}</span>
-                             <span><i class="fa fa-list"></i> {{ $course['lessons'] }} Lessons</span>
-                       </div>
-               </div>
-              </div>
+              <div class="content-card course-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
+                            <!-- Full Background Image or Gradient -->
+                            <div class="course-bg-image" style="{{ isset($course['poster']) && $course['poster'] ? 'background-image: url(\'' . $course['poster'] . '\');' : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);' }}">
+                              @if(!isset($course['poster']) || !$course['poster'])
+                                    <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}" style="font-size: 48px; color: rgba(255,255,255,0.9);"></i>
+                              @endif
+                            </div>
+             
+                            <!-- Gradient Blur Overlay -->
+                            <div class="course-overlay">
+                              <div class="course-content">
+                                <!-- Badge -->
+                                <div class="course-badge">Course</div>
+             
+                                <!-- Category -->
+                                <div class="course-category">{{ $course['category'] }}</div>
+             
+                                <!-- Title -->
+                                <h3 class="course-title text-white" style="color: white;">{{ $course['title'] }}</h3>
+             
+                                <!-- Progress Bar (if enrolled and in progress) -->
+                                @if($course['enrolled'] && $course['progress'] > 0)
+                                <div class="course-progress">
+                                  <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
+                                  </div>
+                                  <span class="progress-text">{{ $course['progress'] }}% Complete</span>
+                                </div>
+                                @endif
+             
+                                <!-- Meta Information -->
+                                <div class="course-meta">
+                                  <div class="meta-item">
+                                    <i class="fa fa-clock-o"></i>
+                                    <span>{{ $course['duration'] }}</span>
+                                  </div>
+                                  <div class="meta-item">
+                                    <i class="fa fa-eye"></i>
+                                    <span>
+                                      @php
+                                          $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
+                                          $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
+                                      @endphp
+                                      {{ number_format($totalTopicViews) }} views
+                                    </span>
+                                  </div>
+                                </div>
+             
+                                <!-- Play Overlay -->
+                                <div class="play-overlay">
+                                  <div class="play-button">
+                                    <i class="fa fa-play"></i>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                           </div>
               @endforeach
       @endif
       
@@ -522,7 +874,7 @@
                               <h3 class="card-title">{{ $upload->name }}</h3>
                               <div class="card-meta">
                                       <span><i class="fa fa-database"></i> {{ $upload->formatted_size ?? 'N/A' }}</span>
-                                      <span>{{ $upload->created_at->format('M d, Y') }}</span>
+                                      <span><i class="fa fa-eye"></i> {{ $upload->views_count ?? 0 }} views</span>
                               </div>
                       </div>
               </div>
@@ -557,24 +909,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Collect all cards for filtering
     var grid = document.getElementById('content-grid');
     allCards = Array.from(grid.querySelectorAll('.content-card'));
-    
-    // Set default tab to 'featured'
-    var randomTab = 'featured';
-    
+
+    // Set default tab to 'all' (shows both featured and courses)
+    var defaultTab = 'all';
+
     // Check for URL parameter
     var urlParams = new URLSearchParams(window.location.search);
     var tabParam = urlParams.get('tab');
     var validTabs = ['all', 'courses', 'in_progress', 'uploads', 'video', 'audio', 'book', 'document', 'featured'];
     if (tabParam && validTabs.includes(tabParam)) {
-        randomTab = tabParam;
+        defaultTab = tabParam;
     }
-    
-    switchTab(randomTab);
-    
+
+    switchTab(defaultTab);
+
     // Hide load more button if there are no more items to load
     const totalItems = {{ $isFeaturedTab ? count($topicsWithUploads) : (count($courses) + $uploads->count()) }};
     const perPage = {{ $perPage }};
-    
+
     if (totalItems < perPage) {
         const loadMoreContainer = document.getElementById('load-more-container');
         if (loadMoreContainer) {
@@ -585,14 +937,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function switchTab(tab) {
     currentTab = tab;
-    
+
     // Update tab pills
     var tabs = document.querySelectorAll('.tab-pill');
     tabs.forEach(function(t) {
         t.classList.remove('active');
     });
     document.getElementById('tab-' + tab).classList.add('active');
-    
+
     // Show/hide type filters
     var typeFilters = document.getElementById('type-filters');
     if (tab === 'uploads' || ['video', 'audio', 'book', 'paper', 'document'].includes(tab)) {
@@ -600,7 +952,7 @@ function switchTab(tab) {
     } else {
         typeFilters.style.display = 'none';
     }
-    
+
     // Update title
     var titles = {
         'all': 'All Learning Materials',
@@ -614,10 +966,10 @@ function switchTab(tab) {
         'featured': 'Featured Topics'
     };
     document.getElementById('content-title').innerHTML = '<i class="fa fa-th-large" style="color: var(--primary-color); margin-right: 10px;"></i>' + titles[tab];
-    
+
     // Reset filter pills
     filterByType('all');
-    
+
     // Apply filters
     applyFilters();
 }
@@ -648,19 +1000,19 @@ function applyFilters() {
     var featuredContainer = document.getElementById('featured-topics-container');
     var visibleCount = 0;
     var hasVisibleCards = false;
-    
+
     // Handle featured tab - show featured topics container, hide content grid
     if (currentTab === 'featured') {
         grid.style.display = 'none';
         featuredContainer.style.display = 'block';
-        
+
         // Search through featured topics
         var topicCards = document.querySelectorAll('.topic-card');
         var visibleTopics = 0;
-        
+
         topicCards.forEach(function(card) {
             var topicTitle = (card.dataset.title || '').toLowerCase();
-            
+
             if (searchQuery === '' || topicTitle.includes(searchQuery)) {
                 card.style.display = '';
                 visibleTopics++;
@@ -668,10 +1020,10 @@ function applyFilters() {
                 card.style.display = 'none';
             }
         });
-        
+
         // Update count for featured tab
         document.getElementById('content-count').textContent = 'Showing ' + visibleTopics + ' items';
-        
+
         // Show/hide no results message for topics
         var noTopicsResults = document.getElementById('no-topics-results');
         if (visibleTopics === 0) {
@@ -679,31 +1031,91 @@ function applyFilters() {
         } else {
             noTopicsResults.style.display = 'none';
         }
-        
+
         // Hide other no results message
         document.getElementById('no-results').style.display = 'none';
         return;
     }
-    
-    // For all other tabs, show content grid, hide featured container
+
+    // Handle all tab - show both featured topics and content grid
+    if (currentTab === 'all') {
+        // Show both containers
+        grid.style.display = 'grid';
+        featuredContainer.style.display = 'block';
+
+        // Filter featured topics
+        var topicCards = document.querySelectorAll('.topic-card');
+        var visibleTopics = 0;
+
+        topicCards.forEach(function(card) {
+            var topicTitle = (card.dataset.title || '').toLowerCase();
+
+            if (searchQuery === '' || topicTitle.includes(searchQuery)) {
+                card.style.display = '';
+                visibleTopics++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Filter content grid cards (show all types)
+        allCards.forEach(function(card) {
+            var cardTitle = (card.dataset.title || '').toLowerCase();
+            var cardCategory = (card.dataset.category || '').toLowerCase();
+
+            var showBySearch = searchQuery === '' ||
+                              cardTitle.includes(searchQuery) ||
+                              cardCategory.includes(searchQuery);
+
+            if (showBySearch) {
+                card.style.display = '';
+                visibleCount++;
+                hasVisibleCards = true;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Update total count (topics + grid items)
+        var totalVisible = visibleTopics + visibleCount;
+        document.getElementById('content-count').textContent = 'Showing ' + totalVisible + ' items';
+
+        // Show/hide no results messages
+        var noTopicsResults = document.getElementById('no-topics-results');
+        var noResults = document.getElementById('no-results');
+
+        if (visibleTopics === 0) {
+            noTopicsResults.style.display = 'block';
+        } else {
+            noTopicsResults.style.display = 'none';
+        }
+
+        if (!hasVisibleCards) {
+            noResults.style.display = 'block';
+        } else {
+            noResults.style.display = 'none';
+        }
+
+        return;
+    }
+
+    // For other tabs, show content grid, hide featured container
     grid.style.display = 'grid';
     featuredContainer.style.display = 'none';
-    
+
     allCards.forEach(function(card) {
         var cardType = card.dataset.type;
         var cardTitle = (card.dataset.title || '').toLowerCase();
         var cardCategory = (card.dataset.category || '').toLowerCase();
         var cardProgress = parseInt(card.dataset.progress) || 0;
-        
+
         var showByTab = false;
         var showByFilter = currentFilter === 'all' || cardType === currentFilter;
-        var showBySearch = searchQuery === '' || 
-                            cardTitle.includes(searchQuery) || 
+        var showBySearch = searchQuery === '' ||
+                            cardTitle.includes(searchQuery) ||
                             cardCategory.includes(searchQuery);
-        
-        if (currentTab === 'all') {
-            showByTab = true;
-        } else if (currentTab === 'courses') {
+
+        if (currentTab === 'courses') {
             showByTab = cardType === 'course';
         } else if (currentTab === 'in_progress') {
             showByTab = cardType === 'course' && cardProgress > 0 && cardProgress < 100;
@@ -712,7 +1124,7 @@ function applyFilters() {
         } else {
             showByTab = cardType === currentTab;
         }
-        
+
         if (showByTab && showByFilter && showBySearch) {
             card.style.display = '';
             visibleCount++;
@@ -721,10 +1133,10 @@ function applyFilters() {
             card.style.display = 'none';
         }
     });
-    
+
     // Update count
     document.getElementById('content-count').textContent = 'Showing ' + visibleCount + ' items';
-    
+
     // Show/hide no results message
     var noResults = document.getElementById('no-results');
     if (!hasVisibleCards) {

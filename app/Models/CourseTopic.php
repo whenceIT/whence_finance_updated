@@ -23,6 +23,7 @@ class CourseTopic extends Model
         'duration',
         'sort_order',
         'is_active',
+        'view_count',
     ];
 
     protected $casts = [
@@ -78,5 +79,16 @@ class CourseTopic extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order', 'asc');
+    }
+
+    /**
+     * Increment view count.
+     *
+     * @return bool
+     */
+    public function incrementViewCount()
+    {
+        $this->increment('view_count');
+        return true;
     }
 }

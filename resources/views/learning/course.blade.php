@@ -25,13 +25,13 @@
                 <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     {{ $material->creator->first_name }} {{ $material->creator->last_name }}
                 </div>
-                @if($material->creator->roles && $material->creator->roles->first())
+                @if($material->creator->roles && $material->creator->roles->first()) 
                 <div style="font-size: 11px; color: var(--primary-color); font-weight: 500;">
-                    {{ $material->creator->roles->first()->name }}
+                    {{ $material->creator->roles->first()->name }} (Instructor)
                 </div>
                 @endif
                 <div style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;">
-                    <i class="fa fa-clock-o"></i> {{ $material->created_at->diffForHumans() }}
+                    <i class="fa fa-clock-o"></i> Since {{ $material->created_at->diffForHumans() }}
                 </div>
             </div>
         </div>
@@ -102,6 +102,19 @@
                         <i class="fa fa-building" style="color: var(--primary-color);"></i>
                         <span>{{ $material->department ?? 'All Departments' }}</span>
                     </div>
+                </div>
+
+                <!-- Topic View Count - Large and Sleek -->
+                @php
+                    $totalTopicViews = $material->allTopics ? $material->allTopics->sum('view_count') : 0;
+                @endphp
+                <div style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px; text-align: center; color: white; box-shadow: 0 8px 32px rgba(74, 144, 226, 0.3);">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px;">
+                        <i class="fa fa-eye" style="font-size: 32px; opacity: 0.9;"></i>
+                        <div style="font-size: 48px; font-weight: 700; line-height: 1;">{{ number_format($totalTopicViews) }}</div>
+                    </div>
+                    <div style="font-size: 16px; opacity: 0.9; font-weight: 300;">Topic Views</div>
+                    <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">Total engagement across all course topics</div>
                 </div>
             </div>
         </div>
@@ -293,7 +306,7 @@
                 
                 <div style="margin-bottom: 12px;">
                     <span style="color: var(--text-secondary); font-size: 12px;">Views</span>
-                    <div style="font-weight: 600;">{{ $material->view_count ?? 0 }}</div>
+                    <div style="font-weight: 600;">{{ $totalTopicViews ?? 0 }}</div>
                 </div>
                 
                 <div style="margin-bottom: 12px;">
