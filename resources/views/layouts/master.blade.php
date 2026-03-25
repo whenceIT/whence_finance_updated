@@ -385,13 +385,13 @@
                     Finance</span>
             </a>
             <div>
-                <a href="{{url('/')}}" class="logo"
+                <!-- <a href="{{url('/')}}" class="logo"
                     style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
                     <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
                         style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
                     <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence
                         Finance</span>
-                </a>
+                </a> -->
                 
                 <!-- Tools Menu (visible on mobile) -->
                 <a href="#" onclick="toggleUserDropdown(event)" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none;">
@@ -457,7 +457,7 @@
                     <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ddd; width: 350px; max-height: 250px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; margin-top: 5px;"></div>
                 </div>
                 @else
-                <!-- <div class="col-md-10"></div> -->
+                <div class="col-md-10"></div>
                 @endif
 
                 <!-- Navbar Right Menu -->
