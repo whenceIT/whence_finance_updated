@@ -103,7 +103,7 @@ function applyFilters() {
         <div style="font-size: 13px; color: var(--text-secondary);">Inactive</div>
     </div>
     <div style="background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: var(--shadow);">
-        <div style="font-size: 32px; font-weight: 700; color: var(--accent-color);">{{ $materials->sum('view_count') }}</div>
+        <div style="font-size: 32px; font-weight: 700; color: var(--accent-color);">{{ \App\Helpers\GeneralHelper::calculate_view_percentage($materials->sum('view_count')) }}%</div>
         <div style="font-size: 13px; color: var(--text-secondary);">Total Views</div>
     </div>
 </div>

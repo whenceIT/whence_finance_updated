@@ -80,7 +80,7 @@ $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
             @endphp
             @if($totalViews > 0)
             <div style="display: flex;">
-                <div style="font-size: 18px; font-weight: 700; line-height: 1;">{{ number_format($totalViews) }} view</div>
+                <div style="font-size: 18px; font-weight: 700; line-height: 1;">{{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalViews) }}% views</div>
             </div>
             @endif
             @if($isAdmin)
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="course-meta">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <span style="color: var(--text-secondary); font-size: 12px;">
-                        <i class="fa fa-eye"></i> {{ $upload->views_count ?? 0 }} views
+                        <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($upload->views_count ?? 0) }}% views
                     </span>                    
                     <!-- <span style="color: var(--text-secondary); font-size: 12px;">
                         <i class="fa fa-heart"></i> {{ $upload->likes_count ?? 0 }} likes

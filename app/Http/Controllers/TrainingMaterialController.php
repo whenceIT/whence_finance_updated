@@ -1339,6 +1339,10 @@ class TrainingMaterialController extends Controller
     {
         try {
             $topic = CourseTopic::findOrFail($topicId);
+            
+            // Record the viewer
+            \App\Models\GeneralView::recordView('topic', $topicId);
+            
             $topic->incrementViewCount();
 
             return response()->json(['success' => true]);

@@ -754,7 +754,7 @@
                             <div class="meta-item">
                                 <div class="light-blue-badge">
                                     <i class="fa fa-eye"></i>
-                                    <span>{{ number_format($totalTopicViews) }} views</span>
+                                    <span>{{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% views</span>
                                 </div>
                             </div>
                         </div>
@@ -834,7 +834,7 @@
                                             $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
                                             $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
                                         @endphp
-                                        {{ number_format($totalTopicViews) }} views
+                                        {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% views
                                     </span>
                                   </div>
                                 </div>
@@ -874,7 +874,7 @@
                               <h3 class="card-title">{{ $upload->name }}</h3>
                               <div class="card-meta">
                                       <span><i class="fa fa-database"></i> {{ $upload->formatted_size ?? 'N/A' }}</span>
-                                      <span><i class="fa fa-eye"></i> {{ $upload->views_count ?? 0 }} views</span>
+                                      <span><i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($upload->views_count ?? 0) }}% views</span>
                               </div>
                       </div>
               </div>

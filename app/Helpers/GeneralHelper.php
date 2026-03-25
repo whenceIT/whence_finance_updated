@@ -2871,4 +2871,24 @@ public static function new_new_loan_total_balance($id)
         }
         return collect();
     }
+
+    /**
+     * Calculate view percentage based on view count and total users
+     * 
+     * @param int $viewCount The number of views
+     * @param int|null $totalUsers Optional total users count. If null, will fetch from database
+     * @return float The percentage value
+     */
+    public static function calculate_view_percentage($viewCount, $totalUsers = null)
+    {
+        if ($totalUsers === null) {
+            $totalUsers = \App\Models\User::count();
+        }
+        
+        if ($totalUsers == 0) {
+            return 0;
+        }
+        
+        return round(($viewCount / $totalUsers) * 100, 1);
+    }
 }
