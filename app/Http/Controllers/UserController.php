@@ -666,6 +666,9 @@ $data = CarryOver::where('status','pending')->where('office_id',$office_id)->get
 return view('user.carry_over_approvals',compact('data'));
 }
 
+
+
+
  public function approve_carry_over(Request $request, $id){
     $carry_over = CarryOver::where('id',$id)->first();
     $carry_over->status = 'active';
@@ -821,6 +824,12 @@ public function downloadSingleQR($id)
         $role = $user_role->role_id;
         return view('user.performance_information', compact('offices','role','office_id'));
     }
+
+
+    public function branch_performance(){
+    
+    return view('user.branch_performance');
+}
 
 
 

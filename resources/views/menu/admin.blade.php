@@ -926,12 +926,22 @@
                             </a>
                         </li>
                     @endif
+
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('user/branch_performance') }}">
+                            <i class="fa fa-circle-o"></i> Branch Performance information
+                            </a>
+                        </li>
+                    @endif
+
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('payroll/lc_information') }}">
                             <i class="fa fa-circle-o"></i> Loan Consultant information
                             </a>
                         </li>
                     @endif
+
+
                     <!-- Appraisal -->
                     @if(Sentinel::hasAccess('clients'))
                     <li class="treeview @if(Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms')) active menu-open @endif">

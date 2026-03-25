@@ -362,6 +362,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('mandatory_cycle','UserController@mandatory_cycle');
     Route::post('addcycle', 'UserController@addCycle');
     Route::any('performance_information', 'UserController@performance_information');
+    Route::any('branch_performance','UserController@branch_performance');
     Route::get('get_offices_by_province/{id}', 'UserController@get_offices_by_province');
 
 
