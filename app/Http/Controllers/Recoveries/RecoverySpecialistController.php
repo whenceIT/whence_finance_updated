@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
-use App\Models\{RecoveryCase, RecoverySpecialistTarget, User};
+use App\Models\{RecoveryCase, RecoverySpecialistTarget, Specialist, User};
 use App\Services\RecoveryDashboardService;
 use Illuminate\Http\Request;
 
@@ -20,6 +20,25 @@ class RecoverySpecialistController extends Controller
         $specialists = $this->dashboard->getSpecialistPerformance($period);
 
         return view('recoveries.specialists.index', compact('specialists', 'period'));
+    }
+
+    /**
+     * Store a newly created specialist.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id|unique:specialists,user_id',
+            'notes'   => 'nullable|string|max:1000',
+        ]);
+
+        Specialist::create([
+            'user_id'   => $request->user_id,
+            'notes'     => $request->notes,
+            'is_active' => true,
+        ]);
+
+        return redirect()->back()->with('success', 'Specialist assigned successfully.');
     }
 
     public function show($id, Request $request)

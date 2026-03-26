@@ -1673,6 +1673,7 @@ Route::group(['prefix' => 'recovery'], function () {
         Route::get('{id}/show',                      'Recoveries\RecoverySpecialistController@show');
         Route::post('{id}/target/store',             'Recoveries\RecoverySpecialistController@setTarget');
         Route::get('{id}/target/{target_id}/delete', 'Recoveries\RecoverySpecialistController@deleteTarget');
+        Route::post('store',                         'Recoveries\RecoverySpecialistController@store');
     });
 
     Route::group(['prefix' => 'report'], function () {
