@@ -317,7 +317,7 @@ class RecoveryCaseController extends Controller
             $province_cases = [];
             foreach ($offices as $office) {
                 if ($office->province_id == $province_id) {
-                    $cases = \App\Models\RecoveryCase::where('office_id', $office->id)
+                    $cases = \App\Models\RecoveryCase::where('origin_branch_id', $office->id)
                         ->whereNull('approved_date')
                         ->with(['client', 'loan', 'assignedSpecialist'])
                         ->get();
@@ -335,7 +335,7 @@ class RecoveryCaseController extends Controller
                     ->get();
             } else {
                 // Regular user sees office-specific
-                $data = \App\Models\RecoveryCase::where('office_id', $office_id)
+                $data = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
                     ->whereNull('approved_date')
                     ->with(['client', 'loan', 'assignedSpecialist'])
                     ->get();
