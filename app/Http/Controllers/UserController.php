@@ -200,6 +200,7 @@ public function create_carry_over(Request $request)
             $launchNewCarryOver = false;
             $numbers_status = null;
             $has_carry_over = null;
+            $data = null;
 
         $role = Sentinel::getUser()->roles->first();
 
