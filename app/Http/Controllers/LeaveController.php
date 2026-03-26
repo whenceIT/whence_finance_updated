@@ -23,39 +23,83 @@ class LeaveController extends Controller
         $this->middleware('sentinel');
     }
 
-    public function myLeavedays(Request $request)
-    {
-        $user = Sentinel::getUser();
-        $startDate = Carbon::create(2025, 1, 1);
-        $approvedLeaves = \DB::table('leave_days')
-            ->where('user_id', $user->id)
-            ->where('status', 'approved')
-            ->where(function ($query) use ($startDate) {
-                $query->whereDate('commencement_date', '>=', $startDate)
-                    ->orWhereDate('return_date', '>=', $startDate);
-            })
-            ->select('id', 'commencement_date', 'return_date', 'reason')
-            ->get();
+public function myLeavedays(Request $request)
+{
+    $user = Sentinel::getUser();
 
-        $leaveSummary = $approvedLeaves->groupBy('reason')->map(function ($leaves) {
-            return $leaves->sum(function ($leave) {
-                $commencementDate = Carbon::parse($leave->commencement_date);
-                $returnDate = Carbon::parse($leave->return_date);
+    $currentYear = Carbon::now()->year;
+    $selectedYear = $request->get('year', $currentYear);
 
-                $totalDays = 0;
-                for ($date = $commencementDate; $date->lt($returnDate); $date->addDay()) {
-                    if (!$date->isWeekend() && !$this->isPublicHoliday($date->toDateString())) {
-                        $totalDays++;
-                    }
+    $startOfYear = Carbon::create($selectedYear, 1, 1)->startOfDay();
+    $endOfYear = Carbon::create($selectedYear, 12, 31)->endOfDay();
+
+    $approvedLeaves = \DB::table('leave_days')
+        ->where('user_id', $user->id)
+        ->where('status', 'approved')
+        ->where(function ($query) use ($startOfYear, $endOfYear) {
+            $query->whereBetween('commencement_date', [$startOfYear, $endOfYear])
+                  ->orWhereBetween('return_date', [$startOfYear, $endOfYear])
+                  ->orWhere(function ($q) use ($startOfYear, $endOfYear) {
+                      $q->where('commencement_date', '<=', $startOfYear)
+                        ->where('return_date', '>=', $endOfYear);
+                  });
+        })
+        ->select('id', 'commencement_date', 'return_date', 'reason')
+        ->get();
+
+    $leaveSummary = $approvedLeaves->groupBy('reason')->map(function ($leaves) use ($selectedYear) {
+        return $leaves->sum(function ($leave) use ($selectedYear) {
+            $commencementDate = Carbon::parse($leave->commencement_date);
+            $returnDate = Carbon::parse($leave->return_date);
+
+            $startOfYear = Carbon::create($selectedYear, 1, 1)->startOfDay();
+            $endOfYear = Carbon::create($selectedYear, 12, 31)->endOfDay();
+
+            if ($commencementDate->lt($startOfYear)) {
+                $commencementDate = $startOfYear->copy();
+            }
+
+            if ($returnDate->gt($endOfYear)) {
+                $returnDate = $endOfYear->copy()->addDay();
+            }
+
+            $totalDays = 0;
+            for ($date = $commencementDate->copy(); $date->lt($returnDate); $date->addDay()) {
+                if (!$date->isWeekend() && !$this->isPublicHoliday($date->toDateString())) {
+                    $totalDays++;
                 }
-                return $totalDays;
-            });
+            }
+
+            return $totalDays;
         });
+    });
 
-        $calendarHtml = $this->generateCalendar($request->get('y'), $request->get('m'), $approvedLeaves);
+    $years = \DB::table('leave_days')
+        ->where('user_id', $user->id)
+        ->where('status', 'approved')
+        ->selectRaw('YEAR(commencement_date) as year')
+        ->distinct()
+        ->orderBy('year', 'desc')
+        ->pluck('year');
 
-        return view('leave.my_leave_days', compact('calendarHtml', 'leaveSummary'));
+    if (!$years->contains($currentYear)) {
+        $years->prepend($currentYear);
     }
+
+    $calendarHtml = $this->generateCalendar(
+        $request->get('y', $selectedYear),
+        $request->get('m'),
+        $approvedLeaves
+    );
+
+    return view('leave.my_leave_days', compact(
+        'calendarHtml',
+        'leaveSummary',
+        'years',
+        'selectedYear',
+        'currentYear'
+    ));
+}
 
 
     private function generateCalendar($year, $month, $approvedLeaves)
