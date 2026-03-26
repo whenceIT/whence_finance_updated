@@ -8,6 +8,8 @@ use App\Models\GeneralUpload;
 use App\Models\CourseTopic;
 use App\Models\GeneralTopic;
 use App\Models\Office;
+use App\Models\GeneralView;
+use App\Models\User;
 use Carbon\Carbon;
 
 /**
@@ -130,6 +132,7 @@ class LearningAnalyticsController extends Controller
             ->map(function ($course) {
                 $category = $course->categories->first();
                 return [
+                    'id' => $course->id,
                     'title' => $course->title,
                     'category' => $category ? $category->name : 'Uncategorized',
                     'views' => $course->allTopics->sum('view_count'),
@@ -149,6 +152,7 @@ class LearningAnalyticsController extends Controller
             ->get()
             ->map(function ($upload) {
                 return [
+                    'id' => $upload->id,
                     'name' => $upload->name,
                     'type' => $upload->type_label,
                     'topic' => $upload->generalTopic ? $upload->generalTopic->name : NULL,
@@ -357,5 +361,110 @@ class LearningAnalyticsController extends Controller
         }
 
         return $days;
+    }
+
+    /**
+     * Get viewers for a specific item (course, upload, category, etc.)
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getItemViewers(Request $request)
+    {
+        try {
+            $type = $request->get('type');
+            $itemId = $request->get('item_id');
+            $itemTitle = $request->get('item_title', 'Unknown');
+
+            if (!$type || !$itemId) {
+                return response()->json(['error' => 'Missing type or item_id'], 400);
+            }
+
+            // Get viewers based on type
+            $viewers = [];
+
+            switch ($type) {
+                case 'course':
+                    // Get users who viewed course topics
+                    $courseTopics = \App\Models\CourseTopic::where('training_material_id', $itemId)->pluck('id');
+                    $viewers = GeneralView::where('type', 'topic')
+                        ->whereIn('item_id', $courseTopics)
+                        ->with('user:id,first_name,last_name,email')
+                        ->get()
+                        ->pluck('user')
+                        ->filter()
+                        ->unique('id')
+                        ->values();
+                    break;
+
+                case 'upload':
+                    // Get users who viewed this upload
+                    $viewers = GeneralView::where('type', 'upload')
+                        ->where('item_id', $itemId)
+                        ->with('user:id,first_name,last_name,email')
+                        ->get()
+                        ->pluck('user')
+                        ->filter()
+                        ->unique('id')
+                        ->values();
+                    break;
+
+                case 'category':
+                    // Get users who viewed courses in this category
+                    $categoryCourses = \App\Models\TrainingMaterial::whereHas('categories', function ($q) use ($itemId) {
+                        $q->where('course_categories.id', $itemId);
+                    })->pluck('id');
+                    
+                    $categoryTopics = \App\Models\CourseTopic::whereIn('training_material_id', $categoryCourses)->pluck('id');
+                    
+                    $viewers = GeneralView::where('type', 'topic')
+                        ->whereIn('item_id', $categoryTopics)
+                        ->with('user:id,first_name,last_name,email')
+                        ->get()
+                        ->pluck('user')
+                        ->filter()
+                        ->unique('id')
+                        ->values();
+                    break;
+
+                case 'content_type':
+                    // Get users who viewed uploads of this type
+                    $uploads = GeneralUpload::where('type', $itemId)->pluck('id');
+                    
+                    $viewers = GeneralView::where('type', 'upload')
+                        ->whereIn('item_id', $uploads)
+                        ->with('user:id,first_name,last_name,email')
+                        ->get()
+                        ->pluck('user')
+                        ->filter()
+                        ->unique('id')
+                        ->values();
+                    break;
+
+                case 'office':
+                    // Get users from this office who viewed content
+                    $officeUsers = User::where('office_id', $itemId)->pluck('id');
+                    
+                    $viewers = GeneralView::whereIn('user_id', $officeUsers)
+                        ->with('user:id,first_name,last_name,email')
+                        ->get()
+                        ->pluck('user')
+                        ->filter()
+                        ->unique('id')
+                        ->values();
+                    break;
+
+                default:
+                    return response()->json(['error' => 'Invalid type'], 400);
+            }
+
+            return response()->json([
+                'viewers' => $viewers,
+                'item_title' => $itemTitle,
+                'total' => $viewers->count()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
+        }
     }
 }

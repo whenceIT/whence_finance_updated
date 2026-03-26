@@ -397,7 +397,8 @@
                 </a>
                 
                 <!-- Tools Menu (visible on mobile) -->
-                <a href="#" onclick="toggleUserDropdown(event)" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none;">
+          
+                <a href="#" onclick="openNotificationPanel(); return false;" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none;">
                     <i class="fa fa-wrench" style="font-size: 18px;"></i>
                 </a>
             </div>
@@ -474,6 +475,9 @@
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
+                    <button onclick="openNotificationPanel()" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                        <i class="fa fa-wrench" style="font-size: 18px;"></i>
+                    </button>
                     <ul class="nav navbar-nav">
                         @if($user)
                             <!-- User Account: style can be found in dropdown.less -->
@@ -1141,6 +1145,143 @@
                 $('#toolsBottomSheet').removeClass('active');
             }
         });
+    </script>
+    <!-- Notification Slide-in Panel -->
+    <div class="notification-overlay" id="notificationOverlay" onclick="closeNotificationPanel()"></div>
+    <div class="notification-panel" id="notificationPanel">
+        <div class="notification-panel-header">
+            <h3>Notifications</h3>
+            <button onclick="closeNotificationPanel()" style="background: none; border: none; font-size: 24px; color: #999; cursor: pointer;">&times;</button>
+        </div>
+        <div class="notification-panel-body" id="notificationList">
+            <div style="text-align: center; padding: 20px; color: #999;">
+                <i class="fa fa-bell-o" style="font-size: 40px; margin-bottom: 10px;"></i>
+                <p>No notifications</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSS for Notification Panel -->
+    <style>
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .notification-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .notification-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-panel.active {
+            right: 0;
+        }
+
+        .notification-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            background: #00a04a;
+            color: white;
+        }
+
+        .notification-panel-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .notification-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #e8f4fd;
+        }
+
+        .notification-item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .notification-item-message {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .notification-item-time {
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+
+    <!-- JavaScript for Notification Panel -->
+    <script>
+        function openNotificationPanel() {
+            document.getElementById('notificationOverlay').classList.add('active');
+            document.getElementById('notificationPanel').classList.add('active');
+            loadNotifications();
+        }
+
+        function closeNotificationPanel() {
+            document.getElementById('notificationOverlay').classList.remove('active');
+            document.getElementById('notificationPanel').classList.remove('active');
+        }
+
+        function loadNotifications() {
+            // Fetch notifications from server
+            // This would typically be an AJAX call to your notifications endpoint
+            var notificationList = document.getElementById('notificationList');
+            notificationList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fa fa-spinner fa-spin" style="font-size: 30px;"></i><p style="margin-top: 10px;">Loading notifications...</p></div>';
+            
+            // Simulated delay - replace with actual AJAX call
+            setTimeout(function() {
+                // Example: You would fetch from your notifications API
+                // For now, showing empty state
+                notificationList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fa fa-bell-o" style="font-size: 40px; margin-bottom: 10px;"></i><p>No notifications</p></div>';
+            }, 1000);
+        }
     </script>
 </body>
 </html>

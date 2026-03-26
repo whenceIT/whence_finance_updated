@@ -196,6 +196,7 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
  
       // Analytics
       Route::get('/analytics', [App\Http\Controllers\LearningAnalyticsController::class, 'index'])->name('learning.analytics');
+      Route::get('/analytics/viewers', [App\Http\Controllers\LearningAnalyticsController::class, 'getItemViewers'])->name('learning.analytics.viewers');
     Route::get('/settings/categories', [LearningSettingController::class, 'categories'])->name('learning.settings.categories');
     Route::get('/settings/students', [LearningSettingController::class, 'students'])->name('learning.settings.students');
     Route::get('/settings/teachers', [LearningSettingController::class, 'teachers'])->name('learning.settings.teachers');
