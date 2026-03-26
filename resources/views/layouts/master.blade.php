@@ -395,10 +395,12 @@
                         Finance
                     </span>
                 </a>
-                
+                <!-- Add a Notification  -->
+                <!-- <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                    <i class="fa fa-bell" style="font-size: 18px;"></i>
+                </a> -->
                 <!-- Tools Menu (visible on mobile) -->
-          
-                <a href="#" onclick="openNotificationPanel(); return false;" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none;">
+                <a href="#" onclick="toggleUserDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-wrench" style="font-size: 18px;"></i>
                 </a>
             </div>
@@ -1145,6 +1147,12 @@
                 $('#toolsBottomSheet').removeClass('active');
             }
         });
+
+        function toggleNotificationDropdown(event) {
+            event.preventDefault();
+            $('#notificationOverlay').toggleClass('active');
+            $('#notificationPanel').toggleClass('active');
+        }
     </script>
     <!-- Notification Slide-in Panel -->
     <div class="notification-overlay" id="notificationOverlay" onclick="closeNotificationPanel()"></div>
