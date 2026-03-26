@@ -2891,4 +2891,81 @@ public static function new_new_loan_total_balance($id)
         
         return round(($viewCount / $totalUsers) * 100, 1);
     }
+
+    /**
+     * Get the count of pending recovery case approvals based on user role
+     * 
+     * @return int Count of pending recovery cases
+     */
+    public static function pending_recovery_case_approvals_count()
+    {
+        try {
+            $user = Sentinel::getUser();
+            $userId = $user->id;
+            $role = \App\Models\UserRole::where('user_id', $userId)->first();
+            $province_id = $user->province_id;
+            $office_id = $user->office_id;
+            $offices = \App\Models\Office::get();
+            $count = 0;
+
+            if ($role && $role->role_id == "6") {
+                // Province manager - count all offices in province
+                foreach ($offices as $office) {
+                    if ($office->province_id == $province_id) {
+                        $count += \App\Models\RecoveryCase::where('origin_branch_id', $office->id)
+                            ->whereNull('approved_date')
+                            ->count();
+                    }
+                }
+            } elseif ($role == "10") {
+                // Admin sees all
+                $count = \App\Models\RecoveryCase::whereNull('approved_date')->count();
+            } else {
+                // Regular user sees office-specific
+                $count = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
+                    ->whereNull('approved_date')
+                    ->count();
+            }
+
+            return $count ?? 0;
+        } catch (\Throwable $th) {
+            return 0;
+        }
+    }
+
+    /**
+     * Get the count of pending recoveries (debt recovery) approvals based on user role
+     * 
+     * @return int Count of pending debt recovery transactions
+     */
+    public static function pending_recoveries_approvals_count()
+    {
+        $user = Sentinel::getUser();
+        $userId = $user->id;
+        $role = \App\Models\UserRole::where('user_id', $userId)->first();
+        $province_id = $user->province_id;
+        $office_id = $user->office_id;
+        $offices = \App\Models\Office::get();
+
+        if ($role && $role->role_id == "6") {
+            // Province manager - count all offices in province
+            $count = 0;
+            foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $count += \App\Models\LoanTransactionUnapproved::where('office_id', $office->id)
+                        ->where('payment_apply_to', 'debt_recovery')
+                        ->count();
+                }
+            }
+            return $count;
+        } elseif ($user->hasAccess('settings')) {
+            // Admin sees all
+            return \App\Models\LoanTransactionUnapproved::where('payment_apply_to', 'debt_recovery')->count();
+        } else {
+            // Regular user sees office-specific
+            return \App\Models\LoanTransactionUnapproved::where('office_id', $office_id)
+                ->where('payment_apply_to', 'debt_recovery')
+                ->count();
+        }
+    }
 }
