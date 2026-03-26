@@ -195,12 +195,14 @@ public function create_carry_over(Request $request)
     {
 
         $branch_data = [];
-          $HasPendingCarryOvers = false;
-           $pendingApproval = false;
-            $launchNewCarryOver = false;
-            $numbers_status = null;
-            $has_carry_over = null;
-
+        $HasPendingCarryOvers = false;
+        $pendingApproval = false;
+        $launchNewCarryOver = false;
+        $numbers_status = null;
+        $has_carry_over = null;
+        $data = [];
+        $start = null;
+        $end = null;
         $role = Sentinel::getUser()->roles->first();
 
         $is_user_active =  Sentinel::getUser();

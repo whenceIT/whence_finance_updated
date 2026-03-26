@@ -467,7 +467,7 @@ $breadcrumb = [
                 
                 <div style="margin-bottom: 12px;">
                     <span style="color: var(--text-secondary); font-size: 12px;">Views</span>
-                    <div style="font-weight: 600;">{{ $material->view_count ?? 0 }}</div>
+                    <div style="font-weight: 600;">{{ \App\Helpers\GeneralHelper::calculate_view_percentage($material->view_count ?? 0) }}%</div>
                 </div>
                 
                 <div style="margin-bottom: 12px;">

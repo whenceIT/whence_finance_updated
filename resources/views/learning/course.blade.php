@@ -108,6 +108,10 @@
                 @php
                     $totalTopicViews = $material->allTopics ? $material->allTopics->sum('view_count') : 0;
                 @endphp
+                <div class="topic-views">
+                    <i class="fa fa-eye"></i>
+                    <span>{{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% views</span>
+                </div>
                 <div style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border-radius: 16px; padding: 32px; margin-bottom: 24px; text-align: center; color: white; box-shadow: 0 8px 32px rgba(74, 144, 226, 0.3);">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px;">
                         <i class="fa fa-eye" style="font-size: 32px; opacity: 0.9;"></i>

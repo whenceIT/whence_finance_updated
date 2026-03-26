@@ -377,21 +377,24 @@
     <div class="wrapper">
 
         <header class="main-header">
-            <a href="{{url('/')}}" class="logo"
-                style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
-                <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
-                    style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
-                <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence
-                    Finance</span>
-            </a>
-            <div>
-                <!-- <a href="{{url('/')}}" class="logo"
+            <a id="hide-in-mobile-view" href="{{url('/')}}" class="logo"
                     style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
                     <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
                         style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
                     <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence
-                        Finance</span>
-                </a> -->
+                        Finance
+                    </span>
+            </a>
+            <!-- Mobile Header (visible on small screens ≤767px) -->
+            <div class="mobile-header" style="display: none; justify-content: center; align-items: center; height: 50px; width: 100%; position: relative;">
+                <a href="{{url('/')}}" class="logo"
+                    style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
+                    <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
+                        style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
+                    <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence
+                        Finance
+                    </span>
+                </a>
                 
                 <!-- Tools Menu (visible on mobile) -->
                 <a href="#" onclick="toggleUserDropdown(event)" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none;">
@@ -400,14 +403,30 @@
             </div>
             
             <style>
-                /* Show mobile header only on screens <= 767px */
-                @media (max-width: 767px) {
-                    .main-header > div:first-child {
-                        display: flex !important;
+                /* Desktop header: visible on screens >= 768px */
+                @media (min-width: 768px) {
+                    .desktop-header {
+                        display: block !important;
+                    }
+                    .mobile-header {
+                        display: none !important;
                     }
                 }
                 
-                /* Hide desktop navbar elements except toggle button on mobile */
+                /* Mobile header: visible on screens <= 767px */
+                @media (max-width: 767px) {
+                    .desktop-header {
+                        display: none !important;
+                    }
+                    .mobile-header {
+                        display: flex !important;
+                    }
+                    #hide-in-mobile-view {
+                        display: none !important;
+                    }
+                }
+                
+                /* Hide desktop navbar elements on mobile */
                 @media (max-width: 767px) {
                     .main-header .navbar > .navbar-custom-menu,
                     .main-header .navbar > .navbar-search {
@@ -418,18 +437,11 @@
                         justify-content: flex-start !important;
                     }
                 }
-                
-                /* Show desktop header only on screens > 767px */
-                @media (min-width: 768px) {
-                    .main-header > div:first-child {
-                        display: none !important;
-                    }
-                }
             </style>
-
+              
             <!-- Header Navbar: style can be found in header.less -->
             <nav class="navbar navbar-static-top" style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
-                <!-- Sidebar toggle button-->
+            <!-- Sidebar toggle button-->
                 <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" style="color: #ffffff;">
                     <span class="sr-only">
                         Toggle navigation

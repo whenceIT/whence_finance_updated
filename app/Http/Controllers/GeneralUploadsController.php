@@ -525,6 +525,9 @@ class GeneralUploadsController extends Controller
     {
         $upload = GeneralUpload::findOrFail($id);
 
+        // Record the viewer
+        \App\Models\GeneralView::recordView('upload', $id);
+
         // Increment views_count
         $upload->increment('views_count');
 

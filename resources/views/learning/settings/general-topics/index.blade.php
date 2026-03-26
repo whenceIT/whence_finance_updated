@@ -69,6 +69,9 @@ $breadcrumb = [
                             @php
                                 $totalUploadViews = $topic->uploads ? $topic->uploads->sum('views_count') : 0;
                             @endphp
+                            <span style="color: var(--text-secondary); font-size: 12px;">
+                                <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalUploadViews) }}% views
+                            </span>
                             <span style="font-weight: 600; color: var(--primary-color);">{{ number_format($totalUploadViews) }}</span>
                         </td>
                         <td style="padding: 15px; text-align: right;">

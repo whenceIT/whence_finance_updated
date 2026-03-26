@@ -334,7 +334,7 @@
             <div class="kpi-value">{{ number_format($overallStats['total_views']) }}</div>
             <div class="kpi-change neutral">
                 <i class="fa fa-eye"></i>
-                All time
+                {{\App\Helpers\GeneralHelper::calculate_view_percentage($overallStats['total_views'])}}% of total users
             </div>
         </div>
 
@@ -343,7 +343,7 @@
             <div class="kpi-value">{{ number_format($overallStats['total_course_views']) }}</div>
             <div class="kpi-change positive">
                 <i class="fa fa-graduation-cap"></i>
-                Course materials
+                {{\App\Helpers\GeneralHelper::calculate_view_percentage($overallStats['total_course_views'])}}% of total users
             </div>
         </div>
 
@@ -352,7 +352,7 @@
             <div class="kpi-value">{{ number_format($overallStats['total_course_views']) }}</div>
             <div class="kpi-change neutral">
                 <i class="fa fa-file-text"></i>
-                Learning materials
+                {{\App\Helpers\GeneralHelper::calculate_view_percentage($overallStats['total_course_views'])}}% of total users
             </div>
         </div>
 
@@ -361,7 +361,7 @@
             <div class="kpi-value">{{ number_format($overallStats['total_upload_views']) }}</div>
             <div class="kpi-change neutral">
                 <i class="fa fa-cloud-upload"></i>
-                Additional resources
+                {{\App\Helpers\GeneralHelper::calculate_view_percentage($overallStats['total_upload_views'])}}% of total users
             </div>
         </div>
     </div>
