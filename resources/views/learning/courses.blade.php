@@ -75,6 +75,24 @@
             <span class="course-category">{{ $course['category'] }}</span>
             <h3 class="course-title">{{ strtoupper($course['title']) }}</h3>
             <p class="course-description">{{ $course['description'] }}</p>
+
+            <!-- Total Topic Views Display -->
+            @php
+                $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
+                $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
+            @endphp
+            <span style="font-size: 12px; color: var(--text-secondary);">
+                <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% views
+            </span>
+            @if($totalTopicViews > 0)
+            <div style="background: linear-gradient(135deg, var(--secondary-color) 0%, #3da862 100%); border-radius: 8px; padding: 12px; margin: 12px 0; text-align: center; color: white;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
+                    <i class="fa fa-eye" style="font-size: 14px;"></i>
+                    <span style="font-size: 16px; font-weight: 700;">{{ number_format($totalTopicViews) }}</span>
+                </div>
+                <div style="font-size: 10px; opacity: 0.9;">Topic Views</div>
+            </div>
+            @endif
             
             
             

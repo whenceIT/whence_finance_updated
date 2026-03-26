@@ -195,12 +195,14 @@ public function create_carry_over(Request $request)
     {
 
         $branch_data = [];
-          $HasPendingCarryOvers = false;
-           $pendingApproval = false;
-            $launchNewCarryOver = false;
-            $numbers_status = null;
-            $has_carry_over = null;
-
+        $HasPendingCarryOvers = false;
+        $pendingApproval = false;
+        $launchNewCarryOver = false;
+        $numbers_status = null;
+        $has_carry_over = null;
+        $data = [];
+        $start = null;
+        $end = null;
         $role = Sentinel::getUser()->roles->first();
 
         $is_user_active =  Sentinel::getUser();
@@ -666,6 +668,9 @@ $data = CarryOver::where('status','pending')->where('office_id',$office_id)->get
 return view('user.carry_over_approvals',compact('data'));
 }
 
+
+
+
  public function approve_carry_over(Request $request, $id){
     $carry_over = CarryOver::where('id',$id)->first();
     $carry_over->status = 'active';
@@ -821,6 +826,12 @@ public function downloadSingleQR($id)
         $role = $user_role->role_id;
         return view('user.performance_information', compact('offices','role','office_id'));
     }
+
+
+    public function branch_performance(){
+    
+    return view('user.branch_performance');
+}
 
 
 

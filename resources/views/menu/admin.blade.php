@@ -21,6 +21,7 @@
 }
 </style>
 <aside class="main-sidebar" style="color: #ffffff">
+    
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar" style="color:#ffffff;">
         <!-- Sidebar user panel -->
@@ -632,17 +633,24 @@
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/transaction_approvals') }}"><i class="fa fa-circle-o"></i> Transaction Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
-                    @if(Sentinel::hasAccess('expenses'))
-                        <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @if($role != 3 || $role != 2 || $role != 11)
+                        @if(Sentinel::hasAccess('expenses'))
+                            <li>
+                                <a href="{{ url('loan/recovery_case_approvals') }}">
+                                    <i class="fa fa-circle-o"></i> 
+                                    Cases of Recoveries 
+                                    <span class="label label-danger pull-right-container" >
+                                        {{\App\Helpers\GeneralHelper::pending_recovery_case_approvals_count()}}
+                                    </span>
+                                </a>
+                            </li>
+                        @endif
+                        @if(Sentinel::hasAccess('expenses'))
+                            <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span> </a></li>
+                        @endif
                     @endif
                     @if(Sentinel::hasAccess('expenses'))
-                        <li><a href="{{ url('loan/recovery_case_approvals') }}"><i class="fa fa-circle-o"></i> Cases of Recoveries </a></li>
-                    @endif
-                    @if(Sentinel::hasAccess('expenses'))
-                        <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals </a></li>
-                    @endif
-                    @if(Sentinel::hasAccess('expenses'))
-                        <li><a href="{{ url('loan/reloan_approvals') }}"><i class="fa fa-circle-o"></i> Reloan Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::count() }}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                        <li><a href="{{ url('loan/reloan_approvals') }}"><i class="fa fa-circle-o"></i> Reloan Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{ 0 }}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ route('loan.waiver_approvals') }}"><i class="fa fa-circle-o"></i> Waiver Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\WaiverTransactionUnapproved::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
@@ -926,12 +934,22 @@
                             </a>
                         </li>
                     @endif
+
+                    @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('user/branch_performance') }}">
+                            <i class="fa fa-circle-o"></i> Branch Performance information
+                            </a>
+                        </li>
+                    @endif
+
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('payroll/lc_information') }}">
                             <i class="fa fa-circle-o"></i> Loan Consultant information
                             </a>
                         </li>
                     @endif
+
+
                     <!-- Appraisal -->
                     @if(Sentinel::hasAccess('clients'))
                     <li class="treeview @if(Request::is('user/appraisal_forms') || Request::is('user/my_appraisal_forms')) active menu-open @endif">
@@ -1229,12 +1247,12 @@
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
             {{-- ====================================================== --}}
-            @if($role == 1 || $role == 10)
+            @if($role != 3 || $role != 2 || $role != 11)
                 <li class="treeview @if(Request::is('recovery/*')) active @endif">
                     <a href="#">
                         <i class="fa fa-refresh"></i> <span>Recoveries</span>
                         <span class="pull-right-container">
-                            @if($role == 1 || $role == 10)<span class="label label-danger pull-right" style="background-color: #ff1900; animation: pulse-red 2s infinite;">Beta</span>@endif
+                            @if($role != 3 || $role != 2 || $role != 11)<span class="label label-danger pull-right" style="background-color: #ff1900; animation: pulse-red 2s infinite;">Beta</span>@endif
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>

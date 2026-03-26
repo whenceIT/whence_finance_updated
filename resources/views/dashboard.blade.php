@@ -1413,6 +1413,56 @@ if($branchUser->role){
                 </div>
 
 
+                        <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-orange">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Branch Staff</p>
+                            <div class="icon">
+                                <i class="fa fa-users"></i>
+                            </div>
+                            <h3 >{{  $branch_data['consultants_count'] }}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+
+                        <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-purple">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Branch Targets Met</p>
+                            <div class="icon">
+                                <i class="fa fa-birthday-cake"></i>
+                            </div>
+                            <h3 >{{  $branch_data['targets_met_count'] }}</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                      <div class="col-lg-4 col-xs-12">
+                    <div class="small-box bg-fuchsia">
+                        <div class="inner">
+                            <p style="font-weight: bold;">Branch Efficiency</p>
+                            <div class="icon">
+                                <i class="fa fa-cogs"></i>
+                            </div>
+                            <h3>{{ rtrim(rtrim(number_format(min($branch_data['efficiency'], 1) * 100, 2), '0'), '.') }}%</h3>
+                        </div>
+                        <div class="small-box-footer">
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+
+
+
 
             </div>
 

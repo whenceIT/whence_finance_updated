@@ -32,6 +32,7 @@
                                         <th>Created By</th>
                                         <th>Enrolled Users</th>
                                         <th>Topics</th>
+                                        <th>Topic Views</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -50,6 +51,15 @@
                                             </td>
                                             <td>{{ $course->enrollments()->count() }}</td>
                                             <td>{{ $course->topics()->count() }}</td>
+                                            <td>
+                                                @php
+                                                    $totalTopicViews = $course->allTopics ? $course->allTopics->sum('view_count') : 0;
+                                                @endphp
+                                                <span class="text-muted" style="font-size: 12px;">
+                                                    <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% views
+                                                </span>
+                                                <span style="font-weight: 600; color: var(--primary-color);">{{ number_format($totalTopicViews) }}</span>
+                                            </td>
                                             <td>
                                                 <span class="label label-{{ $course->is_active ? 'success' : 'danger' }}">
                                                     {{ $course->is_active ? 'Active' : 'Inactive' }}

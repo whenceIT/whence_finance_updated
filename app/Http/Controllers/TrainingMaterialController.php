@@ -1328,4 +1328,27 @@ class TrainingMaterialController extends Controller
             ->with('toastr_type', 'success')
             ->with('toastr_message', 'Training material status updated successfully.');
     }
+
+    /**
+     * Increment view count for a specific topic.
+     *
+     * @param int $topicId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function incrementTopicView($topicId)
+    {
+        try {
+            $topic = CourseTopic::findOrFail($topicId);
+            
+            // Record the viewer
+            \App\Models\GeneralView::recordView('topic', $topicId);
+            
+            $topic->incrementViewCount();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error incrementing topic view count: ' . $e->getMessage());
+            return response()->json(['success' => false], 500);
+        }
+    }
 }

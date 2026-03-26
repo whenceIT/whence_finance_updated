@@ -75,6 +75,14 @@ $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
                 <br><span style="font-size: 12px; opacity: 0.8;">Viewing resources for topic: {{ $topicName }}</span>
                 @endif
             </p>
+            @php
+                $totalViews = collect($uploads)->sum('views_count');
+            @endphp
+            @if($totalViews > 0)
+            <div style="display: flex;">
+                <div style="font-size: 18px; font-weight: 700; line-height: 1;">{{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalViews) }}% views</div>
+            </div>
+            @endif
             @if($isAdmin)
             <div style="margin-top: 8px; padding: 8px 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 12px;">
                 <i class="fa fa-info-circle"></i> You are viewing all uploads from all users
@@ -86,6 +94,8 @@ $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
         </a>
     </div>
 </div>
+
+
 
 <!-- Clean Filter Section -->
 <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: var(--shadow);">
@@ -196,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="course-meta">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <span style="color: var(--text-secondary); font-size: 12px;">
-                        <i class="fa fa-eye"></i> {{ $upload->views_count ?? 0 }} views
+                        <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($upload->views_count ?? 0) }}% views
                     </span>                    
                     <!-- <span style="color: var(--text-secondary); font-size: 12px;">
                         <i class="fa fa-heart"></i> {{ $upload->likes_count ?? 0 }} likes

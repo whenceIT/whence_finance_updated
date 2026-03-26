@@ -53,7 +53,7 @@
                                          {{ $employee->last_name }}
                                     </h3>
                                     <h5 class="widget-user-desc">
-                                        {{ optional($employee->role)->name ?? 'No Role' }}
+                                        {{ optional($employee->position)->name ?? 'No Role' }}
                                     </h5>
                                 </div>
 
@@ -61,7 +61,7 @@
                                     <ul class="nav nav-stacked">
                                         <li><a href="#">Office <span class="pull-right badge bg-blue">{{ optional($employee->office)->name ?? 'N/A' }}</span></a></li>
                                         <li><a href="#">Gender <span class="pull-right badge bg-green">{{ $employee->gender ?? 'N/A' }}</span></a></li>
-                                        <li><a href="#">Status <span class="pull-right badge bg-maroon">{{ $employee->employment_status ?? 'N/A' }}</span></a></li>
+                                        <li><a href="#">Status <span class="pull-right badge bg-maroon">{{ $employee->status ?? 'N/A' }}</span></a></li>
                                     </ul>
                                 </div>
 

@@ -42,6 +42,7 @@ $breadcrumb = [
                         <th style="padding: 15px; text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Name</th>
                         <th style="padding: 15px; text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Description</th>
                         <th style="padding: 15px; text-align: center; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Uploads</th>
+                        <th style="padding: 15px; text-align: center; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Upload Views</th>
                         <th style="padding: 15px; text-align: right; font-weight: 600; color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Actions</th>
                     </tr>
                 </thead>
@@ -63,6 +64,15 @@ $breadcrumb = [
                         </td>
                         <td style="padding: 15px; text-align: center; color: var(--text-secondary); font-size: 14px;">
                             {{ $topic->uploads->count() }}
+                        </td>
+                        <td style="padding: 15px; text-align: center; color: var(--text-secondary); font-size: 14px;">
+                            @php
+                                $totalUploadViews = $topic->uploads ? $topic->uploads->sum('views_count') : 0;
+                            @endphp
+                            <span style="color: var(--text-secondary); font-size: 12px;">
+                                <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalUploadViews) }}% views
+                            </span>
+                            <span style="font-weight: 600; color: var(--primary-color);">{{ number_format($totalUploadViews) }}</span>
                         </td>
                         <td style="padding: 15px; text-align: right;">
                             <div style="display: flex; gap: 8px; justify-content: flex-end;">
