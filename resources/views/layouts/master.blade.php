@@ -475,9 +475,9 @@
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
-                    <button onclick="openNotificationPanel()" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                    <!-- <button onclick="openNotificationPanel()" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                         <i class="fa fa-wrench" style="font-size: 18px;"></i>
-                    </button>
+                    </button> -->
                     <ul class="nav navbar-nav">
                         @if($user)
                             <!-- User Account: style can be found in dropdown.less -->
