@@ -90,13 +90,18 @@ class HRController extends Controller{
         })
         ->orderBy('first_name')
         ->paginate(12)
-        ->appends(['search' => $search]); // keeps search in pagination
+        ->appends(['search' => $search]); 
+        
+
+        
+        
+        // keeps search in pagination
 
         return view('hr.employees',compact('employees','search'));
     }
 
 
-       public function employee($id)
+       public function employee(Request $request,$id)
     {
         $employee = User::with([
             'office',
@@ -107,7 +112,86 @@ class HRController extends Controller{
             // 'advances'
         ])->findOrFail($id);
 
-        return view('hr.employee', compact('employee'));
+
+      $user = User::findOrFail($id);
+    $userId = Sentinel::getUser()->id;
+    $cycle_end = $user->cycle_dates
+    ? (int) $user->cycle_dates->cycle_end_date
+    : 24;
+    $today = Carbon::today();
+
+    $buildCycleDate = function (Carbon $month) use ($cycle_end) {
+    $month = $month->copy()->startOfMonth();
+    $cycleDay = min($cycle_end, $month->daysInMonth);
+    return $month->day($cycleDay)->addDay();
+};
+
+    $cycleDate = $buildCycleDate(Carbon::now());
+    if ($today->lt($cycleDate)) {
+    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
+}
+
+$cycle_date = $cycleDate->format('Y-m-d');
+$true_date = $cycle_date;
+
+
+$cycle_close_date = Carbon::parse($cycle_date)
+    ->addMonthNoOverflow()
+    ->subDay()
+    ->format('Y-m-d');
+
+                $fixedDay = $cycle_end;
+$userId = Sentinel::getUser()->id;
+
+// Convert cycle_date/close_date to Carbon
+$cycleStart = Carbon::parse($cycle_date);
+$cycleEnd = Carbon::parse($cycle_close_date);
+
+// ORIGINAL
+$start = $cycleStart->copy()
+    ->format('Y-m-d');
+
+$end = $cycleEnd->copy()
+    ->day(min($fixedDay, $cycleEnd->daysInMonth))
+    ->format('Y-m-d');
+
+
+$startMonth = $request->input('start_month');
+$endMonth   = $request->input('end_month');
+
+if ($startMonth) {
+    $start = Carbon::parse($startMonth)
+        ->day(min($fixedDay, Carbon::parse($startMonth)->daysInMonth))
+        ->addDay()
+        ->format('Y-m-d');
+}
+
+if ($endMonth) {
+    $end = Carbon::parse($endMonth)
+        ->day(min($fixedDay, Carbon::parse($endMonth)->daysInMonth))
+        ->format('Y-m-d');
+}
+
+
+// Build query
+$query = http_build_query([
+    'user_id' => $id,
+    'start_date' => $start,
+    'end_date' => $end,
+]);
+
+$url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
+
+$json = @file_get_contents($url);
+
+$data = [];
+
+if ($json !== false) {
+    $decoded = json_decode($json, true);
+    $data = is_array($decoded) ? $decoded : [];
+}
+
+        return view('hr.employee', compact('employee','data','start','end','data','userId'));
     }
 
 
