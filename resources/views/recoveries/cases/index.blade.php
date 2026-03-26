@@ -162,6 +162,11 @@
             <td>
               <a href="{{ url('recovery/case/' . $case->id . '/show') }}" class="btn btn-xs btn-default">View</a>
               <a href="{{ url('recovery/case/' . $case->id . '/edit') }}" class="btn btn-xs btn-default">Edit</a>
+              <form action="{{ url('recovery/case/' . $case->id) }}" method="POST" style="display:inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to delete this case?')">Delete</button>
+              </form>
             </td>
           </tr>
         @empty
