@@ -191,7 +191,121 @@ if ($json !== false) {
     $data = is_array($decoded) ? $decoded : [];
 }
 
-        return view('hr.employee', compact('employee','data','start','end','data','userId'));
+
+ $currentYear = Carbon::now()->year;
+    $selectedLeaveYear = (int) $request->get('leave_year', $currentYear);
+
+    $startOfYear = Carbon::create($selectedLeaveYear, 1, 1)->startOfDay();
+    $endOfYear = Carbon::create($selectedLeaveYear, 12, 31)->endOfDay();
+
+    $employeeLeaves = DB::table('leave_days')
+        ->where('user_id', $employee->id)
+        ->where(function ($query) use ($startOfYear, $endOfYear) {
+            $query->whereBetween('commencement_date', [$startOfYear, $endOfYear])
+                ->orWhereBetween('return_date', [$startOfYear, $endOfYear])
+                ->orWhere(function ($q) use ($startOfYear, $endOfYear) {
+                    $q->where('commencement_date', '<=', $startOfYear)
+                      ->where('return_date', '>=', $endOfYear);
+                });
+        })
+        ->orderBy('commencement_date', 'desc')
+        ->get();
+
+    $employeeLeaves = $employeeLeaves->map(function ($leave) use ($selectedLeaveYear) {
+        $leave->days_taken = $this->countLeaveDaysInYear($leave, $selectedLeaveYear);
+        return $leave;
+    });
+
+    $leaveYears = DB::table('leave_days')
+        ->where('user_id', $employee->id)
+        ->selectRaw('YEAR(commencement_date) as year')
+        ->distinct()
+        ->orderBy('year', 'desc')
+        ->pluck('year');
+
+    if (!$leaveYears->contains($currentYear)) {
+        $leaveYears->prepend($currentYear);
+    }
+
+
+        return view('hr.employee', compact('employee','data','start','end','data','userId','employeeLeaves',
+        'leaveYears',
+        'selectedLeaveYear'));
+    }
+
+
+    private function countLeaveDaysInYear($leave, $selectedYear)
+{
+    $commencementDate = Carbon::parse($leave->commencement_date);
+    $returnDate = Carbon::parse($leave->return_date);
+
+    $startOfYear = Carbon::create($selectedYear, 1, 1)->startOfDay();
+    $endOfYear = Carbon::create($selectedYear, 12, 31)->endOfDay();
+
+    if ($commencementDate->lt($startOfYear)) {
+        $commencementDate = $startOfYear->copy();
+    }
+
+    if ($returnDate->gt($endOfYear)) {
+        $returnDate = $endOfYear->copy()->addDay();
+    }
+
+    $totalDays = 0;
+
+    for ($date = $commencementDate->copy(); $date->lt($returnDate); $date->addDay()) {
+        if (!$date->isWeekend() && !$this->isPublicHoliday($date->toDateString())) {
+            $totalDays++;
+        }
+    }
+
+    return $totalDays;
+}
+
+
+  //public holidys
+    private function getZambianPublicHolidays($year)
+    {
+        $easterDate = $this->calculateEaster($year);
+        $goodFriday = clone $easterDate;
+        $goodFriday->modify('-2 days');
+        $easterMonday = clone $easterDate;
+        $easterMonday->modify('+1 day');
+
+        return [
+            "$year-01-01" => "New Year's Day",
+            "$year-03-08" => "International Women's Day",
+            "$year-03-12" => "Youth Day",
+            $goodFriday->format('Y-m-d') => "Good Friday",
+            $easterMonday->format('Y-m-d') => "Easter Monday",
+            "$year-04-28" => "Kenneth Kaunda Day",
+            "$year-05-01" => "Labour Day",
+            "$year-05-25" => "Africa Freedom Day",
+            $this->getFirstMondayOfJuly($year)->format('Y-m-d') => "Heroes Day",
+            (clone $this->getFirstMondayOfJuly($year))->modify('+1 day')->format('Y-m-d') => "Unity Day",
+            "$year-08-05" => "Farmer's Day",
+            "$year-10-18" => "Prayer Day",
+            "$year-10-24" => "Independence Day",
+            "$year-12-25" => "Christmas Day",
+        ];
+    }
+
+    private function isPublicHoliday($date)
+    {
+        $year = substr($date, 0, 4);
+        $holidays = $this->getZambianPublicHolidays($year);
+        return isset($holidays[$date]) ? $holidays[$date] : null;
+    }
+
+    private function calculateEaster($year)
+    {
+        $base = new \DateTime("$year-03-21");
+        $days = easter_days($year);
+        return $base->add(new \DateInterval("P{$days}D"));
+    }
+
+    private function getFirstMondayOfJuly($year)
+    {
+        return new \DateTime("first monday of july $year");
     }
 
 

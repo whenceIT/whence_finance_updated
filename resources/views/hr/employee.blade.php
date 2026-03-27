@@ -200,6 +200,60 @@
 
 
                     </div>
+
+
+
+               {{-- Leave --}}
+<div class="tab-pane" id="leave">
+
+    <div style="margin-bottom: 15px;">
+        <form method="GET" action="">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="leave_year">Filter by Year</label>
+                    <select name="leave_year" id="leave_year" class="form-control" onchange="this.form.submit()">
+                        @foreach($leaveYears as $year)
+                            <option value="{{ $year }}" {{ (int)$selectedLeaveYear === (int)$year ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Time Period Taken</th>
+                <th>Days</th>
+                <th>Status</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($employeeLeaves as $leave)
+                <tr>
+                    <td>
+                        {{ \Carbon\Carbon::parse($leave->commencement_date)->format('d M Y') }}
+                        -
+                        {{ \Carbon\Carbon::parse($leave->return_date)->format('d M Y') }}
+                    </td>
+                    <td>{{ $leave->days_taken }}</td>
+                    <td>{{ ucfirst($leave->status) }}</td>
+                    <td>{{ $leave->reason }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="4" class="text-center">
+                        No leave records found for {{ $selectedLeaveYear }}.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
                   
 
               
