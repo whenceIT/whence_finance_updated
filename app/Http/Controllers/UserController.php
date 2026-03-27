@@ -1496,7 +1496,7 @@ public function downloadSingleQR($id)
     }
 
 
-    public function user_info($user)
+    public function user_info(Request $request,$user)
     {
         $userTransactions = [];
         $userLoans = Loan::with('transactions')->where('loan_officer_id', $user->id)->get();
@@ -1508,7 +1508,80 @@ public function downloadSingleQR($id)
         }
         $advances = Advance::where('user_id', $user->id)->get();
         $leave_days = Leave::where('user_id', $user->id)->get();
-        return view('user.user_info', compact('user', 'userLoans', 'userTransactions', 'cycleDate', 'advances', 'leave_days'));
+
+         $user = User::findOrFail($user->id);
+    $userId = $user->id;
+    $cycle_end = $user->cycle_dates
+    ? (int) $user->cycle_dates->cycle_end_date
+    : 24;
+    $today = Carbon::today();
+
+    $buildCycleDate = function (Carbon $month) use ($cycle_end) {
+    $month = $month->copy()->startOfMonth();
+    $cycleDay = min($cycle_end, $month->daysInMonth);
+    return $month->day($cycleDay)->addDay();
+};
+
+    $cycleDate = $buildCycleDate(Carbon::now());
+    if ($today->lt($cycleDate)) {
+    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
+}
+
+$cycle_date = $cycleDate->format('Y-m-d');
+$true_date = $cycle_date;
+
+
+$cycle_close_date = Carbon::parse($cycle_date)
+    ->addMonthNoOverflow()
+    ->subDay()
+    ->format('Y-m-d');
+
+                $fixedDay = $cycle_end;
+
+// Convert cycle_date/close_date to Carbon
+$cycleStart = Carbon::parse($cycle_date);
+$cycleEnd = Carbon::parse($cycle_close_date);
+
+// ORIGINAL
+$start = $cycleStart->copy()
+    ->format('Y-m-d');
+
+$end = $cycleEnd->copy()
+    ->day(min($fixedDay, $cycleEnd->daysInMonth))
+    ->format('Y-m-d');
+
+
+$startMonth = $request->input('start_month');
+$endMonth   = $request->input('end_month');
+
+if ($startMonth) {
+    $start = Carbon::parse($startMonth)
+        ->day(min($fixedDay, Carbon::parse($startMonth)->daysInMonth))
+        ->addDay()
+        ->format('Y-m-d');
+}
+
+if ($endMonth) {
+    $end = Carbon::parse($endMonth)
+        ->day(min($fixedDay, Carbon::parse($endMonth)->daysInMonth))
+        ->format('Y-m-d');
+}
+
+
+// Build query
+$query = http_build_query([
+    'user_id' => $userId,
+    'start_date' => $start,
+    'end_date' => $end,
+]);
+
+$url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
+
+$json = @file_get_contents($url);
+$data = $json ? json_decode($json, true) : null;
+
+
+        return view('user.user_info', compact('user', 'userLoans', 'userTransactions', 'cycleDate', 'advances', 'leave_days','data','start','end','userId'));
     }
 
 
