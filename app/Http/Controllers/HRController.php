@@ -227,10 +227,41 @@ if ($json !== false) {
         $leaveYears->prepend($currentYear);
     }
 
+    $selectedAdvanceYear = (int) $request->get('advance_year', $currentYear);
+
+    $employeeAdvances = Advance::where('user_id', $employee->id)
+        ->whereYear('date_requested', $selectedAdvanceYear)
+        ->orderBy('date_requested', 'desc')
+        ->get()
+        ->map(function ($advance) {
+            if ((float) $advance->remaining_amount <= 0 && $advance->status === 'closed') {
+                $advance->payment_status = 'Paid Back';
+            } elseif ((float) $advance->amount_paid > 0 && (float) $advance->remaining_amount > 0) {
+                $advance->payment_status = 'Partially Paid';
+            } else {
+                $advance->payment_status = 'Not Paid Back';
+            }
+
+            return $advance;
+        });
+
+    $advanceYears = Advance::where('user_id', $employee->id)
+        ->selectRaw('YEAR(date_requested) as year')
+        ->distinct()
+        ->orderBy('year', 'desc')
+        ->pluck('year');
+
+    if (!$advanceYears->contains($currentYear)) {
+        $advanceYears->prepend($currentYear);
+    }
+
 
         return view('hr.employee', compact('employee','data','start','end','data','userId','employeeLeaves',
         'leaveYears',
-        'selectedLeaveYear'));
+        'selectedLeaveYear',
+     'employeeAdvances',
+        'advanceYears',
+        'selectedAdvanceYear'));
     }
 
 
