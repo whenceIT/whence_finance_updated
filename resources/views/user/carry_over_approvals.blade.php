@@ -26,14 +26,16 @@
                 
                     <tr>
                         <td>
-                        @if(!empty($key->user_id))
-                                {{$key->created_by->first_name}}  {{$key->created_by->last_name}} 
-                            @endif
+                        @if(!empty($key->created_by))
+                            {{$key->created_by->first_name}}  {{$key->created_by->last_name}} 
+                        @else
+                            {{$key->full_name ?? 'N/A'}}
+                        @endif
                         </td>
-                        <td>{{$key->office->name}}</td>
-                        <td>{{number_format($key->amount,2)}}</td>
-                        <td>{{$key->cycle_date}}</td>
-                        <td>{{$key->status}}</td>
+                        <td>{{$key->office->name ?? 'N/A'}}</td>
+                        <td>{{number_format($key->amount ?? 0,2)}}</td>
+                        <td>{{$key->cycle_date ?? 'N/A'}}</td>
+                        <td>{{$key->status ?? 'Unknown'}}</td>
                         <td>
 
 
