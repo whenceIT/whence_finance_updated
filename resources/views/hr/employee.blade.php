@@ -13,7 +13,7 @@
                     @if($employee->image)
                         <img class="profile-user-img img-responsive img-circle" src="{{ asset($employee->image) }}" alt="{{ $employee->full_name }}">
                     @else
-                        <img class="profile-user-img img-responsive img-circle" src="{{ asset('images/default-user.png') }}" alt="Default Image">
+                        <img class="profile-user-img img-responsive img-circle" src="{{ asset('images/default-employee-icon.jpg') }}" alt="Default Image">
                     @endif
 
                     <h3 class="profile-username text-center">{{ $employee->first_name }} {{ $employee->last_name }}</h3>

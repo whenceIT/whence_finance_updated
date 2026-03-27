@@ -196,6 +196,7 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
  
       // Analytics
       Route::get('/analytics', [App\Http\Controllers\LearningAnalyticsController::class, 'index'])->name('learning.analytics');
+      Route::get('/analytics/viewers', [App\Http\Controllers\LearningAnalyticsController::class, 'getItemViewers'])->name('learning.analytics.viewers');
     Route::get('/settings/categories', [LearningSettingController::class, 'categories'])->name('learning.settings.categories');
     Route::get('/settings/students', [LearningSettingController::class, 'students'])->name('learning.settings.students');
     Route::get('/settings/teachers', [LearningSettingController::class, 'teachers'])->name('learning.settings.teachers');
@@ -1678,6 +1679,7 @@ Route::group(['prefix' => 'recovery'], function () {
         Route::get('{id}/show',                      'Recoveries\RecoverySpecialistController@show');
         Route::post('{id}/target/store',             'Recoveries\RecoverySpecialistController@setTarget');
         Route::get('{id}/target/{target_id}/delete', 'Recoveries\RecoverySpecialistController@deleteTarget');
+        Route::post('store',                         'Recoveries\RecoverySpecialistController@store');
     });
 
     Route::group(['prefix' => 'report'], function () {
