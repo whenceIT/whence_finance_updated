@@ -13,7 +13,7 @@
                     @if($employee->image)
                         <img class="profile-user-img img-responsive img-circle" src="{{ asset($employee->image) }}" alt="{{ $employee->full_name }}">
                     @else
-                        <img class="profile-user-img img-responsive img-circle" src="{{ asset('images/default-user.png') }}" alt="Default Image">
+                        <img class="profile-user-img img-responsive img-circle" src="{{ asset('images/default-employee-icon.jpg') }}" alt="Default Image">
                     @endif
 
                     <h3 class="profile-username text-center">{{ $employee->first_name }} {{ $employee->last_name }}</h3>
@@ -200,6 +200,125 @@
 
 
                     </div>
+
+
+
+               {{-- Leave --}}
+<div class="tab-pane" id="leave">
+
+    <div style="margin-bottom: 15px;">
+        <form method="GET" action="">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="leave_year">Filter by Year</label>
+                    <select name="leave_year" id="leave_year" class="form-control" onchange="this.form.submit()">
+                        @foreach($leaveYears as $year)
+                            <option value="{{ $year }}" {{ (int)$selectedLeaveYear === (int)$year ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Time Period Taken</th>
+                <th>Days</th>
+                <th>Status</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($employeeLeaves as $leave)
+                <tr>
+                    <td>
+                        {{ \Carbon\Carbon::parse($leave->commencement_date)->format('d M Y') }}
+                        -
+                        {{ \Carbon\Carbon::parse($leave->return_date)->format('d M Y') }}
+                    </td>
+                    <td>{{ $leave->days_taken }}</td>
+                    <td>{{ ucfirst($leave->status) }}</td>
+                    <td>{{ $leave->reason }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="4" class="text-center">
+                        No leave records found for {{ $selectedLeaveYear }}.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+
+{{-- Advances --}}
+<div class="tab-pane" id="advances">
+
+    <div style="margin-bottom: 15px;">
+        <form method="GET" action="">
+            <input type="hidden" name="tab" value="advances">
+
+            @if(request('leave_year'))
+                <input type="hidden" name="leave_year" value="{{ request('leave_year') }}">
+            @endif
+
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="advance_year">Filter by Year</label>
+                    <select name="advance_year" id="advance_year" class="form-control" onchange="this.form.submit()">
+                        @foreach($advanceYears as $year)
+                            <option value="{{ $year }}" {{ (int)$selectedAdvanceYear === (int)$year ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Amount</th>
+                <th>Date Requested</th>
+                <th>Date Approved</th>
+                <th>Amount Paid</th>
+                <th>Remaining Amount</th>
+                <th>Repayment Status</th>
+                <th>Status</th>
+                <th>Purpose / Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($employeeAdvances as $advance)
+                <tr>
+                    <td>{{ number_format($advance->amount, 2) }}</td>
+                    <td>{{ $advance->date_requested ? \Carbon\Carbon::parse($advance->date_requested)->format('d M Y') : '-' }}</td>
+                    <td>{{ $advance->date_approved ? \Carbon\Carbon::parse($advance->date_approved)->format('d M Y') : '-' }}</td>
+                    <td>{{ number_format($advance->amount_paid ?? 0, 2) }}</td>
+                    <td>{{ number_format($advance->remaining_amount ?? 0, 2) }}</td>
+                    <td>{{ $advance->payment_status }}</td>
+                    <td>{{ ucfirst($advance->status) }}</td>
+                    <td>
+                        {{ $advance->purpose ?: ($advance->notes ?: '-') }}
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="8" class="text-center">
+                        No advance records found for {{ $selectedAdvanceYear }}.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
                   
 
               

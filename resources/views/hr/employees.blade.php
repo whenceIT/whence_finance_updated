@@ -44,7 +44,7 @@
                                         @if($employee->image)
                                             <img class="img-circle" src="{{ asset($employee->image) }}" alt="{{ $employee->full_name }}">
                                         @else
-                                            <img class="img-circle" src="{{ asset('images/default-employee-icon.jpeg') }}" alt="Default Image">
+                                            <img class="img-circle" src="{{ asset('images/default-employee-icon.jpg') }}" alt="Default Image">
                                         @endif
                                     </div>
 
