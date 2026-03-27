@@ -7,6 +7,7 @@ use App\Models\RecoveryCase;
 use App\Models\Loan;
 use App\Models\Office;
 use App\Models\User;
+use App\Models\Specialist;
 use App\Models\LoanTransactionUnapproved;
 use App\Models\UserRole;
 use Carbon\Carbon;
@@ -116,10 +117,13 @@ class RecoveryCaseController extends Controller
             Log::info('Loading create case form with optimized loan query 2');
             $offices = Office::orderBy('name')->get();
             Log::info('Loading create case form with optimized loan query 3');
-            $users = User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+            
+            // Get specialists with their user relationship
+            $specialists = Specialist::with('user')->where('is_active', true)->get();
+            
             Log::info('Loading create case form with optimized loan query 4');
 
-            return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'users'));
+            return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'specialists'));
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
