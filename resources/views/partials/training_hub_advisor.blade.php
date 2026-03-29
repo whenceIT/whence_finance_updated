@@ -59,9 +59,6 @@
                                 <span class="topic-desc">{{ $topic->description }}</span>
                             @endif
                         </div>
-                        <div class="topic-arrow">
-                            <i class="fa fa-chevron-right"></i>
-                        </div>
                     </a>
                 </li>
             @endforeach

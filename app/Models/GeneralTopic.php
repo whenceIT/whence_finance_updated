@@ -40,9 +40,11 @@ class GeneralTopic extends Model
         // Get topics with uploads that match user's position, but not viewed
         // Filter via general_upload_position pivot table
         return $query->whereHas('uploads', function ($uploadQuery) use ($positionId) {
-                $uploadQuery->whereHas('positions', function ($positionQuery) use ($positionId) {
-                    $positionQuery->where('positions.id', $positionId);
-                });
+                $uploadQuery->whereRaw('EXISTS (
+                    SELECT 1 FROM general_upload_position pup 
+                    INNER JOIN job_positions jp ON jp.id = pup.position_id 
+                    WHERE pup.general_upload_id = general_uploads.id AND jp.id = ?
+                )', [$positionId]);
             })
             ->whereNotIn('id', $viewedTopicIds);
     }
@@ -78,9 +80,11 @@ class GeneralTopic extends Model
         // Build query for unviewed topics
         // Filter topics that have uploads associated with user's position via general_upload_position table
         $query = self::whereHas('uploads', function ($uploadQuery) use ($userPositionId) {
-                $uploadQuery->whereHas('positions', function ($positionQuery) use ($userPositionId) {
-                    $positionQuery->where('positions.id', $userPositionId);
-                });
+                $uploadQuery->whereRaw('EXISTS (
+                    SELECT 1 FROM general_upload_position pup 
+                    INNER JOIN job_positions jp ON jp.id = pup.position_id 
+                    WHERE pup.general_upload_id = general_uploads.id AND jp.id = ?
+                )', [$userPositionId]);
             })
             ->whereNotIn('id', $viewedTopicIds)
             ->select(['id', 'name', 'description', 'poster']);

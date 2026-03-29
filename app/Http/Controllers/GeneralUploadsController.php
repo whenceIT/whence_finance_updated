@@ -355,7 +355,15 @@ class GeneralUploadsController extends Controller
         $upload = GeneralUpload::findOrFail($id);
         $generalTopics = \App\Models\GeneralTopic::all();
         $positions = $this->positions;
-        return view('learning.general-uploads.edit', compact('upload', 'generalTopics', 'positions'));
+        
+        // Eager load positions from the pivot table
+        $uploadPositions = \DB::table('general_upload_position')
+            ->join('job_positions', 'general_upload_position.position_id', '=', 'job_positions.id')
+            ->where('general_upload_id', $id)
+            ->select('job_positions.*')
+            ->get();
+        
+        return view('learning.general-uploads.edit', compact('upload', 'generalTopics', 'positions', 'uploadPositions'));
     }
 
     /**

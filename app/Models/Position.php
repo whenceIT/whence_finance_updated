@@ -14,6 +14,8 @@ class Position extends Model
 
     public function uploads()
     {
-        return $this->belongsToMany(GeneralUpload::class, 'general_upload_position');
+        return $this->belongsToMany(GeneralUpload::class, 'general_upload_position')
+                    ->withPivot(['created_at', 'updated_at'])
+                    ->withTimestamps();
     }
 }
