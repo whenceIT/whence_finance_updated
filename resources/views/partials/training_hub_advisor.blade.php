@@ -44,9 +44,15 @@
             @foreach($unviewedTopics as $topic)
                 <li class="topic-item">
                     <a href="{{ url('/learning/general-uploads?topic=' . $topic->id) }}" class="topic-link">
+                        @if($topic->poster)
+                        <div class="topic-image">
+                            <img src="{{ asset($topic->poster) }}" alt="{{ $topic->name }}" onerror="this.style.display='none'">
+                        </div>
+                        @else
                         <div class="topic-icon">
                             <i class="fa fa-book"></i>
                         </div>
+                        @endif
                         <div class="topic-details">
                             <span class="topic-name">{{ $topic->name }}</span>
                             @if($topic->description)
@@ -168,7 +174,7 @@
         }
 
         .advisor-content {
-            padding: 20px 24px;
+            padding: 2px 10px;
             background: #f8f9ff;
         }
 
@@ -229,7 +235,7 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 14px 16px;
+            padding: 4px 4px;
             background: white;
             border-radius: 14px;
             text-decoration: none;
@@ -291,6 +297,24 @@
         .topic-link:hover .topic-arrow {
             color: #667eea;
             transform: translateX(4px);
+        }
+        
+        /* Topic image pill design - half image half content */
+        .topic-image {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .topic-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .advisor-footer {
