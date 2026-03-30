@@ -99,6 +99,53 @@
             bottom: -460px;
         }
 
+        /* Collapsed header styles */
+        .training-hub-advisor-sheet.collapsed .advisor-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -8px 20px rgba(102, 126, 234, 0.25);
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-title h4 {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-title .subtitle {
+            display: none;
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-content {
+            display: none;
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-footer {
+            display: none;
+        }
+
         .advisor-header {
             display: flex;
             justify-content: space-between;

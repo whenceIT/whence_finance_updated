@@ -156,7 +156,7 @@
             </div>
         </div>
 
-<!-- @include('partials.training_hub_advisor') -->
+@include('partials.training_hub_advisor')
 
 </div>
 
