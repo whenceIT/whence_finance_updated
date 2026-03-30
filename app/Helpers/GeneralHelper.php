@@ -2354,6 +2354,21 @@ public static function new_new_loan_total_balance($id)
         }
     }
 
+    /**
+     * Check if the current user is a specialist
+     *
+     * @return bool
+     */
+    public static function isSpecialist()
+    {
+        $user = Sentinel::getUser();
+        if (!$user) {
+            return false;
+        }
+        
+        return \App\Models\Specialist::where('user_id', $user->id)->where('is_active', 1)->exists();
+    }
+
     ///////////////////////Overdues//////////////////////////////////////////////////////////
     public static function total_loans_overdue_amount($start_date = "")
     {

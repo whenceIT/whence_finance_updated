@@ -71,6 +71,7 @@ class RecoveryCaseController extends Controller
 
     private function listCases(Request $request, ?string $category)
     {
+     
         $query = RecoveryCase::with(['client', 'assignedSpecialist', 'originBranch'])
             ->whereNotNull('approved_date')
             ->latest();
@@ -92,9 +93,11 @@ class RecoveryCaseController extends Controller
             });
         }
 
+        // dd($query->get());
         $cases      = $query->paginate(20)->withQueryString();
         $categories = RecoveryCase::CATEGORIES;
 
+       
         return view('recoveries.cases.index', compact('cases', 'categories'));
     }
 
@@ -121,9 +124,15 @@ class RecoveryCaseController extends Controller
             // Get specialists with their user relationship
             $specialists = Specialist::with('user')->where('is_active', true)->get();
             
+            // Get users with role_id = 3 (Loan Consultants) for escalation dropdown
+            $users = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
+                ->where('user_roles.role_id', 3)
+                ->select('users.*')
+                ->get();
+            
             Log::info('Loading create case form with optimized loan query 4');
 
-            return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'specialists'));
+            return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'specialists', 'users'));
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
