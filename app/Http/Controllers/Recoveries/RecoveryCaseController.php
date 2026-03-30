@@ -117,20 +117,16 @@ class RecoveryCaseController extends Controller
                 ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
                 ->get();
 
-            Log::info('Loading create case form with optimized loan query 2');
             $offices = Office::orderBy('name')->get();
-            Log::info('Loading create case form with optimized loan query 3');
             
             // Get specialists with their user relationship
             $specialists = Specialist::with('user')->where('is_active', true)->get();
             
             // Get users with role_id = 3 (Loan Consultants) for escalation dropdown
-            $users = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
-                ->where('user_roles.role_id', 3)
-                ->select('users.*')
-                ->get();
+            $users = User::whereHas('roles', function ($query) {
+                $query->where('id', 3);
+            })->get();
             
-            Log::info('Loading create case form with optimized loan query 4');
 
             return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'specialists', 'users'));
         } catch (\Throwable $th) {
