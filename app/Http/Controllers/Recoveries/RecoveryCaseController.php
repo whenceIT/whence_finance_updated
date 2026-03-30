@@ -124,7 +124,7 @@ class RecoveryCaseController extends Controller
             
             // Get users with role_id = 3 (Loan Consultants) for escalation dropdown
             $users = User::whereHas('roles', function ($query) {
-                $query->where('id', 3);
+                $query->where('roles.id', 3);
             })->get();
             
 
