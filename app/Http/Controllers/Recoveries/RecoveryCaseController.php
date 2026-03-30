@@ -325,6 +325,7 @@ class RecoveryCaseController extends Controller
         $offices = Office::get();
         $role = UserRole::where('user_id', $userId)->first();
 
+        
         if ($role->role_id == "6") {
             // Province manager - see all offices in province
             $province_cases = [];
@@ -340,19 +341,23 @@ class RecoveryCaseController extends Controller
                 }
             }
             $data = $province_cases;
-        } else {
-            if (Sentinel::hasAccess('settings')) {
-                // Admin sees all
-                $data = \App\Models\RecoveryCase::whereNull('approved_date')
-                    ->with(['client', 'loan', 'assignedSpecialist'])
-                    ->get();
-            } else {
-                // Regular user sees office-specific
-                $data = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
-                    ->whereNull('approved_date')
-                    ->with(['client', 'loan', 'assignedSpecialist'])
-                    ->get();
-            }
+        } elseif($role->role_id == "1" || $role->role_id == "10") {
+            // Admin sees all
+            $data = \App\Models\RecoveryCase::whereNull('approved_date')
+                ->with(['client', 'loan', 'assignedSpecialist'])
+                ->get();
+            // Regular Admin Assistant (Recoveries Unit) sees office-specific
+            $data = \App\Models\RecoveryCase::whereNull('approved_date')
+                ->with(['client', 'loan', 'assignedSpecialist'])
+                ->get();
+        }else{
+            // Regular user sees office-specific
+            $data = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
+                ->whereNull('approved_date')
+                ->with(['client', 'loan', 'assignedSpecialist'])
+                ->get();
+            Flash::warning("Permission Denied");
+            return redirect()->back();
         }
 
         return view('loan.recovery_case_approvals', compact('data'));

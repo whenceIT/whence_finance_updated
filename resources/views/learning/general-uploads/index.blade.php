@@ -57,7 +57,7 @@ $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
     </div>
 </div>
 <!-- Professional Header with Gradient -->
-<div style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); border-radius: 16px; padding: 32px; margin-bottom: 30px; color: white; position: relative; overflow: hidden;">
+<div style="background: linear-gradient(135deg, var(--primary-color) 0%, #357abd 100%); border-radius: 16px; padding: 32px; margin-bottom: 10px; color: white; position: relative; overflow: hidden;">
     @if(isset($topicPoster))
     <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 550px; background-image: url('{{ $topicPoster }}'); background-size: cover; background-position: center; opacity: 0.15; z-index: 0;"></div>
     @endif
@@ -80,7 +80,7 @@ $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
             @endphp
             @if($totalViews > 0)
             <div style="display: flex;">
-                <div style="font-size: 18px; font-weight: 700; line-height: 1;">{{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalViews) }}% views</div>
+                <div style="font-size: 18px; font-weight: 700; line-height: 1;">{{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalViews) }}% engagement</div>
             </div>
             @endif
             @if($isAdmin)
@@ -98,7 +98,7 @@ $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
 
 
 <!-- Clean Filter Section -->
-<div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: var(--shadow);">
+<div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 10px; box-shadow: var(--shadow);">
     <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 500;">
             <i class="fa fa-filter"></i> Filter by Type:
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="course-meta">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <span style="color: var(--text-secondary); font-size: 12px;">
-                        <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($upload->views_count ?? 0) }}% views
+                        <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($upload->views_count ?? 0) }}% viewers
                     </span>                    
                     <!-- <span style="color: var(--text-secondary); font-size: 12px;">
                         <i class="fa fa-heart"></i> {{ $upload->likes_count ?? 0 }} likes

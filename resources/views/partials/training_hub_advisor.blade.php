@@ -44,17 +44,20 @@
             @foreach($unviewedTopics as $topic)
                 <li class="topic-item">
                     <a href="{{ url('/learning/general-uploads?topic=' . $topic->id) }}" class="topic-link">
+                        @if($topic->poster)
+                        <div class="topic-image">
+                            <img src="{{ asset($topic->poster) }}" alt="{{ $topic->name }}" onerror="this.style.display='none'">
+                        </div>
+                        @else
                         <div class="topic-icon">
                             <i class="fa fa-book"></i>
                         </div>
+                        @endif
                         <div class="topic-details">
                             <span class="topic-name">{{ $topic->name }}</span>
                             @if($topic->description)
                                 <span class="topic-desc">{{ $topic->description }}</span>
                             @endif
-                        </div>
-                        <div class="topic-arrow">
-                            <i class="fa fa-chevron-right"></i>
                         </div>
                     </a>
                 </li>
@@ -94,6 +97,53 @@
         /* Collapsed state - only header visible */
         .training-hub-advisor-sheet.collapsed {
             bottom: -460px;
+        }
+
+        /* Collapsed header styles */
+        .training-hub-advisor-sheet.collapsed .advisor-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -8px 20px rgba(102, 126, 234, 0.25);
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-title h4 {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-title .subtitle {
+            display: none;
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-content {
+            display: none;
+        }
+
+        .training-hub-advisor-sheet.collapsed .advisor-footer {
+            display: none;
         }
 
         .advisor-header {
@@ -168,7 +218,7 @@
         }
 
         .advisor-content {
-            padding: 20px 24px;
+            padding: 2px 10px;
             background: #f8f9ff;
         }
 
@@ -229,7 +279,7 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 14px 16px;
+            padding: 4px 4px;
             background: white;
             border-radius: 14px;
             text-decoration: none;
@@ -291,6 +341,24 @@
         .topic-link:hover .topic-arrow {
             color: #667eea;
             transform: translateX(4px);
+        }
+        
+        /* Topic image pill design - half image half content */
+        .topic-image {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .topic-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .advisor-footer {

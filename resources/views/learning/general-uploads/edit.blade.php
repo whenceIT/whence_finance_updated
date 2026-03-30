@@ -141,6 +141,84 @@
     cursor: not-allowed;
     transform: none;
 }
+
+/* Multi-select styles */
+.multi-select-container {
+    position: relative;
+}
+
+.multi-select {
+    position: relative;
+    width: 100%;
+}
+
+.multi-select-selected {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text-secondary);
+    transition: border-color 0.3s ease;
+}
+
+.multi-select-selected:hover {
+    border-color: var(--primary-color);
+}
+
+.multi-select-selected.active {
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+.multi-select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.multi-select-options.active {
+    display: block;
+}
+
+.multi-select-option {
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.multi-select-option:hover {
+    background-color: var(--light-bg);
+}
+
+.multi-select-option input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.multi-select-option label {
+    margin: 0;
+    cursor: pointer;
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-primary);
+}
 </style>
 
 @section('content')
@@ -174,13 +252,40 @@
         <!-- Position -->
         <div class="form-group">
             <label class="form-label">Position</label>
-            <select name="position_id[]" id="positionSelect" class="form-select" multiple>
-                <option value="">Select positions</option>
-                @foreach($positions as $id => $name)
-                    <option value="{{ $id }}" {{ in_array($id, old('position_id', $upload->positions->pluck('id')->toArray())) ? 'selected' : '' }}>{{ $name }}</option>
-                @endforeach
-            </select>
+            <div class="multi-select-container">
+                <div class="multi-select" id="positionMultiSelect">
+                    <div class="multi-select-selected" id="positionSelected">Select positions</div>
+                    <div class="multi-select-options" id="positionOptions">
+                        @php
+                            $selectedPositionIds = isset($uploadPositions) ? $uploadPositions->pluck('id')->toArray() : [];
+                        @endphp
+                        @foreach($positions as $id => $name)
+                            <div class="multi-select-option" data-value="{{ $id }}">
+                                <input type="checkbox" id="position_{{ $id }}" name="position_id[]" value="{{ $id }}" {{ in_array($id, old('position_id', $selectedPositionIds)) ? 'checked' : '' }}>
+                                <label for="position_{{ $id }}">{{ $name }}</label>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Display the list of current assigned/synced positions -->
+            @if(isset($uploadPositions) && count($uploadPositions) > 0)
+            <div class="assigned-positions-list" style="margin-top: 12px; padding: 10px 12px; background: #e8f5e9; border-radius: 6px; border: 1px solid #c8e6c9;">
+                <span style="font-size: 12px; color: #2e7d32; font-weight: 600;">
+                    <i class="fa fa-check-circle"></i> Currently assigned positions:
+                </span>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                    @foreach($uploadPositions as $position)
+                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: white; border-radius: 20px; font-size: 12px; color: #333; border: 1px solid #a5d6a7;">
+                            <i class="fa fa-tag" style="color: #2e7d32;"></i> {{ $position->name }}
+                        </span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
+
         
         <!-- File Type -->
         <div class="form-group">
@@ -342,6 +447,78 @@ function formatFileSize(bytes) {
         return bytes + ' B';
     }
 }
+
+// Initialize multi-select on page load
+document.addEventListener('DOMContentLoaded', function() {
+    var positionMultiSelect = document.getElementById('positionMultiSelect');
+    var positionSelected = document.getElementById('positionSelected');
+    var positionOptions = document.getElementById('positionOptions');
+    var positionCheckboxes = document.querySelectorAll('#positionOptions input[type="checkbox"]');
+    
+    // Update initial selected text based on existing selections
+    updatePositionSelected();
+    
+    positionSelected.addEventListener('click', function() {
+        positionOptions.classList.toggle('active');
+        positionSelected.classList.toggle('active');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!positionMultiSelect.contains(event.target)) {
+            positionOptions.classList.remove('active');
+            positionSelected.classList.remove('active');
+        }
+    });
+    
+    // Update selected text
+    positionCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            updatePositionSelected();
+        });
+    });
+    
+    function updatePositionSelected() {
+        var selectedValues = [];
+        positionCheckboxes.forEach(function(cb) {
+            if (cb.checked) {
+                selectedValues.push(cb.nextElementSibling.textContent);
+            }
+        });
+        
+        if (selectedValues.length > 0) {
+            if (selectedValues.length > 2) {
+                positionSelected.textContent = selectedValues.length + ' positions selected';
+            } else {
+                positionSelected.textContent = selectedValues.join(', ');
+            }
+            positionSelected.classList.add('active');
+        } else {
+            positionSelected.textContent = 'Select positions';
+            positionSelected.classList.remove('active');
+        }
+    }
+});
+
+// Initialize with pre-selected positions from server
+@if(isset($uploadPositions) && count($uploadPositions) > 0)
+(function() {
+    var initialSelected = [];
+    @foreach($uploadPositions as $position)
+        initialSelected.push('{{ $position->name }}');
+    @endforeach
+    
+    var positionSelected = document.getElementById('positionSelected');
+    if (initialSelected.length > 0) {
+        if (initialSelected.length > 2) {
+            positionSelected.textContent = initialSelected.length + ' positions selected';
+        } else {
+            positionSelected.textContent = initialSelected.join(', ');
+        }
+        positionSelected.classList.add('active');
+    }
+})();
+@endif
 </script>
 
 <div style="margin-top: 30px; text-align: center;">

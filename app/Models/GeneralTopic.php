@@ -38,11 +38,13 @@ class GeneralTopic extends Model
             ->toArray();
 
         // Get topics with uploads that match user's position, but not viewed
-        // Use 'id' instead of 'position_id' since we're querying the Position model's primary key
+        // Filter via general_upload_position pivot table
         return $query->whereHas('uploads', function ($uploadQuery) use ($positionId) {
-                $uploadQuery->whereHas('positions', function ($positionQuery) use ($positionId) {
-                    $positionQuery->where('id', $positionId);
-                });
+                $uploadQuery->whereRaw('EXISTS (
+                    SELECT 1 FROM general_upload_position pup 
+                    INNER JOIN job_positions jp ON jp.id = pup.position_id 
+                    WHERE pup.general_upload_id = general_uploads.id AND jp.id = ?
+                )', [$positionId]);
             })
             ->whereNotIn('id', $viewedTopicIds);
     }
@@ -76,14 +78,16 @@ class GeneralTopic extends Model
             ->toArray();
 
         // Build query for unviewed topics
-        // Use 'id' instead of 'position_id' since we're querying the Position model's primary key
+        // Filter topics that have uploads associated with user's position via general_upload_position table
         $query = self::whereHas('uploads', function ($uploadQuery) use ($userPositionId) {
-                // $uploadQuery->whereHas('positions', function ($positionQuery) use ($userPositionId) {
-                //     $positionQuery->where('id', $userPositionId);
-                // });
+                $uploadQuery->whereRaw('EXISTS (
+                    SELECT 1 FROM general_upload_position pup 
+                    INNER JOIN job_positions jp ON jp.id = pup.position_id 
+                    WHERE pup.general_upload_id = general_uploads.id AND jp.id = ?
+                )', [$userPositionId]);
             })
             ->whereNotIn('id', $viewedTopicIds)
-            ->select(['id', 'name', 'description']);
+            ->select(['id', 'name', 'description', 'poster']);
 
         if ($limit) {
             $query->limit($limit);

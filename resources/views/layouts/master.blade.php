@@ -401,7 +401,7 @@
                 </a> -->
                 <!-- Tools Menu (visible on mobile) -->
                 <a href="#" onclick="toggleUserDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
-                    <i class="fa fa-wrench" style="font-size: 18px;"></i>
+                    <i class="fa fa-cog" style="font-size: 18px;"></i>
                 </a>
             </div>
             
@@ -441,6 +441,22 @@
                     }
                 }
             </style>
+            
+            <style>
+                /* Hide mobile wrench button on desktop (>= 768px) */
+                @media (min-width: 768px) {
+                    .mobile-wrench-btn {
+                        display: none !important;
+                    }
+                }
+                
+                /* Show mobile wrench button only on mobile (<= 767px) */
+                @media (max-width: 767px) {
+                    .mobile-wrench-btn {
+                        display: flex !important;
+                    }
+                }
+            </style>
               
             <!-- Header Navbar: style can be found in header.less -->
             <nav class="navbar navbar-static-top" style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
@@ -477,7 +493,7 @@
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
-                    <button onclick="openNotificationPanel()" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                    <button onclick="openNotificationPanel()" class="mobile-wrench-btn" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                         <i class="fa fa-wrench" style="font-size: 18px;"></i>
                     </button>
                     <ul class="nav navbar-nav">
