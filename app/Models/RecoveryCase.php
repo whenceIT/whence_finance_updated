@@ -121,7 +121,7 @@ class RecoveryCase extends Model
     // Scopes
     public function scopeActive($query)
     {
-        return $query->whereNotIn('recovery_cases.status', self::RESOLVED_STATUSES)
+        return $query->whereNotNull('approved_date')->whereNotIn('recovery_cases.status', self::RESOLVED_STATUSES)
                      ->whereHas('loan', fn($q) => $q->where('status', '!=', 'closed'));
     }
 
@@ -132,13 +132,18 @@ class RecoveryCase extends Model
               ->orWhereHas('loan', fn($q2) => $q2->where('status', 'closed'));
         });
     }
-    public function scopeByCategory($query, string $cat)   { return $query->where('category', $cat); }
-    public function scopeAssignedTo($query, int $userId)   { return $query->where('assigned_specialist_id', $userId); }
+    
+    public function scopeByCategory($query, string $cat)   { 
+        return $query->whereNotNull('approved_date')->where('category', $cat); 
+    }
+    public function scopeAssignedTo($query, int $userId)   { 
+        return $query->whereNotNull('approved_date')->where('assigned_specialist_id', $userId); 
+    }
 
     public function scopeForPeriod($query, string $period, ?string $dateFrom = null, ?string $dateTo = null)
     {
         if ($period === 'custom' && $dateFrom && $dateTo) {
-            return $query->whereBetween('created_at', [
+            return $query->whereNotNull('approved_date')->whereBetween('created_at', [
                 \Carbon\Carbon::parse($dateFrom)->startOfDay(),
                 \Carbon\Carbon::parse($dateTo)->endOfDay(),
             ]);

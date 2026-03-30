@@ -71,6 +71,7 @@ class RecoveryCaseController extends Controller
 
     private function listCases(Request $request, ?string $category)
     {
+     
         $query = RecoveryCase::with(['client', 'assignedSpecialist', 'originBranch'])
             ->whereNotNull('approved_date')
             ->latest();
@@ -92,9 +93,11 @@ class RecoveryCaseController extends Controller
             });
         }
 
+        // dd($query->get());
         $cases      = $query->paginate(20)->withQueryString();
         $categories = RecoveryCase::CATEGORIES;
 
+       
         return view('recoveries.cases.index', compact('cases', 'categories'));
     }
 
