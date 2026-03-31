@@ -13,7 +13,7 @@
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 25px;
+    margin-bottom: 3px;
     padding: 15px 20px;
     background: white;
     border-radius: 12px;
@@ -253,13 +253,51 @@
 .type-document { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
 .type-course { background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); }
 
-/* Light Blue Badge */
-.light-blue-badge {
-    background: linear-gradient(135deg, #3c3d3f 0%, #000000 100%) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 30%;
-    padding:2%;
+/* Progress Badge - Sleek design with gradient */
+.progress-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #2d5a27 0%, #3d7a32 100%);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(45, 90, 39, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+}
+
+.progress-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(45, 90, 39, 0.4);
+}
+
+.progress-badge i {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+/* Topic Views Badge */
+.topic-views-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+}
+
+.topic-views-badge i {
+    font-size: 12px;
+    opacity: 0.9;
 }
 
 /* Play Button Overlay */
@@ -752,10 +790,10 @@
                                 $totalTopicViews = collect($topic['uploads'])->sum('views_count');
                             @endphp
                             <div class="meta-item">
-                                <div class="light-blue-badge">
+                                <span class="topic-views-badge">
                                     <i class="fa fa-eye"></i>
                                     <span>{{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% views</span>
-                                </div>
+                                </span>
                             </div>
                         </div>
 
@@ -825,19 +863,14 @@
                                 </div>
                                 @endif
              
-                                <!-- Meta Information -->
-                                <div class="course-meta">
-                                  <div class="meta-item">
-                                    <span class="light-blue-badge">
-                                        <i class="fa fa-eye"></i>
-                                        @php
-                                            $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
-                                            $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
-                                        @endphp
-                                        {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% views
-                                    </span>
-                                  </div>
-                                </div>
+                                <span class="progress-badge">
+                                    <i class="fa fa-chart-line"></i>
+                                    @php
+                                        $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
+                                        $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
+                                    @endphp
+                                    {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% viewed
+                                </span>
              
                                 <!-- Play Overlay -->
                                 <div class="play-overlay">

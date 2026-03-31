@@ -1250,7 +1250,7 @@
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
             {{-- ====================================================== --}}
-            @if($role != 3 || $role != 2 || $role != 11)
+            @if($role != 3 || $role != 2 || $role != 11 || \App\Helpers\GeneralHelper::isSpecialist())
                 <li class="treeview @if(Request::is('recovery/*')) active @endif">
                     <a href="#">
                         <i class="fa fa-refresh"></i> <span>Recoveries</span>
@@ -1273,35 +1273,35 @@
                             <li class="@if(Request::is('recovery/case/cross_branch')) active @endif">
                                 <a href="{{ url('recovery/case/cross_branch') }}"><i class="fa fa-circle-o"></i> Cross-Branch
                                     <span class="pull-right-container">
-                                        <span class="label label-primary pull-right">{{\App\Models\RecoveryCase::active()->byCategory('cross_branch')->count()}}</span>
+                                        <span class="label label-primary pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'cross_branch')->count()}}</span>
                                     </span>
                                 </a>
                             </li>
                             <li class="@if(Request::is('recovery/case/escalated')) active @endif">
                                 <a href="{{ url('recovery/case/escalated') }}"><i class="fa fa-circle-o"></i> Escalated Accounts
                                     <span class="pull-right-container">
-                                        <span class="label label-warning pull-right">{{\App\Models\RecoveryCase::active()->byCategory('escalated')->count()}}</span>
+                                        <span class="label label-warning pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'escalated')->count()}}</span>
                                     </span>
                                 </a>
                             </li>
                             <li class="@if(Request::is('recovery/case/dormant')) active @endif">
                                 <a href="{{ url('recovery/case/dormant') }}"><i class="fa fa-circle-o"></i> Dormant Revival
                                     <span class="pull-right-container">
-                                        <span class="label label-default pull-right">{{\App\Models\RecoveryCase::active()->byCategory('dormant')->count()}}</span>
+                                        <span class="label label-default pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'dormant')->count()}}</span>
                                     </span>
                                 </a>
                             </li>
                             <li class="@if(Request::is('recovery/case/legal')) active @endif">
                                 <a href="{{ url('recovery/case/legal') }}"><i class="fa fa-circle-o"></i> Legal Recovery
                                     <span class="pull-right-container">
-                                        <span class="label label-danger pull-right">{{\App\Models\RecoveryCase::active()->byCategory('legal')->count()}}</span>
+                                        <span class="label label-danger pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'legal')->count()}}</span>
                                     </span>
                                 </a>
                             </li>
                             <li class="@if(Request::is('recovery/case/skip_trace')) active @endif">
                                 <a href="{{ url('recovery/case/skip_trace') }}"><i class="fa fa-circle-o"></i> Skip Tracing
                                     <span class="pull-right-container">
-                                        <span class="label label-success pull-right">{{\App\Models\RecoveryCase::active()->byCategory('skip_trace')->count()}}</span>
+                                        <span class="label label-success pull-right">{{\App\Models\RecoveryCase::whereNotNull('approved_date')->where('category', 'skip_trace')->count()}}</span>
                                     </span>
                                 </a>
                             </li>

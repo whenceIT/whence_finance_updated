@@ -351,12 +351,12 @@
                 </a>
 
                 <a href="https://meet.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                    <i class="fa fa-video-camera" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                    <img src="{{ asset('anim/conference.gif') }}" alt="Education" style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
                     <span style="font-size: 12px;">Google Meet</span>
                 </a>
 
                 <a href="https://mail.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                    <i class="fa fa-envelope" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                    <img src="{{ asset('anim/gmail.gif') }}" alt="Education" style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
                     <span style="font-size: 12px;">Gmail</span>
                 </a>
 
@@ -401,7 +401,7 @@
                 </a> -->
                 <!-- Tools Menu (visible on mobile) -->
                 <a href="#" onclick="toggleUserDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
-                    <i class="fa fa-wrench" style="font-size: 18px;"></i>
+                    <i class="fa fa-cog" style="font-size: 18px;"></i>
                 </a>
             </div>
             
@@ -441,6 +441,22 @@
                     }
                 }
             </style>
+            
+            <style>
+                /* Hide mobile wrench button on desktop (>= 768px) */
+                @media (min-width: 768px) {
+                    .mobile-wrench-btn {
+                        display: none !important;
+                    }
+                }
+                
+                /* Show mobile wrench button only on mobile (<= 767px) */
+                @media (max-width: 767px) {
+                    .mobile-wrench-btn {
+                        display: flex !important;
+                    }
+                }
+            </style>
               
             <!-- Header Navbar: style can be found in header.less -->
             <nav class="navbar navbar-static-top" style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
@@ -477,9 +493,9 @@
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
-                    <!-- <button onclick="openNotificationPanel()" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                    <button onclick="openNotificationPanel()" class="mobile-wrench-btn" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                         <i class="fa fa-wrench" style="font-size: 18px;"></i>
-                    </button> -->
+                    </button>
                     <ul class="nav navbar-nav">
                         @if($user)
                             <!-- User Account: style can be found in dropdown.less -->

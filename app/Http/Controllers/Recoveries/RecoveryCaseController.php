@@ -7,6 +7,7 @@ use App\Models\RecoveryCase;
 use App\Models\Loan;
 use App\Models\Office;
 use App\Models\User;
+use App\Models\Specialist;
 use App\Models\LoanTransactionUnapproved;
 use App\Models\UserRole;
 use Carbon\Carbon;
@@ -70,6 +71,7 @@ class RecoveryCaseController extends Controller
 
     private function listCases(Request $request, ?string $category)
     {
+     
         $query = RecoveryCase::with(['client', 'assignedSpecialist', 'originBranch'])
             ->whereNotNull('approved_date')
             ->latest();
@@ -91,9 +93,11 @@ class RecoveryCaseController extends Controller
             });
         }
 
+        // dd($query->get());
         $cases      = $query->paginate(20)->withQueryString();
         $categories = RecoveryCase::CATEGORIES;
 
+       
         return view('recoveries.cases.index', compact('cases', 'categories'));
     }
 
@@ -113,13 +117,18 @@ class RecoveryCaseController extends Controller
                 ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
                 ->get();
 
-            Log::info('Loading create case form with optimized loan query 2');
             $offices = Office::orderBy('name')->get();
-            Log::info('Loading create case form with optimized loan query 3');
-            $users = User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
-            Log::info('Loading create case form with optimized loan query 4');
+            
+            // Get specialists with their user relationship
+            $specialists = Specialist::with('user')->where('is_active', true)->get();
+            
+            // Get users with role_id = 3 (Loan Consultants) for escalation dropdown
+            $users = User::whereHas('roles', function ($query) {
+                $query->where('roles.id', 3);
+            })->get();
+            
 
-            return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'users'));
+            return view('recoveries.cases.create', compact('categories', 'loans', 'offices', 'specialists', 'users'));
         } catch (\Throwable $th) {
             Log::info($th->getMessage());
         }
@@ -312,6 +321,7 @@ class RecoveryCaseController extends Controller
         $offices = Office::get();
         $role = UserRole::where('user_id', $userId)->first();
 
+        
         if ($role->role_id == "6") {
             // Province manager - see all offices in province
             $province_cases = [];
@@ -327,19 +337,23 @@ class RecoveryCaseController extends Controller
                 }
             }
             $data = $province_cases;
-        } else {
-            if (Sentinel::hasAccess('settings')) {
-                // Admin sees all
-                $data = \App\Models\RecoveryCase::whereNull('approved_date')
-                    ->with(['client', 'loan', 'assignedSpecialist'])
-                    ->get();
-            } else {
-                // Regular user sees office-specific
-                $data = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
-                    ->whereNull('approved_date')
-                    ->with(['client', 'loan', 'assignedSpecialist'])
-                    ->get();
-            }
+        } elseif($role->role_id == "1" || $role->role_id == "10") {
+            // Admin sees all
+            $data = \App\Models\RecoveryCase::whereNull('approved_date')
+                ->with(['client', 'loan', 'assignedSpecialist'])
+                ->get();
+            // Regular Admin Assistant (Recoveries Unit) sees office-specific
+            $data = \App\Models\RecoveryCase::whereNull('approved_date')
+                ->with(['client', 'loan', 'assignedSpecialist'])
+                ->get();
+        }else{
+            // Regular user sees office-specific
+            $data = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
+                ->whereNull('approved_date')
+                ->with(['client', 'loan', 'assignedSpecialist'])
+                ->get();
+            Flash::warning("Permission Denied");
+            return redirect()->back();
         }
 
         return view('loan.recovery_case_approvals', compact('data'));

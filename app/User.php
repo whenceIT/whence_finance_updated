@@ -31,4 +31,20 @@ class User extends Authenticatable
     {
         return $this->belongsTo(\App\Models\Office::class, 'office_id', 'id');
     }
+
+    /**
+     * Scope to get user's full name (first_name + last_name)
+     */
+    public function scopeFullName($query)
+    {
+        return $query->selectRaw("CONCAT(COALESCE(first_name,''), ' ', COALESCE(last_name,'')) as full_name");
+    }
+
+    /**
+     * Get the user's full name as an attribute
+     */
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
 }

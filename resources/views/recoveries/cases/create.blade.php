@@ -131,9 +131,9 @@
                                 <label>Assign Specialist <small class="text-muted">(optional)</small></label>
                                 <select name="assigned_specialist_id" class="form-control">
                                     <option value="">— Assign Later —</option>
-                                    @foreach($users as $u)
-                                    <option value="{{ $u->id }}">
-                                        {{ $u->first_name }} {{ $u->last_name }}
+                                    @foreach($specialists as $specialist)
+                                    <option value="{{ $specialist->user_id }}">
+                                        {{ $specialist->user->first_name }} {{ $specialist->user->last_name }}
                                     </option>
                                     @endforeach
                                 </select>
