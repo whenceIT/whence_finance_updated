@@ -97,7 +97,10 @@ class HRController extends Controller{
         
         // keeps search in pagination
 
-        return view('hr.employees',compact('employees','search'));
+        $role = Sentinel::getUser()->roles->first();
+        if($role->role_id == '1'){
+            return view('hr.employees',compact('employees','search'));
+        }
     }
 
 
@@ -255,13 +258,15 @@ if ($json !== false) {
         $advanceYears->prepend($currentYear);
     }
 
-
-        return view('hr.employee', compact('employee','data','start','end','data','userId','employeeLeaves',
+     $role = Sentinel::getUser()->roles->first();
+     if($role->role_id == '1'){
+            return view('hr.employee', compact('employee','data','start','end','data','userId','employeeLeaves',
         'leaveYears',
         'selectedLeaveYear',
      'employeeAdvances',
         'advanceYears',
         'selectedAdvanceYear'));
+     }
     }
 
 

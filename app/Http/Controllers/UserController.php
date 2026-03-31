@@ -44,6 +44,7 @@ use App\Models\ClientTransferLog;
 use stdClass;
 use Carbon\Carbon;
 use App\Models\AuditLogs;
+use Illuminate\Support\Facades\Http;
 
 
 
@@ -134,6 +135,50 @@ $data = $json ? json_decode($json, true) : null;
 return view('user.manager_performance',compact('data','start','end','userId'));
 
 }
+
+
+
+public function poadashboard(Request $request)
+{
+    // ✅ DEFAULT CYCLE (25 → 24)
+        $today = Carbon::today();
+
+        $cycleStart = $today->copy()->day(25);
+        if ($today->day < 25) {
+            $cycleStart->subMonth();
+        }
+
+        $cycleEnd = $cycleStart->copy()->addMonth()->subDay();
+
+        // ✅ OVERRIDE WITH FILTER
+        $start_date = $request->start_date ?? $cycleStart->format('Y-m-d');
+        $end_date   = $request->end_date ?? $cycleEnd->format('Y-m-d');
+
+        // ✅ FETCH PROVINCES
+        $provinceResponse = Http::get('https://lms2backend.whencefinancesystem.com/province-performance-all', [
+            'start_date' => $start_date,
+            'end_date' => $end_date
+        ]);
+
+        $provinces = $provinceResponse->json()['data'] ?? [];
+
+        // ✅ FETCH BRANCHES
+        $branchResponse = Http::get('https://lms2backend.whencefinancesystem.com/branch-performance-all', [
+            'start_date' => $start_date,
+            'end_date' => $end_date
+        ]);
+
+        $branches = $branchResponse->json()['data'] ?? [];
+
+        return view('user.poadashboard',compact(
+            'provinces',
+            'branches',
+            'start_date',
+            'end_date'
+        ));
+}
+
+
 
 public function create_carry_over(Request $request)
 {
