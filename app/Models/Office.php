@@ -23,7 +23,9 @@ class Office extends Model
         'manager_id',
         'active',
         'default_office',
-        'province_id'
+        'province_id',
+        'district_id',
+        'district_regional_id'
     ];
 
     public function parent()
@@ -35,6 +37,16 @@ class Office extends Model
     public function province()
     {
         return $this->hasOne(Province::class, 'id', 'province_id');
+    }
+
+    public function district()
+    {
+        return $this->hasOne(District::class, 'id', 'district_id');
+    }
+
+    public function districtRegional()
+    {
+        return $this->hasOne(DistrictRegional::class, 'id', 'district_regional_id');
     }
 
     public function charges()

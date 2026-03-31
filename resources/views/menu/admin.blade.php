@@ -685,8 +685,6 @@
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                    
-
                     <!-- Advance Approvals -->
                     @if(Sentinel::hasAccess('reports.client_reports'))
                     <li style="padding-left: 10px;"><a href="{{ route('advances.pending_approvals') }}">
@@ -755,6 +753,47 @@
                         <ul class="treeview-menu">
                             @if(Sentinel::hasAccess('reports.client_reports'))
                                 <li><a href="{{ route('survey.responses') }}"><i class="fa fa-circle-o"></i> Survey Responses</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+                    
+
+                    <!-- Company Policies -->
+                    @if(Sentinel::hasAccess('reports'))
+                    <li class="treeview @if(Request::is('policies/*')) active menu-open @endif" style="padding-left: 10px;">
+                        <a href="#">
+                            <i class="fa fa-user"></i> <span>Company Policies</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                                <li><a href="{{ route('policies.user_responses') }}"><i class="fa fa-circle-o"></i> User Responses</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                                <li><a href="{{ route('policies.add_policies') }}"><i class="fa fa-circle-o"></i> Add Policies</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- District Management -->
+                    @if($role==1)
+                    <li class="treeview @if(Request::is('districts/*')) active menu-open @endif" style="padding-left: 10px;">
+                        <a href="#">
+                            <i class="fa fa-map-marker"></i> <span>Districts & Regions</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('settings'))
+                                <li><a href="{{ url('districts') }}"><i class="fa fa-circle-o"></i> Districts</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('settings'))
+                                <li><a href="{{ url('district-regionals') }}"><i class="fa fa-circle-o"></i> District Regionals</a></li>
                             @endif
                         </ul>
                     </li>
@@ -831,27 +870,6 @@
                         </ul>
                     </li>
                     @endif
-
-                    <!-- Company Policies -->
-                    @if(Sentinel::hasAccess('reports'))
-                    <li class="treeview @if(Request::is('policies/*')) active menu-open @endif" style="padding-left: 10px;">
-                        <a href="#">
-                            <i class="fa fa-user"></i> <span>Company Policies</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('reports.client_reports'))
-                                <li><a href="{{ route('policies.user_responses') }}"><i class="fa fa-circle-o"></i> User Responses</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.client_reports'))
-                                <li><a href="{{ route('policies.add_policies') }}"><i class="fa fa-circle-o"></i> Add Policies</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
-
                     <!-- Audit Trail -->
                     @if(Sentinel::hasAccess('audit_trail'))
                     <li @if(Request::is('audit_trail/*')) class="active" @endif style="padding-left: 10px;">
