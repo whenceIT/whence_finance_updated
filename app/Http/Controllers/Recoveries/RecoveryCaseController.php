@@ -136,21 +136,25 @@ class RecoveryCaseController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'loan_id'                 => 'required|exists:loans,id',
-            'origin_branch_id'        => 'required|exists:offices,id',
-            'category'                => 'required|in:' . implode(',', array_keys(RecoveryCase::CATEGORIES)),
-            'loan_outstanding_amount' => 'required|numeric|min:0',
-        ]);
+        try {            
+            $request->validate([
+                'loan_id'                 => 'required|exists:loans,id',
+                'origin_branch_id'        => 'required|exists:offices,id',
+                'category'                => 'required|in:' . implode(',', array_keys(RecoveryCase::CATEGORIES)),
+                'loan_outstanding_amount' => 'required|numeric|min:0',
+            ]);
 
-        // Derive client_id from the selected loan — no need to expose it in the form
-        $loan = \App\Models\Loan::findOrFail($request->loan_id);
-        $data = array_merge($request->except('_token'), ['client_id' => $loan->client_id]);
-
-        $case = $this->caseService->openCase($data);
-
-        return redirect('recovery/case/' . $case->id . '/show')
-            ->with('success', "Case {$case->case_number} created successfully.");
+            // Derive client_id from the selected loan — no need to expose it in the form
+            $loan = Loan::where('id', $request->loan_id)->first();
+            $data = array_merge($request->except('_token'), ['client_id' => $loan->client_id]);
+            $case = $this->caseService->openCase($data);
+            
+            return redirect('recovery/case/' . $case->id . '/show')
+                ->with('success', "Case {$case->case_number} created successfully.");
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+            //  return redirect()->back()->with('error', 'An error occurred while creating the case.');
+        }
     }
 
     public function show($id)

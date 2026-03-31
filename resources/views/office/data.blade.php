@@ -21,6 +21,9 @@
                         <th>{{ trans('general.name') }}</th>
                         <th>{{ trans('general.external_id') }}</th>
                         <th>{{ trans('general.parent') }} {{ trans_choice('general.branch', 1) }}</th>
+                        <th>Province</th>
+                        <th>District</th>
+                        <th>Region</th>
                         <th>{{ trans_choice('general.opening', 1) }} {{ trans_choice('general.date', 1) }}</th>
                         <th>Branch Capacity</th>
                         <th>{{ trans_choice('general.action', 1) }}</th>
@@ -34,6 +37,27 @@
                             <td>
                                 @if(!empty($key->parent))
                                     {{$key->parent->name}}
+                                @endif
+                            </td>
+                            <td>
+                                @if(!empty($key->province))
+                                    {{$key->province->name}}
+                                @else
+                                    --
+                                @endif
+                            </td>
+                            <td>
+                                @if(!empty($key->district))
+                                    {{$key->district->name}}
+                                @else
+                                    --
+                                @endif
+                            </td>
+                            <td>
+                                @if(!empty($key->districtRegional))
+                                    {{$key->districtRegional->name}}
+                                @else
+                                    --
                                 @endif
                             </td>
                             <td> {{ Carbon\Carbon::parse($key->opening_date)->format('d/m/Y') }}

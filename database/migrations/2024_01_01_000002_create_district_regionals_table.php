@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('district_regionals', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
             $table->string('name');
-            $table->foreignId('district_id')->constrained()->onDelete('cascade');
-            $table->foreignId('province_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('district_id')->nullable();
+            $table->unsignedBigInteger('province_id')->nullable();
             $table->timestamps();
         });
     }

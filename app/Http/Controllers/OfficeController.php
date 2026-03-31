@@ -37,7 +37,7 @@ class OfficeController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $data = Office::all();
+        $data = Office::with(['parent', 'province', 'district', 'districtRegional'])->get();
         return view('office.data', compact('data'));
     }
 
@@ -75,6 +75,9 @@ class OfficeController extends Controller
         $office->external_id = $request->external_id;
         $office->opening_date = $request->opening_date;
         $office->branch_capacity = $request->branch_capacity;
+        $office->province_id = $request->province_id;
+        $office->district_id = $request->district_id;
+        $office->district_regional_id = $request->district_regional_id;
         $office->save();
         GeneralHelper::audit_trail("Create", "Branches", $office->id);
         Flash::success(trans('general.successfully_saved'));
@@ -121,6 +124,9 @@ class OfficeController extends Controller
         $office->external_id = $request->external_id;
         $office->opening_date = $request->opening_date;
         $office->branch_capacity = $request->branch_capacity;
+        $office->province_id = $request->province_id;
+        $office->district_id = $request->district_id;
+        $office->district_regional_id = $request->district_regional_id;
         $office->notes = $request->notes;
         $office->save();
         GeneralHelper::audit_trail("Update", "Branches", $office->id);

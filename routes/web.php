@@ -33,6 +33,8 @@ use App\Http\Controllers\Recoveries\RecoveryCaseController;
 use App\Http\Controllers\Recoveries\RecoveryNudgeController;
 use App\Http\Controllers\Recoveries\RecoverySpecialistController;
 use App\Http\Controllers\Recoveries\RecoveryReportController;
+use App\Http\Controllers\DistrictController;
+use App\Http\Controllers\DistrictRegionalController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -79,7 +81,7 @@ Route::model('loan_application', 'App\Models\LoanApplication');
 
 // Recovery model bindings
 Route::model('recovery_case', 'App\Models\RecoveryCase');
-Route::model('recovery_payment', 'App\Models\/repayment/store');
+Route::model('recovery_payment', 'App\Models\RecoveryPayment');
 Route::model('recovery_document', 'App\Models\RecoveryDocument');
 Route::model('recovery_nudge', 'App\Models\RecoveryNudge');
 Route::model('recovery_activity', 'App\Models\RecoveryActivity');
@@ -1311,6 +1313,25 @@ Route::group(['prefix' => 'expense'], function () {
     Route::any('budget/report/excel', 'ExpenseBudgetController@report_excel');
     Route::any('budget/report/csv', 'ExpenseBudgetController@report_csv');
 });
+// District Management Routes
+Route::prefix('districts')->group(function () {
+    Route::get('/', [DistrictController::class, 'index']);
+    Route::post('/', [DistrictController::class, 'store']);
+    Route::get('/{id}', [DistrictController::class, 'show']);
+    Route::put('/{id}', [DistrictController::class, 'update']);
+    Route::delete('/{id}', [DistrictController::class, 'destroy']);
+    Route::get('/stats', [DistrictController::class, 'getDistrictsWithStats']);
+});
+
+Route::prefix('district-regionals')->group(function () {
+    Route::get('/', [DistrictRegionalController::class, 'index']);
+    Route::post('/', [DistrictRegionalController::class, 'store']);
+    Route::get('/{id}', [DistrictRegionalController::class, 'show']);
+    Route::put('/{id}', [DistrictRegionalController::class, 'update']);
+    Route::delete('/{id}', [DistrictRegionalController::class, 'destroy']);
+    Route::get('/stats', [DistrictRegionalController::class, 'getDistrictRegionalsWithStats']);
+});
+
 //route for payroll
 Route::group(['prefix' => 'payroll'], function () {
     Route::get('data', 'PayrollController@index');
@@ -1654,6 +1675,7 @@ Route::group(['prefix' => 'recovery'], function () {
         Route::get('{id}/edit',            'Recoveries\RecoveryCaseController@edit');
         Route::post('{id}/update',         'Recoveries\RecoveryCaseController@update');
         Route::get('{id}/delete',          'Recoveries\RecoveryCaseController@destroy');
+        Route::delete('{id}',               'Recoveries\RecoveryCaseController@destroy');
         Route::post('{id}/status',         'Recoveries\RecoveryCaseController@updateStatus');
         Route::post('{id}/payment/store',  'Recoveries\RecoveryCaseController@recordPayment');
         Route::post('{id}/document/store', 'Recoveries\RecoveryCaseController@uploadDocument');
