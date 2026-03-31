@@ -676,8 +676,6 @@
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                    
-
                     <!-- Advance Approvals -->
                     @if(Sentinel::hasAccess('reports.client_reports'))
                     <li style="padding-left: 10px;"><a href="{{ route('advances.pending_approvals') }}">
