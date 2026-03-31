@@ -8,7 +8,7 @@
 <section class="content-header">
     <h1>
     
-        <small>Province, Branch and Consultant Performance Breakdown</small>
+        <small>Province, Branch and Consultant Performance Breakdown from {{$start_date}} to {{$end_date}} </small>
     </h1>
 </section>
 
@@ -44,6 +44,71 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+
+        <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">
+                <i class="fa fa-check-circle"></i>Targets met today
+            </h3>
+        </div>
+
+        <div class="box-body table-responsive no-padding">
+            <table class="table table-bordered table-hover">
+                <thead style="background: #f4f4f4;">
+                    <tr>
+                        <th>Name</th>
+                        <th>Branch</th>
+                        <th>Target Type</th>
+                        <th>Cycle Start</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($targets_met as $target)
+                        <tr>
+                            <td><strong>{{ $target->user_name }}</strong></td>
+                            <td>{{ $target->office_name }}</td>
+                           <td>
+@php
+    $level = $target->target_level;
+    $label = '';
+    $color = '';
+
+    if($level == 40000){
+        $label = 'Single Target';
+        $color = 'green';
+    } elseif($level == 50000){
+        $label = '50 Band';
+        $color = 'blue';
+    } elseif($level == 80000){
+        $label = 'Double Target';
+        $color = 'orange';
+    } elseif($level == 120000){
+        $label = 'Triple Target';
+        $color = 'red';
+    } else {
+        $label = number_format($level);
+        $color = 'black';
+    }
+@endphp
+
+<span style="color: {{$color}}; font-weight:bold;">
+    {{$label}}
+</span>
+</td>
+                            <td>{{ $target->cycle_start }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                No targets today.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 

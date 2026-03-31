@@ -45,6 +45,7 @@ use stdClass;
 use Carbon\Carbon;
 use App\Models\AuditLogs;
 use Illuminate\Support\Facades\Http;
+use App\Models\TargetsMet;
 
 
 
@@ -170,11 +171,22 @@ public function poadashboard(Request $request)
 
         $branches = $branchResponse->json()['data'] ?? [];
 
+        $targets_met = TargetsMet::where('date', [$today])
+    ->get()
+    ->groupBy(function ($item) {
+        return $item->user_id . '_' . $item->date;
+    })
+    ->map(function ($group) {
+        return $group->sortByDesc('target_level')->first();
+    })
+    ->values();
+
         return view('user.poadashboard',compact(
             'provinces',
             'branches',
             'start_date',
-            'end_date'
+            'end_date',
+            'targets_met'
         ));
 }
 
@@ -257,6 +269,7 @@ public function create_carry_over(Request $request)
 
 
         $userId = Sentinel::getUser()->id;
+        $position_id = Sentinel::getUser()->position_id;
         //BELOW THIS
         $role = UserRole::where('user_id', $userId)->first();
         $userBranch = Sentinel::getUser()->office_id;
@@ -325,6 +338,10 @@ public function create_carry_over(Request $request)
 
     } catch (\Exception $e) {
         // Fail silently – system must continue
+    }
+
+    if ($position_id == 17) {
+        return redirect('/user/poadashboard');  
     }
 
             $allLoans = Loan::with('transactions')->where('created_date', '>', $afterDate)->get();
@@ -601,6 +618,8 @@ $data = $json ? json_decode($json, true) : null;
         if ($role->role_id != '2') {
             return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date','numbers_status','branch_data'));
         } else {
+
+
             return view('dashboard', compact('role', 'user', 'client', 'clientBranch', 'staff', 'clientLoan'));
         }
     }
