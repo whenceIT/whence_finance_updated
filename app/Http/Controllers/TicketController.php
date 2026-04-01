@@ -618,7 +618,7 @@ class TicketController extends Controller
             $ticket->datetime_close = now();
             $ticket->date_closed = now();
             $ticket->closed_by = Sentinel::getUser()->id;
-            $ticket->resolution_comment = $request->comments;
+            $ticket->resolution_comment = 'Invalid Ticket: '.$request->comments;
 
             $ticket->save();
 
