@@ -363,6 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                 <th>Target Met</th>
                                                 <th>Target History</th>
                                                 <th>Cycle Ends On</th>
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -377,6 +378,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 const givenOut = parseFloat(c.given_out ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                                 const carryOver = parseFloat(c.carry_over ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                                 const cycle_end = c.cycle_end_on;
+                                const id = c.user_id;
 
                                 const targetMetCurrent = Number(c.target_met_current ?? 0);
 
@@ -440,6 +442,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <td>${historyCircles}</td>
                                       
                                          <td>${cycle_end}</td>
+                                             
+  <td>
+    <a href="{{ url('user/${id}/staff_info') }}" class="text-primary">
+        View
+    </a>
+</td>
                                     </tr>
                                 `;
                             });

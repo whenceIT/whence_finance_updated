@@ -194,8 +194,8 @@ $target_total = 0;
 $target_monthly = 0;
 $target_reloan = 0;
 
-if($branchUser->role->role_id != 1){
-    $staff_count = $staff_count + 1;
+if ($branchUser->role && $branchUser->role->role_id != 1) {
+    $staff_count++;
 }
 
 if($branchUser->cycle_dates != null){
@@ -458,10 +458,10 @@ if($target_total > 40000){
 <span class="info-box-icon"><i class="fa fa-user-o"></i></span>
 <div class="info-box-content">
 <span class="info-box-text">{{$branchUser->first_name}} {{$branchUser->last_name}}</span>
-@if($branchUser->role->role_id == '3')
-<p style="font-size: 15px;">Loan Consultant</p>
-@elseif($branchUser->role->role_id == '4')
-<p>Branch Manager</p>
+@if(optional($branchUser->role)->role_id == 3)
+    <p style="font-size: 15px;">Loan Consultant</p>
+@elseif(optional($branchUser->role)->role_id == 4)
+    <p>Branch Manager</p>
 @else
 <p></p>
 @endif
