@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('offices', function (Blueprint $table) {
-            $table->unsignedInteger('district_id')->nullable()->after('province_id');
-            $table->unsignedInteger('district_regional_id')->nullable()->after('district_id');
+            $table->unsignedBigInteger('district_id')->nullable()->after('province_id');
+            $table->unsignedBigInteger('district_regional_id')->nullable()->after('district_id');
         });
     }
 
