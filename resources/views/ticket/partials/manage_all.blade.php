@@ -128,11 +128,17 @@
                         .tk-card.tk-status-resolved-card {
                             border-left: 5px solid #10b981;
                         }
+                        .tk-card.tk-status-closed-card {
+                            border-left: 5px solid #ed1111;
+                        }
                         /* Card background colors */
                         .tk-card.tk-status-assigned-card {
                             background: #f8fafc;
                         }
                         .tk-card.tk-status-resolved-card {
+                            background: #d1fae5;
+                        }
+                        .tk-card.tk-status-closed-card {
                             background: #d1fae5;
                         }
                         .tk-card-header {
@@ -328,6 +334,8 @@
                                     $statusClass = 'tk-status-pending-card';
                                 } elseif($ticket->status == 'resolved') {
                                     $statusClass = 'tk-status-resolved-card';
+                                }  elseif($ticket->status == 'closed') {
+                                    $statusClass = 'tk-status-closed-card';
                                 } elseif($ticket->stage == 'Started') {
                                     $statusClass = 'tk-status-working-card';
                                 } elseif($ticket->assigned_to != null) {
@@ -390,27 +398,31 @@
                                 </div>
                                 @if($isAdmin == 1)
                                 <div class="tk-card-footer">
-                                    @if($ticket->stage != 'Started')
-                                    <button type="button" class="tk-btn tk-btn-primary open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">
-                                        <i class="fa fa-user-plus"></i> Assign
-                                    </button>
-                                    @endif
-                                    @if($ticket->assigned_to != null)
-                                    <button type="button" class="tk-btn tk-btn-warning open-reassign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-current-assigned="{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '' }}" data-assigned-to="{{ $ticket->assigned_to }}" title="Reassign Ticket">
-                                        <i class="fa fa-user"></i> Reassign
-                                    </button>
-                                    @endif
-                                    @if($ticket->stage != 'Started')
-                                    <button type="button" class="tk-btn tk-btn-danger open-reject-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}">
-                                        <i class="fa fa-times"></i> Reject
-                                    </button>
-                                    @endif
-                                    @if($ticket->stage != 'Started' && $ticket->assigned_to == null)
-                                    <span class="tk-btn tk-btn-muted"><i class="fa fa-clock"></i> Pending</span>
-                                    @elseif($ticket->status == 'resolved')
-                                    <span class="tk-btn tk-btn-muted"><i class="fa fa-check-circle"></i> Resolved</span>
-                                    @elseif($ticket->stage == 'Started')
-                                    <span class="tk-btn tk-btn-muted"><i class="fa fa-cog fa-spin"></i> Working...</span>
+                                    @if($ticket->status != 'closed')
+                                        @if($ticket->stage != 'Started')
+                                        <button type="button" class="tk-btn tk-btn-primary open-assign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-assigned-to="{{ $ticket->assigned_to }}">
+                                            <i class="fa fa-user-plus"></i> Assign
+                                        </button>
+                                        @endif
+                                        @if($ticket->assigned_to != null)
+                                        <button type="button" class="tk-btn tk-btn-warning open-reassign-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}" data-current-assigned="{{ optional($ticket->assignedTo)->first_name ?? optional($ticket->assignedTo)->name ?? '' }}" data-assigned-to="{{ $ticket->assigned_to }}" title="Reassign Ticket">
+                                            <i class="fa fa-user"></i> Reassign
+                                        </button>
+                                        @endif
+                                        @if($ticket->stage != 'Started')
+                                        <button type="button" class="tk-btn tk-btn-danger open-reject-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}">
+                                            <i class="fa fa-times"></i> Reject
+                                        </button>
+                                        @endif
+                                        @if($ticket->stage != 'Started' && $ticket->assigned_to == null)
+                                        <span class="tk-btn tk-btn-muted"><i class="fa fa-clock"></i> Pending</span>
+                                        @elseif($ticket->status == 'resolved')
+                                        <span class="tk-btn tk-btn-muted"><i class="fa fa-check-circle"></i> Resolved</span>
+                                        @elseif($ticket->stage == 'Started')
+                                        <span class="tk-btn tk-btn-muted"><i class="fa fa-cog fa-spin"></i> Working...</span>
+                                        @endif
+                                    @else
+                                        <span class="tk-btn tk-btn-muted"><i class="fa fa-lock"></i> Closed {{ \Illuminate\Support\Str::limit($ticket->resolution_comment, 30) }}</span>
                                     @endif
                                 </div>
                                 @endif
