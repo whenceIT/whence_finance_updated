@@ -20,6 +20,7 @@ class Ticket extends Model
         'assigned_to',
         'closed_by',
         'status',
+        'stage',
         'priority',
         'department',
         'issue_category_id',
@@ -63,3 +64,4 @@ class Ticket extends Model
         return 'TICKT-' . $this->created_at->year . '' . $this->id;
     }
 }
+

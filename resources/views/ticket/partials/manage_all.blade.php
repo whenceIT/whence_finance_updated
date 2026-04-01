@@ -56,6 +56,11 @@
                                             <i class="fa fa-user"></i> Reassign
                                         </button>
                                         @endif
+                                        @if($ticket->stage != 'Started')
+                                        <button type="button" class="ticket-action action-reject open-reject-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}">
+                                            <i class="fa fa-times"></i> Reject
+                                        </button>
+                                        @endif
                                         &nbsp;
                                         @if($ticket->stage != 'Started' && $ticket->assigned_to == null)
                                         <div class="ticket-action text-muted">
@@ -395,6 +400,11 @@
                                         <i class="fa fa-user"></i> Reassign
                                     </button>
                                     @endif
+                                    @if($ticket->stage != 'Started')
+                                    <button type="button" class="tk-btn tk-btn-danger open-reject-modal" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ e($ticket->name) }}">
+                                        <i class="fa fa-times"></i> Reject
+                                    </button>
+                                    @endif
                                     @if($ticket->stage != 'Started' && $ticket->assigned_to == null)
                                     <span class="tk-btn tk-btn-muted"><i class="fa fa-clock"></i> Pending</span>
                                     @elseif($ticket->status == 'resolved')
@@ -460,3 +470,4 @@
                 </div>
                 @include('ticket.partials.view_ticket_modal')
                 @include('ticket.partials.reassign_modal')
+                @include('ticket.partials.reject_modal')
