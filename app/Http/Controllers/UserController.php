@@ -390,7 +390,7 @@ public function create_carry_over(Request $request)
         $compareDate = date('Y-m-d', strtotime($targetDate . ' - 1 months'));
 
 
-        if ($role->role_id == '3') {
+        if ($role->role_id == '3'){
 
 $user = Sentinel::getUser();
 $loan_officer_id = $user->id;
@@ -572,6 +572,8 @@ $data = $json ? json_decode($json, true) : null;
 
 
         if ($role->role_id == '4') {
+
+$user = Sentinel::getUser();
             $carry_overs = CarryOver::where('status','pending')->where('office_id',$userBranch)->count();
             $newBranchLoans = Loan::with('transactions')->where('office_id', $userBranch)->get();
             foreach ($newBranchLoans as $branchLoan) {
@@ -585,6 +587,54 @@ $data = $json ? json_decode($json, true) : null;
                 $HasPendingCarryOvers = true;
 
             }
+
+
+            $cycle_end = $user->cycle_dates
+    ? (int) $user->cycle_dates->cycle_end_date
+    : 24;
+
+    $today = Carbon::today();
+
+
+    $buildCycleDate = function (Carbon $month) use ($cycle_end) {
+    $month = $month->copy()->startOfMonth();
+    $cycleDay = min($cycle_end, $month->daysInMonth);
+    return $month->day($cycleDay)->addDay();
+};
+
+
+$cycleDate = $buildCycleDate(Carbon::now());
+
+// If today is before cycle date, fall back to previous month
+if ($today->lt($cycleDate)) {
+    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
+}
+
+$cycle_date = $cycleDate->format('Y-m-d');
+
+    $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
+    ->where('user_id', Sentinel::getUser()->id)
+    ->first();
+
+ $launchNewCarryOver = false;
+
+
+    if($carry_over == null){
+                $launchNewCarryOver = true;
+            }else{
+
+                   if($cycle_date != $carry_over->cycle_date)
+                    {
+                    $carry_over->status = 'closed';
+                    $carry_over->save();
+                    $launchNewCarryOver = true;
+                }
+            }
+
+
+
+
+
             $branchId = Sentinel::getUser()->office_id;
             $url = "https://lms2backend.whencefinancesystem.com/branch-performance-new?office_id=$branchId";
             $json = @file_get_contents($url);
@@ -596,6 +646,8 @@ $data = $json ? json_decode($json, true) : null;
         }
 
         if ($role->role_id == '6') {
+
+            $user = Sentinel::getUser();
             foreach ($province_branches as $province_branch) {
                 $branch_loans = Loan::with('transactions')->where('office_id', $province_branch->id)->get();
                 foreach ($branch_loans as $loan) {
@@ -605,6 +657,51 @@ $data = $json ? json_decode($json, true) : null;
                     }
                 }
             }
+
+                     $cycle_end = $user->cycle_dates
+    ? (int) $user->cycle_dates->cycle_end_date
+    : 24;
+
+      $today = Carbon::today();
+
+          $buildCycleDate = function (Carbon $month) use ($cycle_end) {
+    $month = $month->copy()->startOfMonth();
+    $cycleDay = min($cycle_end, $month->daysInMonth);
+    return $month->day($cycleDay)->addDay();
+};
+
+
+$cycleDate = $buildCycleDate(Carbon::now());
+
+// If today is before cycle date, fall back to previous month
+if ($today->lt($cycleDate)) {
+    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
+}
+
+$cycle_date = $cycleDate->format('Y-m-d');
+
+    $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
+    ->where('user_id', Sentinel::getUser()->id)
+    ->first();
+
+ $launchNewCarryOver = false;
+
+ 
+    if($carry_over == null){
+                $launchNewCarryOver = true;
+            }else{
+
+                   if($cycle_date != $carry_over->cycle_date)
+                    {
+                    $carry_over->status = 'closed';
+                    $carry_over->save();
+                    $launchNewCarryOver = true;
+                }
+            }
+
+
+
+
 
             $data = [];
             $start = null;
