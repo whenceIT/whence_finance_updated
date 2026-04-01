@@ -368,6 +368,8 @@ Route::group(['prefix' => 'user'], function () {
     Route::any('performance_information', 'UserController@performance_information');
     Route::any('branch_performance','UserController@branch_performance');
     Route::get('get_offices_by_province/{id}', 'UserController@get_offices_by_province');
+    Route::get('get_districts_by_province/{id}', 'UserController@get_districts_by_province');
+    Route::get('get_district_regionals_by_district/{id}', 'UserController@get_district_regionals_by_district');
 
 
      Route::get('branch_deposits','UserController@branch_deposits');
@@ -1111,6 +1113,7 @@ Route::group(['prefix' => 'ticket'], function () {
     Route::post('store', 'TicketController@store');
     Route::post('store_dashboard_ticket','TicketController@store_dashboard_ticket');
     Route::post('reassign', 'TicketController@reassign');
+    Route::post('reject', 'TicketController@reject');
     Route::match(['post', 'put'], '{id}/update', 'TicketController@update');
     Route::get('users', 'TicketController@usersByOfficeRole');
     Route::get('offices', 'TicketController@officesByParent');

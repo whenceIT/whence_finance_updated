@@ -95,9 +95,6 @@
                             <div class="col-md-9">
                                 <select name="district_id" class="form-control select2" id="district_id">
                                     <option></option>
-                                    @foreach(\App\Models\District::with('province')->get() as $district)
-                                        <option value="{{$district->id}}" data-province="{{$district->province_id}}">{{$district->name}} ({{$district->province->name ?? 'N/A'}})</option>
-                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -106,11 +103,6 @@
                             <div class="col-md-9">
                                 <select name="district_regional_id" class="form-control select2" id="district_regional_id">
                                     <option></option>
-                                    @foreach(\App\Models\DistrictRegional::with(['district', 'province'])->get() as $districtRegional)
-                                        <option value="{{$districtRegional->id}}" data-district="{{$districtRegional->district_id}}" data-province="{{$districtRegional->province_id}}">
-                                            {{$districtRegional->name}} ({{$districtRegional->district->name ?? 'N/A'}} - {{$districtRegional->province->name ?? 'N/A'}})
-                                        </option>
-                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -140,12 +132,12 @@
                     </div>
                 </div>
                 <!-- /.box-body -->
-                <div class="box-footer">
+                <!-- <div class="box-footer">
                     <div class="heading-elements">
                         <button type="submit"
                             class="btn btn-primary pull-right">{{trans_choice('general.save', 1)}}</button>
                     </div>
-                </div>
+                </div> -->
             </form>
         </div>
 @endsection
@@ -223,80 +215,52 @@
                 updateProgressBar();
             });
 
-            // District and District Regional filtering
+            // District and District Regional loading
             $('#province_id').change(function() {
-                var selectedProvince = $(this).val();
-                var districtSelect = $('#district_id');
-                var districtRegionalSelect = $('#district_regional_id');
-
-                if (selectedProvince) {
-                    // Filter districts by province
-                    districtSelect.find('option').each(function() {
-                        var provinceId = $(this).data('province');
-                        if (provinceId == selectedProvince || $(this).val() == '') {
-                            $(this).show();
-                        } else {
-                            $(this).hide();
+                var id = $(this).val();
+                if (id) {
+                    $.ajax({
+                        url: "{{ url('user/get_districts_by_province') }}/" + id,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (data) {
+                            $('#district_id').empty();
+                            $('#district_id').append('<option value=""></option>');
+                            $.each(data, function (key, value) {
+                                $('#district_id').append('<option value="' + value.id + '">' + value.name + ' (' + (value.province ? value.province.name : 'N/A') + ')' + '</option>');
+                            });
+                            $('#district_regional_id').empty();
+                            $('#district_regional_id').append('<option value=""></option>');
                         }
                     });
-
-                    // Filter district regionals by province
-                    districtRegionalSelect.find('option').each(function() {
-                        var provinceId = $(this).data('province');
-                        if (provinceId == selectedProvince || $(this).val() == '') {
-                            $(this).show();
-                        } else {
-                            $(this).hide();
-                        }
-                    });
-
-                    districtSelect.val('');
-                    districtRegionalSelect.val('');
                 } else {
-                    districtSelect.find('option').show();
-                    districtRegionalSelect.find('option').show();
-                }
+                    $('#district_id').empty();
+                    $('#district_id').append('<option value=""></option>');
 
-                // Trigger select2 update
-                districtSelect.trigger('change.select2');
-                districtRegionalSelect.trigger('change.select2');
+                    $('#district_regional_id').empty();
+                    $('#district_regional_id').append('<option value=""></option>');
+                }
             });
 
             $('#district_id').change(function() {
-                var selectedDistrict = $(this).val();
-                var districtRegionalSelect = $('#district_regional_id');
-
-                if (selectedDistrict) {
-                    // Filter district regionals by district
-                    districtRegionalSelect.find('option').each(function() {
-                        var districtId = $(this).data('district');
-                        if (districtId == selectedDistrict || $(this).val() == '') {
-                            $(this).show();
-                        } else {
-                            $(this).hide();
+                var id = $(this).val();
+                if (id) {
+                    $.ajax({
+                        url: "{{ url('user/get_district_regionals_by_district') }}/" + id,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (data) {
+                            $('#district_regional_id').empty();
+                            $('#district_regional_id').append('<option value=""></option>');
+                            $.each(data, function (key, value) {
+                                $('#district_regional_id').append('<option value="' + value.id + '">' + value.name + ' (' + (value.district ? value.district.name : 'N/A') + ' - ' + (value.province ? value.province.name : 'N/A') + ')' + '</option>');
+                            });
                         }
                     });
-
-                    districtRegionalSelect.val('');
                 } else {
-                    // If no district selected, show all district regionals for the selected province
-                    var selectedProvince = $('#province_id').val();
-                    if (selectedProvince) {
-                        districtRegionalSelect.find('option').each(function() {
-                            var provinceId = $(this).data('province');
-                            if (provinceId == selectedProvince || $(this).val() == '') {
-                                $(this).show();
-                            } else {
-                                $(this).hide();
-                            }
-                        });
-                    } else {
-                        districtRegionalSelect.find('option').show();
-                    }
+                    $('#district_regional_id').empty();
+                    $('#district_regional_id').append('<option value=""></option>');
                 }
-
-                // Trigger select2 update
-                districtRegionalSelect.trigger('change.select2');
             });
         </script>
     @endsection

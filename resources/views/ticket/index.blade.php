@@ -190,17 +190,17 @@
                     }
                 </style>
                 <?php
-    $user = Sentinel::getUser();
-    if ($user) {
-        $role = $user->role->role_id;
-        $office = $user->office->id;
-        $isAdmin = $role;
-    } else {
-        $role = null;
-        $office = null;
-        $isAdmin = $role;
-    }
-                        ?>
+                    $user = Sentinel::getUser();
+                    if ($user) {
+                        $role = $user->role->role_id;
+                        $office = $user->office->id;
+                        $isAdmin = $role;
+                    } else {
+                        $role = null;
+                        $office = null;
+                        $isAdmin = $role;
+                    }
+                ?>
 
                 <ul class="nav nav-tabs">
                     @if($isAdmin == 1)

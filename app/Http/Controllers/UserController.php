@@ -2808,4 +2808,16 @@ $data = $json ? json_decode($json, true) : null;
         $data = Office::where('province_id', $id)->get();
         return response()->json($data);
     }
+
+    public function get_districts_by_province($id)
+    {
+        $data = \App\Models\District::with('province')->where('province_id', $id)->get()->unique('name');
+        return response()->json($data);
+    }
+
+    public function get_district_regionals_by_district($id)
+    {
+        $data = \App\Models\DistrictRegional::with(['district', 'province'])->where('district_id', $id)->get()->unique('name');
+        return response()->json($data);
+    }
 }

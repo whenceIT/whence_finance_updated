@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('offices', function (Blueprint $table) {
-            $table->unsignedBigInteger('district_id')->nullable()->after('province_id');
+        Schema::table('loans', function (Blueprint $table) {
+            $table->unsignedBigInteger('district_id')->nullable()->after('office_id');
             $table->unsignedBigInteger('district_regional_id')->nullable()->after('district_id');
         });
     }
@@ -26,10 +26,11 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('offices', function (Blueprint $table) {
+        Schema::table('loans', function (Blueprint $table) {
             $table->dropForeign(['district_regional_id']);
+            $table->dropColumn('district_regional_id');
             $table->dropForeign(['district_id']);
-            $table->dropColumn(['district_regional_id', 'district_id']);
+            $table->dropColumn('district_id');
         });
     }
 };

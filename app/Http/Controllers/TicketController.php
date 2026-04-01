@@ -602,4 +602,31 @@ class TicketController extends Controller
             return redirect()->back();
         }
     }
+
+    public function reject(Request $request)
+    {
+        try {
+            $request->validate([
+                'ticket_id' => 'required|exists:tickets,id',
+                'comments' => 'required|string',
+            ]);
+
+            $ticket = Ticket::findOrFail($request->ticket_id);
+
+            $ticket->status = 'closed';
+            $ticket->stage = 'Closed';
+            $ticket->datetime_close = now();
+            $ticket->date_closed = now();
+            $ticket->closed_by = Sentinel::getUser()->id;
+            $ticket->resolution_comment = 'Invalid Ticket: '.$request->comments;
+
+            $ticket->save();
+
+            Flash::success('Ticket has been rejected and closed successfully.');
+            return redirect()->back();
+        } catch (\Exception $e) {
+            Flash::error('Error rejecting ticket: ' . $e->getMessage());
+            return redirect()->back();
+        }
+    }
 }

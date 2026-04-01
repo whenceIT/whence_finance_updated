@@ -800,7 +800,7 @@
                     @endif
                     <!-- Branches -->
                     @if(Sentinel::hasAccess('offices'))
-                    <li class="treeview @if(Request::is('office/*')) active menu-open @endif" style="padding-left: 10px;">
+                    <li class="treeview @if(Request::is('office/*')) active menu-open @endif" style="padding-left: 9px;">
                         <a href="#">
                             <i class="fa fa-briefcase"></i> <span>{{trans_choice('general.branch',2)}}</span>
                             <span class="pull-right-container">
