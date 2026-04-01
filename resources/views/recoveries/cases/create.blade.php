@@ -128,8 +128,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Assign Specialist <small class="text-muted">(optional)</small></label>
-                                <select name="assigned_specialist_id" class="form-control">
+                                <label>Assign Specialist <small class="text-muted">(required)</small></label>
+                                <select name="assigned_specialist_id" class="form-control" required>
                                     <option value="">— Assign Later —</option>
                                     @foreach($specialists as $specialist)
                                     <option value="{{ $specialist->user_id }}">
