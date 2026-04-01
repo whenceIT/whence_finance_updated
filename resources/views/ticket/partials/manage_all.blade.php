@@ -120,7 +120,7 @@
                             border-left: 5px solid #f59e0b;
                         }
                         .tk-card.tk-status-assigned-card {
-                            border-left: 5px solid #8c8e91;
+                            border-left: 5px solid #272727;
                         }
                         .tk-card.tk-status-working-card {
                             border-left: 5px solid #8b5cf6;
@@ -246,7 +246,7 @@
                             border: 1px solid #6ee7b7;
                         }
                         .tk-status-assigned {
-                            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                            background: linear-gradient(135deg, #2c2c2c 0%, #878787 100%);
                             color: #1d4ed8;
                             border: 1px solid #93c5fd;
                         }
