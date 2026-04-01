@@ -26,5 +26,6 @@ class DatabaseSeeder extends Seeder
         $this->call(TicketCategoriesSeeder::class);
         // Policy categories
         $this->call(PolicyCategoriesTableSeeder::class);
+        $this->call(DistrictSeeder::class);
     }
 }
