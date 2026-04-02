@@ -71,6 +71,7 @@ class LoanController extends Controller
      */
     public function index(Request $request)
     {
+        
         $query = $request->input('query');
         $loans = [];
 
@@ -91,6 +92,7 @@ class LoanController extends Controller
                 ->with('repayment_schedules')
                 ->get();
         }
+        
         return view('loan.data', compact('loans', 'query'));
     }
 
