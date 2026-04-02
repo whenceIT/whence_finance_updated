@@ -126,6 +126,18 @@
                 <div class="wizard-step" id="step-3">
                     <!-- Step 3 content -->
                     <!-- Step 3 -->
+                     
+                    <div class="form-group">
+                        <label for="role"
+                               class="">{{trans_choice('general.role',1)}}</label>
+                        <select name="role" class="form-control select2" id="role" required>
+                            <option></option>
+                            @foreach(DB::table('roles')->get() as $key)
+                                <option value="{{$key->id}}"
+                                        @if($selected==$key->id) selected @endif>{{$key->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="province_id">Province</label>
                         <select name="province_id" class="form-control select2" id="province_id" required>
@@ -134,6 +146,18 @@
                                 <option value="{{$key->id}}"
                                         @if($user->province_id==$key->id) selected @endif>{{$key->name}}</option>
                             @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="district_id">District</label>
+                        <select name="district_id" class="form-control select2" id="district_id" required>
+                            <option></option>
+                            @if($user->province_id)
+                                @foreach(\App\Models\District::where('province_id', $user->province_id)->get() as $key)
+                                    <option value="{{$key->id}}"
+                                            @if($user->district_id==$key->id) selected @endif>{{$key->name}}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                     <div class="form-group">
@@ -146,17 +170,6 @@
                                             @if($user->office_id==$key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
                             @endif
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="role"
-                               class="">{{trans_choice('general.role',1)}}</label>
-                        <select name="role" class="form-control select2" id="role" required>
-                            <option></option>
-                            @foreach(DB::table('roles')->get() as $key)
-                                <option value="{{$key->id}}"
-                                        @if($selected==$key->id) selected @endif>{{$key->name}}</option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
@@ -398,6 +411,15 @@
             $('#office_id').closest('.form-group').show();
             $('#office_id').prop('required', true);
         }
+
+        if (roleId == 12) {
+            $('#district_id').closest('.form-group').show();
+            $('#district_id').prop('required', true);
+        } else {
+            $('#district_id').closest('.form-group').hide();
+            $('#district_id').val('').trigger('change');
+            $('#district_id').prop('required', false);
+        }
     }
 
     // Run on page load for initial state
@@ -424,9 +446,23 @@
                     handleOfficeVisibility();
                 }
             });
+            $.ajax({
+                url: "{{ url('user/get_districts_by_province') }}/" + id,
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    $('#district_id').empty();
+                    $('#district_id').append('<option value=""></option>');
+                    $.each(data, function(key, value) {
+                        $('#district_id').append('<option value="' + value.id + '">' + value.name + '</option>');
+                    });
+                }
+            });
         } else {
             $('#office_id').empty();
             $('#office_id').append('<option value=""></option>');
+            $('#district_id').empty();
+            $('#district_id').append('<option value=""></option>');
         }
     });
     </script>

@@ -1,4 +1,4 @@
-@extends('layouts.master')
+a@extends('layouts.master')
 @section('title')
     {{ trans_choice('general.add', 1) }} {{ trans_choice('general.user', 1) }}
 @endsection
@@ -75,7 +75,7 @@
                             <label for="phone" class="">{{trans_choice('general.phone', 1)}}</label>
                             <input type="tel" name="phone" class="form-control"
                                 placeholder="{{trans_choice('general.phone', 1)}}" value="{{old('phone')}}" id="phone"
-                                maxlength="10" minlength="10" required autocomplete="off" readonly 
+                                maxlength="10" minlength="10" required autocomplete="off" readonly
                                 onfocus="this.removeAttribute('readonly');" style="background-color: #ffffff;">
                         </div>
                         <div class="box-footer">
@@ -133,6 +133,12 @@
                                 @foreach($provinces as $key)
                                     <option value="{{$key->id}}">{{$key->name}}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="district_id">District</label>
+                            <select name="district_id" class="form-control select2" id="district_id" required>
+                                <option></option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -318,6 +324,24 @@
 
 
 
+            function handleDistrictVisibility() {
+                var roleId = $('#role').val();
+                if (roleId == 12) {
+                    $('#district_id').closest('.form-group').show();
+                    $('#district_id').prop('required', true);
+                } else {
+                    $('#district_id').closest('.form-group').hide();
+                    $('#district_id').val('').trigger('change');
+                    $('#district_id').prop('required', false);
+                }
+            }
+
+            handleDistrictVisibility();
+
+            $('#role').change(function () {
+                handleDistrictVisibility();
+            });
+
             $('#province_id').change(function () {
                 var id = $(this).val();
                 if (id) {
@@ -334,9 +358,23 @@
 
                         }
                     });
+                    $.ajax({
+                        url: "{{ url('user/get_districts_by_province') }}/" + id,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (data) {
+                            $('#district_id').empty();
+                            $('#district_id').append('<option value=""></option>');
+                            $.each(data, function (key, value) {
+                                $('#district_id').append('<option value="' + value.id + '">' + value.name + '</option>');
+                            });
+                        }
+                    });
                 } else {
                     $('#office_id').empty();
                     $('#office_id').append('<option value=""></option>');
+                    $('#district_id').empty();
+                    $('#district_id').append('<option value=""></option>');
                 }
             });
         </script>

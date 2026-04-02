@@ -1099,8 +1099,9 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
 
     @endif
 
+    
     <!--What managers see-->
-    @if($role->role_id == '4')
+    @if($role->role_id == '4' || $role->role_id == '12')
 
         <div
             style="display: flex;
