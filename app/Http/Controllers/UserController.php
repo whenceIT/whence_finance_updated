@@ -138,6 +138,123 @@ return view('user.manager_performance',compact('data','start','end','userId'));
 }
 
 
+public function pmdashboard(Request $request){
+    
+             $province_id = Sentinel::getUser()->province_id;
+
+            $today = Carbon::today();
+
+    $cycleStart = $today->copy()->day(25);
+    if ($today->day < 25) {
+        $cycleStart->subMonth();
+    }
+
+    $cycleEnd = $cycleStart->copy()->addMonth()->subDay();
+
+    // ✅ OVERRIDE WITH FILTER
+    $start_date = $request->start_date ?? $cycleStart->format('Y-m-d');
+    $end_date   = $request->end_date ?? $cycleEnd->format('Y-m-d');
+
+   try {
+
+        // ✅ FETCH PROVINCES
+        $provinceResponse = Http::timeout(60)->get('https://lms2backend.whencefinancesystem.com/province-performance', [
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'province_id' => $province_id
+        ]);
+
+        $provinces = $provinceResponse->successful()
+            ? ($provinceResponse->json()['data'] ?? [])
+            : [];
+
+        // ✅ FETCH BRANCHES
+        $branchResponse = Http::timeout(60)->get('https://lms2backend.whencefinancesystem.com/branch-performance-by-province', [
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'province_id' => $province_id 
+        ]);
+
+        $branches = $branchResponse->successful()
+            ? ($branchResponse->json()['data'] ?? [])
+            : [];
+
+    } catch (\Exception $e) {
+
+        // 👤 Fail gracefully
+        $provinces = [];
+        $branches = [];
+    }
+  
+
+$url = "https://lms2backend.whencefinancesystem.com/province-ledger-summary?province_id=$province_id";
+
+$json = @file_get_contents($url);
+$province_data = $json ? json_decode($json, true) : null;
+
+
+            $user = Sentinel::getUser();
+    
+                     $cycle_end = $user->cycle_dates
+    ? (int) $user->cycle_dates->cycle_end_date
+    : 24;
+
+      $today = Carbon::today();
+
+          $buildCycleDate = function (Carbon $month) use ($cycle_end) {
+    $month = $month->copy()->startOfMonth();
+    $cycleDay = min($cycle_end, $month->daysInMonth);
+    return $month->day($cycleDay)->addDay();
+};
+
+
+$cycleDate = $buildCycleDate(Carbon::now());
+
+// If today is before cycle date, fall back to previous month
+if ($today->lt($cycleDate)) {
+    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
+}
+
+$cycle_date = $cycleDate->format('Y-m-d');
+
+    $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
+    ->where('user_id', Sentinel::getUser()->id)
+    ->first();
+
+ $launchNewCarryOver = false;
+
+ 
+    if($carry_over == null){
+                $launchNewCarryOver = true;
+            }else{
+
+                   if($cycle_date != $carry_over->cycle_date)
+                    {
+                    $carry_over->status = 'closed';
+                    $carry_over->save();
+                    $launchNewCarryOver = true;
+                }
+            }
+
+
+
+
+
+            $data = [];
+            $start = null;
+            $end = null;
+
+            return view('user.pmdashboard',compact(
+                'launchNewCarryOver',
+                'province_data',
+                  'provinces',
+        'branches',
+        'start_date',
+        'end_date',
+            ));
+}
+
+
 
 public function poadashboard(Request $request)
 {
@@ -271,6 +388,7 @@ public function create_carry_over(Request $request)
         $numbers_status = null;
         $has_carry_over = null;
         $data = [];
+        $province_data = [];
         $start = null;
         $end = null;
         $role = Sentinel::getUser()->roles->first();
@@ -646,66 +764,10 @@ $cycle_date = $cycleDate->format('Y-m-d');
         }
 
         if ($role->role_id == '6') {
-
-            $user = Sentinel::getUser();
-            foreach ($province_branches as $province_branch) {
-                $branch_loans = Loan::with('transactions')->where('office_id', $province_branch->id)->get();
-                foreach ($branch_loans as $loan) {
-                    array_push($province_loans, $loan);
-                    foreach ($loan->transactions as $transaction) {
-                        array_push($province_transactions, $transaction);
-                    }
-                }
-            }
-
-                     $cycle_end = $user->cycle_dates
-    ? (int) $user->cycle_dates->cycle_end_date
-    : 24;
-
-      $today = Carbon::today();
-
-          $buildCycleDate = function (Carbon $month) use ($cycle_end) {
-    $month = $month->copy()->startOfMonth();
-    $cycleDay = min($cycle_end, $month->daysInMonth);
-    return $month->day($cycleDay)->addDay();
-};
+          
+        return redirect('/user/pmdashboard');  
 
 
-$cycleDate = $buildCycleDate(Carbon::now());
-
-// If today is before cycle date, fall back to previous month
-if ($today->lt($cycleDate)) {
-    $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
-}
-
-$cycle_date = $cycleDate->format('Y-m-d');
-
-    $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
-    ->where('user_id', Sentinel::getUser()->id)
-    ->first();
-
- $launchNewCarryOver = false;
-
- 
-    if($carry_over == null){
-                $launchNewCarryOver = true;
-            }else{
-
-                   if($cycle_date != $carry_over->cycle_date)
-                    {
-                    $carry_over->status = 'closed';
-                    $carry_over->save();
-                    $launchNewCarryOver = true;
-                }
-            }
-
-
-
-
-
-            $data = [];
-            $start = null;
-            $end = null;
         }
 
         if ($role->role_id == '8') {
@@ -726,7 +788,7 @@ $cycle_date = $cycleDate->format('Y-m-d');
 
         $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date','numbers_status','branch_data'));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end','launchNewCarryOver','pendingApproval','HasPendingCarryOvers','true_date','numbers_status','branch_data','province_data',));
         } else {
 
 
