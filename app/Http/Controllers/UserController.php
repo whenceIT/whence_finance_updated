@@ -640,7 +640,7 @@ class UserController extends Controller
 
 
 
-            if ($role->role_id == '4') {
+            if ($role->role_id == '4' || $role->role_id == '12') {
                 $branchId = Sentinel::getUser()->office_id;
                 $url = "https://lms2backend.whencefinancesystem.com/branch-performance-new?office_id=$branchId";
                 $json = @file_get_contents($url);
