@@ -610,14 +610,6 @@ class LoanController extends Controller
         $carry_overs = 0;
 
         
-
-        if ($role->id == 6) {
-            $answer = AppraisalAnswer::where('user_id', Sentinel::getUser()->id)->where('form_id', 3)->where('question_id', 80)->where('quater_date', '>=', '10-2025')->first();
-            if (empty($answer)) {
-                return redirect('user/my_appraisal_forms');
-            }
-        }
-
         $province_transactions = [];
         $userId = Sentinel::getUser()->id;
         $province_id = Sentinel::getUser()->province_id;

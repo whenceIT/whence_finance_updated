@@ -272,6 +272,7 @@ class UserController extends Controller
         $numbers_status = null;
         $has_carry_over = null;
         $data = [];
+        $province_data = [];
         $start = null;
         $end = null;
         $role = Sentinel::getUser()->roles->first();
@@ -771,7 +772,7 @@ class UserController extends Controller
             $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         }
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'launchNewCarryOver', 'pendingApproval', 'HasPendingCarryOvers', 'true_date', 'numbers_status', 'branch_data'));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'launchNewCarryOver', 'pendingApproval', 'HasPendingCarryOvers', 'true_date', 'numbers_status', 'branch_data', 'province_data'));
         } else {
 
 
