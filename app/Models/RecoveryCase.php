@@ -160,17 +160,28 @@ class RecoveryCase extends Model
     // Attribution helpers
     public function applyCrossBranchAttribution(): void
     {
-        $this->update(['recoveries_dept_attribution_pct'=>50,'origin_branch_attribution_pct'=>25,'supporting_branch_attribution_pct'=>25]);
+        $this->update([
+            'recoveries_dept_attribution_pct'=>50,
+            'origin_branch_attribution_pct'=>25,
+            'supporting_branch_attribution_pct'=>25]);
     }
 
     public function applyFullRecoveriesAttribution(): void
     {
-        $this->update(['recoveries_dept_attribution_pct'=>100,'origin_branch_attribution_pct'=>0,'supporting_branch_attribution_pct'=>0]);
+        $this->update([
+            'recoveries_dept_attribution_pct'=>100,
+            'origin_branch_attribution_pct'=>0,
+            'supporting_branch_attribution_pct'=>0
+        ]);
     }
 
     public function applyCooperativeAttribution(): void
     {
-        $this->update(['recoveries_dept_attribution_pct'=>50,'origin_branch_attribution_pct'=>50,'supporting_branch_attribution_pct'=>0]);
+        $this->update([
+            'recoveries_dept_attribution_pct'=>50,
+            'origin_branch_attribution_pct'=>50,
+            'supporting_branch_attribution_pct'=>0
+        ]);
     }
 
     public static function generateCaseNumber(): string
