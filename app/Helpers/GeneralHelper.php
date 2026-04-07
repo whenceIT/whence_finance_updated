@@ -2919,7 +2919,7 @@ public static function new_new_loan_total_balance($id)
      * 
      * @return int Count of pending recovery cases
      */
-    public static function pending_recovery_case_approvals_count()
+    public static function  pending_recovery_case_approvals_count()
     {
         try {
             $user = Sentinel::getUser();
@@ -2951,7 +2951,7 @@ public static function new_new_loan_total_balance($id)
 
             return $count ?? 0;
         } catch (\Throwable $th) {
-            return 0;
+            dd($th);
         }
     }
 

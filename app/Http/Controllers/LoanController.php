@@ -2881,6 +2881,7 @@ class LoanController extends Controller
         // Get active recovery cases for this loan with client eager loading
         $recoveryCases = \App\Models\RecoveryCase::with('client')
             ->where('loan_id', $loan->id)
+            ->whereNotNull('approved_date')
             ->get();
 
         return view('loan.repayment.create', compact('loan', 'recoveryCases'));
