@@ -22,7 +22,7 @@ use App\Models\PayrollMeta;
 
     </div>
 
-    <form method="post" action="{{url('payroll/'.$payroll->user_id.'/save_edit_new_payroll')}}" class="form-horizontal"
+    <form method="post" action="{{url('payroll/'.$payroll->id.'/save_edit_new_payroll')}}" class="form-horizontal"
         enctype="multipart/form-data">
         {{csrf_field()}}
         <div class="box-body">
@@ -52,7 +52,8 @@ use App\Models\PayrollMeta;
                 </label>
 
                 <div class="col-md-4">
-                <input type="text" name="payroll_date" class="form-control date-picker" required id="payroll_date"  >
+                <input type="text" name="payroll_date" class="form-control month-picker"
+       value="{{ \Carbon\Carbon::parse($payroll->payroll_date)->format('F Y') }}">
 
                 </div>
 
@@ -140,6 +141,15 @@ use App\Models\PayrollMeta;
 @endsection
 @section('footer-scripts')
 <script>
+
+    $('.month-picker').datepicker({
+    format: "MM yyyy",
+    viewMode: "months",
+    minViewMode: "months",
+    autoclose: true
+});
+
+
     $('#type').change(function(e) {
         if ($("#type").val() == "client") {
             $("#clients_div").show();
@@ -176,14 +186,25 @@ var basic_pay = document.getElementById('1').value;
 
 document.getElementById('4').value = basic_pay * 0.05;
 document.getElementById('6').value = basic_pay * 0.01;
+
+
 if(basic_pay <= 5100){
     document.getElementById('5').value = 0;
+
 }else if(basic_pay <= 7100){
-    document.getElementById('5').value = (7100 - 5100)*0.20
+    document.getElementById('5').value =
+        (basic_pay - 5100) * 0.20;
+
 }else if(basic_pay <= 9200){
-    document.getElementById('5').value = ((9200 - 7100)*0.30) + ((7100 - 5100)*0.20)
+    document.getElementById('5').value =
+        ((basic_pay - 7100) * 0.30) +
+        ((7100 - 5100) * 0.20);
+
 }else{
-    document.getElementById('5').value =  (basic_pay - 9200)*0.37 + (9200 - 7100)*0.30 + ((7100 - 5100)*0.20)
+    document.getElementById('5').value =
+        ((basic_pay - 9200) * 0.37) +
+        ((9200 - 7100) * 0.30) +
+        ((7100 - 5100) * 0.20);
 }
 
 }

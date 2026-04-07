@@ -55,7 +55,7 @@ $year = date('Y');
                 </label>
 
                 <div class="col-md-4">
-                <input type="text" name="payroll_date" class="form-control date-picker" required id="payroll_date"  >
+               <input type="text" name="payroll_date" class="form-control month-picker" required id="payroll_date">
 
                 </div>
 
@@ -138,6 +138,14 @@ $year = date('Y');
 @endsection
 @section('footer-scripts')
 <script>
+
+    $('.month-picker').datepicker({
+    format: "yyyy-mm",
+    viewMode: "months",
+    minViewMode: "months",
+    autoclose: true
+});
+
     $('#type').change(function(e) {
         if ($("#type").val() == "client") {
             $("#clients_div").show();
@@ -156,14 +164,23 @@ var basic_pay = document.getElementById('1').value;
 document.getElementById('4').value = basic_pay * 0.05;
 document.getElementById('6').value = basic_pay * 0.01;
 
-if(basic_pay <= 5100){
+if (basic_pay <= 5100) {
     document.getElementById('5').value = 0;
-}else if(basic_pay <= 7100){
-    document.getElementById('5').value = (7100 - 5100)*0.20
-}else if(basic_pay <= 9200){
-    document.getElementById('5').value = ((9200 - 7100)*0.30) + ((7100 - 5100)*0.20)
-}else{
-    document.getElementById('5').value =  (basic_pay - 9200)*0.37 + (9200 - 7100)*0.30 + ((7100 - 5100)*0.20)
+
+} else if (basic_pay <= 7100) {
+    document.getElementById('5').value =
+        (basic_pay - 5100) * 0.20;
+
+} else if (basic_pay <= 9200) {
+    document.getElementById('5').value =
+        ((basic_pay - 7100) * 0.30) +
+        ((7100 - 5100) * 0.20);
+
+} else {
+    document.getElementById('5').value =
+        ((basic_pay - 9200) * 0.37) +
+        ((9200 - 7100) * 0.30) +
+        ((7100 - 5100) * 0.20);
 }
 
 }
