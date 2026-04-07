@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Laracasts\Flash\Flash;
+use Carbon\Carbon;
 
 class PayrollController extends Controller
 {
@@ -155,21 +156,21 @@ class PayrollController extends Controller
     }
 
 
-    //NEW
-    public function submit_payroll(Request $request){
+    // //NEW
+    // public function submit_payroll(Request $request){
 
-        $user = Sentinel::findById(Sentinel::getUser()->id);
-        $payroll_list = Payroll::where('office_id',$user->office_id)->get();
+    //     $user = Sentinel::findById(Sentinel::getUser()->id);
+    //     $payroll_list = Payroll::where('office_id',$user->office_id)->get();
 
-        foreach($payroll_list as $payroll){
-            $payroll->status = 'pending';
-            $payroll->payroll_date = $request -> payroll_date;
-            $payroll->save();
-        }
+    //     foreach($payroll_list as $payroll){
+    //         $payroll->status = 'pending';
+    //         $payroll->payroll_date = $request -> payroll_date;
+    //         $payroll->save();
+    //     }
 
-        Flash::success(trans('successfully submitted'));
-        return redirect('payroll/payroll_list');
-    }
+    //     Flash::success(trans('successfully submitted'));
+    //     return redirect('payroll/payroll_list');
+    // }
 
 
     //NEW
@@ -208,61 +209,93 @@ class PayrollController extends Controller
     }
 
 //NEW
-    public function save_edit_new_payroll(Request $request ,$id){
+public function save_edit_new_payroll(Request $request, $id){
 
-        $payroll = Payroll::where('user_id',$id)->first();
-        $payroll->payroll_date = $request -> payroll_date;
-        $payroll->save();
+    $payroll = Payroll::findOrFail($id);
 
-        $metas = PayrollTemplateMeta::get();
-        foreach ($metas as $key){
-            $use=$key->id;
-                        $meta = PayrollMeta::where('payroll_template_meta_id',$key->id)->where('user_id',$id)->first();
-            $meta->value =  $request->$use;
+    // ✅ Handle month format
+    $payrollDate = Carbon::parse($request->payroll_date);
+
+    // ✅ Prevent duplicate month (except current record)
+    $exists = Payroll::where('user_id', $payroll->user_id)
+        ->whereYear('payroll_date', $payrollDate->year)
+        ->whereMonth('payroll_date', $payrollDate->month)
+        ->where('id', '!=', $payroll->id)
+        ->exists();
+
+    if ($exists) {
+        Flash::warning("Payroll already exists for this month");
+        return redirect()->back();
+    }
+
+    $payroll->payroll_date = $payrollDate;
+    $payroll->office_id = $request->office_id;
+    $payroll->save();
+
+    // ✅ FIX: Update metas correctly (by payroll_id, NOT user_id)
+    $metas = PayrollTemplateMeta::get();
+
+    foreach ($metas as $key){
+
+        $use = $key->id;
+
+        $meta = PayrollMeta::where('payroll_id', $payroll->id)
+            ->where('payroll_template_meta_id', $key->id)
+            ->first();
+
+        if($meta){
+            $meta->value = $request->$use ?? 0;
             $meta->save();
         }
-
-        Flash::success(trans('general.successfully_saved'));
-        return redirect('payroll/payroll_list');
-
     }
 
-        public function storeNewPayroll(Request $request){
+    Flash::success(trans('general.successfully_saved'));
+    return redirect('payroll/payroll_list');
+}
+ public function storeNewPayroll(Request $request){
 
-        $user = Sentinel::findById($request -> user_id);
-        $user_name = $user->first_name.' '.$user->last_name;
-        $existing_payroll = Payroll::where('user_id',$request->user_id)->first();
+    $user = Sentinel::findById($request->user_id);
+    $user_name = $user->first_name.' '.$user->last_name;
 
-        if($existing_payroll){
-            Flash::warning("This user already has payroll");
+    // ✅ Convert selected month
+    $payrollDate = Carbon::parse($request->payroll_date);
+
+    // ✅ Check if payroll exists for SAME USER + SAME MONTH
+    $existing_payroll = Payroll::where('user_id', $request->user_id)
+        ->whereYear('payroll_date', $payrollDate->year)
+        ->whereMonth('payroll_date', $payrollDate->month)
+        ->first();
+
+    if($existing_payroll){
+        Flash::warning("Payroll already exists for this month");
         return redirect('payroll/payroll_list');
-        }else{
-
-            $payroll = new Payroll();
-            $payroll->user_id = $request -> user_id;
-            $payroll->employee_name = $user_name;
-            $payroll->payroll_date = $request -> payroll_date;
-            $payroll->office_id = $request -> office_id;
-            $payroll->status = 'unapproved';
-            $payroll->save();
-
-            $metas = PayrollTemplateMeta::get();
-            foreach ($metas as $key){
-                $meta = new PayrollMeta();
-		$use = $key->id;
-		  $meta->user_id = $request -> user_id;
-                $meta->payroll_id = $payroll->id;//$request->user_id;
-                $meta->value =  $request->$use;
-                $meta->payroll_template_meta_id = $key->id;
-                $meta->save();
-            }
-
-            Flash::success(trans('general.successfully_saved'));
-            return redirect('payroll/payroll_list');
-
-        }
-
     }
+
+    // ✅ Create payroll
+    $payroll = new Payroll();
+    $payroll->user_id = $request->user_id;
+    $payroll->employee_name = $user_name;
+    $payroll->payroll_date = $payrollDate;
+    $payroll->office_id = $request->office_id;
+    $payroll->status = 'approved';
+    $payroll->save();
+
+    // ✅ Save metas
+    $metas = PayrollTemplateMeta::get();
+    foreach ($metas as $key){
+        $meta = new PayrollMeta();
+        $use = $key->id;
+
+        $meta->user_id = $request->user_id;
+        $meta->payroll_id = $payroll->id;
+        $meta->value = $request->$use;
+        $meta->payroll_template_meta_id = $key->id;
+        $meta->save();
+    }
+
+    Flash::success(trans('general.successfully_saved'));
+    return redirect('payroll/payroll_list');
+}
 
 
     public function lc_information(Request $request){
