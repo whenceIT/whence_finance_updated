@@ -341,7 +341,7 @@ class RecoveryCaseController extends Controller
                 }
             }
             $data = $province_cases;
-        } elseif($role->role_id == "1" || $role->role_id == "10") {
+        } elseif($role->role_id == "1" || $role->role_id == "10" ) {
             // Admin sees all
             $data = \App\Models\RecoveryCase::whereNull('approved_date')
                 ->with(['client', 'loan', 'assignedSpecialist'])
@@ -409,7 +409,7 @@ class RecoveryCaseController extends Controller
             }
             $data = $province_transactions;
         } else {
-            if ($role->role_id == "1") {
+            if ($role->role_id == "1" || $role->role_id == "10") {
                 // Admin sees all
                 $data = LoanTransactionUnapproved::where('payment_apply_to', 'debt_recovery')->get();
             } else {

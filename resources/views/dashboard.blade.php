@@ -1099,8 +1099,15 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
 
     @endif
 
+    
     <!--What managers see-->
-    @if($role->role_id == '4')
+    @if($role->role_id == '4' || $role->role_id == '12')
+
+        @if ($role->role_id == '12')
+            <span>
+                <p>This is the District Level Overview</p>
+            </span>
+        @endif
 
         <div
             style="display: flex;

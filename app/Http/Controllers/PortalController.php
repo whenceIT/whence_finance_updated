@@ -36,6 +36,7 @@ class PortalController extends Controller
 
     public function loan_index()
     {
+        dd('here');
             $thisClient = Client::where('user_id',Sentinel::getUser()->id)->first();
         $client_ids = [$thisClient->id];
         foreach (Sentinel::getUser()->client_users as $key) {

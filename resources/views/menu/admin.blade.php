@@ -649,7 +649,7 @@
                                     <i class="fa fa-circle-o"></i> 
                                     Cases of Recoveries 
                                     <span class="label label-danger pull-right-container" >
-                                        {{\App\Helpers\GeneralHelper::pending_recovery_case_approvals_count()}}
+                                        {{\App\Models\RecoveryCase::whereNull('approved_date')->count()}}
                                     </span>
                                 </a>
                             </li>

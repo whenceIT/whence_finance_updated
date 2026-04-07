@@ -383,7 +383,7 @@
                                             @elseif($ticket->stage == 'Started')
                                                 <span class="tk-status-badge tk-status-working"><i class="fa fa-cog fa-spin"></i> Working</span>
                                             @elseif($ticket->assigned_to != null)
-                                                <span class="tk-status-badge tk-status-assigned"><i class="fa fa-user-check"></i> Assigned</span>
+                                                <span class="tk-status-badge tk-status-assigned"><i class="fa fa-user-check"></i> Pending </span>
                                             @elseif($ticket->assigned_to == null && $ticket->stage == 'Started')
                                                 <span class="tk-status-badge tk-status-unassigned"><i class="fa fa-user-times"></i> Unassigned</span>
                                             @else
