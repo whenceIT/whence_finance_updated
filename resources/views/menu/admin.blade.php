@@ -1231,15 +1231,16 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
+                         @if(Sentinel::hasAccess('settings'))
+                                <li><a href="{{ url('payroll/company_payroll') }}"><i class="fa fa-circle-o"></i>Company Payroll</a></li>
+                            @endif
                             @if(Sentinel::hasAccess('expenses'))
                                 <li><a href="{{ url('payroll/create_wage_bill') }}"><i class="fa fa-circle-o"></i> Add payroll</a></li>
                             @endif
                             @if(Sentinel::hasAccess('expenses'))
                                 <li><a href="{{ url('payroll/payroll_list') }}"><i class="fa fa-circle-o"></i> Payroll List</a></li>
                             @endif
-                            @if(Sentinel::hasAccess('payroll.update'))
-                                <li><a href="{{ url('payroll/payroll_pending_approval') }}"><i class="fa fa-circle-o"></i> Payroll Approvals</a></li>
-                            @endif
+
                             @if(Sentinel::hasAccess('payroll.update'))
                                 <li><a href="{{ url('payroll/template') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',1)}} {{trans_choice('general.payroll',1)}} {{trans_choice('general.template',2)}}</a></li>
                             @endif
