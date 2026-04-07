@@ -210,8 +210,39 @@
                     </li>
                     @endif
 
-
-
+                    <!-- @if($role == 1)
+                    <li class="treeview @if(Request::is('collateral*')) active menu-open @endif" style="padding-left: 10px;">
+                        <a href="#">
+                            <i class="fa fa-shield"></i> <span>Collateral</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if($role == 1)
+                                <li><a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View Collateral</a></li>
+                            @endif
+                            @if($role == 1)
+                                <li><a href="{{ route('collateral.create') }}"><i class="fa fa-circle-o"></i> Add Collateral</a></li>
+                            @endif
+                            @if($role == 1)
+                                <li><a href="{{ route('collateral.report') }}"><i class="fa fa-circle-o"></i> Collateral Reports</a></li>
+                            @endif
+                            @if($role == 1)
+                                <li><a href="{{ route('collateral.analytics.executive') }}"><i class="fa fa-circle-o"></i> Executive Analytics</a></li>
+                            @endif
+                            @if($role == 1)
+                                <li><a href="{{ route('collateral.analytics.provincial') }}"><i class="fa fa-circle-o"></i> Provincial Analytics</a></li>
+                            @endif
+                            @if($role == 1)
+                                <li><a href="{{ route('collateral.analytics.branch') }}"><i class="fa fa-circle-o"></i> Branch Analytics</a></li>
+                            @endif
+                            @if($role == 1)
+                                <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approval Queue</a></li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif   -->
 
                     <!-- Loan Applications -->
                     @if(Sentinel::hasAccess('loans.create'))
