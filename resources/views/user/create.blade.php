@@ -1,4 +1,4 @@
-a@extends('layouts.master')
+@extends('layouts.master')
 @section('title')
     {{ trans_choice('general.add', 1) }} {{ trans_choice('general.user', 1) }}
 @endsection

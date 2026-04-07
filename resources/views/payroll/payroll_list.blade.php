@@ -23,7 +23,6 @@
                         @endforeach
                         <th>Net Pay</th>
                         <th>Date</th>
-                        <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -81,7 +80,7 @@
 
                         <td>{{number_format($net_pay,2)}}</td>
                         <td>{{date("M, Y", strtotime($payroll->payroll_date))}}</td>
-                        <td>{{$payroll->status}}</td>
+                     
 
                         <td>
                             <div class="btn-group">
