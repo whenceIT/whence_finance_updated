@@ -16,4 +16,10 @@ class Payroll extends Model
     {
         return $this->hasOne(ChartOfAccount::class, 'id', 'chart_id');
     }
+    
+    public function office()
+    {
+        return $this->hasOne(Office::class, 'id', 'office_id');
+    }
+
 }

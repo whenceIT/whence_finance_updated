@@ -131,6 +131,90 @@ class PayrollController extends Controller
         return view('payroll.payroll_list',compact('payroll_list','payroll_fields',));
     }
 
+//NEW NEW
+public function company_payroll_excel(Request $request)
+{
+    $office_id = $request->office_id;
+    $month = $request->month; // format YYYY-MM
+
+    if (!$month) {
+        $month = date('Y-m');
+    }
+
+    // Query payrolls
+    $query = Payroll::query();
+    if ($office_id) {
+        $query->where('office_id', $office_id);
+    }
+    $query->whereMonth('payroll_date', date('m', strtotime($month)))
+          ->whereYear('payroll_date', date('Y', strtotime($month)));
+
+    $payroll_list = $query->orderByDesc('payroll_date')->get();
+
+    // Prepare data for Excel
+    $data_rows = [];
+    foreach ($payroll_list as $payroll) {
+        $payroll_info = PayrollMeta::where('payroll_id', $payroll->id)->get();
+        $row = ['Staff' => $payroll->employee_name];
+
+        $additions = 0;
+        $deductions = 0;
+
+        foreach ($payroll_info as $info) {
+            $field = PayrollTemplateMeta::find($info->payroll_template_meta_id);
+            $value = $info->value ?? 0;
+            $row[$field->name] = $value;
+
+            if ($field->type == 'addition') $additions += $value;
+            if ($field->type == 'deduction') $deductions += $value;
+        }
+
+        $row['Net Pay'] = $additions - $deductions;
+        $row['Date'] = date("M, Y", strtotime($payroll->payroll_date));
+
+        $data_rows[] = $row;
+    }
+
+    $data = [
+        'data' => collect($data_rows),
+        'office_id' => $office_id,
+        'month' => $month,
+    ];
+
+    return Excel::download(
+        new ExportReport("payroll.company_payroll_excel", $data),
+        'Company_Payroll_' . date("F_Y", strtotime($month)) . '.xlsx'
+    );
+}
+
+
+    //NEW NEW
+public function company_payroll(Request $request)
+{
+    $office_id = $request->office_id;
+    $month = $request->month; // format YYYY-MM
+
+    $query = Payroll::query();
+
+    // Filter by branch
+    if ($office_id) {
+        $query->where('office_id', $office_id);
+    }
+
+    // Filter by month
+    if ($month) {
+        $query->whereMonth('payroll_date', date('m', strtotime($month)))
+              ->whereYear('payroll_date', date('Y', strtotime($month)));
+    }
+
+    $payroll_list = $query->orderByDesc('payroll_date')->get();
+
+    // Get payroll fields and offices for filters
+    $payroll_fields = PayrollTemplateMeta::all();
+    $offices = Office::all();
+
+    return view('payroll.company_payroll', compact('payroll_list', 'payroll_fields', 'offices'));
+}
 
     //NEW
     public function myPayslips(){

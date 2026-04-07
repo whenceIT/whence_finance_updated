@@ -1350,6 +1350,7 @@ Route::group(['prefix' => 'payroll'], function () {
     Route::get('{payroll}/show', 'PayrollController@show');
     Route::get('{payroll}/edit', 'PayrollController@edit');
     Route::post('{id}/update', 'PayrollController@update');
+    Route::get('export','PayrollController@company_payroll_excel');
     Route::get('{id}/delete', 'PayrollController@delete');
     Route::get('getUser/{id}', 'PayrollController@getUser');
     Route::get('{id}/payslip', 'PayrollController@pdfPayslip');
