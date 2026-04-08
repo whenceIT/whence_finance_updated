@@ -839,7 +839,7 @@
             </div>
             <div class="unified-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                 @foreach($groupedVideos as $video)
-                <div class="content-card" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $video->general_topic_id, 'upload' => $video->id]) }}"'>
+                <div class="content-card" data-title="{{ $video->name }}" data-category="Video" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $video->general_topic_id, 'upload' => $video->id]) }}"'>
                     <div class="card-image type-video" style="{{ $video->poster ? 'background: none;' : '' }}">
                         @if($video->poster)
                             <img src="{{ $video->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $video->name }}">
@@ -878,7 +878,7 @@
             </div>
             <div class="unified-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                 @foreach($groupedAudios as $audio)
-                <div class="content-card" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $audio->general_topic_id, 'upload' => $audio->id]) }}"'>
+                <div class="content-card" data-title="{{ $audio->name }}" data-category="Audio" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $audio->general_topic_id, 'upload' => $audio->id]) }}"'>
                     <div class="card-image type-audio">
                         <i class="fa fa-headphones" style="font-size: 40px; color: white;"></i>
                         <div class="card-badge">Audio</div>
@@ -913,7 +913,7 @@
             </div>
             <div class="unified-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                 @foreach($groupedDocuments as $doc)
-                <div class="content-card" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $doc->general_topic_id, 'upload' => $doc->id]) }}"'>
+                <div class="content-card" data-title="{{ $doc->name }}" data-category="{{ ucfirst($doc->type) }}" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $doc->general_topic_id, 'upload' => $doc->id]) }}"'>
                     <div class="card-image type-document">
                         <i class="fa {{ $doc->icon ?? 'fa-file-text-o' }}" style="font-size: 40px; color: white;"></i>
                         <div class="card-badge">{{ ucfirst($doc->type) }}</div>
@@ -935,21 +935,21 @@
         @endif
     </div>
         
-        <!-- No Results Message for Topics -->
-        <div class="no-results" id="no-topics-results" style="display: none;">
-            <i class="fa fa-search"></i>
-            <h3>No Topics Found</h3>
-            <p>Try adjusting your search query</p>
-        </div>
-        
-        <!-- Load More Button for Featured Tab -->
-        @if($isFeaturedTab)
-        <div class="load-more-container" id="load-more-container">
-            <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
-                <i class="fa fa-plus"></i> Load More
-            </button>
-        </div>
-        @endif
+    <!-- No Results Message for Topics -->
+    <div class="no-results" id="no-topics-results" style="display: none;">
+        <i class="fa fa-search"></i>
+        <h3>No Topics Found</h3>
+        <p>Try adjusting your search query</p>
+    </div>
+    
+    <!-- Load More Button for Featured Tab -->
+    @if($isFeaturedTab)
+    <div class="load-more-container" id="load-more-container">
+        <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
+            <i class="fa fa-plus"></i> Load More
+        </button>
+    </div>
+    @endif
 </div>
 
 

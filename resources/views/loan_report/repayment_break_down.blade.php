@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-Daily Loan Activities Breakdown Report
+    Daily Loan Activities Breakdown Report
 @endsection
 <style>
 
