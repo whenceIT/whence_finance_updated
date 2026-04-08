@@ -69,6 +69,7 @@ Daily Loan Activities Breakdown Report
                                 @endforeach
                             @elseif($role == 1)
                                 @foreach(\App\Models\Office::all() as $key)
+                                    <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
                             @elseif($role == 12)
                                 @foreach(\App\Models\Office::all() as $key)

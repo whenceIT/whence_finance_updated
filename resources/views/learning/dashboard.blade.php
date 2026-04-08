@@ -827,7 +827,7 @@
 
         <!-- Videos Section -->
         @if(count($groupedVideos) > 0)
-        <div class="type-section" style="margin-bottom: 45px;">
+        <div class="type-section" data-type="video" style="margin-bottom: 45px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
                     <i class="fa fa-video-camera" style="color: #667eea;"></i> Videos to Watch
@@ -866,7 +866,7 @@
 
         <!-- Audios Section -->
         @if(count($groupedAudios) > 0)
-        <div class="type-section" style="margin-bottom: 45px;">
+        <div class="type-section" data-type="audio" style="margin-bottom: 45px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
                     <i class="fa fa-headphones" style="color: #f093fb;"></i> Listen to Audios
@@ -901,7 +901,7 @@
 
         <!-- Documents Section -->
         @if(count($groupedDocuments) > 0)
-        <div class="type-section" style="margin-bottom: 45px;">
+        <div class="type-section" data-type="document" style="margin-bottom: 45px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
                     <i class="fa fa-file-text-o" style="color: #fa709a;"></i> Documents and Job Description Checklists
@@ -1156,184 +1156,80 @@ function handleSearch(query) {
 function applyFilters() {
     var grid = document.getElementById('content-grid');
     var featuredContainer = document.getElementById('featured-topics-container');
+    var typeSegment = document.getElementById('type-segment');
     var visibleCount = 0;
     var hasVisibleCards = false;
+    var visibleTopics = 0;
+    var totalVisibleInSegment = 0;
 
-    // Handle featured tab - show featured topics container, hide content grid
-    if (currentTab === 'featured') {
-        grid.style.display = 'none';
-        featuredContainer.style.display = 'block';
-        var typeSegment = document.getElementById('type-segment');
-        if (typeSegment) typeSegment.style.display = 'block';
+    // 1. Filter Featured Topics (Topic Cards)
+    var topicCards = document.querySelectorAll('.topic-card');
+    topicCards.forEach(function(card) {
+        var topicTitle = (card.dataset.title || '').toLowerCase();
+        var showTopic = searchQuery === '' || topicTitle.includes(searchQuery);
+        
+        // Visibility depends on tab (only shown in 'featured' or 'all')
+        var isTopicTab = (currentTab === 'featured' || currentTab === 'all');
+        
+        if (showTopic && isTopicTab) {
+            card.style.display = '';
+            visibleTopics++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
 
-        // Search through featured topics
-        var topicCards = document.querySelectorAll('.topic-card');
-        var visibleTopics = 0;
+    // 2. Filter Content Type Segment (discovery sections)
+    if (typeSegment) {
+        var sections = typeSegment.querySelectorAll('.type-section');
+        
+        // Define which segments are relevant for which tabs
+        // 'featured', 'all', 'uploads' show everything upload-related
+        // Specific media tabs only show their relevant section
+        var isUploadTab = (currentTab === 'featured' || currentTab === 'all' || currentTab === 'uploads');
+        
+        sections.forEach(function(section) {
+            var sectionType = section.dataset.type; // I might need to add this dataset attribute to the HTML
+            var sectionCards = section.querySelectorAll('.content-card');
+            var visibleInSection = 0;
+            
+            // Determine if this section is relevant for current tab
+            var isSectionRelevant = isUploadTab || (currentTab === sectionType);
+            
+            // If tab is 'courses' or 'in_progress', don't show any upload segments
+            if (currentTab === 'courses' || currentTab === 'in_progress') isSectionRelevant = false;
 
-        topicCards.forEach(function(card) {
-            var topicTitle = (card.dataset.title || '').toLowerCase();
-
-            if (searchQuery === '' || topicTitle.includes(searchQuery)) {
-                card.style.display = '';
-                visibleTopics++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        // Search through Content Type Segment
-        var totalVisibleInSegment = 0;
-        if (typeSegment) {
-            var sections = typeSegment.querySelectorAll('.type-section');
-            sections.forEach(function(section) {
-                var sectionCards = section.querySelectorAll('.content-card');
-                var visibleInSection = 0;
+            sectionCards.forEach(function(card) {
+                var cardTitle = (card.dataset.title || '').toLowerCase();
+                var cardCategory = (card.dataset.category || '').toLowerCase();
                 
-                sectionCards.forEach(function(card) {
-                    var cardTitle = (card.dataset.title || '').toLowerCase();
-                    var cardCategory = (card.dataset.category || '').toLowerCase();
-                    
-                    var matches = searchQuery === '' || 
-                                  cardTitle.includes(searchQuery) || 
-                                  cardCategory.includes(searchQuery);
-                    
-                    if (matches) {
-                        card.style.display = '';
-                        visibleInSection++;
-                        totalVisibleInSegment++;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+                var matchesSearch = searchQuery === '' || 
+                                    cardTitle.includes(searchQuery) || 
+                                    cardCategory.includes(searchQuery);
                 
-                // Show/hide section based on matching cards
-                section.style.display = visibleInSection > 0 ? 'block' : 'none';
+                if (matchesSearch && isSectionRelevant) {
+                    card.style.display = '';
+                    visibleInSection++;
+                    totalVisibleInSegment++;
+                } else {
+                    card.style.display = 'none';
+                }
             });
             
-            // Show/hide type segment based on matching cards
-            typeSegment.style.display = (totalVisibleInSegment > 0 && searchQuery !== '') || (searchQuery === '') ? 'block' : 'none';
-            
-            // If searching and no results in topics BUT there are results in segment, hide noTopicsResults
-            var noTopicsResults = document.getElementById('no-topics-results');
-            if (totalVisibleInSegment > 0) {
-                noTopicsResults.style.display = 'none';
-            } else if (visibleTopics === 0) {
-                noTopicsResults.style.display = 'block';
-            }
-        }
+            // Show/hide specific section based on relevance and matching cards
+            section.style.display = (visibleInSection > 0) ? 'block' : 'none';
+        });
+        
+        // Segment container visibility
+        var showSegment = (totalVisibleInSegment > 0 && searchQuery !== '') || (searchQuery === '' && isUploadTab);
 
-        // Update count for featured tab (topics + segment items)
-        document.getElementById('content-count').textContent = 'Showing ' + (visibleTopics + totalVisibleInSegment) + ' items';
-
-        // Hide other no results message
-        document.getElementById('no-results').style.display = 'none';
-        return;
+        // Hide entirely on specialized tabs unless there are search matches
+        if (currentTab === 'courses' || currentTab === 'in_progress') showSegment = false;
+        
+        typeSegment.style.display = showSegment ? 'block' : 'none';
     }
 
-    // Handle all tab - show both featured topics and content grid
-    if (currentTab === 'all') {
-        // Show both containers
-        grid.style.display = 'grid';
-        featuredContainer.style.display = 'block';
-        var typeSegment = document.getElementById('type-segment');
-        if (typeSegment) typeSegment.style.display = 'block';
-
-        // Filter featured topics
-        var topicCards = document.querySelectorAll('.topic-card');
-        var visibleTopics = 0;
-
-        topicCards.forEach(function(card) {
-            var topicTitle = (card.dataset.title || '').toLowerCase();
-
-            if (searchQuery === '' || topicTitle.includes(searchQuery)) {
-                card.style.display = '';
-                visibleTopics++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        // Filter content grid cards (show all types)
-        allCards.forEach(function(card) {
-            var cardTitle = (card.dataset.title || '').toLowerCase();
-            var cardCategory = (card.dataset.category || '').toLowerCase();
-
-            var showBySearch = searchQuery === '' ||
-                              cardTitle.includes(searchQuery) ||
-                              cardCategory.includes(searchQuery);
-
-            if (showBySearch) {
-                card.style.display = '';
-                visibleCount++;
-                hasVisibleCards = true;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        // Search through Content Type Segment
-        var totalVisibleInSegment = 0;
-        if (typeSegment) {
-            var sections = typeSegment.querySelectorAll('.type-section');
-            sections.forEach(function(section) {
-                var sectionCards = section.querySelectorAll('.content-card');
-                var visibleInSection = 0;
-                
-                sectionCards.forEach(function(card) {
-                    var cardTitle = (card.dataset.title || '').toLowerCase();
-                    var cardCategory = (card.dataset.category || '').toLowerCase();
-                    
-                    var matches = searchQuery === '' || 
-                                  cardTitle.includes(searchQuery) || 
-                                  cardCategory.includes(searchQuery);
-                    
-                    if (matches) {
-                        card.style.display = '';
-                        visibleInSection++;
-                        totalVisibleInSegment++;
-                        hasVisibleCards = true; // For no-results message
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-                
-                // Show/hide section based on matching cards
-                section.style.display = visibleInSection > 0 ? 'block' : 'none';
-            });
-            
-            // Show/hide type segment based on matching cards
-            typeSegment.style.display = (totalVisibleInSegment > 0 && searchQuery !== '') || (searchQuery === '') ? 'block' : 'none';
-        }
-
-        // Update total count (topics + grid items + segment items)
-        var totalVisible = visibleTopics + visibleCount + totalVisibleInSegment;
-        document.getElementById('content-count').textContent = 'Showing ' + totalVisible + ' items';
-
-        // Show/hide no results messages
-        var noTopicsResults = document.getElementById('no-topics-results');
-        var noResults = document.getElementById('no-results');
-
-        if (visibleTopics === 0 && totalVisibleInSegment === 0 && searchQuery !== '') {
-            noTopicsResults.style.display = 'block';
-        } else {
-            noTopicsResults.style.display = 'none';
-        }
-
-        if (!hasVisibleCards && totalVisibleInSegment === 0 && searchQuery !== '') {
-            noResults.style.display = 'block';
-        } else {
-            noResults.style.display = 'none';
-        }
-
-        return;
-    }
-
-    // For other tabs, show content grid, hide featured container
-    grid.style.display = 'grid';
-    featuredContainer.style.display = 'none';
-    var typeSegment = document.getElementById('type-segment');
-    if (typeSegment) typeSegment.style.display = 'none';
-
+    // 3. Filter Content Grid (Unified Grid)
     allCards.forEach(function(card) {
         var cardType = card.dataset.type;
         var cardTitle = (card.dataset.title || '').toLowerCase();
@@ -1346,15 +1242,17 @@ function applyFilters() {
                             cardTitle.includes(searchQuery) ||
                             cardCategory.includes(searchQuery);
 
-        if (currentTab === 'courses') {
+        if (currentTab === 'featured') {
+            showByTab = false; // Grid is hidden on featured tab
+        } else if (currentTab === 'all') {
+            showByTab = true;
+        } else if (currentTab === 'courses') {
             showByTab = cardType === 'course';
         } else if (currentTab === 'in_progress') {
             showByTab = cardType === 'course' && cardProgress > 0 && cardProgress < 100;
         } else if (currentTab === 'uploads') {
-            // Show ALL uploads without topic grouping
             showByTab = cardType !== 'course';
-            // For uploads tab, ignore filter pills and show all uploads
-            showByFilter = true;
+            showByFilter = true; // Show all upload types on uploads tab
         } else {
             showByTab = cardType === currentTab;
         }
@@ -1368,12 +1266,27 @@ function applyFilters() {
         }
     });
 
-    // Update count
-    document.getElementById('content-count').textContent = 'Showing ' + visibleCount + ' items';
+    // 4. Manage Container Visibility
+    grid.style.display = (currentTab === 'featured') ? 'none' : (hasVisibleCards ? 'grid' : 'none');
+    featuredContainer.style.display = (currentTab === 'featured' || currentTab === 'all') ? 'block' : 'none';
 
-    // Show/hide no results message
+    // 5. Update Results Count
+    var totalVisible = visibleTopics + visibleCount + totalVisibleInSegment;
+    document.getElementById('content-count').textContent = 'Showing ' + totalVisible + ' items';
+
+    // 6. Manage No Results Messages
+    var noTopicsResults = document.getElementById('no-topics-results');
     var noResults = document.getElementById('no-results');
-    if (!hasVisibleCards) {
+
+    // Show topic "no results" only on relevant tabs
+    if ((currentTab === 'featured' || currentTab === 'all') && visibleTopics === 0 && totalVisibleInSegment === 0 && searchQuery !== '') {
+        noTopicsResults.style.display = 'block';
+    } else {
+        noTopicsResults.style.display = 'none';
+    }
+
+    // Show grid "no results" only if everything is empty
+    if (!hasVisibleCards && totalVisibleInSegment === 0 && searchQuery !== '' && currentTab !== 'featured') {
         noResults.style.display = 'block';
     } else {
         noResults.style.display = 'none';
