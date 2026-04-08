@@ -139,7 +139,23 @@ class LearningController extends Controller
             })->toArray();
         }
         
-        return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab', 'page', 'perPage'));
+        // Fetch grouped uploads for browsing (12 max per type)
+        $groupedVideos = \App\Models\GeneralUpload::where('type', 'video')
+            ->orderBy('created_at', 'desc')
+            ->limit(12)
+            ->get();
+            
+        $groupedAudios = \App\Models\GeneralUpload::where('type', 'audio')
+            ->orderBy('created_at', 'desc')
+            ->limit(12)
+            ->get();
+            
+        $groupedDocuments = \App\Models\GeneralUpload::whereIn('type', ['document', 'book', 'paper'])
+            ->orderBy('created_at', 'desc')
+            ->limit(12)
+            ->get();
+        
+        return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab', 'page', 'perPage', 'groupedVideos', 'groupedAudios', 'groupedDocuments'));
     }
 
     /**

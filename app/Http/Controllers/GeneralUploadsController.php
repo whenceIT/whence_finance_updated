@@ -95,6 +95,48 @@ class GeneralUploadsController extends Controller
     }
 
     /**
+     * Display a listing of the resource for Watch and Learning page.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function watchAndLearning(Request $request)
+    {
+        $user = Sentinel::getUser();
+        
+        // Check if user is admin (role id 1)
+        $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
+
+        $query = GeneralUpload::orderBy('created_at', 'desc');
+        
+        // Filter by type if provided
+        if ($request->has('type') && $request->type != 'all') {
+            $query->where('type', $request->type);
+        }
+        
+        // Filter by general topic if provided
+        $topicName = null;
+        $topicPoster = null;
+        if ($request->has('topic')) {
+            $query->where('general_topic_id', $request->topic);
+            $topic = \App\Models\GeneralTopic::find($request->topic);
+            if ($topic) {
+                $topicName = $topic->name;
+                $topicPoster = $topic->poster;
+            }
+        }
+        
+        $uploads = $query->get();
+        
+        // Check for specific upload to auto-play
+        $autoPlayUpload = null;
+        if ($request->has('upload')) {
+            $autoPlayUpload = \App\Models\GeneralUpload::find($request->upload);
+        }
+
+        return view('learning.watch-and-learning', compact('uploads', 'topicName', 'topicPoster', 'autoPlayUpload'));
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
