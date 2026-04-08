@@ -287,8 +287,8 @@ public function company_payroll(Request $request)
 
 //NEW
     public function edit_new_payroll($id){
-        $payroll = Payroll::where('user_id',$id)->first();
-        $payroll_fields = PayrollMeta::where('payroll_id',$payroll->id)->get();
+        $payroll = Payroll::where('id',$id)->first();
+        $payroll_fields = PayrollMeta::where('payroll_id',$id)->get();
         return view('payroll.edit_new_payroll',compact('payroll','payroll_fields'));
     }
 
