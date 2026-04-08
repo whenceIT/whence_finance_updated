@@ -33,7 +33,6 @@
                 </div>
             </div>
 
-            @if(Sentinel::hasAccess('collateral.update') && !Sentinel::hasAccess('collateral.approve'))
                 <div class="box box-info">
                     <div class="box-header with-border">
                         <h3 class="box-title">Request Status Change</h3>
@@ -60,9 +59,7 @@
                         </div>
                     </form>
                 </div>
-            @endif
 
-            @if(Sentinel::hasAccess('collateral.approve'))
                 <div class="box box-warning">
                     <div class="box-header with-border">
                         <h3 class="box-title">Change Status Directly</h3>
@@ -85,7 +82,6 @@
                         </div>
                     </form>
                 </div>
-            @endif
 
             <div class="box box-default">
                 <div class="box-header with-border">

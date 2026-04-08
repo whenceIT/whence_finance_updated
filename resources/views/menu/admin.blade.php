@@ -210,7 +210,7 @@
                     </li>
                     @endif
 
-                    <!-- @if($role == 1)
+                    @if($role == 1)
                     <li class="treeview @if(Request::is('collateral*')) active menu-open @endif" style="padding-left: 10px;">
                         <a href="#">
                             <i class="fa fa-shield"></i> <span>Collateral</span>
@@ -242,7 +242,7 @@
                             @endif
                         </ul>
                     </li>
-                    @endif   -->
+                    @endif  
 
                     <!-- Loan Applications -->
                     @if(Sentinel::hasAccess('loans.create'))

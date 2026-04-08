@@ -56,7 +56,7 @@ class Collateral extends Model
 
     public function auditTrail()
     {
-        return $this->hasMany(AuditTrail::class, 'record_id', 'id')
-                    ->where('table_name', 'collateral');
+        return $this->hasMany(AuditTrail::class, 'user_id', 'created_by_id')
+                    ->where('module', 'collateral');
     }
 }
