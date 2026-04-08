@@ -17,8 +17,8 @@
         <!-- Fixed Start Date (Hidden Input) -->
         <div class="form-group mr-2">
             <label class="mr-2">Start Date:</label>
-            <input type="hidden" name="start_date" value="2025-01-04">
-            <input type="text" class="form-control" value="2025-01-04" readonly>
+            <input type="date" name="start_date" class="form-control" id="start_date" value="{{ request('start_date') ?: 2025-01-04 }}">
+            <!-- <input type="text" class="form-control" value="2025-01-04" readonly> -->
         </div>
 
         <div class="form-group mr-2">

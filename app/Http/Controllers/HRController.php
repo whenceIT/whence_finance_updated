@@ -44,6 +44,7 @@ use App\Models\ClientTransferLog;
 use stdClass;
 use Carbon\Carbon;
 use App\Models\AuditLogs;
+use App\Models\PayrollTemplateMeta;
 
 
 class HRController extends Controller{
@@ -259,12 +260,16 @@ if ($json !== false) {
 
      $role = Sentinel::getUser()->roles->first();
 
+
+     $employeePayrolls = Payroll::where('user_id', $employee->id)->get();
+     $payroll_fields = PayrollTemplateMeta::all();
+
             return view('hr.employee', compact('employee','data','start','end','data','userId','employeeLeaves',
         'leaveYears',
         'selectedLeaveYear',
      'employeeAdvances',
         'advanceYears',
-        'selectedAdvanceYear'));
+        'selectedAdvanceYear','employeePayrolls','payroll_fields'));
      
     }
 

@@ -517,7 +517,7 @@ private function calculateNetChange($office, $recentLedgerEntry) {
     $officeId = $request->input('office_id');
     $officeName = Office::find($officeId)->name;
     $startLimitDate = '2025-01-04'; 
-    $startDate = $startLimitDate;
+    $startDate = $request->input('start_date') ?: $startLimitDate;;
     $endDate = $request->input('end_date') ?: $todaysDate;
     $format = $request->input('format', 'pdf');
 
