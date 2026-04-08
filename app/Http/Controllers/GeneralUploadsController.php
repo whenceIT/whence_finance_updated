@@ -70,14 +70,8 @@ class GeneralUploadsController extends Controller
         
         // Check if user is admin (role id 1)
         $isAdmin = $user->roles->first() && $user->roles->first()->id == 1;
-        
-        if ($isAdmin) {
-            // Admin sees all uploads
-            $query = GeneralUpload::orderBy('created_at', 'desc');
-        } else {
-            // Regular user sees only their own uploads
-            $query = GeneralUpload::where('uploaded_by', $user->id)->orderBy('created_at', 'desc');
-        }
+
+        $query = GeneralUpload::orderBy('created_at', 'desc');
         
         // Filter by type if provided
         if ($request->has('type') && $request->type != 'all') {

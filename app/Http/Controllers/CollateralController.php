@@ -1,0 +1,580 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Helpers\GeneralHelper;
+use App\Exports\ExportReport;
+use App\Models\AuditTrail;
+use App\Models\Collateral;
+use App\Models\CollateralType;
+use App\Models\Loan;
+use App\Models\Office;
+use App\Models\Province;
+use App\Models\UserRole;
+use Carbon\Carbon;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Laracasts\Flash\Flash;
+use Maatwebsite\Excel\Facades\Excel;
+
+class CollateralController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('sentinel');
+    }
+
+    /**
+     * Display a paginated, filtered, sorted list of collateral items
+     * scoped to the authenticated user's role.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.view')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
+
+        $user   = Sentinel::getUser();
+        $userId = $user->id;
+        $role   = UserRole::where('user_id', $userId)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        // Base query with required eager-loads
+        $query = Collateral::with(['loan.client', 'loan.office', 'type']);
+
+        // --- Role-based scope ---
+        if ($roleId == 1) {
+            // Admin — sees ALL collateral; no additional constraint
+        } elseif ($roleId == 3 || $roleId == 4) {
+            // Loan Officer / Branch Manager — own office only
+            $officeId = $user->office_id;
+            $query->whereHas('loan', function ($q) use ($officeId) {
+                $q->where('office_id', $officeId);
+            });
+        } elseif ($roleId == 5) {
+            // DM Manager — own district (loan->office->district_id == user->office->district_id)
+            $userOffice  = $user->office;
+            $districtId  = $userOffice ? $userOffice->district_id : null;
+            $query->whereHas('loan.office', function ($q) use ($districtId) {
+                $q->where('district_id', $districtId);
+            });
+        } elseif ($roleId == 6) {
+            // Provincial Manager — own province
+            $provinceId = $user->province_id;
+            $query->whereHas('loan.office', function ($q) use ($provinceId) {
+                $q->where('province_id', $provinceId);
+            });
+        } else {
+            // Default: scope to own office for any unrecognised role
+            $officeId = $user->office_id;
+            $query->whereHas('loan', function ($q) use ($officeId) {
+                $q->where('office_id', $officeId);
+            });
+        }
+
+        // --- Filters ---
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('condition')) {
+            $query->where('condition', $request->condition);
+        }
+
+        if ($request->filled('loan_id')) {
+            $query->where('loan_id', $request->loan_id);
+        }
+
+        if ($request->filled('collateral_type_id')) {
+            $query->where('collateral_type_id', $request->collateral_type_id);
+        }
+
+        if ($request->filled('office_id')) {
+            $filterOfficeId = $request->office_id;
+            $query->whereHas('loan', function ($q) use ($filterOfficeId) {
+                $q->where('office_id', $filterOfficeId);
+            });
+        }
+
+        if ($request->filled('province_id')) {
+            $filterProvinceId = $request->province_id;
+            $query->whereHas('loan.office', function ($q) use ($filterProvinceId) {
+                $q->where('province_id', $filterProvinceId);
+            });
+        }
+
+        if ($request->filled('date_purchased_from')) {
+            $query->whereDate('date_purchased', '>=', $request->date_purchased_from);
+        }
+
+        if ($request->filled('date_purchased_to')) {
+            $query->whereDate('date_purchased', '<=', $request->date_purchased_to);
+        }
+
+        if ($request->filled('date_resold_from')) {
+            $query->whereDate('date_resold', '>=', $request->date_resold_from);
+        }
+
+        if ($request->filled('date_resold_to')) {
+            $query->whereDate('date_resold', '<=', $request->date_resold_to);
+        }
+
+        // --- Search (partial match on name and description) ---
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', '%' . $term . '%')
+                  ->orWhere('description', 'like', '%' . $term . '%');
+            });
+        }
+
+        // --- Sorting ---
+        $allowedSortColumns = ['name', 'initial_price', 'current_worth', 'status', 'condition', 'date_purchased'];
+        $sortBy  = in_array($request->sortBy, $allowedSortColumns) ? $request->sortBy : 'created_at';
+        $sortDir = $request->sortDir === 'desc' ? 'desc' : 'asc';
+        $query->orderBy($sortBy, $sortDir);
+
+        // --- Paginate ---
+        $collateral = $query->paginate(15)->appends($request->except('page'));
+
+        $collateralTypes = CollateralType::all();
+        $offices = Office::all();
+        $provinces = Province::all();
+        $loans = Loan::whereIn('status', ['disbursed', 'defaulted'])->get();
+
+        return view('collateral.index', compact('collateral', 'collateralTypes', 'offices', 'provinces', 'loans'));
+    }
+
+    /**
+     * Show the form for creating a new collateral item.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        // if (!Sentinel::hasAccess('collateral.create')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
+
+        $loans = Loan::whereIn('status', ['disbursed', 'defaulted'])->get();
+        $collateralTypes = CollateralType::all();
+
+        return view('collateral.create', compact('loans', 'collateralTypes'));
+    }
+
+    /**
+     * Store a newly created collateral item in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.create')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
+
+        $request->validate([
+            'name'           => 'required',
+            'initial_price'  => 'required',
+            'current_worth'  => 'required',
+            'loan_id'        => 'required',
+            'date_purchased' => 'required',
+            'status'         => 'required',
+            'condition'      => 'required',
+        ]);
+
+        // Verify the selected loan has an eligible status
+        $loan = Loan::find($request->loan_id);
+        if (!$loan || !in_array($loan->status, ['disbursed', 'defaulted'])) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['loan_id' => 'The selected loan must be disbursed or defaulted.']);
+        }
+
+        $collateral = new Collateral();
+        $collateral->name              = $request->name;
+        $collateral->initial_price     = $request->initial_price;
+        $collateral->current_worth     = $request->current_worth;
+        $collateral->loan_id           = $request->loan_id;
+        $collateral->date_purchased    = $request->date_purchased;
+        $collateral->status            = $request->status;
+        $collateral->condition         = $request->condition;
+        $collateral->description       = $request->description;
+        $collateral->collateral_type_id = $request->collateral_type_id;
+        $collateral->created_by_id     = Sentinel::getUser()->id;
+        $collateral->save();
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'collateral_created',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        Flash::success('Successfully saved');
+        return redirect()->route('collateral.index');
+    }
+
+    /**
+     * Display the specified collateral item.
+     *
+     * @param  \App\Models\Collateral  $collateral
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Collateral $collateral, Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.view')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
+
+        $collateral->load([
+            'loan.client',
+            'loan.office',
+            'type',
+            'created_by',
+            'auditTrail',
+            'statusChanges.requested_by',
+            'statusChanges.approved_by',
+        ]);
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'collateral_viewed',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        return view('collateral.show', compact('collateral'));
+    }
+
+    /**
+     * Show the form for editing the specified collateral item.
+     *
+     * @param  \App\Models\Collateral  $collateral
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(Collateral $collateral)
+    {
+        // if (!Sentinel::hasAccess('collateral.update')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
+
+        $collateralTypes = CollateralType::all();
+
+        return view('collateral.edit', compact('collateral', 'collateralTypes'));
+    }
+
+    /**
+     * Update the specified collateral item in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Collateral  $collateral
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Collateral $collateral)
+    {
+        // if (!Sentinel::hasAccess('collateral.update')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
+
+        $request->validate([
+            'current_worth' => 'required',
+            'condition'     => 'required',
+            'description'   => 'nullable',
+            'date_resold'   => 'nullable|date',
+        ]);
+
+        $collateral->current_worth = $request->current_worth;
+        $collateral->condition     = $request->condition;
+        $collateral->description   = $request->description;
+        $collateral->date_resold   = $request->date_resold;
+        $collateral->save();
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'collateral_updated',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        Flash::success('Successfully saved');
+        return redirect()->route('collateral.show', $collateral);
+    }
+
+    /**
+     * Apply request filters to a collateral query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    protected function applyFilters($query, Request $request)
+    {
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('condition')) {
+            $query->where('condition', $request->condition);
+        }
+
+        if ($request->filled('loan_id')) {
+            $query->where('loan_id', $request->loan_id);
+        }
+
+        if ($request->filled('collateral_type_id')) {
+            $query->where('collateral_type_id', $request->collateral_type_id);
+        }
+
+        if ($request->filled('office_id')) {
+            $filterOfficeId = $request->office_id;
+            $query->whereHas('loan', function ($q) use ($filterOfficeId) {
+                $q->where('office_id', $filterOfficeId);
+            });
+        }
+
+        if ($request->filled('province_id')) {
+            $filterProvinceId = $request->province_id;
+            $query->whereHas('loan.office', function ($q) use ($filterProvinceId) {
+                $q->where('province_id', $filterProvinceId);
+            });
+        }
+
+        if ($request->filled('loan_status')) {
+            $query->whereHas('loan', function ($q) use ($request) {
+                $q->where('status', $request->loan_status);
+            });
+        }
+
+        if ($request->filled('date_purchased_from')) {
+            $query->whereDate('date_purchased', '>=', $request->date_purchased_from);
+        }
+
+        if ($request->filled('date_purchased_to')) {
+            $query->whereDate('date_purchased', '<=', $request->date_purchased_to);
+        }
+
+        if ($request->filled('date_resold_from')) {
+            $query->whereDate('date_resold', '>=', $request->date_resold_from);
+        }
+
+        if ($request->filled('date_resold_to')) {
+            $query->whereDate('date_resold', '<=', $request->date_resold_to);
+        }
+
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', '%' . $term . '%')
+                  ->orWhere('description', 'like', '%' . $term . '%');
+            });
+        }
+
+        return $query;
+    }
+
+    public function analyticsExecutive(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.analytics.executive')) {
+        //     Flash::warning('Permission Denied');
+        //     return redirect()->back();
+        // }
+
+        $query = Collateral::with(['loan.office', 'type']);
+        $query = $this->applyFilters($query, $request);
+
+        $statuses = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
+        $typeExposure = $query->selectRaw('collateral_type_id, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('collateral_type_id')
+            ->with('type')
+            ->get();
+
+        $startDate = $request->filled('date_purchased_from') ? Carbon::parse($request->date_purchased_from)->startOfDay() : Carbon::now()->subMonths(6)->startOfMonth();
+        $endDate = $request->filled('date_purchased_to') ? Carbon::parse($request->date_purchased_to)->endOfDay() : Carbon::now()->endOfDay();
+
+        $timeSeries = Collateral::whereBetween('date_purchased', [$startDate, $endDate])
+            ->when($request->filled('collateral_type_id'), function ($q) use ($request) {
+                $q->where('collateral_type_id', $request->collateral_type_id);
+            })
+            ->when($request->filled('loan_status'), function ($q) use ($request) {
+                $q->whereHas('loan', function ($q2) use ($request) {
+                    $q2->where('status', $request->loan_status);
+                });
+            })
+            ->selectRaw("DATE_FORMAT(date_purchased, '%Y-%m') as period, SUM(current_worth) as total")
+            ->groupBy('period')
+            ->orderBy('period')
+            ->get();
+
+        $chartLabels = $timeSeries->pluck('period');
+        $chartValues = $timeSeries->pluck('total');
+        $emptyState = $statuses->isEmpty() && $typeExposure->isEmpty();
+        $collateralTypes = CollateralType::all();
+        $loanStatuses = ['disbursed', 'defaulted', 'pending', 'approved', 'declined', 'written_off'];
+
+        return view('collateral.analytics_executive', compact(
+            'statuses',
+            'typeExposure',
+            'chartLabels',
+            'chartValues',
+            'emptyState',
+            'collateralTypes',
+            'loanStatuses'
+        ));
+    }
+
+    public function analyticsProvincial(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.analytics.provincial')) {
+        //     Flash::warning('Permission Denied');
+        //     return redirect()->back();
+        // }
+
+        $user = Sentinel::getUser();
+        $isExecutive = Sentinel::hasAccess('collateral.analytics.executive');
+        $provinceId = $isExecutive && $request->filled('province_id') ? $request->province_id : $user->province_id;
+
+        $query = Collateral::with(['loan.office', 'type'])
+            ->whereHas('loan.office', function ($q) use ($provinceId) {
+                $q->where('province_id', $provinceId);
+            });
+        $query = $this->applyFilters($query, $request);
+
+        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('status')
+            ->get();
+
+        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('condition')
+            ->get();
+
+        $defaulted = $query->where('status', 'defaulted')->count();
+        $sold = $query->where('status', 'sold')->count();
+
+        $provinceOptions = $isExecutive ? Province::all() : Province::where('id', $provinceId)->get();
+        $offices = Office::where('province_id', $provinceId)->get();
+        $collateralTypes = CollateralType::all();
+        $statusOptions = ['active', 'sold', 'defaulted', 'repossessed'];
+
+        return view('collateral.analytics_provincial', compact(
+            'statusTotals',
+            'conditionTotals',
+            'defaulted',
+            'sold',
+            'provinceOptions',
+            'offices',
+            'collateralTypes',
+            'provinceId',
+            'statusOptions',
+            'isExecutive'
+        ));
+    }
+
+    public function analyticsBranch(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.analytics.branch')) {
+        //     Flash::warning('Permission Denied');
+        //     return redirect()->back();
+        // }
+
+        $user = Sentinel::getUser();
+        $hasHigherScope = Sentinel::hasAccess('collateral.analytics.executive') || Sentinel::hasAccess('collateral.analytics.provincial');
+        $officeId = $hasHigherScope && $request->filled('office_id') ? $request->office_id : $user->office_id;
+
+        $query = Collateral::with(['loan.office', 'type'])
+            ->whereHas('loan', function ($q) use ($officeId) {
+                $q->where('office_id', $officeId);
+            });
+        $query = $this->applyFilters($query, $request);
+
+        $statusBreakdown = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('status')
+            ->get();
+
+        $reassessmentList = $query->whereRaw('current_worth < initial_price * 0.85')
+            ->orderBy('date_purchased', 'desc')
+            ->limit(20)
+            ->get();
+
+        $collateralTypes = CollateralType::all();
+        $conditionOptions = ['new', 'good', 'fair', 'poor'];
+
+        return view('collateral.analytics_branch', compact(
+            'statusBreakdown',
+            'reassessmentList',
+            'collateralTypes',
+            'conditionOptions',
+            'officeId',
+            'hasHigherScope'
+        ));
+    }
+
+    public function report(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.reports')) {
+        //     Flash::warning('Permission Denied');
+        //     return redirect()->back();
+        // }
+
+        $query = Collateral::with(['loan.client', 'loan.office', 'type']);
+        $query = $this->applyFilters($query, $request);
+
+        $collaterals = $query->paginate(15)->appends($request->except('page'));
+        $collateralTypes = CollateralType::all();
+        $offices = Office::all();
+        $provinces = Province::all();
+        $loanStatuses = ['disbursed', 'defaulted', 'pending', 'approved', 'declined', 'written_off'];
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'collateral_report_generated',
+            'table_name' => 'collateral',
+            'record_id'  => 0,
+            'ip_address' => $request->ip(),
+        ]);
+
+        return view('collateral.report', compact('collaterals', 'collateralTypes', 'offices', 'provinces', 'loanStatuses'));
+    }
+
+    public function exportCsv(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.reports')) {
+        //     Flash::warning('Permission Denied');
+        //     return redirect()->back();
+        // }
+
+        $query = Collateral::with(['loan.client', 'loan.office', 'type']);
+        $data = $this->applyFilters($query, $request)->get();
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'collateral_report_generated',
+            'table_name' => 'collateral',
+            'record_id'  => 0,
+            'ip_address' => $request->ip(),
+        ]);
+
+        $filename = 'collateral_report_' . Carbon::now()->format('Ymd') . '.csv';
+
+        return Excel::download(new ExportReport('collateral.exports.collateral_csv', compact('data')), $filename);
+    }
+}
