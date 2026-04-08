@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-Daily Loan Activities Breakdown Report
+    Daily Loan Activities Breakdown Report
 @endsection
 <style>
 
@@ -71,7 +71,6 @@ Daily Loan Activities Breakdown Report
                                 @foreach(\App\Models\Office::all() as $key)
                                     <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
                                 @endforeach
-                            @endif
                             @elseif($role == 12)
                                 @foreach(\App\Models\Office::all() as $key)
                                     <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
