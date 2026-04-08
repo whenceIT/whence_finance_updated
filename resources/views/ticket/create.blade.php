@@ -73,7 +73,7 @@
                     <select name="assigned_office" id="assigned_office" class="form-control text-dark">
                         <option value="" selected>-- Select Office --</option>
                         @foreach($offices as $o)
-                            @if($o->id == 2)
+                            @if($o->id == 67)
                                 <option value="{{ $o->id }}" >{{ $o->name }}</option>
                             @endif
                         @endforeach

@@ -8,6 +8,9 @@ class LoanTransaction extends Model
 {
     protected $table = "loan_transactions";
 
+    protected $fillable = ['recovery'];
+
+    protected $casts = ['recovery' => 'boolean'];
 
     public function office()
     {
