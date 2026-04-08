@@ -763,7 +763,7 @@
         <!-- General Topics as Folders -->
         @foreach($topicsWithUploads as $topic)
         <div class="col-12 col-md-6 col-lg-3 topic-card" style="margin-bottom: 20px;" data-title="{{ $topic['name'] }}">
-            <div class="content-card topic-folder-card" onclick='window.location.href="{{ url('learning/general-uploads?topic=' . $topic['id']) }}"'>
+            <div class="content-card topic-folder-card" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $topic['id']]) }}"'>
                 <!-- Full Background Image or Gradient -->
                 <div class="topic-bg-image" style="{{ isset($topic['poster']) && $topic['poster'] ? 'background-image: url(\'' . $topic['poster'] . '\');' : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);' }}">
                     @if(!isset($topic['poster']) || !$topic['poster'])
@@ -809,6 +809,133 @@
             </div>
         </div>
         @endforeach
+    </div>
+        
+    <!-- Browse by Content Type Segment -->
+    <!-- @if(count($groupedVideos) > 0 || count($groupedAudios) > 0 || count($groupedDocuments) > 0) -->
+    <div class="content-segment" id="type-segment" style="margin-top: 50px; margin-bottom: 50px; padding: 0 15px; width: 100%; clear: both;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+            <h2 style="font-size: 26px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 45px; height: 45px; border-radius: 12px; background: rgba(52, 152, 219, 0.1); display: flex; align-items: center; justify-content: center;">
+                    <i class="fa fa-cubes" style="color: var(--primary-color); font-size: 20px;"></i>
+                </div>
+                Browse by Content Type
+            </h2>
+            <div style="font-size: 14px; color: var(--text-secondary); font-weight: 500;">
+                <i class="fa fa-info-circle" style="margin-right: 5px;"></i> Explore our resource library
+            </div>
+        </div>
+
+        <!-- Videos Section -->
+        @if(count($groupedVideos) > 0)
+        <div class="type-section" style="margin-bottom: 45px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa fa-video-camera" style="color: #667eea;"></i> Videos to Watch
+                    <span style="font-size: 12px; font-weight: 500; color: var(--text-secondary); background: #f0f0f0; padding: 2px 10px; border-radius: 20px;">{{ count($groupedVideos) }}</span>
+                </h3>
+                <a href="{{ url('learning/general-uploads/watch-and-learning?type=video') }}" style="color: var(--primary-color); font-weight: 700; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 5px; transition: gap 0.2s;" onmouseover="this.style.gap='8px'" onmouseout="this.style.gap='5px'">
+                    See all <i class="fa fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="unified-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                @foreach($groupedVideos as $video)
+                <div class="content-card" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $video->general_topic_id, 'upload' => $video->id]) }}"'>
+                    <div class="card-image type-video" style="{{ $video->poster ? 'background: none;' : '' }}">
+                        @if($video->poster)
+                            <img src="{{ $video->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $video->name }}">
+                        @else
+                            <i class="fa fa-video-camera" style="font-size: 40px; color: white;"></i>
+                        @endif
+                        <div class="card-badge">Video</div>
+                        <div class="play-overlay">
+                            <div class="play-button"><i class="fa fa-play"></i></div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 15px;">
+                        <h3 class="card-title" style="margin-bottom: 12px; height: 42px; overflow: hidden;">{{ $video->name }}</h3>
+                        <div class="card-meta">
+                            <span><i class="fa fa-clock-o"></i> {{ $video->created_at->diffForHumans() }}</span>
+                            <span><i class="fa fa-eye"></i> {{ $video->views_count ?? 0 }} views</span>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        <!-- @endif -->
+
+        <!-- Audios Section -->
+        @if(count($groupedAudios) > 0)
+        <div class="type-section" style="margin-bottom: 45px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa fa-headphones" style="color: #f093fb;"></i> Listen to Audios
+                    <span style="font-size: 12px; font-weight: 500; color: var(--text-secondary); background: #f0f0f0; padding: 2px 10px; border-radius: 20px;">{{ count($groupedAudios) }}</span>
+                </h3>
+                <a href="{{ url('learning/general-uploads/watch-and-learning?type=audio') }}" style="color: var(--primary-color); font-weight: 700; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 5px; transition: gap 0.2s;" onmouseover="this.style.gap='8px'" onmouseout="this.style.gap='5px'">
+                    See all <i class="fa fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="unified-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                @foreach($groupedAudios as $audio)
+                <div class="content-card" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $audio->general_topic_id, 'upload' => $audio->id]) }}"'>
+                    <div class="card-image type-audio">
+                        <i class="fa fa-headphones" style="font-size: 40px; color: white;"></i>
+                        <div class="card-badge">Audio</div>
+                        <div class="play-overlay">
+                            <div class="play-button"><i class="fa fa-play"></i></div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 15px;">
+                        <h3 class="card-title" style="margin-bottom: 12px; height: 42px; overflow: hidden;">{{ $audio->name }}</h3>
+                        <div class="card-meta">
+                            <span><i class="fa fa-clock-o"></i> {{ $audio->created_at->diffForHumans() }}</span>
+                            <span><i class="fa fa-eye"></i> {{ $audio->views_count ?? 0 }} views</span>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        <!-- Documents Section -->
+        @if(count($groupedDocuments) > 0)
+        <div class="type-section" style="margin-bottom: 45px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa fa-file-text-o" style="color: #fa709a;"></i> Documents and Job Description Checklists
+                    <span style="font-size: 12px; font-weight: 500; color: var(--text-secondary); background: #f0f0f0; padding: 2px 10px; border-radius: 20px;">{{ count($groupedDocuments) }}</span>
+                </h3>
+                <a href="{{ url('learning/general-uploads/watch-and-learning?type=document') }}" style="color: var(--primary-color); font-weight: 700; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 5px; transition: gap 0.2s;" onmouseover="this.style.gap='8px'" onmouseout="this.style.gap='5px'">
+                    See all <i class="fa fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="unified-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                @foreach($groupedDocuments as $doc)
+                <div class="content-card" onclick='window.location.href="{{ route('learning.watch-and-learning', ['topic' => $doc->general_topic_id, 'upload' => $doc->id]) }}"'>
+                    <div class="card-image type-document">
+                        <i class="fa {{ $doc->icon ?? 'fa-file-text-o' }}" style="font-size: 40px; color: white;"></i>
+                        <div class="card-badge">{{ ucfirst($doc->type) }}</div>
+                        <div class="play-overlay">
+                            <div class="play-button"><i class="fa fa-eye"></i></div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 15px;">
+                        <h3 class="card-title" style="margin-bottom: 12px; height: 42px; overflow: hidden;">{{ $doc->name }}</h3>
+                        <div class="card-meta">
+                            <span><i class="fa fa-clock-o"></i> {{ $doc->created_at->diffForHumans() }}</span>
+                            <span><i class="fa fa-eye"></i> {{ $doc->views_count ?? 0 }} views</span>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+    @endif
         
         <!-- No Results Message for Topics -->
         <div class="no-results" id="no-topics-results" style="display: none;">
@@ -1038,6 +1165,8 @@ function applyFilters() {
     if (currentTab === 'featured') {
         grid.style.display = 'none';
         featuredContainer.style.display = 'block';
+        var typeSegment = document.getElementById('type-segment');
+        if (typeSegment) typeSegment.style.display = 'block';
 
         // Search through featured topics
         var topicCards = document.querySelectorAll('.topic-card');
@@ -1075,6 +1204,8 @@ function applyFilters() {
         // Show both containers
         grid.style.display = 'grid';
         featuredContainer.style.display = 'block';
+        var typeSegment = document.getElementById('type-segment');
+        if (typeSegment) typeSegment.style.display = 'block';
 
         // Filter featured topics
         var topicCards = document.querySelectorAll('.topic-card');
@@ -1135,6 +1266,8 @@ function applyFilters() {
     // For other tabs, show content grid, hide featured container
     grid.style.display = 'grid';
     featuredContainer.style.display = 'none';
+    var typeSegment = document.getElementById('type-segment');
+    if (typeSegment) typeSegment.style.display = 'none';
 
     allCards.forEach(function(card) {
         var cardType = card.dataset.type;

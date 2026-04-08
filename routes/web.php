@@ -267,9 +267,10 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
  });
 
  // General Uploads Management Routes
- Route::group(['prefix' => 'learning/general-uploads', 'middleware' => 'sentinel'], function () {
-     Route::get('/', [GeneralUploadsController::class, 'index'])->name('learning.general-uploads.index');
-     Route::get('/create', [GeneralUploadsController::class, 'create'])->name('learning.general-uploads.create');
+    Route::group(['prefix' => 'learning/general-uploads', 'middleware' => 'sentinel'], function () {
+        Route::get('/', [GeneralUploadsController::class, 'index'])->name('learning.general-uploads.index');
+        Route::get('/watch-and-learning', [GeneralUploadsController::class, 'watchAndLearning'])->name('learning.watch-and-learning');
+        Route::get('/create', [GeneralUploadsController::class, 'create'])->name('learning.general-uploads.create');
      Route::post('/', [GeneralUploadsController::class, 'store'])->name('learning.general-uploads.store');
      // Chunk upload routes - must come before routes with parameters
      Route::post('/upload-chunk', [GeneralUploadsController::class, 'uploadChunk'])->name('learning.general-uploads.upload-chunk');
