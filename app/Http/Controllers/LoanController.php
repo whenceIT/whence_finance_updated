@@ -3023,13 +3023,7 @@ class LoanController extends Controller
                 $loan_transaction->office_id = $loan->office_id;
                 $loan_transaction->loan_id = $loan->id;
                 $loan_transaction->reversible = 1;
-
-                // store debt_recovery as full payment
-                if($request->payment_apply_to == 'debt_recovery'){
-                    $loan_transaction->payment_apply_to = 'full_payment';
-                }else{
-                    $loan_transaction->payment_apply_to = $request->payment_apply_to;
-                }
+                $loan_transaction->payment_apply_to = $Trans->payment_apply_to;
                 $loan_transaction->payment_detail_id = $payment_detail->id;
                 $loan_transaction->payment_detail_id = $payment_detail->id;
                 $loan_transaction->transaction_type = "repayment";
