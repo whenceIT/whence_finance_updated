@@ -812,7 +812,6 @@
     </div>
         
     <!-- Browse by Content Type Segment -->
-    <!-- @if(count($groupedVideos) > 0 || count($groupedAudios) > 0 || count($groupedDocuments) > 0) -->
     <div class="content-segment" id="type-segment" style="margin-top: 50px; margin-bottom: 50px; padding: 0 15px; width: 100%; clear: both;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
             <h2 style="font-size: 26px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 12px;">
@@ -863,7 +862,7 @@
                 @endforeach
             </div>
         </div>
-        <!-- @endif -->
+        @endif
 
         <!-- Audios Section -->
         @if(count($groupedAudios) > 0)
@@ -935,7 +934,6 @@
         </div>
         @endif
     </div>
-    @endif
         
         <!-- No Results Message for Topics -->
         <div class="no-results" id="no-topics-results" style="display: none;">
@@ -1183,16 +1181,49 @@ function applyFilters() {
             }
         });
 
-        // Update count for featured tab
-        document.getElementById('content-count').textContent = 'Showing ' + visibleTopics + ' items';
-
-        // Show/hide no results message for topics
-        var noTopicsResults = document.getElementById('no-topics-results');
-        if (visibleTopics === 0) {
-            noTopicsResults.style.display = 'block';
-        } else {
-            noTopicsResults.style.display = 'none';
+        // Search through Content Type Segment
+        var totalVisibleInSegment = 0;
+        if (typeSegment) {
+            var sections = typeSegment.querySelectorAll('.type-section');
+            sections.forEach(function(section) {
+                var sectionCards = section.querySelectorAll('.content-card');
+                var visibleInSection = 0;
+                
+                sectionCards.forEach(function(card) {
+                    var cardTitle = (card.dataset.title || '').toLowerCase();
+                    var cardCategory = (card.dataset.category || '').toLowerCase();
+                    
+                    var matches = searchQuery === '' || 
+                                  cardTitle.includes(searchQuery) || 
+                                  cardCategory.includes(searchQuery);
+                    
+                    if (matches) {
+                        card.style.display = '';
+                        visibleInSection++;
+                        totalVisibleInSegment++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide section based on matching cards
+                section.style.display = visibleInSection > 0 ? 'block' : 'none';
+            });
+            
+            // Show/hide type segment based on matching cards
+            typeSegment.style.display = (totalVisibleInSegment > 0 && searchQuery !== '') || (searchQuery === '') ? 'block' : 'none';
+            
+            // If searching and no results in topics BUT there are results in segment, hide noTopicsResults
+            var noTopicsResults = document.getElementById('no-topics-results');
+            if (totalVisibleInSegment > 0) {
+                noTopicsResults.style.display = 'none';
+            } else if (visibleTopics === 0) {
+                noTopicsResults.style.display = 'block';
+            }
         }
+
+        // Update count for featured tab (topics + segment items)
+        document.getElementById('content-count').textContent = 'Showing ' + (visibleTopics + totalVisibleInSegment) + ' items';
 
         // Hide other no results message
         document.getElementById('no-results').style.display = 'none';
@@ -1240,21 +1271,55 @@ function applyFilters() {
             }
         });
 
-        // Update total count (topics + grid items)
-        var totalVisible = visibleTopics + visibleCount;
+        // Search through Content Type Segment
+        var totalVisibleInSegment = 0;
+        if (typeSegment) {
+            var sections = typeSegment.querySelectorAll('.type-section');
+            sections.forEach(function(section) {
+                var sectionCards = section.querySelectorAll('.content-card');
+                var visibleInSection = 0;
+                
+                sectionCards.forEach(function(card) {
+                    var cardTitle = (card.dataset.title || '').toLowerCase();
+                    var cardCategory = (card.dataset.category || '').toLowerCase();
+                    
+                    var matches = searchQuery === '' || 
+                                  cardTitle.includes(searchQuery) || 
+                                  cardCategory.includes(searchQuery);
+                    
+                    if (matches) {
+                        card.style.display = '';
+                        visibleInSection++;
+                        totalVisibleInSegment++;
+                        hasVisibleCards = true; // For no-results message
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide section based on matching cards
+                section.style.display = visibleInSection > 0 ? 'block' : 'none';
+            });
+            
+            // Show/hide type segment based on matching cards
+            typeSegment.style.display = (totalVisibleInSegment > 0 && searchQuery !== '') || (searchQuery === '') ? 'block' : 'none';
+        }
+
+        // Update total count (topics + grid items + segment items)
+        var totalVisible = visibleTopics + visibleCount + totalVisibleInSegment;
         document.getElementById('content-count').textContent = 'Showing ' + totalVisible + ' items';
 
         // Show/hide no results messages
         var noTopicsResults = document.getElementById('no-topics-results');
         var noResults = document.getElementById('no-results');
 
-        if (visibleTopics === 0) {
+        if (visibleTopics === 0 && totalVisibleInSegment === 0 && searchQuery !== '') {
             noTopicsResults.style.display = 'block';
         } else {
             noTopicsResults.style.display = 'none';
         }
 
-        if (!hasVisibleCards) {
+        if (!hasVisibleCards && totalVisibleInSegment === 0 && searchQuery !== '') {
             noResults.style.display = 'block';
         } else {
             noResults.style.display = 'none';
