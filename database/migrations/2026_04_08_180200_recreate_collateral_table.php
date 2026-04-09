@@ -13,13 +13,12 @@ class RecreateCollateralTable extends Migration
      */
     public function up()
     {
-        Schema::dropIfExists('collateral');
 
-        Schema::create('collateral', function (Blueprint $table) {
+        Schema::create('collaterals', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('loan_id')->nullable();
-            $table->integer('client_id')->nullable();
-            $table->integer('collateral_type_id')->nullable();
+            $table->unsignedInteger('loan_id')->nullable();
+            $table->unsignedInteger('client_id')->nullable();
+            $table->unsignedInteger('collateral_type_id')->nullable();
             $table->string('name')->nullable();
             $table->string('serial')->nullable();
             $table->decimal('value', 65, 4)->nullable();
@@ -29,7 +28,7 @@ class RecreateCollateralTable extends Migration
             $table->string('condition')->nullable();
             $table->date('date_purchased')->nullable();
             $table->date('date_resold')->nullable();
-            $table->integer('created_by_id')->nullable();
+            $table->unsignedInteger('created_by_id')->nullable();
             $table->text('description')->nullable();
             $table->text('picture')->nullable();
             $table->text('gallery')->nullable();

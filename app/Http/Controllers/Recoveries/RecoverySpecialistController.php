@@ -43,11 +43,12 @@ class RecoverySpecialistController extends Controller
 
     public function show($id, Request $request)
     {
-        $user   = User::findOrFail($id);
+        $user   = User::where('id', $id)->first();
         $period = $request->get('period', 'month');
 
+        // dd($period);
         $cases = RecoveryCase::assignedTo($user->id)
-            ->forPeriod($period)
+            // ->forPeriod($period)
             ->with(['client', 'originBranch'])
             ->latest()
             ->paginate(15);
@@ -62,6 +63,7 @@ class RecoverySpecialistController extends Controller
             ->latest()
             ->limit(20)
             ->get();
+
 
         return view('recoveries.specialists.show', compact('user', 'cases', 'targets', 'activityLog', 'period'));
     }

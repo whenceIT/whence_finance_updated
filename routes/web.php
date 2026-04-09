@@ -298,6 +298,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('manager_performance','UserController@manager_performance');
     Route::get('{id}/branch_page', 'UserController@branch_page');
     Route::get('poadashboard','UserController@poadashboard');
+    Route::get('bmdashboard','UserController@bmdashboard');
     Route::get('pmdashboard','UserController@pmdashboard');
     Route::get('{id}/province_page', 'UserController@province_page');
     Route::any('{id}/qr-download', 'UserController@downloadSingleQR');
