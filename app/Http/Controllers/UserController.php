@@ -255,6 +255,48 @@ $cycle_date = $cycleDate->format('Y-m-d');
 }
 
 
+public function bmdashboard(Request $request){
+     $office_id = Sentinel::getUser()->office_id;
+
+     $today = Carbon::today();
+
+        $cycleStart = $today->copy()->day(25);
+    if ($today->day < 25) {
+        $cycleStart->subMonth();
+    }
+
+    $cycleEnd = $cycleStart->copy()->addMonth()->subDay();
+
+
+      // ✅ OVERRIDE WITH FILTER
+    $start_date = $request->start_date ?? $cycleStart->format('Y-m-d');
+    $end_date   = $request->end_date ?? $cycleEnd->format('Y-m-d');
+
+
+    // try{
+
+
+
+    // }catch{
+
+    // }
+
+    $url = "https://lms2backend.whencefinancesystem.com/branch-ledger-summary?branch_id=$office_id";
+    $url2 = "https://lms2backend.whencefinancesystem.com/consultants-performance-by-office?office_id=$office_id&start_date=$start_date&end_date=$end_date";
+    $url3 = "https://lms2backend.whencefinancesystem.com/branch-performance-new?office_id=$office_id";
+    $json = @file_get_contents($url);
+    $json2 = @file_get_contents($url2);
+    $json3 = @file_get_contents($url3);
+    $branch = $json ? json_decode($json, true) : null;
+    $branch_data =  $json3 ? json_decode($json3, true) : null;
+ $data = $json2 ? json_decode($json2, true) : null;
+$consultants = $data['data'] ?? [];
+
+    return view('user.bmdashboard',compact('branch','consultants',  'start_date',
+        'end_date','branch_data'));
+}
+
+
 
     public function poadashboard(Request $request)
     {
@@ -690,6 +732,11 @@ $cycle_date = $cycleDate->format('Y-m-d');
 
 
         if ($role->role_id == '4' || $role->role_id == '12') {
+
+        if ($role->role_id == '4' || $role->role_id == '12') {
+
+          return redirect('/user/bmdashboard');  
+        }
 
             $user = Sentinel::getUser();
             if ($role->role_id == '4' || $role->role_id == '12') {
