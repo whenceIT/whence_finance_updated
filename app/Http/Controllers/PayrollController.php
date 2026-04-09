@@ -228,7 +228,7 @@ public function company_payroll(Request $request)
     public function pdfPayslip($id)
     {
         $user = Sentinel::findById(Sentinel::getUser()->id);
-        $payroll_list = Payroll::where('user_id',$user->id)->where('status','approved')->get();
+        $payroll_list = Payroll::where('id',$id)->where('status','approved')->first();
         $payroll_fields = PayrollTemplateMeta::get();
 
         $pdf = PDF::loadView('payroll.pdf_payslip',
