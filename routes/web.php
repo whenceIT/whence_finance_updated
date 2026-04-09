@@ -1673,6 +1673,7 @@ Route::get('collateral/create', 'CollateralController@create')->name('collateral
 Route::post('collateral', 'CollateralController@store')->name('collateral.store');
 Route::get('collateral/analytics/executive', 'CollateralController@analyticsExecutive')->name('collateral.analytics.executive');
 Route::get('collateral/analytics/provincial', 'CollateralController@analyticsProvincial')->name('collateral.analytics.provincial');
+Route::get('collateral/analytics/district', 'CollateralController@analyticsDistrict')->name('collateral.analytics.district');
 Route::get('collateral/analytics/branch', 'CollateralController@analyticsBranch')->name('collateral.analytics.branch');
 Route::get('collateral/report', 'CollateralController@report')->name('collateral.report');
 Route::post('collateral/report/export', 'CollateralController@exportCsv')->name('collateral.export');
@@ -1681,6 +1682,8 @@ Route::post('collateral/approvals/{collateral_status_change_request}/approve', '
 Route::post('collateral/approvals/{collateral_status_change_request}/reject', 'CollateralApprovalController@reject')->name('collateral.approvals.reject');
 Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
+Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
+Route::delete('collateral/{collateral}', 'CollateralController@destroy')->name('collateral.destroy');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
 Route::post('collateral/{collateral}/request-status-change', 'CollateralApprovalController@requestChange')->name('collateral.request_change');
 Route::post('collateral/{collateral}/change-status', 'CollateralApprovalController@directChange')->name('collateral.direct_change');

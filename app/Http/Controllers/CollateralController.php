@@ -10,6 +10,7 @@ use App\Models\CollateralType;
 use App\Models\Loan;
 use App\Models\Office;
 use App\Models\Province;
+use App\Models\District;
 use App\Models\UserRole;
 use Carbon\Carbon;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -23,6 +24,35 @@ class CollateralController extends Controller
     public function __construct()
     {
         $this->middleware('sentinel');
+    }
+
+    private function applyFilters($query, Request $request)
+    {
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('condition')) {
+            $query->where('condition', $request->condition);
+        }
+        if ($request->filled('collateral_type_id')) {
+            $query->where('collateral_type_id', $request->collateral_type_id);
+        }
+        if ($request->filled('loan_status')) {
+            $query->whereHas('loan', function ($q) use ($request) {
+                $q->where('status', $request->loan_status);
+            });
+        }
+        if ($request->filled('date_purchased_from')) {
+            $query->where('date_purchased', '>=', $request->date_purchased_from);
+        }
+        if ($request->filled('date_purchased_to')) {
+            $query->where('date_purchased', '<=', $request->date_purchased_to);
+        }
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+        }
+        return $query;
     }
 
     /**
@@ -210,12 +240,17 @@ class CollateralController extends Controller
         $collateral->description       = $request->description;
         $collateral->collateral_type_id = $request->collateral_type_id;
         $collateral->created_by_id     = Sentinel::getUser()->id;
+
+        $collateral->province_id = $loan->office->province_id; //for Province analytics level
+        $collateral->district_id = $loan->office->district_id; //for District analytics level
+        $collateral->office_id = $loan->office->id; //for Office analytics level
+
         $collateral->save();
 
         AuditTrail::create([
             'user_id'    => Sentinel::getUser()->id,
-            'action'     => 'collateral_created',
-            'table_name' => 'collateral',
+            'action'     => $collateral->name.' collateral created',
+            'table_name' => 'collaterals',
             'record_id'  => $collateral->id,
             'ip_address' => $request->ip(),
         ]);
@@ -316,76 +351,25 @@ class CollateralController extends Controller
         return redirect()->route('collateral.show', $collateral);
     }
 
-    /**
-     * Apply request filters to a collateral query.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    protected function applyFilters($query, Request $request)
+    public function destroy(Collateral $collateral)
     {
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        // if (!Sentinel::hasAccess('collateral.delete')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
 
-        if ($request->filled('condition')) {
-            $query->where('condition', $request->condition);
-        }
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'collateral_deleted',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => request()->ip(),
+        ]);
 
-        if ($request->filled('loan_id')) {
-            $query->where('loan_id', $request->loan_id);
-        }
+        $collateral->delete();
 
-        if ($request->filled('collateral_type_id')) {
-            $query->where('collateral_type_id', $request->collateral_type_id);
-        }
-
-        if ($request->filled('office_id')) {
-            $filterOfficeId = $request->office_id;
-            $query->whereHas('loan', function ($q) use ($filterOfficeId) {
-                $q->where('office_id', $filterOfficeId);
-            });
-        }
-
-        if ($request->filled('province_id')) {
-            $filterProvinceId = $request->province_id;
-            $query->whereHas('loan.office', function ($q) use ($filterProvinceId) {
-                $q->where('province_id', $filterProvinceId);
-            });
-        }
-
-        if ($request->filled('loan_status')) {
-            $query->whereHas('loan', function ($q) use ($request) {
-                $q->where('status', $request->loan_status);
-            });
-        }
-
-        if ($request->filled('date_purchased_from')) {
-            $query->whereDate('date_purchased', '>=', $request->date_purchased_from);
-        }
-
-        if ($request->filled('date_purchased_to')) {
-            $query->whereDate('date_purchased', '<=', $request->date_purchased_to);
-        }
-
-        if ($request->filled('date_resold_from')) {
-            $query->whereDate('date_resold', '>=', $request->date_resold_from);
-        }
-
-        if ($request->filled('date_resold_to')) {
-            $query->whereDate('date_resold', '<=', $request->date_resold_to);
-        }
-
-        if ($request->filled('search')) {
-            $term = $request->search;
-            $query->where(function ($q) use ($term) {
-                $q->where('name', 'like', '%' . $term . '%')
-                  ->orWhere('description', 'like', '%' . $term . '%');
-            });
-        }
-
-        return $query;
+        Flash::success('Collateral deleted successfully.');
+        return redirect()->route('collateral.index');
     }
 
     public function analyticsExecutive(Request $request)
@@ -489,6 +473,55 @@ class CollateralController extends Controller
         ));
     }
 
+    public function analyticsDistrict(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.analytics.district')) {
+        //     Flash::warning('Permission Denied');
+        //     return redirect()->back();
+        // }
+
+        $user = Sentinel::getUser();
+        $isExecutive = Sentinel::hasAccess('collateral.analytics.executive');
+        $isProvincial = Sentinel::hasAccess('collateral.analytics.provincial');
+        $districtId = ($isExecutive || $isProvincial) && $request->filled('district_id') ? $request->district_id : $user->district_id;
+
+        $query = Collateral::with(['loan.office', 'type'])
+            ->whereHas('loan.office', function ($q) use ($districtId) {
+                $q->where('district_id', $districtId);
+            });
+        $query = $this->applyFilters($query, $request);
+
+        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('status')
+            ->get();
+
+        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('condition')
+            ->get();
+
+        $defaulted = $query->where('status', 'defaulted')->count();
+        $sold = $query->where('status', 'sold')->count();
+
+        $districtOptions = ($isExecutive || $isProvincial) ? District::all() : District::where('id', $districtId)->get();
+        $offices = Office::where('district_id', $districtId)->get();
+        $collateralTypes = CollateralType::all();
+        $statusOptions = ['active', 'sold', 'defaulted', 'repossessed'];
+
+        return view('collateral.analytics_district', compact(
+            'statusTotals',
+            'conditionTotals',
+            'defaulted',
+            'sold',
+            'districtOptions',
+            'offices',
+            'collateralTypes',
+            'districtId',
+            'statusOptions',
+            'isExecutive',
+            'isProvincial'
+        ));
+    }
+
     public function analyticsBranch(Request $request)
     {
         // if (!Sentinel::hasAccess('collateral.analytics.branch')) {
@@ -517,6 +550,7 @@ class CollateralController extends Controller
 
         $collateralTypes = CollateralType::all();
         $conditionOptions = ['new', 'good', 'fair', 'poor'];
+        $offices = $hasHigherScope ? Office::all() : collect();
 
         return view('collateral.analytics_branch', compact(
             'statusBreakdown',
@@ -524,7 +558,8 @@ class CollateralController extends Controller
             'collateralTypes',
             'conditionOptions',
             'officeId',
-            'hasHigherScope'
+            'hasHigherScope',
+            'offices'
         ));
     }
 

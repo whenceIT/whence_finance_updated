@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Collateral extends Model
 {
-    protected $table = 'collateral';
+    protected $table = 'collaterals';
 
     protected $fillable = [
         'name',
@@ -20,6 +20,9 @@ class Collateral extends Model
         'condition',
         'date_purchased',
         'date_resold',
+        'province_id',
+        'district_id',
+        'office_id',
     ];
 
     protected $casts = [
