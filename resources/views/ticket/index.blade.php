@@ -55,7 +55,7 @@
                         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
                     }
 
-                    /* 🟡 Highlight: My Ticket Requests tab */
+                    /* Highlight: My Ticket Requests tab */
                     .nav-tabs>li.tab-yellow>a {
                         background: orange;
                         color: #000;

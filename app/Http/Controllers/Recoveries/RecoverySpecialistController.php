@@ -19,6 +19,7 @@ class RecoverySpecialistController extends Controller
         $period      = $request->get('period', 'month');
         $specialists = $this->dashboard->getSpecialistPerformance($period);
 
+        dd($specialists);
         return view('recoveries.specialists.index', compact('specialists', 'period'));
     }
 
@@ -43,9 +44,10 @@ class RecoverySpecialistController extends Controller
 
     public function show($id, Request $request)
     {
-        $user   = User::findOrFail($id);
+        $user   = User::where('id', $id)->first();
         $period = $request->get('period', 'month');
 
+        dd($period);
         $cases = RecoveryCase::assignedTo($user->id)
             ->forPeriod($period)
             ->with(['client', 'originBranch'])
@@ -63,6 +65,8 @@ class RecoverySpecialistController extends Controller
             ->limit(20)
             ->get();
 
+
+            dd($cases->get());
         return view('recoveries.specialists.show', compact('user', 'cases', 'targets', 'activityLog', 'period'));
     }
 

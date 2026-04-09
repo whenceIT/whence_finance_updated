@@ -667,7 +667,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::post('loan_batch', 'LoanController@store_batch_loan');
     Route::get('{loan}/edit', 'LoanController@edit');
     Route::get('{loan}/activate', 'LoanController@activate');
-    Route::get('{loan}/show', 'LoanController@show');
+    Route::get('{loan}/show', 'LoanController@show')->name('show');
     Route::post('{id}/topup/update', 'LoanController@add_top_up_request');
     Route::any('{id}/{trans_id}/approve_top_up', 'LoanController@approve_top_up');
     Route::any('{id}/decline_top_up', 'LoanController@decline_top_up');
