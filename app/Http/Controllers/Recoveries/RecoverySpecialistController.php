@@ -19,7 +19,6 @@ class RecoverySpecialistController extends Controller
         $period      = $request->get('period', 'month');
         $specialists = $this->dashboard->getSpecialistPerformance($period);
 
-        dd($specialists);
         return view('recoveries.specialists.index', compact('specialists', 'period'));
     }
 
