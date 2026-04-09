@@ -400,7 +400,7 @@ class RecoveryCaseController extends Controller
             foreach ($offices as $office) {
                 if ($office->province_id == $province_id) {
                     $transactions = LoanTransactionUnapproved::where('office_id', $office->id)
-                        ->where('payment_apply_to', 'debt_recovery')
+                        ->where('is_recovery', 1)
                         ->get();
                     foreach ($transactions as $transaction) {
                         array_push($province_transactions, $transaction);
@@ -411,11 +411,11 @@ class RecoveryCaseController extends Controller
         } else {
             if ($role->role_id == "1" || $role->role_id == "10") {
                 // Admin sees all
-                $data = LoanTransactionUnapproved::where('payment_apply_to', 'debt_recovery')->get();
+                $data = LoanTransactionUnapproved::where('is_recovery', 1)->get();
             } else {
                 // Regular user sees office-specific
                 $data = LoanTransactionUnapproved::where('office_id', $office_id)
-                    ->where('payment_apply_to', 'debt_recovery')
+                    ->where('is_recovery', 1)
                     ->get();
             }
         }
@@ -463,6 +463,7 @@ class RecoveryCaseController extends Controller
             $loan_transaction->credit = $transaction->credit;
             $loan_transaction->notes = $transaction->notes;
             $loan_transaction->temp_id = $id;
+            $loan_transaction->is_recovery = 1;
             $loan_transaction->save();
 
 

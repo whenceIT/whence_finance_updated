@@ -5,7 +5,6 @@
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">{{trans_choice('general.add',1) }} {{ trans_choice('general.repayment',1) }}</h3>
 
             <div class="box-tools pull-right">
                 <button onclick="window.history.back()" class="btn btn-info btn-sm">
@@ -119,18 +118,18 @@
                     </div>
                    
                     <div class="form-group">
-    <label for="receipt_number" class="control-label col-md-2">
-        {{ trans_choice('general.receipt', 1) }} #
-    </label>
-    <div class="col-md-3">
-    <input type="text" name="receipt_number"
-       class="form-control"
-       value="{{ old('receipt_number', $nextReceipt ?? '') }}"
-       id="receipt_number"
-       style="font-weight: bold; color: #b22222;" readonly> {{-- Dark red like a receipt --}}
+                    <label for="receipt_number" class="control-label col-md-2">
+                        {{ trans_choice('general.receipt', 1) }} #
+                    </label>
+                    <div class="col-md-3">
+                    <input type="text" name="receipt_number"
+                    class="form-control"
+                    value="{{ old('receipt_number', $nextReceipt ?? '') }}"
+                    id="receipt_number"
+                    style="font-weight: bold; color: #b22222;" readonly> {{-- Dark red like a receipt --}}
 
-    </div>
-</div>
+                    </div>
+                </div>
 
                     
                     
@@ -139,9 +138,9 @@
                     <label for="notes"
                            class="control-label col-md-2">{{trans_choice('general.note',2)}}</label>
                     <div class="col-md-3">
-                                                     <textarea name="notes" class="form-control"
-                                                               id="notes"
-                                                               rows="3">{{old('notes')}}</textarea>
+                        <textarea name="notes" class="form-control"
+                                id="notes"
+                                rows="3">{{old('notes')}}</textarea>
                     </div>
                 </div>
                     @if(\App\Models\Setting::where('setting_key','enable_custom_fields')->first()->setting_value==1)
