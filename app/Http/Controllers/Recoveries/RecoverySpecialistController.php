@@ -51,8 +51,8 @@ class RecoverySpecialistController extends Controller
         $cases = RecoveryCase::assignedTo($user->id)
             // ->forPeriod($period)
             ->with(['client', 'originBranch'])
-            ->latest();
-            // ->paginate(15);
+            ->latest()
+            ->paginate(15);
 
         $targets = RecoverySpecialistTarget::where('specialist_id', $user->id)
             ->where('year', now()->year)
@@ -66,7 +66,6 @@ class RecoverySpecialistController extends Controller
             ->get();
 
 
-            dd($cases->get());
         return view('recoveries.specialists.show', compact('user', 'cases', 'targets', 'activityLog', 'period'));
     }
 
