@@ -1,6 +1,9 @@
 @extends('layouts.master')
 @section('title', 'Collateral')
 @section('content')
+<?php
+$role = Sentinel::getUser()->roles()->first()->id;
+?>
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">Collateral</h3>
@@ -69,6 +72,18 @@
                 <a href="{{ route('collateral.index') }}" class="btn btn-default btn-sm">Reset</a>
             </form>
 
+            <form method="post" action="{{ route('collateral.export') }}" style="margin-bottom: 15px;">
+                {{ csrf_field() }}
+                <input type="hidden" name="status" value="{{ request('status') }}">
+                <input type="hidden" name="office_id" value="{{ request('office_id') }}">
+                <input type="hidden" name="province_id" value="{{ request('province_id') }}">
+                <input type="hidden" name="collateral_type_id" value="{{ request('collateral_type_id') }}">
+                <input type="hidden" name="loan_id" value="{{ request('loan_id') }}">
+                <input type="hidden" name="condition" value="{{ request('condition') }}">
+                <input type="hidden" name="search" value="{{ request('search') }}">
+                <button type="submit" class="btn btn-success btn-sm">Export CSV</button>
+            </form>
+
             <div class="table-responsive">
                 <table class="table table-bordered table-striped">
                     <thead>
@@ -95,12 +110,19 @@
                                 <td>{{ optional($item->date_purchased)->format('Y-m-d') }}</td>
                                 <td>{{ number_format($item->current_worth, 2) }}</td>
                                 <td>{{ $item->loan?->office?->name }}</td>
-                                <td>
-                                    <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
-                                    @if(Sentinel::hasAccess('collateral.update'))
-                                        <a href="{{ route('collateral.edit', $item) }}" class="btn btn-xs btn-warning">Edit</a>
-                                    @endif
-                                </td>
+                                 <td>
+                                  
+                                     <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
+                                     @if((Sentinel::getUser()->id == $item->created_by_id) || $role == 1)
+                                         <a href="{{ route('collateral.edit', $item) }}" class="btn btn-xs btn-warning">Edit</a>
+
+                                         <form action="{{ route('collateral.destroy', $item) }}" method="POST" style="display:inline;">
+                                             @csrf
+                                             @method('DELETE')
+                                             <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to delete this collateral?')">Delete</button>
+                                         </form>
+                                     @endif
+                                 </td>
                             </tr>
                         @empty
                             <tr>
