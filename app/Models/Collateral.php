@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Collateral extends Model
 {
-    protected $table = 'collateral';
+    protected $table = 'collaterals';
 
     protected $fillable = [
         'name',
