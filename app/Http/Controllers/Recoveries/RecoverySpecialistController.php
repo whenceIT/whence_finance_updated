@@ -47,12 +47,12 @@ class RecoverySpecialistController extends Controller
         $user   = User::where('id', $id)->first();
         $period = $request->get('period', 'month');
 
-        dd($period);
+        // dd($period);
         $cases = RecoveryCase::assignedTo($user->id)
-            ->forPeriod($period)
+            // ->forPeriod($period)
             ->with(['client', 'originBranch'])
-            ->latest()
-            ->paginate(15);
+            ->latest();
+            // ->paginate(15);
 
         $targets = RecoverySpecialistTarget::where('specialist_id', $user->id)
             ->where('year', now()->year)
