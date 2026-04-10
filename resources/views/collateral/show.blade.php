@@ -1,6 +1,11 @@
 @extends('layouts.master')
 @section('title', 'Collateral Details')
 @section('content')
+<?php
+    $userInfo = \App\Helpers\GeneralHelper::get_user_info();
+    $user = $userInfo->user;
+    $role = $userInfo->role;
+?>
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">Collateral Details</h3>
@@ -60,6 +65,7 @@
                     </form>
                 </div>
 
+                @if($role == 1 || $role == 4 || $role == 6)
                 <div class="box box-warning">
                     <div class="box-header with-border">
                         <h3 class="box-title">Change Status Directly</h3>
@@ -82,34 +88,37 @@
                         </div>
                     </form>
                 </div>
+                @endif
 
-            <div class="box box-default">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Audit History</h3>
-                </div>
-                <div class="box-body table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>Action</th>
-                                <th>User</th>
-                                <th>IP</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($collateral->auditTrail as $audit)
+                @if($role == 1 || $role == 4 || $role == 6)
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Audit History</h3>
+                    </div>
+                    <div class="box-body table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
                                 <tr>
-                                    <td>{{ $audit->action }}</td>
-                                    <td>{{ optional($audit->user)->first_name }} {{ optional($audit->user)->last_name }}</td>
-                                    <td>{{ $audit->ip_address }}</td>
-                                    <td>{{ optional($audit->created_at)->format('Y-m-d H:i') }}</td>
+                                    <th>Action</th>
+                                    <th>User</th>
+                                    <th>IP</th>
+                                    <th>Date</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach($collateral->auditTrail as $audit)
+                                    <tr>
+                                        <td>{{ $audit->action }}</td>
+                                        <td>{{ optional($audit->user)->first_name }} {{ optional($audit->user)->last_name }}</td>
+                                        <td>{{ $audit->ip_address }}</td>
+                                        <td>{{ optional($audit->created_at)->format('Y-m-d H:i') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+                @endif
 
             <div class="box box-default">
                 <div class="box-header with-border">

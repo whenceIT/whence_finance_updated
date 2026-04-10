@@ -17,7 +17,19 @@
                         <select name="loan_id" class="form-control select2" required>
                             <option value="">Select loan</option>
                             @foreach($loans as $loan)
-                                <option value="{{ $loan->id }}"{{ old('loan_id') == $loan->id ? ' selected' : '' }}>{{ $loan->id }} - {{ optional($loan->client)->first_name ?? 'Loan' }}</option>
+                                @php
+                                    $client = optional($loan->client);
+                                @endphp
+
+                                <option 
+                                    value="{{ $loan->id }}"
+                                    {{ old('loan_id') == $loan->id ? 'selected' : '' }}
+                                >
+                                    #{{ $loan->id }} 
+                                    | K{{ number_format($loan->principal, 2) }} 
+                                    - {{ $client->first_name ?? 'Unknown' }} {{ $client->last_name ?? '' }}
+                                    ({{ ucfirst($loan->status) }})
+                                </option>                            
                             @endforeach
                         </select>
                         {!! $errors->first('loan_id', '<span class="help-block">:message</span>') !!}
@@ -98,9 +110,10 @@
                 </div>
             </div>
             <div class="box-footer">
-                <button type="submit" class="btn btn-primary">Save</button>
+                @include('components.button-submit', ['text' => 'Save Collateral'])
                 <button type="button" onclick="window.history.back()" class="btn btn-default">Cancel</button>
             </div>
         </form>
     </div>
 @endsection
+

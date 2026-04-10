@@ -24,7 +24,7 @@
                 @foreach($statusOptions as $status)
                     <div class="col-md-3">
                         <div class="info-box">
-                            <span class="info-box-icon bg-aqua"><i class="fa fa-archive"></i></span>
+                            <span class="info-box-icon @if($status == 'active') bg-white @elseif($status == 'sold') bg-success @elseif($status == 'defaulted') bg-danger @elseif($status == 'repossessed') bg-warning @else bg-aqua @endif"><i class="fa fa-archive"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">{{ ucfirst($status) }}</span>
                                 <span class="info-box-number">{{ number_format($statusTotals->where('status', $status)->first()->total ?? 0, 2) }}</span>
