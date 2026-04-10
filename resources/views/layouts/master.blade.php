@@ -231,6 +231,22 @@
         .bottom-sheet-close:hover {
             color: #333;
         }
+
+        .bg-white {
+            background-color: #ffffff !important;
+        }
+
+        .bg-success {
+            background-color: #5cb85c !important;
+        }
+
+        .bg-danger {
+            background-color: #d9534f !important;
+        }
+
+        .bg-warning {
+            background-color: #f0ad4e !important;
+        }
     </style>
     <!-- Theme style -->
 

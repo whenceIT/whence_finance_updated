@@ -80,31 +80,23 @@ class CollateralController extends Controller
         // --- Role-based scope ---
         if ($roleId == 1) {
             // Admin — sees ALL collateral; no additional constraint
-        } elseif ($roleId == 3 || $roleId == 4) {
+        } elseif ($roleId == 4) {
             // Loan Officer / Branch Manager — own office only
             $officeId = $user->office_id;
-            $query->whereHas('loan', function ($q) use ($officeId) {
-                $q->where('office_id', $officeId);
-            });
-        } elseif ($roleId == 5) {
+            $query->with('loan')->where('office_id', $officeId);
+            
+        } elseif ($roleId == 12) {
             // DM Manager — own district (loan->office->district_id == user->office->district_id)
             $userOffice  = $user->office;
             $districtId  = $userOffice ? $userOffice->district_id : null;
-            $query->whereHas('loan.office', function ($q) use ($districtId) {
-                $q->where('district_id', $districtId);
-            });
+            $query->with('loan')->where('district_id', $districtId);
         } elseif ($roleId == 6) {
             // Provincial Manager — own province
-            $provinceId = $user->province_id;
-            $query->whereHas('loan.office', function ($q) use ($provinceId) {
-                $q->where('province_id', $provinceId);
-            });
+            $provinceId = $user->office->province_id;
+            $query->with('loan')->where('province_id', $provinceId);
         } else {
-            // Default: scope to own office for any unrecognised role
-            $officeId = $user->office_id;
-            $query->whereHas('loan', function ($q) use ($officeId) {
-                $q->where('office_id', $officeId);
-            });
+            // Default: scope to collateral created by the user (Loan Consultants)
+            $query->where('created_by_id', $userId);
         }
 
         // --- Filters ---
@@ -126,14 +118,14 @@ class CollateralController extends Controller
 
         if ($request->filled('office_id')) {
             $filterOfficeId = $request->office_id;
-            $query->whereHas('loan', function ($q) use ($filterOfficeId) {
+            $query->with('loan', function ($q) use ($filterOfficeId) {
                 $q->where('office_id', $filterOfficeId);
             });
         }
 
         if ($request->filled('province_id')) {
             $filterProvinceId = $request->province_id;
-            $query->whereHas('loan.office', function ($q) use ($filterProvinceId) {
+            $query->with('loan.office', function ($q) use ($filterProvinceId) {
                 $q->where('province_id', $filterProvinceId);
             });
         }
@@ -175,7 +167,33 @@ class CollateralController extends Controller
         $collateralTypes = CollateralType::all();
         $offices = Office::all();
         $provinces = Province::all();
-        $loans = Loan::whereIn('status', ['disbursed', 'defaulted'])->get();
+
+        // Role-based scoping for loans
+        $loansQuery = Loan::whereIn('status', ['disbursed', 'defaulted']);
+        if ($roleId == 1) {
+            // Admin — sees ALL loans
+        } elseif ($roleId == 4) {
+            // Loan Officer / Branch Manager — own office only
+            $officeId = $user->office_id;
+            $loansQuery->where('office_id', $officeId);
+        } elseif ($roleId == 12) {
+            // DM Manager — own district
+            $userOffice  = $user->office;
+            $districtId  = $userOffice ? $userOffice->district_id : null;
+            $loansQuery->whereHas('office', function ($q) use ($districtId) {
+                $q->where('district_id', $districtId);
+            });
+        } elseif ($roleId == 6) {
+            // Provincial Manager — own province
+            $provinceId = $user->province_id;
+            $loansQuery->whereHas('office', function ($q) use ($provinceId) {
+                $q->where('province_id', $provinceId);
+            });
+        } else {
+            // Default: scope to own office
+            $loansQuery->where('loan_officer_id', $user->id);
+        }
+        $loans = $loansQuery->get();
 
         return view('collateral.index', compact('collateral', 'collateralTypes', 'offices', 'provinces', 'loans'));
     }
@@ -192,7 +210,37 @@ class CollateralController extends Controller
         //     return redirect()->back();
         // }
 
-        $loans = Loan::whereIn('status', ['disbursed', 'defaulted'])->get();
+        $user   = Sentinel::getUser();
+        $userId = $user->id;
+        $role   = UserRole::where('user_id', $userId)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        // Role-based scoping for loans
+        $loansQuery = Loan::whereIn('status', ['disbursed', 'defaulted']);
+        if ($roleId == 1) {
+            // Admin — sees ALL loans
+        } elseif ($roleId == 4) {
+            // Loan Officer / Branch Manager — own office only
+            $officeId = $user->office_id;
+            $loansQuery->where('office_id', $officeId);
+        } elseif ($roleId == 12) {
+            // DM Manager — own district
+            $userOffice  = $user->office;
+            $districtId  = $userOffice ? $userOffice->district_id : null;
+            $loansQuery->whereHas('office', function ($q) use ($districtId) {
+                $q->where('district_id', $districtId);
+            });
+        } elseif ($roleId == 6) {
+            // Provincial Manager — own province
+            $provinceId = $user->province_id;
+            $loansQuery->whereHas('office', function ($q) use ($provinceId) {
+                $q->where('province_id', $provinceId);
+            });
+        } else {
+            // Default: scope to own office
+            $loansQuery->where('loan_officer_id', $user->id);
+        }
+        $loans = $loansQuery->get();
         $collateralTypes = CollateralType::all();
 
         return view('collateral.create', compact('loans', 'collateralTypes'));
@@ -400,7 +448,7 @@ class CollateralController extends Controller
                 $q->where('collateral_type_id', $request->collateral_type_id);
             })
             ->when($request->filled('loan_status'), function ($q) use ($request) {
-                $q->whereHas('loan', function ($q2) use ($request) {
+                $q->with('loan', function ($q2) use ($request) {
                     $q2->where('status', $request->loan_status);
                 });
             })
@@ -434,13 +482,10 @@ class CollateralController extends Controller
         // }
 
         $user = Sentinel::getUser();
-        $isExecutive = Sentinel::hasAccess('collateral.analytics.executive');
-        $provinceId = $isExecutive && $request->filled('province_id') ? $request->province_id : $user->province_id;
+        $provinceId = $user->province_id;
 
-        $query = Collateral::with(['loan.office', 'type'])
-            ->whereHas('loan.office', function ($q) use ($provinceId) {
-                $q->where('province_id', $provinceId);
-            });
+        $query = Collateral::with(['loan.office', 'type'])->where('province_id', $provinceId);
+        
         $query = $this->applyFilters($query, $request);
 
         $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
@@ -454,7 +499,7 @@ class CollateralController extends Controller
         $defaulted = $query->where('status', 'defaulted')->count();
         $sold = $query->where('status', 'sold')->count();
 
-        $provinceOptions = $isExecutive ? Province::all() : Province::where('id', $provinceId)->get();
+        $provinceOptions = Province::where('id', $provinceId)->get();
         $offices = Office::where('province_id', $provinceId)->get();
         $collateralTypes = CollateralType::all();
         $statusOptions = ['active', 'sold', 'defaulted', 'repossessed'];
@@ -469,7 +514,6 @@ class CollateralController extends Controller
             'collateralTypes',
             'provinceId',
             'statusOptions',
-            'isExecutive'
         ));
     }
 
@@ -481,12 +525,10 @@ class CollateralController extends Controller
         // }
 
         $user = Sentinel::getUser();
-        $isExecutive = Sentinel::hasAccess('collateral.analytics.executive');
-        $isProvincial = Sentinel::hasAccess('collateral.analytics.provincial');
-        $districtId = ($isExecutive || $isProvincial) && $request->filled('district_id') ? $request->district_id : $user->district_id;
+        $districtId = $user->office->district_id;
 
         $query = Collateral::with(['loan.office', 'type'])
-            ->whereHas('loan.office', function ($q) use ($districtId) {
+            ->with('loan.office', function ($q) use ($districtId) {
                 $q->where('district_id', $districtId);
             });
         $query = $this->applyFilters($query, $request);
@@ -530,17 +572,17 @@ class CollateralController extends Controller
         // }
 
         $user = Sentinel::getUser();
-        $hasHigherScope = Sentinel::hasAccess('collateral.analytics.executive') || Sentinel::hasAccess('collateral.analytics.provincial');
-        $officeId = $hasHigherScope && $request->filled('office_id') ? $request->office_id : $user->office_id;
+        $officeId = $user->office_id;
 
-        $query = Collateral::with(['loan.office', 'type'])
-            ->whereHas('loan', function ($q) use ($officeId) {
-                $q->where('office_id', $officeId);
-            });
+        $query = Collateral::with(['loan.office', 'type'])->where('office_id', $officeId);
         $query = $this->applyFilters($query, $request);
 
-        $statusBreakdown = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
             ->groupBy('status')
+            ->get();
+
+        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('condition')
             ->get();
 
         $reassessmentList = $query->whereRaw('current_worth < initial_price * 0.85')
@@ -550,44 +592,19 @@ class CollateralController extends Controller
 
         $collateralTypes = CollateralType::all();
         $conditionOptions = ['new', 'good', 'fair', 'poor'];
-        $offices = $hasHigherScope ? Office::all() : collect();
+        $statusOptions = ['active', 'sold', 'defaulted', 'repossessed'];
+        $office = \App\Models\Office::find($officeId);
 
         return view('collateral.analytics_branch', compact(
-            'statusBreakdown',
+            'statusTotals',
+            'conditionTotals',
             'reassessmentList',
             'collateralTypes',
             'conditionOptions',
+            'statusOptions',
             'officeId',
-            'hasHigherScope',
-            'offices'
+            'office'
         ));
-    }
-
-    public function report(Request $request)
-    {
-        // if (!Sentinel::hasAccess('collateral.reports')) {
-        //     Flash::warning('Permission Denied');
-        //     return redirect()->back();
-        // }
-
-        $query = Collateral::with(['loan.client', 'loan.office', 'type']);
-        $query = $this->applyFilters($query, $request);
-
-        $collaterals = $query->paginate(15)->appends($request->except('page'));
-        $collateralTypes = CollateralType::all();
-        $offices = Office::all();
-        $provinces = Province::all();
-        $loanStatuses = ['disbursed', 'defaulted', 'pending', 'approved', 'declined', 'written_off'];
-
-        AuditTrail::create([
-            'user_id'    => Sentinel::getUser()->id,
-            'action'     => 'collateral_report_generated',
-            'table_name' => 'collateral',
-            'record_id'  => 0,
-            'ip_address' => $request->ip(),
-        ]);
-
-        return view('collateral.report', compact('collaterals', 'collateralTypes', 'offices', 'provinces', 'loanStatuses'));
     }
 
     public function exportCsv(Request $request)
