@@ -35,4 +35,12 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+    'bulk_sms' => [
+        'url' => env('BULK_SMS_URL', 'https://mshastra.com/sendsms_api_json.aspx'),
+        'user' => env('BULK_SMS_USER'),
+        'password' => env('BULK_SMS_PASSWORD'),
+        'sender' => env('BULK_SMS_SENDER', 'WhenceFinanceServices'),
+        'language' => env('BULK_SMS_LANGUAGE', 'English'),
+    ],
+
 ];
