@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
+use App\Http\Controllers\SmsController;
 
 Route::prefix('districts')->group(function () {
     Route::get('/', [DistrictController::class, 'index']);
@@ -21,3 +22,5 @@ Route::prefix('district-regionals')->group(function () {
     Route::delete('/{id}', [DistrictRegionalController::class, 'destroy']);
     Route::get('/stats', [DistrictRegionalController::class, 'getDistrictRegionalsWithStats']);
 });
+
+Route::post('/send-sms', [SmsController::class, 'sendSms']);
