@@ -465,6 +465,48 @@ class RecoveryCaseController extends Controller
             $loan_transaction->temp_id = $id;
             $loan_transaction->save();
 
+            // Record branch attributions as expenses
+            $recoveryCase = \App\Models\RecoveryCase::where('loan_id', $loan->id)->first();
+            if ($recoveryCase) {
+                $amount = $loan_transaction->credit;
+                $user = Sentinel::getUser();
+
+                // Origin branch attribution
+                if ($recoveryCase->origin_branch_attribution_pct > 0) {
+                    $attributionAmount = $amount * $recoveryCase->origin_branch_attribution_pct / 100;
+                    \App\Models\Expense::create([
+                        'office_id' => $loan->office_id,
+                        'created_by_id' => $user->id,
+                        'expense_type_id' => 1, // Default expense type
+                        'name' => 'Recovery Attribution - Origin Branch',
+                        'amount' => $attributionAmount,
+                        'date' => $loan_transaction->date,
+                        'year' => $loan_transaction->year,
+                        'month' => $loan_transaction->month,
+                        'gl_account_id' => null,
+                        'notes' => 'Recovery attribution for loan ' . $loan->id,
+                        'is_attribution' => 1,
+                    ]);
+                }
+
+                // Supporting branch attribution
+                if ($recoveryCase->supporting_branch_attribution_pct > 0) {
+                    $attributionAmount = $amount * $recoveryCase->supporting_branch_attribution_pct / 100;
+                    \App\Models\Expense::create([
+                        'office_id' => $recoveryCase->supporting_branch_id,
+                        'created_by_id' => $user->id,
+                        'expense_type_id' => 1, // Default expense type
+                        'name' => 'Recovery Attribution - Supporting Branch',
+                        'amount' => $attributionAmount,
+                        'date' => $loan_transaction->date,
+                        'year' => $loan_transaction->year,
+                        'month' => $loan_transaction->month,
+                        'gl_account_id' => null,
+                        'notes' => 'Recovery attribution for loan ' . $loan->id,
+                        'is_attribution' => 1,
+                    ]);
+                }
+            }
 
             // Update RecoveryPayment status
             $recoveryPayment = \App\Models\RecoveryPayment::where('transaction_id', $transaction->id)->first();
