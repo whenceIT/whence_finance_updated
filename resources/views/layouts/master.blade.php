@@ -231,6 +231,22 @@
         .bottom-sheet-close:hover {
             color: #333;
         }
+
+        .bg-white {
+            background-color: #ffffff !important;
+        }
+
+        .bg-success {
+            background-color: #5cb85c !important;
+        }
+
+        .bg-danger {
+            background-color: #d9534f !important;
+        }
+
+        .bg-warning {
+            background-color: #f0ad4e !important;
+        }
     </style>
     <!-- Theme style -->
 
@@ -1031,7 +1047,84 @@
         @include('partials.profile_completion_wizard')
     @endif
 
+    @if($user && in_array($user->email, ['nyeleti.bremah@gmail.com']))
+    <!-- Floating SMS Button -->
+    <div id="sms-floating-btn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #00a65a; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s;">
+        <i class="fa fa-envelope" style="color: white; font-size: 24px;"></i>
+    </div>
+    @endif
+
+    <!-- SMS Modal -->
+    <div id="sms-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1001;">
+        <div style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS</h4>
+            <form id="sms-form">
+                <div style="margin-bottom: 15px;">
+                    <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
+                    <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
+                    <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;" required></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" id="sms-cancel" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+                    <button type="submit" style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
+                </div>
+            </form>
+            <div id="sms-response" style="margin-top: 15px; display: none;"></div>
+        </div>
+    </div>
+
     <script>
+        // SMS Modal Script
+        $(document).ready(function() {
+            $('#sms-floating-btn').on('click', function() {
+                $('#sms-modal').css('display', 'flex');
+            });
+
+            $('#sms-cancel').on('click', function() {
+                $('#sms-modal').hide();
+                $('#sms-form')[0].reset();
+                $('#sms-response').hide();
+            });
+
+            $('#sms-modal').on('click', function(e) {
+                if (e.target === this) {
+                    $(this).hide();
+                    $('#sms-form')[0].reset();
+                    $('#sms-response').hide();
+                }
+            });
+
+            $('#sms-form').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+
+                $('#sms-response').html('<div style="color: #007bff;">Sending...</div>').show();
+
+                $.ajax({
+                    url: '/api/send-sms',
+                    method: 'POST',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#sms-response').html('<div style="color: #28a745;">SMS sent successfully!</div>');
+                            $('#sms-form')[0].reset();
+                        } else {
+                            $('#sms-response').html('<div style="color: #dc3545;">Error: ' + (response.error || 'Unknown error') + '</div>');
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#sms-response').html('<div style="color: #dc3545;">Error: ' + xhr.responseJSON?.message || 'Failed to send SMS' + '</div>');
+                    }
+                });
+            });
+        });
+
         $(document).ready(function() {
             var currentSearchType = 'staff';
 
