@@ -159,6 +159,8 @@ Route::post('confirm_password_reset/{id}/{code}', 'HomeController@process_confir
 Route::get('payroll_loan', 'HomeController@payroll_loan');
 //Route::get('payroll_loan/create-step-one','HomeController@createStepOne');
 Route::any('create_payroll_loan_application', 'HomeController@create_payroll_loan_application');
+
+Route::get('notifications', 'HomeController@getNotifications')->middleware('sentinel');
 Route::get('dashboard', [UserController::class, 'dashboard']);
 Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');

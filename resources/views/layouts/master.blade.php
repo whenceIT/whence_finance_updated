@@ -386,9 +386,6 @@
 </div>
 
 
-
-
-
 <body class="hold-transition sidebar-mini" style="background-color:#000041; color: #000000;">
     <div class="wrapper">
 
@@ -412,15 +409,15 @@
                     </span>
                 </a>
                 <!-- Add a Notification  -->
-                <!-- <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-bell" style="font-size: 18px;"></i>
-                </a> -->
+                    <span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
+                </a>
                 <!-- Tools Menu (visible on mobile) -->
                 <a href="#" onclick="toggleUserDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-cog" style="font-size: 18px;"></i>
                 </a>
             </div>
-            
             <style>
                 /* Desktop header: visible on screens >= 768px */
                 @media (min-width: 768px) {
@@ -473,7 +470,6 @@
                     }
                 }
             </style>
-              
             <!-- Header Navbar: style can be found in header.less -->
             <nav class="navbar navbar-static-top" style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
             <!-- Sidebar toggle button-->
@@ -509,9 +505,11 @@
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
-                    <button onclick="openNotificationPanel()" class="mobile-wrench-btn" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
-                        <i class="fa fa-wrench" style="font-size: 18px;"></i>
-                    </button>
+                    <!-- Add a Notification  -->
+                    <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="margin-top:2px; margin-right: 90px; color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                        <i class="fa fa-bell" style="font-size: 18px;"></i>
+                        <span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
+                    </a>
                     <ul class="nav navbar-nav">
                         @if($user)
                             <!-- User Account: style can be found in dropdown.less -->
@@ -1261,11 +1259,77 @@
 
         function toggleNotificationDropdown(event) {
             event.preventDefault();
+            var isActive = $('#notificationPanel').hasClass('active');
             $('#notificationOverlay').toggleClass('active');
             $('#notificationPanel').toggleClass('active');
+
+            if (!isActive) {
+                // Opening the panel, fetch notifications
+                fetchNotifications();
+            }
         }
+
+        function fetchNotifications() {
+            fetch('/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    renderNotifications(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching notifications:', error);
+                    document.getElementById('notificationList').innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fa fa-exclamation-triangle" style="font-size: 40px; margin-bottom: 10px;"></i><p>Error loading notifications</p></div>';
+                });
+        }
+
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            const badge = document.getElementById('notificationBadge');
+
+            if (notifications.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fa fa-bell-o" style="font-size: 40px; margin-bottom: 10px;"></i><p>No notifications</p></div>';
+                badge.style.display = 'none';
+                return;
+            }
+
+            badge.textContent = notifications.length;
+            badge.style.display = 'inline';
+
+            let html = '';
+            notifications.forEach(notification => {
+                const iconClass = getNotificationIcon(notification.type);
+                html += `
+                    <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''" onclick="window.location.href='${notification.link_to}'">
+                        <div style="display: flex; align-items: flex-start;">
+                            <div style="margin-right: 10px; color: #007bff;">
+                                <i class="${iconClass}" style="font-size: 16px;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <p style="margin: 0; font-size: 14px; color: #333;">${notification.message}</p>
+                                <small style="color: #999; font-size: 12px;">${notification.time_ago}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        function getNotificationIcon(type) {
+            switch(type) {
+                case 'loan_created':
+                    return 'fa fa-money';
+                default:
+                    return 'fa fa-bell';
+            }
+        }
+
+        // Load notification count on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchNotifications();
+        });
     </script>
-    <!-- Notification Slide-in Panel -->
+    
+    
     <div class="notification-overlay" id="notificationOverlay" onclick="closeNotificationPanel()"></div>
     <div class="notification-panel" id="notificationPanel">
         <div class="notification-panel-header">

@@ -54,6 +54,7 @@ use App\Models\AppraisalAnswer;
 use Illuminate\Support\Facades\Http;
 use App\Models\CarryOver;
 use App\Models\Province;
+use App\Services\NotifixService;
 
 
 class LoanController extends Controller
@@ -3011,6 +3012,20 @@ class LoanController extends Controller
                         'transaction' => $loan_transaction->toArray()
                     ]
                 ]);
+
+                // call Notifix Service to log a notification - this is for backward compatibility with the existing notification system, but we should eventually move to using the new notification system entirely and remove this
+                // $notifixService = app(NotifixService::class);
+                // $notifixService->create(Sentinel::getUser()->id, [Sentinel::getUser()->office->id], [
+                //     'id' => uniqid(),
+                //     'loan_id' => $loan->id,
+                //     'from_id' => Sentinel::getUser()->id,
+                //     'link_from' => null,
+                //     'link_to' => url('/loan/managers_pending_approval'),
+                //     'type' => 'loan_created',
+                //     'message' => 'New loan pending approval for ' . $client->first_name . ' ' . $client->last_name . ' with amount ' . $request->amount,
+                //     'positions' => [Sentinel::getUser()->position_id],
+                //     'created_date' => now()->toIso8601String()
+                // ]);
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');
             }

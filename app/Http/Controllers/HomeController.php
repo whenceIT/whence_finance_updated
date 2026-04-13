@@ -24,6 +24,7 @@ use App\Models\PayrollAppliicant;
 use App\Models\AppraisalAnswer;
 use Aws\S3\S3Client;
 use NoCaptcha\Facades\NoCaptcha;
+use App\Services\NotifixService;
 
 
 class HomeController extends Controller
@@ -697,5 +698,34 @@ class HomeController extends Controller
         }
     }
 
+    public function getNotifications()
+    {
+        $user = Sentinel::getUser();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
+        $notifixService = app(NotifixService::class);
+        $notifix = $notifixService->getMyNotifix($user->id);
+
+        $notifications = [];
+        if ($notifix && $notifix->note) {
+            // Sort by created_date desc
+            $notes = collect($notifix->note)->sortByDesc('created_date')->take(20)->values()->all();
+            foreach ($notes as $note) {
+                $notifications[] = [
+                    'id' => $note['id'],
+                    'message' => $note['message'],
+                    'type' => $note['type'],
+                    'link_to' => $note['link_to'] ?? '#',
+                    'created_date' => $note['created_date'],
+                    'time_ago' => \Carbon\Carbon::parse($note['created_date'])->diffForHumans(),
+                ];
+            }
+        }
+
+        return response()->json($notifications);
+    }
 }
+
+
