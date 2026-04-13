@@ -1047,17 +1047,17 @@
 
     
     <!-- Floating SMS Button -->
+    @if($role == 1)
     <div id="sms-floating-btn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #00a65a; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s;">
         <i class="fa fa-envelope" style="color: white; font-size: 24px;"></i>
     </div>
-
-    <!-- @if($user && in_array($user->email, ['nyeleti.bremah@gmail.com'])) -->
-    <!-- @endif -->
+    @endif
 
     <!-- SMS Modal -->
     <div id="sms-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1001;">
         <div style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS</h4>
+            <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS </h4>
+            <i>Pending to be Whitelisted</i>
             <form id="sms-form">
                 <div style="margin-bottom: 15px;">
                     <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
