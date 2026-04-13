@@ -115,6 +115,8 @@ class BulkSMS
                 'Content-Type' => 'application/json',
             ])->post($this->apiUrl, $smsData);
 
+            Log::info('Bulk SMS API request sent', ['url' => $this->apiUrl, 'payload' => $smsData]);
+            Log::info($response->status(), ['response_body' => $response->body()]);
             if ($response->successful()) {
                 $responseData = $response->json();
                 Log::info('Bulk SMS sent successfully', ['count' => count($smsData), 'response' => $responseData]);
