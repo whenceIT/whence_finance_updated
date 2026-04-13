@@ -629,4 +629,31 @@ class TicketController extends Controller
             return redirect()->back();
         }
     }
+
+    public function resolve(Request $request)
+    {
+        try {
+            $request->validate([
+                'ticket_id' => 'required|exists:tickets,id',
+                'comments' => 'required|string',
+            ]);
+
+            $ticket = Ticket::findOrFail($request->ticket_id);
+
+            $ticket->status = 'resolved';
+            $ticket->stage = 'Resolved';
+            $ticket->datetime_close = now();
+            $ticket->date_closed = now();
+            $ticket->closed_by = Sentinel::getUser()->id;
+            $ticket->resolution_comment = $request->comments;
+
+            $ticket->save();
+
+            Flash::success('Ticket has been resolved and closed successfully.');
+            return redirect()->back();
+        } catch (\Exception $e) {
+            Flash::error('Error resolving ticket: ' . $e->getMessage());
+            return redirect()->back();
+        }
+    }
 }

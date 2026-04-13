@@ -121,13 +121,43 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $office_id = Sentinel::getUser()->office_id;
-        $data = Loan::where('status', 'disbursed')->when($office_id, function ($query) use ($office_id) {
-            if ($office_id != 0) {
-                $query->where('office_id', '=', $office_id);
-            }
-        })->with('loan_officer')->with('office')->with('transactions')->get();
 
+        $user = Sentinel::getUser();
+        $userId = $user->id;
+        $role = UserRole::where('user_id', $userId)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        $query = Loan::where('status', 'disbursed')->with('loan_officer')->with('office')->with('transactions');
+
+        // --- Role-based scope ---
+        if ($roleId == 1) {
+            // Admin — sees ALL loans
+        } elseif ($roleId == 4) {
+            // Loan Officer / Branch Manager — own office only
+            $officeId = $user->office_id;
+            $query->where('office_id', $officeId);
+        } elseif ($roleId == 12) {
+            // DM Manager — own district
+            $userOffice = $user->office;
+            $districtId = $userOffice ? $userOffice->district_id : null;
+            $query->whereHas('office', function ($q) use ($districtId) {
+                $q->where('district_id', $districtId);
+            });
+        } elseif ($roleId == 6) {
+            // Provincial Manager — own province
+            $provinceId = $user->office->province_id;
+            $query->whereHas('office', function ($q) use ($provinceId) {
+                $q->where('province_id', $provinceId);
+            });
+        } else {
+            // Default: scope to loans created by the user (Loan Consultants) or assigned to them
+            $query->where(function ($q) use ($userId) {
+                $q->where('created_by_id', $userId)
+                  ->orWhere('loan_officer_id', $userId);
+            });
+        }
+
+        $data = $query->get();
         return view('loan.branch_loans', compact('data'));
     }
 
