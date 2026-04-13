@@ -645,7 +645,7 @@
                     }
                 @endphp
                 @if($showInductionModal && $role !== 11)
-                    <!-- @include('partials.induction_modal') -->
+                    @include('partials.induction_modal')
                 @elseif($showPolicyModal)
                     <!-- Policy Response Required Modal -->
                     <div id="policyModal"
@@ -1044,7 +1044,7 @@
     </script>
 
     @if($role !== 11)
-        <!-- @include('partials.profile_completion_wizard') -->
+        @include('partials.profile_completion_wizard')
     @endif
 
     @if($user && in_array($user->email, ['nyeleti.bremah@gmail.com']))
@@ -1226,12 +1226,12 @@
             $('#surveyLink').attr('href', '{{ route('survey.show') }}');
 
             // Show survey 2 seconds after page load if user hasn't seen it
-            // if (!hasSeenSurvey && role !== 11) {
-            //     setTimeout(function() {
-            //         $('#surveyBottomSheetOverlay').addClass('active');
-            //         $('#surveyBottomSheet').addClass('active');
-            //     }, 2000);
-            // }
+            if (!hasSeenSurvey && role !== 11) {
+                setTimeout(function() {
+                    $('#surveyBottomSheetOverlay').addClass('active');
+                    $('#surveyBottomSheet').addClass('active');
+                }, 2000);
+            }
         });
     </script>
 

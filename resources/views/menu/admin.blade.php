@@ -12,6 +12,31 @@
             ->orderBy('created_at', 'desc')
             ->get();
     $office_id = Sentinel::getUser()->office_id;
+
+    // Collateral count based on role
+    $userId = $user->id;
+    $roleId = $role;
+    $query = \App\Models\Collateral::query();
+    if ($roleId == 1) {
+        // Admin — sees ALL collateral
+    } elseif ($roleId == 4) {
+        // Loan Officer / Branch Manager — own office only
+        $officeId = $user->office_id;
+        $query->where('office_id', $officeId);
+    } elseif ($roleId == 12) {
+        // DM Manager — own district
+        $userOffice = $user->office;
+        $districtId = $userOffice ? $userOffice->district_id : null;
+        $query->where('district_id', $districtId);
+    } elseif ($roleId == 6) {
+        // Provincial Manager — own province
+        $provinceId = $user->office->province_id;
+        $query->where('province_id', $provinceId);
+    } else {
+        // Default: scope to collateral created by the user (Loan Consultants)
+        $query->where('created_by_id', $userId);
+    }
+    $collateralCount = $query->count();
 ?>
 <style>
 @keyframes pulse-red {
@@ -93,7 +118,7 @@
             <!-- ============================================
                  OPERATIONS SECTION
             ============================================ -->
-            <li class="treeview @if(Request::is('loan/*') || Request::is('client/*') || Request::is('group/*') || Request::is('loan/*')) active menu-open @endif">
+            <li class="treeview @if(Request::is('loan/*') || Request::is('client/*') || Request::is('collateral/*') || Request::is('group/*') || Request::is('loan/*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-cogs"></i> <span>Operations</span>
                     <span class="pull-right-container">
@@ -210,7 +235,7 @@
                     </li>
                     @endif
 
-                    <li class="treeview @if(Request::is('collateral*')) active menu-open @endif" style="padding-left: 10px;">
+                        <li class="treeview @if(Request::routeIs('collateral.*')) active menu-open @endif" style="padding-left: 10px;">
                         <a href="#">
                             <i class="fa fa-shield"></i> <span>Collateral</span>
                             <span class="pull-right-container">
@@ -219,10 +244,16 @@
                         </a>
                         <ul class="treeview-menu">
                             <li>
-                                <a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View Collateral <span class="label label-success pull-right">{{ \App\Models\Collateral::count() }}</span></a>
+                                <a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View Collateral <span class="label label-success pull-right">{{ $collateralCount }}</span></a>
                             </li>
+                            
+                            @if($role == 3)
+                            <li>
+                                <a href="{{ route('collateral.my') }}"><i class="fa fa-circle-o"></i> My Analytics</a>
+                            </li>
+                            @endif
                             <li><a href="{{ route('collateral.create') }}"><i class="fa fa-circle-o"></i> Add Collateral</a>
-                                  
+
                             </li>
                             @if($role == 1)
                                 <li><a href="{{ route('collateral.analytics.executive') }}"><i class="fa fa-circle-o"></i> Executive Analytics</a>

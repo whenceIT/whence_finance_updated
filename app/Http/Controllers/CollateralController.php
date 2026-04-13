@@ -629,4 +629,63 @@ class CollateralController extends Controller
 
         return Excel::download(new ExportReport('collateral.exports.collateral_csv', compact('data')), $filename);
     }
+
+    public function myCollateral(Request $request)
+    {
+        // if (!Sentinel::hasAccess('collateral.view')) {
+        //     Flash::warning("Permission Denied");
+        //     return redirect()->back();
+        // }
+
+        $user = Sentinel::getUser();
+        $userId = $user->id;
+
+        $query = Collateral::with(['loan.office', 'type'])
+            ->where('created_by_id', $userId);
+        $query = $this->applyFilters($query, $request);
+
+        $statuses = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
+        $typeExposure = $query->selectRaw('collateral_type_id, COUNT(*) as count, SUM(current_worth) as total')
+            ->groupBy('collateral_type_id')
+            ->with('type')
+            ->get();
+
+        $startDate = $request->filled('date_purchased_from') ? Carbon::parse($request->date_purchased_from)->startOfDay() : Carbon::now()->subMonths(6)->startOfMonth();
+        $endDate = $request->filled('date_purchased_to') ? Carbon::parse($request->date_purchased_to)->endOfDay() : Carbon::now()->endOfDay();
+
+        $timeSeries = Collateral::where('created_by_id', $userId)
+            ->whereBetween('date_purchased', [$startDate, $endDate])
+            ->when($request->filled('collateral_type_id'), function ($q) use ($request) {
+                $q->where('collateral_type_id', $request->collateral_type_id);
+            })
+            ->when($request->filled('loan_status'), function ($q) use ($request) {
+                $q->with('loan', function ($q2) use ($request) {
+                    $q2->where('status', $request->loan_status);
+                });
+            })
+            ->selectRaw("DATE_FORMAT(date_purchased, '%Y-%m') as period, SUM(current_worth) as total")
+            ->groupBy('period')
+            ->orderBy('period')
+            ->get();
+
+        $chartLabels = $timeSeries->pluck('period');
+        $chartValues = $timeSeries->pluck('total');
+        $emptyState = $statuses->isEmpty() && $typeExposure->isEmpty();
+        $collateralTypes = CollateralType::all();
+        $loanStatuses = ['disbursed', 'defaulted', 'pending', 'approved', 'declined', 'written_off'];
+
+        return view('collateral.my_analytics', compact(
+            'statuses',
+            'typeExposure',
+            'chartLabels',
+            'chartValues',
+            'emptyState',
+            'collateralTypes',
+            'loanStatuses'
+        ));
+    }
 }

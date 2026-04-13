@@ -1670,6 +1670,7 @@ Route::group(['prefix' => 'hybrid'], function () {
 });
 // Collateral Module Routes
 Route::get('collateral', 'CollateralController@index')->name('collateral.index');
+Route::get('collateral/my', 'CollateralController@myCollateral')->name('collateral.my');
 Route::get('collateral/create', 'CollateralController@create')->name('collateral.create');
 Route::post('collateral', 'CollateralController@store')->name('collateral.store');
 Route::get('collateral/analytics/executive', 'CollateralController@analyticsExecutive')->name('collateral.analytics.executive');
