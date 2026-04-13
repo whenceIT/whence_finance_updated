@@ -54,6 +54,18 @@
                                     <option value="repossessed">Repossessed</option>
                                 </select>
                             </div>
+
+                            <div id="sold-fields" style="display: none;">
+                                <div class="form-group">
+                                    <label>Sold Price</label>
+                                    <input type="number" value="{{ old('sold_price') ?: old('current_worth') }}" name="sold_price" class="form-control" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Penalty</label>
+                                    <input type="number" value="{{ old('penalty') }}" name="penalty" class="form-control" step="0.01">
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 <label>Reason</label>
                                 <textarea name="reason" class="form-control" rows="3" required>{{ old('reason') }}</textarea>
@@ -157,4 +169,25 @@
             </div>
         </div>
     </div>
+@endsection
+@section('javascript')
+<script>
+$(document).ready(function() {
+    function toggleSoldFields() {
+        var selectedStatus = $('select[name="new_status"]').val();
+        if (selectedStatus === 'sold') {
+            $('#sold-fields').show();
+        } else {
+            $('#sold-fields').hide();
+        }
+    }
+
+    $('select[name="new_status"]').on('change', function() {
+        toggleSoldFields();
+    });
+
+    // Check on page load in case of old input
+    toggleSoldFields();
+});
+</script>
 @endsection

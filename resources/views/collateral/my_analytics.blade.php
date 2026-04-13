@@ -52,17 +52,19 @@
                 <div class="box-body table-responsive">
                     <table class="table table-bordered table-striped">
                         <thead>
-                        <tr><th>Type</th><th>Current Worth</th><th>Count</th></tr>
+                        <tr><th>Type</th><th>Current Worth</th><th>Sold Price</th><th>Penalty</th><th>Count</th></tr>
                         </thead>
                         <tbody>
                         @forelse($typeExposure as $row)
                             <tr>
                                 <td>{{ optional($row->type)->name }}</td>
                                 <td>{{ number_format($row->total, 2) }}</td>
+                                <td>{{ number_format($row->total_sold ?? 0, 2) }}</td>
+                                <td>{{ number_format($row->total_penalty ?? 0, 2) }}</td>
                                 <td>{{ $row->count }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="3" class="text-center">No exposure data available.</td></tr>
+                            <tr><td colspan="5" class="text-center">No exposure data available.</td></tr>
                         @endforelse
                         </tbody>
                     </table>
