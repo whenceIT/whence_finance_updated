@@ -278,11 +278,11 @@ function totalAmount($transactions) {
                                 @endforeach
                             </td>
                             <td>{{ $c['cycle_end_on'] }}</td>
-                           <td>
-                              <a href="{{ url('user/$c['user_id']/staff_info') }}" class="text-primary">
+                 <td>
+    <a href="{{ url('user/' . $c['user_id'] . '/staff_info') }}" class="text-primary">
         View
     </a>
-                           </td>
+</td>
                         </tr>
                     @endforeach
                 </tbody>
