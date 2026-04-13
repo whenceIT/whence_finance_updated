@@ -1047,12 +1047,14 @@
         @include('partials.profile_completion_wizard')
     @endif
 
-    @if($user && in_array($user->email, ['nyeleti.bremah@gmail.com']))
+    
     <!-- Floating SMS Button -->
     <div id="sms-floating-btn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #00a65a; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s;">
         <i class="fa fa-envelope" style="color: white; font-size: 24px;"></i>
     </div>
-    @endif
+
+    <!-- @if($user && in_array($user->email, ['nyeleti.bremah@gmail.com'])) -->
+    <!-- @endif -->
 
     <!-- SMS Modal -->
     <div id="sms-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1001;">

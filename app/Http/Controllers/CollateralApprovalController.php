@@ -42,6 +42,8 @@ class CollateralApprovalController extends Controller
         $request->validate([
             'new_status' => 'required',
             'reason'     => 'required|string',
+            'sold_price' => 'nullable|numeric|min:0',
+            'penalty'    => 'nullable|numeric|min:0',
         ]);
 
         if ($request->new_status === $collateral->status) {
@@ -56,6 +58,8 @@ class CollateralApprovalController extends Controller
             'old_status'      => $collateral->status,
             'new_status'      => $request->new_status,
             'reason'          => $request->reason,
+            'sold_price'      => $request->sold_price ?? 0,
+            'penalty'         => $request->penalty ?? 0,
             'approval_status' => 'pending',
             'request_date'    => Carbon::now(),
         ]);
@@ -86,6 +90,11 @@ class CollateralApprovalController extends Controller
         }
 
         $collateral->status = $collateral_status_change_request->new_status;
+        if ($collateral_status_change_request->new_status === 'sold') {
+            $collateral->sold_price = $collateral_status_change_request->sold_price;
+            $collateral->penalty = $collateral_status_change_request->penalty;
+            $collateral->date_resold = Carbon::now();
+        }
         $collateral->save();
 
         $collateral_status_change_request->update([

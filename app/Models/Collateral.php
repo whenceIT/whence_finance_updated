@@ -13,6 +13,8 @@ class Collateral extends Model
         'description',
         'initial_price',
         'current_worth',
+        'sold_price',
+        'penalty',
         'loan_id',
         'collateral_type_id',
         'created_by_id',
@@ -30,6 +32,8 @@ class Collateral extends Model
         'date_resold'    => 'date',
         'initial_price'  => 'decimal:2',
         'current_worth'  => 'decimal:2',
+        'sold_price'     => 'decimal:2',
+        'penalty'        => 'decimal:2',
     ];
 
     public function type()
