@@ -1117,6 +1117,7 @@ Route::group(['prefix' => 'ticket'], function () {
     Route::post('store_dashboard_ticket','TicketController@store_dashboard_ticket');
     Route::post('reassign', 'TicketController@reassign');
     Route::post('reject', 'TicketController@reject');
+    Route::post('resolve', 'TicketController@resolve');
     Route::match(['post', 'put'], '{id}/update', 'TicketController@update');
     Route::get('users', 'TicketController@usersByOfficeRole');
     Route::get('offices', 'TicketController@officesByParent');
