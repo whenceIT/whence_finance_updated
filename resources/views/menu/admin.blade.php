@@ -218,12 +218,8 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
-                           
                             <li>
-                                <a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View Collateral</a>
-                                    <span class="pull-right-container">
-                                        <span class="label label-success pull-right">{{ \App\Models\Collateral::count() }}</span>
-                                    </span>
+                                <a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View Collateral <span class="label label-success pull-right">{{ \App\Models\Collateral::count() }}</span></a>
                             </li>
                             <li><a href="{{ route('collateral.create') }}"><i class="fa fa-circle-o"></i> Add Collateral</a>
                                   
