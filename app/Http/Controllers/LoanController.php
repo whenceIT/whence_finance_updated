@@ -84,7 +84,6 @@ class LoanController extends Controller
                             ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"]);
                     })
                         ->orWhereHas('office', function ($q) use ($query) {
-
                             $q->where('name', 'like', "%{$query}%");
                         })
                         ->orWhere('id', 'like', "%{$query}%");

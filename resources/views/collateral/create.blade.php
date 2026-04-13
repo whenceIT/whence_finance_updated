@@ -17,7 +17,19 @@
                         <select name="loan_id" class="form-control select2" required>
                             <option value="">Select loan</option>
                             @foreach($loans as $loan)
-                                <option value="{{ $loan->id }}"{{ old('loan_id') == $loan->id ? ' selected' : '' }}>{{ $loan->id }} - {{ optional($loan->client)->first_name ?? 'Loan' }}</option>
+                                @php
+                                    $client = optional($loan->client);
+                                @endphp
+
+                                <option 
+                                    value="{{ $loan->id }}"
+                                    {{ old('loan_id') == $loan->id ? 'selected' : '' }}
+                                >
+                                    #{{ $loan->id }} 
+                                    | K{{ number_format($loan->principal, 2) }} 
+                                    - {{ $client->first_name ?? 'Unknown' }} {{ $client->last_name ?? '' }}
+                                    ({{ ucfirst($loan->status) }})
+                                </option>                            
                             @endforeach
                         </select>
                         {!! $errors->first('loan_id', '<span class="help-block">:message</span>') !!}
@@ -98,9 +110,21 @@
                 </div>
             </div>
             <div class="box-footer">
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-primary" id="save-collateral-btn">
+                    <span class="spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i> </span>
+                    <span class="text">Save Collateral</span>
+                </button>
                 <button type="button" onclick="window.history.back()" class="btn btn-default">Cancel</button>
             </div>
+            <script>
+                $(document).ready(function() {
+                    $('#save-collateral-btn').click(function() {
+                        $(this).find('.spinner').show();
+                        $(this).find('.text').text('Saving...');
+                    });
+                });
+            </script>
         </form>
     </div>
 @endsection
+

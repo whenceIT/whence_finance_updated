@@ -115,17 +115,62 @@ class ClientController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $office_id = Sentinel::getUser()->office_id;
-        $data = Client::where('status', 'active')->when($office_id, function ($query) use ($office_id) {
-            if ($office_id != 0) {
-                $query->where('office_id', '=', $office_id);
-            }
-        })->with('staff')->with('office')->get();
 
+        $user = Sentinel::getUser();
+        $userId = $user->id;
+        $role = UserRole::where('user_id', $userId)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        $query = Client::where('status', 'active')->with('staff')->with('office');
+
+        // --- Role-based scope ---
+        if ($roleId == 1) {
+            // Admin — sees ALL clients
+        } elseif ($roleId == 4) {
+            // Loan Officer / Branch Manager — own office only
+            $officeId = $user->office_id;
+            $query->where('office_id', $officeId);
+        } elseif ($roleId == 12) {
+            // DM Manager — own district
+            $userOffice = $user->office;
+            $districtId = $userOffice ? $userOffice->district_id : null;
+            $query->whereHas('office', function ($q) use ($districtId) {
+                $q->where('district_id', $districtId);
+            });
+        } elseif ($roleId == 6) {
+            // Provincial Manager — own province
+            $provinceId = $user->office->province_id;
+            $query->whereHas('office', function ($q) use ($provinceId) {
+                $q->where('province_id', $provinceId);
+            });
+        } else {
+            // Default: scope to clients created by the user (Loan Consultants) or assigned to them
+            $query->where(function ($q) use ($userId) {
+                $q->where('created_by_id', $userId)
+                  ->orWhere('staff_id', $userId);
+            });
+        }
+
+        $data = $query->get();
 
         return view('client.branch_clients', compact('data'));
     }
+    // public function branch_index()
+    // {
+    //     if (!Sentinel::hasAccess('clients.branch_clients')) {
+    //         Flash::warning("Permission Denied");
+    //         return redirect()->back();
+    //     }
+    //     $office_id = Sentinel::getUser()->office_id;
+    //     $data = Client::where('status', 'active')->when($office_id, function ($query) use ($office_id) {
+    //         if ($office_id != 0) {
+    //             $query->where('office_id', '=', $office_id);
+    //         }
+    //     })->with('staff')->with('office')->get();
 
+
+    //     return view('client.branch_clients', compact('data'));
+    // }
     public function staff_clients($staff_id)
     {
         if (!Sentinel::hasAccess('clients.view')) {

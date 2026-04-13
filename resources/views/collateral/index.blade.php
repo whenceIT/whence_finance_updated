@@ -126,7 +126,19 @@ $role = Sentinel::getUser()->roles()->first()->id;
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center">No collateral found.</td>
+                                <td colspan="9" class="text-center">No collateral found at this 
+                                @if($role == 3)
+                                    Loan Consultant
+                                @elseif($role == 4) 
+                                    Branch
+                                @elseif($role == 6) 
+                                    Province
+                                @elseif($role == 12) 
+                                    District
+                                @else
+                                    Moment of Time
+                                @endif
+                                .</td>
                             </tr>
                         @endforelse
                     </tbody>

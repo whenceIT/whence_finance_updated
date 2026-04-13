@@ -1,12 +1,12 @@
 @extends('layouts.master')
-@section('title', 'Collateral Executive Analytics')
+@section('title', 'My Collateral Analytics')
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">Executive Analytics</h3>
+            <h3 class="box-title">My Collateral Analytics</h3>
         </div>
         <div class="box-body">
-            <form method="get" action="{{ route('collateral.analytics.executive') }}" class="form-inline" style="margin-bottom: 15px;">
+            <form method="get" action="{{ route('collateral.my') }}" class="form-inline" style="margin-bottom: 15px;">
                 <div class="form-group" style="margin-right: 10px;">
                     <select name="collateral_type_id" class="form-control input-sm">
                         <option value="">All Types</option>
@@ -69,14 +69,10 @@
                 </div>
             </div>
 
-            <div class="text-center" style="margin-bottom: 20px;">
-                <a href="{{ route('collateral.index') }}" class="btn btn-primary">View All Collateral</a>
-            </div>
-
             <div class="box box-default">
                 <div class="box-header with-border"><h3 class="box-title">Time Series (Purchased)</h3></div>
                 <div class="box-body">
-                    <canvas id="executiveChart" height="120"></canvas>
+                    <canvas id="myCollateralChart" height="120"></canvas>
                 </div>
             </div>
         </div>
@@ -85,7 +81,7 @@
 @section('javascript')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        var ctx = document.getElementById('executiveChart').getContext('2d');
+        var ctx = document.getElementById('myCollateralChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
             data: {
