@@ -110,9 +110,20 @@
                 </div>
             </div>
             <div class="box-footer">
-                @include('components.button-submit', ['text' => 'Save Collateral'])
+                <button type="submit" class="btn btn-primary" id="save-collateral-btn">
+                    <span class="spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i> </span>
+                    <span class="text">Save Collateral</span>
+                </button>
                 <button type="button" onclick="window.history.back()" class="btn btn-default">Cancel</button>
             </div>
+            <script>
+                $(document).ready(function() {
+                    $('#save-collateral-btn').click(function() {
+                        $(this).find('.spinner').show();
+                        $(this).find('.text').text('Saving...');
+                    });
+                });
+            </script>
         </form>
     </div>
 @endsection
