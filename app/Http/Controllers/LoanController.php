@@ -2963,7 +2963,21 @@ class LoanController extends Controller
                 $loan_transaction->office_id = $loan->office_id;
                 $loan_transaction->loan_id = $loan->id;
                 $loan_transaction->reversible = 1;
-                $loan_transaction->payment_apply_to = $request->payment_apply_to;
+
+                if ($request->has('is_recovery')) {
+                    
+                    $loan_transaction->is_recovery = 1;
+                    //if the recovery transaction is full payment
+                    if ($request->is_settlement == 1) {
+                        $loan_transaction->payment_apply_to = 'full_payment';
+                    }else{
+                        $loan_transaction->payment_apply_to = 'part_payment';
+                    }
+                } else {
+                    //else if not recovery transaction, then check if the user has selected payment apply to
+                    $loan_transaction->payment_apply_to = $request->payment_apply_to;
+                }
+
                 $loan_transaction->payment_detail_id = null;
                 $loan_transaction->payment_detail_id = null;
                 $loan_transaction->transaction_type = "repayment";
@@ -2992,7 +3006,7 @@ class LoanController extends Controller
                         'office_id' => Sentinel::getUser()->office->id,
                         'client' => $client->first_name . ' ' . $client->last_name,
                         'amount' => $request->amount,
-                        'type' => $request->payment_apply_to,
+                        'type' => $request->has('is_recovery') ? ($request->is_settlement == 1 ? 'Recovery full payment' : 'Recovery part payment') : $request->payment_apply_to,
                         'loan' => $loan->toArray(),
                         'transaction' => $loan_transaction->toArray()
                     ]
