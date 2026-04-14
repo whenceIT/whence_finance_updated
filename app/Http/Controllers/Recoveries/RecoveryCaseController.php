@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Recoveries;
 use App\Http\Controllers\Controller;
 use App\Models\RecoveryCase;
 use App\Models\Loan;
+use App\Models\Expense;
 use App\Models\Office;
 use App\Models\User;
 use App\Models\Specialist;
@@ -382,10 +383,6 @@ class RecoveryCaseController extends Controller
     // Debt Recovery Transaction Approvals
     public function recoveriesApprovals(Request $request)
     {
-        if (!Sentinel::hasAccess('expenses')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
 
         $userId = Sentinel::getUser()->id;
         $province_id = Sentinel::getUser()->province_id;
@@ -467,7 +464,7 @@ class RecoveryCaseController extends Controller
             $loan_transaction->save();
 
             // Record branch attributions as expenses
-            $recoveryCase = \App\Models\RecoveryCase::where('loan_id', $loan->id)->first();
+            $recoveryCase = RecoveryCase::where('loan_id', $loan->id)->first();
             if ($recoveryCase) {
                 $amount = $loan_transaction->credit;
                 $user = Sentinel::getUser();
@@ -475,11 +472,12 @@ class RecoveryCaseController extends Controller
                 // Origin branch attribution
                 if ($recoveryCase->origin_branch_attribution_pct > 0) {
                     $attributionAmount = $amount * $recoveryCase->origin_branch_attribution_pct / 100;
-                    \App\Models\Expense::create([
+                    
+                    $attr1 = Expense::create([
                         'office_id' => $loan->office_id,
                         'created_by_id' => $user->id,
                         'expense_type_id' => 1, // Default expense type
-                        'name' => 'Recovery Attribution - Origin Branch',
+                        'name' => 'Recovery Attribution - Origin Branch, Case #' . $recoveryCase->id,
                         'amount' => $attributionAmount,
                         'date' => $loan_transaction->date,
                         'year' => $loan_transaction->year,
@@ -493,11 +491,12 @@ class RecoveryCaseController extends Controller
                 // Supporting branch attribution
                 if ($recoveryCase->supporting_branch_attribution_pct > 0) {
                     $attributionAmount = $amount * $recoveryCase->supporting_branch_attribution_pct / 100;
-                    \App\Models\Expense::create([
+                    
+                    $attr2 = Expense::create([
                         'office_id' => $recoveryCase->supporting_branch_id,
                         'created_by_id' => $user->id,
                         'expense_type_id' => 1, // Default expense type
-                        'name' => 'Recovery Attribution - Supporting Branch',
+                        'name' => 'Recovery Attribution - Supporting Branch, Case #' . $recoveryCase->id,
                         'amount' => $attributionAmount,
                         'date' => $loan_transaction->date,
                         'year' => $loan_transaction->year,
