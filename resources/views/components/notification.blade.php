@@ -260,12 +260,12 @@
                     updateNotificationCount();
                 }
             } else {
-                alert('Failed to mark notifications as read');
+                console.log('Failed to mark notifications as read');
             }
         })
         .catch(error => {
             console.error('Error marking all notifications as read:', error);
-            alert('Failed to mark notifications as read');
+            console.log('Failed to mark notifications as read');
         });
     }
 </script>
