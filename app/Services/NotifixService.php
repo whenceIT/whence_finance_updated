@@ -23,6 +23,10 @@ class NotifixService
      *   - message: notification message
      *   - positions: array of related positions
      *   - created_date: timestamp
+     *   - office_id: office identifier (optional)
+     *   - district_id: district identifier (optional)
+     *   - province_id: province identifier (optional)
+     *   - to_id: target user identifier (optional)
      *
      * @return Notifix
      */
@@ -31,12 +35,22 @@ class NotifixService
         return DB::transaction(function () use ($userId, $positions, $notificationData) {
             $existingRecord = $this->getMyNotifix($userId);
 
+            // Extract additional fields from notificationData
+            $additionalFields = array_intersect_key($notificationData, array_flip([
+                'office_id', 'district_id', 'province_id', 'to_id'
+            ]));
+
+            // Remove additional fields from the note data
+            $noteData = array_diff_key($notificationData, array_flip([
+                'office_id', 'district_id', 'province_id', 'to_id'
+            ]));
+
             if ($existingRecord) {
                 // Update existing record - append new notification to the note array
                 $existingNotes = $existingRecord->note ?? [];
-                
+
                 // Add new notification to the beginning of the array (newest first)
-                array_unshift($existingNotes, array_merge($notificationData, [
+                array_unshift($existingNotes, array_merge($noteData, [
                     'created_date' => now()->toIso8601String()
                 ]));
 
@@ -44,21 +58,40 @@ class NotifixService
                 $existingPositions = $existingRecord->positions ?? [];
                 $updatedPositions = array_unique(array_merge($existingPositions, $positions));
 
-                $existingRecord->update([
+                $updateData = [
                     'positions' => $updatedPositions,
                     'note' => $existingNotes
-                ]);
+                ];
+
+                // Update additional fields if provided
+                foreach ($additionalFields as $field => $value) {
+                    if ($value !== null) {
+                        $updateData[$field] = $value;
+                    }
+                }
+
+                $existingRecord->update($updateData);
 
                 return $existingRecord->fresh();
             } else {
                 // Create new record
-                return Notifix::create([
+                $createData = [
                     'user_id' => $userId,
                     'positions' => $positions,
-                    'note' => [array_merge($notificationData, [
+                    'note' => [array_merge($noteData, [
                         'created_date' => now()->toIso8601String()
-                    ])]
-                ]);
+                    ])],
+                    'unread' => true
+                ];
+
+                // Add additional fields if provided
+                foreach ($additionalFields as $field => $value) {
+                    if ($value !== null) {
+                        $createData[$field] = $value;
+                    }
+                }
+
+                return Notifix::create($createData);
             }
         });
     }
@@ -162,6 +195,56 @@ class NotifixService
     public function getUnreadCount($userId)
     {
         $record = $this->getMyNotifix($userId);
-        return $record ? count($record->note ?? []) : 0;
+        return $record && $record->unread ? count($record->note ?? []) : 0;
+    }
+
+    /**
+     * Mark all notifications as read for a user.
+     *
+     * @param int $userId
+     * @return bool
+     */
+    public function markAllAsRead($userId)
+    {
+        $record = $this->getMyNotifix($userId);
+
+        if ($record) {
+            return $record->update(['unread' => false]);
+        }
+
+        return false;
+    }
+
+    /**
+     * Mark a specific notification as read for a user.
+     *
+     * @param int $userId
+     * @param string $notificationId
+     * @return bool
+     */
+    public function markAsRead($userId, $notificationId)
+    {
+        $record = $this->getMyNotifix($userId);
+
+        if ($record && $record->note) {
+            $notes = $record->note;
+            $found = false;
+
+            // Mark the specific notification as read in the note array
+            foreach ($notes as &$note) {
+                if (($note['id'] ?? '') === $notificationId) {
+                    $note['read'] = true;
+                    $found = true;
+                    break;
+                }
+            }
+
+            if ($found) {
+                $record->update(['note' => $notes]);
+                return true;
+            }
+        }
+
+        return false;
     }
 }
