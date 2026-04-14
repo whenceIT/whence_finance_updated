@@ -80,7 +80,6 @@ class SendAnniversaryNotifications extends Command
                 'to_id' => $manager['poa'],
                 'created_date' => now()->toIso8601String()
             ]);
-            $this->info("Created anniversary summary notification for admin: {$adminUser->first_name} {$adminUser->last_name}");
         }
           
         $totalProcessed = $threeMonthUsers->count() + $sixMonthUsers->count();
