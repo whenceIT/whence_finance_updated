@@ -24,6 +24,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // Send anniversary notifications daily at 9 AM
+        $schedule->command('notifications:send-anniversaries')
+                 ->dailyAt('09:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+
         // $schedule->command('inspire')
         //          ->hourly();
     }

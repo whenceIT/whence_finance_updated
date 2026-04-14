@@ -233,7 +233,7 @@ class LoanController extends Controller
 
 
 
-        //       $BranchLoans = Loan::with('transactions')->where('office_id',$userBranch)->where('status','disbursed')->get();
+        //$BranchLoans = Loan::with('transactions')->where('office_id',$userBranch)->where('status','disbursed')->get();
         $LoanArray = [];
         $LoanArrayTwo = [];
         foreach ($BranchLoans as $loan) {
@@ -1186,6 +1186,25 @@ class LoanController extends Controller
                     'loan' => $loan->toArray()
                 ]
             ]);
+            // call Notifix Service to log a notification
+            $manager = GeneralHelper::get_my_manager();
+            $notifixService = app(NotifixService::class);
+            $notifixService->create($manager['bm'], [Sentinel::getUser()->office->id], [
+                'id' => uniqid(),
+                'loan_id' => $loan->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/loan/managers_pending_approval'),
+                'type' => 'loan_created',
+                'message' => 'New loan pending approval for ' . $client->first_name . ' ' . $client->last_name . ' with amount ' . $request->principal,
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => Sentinel::getUser()->office->id,
+                'district_id' => Sentinel::getUser()->office->district_id,
+                'province_id' => Sentinel::getUser()->office->province_id,
+                'to_id' => null, // This can be set if there's a specific target user
+                'created_date' => now()->toIso8601String()
+            ]);
+
             if (!empty($request->charges)) {
                 //loop through the array
                 foreach ($request->charges as $key) {
@@ -3013,19 +3032,46 @@ class LoanController extends Controller
                     ]
                 ]);
 
-                // call Notifix Service to log a notification - this is for backward compatibility with the existing notification system, but we should eventually move to using the new notification system entirely and remove this
-                // $notifixService = app(NotifixService::class);
-                // $notifixService->create(Sentinel::getUser()->id, [Sentinel::getUser()->office->id], [
-                //     'id' => uniqid(),
-                //     'loan_id' => $loan->id,
-                //     'from_id' => Sentinel::getUser()->id,
-                //     'link_from' => null,
-                //     'link_to' => url('/loan/managers_pending_approval'),
-                //     'type' => 'loan_created',
-                //     'message' => 'New loan pending approval for ' . $client->first_name . ' ' . $client->last_name . ' with amount ' . $request->amount,
-                //     'positions' => [Sentinel::getUser()->position_id],
-                //     'created_date' => now()->toIso8601String()
-                // ]);
+                // call Notifix Service to log a notification, notify my BM
+                $manager = GeneralHelper::get_my_manager();
+                $notifixService = app(NotifixService::class);
+                if ($manager['bm']) {
+                    $notifixService->create($manager['bm'], [Sentinel::getUser()->office->id], [
+                        'id' => uniqid(),
+                        'loan_id' => $loan->id,
+                        'from_id' => Sentinel::getUser()->id,
+                        'link_from' => null,
+                        'link_to' => url('/loan/transaction_approvals'),
+                        'type' => 'loan_transaction_approval',
+                        'message' => 'Pending transaction approval for client: ' . $client->first_name . ' ' . $client->last_name . ' with amount ' . $request->amount,
+                        'positions' => [Sentinel::getUser()->position_id],
+                        'office_id' => Sentinel::getUser()->office->id,
+                        'district_id' => Sentinel::getUser()->office->district_id,
+                        'province_id' => Sentinel::getUser()->office->province_id,
+                        'to_id' => $manager['bm'],
+                        'created_date' => now()->toIso8601String()
+                    ]);
+                }
+
+                // if request->amount is equal to or greater than 3500, then send notification to all admins
+                if ($request->amount >= 3500 && $manager['rk']) {
+                        $notifixService->create($manager['rk'], [Sentinel::getUser()->office->id], [
+                            'id' => uniqid(),
+                            'loan_id' => $loan->id,
+                            'from_id' => Sentinel::getUser()->id,
+                            'link_from' => null,
+                            'link_to' => url('/loan/transaction_approvals'),
+                            'type' => 'loan_transaction_approval',
+                            'message' => 'Possible risk identified for ' . $client->first_name . ' ' . $client->last_name . ' with amount ' . $request->amount . ' Please review the transaction for approval. '.Sentinel::getUser()->office->name,
+                            'positions' => [Sentinel::getUser()->position_id],
+                            'office_id' => Sentinel::getUser()->office->id,
+                            'district_id' => Sentinel::getUser()->office->district_id,
+                            'province_id' => Sentinel::getUser()->office->province_id,
+                            'to_id' => $manager['rk'],
+                            'created_date' => now()->toIso8601String()
+                        ]);
+                }
+
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');
             }

@@ -2855,6 +2855,78 @@ public static function new_new_loan_total_balance($id)
         ];
     }
 
+    public static function get_my_manager()
+    {
+        $currentUser = Sentinel::getUser();
+        if (!$currentUser || !$currentUser->office) {
+            return [
+                'bm' => null,
+                'admin' => null,
+                'pm' => null,
+                'dm' => null
+            ];
+        }
+
+        $officeId = $currentUser->office->id;
+        $managers = [];
+
+        // Find BM (Branch Manager - role 4)
+        $bm = \App\Models\User::where('office_id', $officeId)
+            ->whereHas('roles', function ($query) {
+                $query->where('roles.id', 4);
+            })
+            ->first();
+        $managers['bm'] = $bm ? $bm->id : null;
+
+        // Find Admin (role 1)
+        $admin = \App\Models\User::where('office_id', $officeId)
+            ->whereHas('roles', function ($query) {
+                $query->where('roles.id', 1);
+            })
+            ->first();
+        $managers['admin'] = $admin ? $admin->id : null;
+
+        // Find PM (Province Manager - role 6)
+        $pm = \App\Models\User::whereHas('roles', function ($query) {
+                $query->where('roles.id', 6);
+            })->whereHas('office', function ($query) use ($currentUser) {
+                $query->where('province_id', $currentUser->office->province_id);
+            })
+            ->first();
+        $managers['pm'] = $pm ? $pm->id : null;
+
+        // Find DM (District Manager - role 12)
+        $dm = \App\Models\User::whereHas('roles', function ($query) {
+                $query->where('roles.id', 12);
+            })->whereHas('office', function ($query) use ($currentUser) {
+                $query->where('district_id', $currentUser->office->district_id);
+            })
+            ->first();
+        $managers['dm'] = $dm ? $dm->id : null;
+
+        // Find POA
+        $poa = \App\Models\User::where('position_id',17)
+            ->first();
+        $managers['poa'] = $poa ? $poa->id : null;
+
+        // Find MA
+        $ma = \App\Models\User::where('position_id',8)
+            ->first();
+        $managers['ma'] = $ma ? $ma->id : null;
+
+        // Find Executives
+        $ma = \App\Models\User::where('position_id',20)
+            ->first();
+        $managers['ex'] = $ma ? $ma->id : null;
+
+        // Find Risk
+        $ma = \App\Models\User::where('position_id',14)
+            ->first();
+        $managers['rk'] = $ma ? $ma->id : null;
+        
+        return $managers;
+    }
+
     public static function get_filtered_offices()
     {
         $user = Sentinel::getUser();
