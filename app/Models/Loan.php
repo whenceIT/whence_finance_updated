@@ -134,5 +134,36 @@ class Loan extends Model
         return $this->hasOne(User::class, 'id', 'disbursed_by_id');
     }
 
-    
+    /**
+     * Calculate the current balance for this loan based on transactions.
+     * Returns an array with balance and days_in_arrears status.
+     *
+     * @return array
+     */
+    public function calculateBalance()
+    {
+        $debit_amount = 0;
+        $credit_amount = 0;
+        $days_in_arrears = null;
+
+        foreach ($this->transactions as $transaction) {
+            $debit_amount += $transaction->debit;
+            $credit_amount += $transaction->credit;
+
+            if ($transaction->payment_apply_to == 'reloan_payment') {
+                $days_in_arrears = 0;
+            }
+        }
+
+        $new_balance = $debit_amount - $credit_amount;
+
+        return [
+            'balance' => $new_balance,
+            'debit_amount' => $debit_amount,
+            'credit_amount' => $credit_amount,
+            'days_in_arrears' => $days_in_arrears
+        ];
+    }
+
+
 }

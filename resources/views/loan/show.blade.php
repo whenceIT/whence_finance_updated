@@ -768,11 +768,11 @@
                             $debit_amount = $debit_amount + $transaction->debit;
                             $credit_amount = $credit_amount + $transaction->credit;
                             $new_balance = $debit_amount - $credit_amount;
-                            //$new_amount = $transaction->debit;
-                            if($transaction->payment_apply_to == 'reloan_payment'){
-                                $days_in_arrears = 0;
-                                //$reloansCount = $reloansCount + 1;
-                            }
+			    //$new_amount = $transaction->debit;
+			        if($transaction->payment_apply_to == 'reloan_payment'){
+                            $days_in_arrears = 0;
+                            //$reloansCount = $reloansCount + 1;
+                         }
 
                         }
 
