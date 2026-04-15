@@ -1061,11 +1061,11 @@
             <form id="sms-form">
                 <div style="margin-bottom: 15px;">
                     <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
-                    <input disabled type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                    <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
-                    <textarea disabled id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;" required></textarea>
+                    <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;" required></textarea>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>

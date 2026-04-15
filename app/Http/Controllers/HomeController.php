@@ -718,13 +718,17 @@ class HomeController extends Controller
                     'id' => $note['id'],
                     'message' => $note['message'],
                     'type' => $note['type'],
-                    'link_to' => $note['link_to'] ?? '/notifications',
+                    'link_to' => $note['link_to'] ?? '/my-notifications',
                     'created_date' => $note['created_date'],
                     'time_ago' => \Carbon\Carbon::parse($note['created_date'])->diffForHumans(),
                 ];
             }
         }
-        Artisan::call('notifications:send-anniversaries');
+
+        // Run anniversary notifications only on the 24th of each month
+        $scheduleService = app(\App\Services\ScheduleServices::class);
+        $scheduleService->runMonthlyAnniversaryNotifications();
+
         return response()->json($notifications);
     }
 
