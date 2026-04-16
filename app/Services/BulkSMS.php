@@ -106,7 +106,9 @@ class BulkSMS
      */
     protected function sendBatch($smsData)
     {
+        Log::info('Preparing to send bulk SMS', ['count' => count($smsData)]);
         if (empty($smsData)) {
+            Log::warning('No valid phone numbers found for bulk SMS');
             return [];
         }
 
