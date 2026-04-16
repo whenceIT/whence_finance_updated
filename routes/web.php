@@ -16,6 +16,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
@@ -161,6 +162,10 @@ Route::get('payroll_loan', 'HomeController@payroll_loan');
 Route::any('create_payroll_loan_application', 'HomeController@create_payroll_loan_application');
 
 Route::get('notifications', 'HomeController@getNotifications')->middleware('sentinel');
+Route::get('notification-count', 'HomeController@getNotificationCount')->middleware('sentinel');
+Route::post('notifications/mark-all-read', 'HomeController@markAllNotificationsRead')->middleware('sentinel');
+Route::post('notifications/{id}/mark-read', 'HomeController@markNotificationRead')->middleware('sentinel');
+Route::get('my-notifications', [NotificationController::class, 'index'])->middleware('sentinel');
 Route::get('dashboard', [UserController::class, 'dashboard']);
 Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');

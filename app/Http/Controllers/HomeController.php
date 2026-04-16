@@ -9,6 +9,7 @@ use Cartalyst\Sentinel\Checkpoints\NotActivatedException;
 use Cartalyst\Sentinel\Checkpoints\ThrottlingException;
 use Cartalyst\Sentinel\Laravel\Facades\Reminder;
 // use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
@@ -710,21 +711,64 @@ class HomeController extends Controller
 
         $notifications = [];
         if ($notifix && $notifix->note) {
-            // Sort by created_date desc
+            // Sort by created_date desc and only show unread notifications
             $notes = collect($notifix->note)->sortByDesc('created_date')->take(20)->values()->all();
             foreach ($notes as $note) {
                 $notifications[] = [
                     'id' => $note['id'],
                     'message' => $note['message'],
                     'type' => $note['type'],
-                    'link_to' => $note['link_to'] ?? '#',
+                    'link_to' => $note['link_to'] ?? '/my-notifications',
                     'created_date' => $note['created_date'],
                     'time_ago' => \Carbon\Carbon::parse($note['created_date'])->diffForHumans(),
                 ];
             }
         }
 
+        // Run anniversary notifications only on the 24th of each month
+        $scheduleService = app(\App\Services\ScheduleServices::class);
+        $scheduleService->runMonthlyAnniversaryNotifications();
+
         return response()->json($notifications);
+    }
+
+    public function getNotificationCount()
+    {
+        $user = Sentinel::getUser();
+        if (!$user) {
+            return response()->json(['count' => 0]);
+        }
+
+        $notifix = \App\Models\Notifix::where('user_id', $user->id)->where('unread', true)->first();
+        $count = $notifix ? count($notifix->note ?? []) : 0;
+
+        return response()->json(['count' => $count]);
+    }
+
+    public function markAllNotificationsRead()
+    {
+        $user = Sentinel::getUser();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $notifixService = app(NotifixService::class);
+        $result = $notifixService->markAllAsRead($user->id);
+
+        return response()->json(['success' => $result]);
+    }
+
+    public function markNotificationRead($notificationId)
+    {
+        $user = Sentinel::getUser();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $notifixService = app(NotifixService::class);
+        $result = $notifixService->markAsRead($user->id, $notificationId);
+
+        return response()->json(['success' => $result]);
     }
 }
 

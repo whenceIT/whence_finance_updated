@@ -40,6 +40,7 @@ use App\Models\ChargeTransactionUnapproved;
 use Illuminate\Support\Facades\DB;
 use PDF;
 use App\Models\Office;
+use App\Models\PaymentType;
 use App\Models\UserRole;
 use App\Models\TargetTracker;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -54,6 +55,7 @@ use App\Models\AppraisalAnswer;
 use Illuminate\Support\Facades\Http;
 use App\Models\CarryOver;
 use App\Models\Province;
+use App\Models\Notifix;
 use App\Services\NotifixService;
 
 
@@ -233,7 +235,7 @@ class LoanController extends Controller
 
 
 
-        //       $BranchLoans = Loan::with('transactions')->where('office_id',$userBranch)->where('status','disbursed')->get();
+        //$BranchLoans = Loan::with('transactions')->where('office_id',$userBranch)->where('status','disbursed')->get();
         $LoanArray = [];
         $LoanArrayTwo = [];
         foreach ($BranchLoans as $loan) {
@@ -1186,6 +1188,9 @@ class LoanController extends Controller
                     'loan' => $loan->toArray()
                 ]
             ]);
+            // Notify Branch Manager for new loan approval
+            Notifix::notifyBmToApproveNewLoan($loan, $client, $request->principal);
+
             if (!empty($request->charges)) {
                 //loop through the array
                 foreach ($request->charges as $key) {
@@ -1515,6 +1520,7 @@ class LoanController extends Controller
                 'loan_topup' => $loan_topup->toArray()
             ]
         ]);
+        Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $loan->id . '/show');
     }
@@ -1524,6 +1530,8 @@ class LoanController extends Controller
     public function approve_top_up(Request $request, $id, $trans_id)
     {
         $topup = LoanTopUp::find($trans_id);
+        $loan = Loan::where('id', $id)->first();
+        $client = Client::where('id', $loan->client_id)->first();
         $loanTransDisbursed = LoanTransaction::where('loan_id', $id)->where('transaction_type', 'disbursement')->first();
         $loanTransInterest = LoanTransaction::where('loan_id', $id)->where('transaction_type', 'interest_initial')->first();
         $am = $loanTransDisbursed->debit + $topup->amount;
@@ -1533,6 +1541,7 @@ class LoanController extends Controller
         $topup->save();
         $loanTransDisbursed->save();
         $loanTransInterest->save();
+        Notifix::notifyLoanOfficerTopUpApproved($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $id . '/show');
     }
@@ -1541,8 +1550,11 @@ class LoanController extends Controller
     public function decline_top_up(Request $request, $id)
     {
         $topup = LoanTopUp::find($id);
+        $loan = Loan::where('id', $topup->loan_id)->first();
+        $client = Client::where('id', $loan->client_id)->first();
         $topup->status = 'declined';
         $topup->save();
+        Notifix::notifyLoanOfficerTopUpDeclined($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $topup->loan_id . '/show');
     }
@@ -2241,6 +2253,7 @@ class LoanController extends Controller
             return redirect()->back()->withInput()->withErrors($validator);
         } else {
             $loan = Loan::find($id);
+            $client = $loan->client; // Get the client for notification
             if ($loan->status != "pending") {
                 Flash::warning("Loan not pending");
                 return redirect()->back();
@@ -2252,6 +2265,10 @@ class LoanController extends Controller
             $loan->approved_date = $request->approved_date;
             $loan->approved_notes = $request->approved_notes;
             $loan->save();
+
+            // Notify loan officer that their loan has been approved
+            Notifix::notifyLoanOfficerLoanApproved($loan, $client);
+
             event(new LoanApproved($loan));
             GeneralHelper::audit_trail("Approve", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -2273,6 +2290,7 @@ class LoanController extends Controller
             return redirect()->back()->withInput()->withErrors($validator);
         } else {
             $loan = Loan::find($id);
+            $client = $loan->client; // Get the client for notification
             if ($loan->status != "pending") {
                 Flash::warning("Loan not pending");
                 return redirect()->back();
@@ -2282,6 +2300,10 @@ class LoanController extends Controller
             $loan->declined_date = date("Y-m-d");
             $loan->declined_notes = $request->declined_notes;
             $loan->save();
+
+            // Notify loan officer that their loan has been declined
+            Notifix::notifyLoanOfficerLoanDeclined($loan, $client);
+
             GeneralHelper::audit_trail("Decline", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
             return redirect()->back();
@@ -2858,6 +2880,14 @@ class LoanController extends Controller
                     }
                 }
             }
+
+            $client = $loan->client; // Get the client for notification
+            $payment_type = PaymentType::find($request->payment_type_id);
+            $payment_type_name = $payment_type ? $payment_type->name : 'Unknown';
+
+            // Notify loan officer that their loan has been disbursed
+            Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
+
             event(new LoanDisbursed($loan));
             GeneralHelper::audit_trail("Disburse", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -3013,19 +3043,10 @@ class LoanController extends Controller
                     ]
                 ]);
 
-                // call Notifix Service to log a notification - this is for backward compatibility with the existing notification system, but we should eventually move to using the new notification system entirely and remove this
-                // $notifixService = app(NotifixService::class);
-                // $notifixService->create(Sentinel::getUser()->id, [Sentinel::getUser()->office->id], [
-                //     'id' => uniqid(),
-                //     'loan_id' => $loan->id,
-                //     'from_id' => Sentinel::getUser()->id,
-                //     'link_from' => null,
-                //     'link_to' => url('/loan/managers_pending_approval'),
-                //     'type' => 'loan_created',
-                //     'message' => 'New loan pending approval for ' . $client->first_name . ' ' . $client->last_name . ' with amount ' . $request->amount,
-                //     'positions' => [Sentinel::getUser()->position_id],
-                //     'created_date' => now()->toIso8601String()
-                // ]);
+                // Notify managers for transaction approval
+                Notifix::notifyBmToApproveTransaction($loan, $client, $request->amount);
+                Notifix::notifyRiskToReviewLoan($loan, $client, $request->amount);
+
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');
             }

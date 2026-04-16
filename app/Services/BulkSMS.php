@@ -18,7 +18,7 @@ class BulkSMS
         $this->apiUrl = config('services.bulk_sms.url', 'https://mshastra.com/sendsms_api_json.aspx');
         $this->user = config('services.bulk_sms.user');
         $this->password = config('services.bulk_sms.password');
-        $this->sender = config('services.bulk_sms.sender', 'WHENCE');
+        $this->sender = config('services.bulk_sms.sender', 'WHENCELTD');
         $this->language = config('services.bulk_sms.language', 'English');
     }
 

@@ -297,7 +297,7 @@ function incrementView(uploadId) {
 
 // Function to update counts in UI
 function updateCountsInUI() {
-    location.reload();
+  
 }
 
 // Play media inline (YouTube-like)
