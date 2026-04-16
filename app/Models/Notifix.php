@@ -387,4 +387,30 @@ class Notifix extends Model
             ]);
         }
     }
+
+    /**
+     * Send daily reminder to risk manager at 19:00.
+     *
+     * @return void
+     */
+    public static function notifyDailyReminderToRiskManager()
+    {
+        $currentTime = date('H:i');
+        if ($currentTime == '19:00') {
+            $manager = GeneralHelper::get_my_manager();
+            if ($manager['rk']) {
+                $notifixService = app(NotifixService::class);
+                $notifixService->create($manager['rk'], [Sentinel::getUser()->office->id], [
+                    'id' => uniqid(),
+                    'from_id' => Sentinel::getUser()->id,
+                    'link_from' => null,
+                    'link_to' => url('/dashboard'),
+                    'type' => 'daily_reminder',
+                    'message' => 'Daily reminder at 7 PM for user: ' . Sentinel::getUser()->first_name . ' ' . Sentinel::getUser()->last_name. ' from office ' . Sentinel::getUser()->office->name.'.  made a loan repayment',
+                    'to_id' => $manager['rk'],
+                    'created_date' => now()->toIso8601String()
+                ]);
+            }
+        }
+    }
 }
