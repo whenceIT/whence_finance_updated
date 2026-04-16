@@ -1075,10 +1075,10 @@
                     </select>
                 </div>
                 <div id="single-sms-fields">
-                    <div style="margin-bottom: 15px;">
+                    <!-- <div style="margin-bottom: 15px;">
                         <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
                         <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
-                    </div>
+                    </div> -->
                     <div style="margin-bottom: 15px;">
                         <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
                         <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;"></textarea>
