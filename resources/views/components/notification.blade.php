@@ -4,7 +4,6 @@
     <div class="notification-panel-header">
         <h3>Notifications</h3>
         <div style="display: flex; gap: 10px;">
-            <button onclick="markAllNotificationsAsRead()" style="background: none; border: 1px solid #fff; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">Mark All Read</button>
             <button onclick="closeNotificationPanel()" style="background: none; border: none; font-size: 24px; color: #999; cursor: pointer;">&times;</button>
         </div>
     </div>
@@ -175,6 +174,10 @@
         switch(type) {
             case 'loan_created':
                 return 'fa fa-money';
+            case 'loan_declined':
+                return 'fa fa-times-circle';
+            case 'risk_review':
+                return 'fa fa-exclamation-triangle';
             case 'loan_transaction_approval':
                 return 'fa fa-check-circle';
             case 'user_anniversary_3_months':

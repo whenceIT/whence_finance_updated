@@ -40,6 +40,7 @@ use App\Models\ChargeTransactionUnapproved;
 use Illuminate\Support\Facades\DB;
 use PDF;
 use App\Models\Office;
+use App\Models\PaymentType;
 use App\Models\UserRole;
 use App\Models\TargetTracker;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -1519,6 +1520,7 @@ class LoanController extends Controller
                 'loan_topup' => $loan_topup->toArray()
             ]
         ]);
+        Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $loan->id . '/show');
     }
@@ -1528,6 +1530,8 @@ class LoanController extends Controller
     public function approve_top_up(Request $request, $id, $trans_id)
     {
         $topup = LoanTopUp::find($trans_id);
+        $loan = Loan::where('id', $id)->first();
+        $client = Client::where('id', $loan->client_id)->first();
         $loanTransDisbursed = LoanTransaction::where('loan_id', $id)->where('transaction_type', 'disbursement')->first();
         $loanTransInterest = LoanTransaction::where('loan_id', $id)->where('transaction_type', 'interest_initial')->first();
         $am = $loanTransDisbursed->debit + $topup->amount;
@@ -1537,6 +1541,7 @@ class LoanController extends Controller
         $topup->save();
         $loanTransDisbursed->save();
         $loanTransInterest->save();
+        Notifix::notifyLoanOfficerTopUpApproved($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $id . '/show');
     }
@@ -1545,8 +1550,11 @@ class LoanController extends Controller
     public function decline_top_up(Request $request, $id)
     {
         $topup = LoanTopUp::find($id);
+        $loan = Loan::where('id', $topup->loan_id)->first();
+        $client = Client::where('id', $loan->client_id)->first();
         $topup->status = 'declined';
         $topup->save();
+        Notifix::notifyLoanOfficerTopUpDeclined($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $topup->loan_id . '/show');
     }
@@ -2294,7 +2302,7 @@ class LoanController extends Controller
             $loan->save();
 
             // Notify loan officer that their loan has been declined
-            \App\Models\Notifix::notifyLoanOfficerLoanDeclined($loan, $client);
+            Notifix::notifyLoanOfficerLoanDeclined($loan, $client);
 
             GeneralHelper::audit_trail("Decline", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -2874,9 +2882,11 @@ class LoanController extends Controller
             }
 
             $client = $loan->client; // Get the client for notification
+            $payment_type = PaymentType::find($request->payment_type_id);
+            $payment_type_name = $payment_type ? $payment_type->name : 'Unknown';
 
             // Notify loan officer that their loan has been disbursed
-            \App\Models\Notifix::notifyLoanOfficerLoanDisbursed($loan, $client);
+            Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
 
             event(new LoanDisbursed($loan));
             GeneralHelper::audit_trail("Disburse", "Loans", $id);
