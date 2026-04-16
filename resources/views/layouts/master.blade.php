@@ -1074,6 +1074,11 @@
                         <option value="overdue">Overdue Reminder</option>
                     </select>
                 </div>
+                <div id="bulk-sms-fields">
+                    <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
+                    <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </select>
+                </div>  
                 <div id="single-sms-fields">
                     <!-- <div style="margin-bottom: 15px;">
                         <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
@@ -1083,18 +1088,13 @@
                         <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
                         <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;"></textarea>
                     </div>
-                </div>
-                <div id="bulk-sms-fields">
-                    <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
-                    <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                    </select>
-                </div>
+                </div>                              
+                <p class="muted">Dear Customer, this is a reminder that your loan of ZMW xxxx is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.</p>
+                <br>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
                     <button type="submit" style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
                 </div>
-                                <p class="muted">Dear Customer, this is a reminder that your loan of ZMW xxxx is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.</p>
-<br>
             </form>
             <div id="sms-response" style="margin-top: 15px; display: none;"></div>
         </div>
