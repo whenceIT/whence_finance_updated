@@ -157,5 +157,10 @@ class OfficeController extends Controller
         return redirect('office/data');
     }
 
+    public function getOffices()
+    {
+        return Office::select('id', 'name')->get();
+    }
+
 
 }

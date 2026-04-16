@@ -36,6 +36,7 @@ use App\Http\Controllers\Recoveries\RecoverySpecialistController;
 use App\Http\Controllers\Recoveries\RecoveryReportController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
+use App\Http\Controllers\OfficeController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -1785,3 +1786,5 @@ function handleHybridRoute(Request $request, $controllerMethod)
     // Call the controller method with the current request
     return app()->call($controllerMethod, ['request' => $request]);
 }
+
+Route::get('/offices', [OfficeController::class, 'getOffices']);

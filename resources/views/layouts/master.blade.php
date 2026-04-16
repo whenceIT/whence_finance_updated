@@ -1048,9 +1048,18 @@
     
     <!-- Floating SMS Button -->
     @if($role == 1)
-    <!-- <div id="sms-floating-btn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #00a65a; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s;">
+    <div id="sms-floating-btn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #00a65a; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s;">
         <i class="fa fa-envelope" style="color: white; font-size: 24px;"></i>
-    </div> -->
+    </div>
+    @endif
+
+    @if($role == 1)
+    @php
+    $offices = App\Models\Office::select('id', 'name')->get();
+    @endphp
+    <script>
+    var offices = @json($offices);
+    </script>
     @endif
 
     <!-- SMS Modal -->
@@ -1059,13 +1068,28 @@
             <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS </h4>
             <form id="sms-form">
                 <div style="margin-bottom: 15px;">
-                    <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
-                    <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                    <label for="sms-type" style="display: block; margin-bottom: 5px; font-weight: bold;">Message Type:</label>
+                    <select id="sms-type" name="message_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                        <option value="single">Single SMS</option>
+                        <option value="overdue">Overdue Reminder</option>
+                    </select>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
-                    <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;" required></textarea>
+                <div id="single-sms-fields">
+                    <div style="margin-bottom: 15px;">
+                        <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
+                        <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
+                        <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;"></textarea>
+                    </div>
                 </div>
+                <p class="muted">Dear Customer, this is a reminder that your loan of ZMW xxxx is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.</p>
+                <!-- <div id="bulk-sms-fields" style="display: none;">
+                    <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
+                    <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </select>
+                </div> -->
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
                     <button type="submit" style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
@@ -1096,14 +1120,40 @@
                 }
             });
 
+            // Load offices for the select
+            $('#sms-office').empty().append('<option value="">Select Office</option>');
+            offices.forEach(function(office) {
+                $('#sms-office').append('<option value="' + office.id + '">' + office.name + '</option>');
+            });
+
+            // Toggle fields based on message type
+            $('#sms-type').on('change', function() {
+                if ($(this).val() === 'overdue') {
+                    $('#single-sms-fields').hide();
+                    $('#bulk-sms-fields').show();
+                    $('#sms-phone').removeAttr('required');
+                    $('#sms-message').removeAttr('required');
+                    $('#sms-office').attr('required', 'required');
+                } else {
+                    $('#single-sms-fields').show();
+                    $('#bulk-sms-fields').hide();
+                    $('#sms-phone').attr('required', 'required');
+                    $('#sms-message').attr('required', 'required');
+                    $('#sms-office').removeAttr('required');
+                }
+            });
+
             $('#sms-form').on('submit', function(e) {
                 e.preventDefault();
+                console.log('Form submitted');
                 var formData = $(this).serialize();
+                var url = $('#sms-type').val() === 'overdue' ? '/api/send-bulk-sms' : '/api/send-sms';
+                console.log('URL:', url, 'Data:', formData);
 
                 $('#sms-response').html('<div style="color: #007bff;">Sending...</div>').show();
 
                 $.ajax({
-                    url: '/api/send-sms',
+                    url: url,
                     method: 'POST',
                     data: formData,
                     headers: {

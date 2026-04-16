@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\BulkSMS;
+use App\Models\SmsGateway;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -31,6 +32,34 @@ class SmsController extends Controller
                 'success' => true,
                 'data' => $result,
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function sendBulkSms(Request $request): JsonResponse
+    {
+        $request->validate([
+            'message_type' => 'required|string',
+            'office_id' => 'required_if:message_type,overdue|integer',
+        ]);
+
+        try {
+            if ($request->message_type === 'overdue') {
+                $result = SmsGateway::sendOverdueSms($request->office_id);
+                return response()->json([
+                    'success' => true,
+                    'data' => $result,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Invalid message type',
+                ], 400);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
