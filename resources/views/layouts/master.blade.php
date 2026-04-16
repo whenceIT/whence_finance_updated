@@ -1085,12 +1085,11 @@
                     </div>
                 </div>
                 <p class="muted">Dear Customer, this is a reminder that your loan of ZMW xxxx is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.</p>
-                <div id="bulk-sms-fields" style="display: none;">
+                <!-- <div id="bulk-sms-fields" style="display: none;">
                     <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
                     <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                        <!-- Options will be populated via JS -->
                     </select>
-                </div>
+                </div> -->
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
                     <button type="submit" style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
