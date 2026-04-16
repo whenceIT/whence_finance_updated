@@ -1085,7 +1085,7 @@
                     </div>
                 </div>
                 <p class="muted">Dear Customer, this is a reminder that your loan of ZMW xxxx is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.</p>
-                <div id="bulk-sms-fields" style="display: none;">
+                <div id="bulk-sms-fields">
                     <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
                     <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </select>
