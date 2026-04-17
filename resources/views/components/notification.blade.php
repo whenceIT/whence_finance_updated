@@ -132,7 +132,7 @@
                 renderNotifications(data);
             })
             .catch(error => {
-                console.error('Error fetching notifications:', error);
+                console.error('Error fetching notifications - Page may be expired, try to login again ', error);
                 document.getElementById('notificationList').innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fa fa-exclamation-triangle" style="font-size: 40px; margin-bottom: 10px;"></i><p>Error loading notifications</p></div>';
             });
     }
