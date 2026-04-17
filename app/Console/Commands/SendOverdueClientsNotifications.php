@@ -31,6 +31,10 @@ class SendOverdueClientsNotifications extends Command
      */
     public function handle()
     {
+        $userInfo = \App\Helpers\GeneralHelper::get_user_info();
+        $user = $userInfo->user;
+        $role = $userInfo->role; //admin
+
         $notifixService = app(NotifixService::class);
         $isDryRun = $this->option('dry-run');
 
@@ -48,9 +52,8 @@ class SendOverdueClientsNotifications extends Command
         $this->info("Found {$overdueCount} overdue loans");
 
         // Get all admin users (role 1)
-        $adminUsers = User::whereHas('roles', function($query) {
-            $query->where('id', 1);
-        })->get();
+        $adminUserIds = \App\Models\UserRole::where('role_id', 1)->pluck('user_id');
+        $adminUsers = User::whereIn('id', $adminUserIds)->get();
 
         if ($adminUsers->isEmpty()) {
             $this->warn('No admin users found.');
