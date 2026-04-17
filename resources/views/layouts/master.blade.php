@@ -1344,9 +1344,9 @@
             updateNotificationCount();
 
             // Poll every 30 seconds
-            setInterval(updateNotificationCount, 600000);
+            setInterval(updateNotificationCount, 30000);
 
-            // Run scheduled commands every 7 hours
+            // Run scheduled commands every 10 minutes
             setInterval(function() {
                 fetch('/run-scheduled-commands', {
                     method: 'POST',
@@ -1366,7 +1366,7 @@
                 .catch(error => {
                     console.error('Error calling scheduled commands:', error);
                 });
-            }, 7 * 60 * 60 * 1000); // 7 hours in milliseconds
+            }, 10 * 60 * 1000); // 10 minutes
         });
     </script>
 
