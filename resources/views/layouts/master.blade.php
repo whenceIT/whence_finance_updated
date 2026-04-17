@@ -1344,7 +1344,29 @@
             updateNotificationCount();
 
             // Poll every 30 seconds
-            setInterval(updateNotificationCount, 30000);
+            setInterval(updateNotificationCount, 600000);
+
+            // Run scheduled commands every 7 hours
+            setInterval(function() {
+                fetch('/run-scheduled-commands', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Scheduled commands executed successfully');
+                    } else {
+                        console.error('Error executing scheduled commands:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error calling scheduled commands:', error);
+                });
+            }, 7 * 60 * 60 * 1000); // 7 hours in milliseconds
         });
     </script>
 

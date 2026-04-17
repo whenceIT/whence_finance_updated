@@ -36,6 +36,12 @@ class Kernel extends ConsoleKernel
                  ->withoutOverlapping()
                  ->runInBackground();
 
+        // Send expense notifications daily at 19:01 (after 19:00)
+        $schedule->command('notifications:send-expenses')
+                 ->dailyAt('19:01')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+
         // $schedule->command('inspire')
         //          ->hourly();
     }

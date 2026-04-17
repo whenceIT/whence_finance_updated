@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Sentinel;
 use App\Services\NotifixService;
+use Illuminate\Support\Facades\Artisan;
 
 class NotificationController extends Controller
 {
@@ -43,5 +44,21 @@ class NotificationController extends Controller
     
         // Artisan::call('notifications:send-anniversaries');
         return view('notifications.index', ['notifications' => $notifications]);
+    }
+
+    public function runScheduledCommands()
+    {
+        if (!Sentinel::getUser()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            Artisan::call('notifications:send-training-links');
+            Artisan::call('notifications:send-overdue-clients');
+
+            return response()->json(['success' => true, 'message' => 'Commands executed successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }

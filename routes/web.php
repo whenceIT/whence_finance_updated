@@ -164,6 +164,7 @@ Route::any('create_payroll_loan_application', 'HomeController@create_payroll_loa
 
 Route::get('notifications', 'HomeController@getNotifications')->middleware('sentinel');
 Route::get('notification-count', 'HomeController@getNotificationCount')->middleware('sentinel');
+Route::post('run-scheduled-commands', 'NotificationController@runScheduledCommands')->middleware('sentinel');
 Route::post('notifications/mark-all-read', 'HomeController@markAllNotificationsRead')->middleware('sentinel');
 Route::post('notifications/{id}/mark-read', 'HomeController@markNotificationRead')->middleware('sentinel');
 Route::get('my-notifications', [NotificationController::class, 'index'])->middleware('sentinel');
