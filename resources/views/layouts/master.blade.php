@@ -1346,27 +1346,30 @@
             // Poll every 30 seconds
             setInterval(updateNotificationCount, 30000);
 
-            // Run scheduled commands every 10 minutes
+            // Run scheduled commands at 17:00 local time
             setInterval(function() {
-                fetch('/run-scheduled-commands', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('Scheduled commands executed successfully');
-                    } else {
-                        console.error('Error executing scheduled commands:', data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error calling scheduled commands:', error);
-                });
-            }, 10 * 60 * 1000); // 10 minutes
+                var now = new Date();
+                if (now.getHours() === 17) {
+                    fetch('/run-scheduled-commands', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Scheduled commands executed successfully at 17:00');
+                        } else {
+                            console.error('Error executing scheduled commands:', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error calling scheduled commands:', error);
+                    });
+                }
+            }, 10 * 60 * 1000); // Check every 10 minutes
         });
     </script>
 
