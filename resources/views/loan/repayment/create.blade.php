@@ -271,7 +271,7 @@
                                                                     </label>
                                                                     <input type="text" name="submitte_on_date"
                                                                class="form-control date-picker"
-                                                               value="{{date("Y-m-d")}}"
+                                                               value="{{date('Y-m-d')}}"
                                                                required id="rescheduled_on_date">
 
                                                                 </div>

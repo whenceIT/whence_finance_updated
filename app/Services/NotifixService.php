@@ -51,7 +51,8 @@ class NotifixService
 
                 // Add new notification to the beginning of the array (newest first)
                 array_unshift($existingNotes, array_merge($noteData, [
-                    'created_date' => now()->toIso8601String()
+                    'created_date' => now()->toIso8601String(),
+                    'unread' => true
                 ]));
 
                 // Update positions if needed
@@ -79,7 +80,8 @@ class NotifixService
                     'user_id' => $userId,
                     'positions' => $positions,
                     'note' => [array_merge($noteData, [
-                        'created_date' => now()->toIso8601String()
+                        'created_date' => now()->toIso8601String(),
+                        'unread' => true
                     ])],
                     'unread' => true
                 ];
@@ -195,7 +197,16 @@ class NotifixService
     public function getUnreadCount($userId)
     {
         $record = $this->getMyNotifix($userId);
-        return $record && $record->unread ? count($record->note ?? []) : 0;
+        if (!$record || !$record->note) {
+            return 0;
+        }
+        $count = 0;
+        foreach ($record->note as $note) {
+            if (isset($note['unread']) && $note['unread']) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     /**
@@ -208,8 +219,12 @@ class NotifixService
     {
         $record = $this->getMyNotifix($userId);
 
-        if ($record) {
-            return $record->update(['unread' => false]);
+        if ($record && $record->note) {
+            $notes = $record->note;
+            foreach ($notes as &$note) {
+                $note['unread'] = false;
+            }
+            return $record->update(['note' => $notes, 'unread' => false]);
         }
 
         return false;
@@ -233,7 +248,7 @@ class NotifixService
             // Mark the specific notification as read in the note array
             foreach ($notes as &$note) {
                 if (($note['id'] ?? '') === $notificationId) {
-                    $note['read'] = true;
+                    $note['unread'] = false;
                     $found = true;
                     break;
                 }

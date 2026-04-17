@@ -2030,11 +2030,14 @@
                                                                             )</b></span>
                                                                 @endif
                                                             @endif
-                                                        </td>
+                                                        </td> 
                                                         <td>{{number_format($key->debit,2)}}</td>
                                                         <td>{{number_format($key->credit,2)}}</td>
                                                         <td>{{number_format($balance,2)}}</td>
-                                                        <td>{{$key->receipt}}</td>
+                                                         <td>
+                                                             {{ \App\Models\PaymentType::find($key->payment_type_id)->name ?? '-' }}
+                                                             {{ \App\Models\User::find($key->approved_by_id)->first_name ?? '-' }} {{ \App\Models\User::find($key->approved_by_id)->last_name ?? '-' }}
+                                                         </td>
                                                         <td class="">
                                                             <div class="btn-group">
                                                                 <button class="btn btn-info btn-sm dropdown-toggle"

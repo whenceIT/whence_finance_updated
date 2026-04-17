@@ -4030,6 +4030,8 @@ class LoanController extends Controller
                 ]
             ]);
 
+            // Notify Branch Manager of pending reloan transaction approval
+            Notifix::notifyBmToApproveTransaction($loan, $client, $request->paid);
 
             GeneralHelper::audit_trail("Update Repayment", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -4146,9 +4148,9 @@ class LoanController extends Controller
 
                 LoanTransactionsPending::where('id', $trans_id)->delete();
 
-
-
-
+                // Notify Loan Officer that reloan request has been approved
+                $client = \App\Models\Client::find($loan->client_id);
+                Notifix::notifyLoanOfficerReloanApproved($loan, $client);
 
                 GeneralHelper::audit_trail("Update Repayment", "Loans", $id);
                 Flash::success(trans('general.successfully_saved'));

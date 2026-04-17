@@ -201,7 +201,7 @@ class ExpenseController extends Controller
             $journal->save();
         }
         
-        Notifix::notifyDailyReminderToRiskManager("Approved an expense with id: " . $expense->id, ". After working hours");
+        Notifix::notifyDailyReminderToRiskManager("approved an expense with id: " . $expense->id, ". After working hours");
         GeneralHelper::audit_trail("Create", "Expenses", $expense->id);
         Flash::success(trans('general.successfully_saved'));
         return redirect('expense/data');
@@ -330,7 +330,7 @@ class ExpenseController extends Controller
         }
 
         
-        Notifix::notifyDailyReminderToRiskManager("Updated an expense with id: " . $expense->id, ". After working hours");
+        Notifix::notifyDailyReminderToRiskManager("updated an expense with id: " . $expense->id, ". After working hours");
         GeneralHelper::audit_trail("Update", "Expenses", $expense->id);
         Flash::success(trans('general.successfully_saved'));
         return redirect('expense/data');

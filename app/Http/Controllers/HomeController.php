@@ -739,8 +739,8 @@ class HomeController extends Controller
             return response()->json(['count' => 0]);
         }
 
-        $notifix = \App\Models\Notifix::where('user_id', $user->id)->where('unread', true)->first();
-        $count = $notifix ? count($notifix->note ?? []) : 0;
+        $notifixService = app(\App\Services\NotifixService::class);
+        $count = $notifixService->getUnreadCount($user->id);
 
         return response()->json(['count' => $count]);
     }

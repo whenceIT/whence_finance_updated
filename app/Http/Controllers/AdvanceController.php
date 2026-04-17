@@ -159,7 +159,7 @@ class AdvanceController extends Controller
         $topUp->status = 'approved';
         $topUp->save();
 
-        Notifix::notifyDailyReminderToRiskManager("Approved a top-up advance with id: " . $advance->id, ". After working hours");
+        Notifix::notifyDailyReminderToRiskManager("approved a top-up advance with id: " . $advance->id, ". After working hours");
         return Redirect::route('advances.topups_pending_approval')->with('success', 'Top-up approved successfully.');
     }
 
@@ -209,7 +209,7 @@ class AdvanceController extends Controller
         $advance->expected_repayment_dates = $nextPaymentDate;
         $advance->save();
 
-        Notifix::notifyDailyReminderToRiskManager("Approved advance with id: " . $advance->id, ". After working hours");
+        Notifix::notifyDailyReminderToRiskManager("approved advance with id: " . $advance->id, ". After working hours");
         return Redirect::route('advances.pending_approvals')->with('success', trans('general.successfully_saved'));
     }
 
@@ -221,7 +221,7 @@ class AdvanceController extends Controller
         $advance->declined_by_id = Sentinel::getUser()->id;
         $advance->save();
         $request->session()->flash('success', 'Salary advance declined successfully.');
-        Notifix::notifyDailyReminderToRiskManager("Declined advance with id: " . $advance->id, ". After working hours");
+        Notifix::notifyDailyReminderToRiskManager("declined advance with id: " . $advance->id, ". After working hours");
         return redirect()->back();
     }
 
