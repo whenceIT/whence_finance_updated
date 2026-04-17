@@ -160,14 +160,19 @@
                 iconHtml = `<i class="${iconClass}" style="font-size: 16px;"></i>`;
             }
             html += `
-                <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''" onclick="handleNotificationClick('${notification.id}', '${notification.link_to}')">
+                <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
                     <div style="display: flex; align-items: flex-start;">
-                        <div style="margin-right: 10px; color: #007bff;">
+                        <div style="margin-right: 10px; color: #007bff; cursor: pointer;" onclick="handleNotificationClick('${notification.id}', '${notification.link_to}')">
                             ${iconHtml}
                         </div>
-                        <div style="flex: 1;">
+                        <div style="flex: 1; cursor: pointer;" onclick="handleNotificationClick('${notification.id}', '${notification.link_to}')">
                             <p style="margin: 0; font-size: 14px; color: #333;">${notification.message}</p>
                             <small style="color: #999; font-size: 12px;">${notification.time_ago}</small>
+                        </div>
+                        <div style="margin-left: 10px;">
+                            <button onclick="deleteNotification('${notification.id}')" style="background: none; border: none; color: #999; cursor: pointer; font-size: 14px;" title="Delete notification">
+                                <i class="fa fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -251,6 +256,42 @@
             console.error('Error marking notification as read:', error);
             // Still navigate even if there's an error
             window.location.href = linkTo;
+        });
+    }
+
+    function deleteNotification(notificationId) {
+        if (!confirm('Are you sure you want to delete this notification?')) {
+            return;
+        }
+
+        fetch('/notifications/' + notificationId, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the notification from the UI
+                const notificationItem = document.querySelector(`[onclick*="handleNotificationClick('${notificationId}'"]`);
+                if (notificationItem) {
+                    notificationItem.remove();
+                }
+                // Update badge count
+                if (typeof updateNotificationCount === 'function') {
+                    updateNotificationCount();
+                }
+                // Refresh the notification list
+                fetchNotifications();
+            } else {
+                alert('Failed to delete notification.');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting notification:', error);
+            alert('Error occurred while deleting notification.');
         });
     }
 

@@ -90,7 +90,7 @@ class SendOverdueClientsNotifications extends Command
             'id' => uniqid('overdue_clients_'),
             'from_id' => 1, // System admin
             'link_from' => null,
-            'link_to' => url('/notifications'), // Assuming there's a route for overdue loans
+            'link_to' => url('/my-notifications'), // Assuming there's a route for overdue loans
             'type' => 'overdue_clients',
             'message' => "There are {$overdueCount} overdue loans that require attention.",
             'positions' => [],

@@ -46,6 +46,18 @@ class NotificationController extends Controller
         return view('notifications.index', ['notifications' => $notifications]);
     }
 
+    public function delete($notificationId)
+    {
+        if (!Sentinel::getUser()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $notifixService = app(NotifixService::class);
+        $result = $notifixService->removeNotification(Sentinel::getUser()->id, $notificationId);
+
+        return response()->json(['success' => $result]);
+    }
+
     public function runScheduledCommands()
     {
         if (!Sentinel::getUser()) {
