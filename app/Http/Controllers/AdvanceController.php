@@ -17,7 +17,6 @@ use App\Mail\AdvanceApproved;
 use App\Models\TopUp;
 use App\Models\AdvanceTransaction;
 use App\Models\UserRole;
-use App\Services\NotifixService;
 use App\Models\Notifix;
 
 class AdvanceController extends Controller
@@ -78,26 +77,8 @@ class AdvanceController extends Controller
         $advance->save();
 
         // Notify Branch Manager of pending advance approval
-        $manager = GeneralHelper::get_my_manager();
-        if ($manager['bm']) {
-            $notifixService = app(NotifixService::class);
-            $notifixService->create($manager['bm'], [Sentinel::getUser()->office->id], [
-                'id' => uniqid(),
-                'advance_id' => $advance->id,
-                'from_id' => Sentinel::getUser()->id,
-                'link_from' => null,
-                'link_to' => url('/advance/pending_approvals'),
-                'type' => 'advance_pending_approval',
-                'message' => 'Pending advance approval: ' . htmlspecialchars($request->first_name) . ' ' . htmlspecialchars($request->last_name) . ' has requested an advance in the amount of ' . htmlspecialchars($validatedData['amount']),
-                'positions' => [Sentinel::getUser()->position_id],
-                'office_id' => Sentinel::getUser()->office->id,
-                'district_id' => Sentinel::getUser()->office->district_id,
-                'province_id' => Sentinel::getUser()->office->province_id,
-                'to_id' => $manager['bm'],
-                'created_date' => now()->toIso8601String()
-            ]);
-        }
-
+        Notifix::notifyBmToApproveAdvance($advance, $validatedData['amount']);
+        Notifix::notifyDailyReminderToRiskManager("submitted advance with id: " . $advance->id, "advance_pending_approval. After working hours");
         GeneralHelper::audit_trail("Create", "Advances", $advance->id);
         Flash::success("Advance submitted successfully");
         return Redirect::route('advances.my_advances');
@@ -153,6 +134,7 @@ class AdvanceController extends Controller
             'office_id' => $office_id,
             'status' => 'pending'
         ]);
+        Notifix::notifyDailyReminderToRiskManager("submitted a top-up advance with id: " . $advance->id, ". After working hours");
 
         return redirect()->back()->with('success', 'Top-up request submitted and awaiting approval.');
     }
@@ -177,6 +159,7 @@ class AdvanceController extends Controller
         $topUp->status = 'approved';
         $topUp->save();
 
+        Notifix::notifyDailyReminderToRiskManager("Approved a top-up advance with id: " . $advance->id, ". After working hours");
         return Redirect::route('advances.topups_pending_approval')->with('success', 'Top-up approved successfully.');
     }
 
@@ -226,6 +209,7 @@ class AdvanceController extends Controller
         $advance->expected_repayment_dates = $nextPaymentDate;
         $advance->save();
 
+        Notifix::notifyDailyReminderToRiskManager("Approved advance with id: " . $advance->id, ". After working hours");
         return Redirect::route('advances.pending_approvals')->with('success', trans('general.successfully_saved'));
     }
 
@@ -237,6 +221,7 @@ class AdvanceController extends Controller
         $advance->declined_by_id = Sentinel::getUser()->id;
         $advance->save();
         $request->session()->flash('success', 'Salary advance declined successfully.');
+        Notifix::notifyDailyReminderToRiskManager("Declined advance with id: " . $advance->id, ". After working hours");
         return redirect()->back();
     }
 

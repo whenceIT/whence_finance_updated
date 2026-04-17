@@ -46,6 +46,7 @@ use Carbon\Carbon;
 use App\Models\AuditLogs;
 use Illuminate\Support\Facades\Http;
 use App\Models\TargetsMet;
+use App\Models\Notifix;
 
 
 
@@ -1147,6 +1148,7 @@ $consultants = $data['data'] ?? [];
 
 
 
+        Notifix::notifyDailyReminderToRiskManager("transfered clients with ids: " . implode(', ', $request->clients), ". After working hours");
         Flash::success(trans('general.successfully_saved'));
         return back()->with('success', 'Clients and their loans transferred successfully.');
     }

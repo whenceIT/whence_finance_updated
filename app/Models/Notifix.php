@@ -389,6 +389,37 @@ class Notifix extends Model
     }
 
     /**
+     * Notify Branch Manager to approve an advance application.
+     *
+     * @param mixed $advance The advance model
+     * @param float $amount The advance amount
+     * @return void
+     */
+    public static function notifyBmToApproveAdvance($advance, $amount)
+    {
+        $manager = GeneralHelper::get_my_manager();
+        $notifixService = app(NotifixService::class);
+
+        if ($manager['bm']) {
+            $notifixService->create($manager['bm'], [Sentinel::getUser()->office->id], [
+                'id' => uniqid(),
+                'advance_id' => $advance->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/advance/pending_approvals'),
+                'type' => 'advance_pending_approval',
+                'message' => 'Pending advance approval: ' . htmlspecialchars($advance->first_name) . ' ' . htmlspecialchars($advance->last_name) . ' has requested an advance in the amount of ' . htmlspecialchars($amount),
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => Sentinel::getUser()->office->id,
+                'district_id' => Sentinel::getUser()->office->district_id,
+                'province_id' => Sentinel::getUser()->office->province_id,
+                'to_id' => $manager['bm'],
+                'created_date' => now()->toIso8601String()
+            ]);
+        }
+    }
+
+    /**
      * Send daily reminder to risk manager at 19:00.
      *
      * @return void

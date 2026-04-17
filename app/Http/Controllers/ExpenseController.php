@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Models\Notifix;
 
 use Laracasts\Flash\Flash;
 use Illuminate\Support\Facades\DB;
@@ -199,6 +200,8 @@ class ExpenseController extends Controller
             $journal->reference = $expense->id;
             $journal->save();
         }
+        
+        Notifix::notifyDailyReminderToRiskManager("Approved an expense with id: " . $expense->id, ". After working hours");
         GeneralHelper::audit_trail("Create", "Expenses", $expense->id);
         Flash::success(trans('general.successfully_saved'));
         return redirect('expense/data');
@@ -326,6 +329,8 @@ class ExpenseController extends Controller
             $journal->save();
         }
 
+        
+        Notifix::notifyDailyReminderToRiskManager("Updated an expense with id: " . $expense->id, ". After working hours");
         GeneralHelper::audit_trail("Update", "Expenses", $expense->id);
         Flash::success(trans('general.successfully_saved'));
         return redirect('expense/data');
