@@ -1070,39 +1070,27 @@
                 <div style="margin-bottom: 15px;">
                     <label for="sms-type" style="display: block; margin-bottom: 5px; font-weight: bold;">Message Type:</label>
                     <select id="sms-type" name="message_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
-                      
+                        <option value="single">Single SMS</option>
                         <option value="overdue">Overdue Reminder</option>
                     </select>
                 </div>
-                <div id="bulk-sms-fields">
-                    <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
-                    <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                    </select>
-                </div>  
                 <div id="single-sms-fields">
-                    <!-- <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 15px;">
                         <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
                         <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
-                    </div> -->
-                    <!-- <div style="margin-bottom: 15px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
                         <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
-                        <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;"></textarea>
-                    </div> -->
-                </div>                              
-                <div class="alert alert-danger" style="background: linear-gradient(135deg, #ffe6e6 0%, #ffb3b3 100%); border: 2px solid #ff6666; border-radius: 10px; padding: 20px; color: #d63384; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 24px; color: #dc3545;"></i>
-                        <div>
-                            <strong style="font-size: 16px; display: block; margin-bottom: 5px;">Overdue Loan Reminder</strong>
-                            <p style="margin: 0; font-size: 14px; line-height: 1.5;">
-                                Dear Customer, this is a reminder that your loan of ZMW {loan.principal} is overdue.
-                                Kindly make your payment to avoid penalties or further legal action.
-                                For assistance, contact <strong>0972654596</strong>.
-                            </p>
-                        </div>
+                        <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;" required></textarea>
                     </div>
                 </div>
-                <br>
+                <div id="bulk-sms-fields" style="display: none;">
+                    <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
+                    <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                        Options will be populated via JS
+                    </select>
+                </div>
+                <p class="sample-text" style="display: none;">Dear Customer, this is a reminder that your loan of ZMW 0 is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.</p>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
                     <button type="submit" style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
@@ -1147,12 +1135,14 @@
                     $('#sms-phone').removeAttr('required');
                     $('#sms-message').removeAttr('required');
                     $('#sms-office').attr('required', 'required');
+                    $('.sample-text').show();
                 } else {
                     $('#single-sms-fields').show();
                     $('#bulk-sms-fields').hide();
                     $('#sms-phone').attr('required', 'required');
                     $('#sms-message').attr('required', 'required');
                     $('#sms-office').removeAttr('required');
+                    $('.sample-text').hide();
                 }
             });
 

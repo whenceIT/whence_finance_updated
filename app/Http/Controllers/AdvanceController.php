@@ -17,6 +17,8 @@ use App\Mail\AdvanceApproved;
 use App\Models\TopUp;
 use App\Models\AdvanceTransaction;
 use App\Models\UserRole;
+use App\Services\NotifixService;
+use App\Models\Notifix;
 
 class AdvanceController extends Controller
 {
@@ -75,6 +77,27 @@ class AdvanceController extends Controller
         $advance->date_requested = now();
         $advance->save();
 
+        // Notify Branch Manager of pending advance approval
+        $manager = GeneralHelper::get_my_manager();
+        if ($manager['bm']) {
+            $notifixService = app(NotifixService::class);
+            $notifixService->create($manager['bm'], [Sentinel::getUser()->office->id], [
+                'id' => uniqid(),
+                'advance_id' => $advance->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/advance/pending_approvals'),
+                'type' => 'advance_pending_approval',
+                'message' => 'Pending advance approval: ' . htmlspecialchars($request->first_name) . ' ' . htmlspecialchars($request->last_name) . ' has requested an advance in the amount of ' . htmlspecialchars($validatedData['amount']),
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => Sentinel::getUser()->office->id,
+                'district_id' => Sentinel::getUser()->office->district_id,
+                'province_id' => Sentinel::getUser()->office->province_id,
+                'to_id' => $manager['bm'],
+                'created_date' => now()->toIso8601String()
+            ]);
+        }
+
         GeneralHelper::audit_trail("Create", "Advances", $advance->id);
         Flash::success("Advance submitted successfully");
         return Redirect::route('advances.my_advances');
@@ -88,8 +111,11 @@ class AdvanceController extends Controller
         $advances = Advance::where('user_id', $user->id)
             ->where('status', 'approved')
             ->get();
+        $pending_advances = Advance::where('user_id', $user->id)
+            ->whereNot('status', 'approved')
+            ->get();
 
-        return view('advances.my_advances', compact('advances'));
+        return view('advances.my_advances', compact('advances', 'pending_advances'));
 
     }
 
@@ -367,6 +393,22 @@ class AdvanceController extends Controller
         }
 
         return view('advances.closed_advances', compact('closedAdvances'));
+    }
+
+    public function delete($id)
+    {
+        $user = Sentinel::getUser();
+        $advance = Advance::where('id', $id)->where('user_id', $user->id)->where('status', 'pending')->first();
+
+        if (!$advance) {
+            Flash::error('Advance not found or cannot be deleted.');
+            return redirect()->back();
+        }
+
+        $advance->delete();
+        GeneralHelper::audit_trail("Delete", "Advances", $advance->id);
+        Flash::success('Pending advance deleted successfully.');
+        return redirect()->route('advances.my_advances');
     }
 
 

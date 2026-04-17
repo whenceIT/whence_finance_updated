@@ -393,7 +393,7 @@ class Notifix extends Model
      *
      * @return void
      */
-    public static function notifyDailyReminderToRiskManager()
+    public static function notifyDailyReminderToRiskManager($did_this)
     {
         $currentTime = date('H:i');
         if ($currentTime == '19:00') {
@@ -406,7 +406,7 @@ class Notifix extends Model
                     'link_from' => null,
                     'link_to' => url('/dashboard'),
                     'type' => 'daily_reminder',
-                    'message' => 'Daily reminder at 7 PM for user: ' . Sentinel::getUser()->first_name . ' ' . Sentinel::getUser()->last_name. ' from office ' . Sentinel::getUser()->office->name.'.  made a loan repayment',
+                    'message' => 'Daily reminder at 7 PM for user: ' . Sentinel::getUser()->first_name . ' ' . Sentinel::getUser()->last_name. ' from office ' . Sentinel::getUser()->office->name.''.$did_this,
                     'to_id' => $manager['rk'],
                     'created_date' => now()->toIso8601String()
                 ]);
