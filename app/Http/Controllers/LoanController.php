@@ -3147,6 +3147,9 @@ class LoanController extends Controller
                     $loan->save();
                 }
 
+                // Notify Loan Officer that transaction has been approved
+                $client = \App\Models\Client::find($loan->client_id);
+                Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
 
                 GeneralHelper::audit_trail("Create Repayment", "Loans", $id);
 
@@ -4182,6 +4185,15 @@ class LoanController extends Controller
         if (!Sentinel::hasAccess('loans.transactions.create')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
+        }
+
+        $trans = LoanTransactionUnapproved::find($trans_id);
+        if ($trans) {
+            $loan = Loan::find($trans->loan_id);
+            if ($loan) {
+                $client = \App\Models\Client::find($loan->client_id);
+                Notifix::notifyLoanOfficerTransactionDeclined($loan, $client, $trans->payment_apply_to);
+            }
         }
 
         LoanTransactionUnapproved::where('id', $trans_id)->delete();

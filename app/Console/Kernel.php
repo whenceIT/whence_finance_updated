@@ -30,6 +30,12 @@ class Kernel extends ConsoleKernel
                  ->withoutOverlapping()
                  ->runInBackground();
 
+        // Send training links notifications every 7 hours
+        $schedule->command('notifications:send-training-links')
+                 ->cron('0 */7 * * *')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+
         // $schedule->command('inspire')
         //          ->hourly();
     }

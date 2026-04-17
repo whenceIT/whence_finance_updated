@@ -152,12 +152,18 @@
 
         let html = '';
         notifications.forEach(notification => {
-            const iconClass = getNotificationIcon(notification.type);
+            let iconHtml = '';
+            if (notification.type === 'training_recommendation' && notification.upload_poster) {
+                iconHtml = `<img src="${notification.upload_poster}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;" alt="Training Resource">`;
+            } else {
+                const iconClass = getNotificationIcon(notification.type);
+                iconHtml = `<i class="${iconClass}" style="font-size: 16px;"></i>`;
+            }
             html += `
                 <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''" onclick="handleNotificationClick('${notification.id}', '${notification.link_to}')">
                     <div style="display: flex; align-items: flex-start;">
                         <div style="margin-right: 10px; color: #007bff;">
-                            <i class="${iconClass}" style="font-size: 16px;"></i>
+                            ${iconHtml}
                         </div>
                         <div style="flex: 1;">
                             <p style="margin: 0; font-size: 14px; color: #333;">${notification.message}</p>
@@ -185,6 +191,8 @@
                 return 'fa fa-birthday-cake';
             case 'anniversary_summary':
                 return 'fa fa-users';
+            case 'training_recommendation':
+                return 'fa fa-play-circle';
             default:
                 return 'fa fa-bell';
         }

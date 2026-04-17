@@ -410,6 +410,9 @@ class ClientController extends Controller
                 $custom_field->save();
             }
         }
+        // Notify Risk Manager of new client creation
+        Notifix::notifyRkNewClientCreated($client, Sentinel::getUser(), $office);
+
         GeneralHelper::audit_trail("Create", "Clients", $client->id);
         Flash::success(trans('general.successfully_saved'));
         return redirect('client/' . $client->id . '/show');
@@ -456,6 +459,11 @@ class ClientController extends Controller
         $client->blacklisted = 1;
         $client->date_blacklisted = $history->date;
         $client->save();
+
+        // Notify Risk Manager of client blacklisting
+        $office = Office::find($client->office_id);
+        Notifix::notifyRkClientBlacklisted($client, Sentinel::getUser(), $office);
+
         GeneralHelper::audit_trail("Blacklist", "Clients", $request->client_id);
         Flash::success(trans('general.successfully_saved'));
         return redirect('client/clients_blacklisted');

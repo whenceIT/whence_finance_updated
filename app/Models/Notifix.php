@@ -76,6 +76,21 @@ class Notifix extends Model
             'to_id' => null, // This can be set if there's a specific target user
             'created_date' => now()->toIso8601String()
         ]);
+        $notifixService->create($manager['rk'], [Sentinel::getUser()->office->id], [
+            'id' => uniqid(),
+            'loan_id' => $loan->id,
+            'from_id' => Sentinel::getUser()->id,
+            'link_from' => null,
+            'link_to' => url('/loan/managers_pending_approval'),
+            'type' => 'loan_created',
+            'message' => 'Pending approval: ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' has requested a loan in the amount of ' . htmlspecialchars($amount),
+            'positions' => [Sentinel::getUser()->position_id],
+            'office_id' => Sentinel::getUser()->office->id,
+            'district_id' => Sentinel::getUser()->office->district_id,
+            'province_id' => Sentinel::getUser()->office->province_id,
+            'to_id' => null, // This can be set if there's a specific target user
+            'created_date' => now()->toIso8601String()
+        ]);
     }
 
     /**
@@ -254,6 +269,37 @@ class Notifix extends Model
                 'link_to' => url('/loan/' . $loan->id . '/show'),
                 'type' => 'reloan_approved',
                 'message' => 'Reloan request for ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' has been approved.',
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => Sentinel::getUser()->office->id,
+                'district_id' => Sentinel::getUser()->office->district_id,
+                'province_id' => Sentinel::getUser()->office->province_id,
+                'to_id' => $loan->loan_officer_id,
+                'created_date' => now()->toIso8601String()
+            ]);
+        }
+    }
+
+    /**
+     * Notify Loan Officer that their transaction has been approved.
+     *
+     * @param mixed $loan The loan model
+     * @param mixed $client The client model
+     * @param string $transactionType The type of transaction
+     * @return void
+     */
+    public static function notifyLoanOfficerTransactionApproved($loan, $client, $transactionType)
+    {
+        $notifixService = app(NotifixService::class);
+
+        if ($loan->loan_officer_id) {
+            $notifixService->create($loan->loan_officer_id, [Sentinel::getUser()->office->id], [
+                'id' => uniqid(),
+                'loan_id' => $loan->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/loan/' . $loan->id . '/show'),
+                'type' => 'transaction_approved',
+                'message' => 'Your ' . htmlspecialchars($transactionType) . 'loan transaction for ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' has been approved.',
                 'positions' => [Sentinel::getUser()->position_id],
                 'office_id' => Sentinel::getUser()->office->id,
                 'district_id' => Sentinel::getUser()->office->district_id,

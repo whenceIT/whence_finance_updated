@@ -28,26 +28,30 @@
                                     data-created-date="{{ $notification['created_date'] }}">
                                     <div class="d-flex align-items-start">
                                         <div class="notification-icon mr-3">
-                                            <i class="@php
-                                                switch($notification['type']) {
-                                                    case 'loan_created':
-                                                        echo 'fas fa-money-bill-wave';
-                                                        break;
-                                                    case 'loan_transaction_approval':
-                                                        echo 'fas fa-check-circle';
-                                                        break;
-                                                    case 'user_anniversary_3_months':
-                                                    case 'user_anniversary_6_months':
-                                                        echo 'fas fa-birthday-cake';
-                                                        break;
-                                                    case 'anniversary_summary':
-                                                        echo 'fas fa-users';
-                                                        break;
-                                                    default:
-                                                        echo 'fas fa-bell';
-                                                        break;
-                                                }
-                                            @endphp"></i>
+                                            @if($notification['type'] === 'training_recommendation' && isset($notification['upload_poster']) && $notification['upload_poster'])
+                                                <img src="{{ $notification['upload_poster'] }}" alt="Training Resource" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;">
+                                            @else
+                                                <i class="@php
+                                                    switch($notification['type']) {
+                                                        case 'loan_created':
+                                                            echo 'fas fa-money-bill-wave';
+                                                            break;
+                                                        case 'loan_transaction_approval':
+                                                            echo 'fas fa-check-circle';
+                                                            break;
+                                                        case 'user_anniversary_3_months':
+                                                        case 'user_anniversary_6_months':
+                                                            echo 'fas fa-birthday-cake';
+                                                            break;
+                                                        case 'anniversary_summary':
+                                                            echo 'fas fa-users';
+                                                            break;
+                                                        default:
+                                                            echo 'fas fa-bell';
+                                                            break;
+                                                    }
+                                                @endphp"></i>
+                                            @endif
                                         </div>
                                         <div class="flex-grow-1">
                                             <div class="notification-message">
@@ -166,15 +170,15 @@
         // Store link for later use
         currentNotificationLink = linkTo;
 
-        // Get icon class
-        const iconClass = getIconClass(type);
+        // Get icon class or image
+        const iconHtml = getIconHtml(type, notificationItem);
 
         // Populate modal with full information
         const detailsHtml = `
             <div class="notification-detail-card">
                 <div class="d-flex align-items-start mb-3">
                     <div class="mr-3">
-                        <i class="${iconClass}" style="font-size: 2.5em; color: #007bff;"></i>
+                        ${iconHtml}
                     </div>
                     <div class="flex-grow-1">
                         <h6 class="mb-2"><strong>Type:</strong> ${formatType(type)}</h6>
@@ -202,6 +206,18 @@
 
         // Show modal
         $('#notificationModal').modal('show');
+    }
+
+    function getIconHtml(type, notificationItem) {
+        if (type === 'training_recommendation') {
+            const img = notificationItem.querySelector('.notification-icon img');
+            if (img) {
+                return `<img src="${img.src}" alt="Training Resource" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">`;
+            }
+        }
+
+        const iconClass = getIconClass(type);
+        return `<i class="${iconClass}" style="font-size: 2.5em; color: #007bff;"></i>`;
     }
 
     function getIconClass(type) {

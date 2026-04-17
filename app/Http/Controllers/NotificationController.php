@@ -23,7 +23,7 @@ class NotificationController extends Controller
             // Sort by created_date desc and only show unread notifications
             $notes = collect($notifix->note)->sortByDesc('created_date')->take(20)->values()->all();
             foreach ($notes as $note) {
-                $notifications[] = [
+                $notification = [
                     'id' => $note['id'],
                     'message' => $note['message'],
                     'type' => $note['type'],
@@ -31,6 +31,13 @@ class NotificationController extends Controller
                     'created_date' => $note['created_date'],
                     'time_ago' => \Carbon\Carbon::parse($note['created_date'])->diffForHumans(),
                 ];
+
+                // Add upload poster for training recommendations
+                if ($note['type'] === 'training_recommendation' && isset($note['upload_poster'])) {
+                    $notification['upload_poster'] = $note['upload_poster'];
+                }
+
+                $notifications[] = $notification;
             }
         }
     
