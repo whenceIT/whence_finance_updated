@@ -34,7 +34,6 @@ use App\Models\PaymentDetail;
 use App\Models\Savings;
 use App\Models\SavingsTransaction;
 use App\Models\Setting;
-use App\Models\SmsGateway;
 use App\Models\User;
 use App\Models\WaiverTransactionUnapproved;
 use App\Models\ChargeTransactionUnapproved;
@@ -57,7 +56,6 @@ use Illuminate\Support\Facades\Http;
 use App\Models\CarryOver;
 use App\Models\Province;
 use App\Models\Notifix;
-use App\Services\BulkSMS;
 use App\Services\NotifixService;
 
 
@@ -2963,9 +2961,6 @@ class LoanController extends Controller
 
         $todaysDate = date('Y-m-d');
 
-        //if its 19:00 send notifix to manager['rk'] for the current user
-        Notifix::notifyDailyReminderToRiskManager();
-
         if ($request->date < $todaysDate) {
             Flash::warning("Enter a date equal or greater than today's date");
             return redirect()->back();
@@ -4054,7 +4049,6 @@ class LoanController extends Controller
         $balance = \App\Helpers\GeneralHelper::new_loan_total_balance($id);
 
         $loan = Loan::find($id);
-        $client = $loan->client;
         $pending_transactions = LoanTransactionsPending::where('loan_id', $id)->get();
         $count = count($pending_transactions);
         $Trans = LoanTransactionsPending::find($trans_id);
@@ -4156,10 +4150,6 @@ class LoanController extends Controller
 
 
 
-                //send SMS to Anchor House and Mansa Branch client
-                if($loan->office_id == 2 || $loan->office_id == 8 ){
-                    SmsGateway::sendRepaymentSms($client, $request, $loan, $Trans, $balance);
-                }
                 GeneralHelper::audit_trail("Update Repayment", "Loans", $id);
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');

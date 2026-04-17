@@ -1203,6 +1203,7 @@ Route::group(['prefix' => 'advance'], function () {
     Route::get('/active_advances/{id}', 'AdvanceController@showDetails')->name('advances.show');
     Route::post('{id}/close', 'AdvanceController@closeAdvance')->name('advances.close');
     Route::post('submit-top-up/{id}', 'AdvanceController@submitTopUp')->name('advances.submitTopUp');
+    Route::delete('{id}', 'AdvanceController@delete')->name('advances.delete');
     Route::post('approve/{id}', 'AdvanceController@approveTopUp')->name('topups.approve');
     Route::post('decline/{id}', 'AdvanceController@declineTopUp')->name('topups.decline');
     Route::get(
