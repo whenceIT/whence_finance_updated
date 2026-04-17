@@ -83,19 +83,12 @@
                      
 
                         <td>
-                            <div class="btn-group">
-                                <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
-                                    <i class="fa fa-navicon"></i>
-                                </button>
-
-                                <ul class="dropdown-menu dropdown-menu-right">
-                                    <li>
+                    
                                         <a href="{{url('payroll/'.$payroll->id.'/edit_new_payroll')}}">
                                             Edit <i class="fa fa-pencil-square"></i>
                                         </a>
-                                    </li>
-                                </ul>
-                            </div>
+                                
+                           
                         </td>
                     </tr>
 
