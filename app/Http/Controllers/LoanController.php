@@ -1523,6 +1523,7 @@ class LoanController extends Controller
             ]
         ]);
         Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
+        Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $loan->id . '/show');
     }
