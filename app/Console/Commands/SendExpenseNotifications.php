@@ -90,7 +90,7 @@ class SendExpenseNotifications extends Command
             'id' => uniqid('expense_creation_'),
             'from_id' => 1, // System admin
             'link_from' => null,
-            'link_to' => url('/expense'), // Assuming there's a route for expenses
+            'link_to' => url('/notifications'), // Assuming there's a route for expenses
             'type' => 'expense_creation_after_hours',
             'message' => "{$expenseCount} expense(s) were created after 19:00 today and require attention.",
             'positions' => [],
