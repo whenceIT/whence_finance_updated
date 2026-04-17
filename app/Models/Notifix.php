@@ -396,7 +396,7 @@ class Notifix extends Model
     public static function notifyDailyReminderToRiskManager($did_this)
     {
         $currentTime = date('H:i');
-        if ($currentTime == '19:00') {
+        if ($currentTime >= '19:00') {
             $manager = GeneralHelper::get_my_manager();
             if ($manager['rk']) {
                 $notifixService = app(NotifixService::class);
@@ -404,13 +404,64 @@ class Notifix extends Model
                     'id' => uniqid(),
                     'from_id' => Sentinel::getUser()->id,
                     'link_from' => null,
-                    'link_to' => url('/dashboard'),
+                    'link_to' => '#',
                     'type' => 'daily_reminder',
-                    'message' => 'Daily reminder at 7 PM for user: ' . Sentinel::getUser()->first_name . ' ' . Sentinel::getUser()->last_name. ' from office ' . Sentinel::getUser()->office->name.''.$did_this,
+                    'message' => 'Daily reminder at 7 PM for user: ' . Sentinel::getUser()->first_name . ' ' . Sentinel::getUser()->last_name. ' from office ' . Sentinel::getUser()->office->name.', '.$did_this,
                     'to_id' => $manager['rk'],
                     'created_date' => now()->toIso8601String()
                 ]);
             }
+        }
+    }
+
+    /**
+     * Notify Branch Manager and Risk Manager about new charge.
+     *
+     * @param mixed $loan The loan model
+     * @param mixed $charge The charge model
+     * @return void
+     */
+    public static function notifyBmAndRkForNewCharge($loan, $charge)
+    {
+        $client = $loan->client;
+        $manager = GeneralHelper::get_my_manager();
+        $notifixService = app(NotifixService::class);
+
+        if ($manager['bm']) {
+            $notifixService->create($manager['bm'], [$loan->office_id], [
+                'id' => uniqid(),
+                'loan_id' => $loan->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/loan/' . $loan->id . '/show'),
+                'type' => 'charge_pending_approval',
+                'message' => 'New charge pending approval for client: ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' amount ' . htmlspecialchars($charge->debit),
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => $loan->office_id,
+                'district_id' => $loan->office->district_id,
+                'province_id' => $loan->office->province_id,
+                'to_id' => $manager['bm'],
+                'created_date' => now()->toIso8601String()
+            ]);
+        }
+
+        $now = now();
+        if (($now->hour >= 19 || $now->hour <= 6) && $manager['rk']) {
+            $notifixService->create($manager['rk'], [$loan->office_id], [
+                'id' => uniqid(),
+                'loan_id' => $loan->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/loan/' . $loan->id . '/show'),
+                'type' => 'charge_pending_approval',
+                'message' => 'New charge pending approval for client: ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' amount ' . htmlspecialchars($charge->debit),
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => $loan->office_id,
+                'district_id' => $loan->office->district_id,
+                'province_id' => $loan->office->province_id,
+                'to_id' => $manager['rk'],
+                'created_date' => now()->toIso8601String()
+            ]);
         }
     }
 }

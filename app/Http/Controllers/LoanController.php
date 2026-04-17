@@ -2888,7 +2888,7 @@ class LoanController extends Controller
 
             // Notify loan officer that their loan has been disbursed
             Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
-
+            Notifix::notifyDailyReminderToRiskManager('disbused a loan amount of K'.$loan->principal);
             event(new LoanDisbursed($loan));
             GeneralHelper::audit_trail("Disburse", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -3865,7 +3865,7 @@ class LoanController extends Controller
         $temporary_charge->notes = $request->notes;
         $temporary_charge->status = 'pending';
         $temporary_charge->save();
-
+        Notifix::notifyBmAndRkForNewCharge($loan, $temporary_charge);
         GeneralHelper::audit_trail("Temporary Charge Created", "Loans", $id);
         Flash::success("Charge added to pending charges for approval.");
         return redirect()->back();
