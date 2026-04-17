@@ -430,7 +430,7 @@ class CollateralController extends Controller
         $query = Collateral::with(['loan.office', 'type']);
         $query = $this->applyFilters($query, $request);
 
-        $statuses = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+        $statuses = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('status')
             ->get()
             ->keyBy('status');
@@ -485,14 +485,14 @@ class CollateralController extends Controller
         $provinceId = $user->province_id;
 
         $query = Collateral::with(['loan.office', 'type'])->where('province_id', $provinceId);
-        
+
         $query = $this->applyFilters($query, $request);
 
-        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('status')
             ->get();
 
-        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total')
+        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('condition')
             ->get();
 
@@ -533,11 +533,11 @@ class CollateralController extends Controller
             });
         $query = $this->applyFilters($query, $request);
 
-        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('status')
             ->get();
 
-        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total')
+        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('condition')
             ->get();
 
@@ -577,11 +577,11 @@ class CollateralController extends Controller
         $query = Collateral::with(['loan.office', 'type'])->where('office_id', $officeId);
         $query = $this->applyFilters($query, $request);
 
-        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+        $statusTotals = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('status')
             ->get();
 
-        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total')
+        $conditionTotals = $query->selectRaw('`condition`, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('condition')
             ->get();
 
@@ -644,12 +644,12 @@ class CollateralController extends Controller
             ->where('created_by_id', $userId);
         $query = $this->applyFilters($query, $request);
 
-        $statuses = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total')
+        $statuses = $query->selectRaw('status, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('status')
             ->get()
             ->keyBy('status');
 
-        $typeExposure = $query->selectRaw('collateral_type_id, COUNT(*) as count, SUM(current_worth) as total')
+        $typeExposure = $query->selectRaw('collateral_type_id, COUNT(*) as count, SUM(current_worth) as total, SUM(sold_price) as total_sold, SUM(penalty) as total_penalty')
             ->groupBy('collateral_type_id')
             ->with('type')
             ->get();

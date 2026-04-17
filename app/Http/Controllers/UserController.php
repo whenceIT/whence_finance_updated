@@ -524,7 +524,15 @@ $consultants = $data['data'] ?? [];
                 }
             }
 
-            $data = [];
+            $data = [
+                'uncollected_without_charges' => 0,
+                'total_uncollected' => 0,
+                'total_collected' => 0,
+                'still_uncollected' => 0,
+                'given_out' => 0,
+                'carry_over' => 0,
+                'pdua' => 0,
+            ];
             $start = null;
             $end = null;
 
@@ -727,6 +735,28 @@ $consultants = $data['data'] ?? [];
             $json = @file_get_contents($url);
             $data = $json ? json_decode($json, true) : null;
 
+            if ($data) {
+                $data = array_merge([
+                    'uncollected_without_charges' => 0,
+                    'total_uncollected' => 0,
+                    'total_collected' => 0,
+                    'still_uncollected' => 0,
+                    'given_out' => 0,
+                    'carry_over' => 0,
+                    'pdua' => 0,
+                ], $data);
+            } else {
+                $data = [
+                    'uncollected_without_charges' => 0,
+                    'total_uncollected' => 0,
+                    'total_collected' => 0,
+                    'still_uncollected' => 0,
+                    'given_out' => 0,
+                    'carry_over' => 0,
+                    'pdua' => 0,
+                ];
+            }
+
 
         }
 
@@ -846,7 +876,15 @@ $consultants = $data['data'] ?? [];
                 }
             }
 
-            $data = [];
+            $data = [
+                'uncollected_without_charges' => 0,
+                'total_uncollected' => 0,
+                'total_collected' => 0,
+                'still_uncollected' => 0,
+                'given_out' => 0,
+                'carry_over' => 0,
+                'pdua' => 0,
+            ];
             $start = null;
             $end = null;
         }
@@ -857,14 +895,30 @@ $consultants = $data['data'] ?? [];
         }
 
         if ($role->role_id == '8') {
-            $data = [];
+            $data = [
+                'uncollected_without_charges' => 0,
+                'total_uncollected' => 0,
+                'total_collected' => 0,
+                'still_uncollected' => 0,
+                'given_out' => 0,
+                'carry_over' => 0,
+                'pdua' => 0,
+            ];
             $start = null;
             $end = null;
         }
 
 
         if ($role->role_id == '11') {
-            $data = [];
+            $data = [
+                'uncollected_without_charges' => 0,
+                'total_uncollected' => 0,
+                'total_collected' => 0,
+                'still_uncollected' => 0,
+                'given_out' => 0,
+                'carry_over' => 0,
+                'pdua' => 0,
+            ];
             $start = null;
             $end = null;
         }

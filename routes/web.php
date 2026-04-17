@@ -16,6 +16,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
@@ -35,6 +36,7 @@ use App\Http\Controllers\Recoveries\RecoverySpecialistController;
 use App\Http\Controllers\Recoveries\RecoveryReportController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
+use App\Http\Controllers\OfficeController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -159,6 +161,12 @@ Route::post('confirm_password_reset/{id}/{code}', 'HomeController@process_confir
 Route::get('payroll_loan', 'HomeController@payroll_loan');
 //Route::get('payroll_loan/create-step-one','HomeController@createStepOne');
 Route::any('create_payroll_loan_application', 'HomeController@create_payroll_loan_application');
+
+Route::get('notifications', 'HomeController@getNotifications')->middleware('sentinel');
+Route::get('notification-count', 'HomeController@getNotificationCount')->middleware('sentinel');
+Route::post('notifications/mark-all-read', 'HomeController@markAllNotificationsRead')->middleware('sentinel');
+Route::post('notifications/{id}/mark-read', 'HomeController@markNotificationRead')->middleware('sentinel');
+Route::get('my-notifications', [NotificationController::class, 'index'])->middleware('sentinel');
 Route::get('dashboard', [UserController::class, 'dashboard']);
 Route::get('cron', 'CronController@index');
 Route::get('test', 'TestController@index');
@@ -1117,6 +1125,7 @@ Route::group(['prefix' => 'ticket'], function () {
     Route::post('store_dashboard_ticket','TicketController@store_dashboard_ticket');
     Route::post('reassign', 'TicketController@reassign');
     Route::post('reject', 'TicketController@reject');
+    Route::post('resolve', 'TicketController@resolve');
     Route::match(['post', 'put'], '{id}/update', 'TicketController@update');
     Route::get('users', 'TicketController@usersByOfficeRole');
     Route::get('offices', 'TicketController@officesByParent');
@@ -1194,6 +1203,7 @@ Route::group(['prefix' => 'advance'], function () {
     Route::get('/active_advances/{id}', 'AdvanceController@showDetails')->name('advances.show');
     Route::post('{id}/close', 'AdvanceController@closeAdvance')->name('advances.close');
     Route::post('submit-top-up/{id}', 'AdvanceController@submitTopUp')->name('advances.submitTopUp');
+    Route::delete('{id}', 'AdvanceController@delete')->name('advances.delete');
     Route::post('approve/{id}', 'AdvanceController@approveTopUp')->name('topups.approve');
     Route::post('decline/{id}', 'AdvanceController@declineTopUp')->name('topups.decline');
     Route::get(
@@ -1777,3 +1787,5 @@ function handleHybridRoute(Request $request, $controllerMethod)
     // Call the controller method with the current request
     return app()->call($controllerMethod, ['request' => $request]);
 }
+
+Route::get('/offices', [OfficeController::class, 'getOffices']);

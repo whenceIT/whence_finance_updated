@@ -12,7 +12,12 @@ class AdvanceStatus {
 
 class Advance extends Model
 {
-    protected $fillable = ['user_id', 'amount', 'installments', 'date_approved', 'expected_repayment_dates', 'remaining_amount', 'status']; 
+    protected $fillable = ['user_id', 'amount', 'installments', 'date_approved', 'expected_repayment_dates', 'remaining_amount', 'status', 'date_requested'];
+
+    protected $casts = [
+        'date_requested' => 'datetime',
+        'date_approved' => 'datetime',
+    ]; 
 
 public function transactions()
     {

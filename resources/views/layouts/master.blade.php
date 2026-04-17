@@ -386,20 +386,17 @@
 </div>
 
 
-
-
-
 <body class="hold-transition sidebar-mini" style="background-color:#000041; color: #000000;">
     <div class="wrapper">
 
         <header class="main-header">
             <a id="hide-in-mobile-view" href="{{url('/')}}" class="logo"
-                    style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
-                    <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
-                        style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
-                    <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence
-                        Finance
-                    </span>
+                style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
+                <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
+                    style="width: 40px; height: 40px; border-radius: 30%; object-fit: cover; margin-right: 10px;">
+                <span style="color: #ffffff; font-weight: bold; font-size: 12px; white-space: nowrap;">Whence
+                    Finance
+                </span>
             </a>
             <!-- Mobile Header (visible on small screens ≤767px) -->
             <div class="mobile-header" style="display: none; justify-content: center; align-items: center; height: 50px; width: 100%; position: relative;">
@@ -412,15 +409,15 @@
                     </span>
                 </a>
                 <!-- Add a Notification  -->
-                <!-- <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-bell" style="font-size: 18px;"></i>
-                </a> -->
+                    <span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
+                </a>
                 <!-- Tools Menu (visible on mobile) -->
                 <a href="#" onclick="toggleUserDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-cog" style="font-size: 18px;"></i>
                 </a>
             </div>
-            
             <style>
                 /* Desktop header: visible on screens >= 768px */
                 @media (min-width: 768px) {
@@ -473,7 +470,6 @@
                     }
                 }
             </style>
-              
             <!-- Header Navbar: style can be found in header.less -->
             <nav class="navbar navbar-static-top" style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
             <!-- Sidebar toggle button-->
@@ -509,9 +505,11 @@
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
-                    <button onclick="openNotificationPanel()" class="mobile-wrench-btn" style="color: #ffffff; position: absolute; right: 15px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
-                        <i class="fa fa-wrench" style="font-size: 18px;"></i>
-                    </button>
+                    <!-- Add a Notification  -->
+                    <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="margin-top:2px; margin-right: 90px; color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                        <i class="fa fa-bell" style="font-size: 18px;"></i>
+                        <span id="notificationBadgeDesk" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
+                    </a>
                     <ul class="nav navbar-nav">
                         @if($user)
                             <!-- User Account: style can be found in dropdown.less -->
@@ -1047,26 +1045,52 @@
         @include('partials.profile_completion_wizard')
     @endif
 
-    @if($user && in_array($user->email, ['nyeleti.bremah@gmail.com']))
+    
     <!-- Floating SMS Button -->
+    @if($role == 1)
     <div id="sms-floating-btn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #00a65a; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s;">
         <i class="fa fa-envelope" style="color: white; font-size: 24px;"></i>
     </div>
     @endif
 
+    @if($role == 1)
+    @php
+    $offices = App\Models\Office::select('id', 'name')->get();
+    @endphp
+    <script>
+    var offices = @json($offices);
+    </script>
+    @endif
+
     <!-- SMS Modal -->
     <div id="sms-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1001;">
         <div style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS</h4>
+            <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS </h4>
             <form id="sms-form">
                 <div style="margin-bottom: 15px;">
-                    <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
-                    <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                    <label for="sms-type" style="display: block; margin-bottom: 5px; font-weight: bold;">Message Type:</label>
+                    <select id="sms-type" name="message_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                        <option value="single">Single SMS</option>
+                        <option value="overdue">Overdue Reminder</option>
+                    </select>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
-                    <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;" required></textarea>
+                <div id="single-sms-fields">
+                    <div style="margin-bottom: 15px;">
+                        <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
+                        <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
+                        <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;" required></textarea>
+                    </div>
                 </div>
+                <div id="bulk-sms-fields" style="display: none;">
+                    <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
+                    <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                        Options will be populated via JS
+                    </select>
+                </div>
+                <p class="sample-text" style="display: none;">Dear Customer, this is a reminder that your loan of ZMW 0 is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.</p>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
                     <button type="submit" style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
@@ -1097,14 +1121,42 @@
                 }
             });
 
+            // Load offices for the select
+            $('#sms-office').empty().append('<option value="">Select Office</option>');
+            offices.forEach(function(office) {
+                $('#sms-office').append('<option value="' + office.id + '">' + office.name + '</option>');
+            });
+
+            // Toggle fields based on message type
+            $('#sms-type').on('change', function() {
+                if ($(this).val() === 'overdue') {
+                    $('#single-sms-fields').hide();
+                    $('#bulk-sms-fields').show();
+                    $('#sms-phone').removeAttr('required');
+                    $('#sms-message').removeAttr('required');
+                    $('#sms-office').attr('required', 'required');
+                    $('.sample-text').show();
+                } else {
+                    $('#single-sms-fields').show();
+                    $('#bulk-sms-fields').hide();
+                    $('#sms-phone').attr('required', 'required');
+                    $('#sms-message').attr('required', 'required');
+                    $('#sms-office').removeAttr('required');
+                    $('.sample-text').hide();
+                }
+            });
+
             $('#sms-form').on('submit', function(e) {
                 e.preventDefault();
+                console.log('Form submitted');
                 var formData = $(this).serialize();
+                var url = $('#sms-type').val() === 'overdue' ? '/api/send-bulk-sms' : '/api/send-sms';
+                console.log('URL:', url, 'Data:', formData);
 
                 $('#sms-response').html('<div style="color: #007bff;">Sending...</div>').show();
 
                 $.ajax({
-                    url: '/api/send-sms',
+                    url: url,
                     method: 'POST',
                     data: formData,
                     headers: {
@@ -1257,148 +1309,46 @@
             }
         });
 
-        function toggleNotificationDropdown(event) {
-            event.preventDefault();
-            $('#notificationOverlay').toggleClass('active');
-            $('#notificationPanel').toggleClass('active');
-        }
+
     </script>
-    <!-- Notification Slide-in Panel -->
-    <div class="notification-overlay" id="notificationOverlay" onclick="closeNotificationPanel()"></div>
-    <div class="notification-panel" id="notificationPanel">
-        <div class="notification-panel-header">
-            <h3>Notifications</h3>
-            <button onclick="closeNotificationPanel()" style="background: none; border: none; font-size: 24px; color: #999; cursor: pointer;">&times;</button>
-        </div>
-        <div class="notification-panel-body" id="notificationList">
-            <div style="text-align: center; padding: 20px; color: #999;">
-                <i class="fa fa-bell-o" style="font-size: 40px; margin-bottom: 10px;"></i>
-                <p>No notifications</p>
-            </div>
-        </div>
-    </div>
 
-    <!-- CSS for Notification Panel -->
-    <style>
-        .notification-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9998;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .notification-overlay.active {
-            display: block;
-            opacity: 1;
-        }
-
-        .notification-panel {
-            position: fixed;
-            top: 0;
-            right: -400px;
-            width: 380px;
-            height: 100vh;
-            background: white;
-            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
-            z-index: 9999;
-            transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .notification-panel.active {
-            right: 0;
-        }
-
-        .notification-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            background: #00a04a;
-            color: white;
-        }
-
-        .notification-panel-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .notification-panel-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0;
-        }
-
-        .notification-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .notification-item:hover {
-            background: #f8f9fa;
-        }
-
-        .notification-item.unread {
-            background: #e8f4fd;
-        }
-
-        .notification-item-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .notification-item-message {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-
-        .notification-item-time {
-            color: #999;
-            font-size: 12px;
-        }
-    </style>
-
-    <!-- JavaScript for Notification Panel -->
+    <!-- Notification Count Polling Script -->
     <script>
-        function openNotificationPanel() {
-            document.getElementById('notificationOverlay').classList.add('active');
-            document.getElementById('notificationPanel').classList.add('active');
-            loadNotifications();
-        }
+        $(document).ready(function() {
+            // Function to update notification count
+            function updateNotificationCount() {
+                $.ajax({
+                    url: '/notification-count',
+                    method: 'GET',
+                    success: function(response) {
+                        var count = response.count || 0;
+                        var mobileBadge = $('#notificationBadge');
+                        var desktopBadge = $('#notificationBadgeDesk');
 
-        function closeNotificationPanel() {
-            document.getElementById('notificationOverlay').classList.remove('active');
-            document.getElementById('notificationPanel').classList.remove('active');
-        }
+                        if (count > 0) {
+                            var displayCount = count > 99 ? '99+' : count;
+                            mobileBadge.text(displayCount).show();
+                            desktopBadge.text(displayCount).show();
+                        } else {
+                            mobileBadge.hide();
+                            desktopBadge.hide();
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error fetching notification count:', xhr);
+                    }
+                });
+            }
 
-        function loadNotifications() {
-            // Fetch notifications from server
-            // This would typically be an AJAX call to your notifications endpoint
-            var notificationList = document.getElementById('notificationList');
-            notificationList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fa fa-spinner fa-spin" style="font-size: 30px;"></i><p style="margin-top: 10px;">Loading notifications...</p></div>';
-            
-            // Simulated delay - replace with actual AJAX call
-            setTimeout(function() {
-                // Example: You would fetch from your notifications API
-                // For now, showing empty state
-                notificationList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fa fa-bell-o" style="font-size: 40px; margin-bottom: 10px;"></i><p>No notifications</p></div>';
-            }, 1000);
-        }
+            // Initial load
+            updateNotificationCount();
+
+            // Poll every 30 seconds
+            setInterval(updateNotificationCount, 30000);
+        });
     </script>
+
+    @include('components.notification')
+
 </body>
 </html>

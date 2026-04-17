@@ -40,6 +40,7 @@ use App\Models\ChargeTransactionUnapproved;
 use Illuminate\Support\Facades\DB;
 use PDF;
 use App\Models\Office;
+use App\Models\PaymentType;
 use App\Models\UserRole;
 use App\Models\TargetTracker;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -54,6 +55,8 @@ use App\Models\AppraisalAnswer;
 use Illuminate\Support\Facades\Http;
 use App\Models\CarryOver;
 use App\Models\Province;
+use App\Models\Notifix;
+use App\Services\NotifixService;
 
 
 class LoanController extends Controller
@@ -121,13 +124,43 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $office_id = Sentinel::getUser()->office_id;
-        $data = Loan::where('status', 'disbursed')->when($office_id, function ($query) use ($office_id) {
-            if ($office_id != 0) {
-                $query->where('office_id', '=', $office_id);
-            }
-        })->with('loan_officer')->with('office')->with('transactions')->get();
 
+        $user = Sentinel::getUser();
+        $userId = $user->id;
+        $role = UserRole::where('user_id', $userId)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        $query = Loan::where('status', 'disbursed')->with('loan_officer')->with('office')->with('transactions');
+
+        // --- Role-based scope ---
+        if ($roleId == 1) {
+            // Admin — sees ALL loans
+        } elseif ($roleId == 4) {
+            // Loan Officer / Branch Manager — own office only
+            $officeId = $user->office_id;
+            $query->where('office_id', $officeId);
+        } elseif ($roleId == 12) {
+            // DM Manager — own district
+            $userOffice = $user->office;
+            $districtId = $userOffice ? $userOffice->district_id : null;
+            $query->whereHas('office', function ($q) use ($districtId) {
+                $q->where('district_id', $districtId);
+            });
+        } elseif ($roleId == 6) {
+            // Provincial Manager — own province
+            $provinceId = $user->office->province_id;
+            $query->whereHas('office', function ($q) use ($provinceId) {
+                $q->where('province_id', $provinceId);
+            });
+        } else {
+            // Default: scope to loans created by the user (Loan Consultants) or assigned to them
+            $query->where(function ($q) use ($userId) {
+                $q->where('created_by_id', $userId)
+                  ->orWhere('loan_officer_id', $userId);
+            });
+        }
+
+        $data = $query->get();
         return view('loan.branch_loans', compact('data'));
     }
 
@@ -202,7 +235,7 @@ class LoanController extends Controller
 
 
 
-        //       $BranchLoans = Loan::with('transactions')->where('office_id',$userBranch)->where('status','disbursed')->get();
+        //$BranchLoans = Loan::with('transactions')->where('office_id',$userBranch)->where('status','disbursed')->get();
         $LoanArray = [];
         $LoanArrayTwo = [];
         foreach ($BranchLoans as $loan) {
@@ -1155,6 +1188,9 @@ class LoanController extends Controller
                     'loan' => $loan->toArray()
                 ]
             ]);
+            // Notify Branch Manager for new loan approval
+            Notifix::notifyBmToApproveNewLoan($loan, $client, $request->principal);
+
             if (!empty($request->charges)) {
                 //loop through the array
                 foreach ($request->charges as $key) {
@@ -1484,6 +1520,7 @@ class LoanController extends Controller
                 'loan_topup' => $loan_topup->toArray()
             ]
         ]);
+        Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $loan->id . '/show');
     }
@@ -1493,6 +1530,8 @@ class LoanController extends Controller
     public function approve_top_up(Request $request, $id, $trans_id)
     {
         $topup = LoanTopUp::find($trans_id);
+        $loan = Loan::where('id', $id)->first();
+        $client = Client::where('id', $loan->client_id)->first();
         $loanTransDisbursed = LoanTransaction::where('loan_id', $id)->where('transaction_type', 'disbursement')->first();
         $loanTransInterest = LoanTransaction::where('loan_id', $id)->where('transaction_type', 'interest_initial')->first();
         $am = $loanTransDisbursed->debit + $topup->amount;
@@ -1502,6 +1541,7 @@ class LoanController extends Controller
         $topup->save();
         $loanTransDisbursed->save();
         $loanTransInterest->save();
+        Notifix::notifyLoanOfficerTopUpApproved($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $id . '/show');
     }
@@ -1510,8 +1550,11 @@ class LoanController extends Controller
     public function decline_top_up(Request $request, $id)
     {
         $topup = LoanTopUp::find($id);
+        $loan = Loan::where('id', $topup->loan_id)->first();
+        $client = Client::where('id', $loan->client_id)->first();
         $topup->status = 'declined';
         $topup->save();
+        Notifix::notifyLoanOfficerTopUpDeclined($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $topup->loan_id . '/show');
     }
@@ -2210,6 +2253,7 @@ class LoanController extends Controller
             return redirect()->back()->withInput()->withErrors($validator);
         } else {
             $loan = Loan::find($id);
+            $client = $loan->client; // Get the client for notification
             if ($loan->status != "pending") {
                 Flash::warning("Loan not pending");
                 return redirect()->back();
@@ -2221,6 +2265,10 @@ class LoanController extends Controller
             $loan->approved_date = $request->approved_date;
             $loan->approved_notes = $request->approved_notes;
             $loan->save();
+
+            // Notify loan officer that their loan has been approved
+            Notifix::notifyLoanOfficerLoanApproved($loan, $client);
+
             event(new LoanApproved($loan));
             GeneralHelper::audit_trail("Approve", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -2242,6 +2290,7 @@ class LoanController extends Controller
             return redirect()->back()->withInput()->withErrors($validator);
         } else {
             $loan = Loan::find($id);
+            $client = $loan->client; // Get the client for notification
             if ($loan->status != "pending") {
                 Flash::warning("Loan not pending");
                 return redirect()->back();
@@ -2251,6 +2300,10 @@ class LoanController extends Controller
             $loan->declined_date = date("Y-m-d");
             $loan->declined_notes = $request->declined_notes;
             $loan->save();
+
+            // Notify loan officer that their loan has been declined
+            Notifix::notifyLoanOfficerLoanDeclined($loan, $client);
+
             GeneralHelper::audit_trail("Decline", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
             return redirect()->back();
@@ -2827,6 +2880,14 @@ class LoanController extends Controller
                     }
                 }
             }
+
+            $client = $loan->client; // Get the client for notification
+            $payment_type = PaymentType::find($request->payment_type_id);
+            $payment_type_name = $payment_type ? $payment_type->name : 'Unknown';
+
+            // Notify loan officer that their loan has been disbursed
+            Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
+
             event(new LoanDisbursed($loan));
             GeneralHelper::audit_trail("Disburse", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -2933,7 +2994,21 @@ class LoanController extends Controller
                 $loan_transaction->office_id = $loan->office_id;
                 $loan_transaction->loan_id = $loan->id;
                 $loan_transaction->reversible = 1;
-                $loan_transaction->payment_apply_to = $request->payment_apply_to;
+
+                if ($request->has('is_recovery')) {
+                    
+                    $loan_transaction->is_recovery = 1;
+                    //if the recovery transaction is full payment
+                    if ($request->is_settlement == 1) {
+                        $loan_transaction->payment_apply_to = 'full_payment';
+                    }else{
+                        $loan_transaction->payment_apply_to = 'part_payment';
+                    }
+                } else {
+                    //else if not recovery transaction, then check if the user has selected payment apply to
+                    $loan_transaction->payment_apply_to = $request->payment_apply_to;
+                }
+
                 $loan_transaction->payment_detail_id = null;
                 $loan_transaction->payment_detail_id = null;
                 $loan_transaction->transaction_type = "repayment";
@@ -2962,11 +3037,16 @@ class LoanController extends Controller
                         'office_id' => Sentinel::getUser()->office->id,
                         'client' => $client->first_name . ' ' . $client->last_name,
                         'amount' => $request->amount,
-                        'type' => $request->payment_apply_to,
+                        'type' => $request->has('is_recovery') ? ($request->is_settlement == 1 ? 'Recovery full payment' : 'Recovery part payment') : $request->payment_apply_to,
                         'loan' => $loan->toArray(),
                         'transaction' => $loan_transaction->toArray()
                     ]
                 ]);
+
+                // Notify managers for transaction approval
+                Notifix::notifyBmToApproveTransaction($loan, $client, $request->amount);
+                Notifix::notifyRiskToReviewLoan($loan, $client, $request->amount);
+
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');
             }

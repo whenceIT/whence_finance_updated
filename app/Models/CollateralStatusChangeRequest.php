@@ -15,6 +15,8 @@ class CollateralStatusChangeRequest extends Model
         'old_status',
         'new_status',
         'reason',
+        'sold_price',
+        'penalty',
         'approval_status',
         'request_date',
         'approval_date',

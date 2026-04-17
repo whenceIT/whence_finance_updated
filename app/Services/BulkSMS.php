@@ -18,7 +18,7 @@ class BulkSMS
         $this->apiUrl = config('services.bulk_sms.url', 'https://mshastra.com/sendsms_api_json.aspx');
         $this->user = config('services.bulk_sms.user');
         $this->password = config('services.bulk_sms.password');
-        $this->sender = config('services.bulk_sms.sender', 'WhenceFinanceServices');
+        $this->sender = config('services.bulk_sms.sender', 'WHENCELTD');
         $this->language = config('services.bulk_sms.language', 'English');
     }
 
@@ -106,7 +106,9 @@ class BulkSMS
      */
     protected function sendBatch($smsData)
     {
+        Log::info('Preparing to send bulk SMS', ['count' => count($smsData)]);
         if (empty($smsData)) {
+            Log::warning('No valid phone numbers found for bulk SMS');
             return [];
         }
 
@@ -115,6 +117,8 @@ class BulkSMS
                 'Content-Type' => 'application/json',
             ])->post($this->apiUrl, $smsData);
 
+            Log::info('Bulk SMS API request sent', ['url' => $this->apiUrl, 'payload' => $smsData]);
+            Log::info($response->status(), ['response_body' => $response->body()]);
             if ($response->successful()) {
                 $responseData = $response->json();
                 Log::info('Bulk SMS sent successfully', ['count' => count($smsData), 'response' => $responseData]);

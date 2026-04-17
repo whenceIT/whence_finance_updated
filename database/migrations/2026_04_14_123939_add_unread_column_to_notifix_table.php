@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('expenses', function (Blueprint $table) {
-            $table->tinyInteger('is_attribution')->default(0)->after('gl_account_id');
+        Schema::table('notifix', function (Blueprint $table) {
+            $table->boolean('unread')->default(true)->after('to_id');
         });
     }
 
@@ -25,8 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('expenses', function (Blueprint $table) {
-            $table->dropColumn('is_attribution');
+        Schema::table('notifix', function (Blueprint $table) {
+            $table->dropColumn('unread');
         });
     }
 };

@@ -12,7 +12,13 @@
     </div>    
     <div class="box-body table-responsive">
         @if ($advances->isEmpty())
-            <p>No advances found.</p>
+            @if ($pending_advances)
+                <div class="alert alert-warning" style="cursor: pointer;" data-toggle="modal" data-target="#pendingAdvancesModal">
+                    You have {{$pending_advances->count()}} pending advances that are awaiting approval. <strong>Click here to view and manage.</strong>
+                </div>
+            @else
+                <p>No advances found.</p>
+            @endif
         @else
             <table class="table table-bordered table-hover table-striped" id="data-table">     
                 <thead>
@@ -108,6 +114,60 @@
         @endif
     </div>
 </div>
+
+<!-- Modal for Pending Advances -->
+<div class="modal fade" id="pendingAdvancesModal" tabindex="-1" role="dialog" aria-labelledby="pendingAdvancesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pendingAdvancesModalLabel">Pending Advances</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if($pending_advances->isNotEmpty())
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Amount Requested</th>
+                                <th>Installments</th>
+                                <th>Installment Amount</th>
+                                <th>Date Requested</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pending_advances as $advance)
+                                <tr>
+                                    <td>{{ $advance->first_name }} {{ $advance->last_name }}</td>
+                                    <td>{{ $advance->amount }}</td>
+                                    <td>{{ $advance->installments }}</td>
+                                    <td>{{ $advance->installment_amount }}</td>
+                                    <td>{{ $advance->date_requested ? \Carbon\Carbon::parse($advance->date_requested)->format('Y-m-d') : 'N/A' }}</td>
+                                    <td>
+                                        <form action="{{ route('advances.delete', $advance->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this pending advance?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">Cancel request</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <p>No pending advances.</p>
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 <script>
