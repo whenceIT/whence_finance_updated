@@ -2997,7 +2997,7 @@ class LoanController extends Controller
                 $loan_transaction->reversible = 1;
 
                 if ($request->has('is_recovery')) {
-                    
+                    //loan approval is marked for recoveries unit to see and approve or decline
                     $loan_transaction->is_recovery = 1;
                     //if the recovery transaction is full payment
                     if ($request->is_settlement == 1) {

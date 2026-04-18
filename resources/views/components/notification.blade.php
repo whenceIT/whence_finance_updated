@@ -108,6 +108,30 @@
         color: #999;
         font-size: 12px;
     }
+
+    .notification-confirm {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .notification-confirm.active {
+        opacity: 1;
+        max-height: 40px;
+    }
+
+    .notification-item.deleting {
+        opacity: 0;
+        max-height: 0;
+        margin: 0;
+        padding: 0;
+        border: none;
+        transition: all 0.3s ease;
+    }
 </style>
 
 <!-- JavaScript for Notification Panel -->
@@ -141,6 +165,9 @@
         const list = document.getElementById('notificationList');
         const badge = document.getElementById('notificationBadge');
 
+        // Reset active confirm
+        activeConfirm = null;
+
         if (notifications.length === 0) {
             list.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fa fa-bell-o" style="font-size: 40px; margin-bottom: 10px;"></i><p>No notifications</p></div>';
             badge.style.display = 'none';
@@ -160,7 +187,7 @@
                 iconHtml = `<i class="${iconClass}" style="font-size: 16px;"></i>`;
             }
             html += `
-                <div class="notification-item" style="padding: 15px; border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
+                <div class="notification-item" id="notification-${notification.id}" style="padding: 15px; border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
                     <div style="display: flex; align-items: flex-start;">
                         <div style="margin-right: 10px; color: #007bff; cursor: pointer;" onclick="handleNotificationClick('${notification.id}', '${notification.link_to}')">
                             ${iconHtml}
@@ -170,10 +197,14 @@
                             <small style="color: #999; font-size: 12px;">${notification.time_ago}</small>
                         </div>
                         <div style="margin-left: 10px;">
-                            <button onclick="deleteNotification('${notification.id}')" style="background: none; border: none; color: #999; cursor: pointer; font-size: 14px;" title="Delete notification">
+                            <button onclick="showDeleteConfirm('${notification.id}')" style="background: none; border: none; color: #999; cursor: pointer; font-size: 14px;" title="Delete notification">
                                 <i class="fa fa-trash"></i>
                             </button>
                         </div>
+                    </div>
+                    <div class="notification-confirm" id="confirm-${notification.id}">
+                        <button onclick="cancelDelete('${notification.id}')" style="flex: 1; padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Keep</button>
+                        <button onclick="confirmDelete('${notification.id}')" style="flex: 1; padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>
                     </div>
                 </div>
             `;
@@ -259,11 +290,34 @@
         });
     }
 
-    function deleteNotification(notificationId) {
-        if (!confirm('Are you sure you want to delete this notification?')) {
-            return;
+    let activeConfirm = null;
+
+    function showDeleteConfirm(notificationId) {
+        // Close any open confirm
+        if (activeConfirm && activeConfirm !== notificationId) {
+            cancelDelete(activeConfirm);
         }
 
+        const confirmDiv = document.getElementById('confirm-' + notificationId);
+        if (confirmDiv) {
+            confirmDiv.classList.add('active');
+            activeConfirm = notificationId;
+        }
+    }
+
+    function cancelDelete(notificationId) {
+        const confirmDiv = document.getElementById('confirm-' + notificationId);
+        if (confirmDiv) {
+            confirmDiv.classList.remove('active');
+            activeConfirm = null;
+        }
+    }
+
+    function confirmDelete(notificationId) {
+        const notificationItem = document.getElementById('notification-' + notificationId);
+        if (!notificationItem) return;
+
+        // Start delete process
         fetch('/notifications/' + notificationId, {
             method: 'DELETE',
             headers: {
@@ -274,25 +328,51 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Remove the notification from the UI
-                const notificationItem = document.querySelector(`[onclick*="handleNotificationClick('${notificationId}'"]`);
-                if (notificationItem) {
+                // Animate out
+                notificationItem.classList.add('deleting');
+                activeConfirm = null;
+
+                // Remove from DOM after animation
+                setTimeout(() => {
                     notificationItem.remove();
-                }
-                // Update badge count
-                if (typeof updateNotificationCount === 'function') {
-                    updateNotificationCount();
-                }
-                // Refresh the notification list
-                fetchNotifications();
+                    // Update badge count
+                    if (typeof updateNotificationCount === 'function') {
+                        updateNotificationCount();
+                    }
+                    // Check if list is empty
+                    checkEmptyState();
+                }, 300);
             } else {
-                alert('Failed to delete notification.');
+                // Hide confirm on failure
+                cancelDelete(notificationId);
+                showError('Failed to delete notification.');
             }
         })
         .catch(error => {
             console.error('Error deleting notification:', error);
-            alert('Error occurred while deleting notification.');
+            cancelDelete(notificationId);
+            showError('Error occurred while deleting notification.');
         });
+    }
+
+    function checkEmptyState() {
+        const list = document.getElementById('notificationList');
+        const items = list.querySelectorAll('.notification-item:not(.deleting)');
+        const badge = document.getElementById('notificationBadge');
+
+        if (items.length === 0) {
+            list.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fa fa-bell-o" style="font-size: 40px; margin-bottom: 10px;"></i><p>No notifications</p></div>';
+            badge.style.display = 'none';
+        }
+    }
+
+    function showError(message) {
+        // Simple error display - could be improved
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 10px 15px; border-radius: 4px; z-index: 10000;';
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => errorDiv.remove(), 3000);
     }
 
     function markAllNotificationsAsRead() {
