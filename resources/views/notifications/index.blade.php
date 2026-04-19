@@ -10,19 +10,19 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">My Notifications</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-success btn-sm" onclick="markAllAsRead()">
                             <i class="fas fa-check"></i> Mark All as Read
                         </button>
                     </div>
                 </div>
+                <br>
                 <div class="card-body p-0">
                     @if(count($notifications) > 0)
                         <ul class="list-group list-group-flush">
                             @foreach($notifications as $notification)
                                 <li class="list-group-item notification-item {{ $notification['read'] ?? false ? '' : 'unread' }}"
-                                    onclick="handleNotificationClick('{{ $notification['id'] }}')"
+                                    onclick="handleNotificationItemClick('{{ $notification['id'] }}')"
                                     data-type="{{ $notification['type'] }}"
                                     data-link-to="{{ $notification['link_to'] }}"
                                     data-created-date="{{ $notification['created_date'] }}">
@@ -99,7 +99,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="markAsReadBtn" onclick="markCurrentNotificationAsRead()">Mark as Read</button>
-                <button type="button" class="btn btn-success" id="goToLinkBtn" onclick="goToNotificationLink()">Go to Link</button>
             </div>
         </div>
     </div>
@@ -153,51 +152,74 @@
 
 <script>
     let currentNotificationId = null;
-    let currentNotificationLink = null;
 
-    function handleNotificationClick(notificationId) {
+    function handleNotificationItemClick(notificationId) {
+      
+        // Prevent default redirect behavior
+        event.preventDefault();
+        event.stopPropagation();
+
         // Store current notification details
         currentNotificationId = notificationId;
 
         // Find the notification data from the DOM (we need to get the details from the clicked element)
-        const notificationItem = event.currentTarget;
+        const notificationItem = event.currentTarget.closest('.notification-item');
         const message = notificationItem.querySelector('.notification-message').innerHTML;
         const timeAgo = notificationItem.querySelector('.notification-time').textContent;
         const type = notificationItem.getAttribute('data-type') || 'general';
         const linkTo = notificationItem.getAttribute('data-link-to') || '#';
         const createdDate = notificationItem.getAttribute('data-created-date') || '';
 
-        // Store link for later use
-        currentNotificationLink = linkTo;
-
         // Get icon class or image
         const iconHtml = getIconHtml(type, notificationItem);
 
-        // Populate modal with full information
+        // Populate modal with full information from notifix->note
+        const isUnread = notificationItem.classList.contains('unread');
+        const statusBadge = isUnread ? '<span class="badge badge-warning">Unread</span>' : '<span class="badge badge-success">Read</span>';
         const detailsHtml = `
-            <div class="notification-detail-card">
-                <div class="d-flex align-items-start mb-3">
+            <div class="card shadow-lg border-0 notification-detail-card">
+                <div class="card-header bg-gradient-primary text-white d-flex align-items-center">
                     <div class="mr-3">
                         ${iconHtml}
                     </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-2"><strong>Type:</strong> ${formatType(type)}</h6>
-                        <div class="mb-3">
-                            <strong>Message:</strong><br>
-                            <div class="mt-2">${message}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Created:</strong><br>
-                                <small class="text-muted">${createdDate}</small>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Time Ago:</strong><br>
-                                <small class="text-muted">${timeAgo}</small>
-                            </div>
-                        </div>
-                        ${linkTo !== '#' ? `<div class="mt-3"><strong>Link:</strong> <code>${linkTo}</code></div>` : ''}
+                    <div>
+                        <h5 class="mb-0">Notification Details</h5>
+                        <small class="text-light">ID: ${notificationId}</small>
                     </div>
+                    <div class="ml-auto">
+                        ${statusBadge}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h6 class="text-primary mb-2"><i class="fas fa-tag mr-2"></i>Type</h6>
+                                <span class="badge badge-info badge-lg">${formatType(type)}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h6 class="text-primary mb-2"><i class="fas fa-clock mr-2"></i>Timeline</h6>
+                                <div class="small text-muted">
+                                    <strong>Created:</strong> ${createdDate}<br>
+                                    <strong>Time Ago:</strong> ${timeAgo}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-3"><i class="fas fa-comment-alt mr-2"></i>Message</h6>
+                        <div class="alert alert-light border-left-primary p-3">
+                            ${message}
+                        </div>
+                    </div>
+                    ${linkTo !== '#' ? `
+                    <div class="mb-3">
+                        <h6 class="text-primary mb-2"><i class="fas fa-link mr-2"></i>Related Link</h6>
+                        <code class="d-block p-2 bg-light rounded">${linkTo}</code>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -273,11 +295,7 @@
         });
     }
 
-    function goToNotificationLink() {
-        if (currentNotificationLink) {
-            window.location.href = currentNotificationLink;
-        }
-    }
+
 
     function markAllAsRead() {
         if (!confirm('Are you sure you want to mark all notifications as read?')) {

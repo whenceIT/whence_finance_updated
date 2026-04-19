@@ -91,8 +91,8 @@
                         <tr class="bg-warning">
                             <td style="font-size: 16px;">Total Advances</td>
                             <td style="font-size: 16px;">{{ number_format($totalAdvances) }}.00</td>
-			</tr>
-		<tr class="bg-info">
+                        </tr>
+                        <tr class="bg-info">
                             <td style="font-size: 16px;">Advance Installments Paid </td>
                             <td style="font-size: 16px;">{{ number_format($totalAdvancesPaid, 2) }}</td>
                         </tr>
@@ -156,7 +156,7 @@
             </div>
         </div>
 
-@include('partials.training_hub_advisor')
+        @include('partials.training_hub_advisor')
 
 </div>
 
