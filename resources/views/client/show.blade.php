@@ -1193,8 +1193,17 @@
                                    class="control-label col-md-3">{{trans_choice('general.date',1)}}</label>
                             <div class="col-md-9">
                                 <input type="text" name="activated_date" class="form-control"
-                                       value="{{date("Y-m-d")}}"
+                                       value="{{date('Y-m-d')}}"
                                        required id="activated_date">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone"
+                                   class="control-label col-md-3">{{trans_choice('general.phone',1)}}</label>
+                            <div class="col-md-9">
+                                <input type="text" name="phone" class="form-control"
+                                       value="{{ ($client->phone ?: $client->mobile) ? substr($client->phone ?: $client->mobile, 0, -10) : '' }}"
+                                     id="phone" required>
                             </div>
                         </div>
                     </div>

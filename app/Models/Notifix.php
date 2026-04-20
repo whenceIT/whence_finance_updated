@@ -311,6 +311,37 @@ class Notifix extends Model
     }
 
     /**
+     * Notify Loan Officer that their transaction has been declined.
+     *
+     * @param mixed $loan The loan model
+     * @param mixed $client The client model
+     * @param string $transactionType The type of transaction
+     * @return void
+     */
+    public static function notifyLoanOfficerTransactionDeclined($loan, $client, $transactionType)
+    {
+        $notifixService = app(NotifixService::class);
+
+        if ($loan->loan_officer_id) {
+            $notifixService->create($loan->loan_officer_id, [Sentinel::getUser()->office->id], [
+                'id' => uniqid(),
+                'loan_id' => $loan->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/loan/' . $loan->id . '/show'),
+                'type' => 'transaction_declined',
+                'message' => 'Your ' . htmlspecialchars($transactionType) . ' loan transaction for ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' has been declined.',
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => Sentinel::getUser()->office->id,
+                'district_id' => Sentinel::getUser()->office->district_id,
+                'province_id' => Sentinel::getUser()->office->province_id,
+                'to_id' => $loan->loan_officer_id,
+                'created_date' => now()->toIso8601String()
+            ]);
+        }
+    }
+
+    /**
      * Notify Branch Manager for top-up approval.
      *
      * @param mixed $loan The loan model
