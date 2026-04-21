@@ -9,7 +9,7 @@
       </div>
       <div class="modal-body info">
         <form method="post" id="recoveryForm"
-              action="{{ url('loan/'.$loan->id.'/repayment/store') }}">
+              action="{{ url('loan/'.$loan->id.'/repayment/case/store') }}">
             {{csrf_field()}}
             <input type="hidden" name="is_recovery" value="1">
 

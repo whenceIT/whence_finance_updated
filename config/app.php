@@ -145,8 +145,8 @@ return [
         Illuminate\Session\SessionServiceProvider::class,
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
-	Illuminate\View\ViewServiceProvider::class,
-	//Intervention\Image\ImageServiceProvider::class,
+	    Illuminate\View\ViewServiceProvider::class,
+	    //Intervention\Image\ImageServiceProvider::class,
         Laracasts\Flash\FlashServiceProvider::class,
         Cartalyst\Sentinel\Laravel\SentinelServiceProvider::class,
         /*
@@ -162,6 +162,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        OwenIt\Auditing\AuditingServiceProvider::class,
     ],
 
     /*

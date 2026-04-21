@@ -290,8 +290,8 @@ public function bmdashboard(Request $request){
     $json3 = @file_get_contents($url3);
     $branch = $json ? json_decode($json, true) : null;
     $branch_data =  $json3 ? json_decode($json3, true) : null;
- $data = $json2 ? json_decode($json2, true) : null;
-$consultants = $data['data'] ?? [];
+    $data = $json2 ? json_decode($json2, true) : null;
+    $consultants = $data['data'] ?? [];
 
     return view('user.bmdashboard',compact('branch','consultants',  'start_date',
         'end_date','branch_data'));

@@ -52,7 +52,7 @@ function totalAmount($transactions) {
             <tbody>
                 <tr class="main-row" data-index="0" style="cursor:pointer;">
                     <td style="text-align:center;"><i class="fa fa-plus toggle-icon"></i></td>
-                    <td><strong>{{ $branch['name'] }}</strong></td>
+                    <td><strong>{{ $branch['name'] ?? 'Branch' }}</strong></td>
                     <td style="color:#28a745;">K{{ number_format($branch['collections'] ?? 0, 2) }}</td>
                     <td style="color:#007bff;">K{{ number_format($branch['new_loans'] ?? 0, 2) }}</td>
                     <td>-</td>
@@ -65,7 +65,7 @@ function totalAmount($transactions) {
                         <div style="padding:18px;">
                             <div style="background:#fff; border:1px solid #edf1f5; border-radius:10px; overflow:hidden;">
                                 <div style="padding:14px 16px; border-bottom:1px solid #f1f3f5;">
-                                    <strong>{{ strtoupper($branch['name']) }} TRANSACTION SUMMARY</strong>
+                                    <strong>{{ strtoupper($branch['name'] ?? 'Branch') }} TRANSACTION SUMMARY</strong>
                                 </div>
                                 <div style="padding:16px;">
                                     @php

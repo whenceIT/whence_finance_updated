@@ -66,6 +66,7 @@
         </div>
 
 
+        {{ $data }}
         <div class="box-body">
             <div class="table-responsive">
                 <table id="data-table" class="table table-bordered table-condensed table-hover">

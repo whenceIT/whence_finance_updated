@@ -935,10 +935,10 @@
                     </li>
                     @endif
                     <!-- Audit Trail -->
-                    @if(Sentinel::hasAccess('audit_trail'))
-                    <li @if(Request::is('audit_trail/*')) class="active" @endif style="padding-left: 10px;">
-                        <a href="{{ url('audit_trail/data') }}">
-                            <i class="fa fa-area-chart"></i> <span>{{trans_choice('general.audit_trail',2)}}</span>
+                    @if($role == 1)
+                    <li @if(Request::is('audits*')) class="active" @endif style="padding-left: 10px;">
+                        <a href="{{ route('audits.index') }}">
+                            <i class="fa fa-history"></i> <span>Risk Managemnt</span>
                         </a>
                     </li>
                     @endif
@@ -1071,25 +1071,6 @@
                             @endif
                         </ul>
                     </li>
-                    @endif
-                </ul>
-            </li>
-
-            <!-- ============================================
-                 RECOVERIES SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('loan/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/top_up_approvals')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-hand-rock-o"></i> <span>Recoveries</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-
-                    <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
                     @endif
                 </ul>
             </li>

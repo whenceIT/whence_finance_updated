@@ -46,24 +46,29 @@ class ExpenseController extends Controller
         $end_date = $request->end_date;
         $office_id = $request->office_id;
 
-        // dd($office_id, $start_date, $end_date);
-
-        if (empty($office_id) && $office_id !== '0' && $office_id !== 0) {
-            $office_id = Sentinel::getUser()->office_id;
-        }
+        $user = Sentinel::getUser();
+        $role_id = $user->roles()->first()->id ?? null;
 
         $offices = Office::all();
-        $query = Expense::query();
+        $query = Expense::orderBy('id', 'desc');
+
         if (!empty($start_date) && !empty($end_date)) {
             $query->whereBetween('date', [$start_date, $end_date]);
         }
 
-        if (!empty($office_id) && $office_id != 0) {
-            $query->where('office_id', $office_id);
+        if ($role_id) {
+            if (empty($office_id) && $office_id !== '0' && $office_id !== 0) {
+                $office_id = $user->office_id;
+            }
+            if (!empty($office_id) && $office_id != 0) {
+                $query->where('office_id', $office_id);
+            }
         }
 
-        $data = $query->get();
+        $data = $query->latest()->get();
 
+        
+        
         if ($request->ajax()) {
             return response()->json($data);
         }

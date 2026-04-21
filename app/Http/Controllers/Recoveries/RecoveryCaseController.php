@@ -473,8 +473,8 @@ class RecoveryCaseController extends Controller
                 if ($recoveryCase->origin_branch_attribution_pct > 0) {
                     $attributionAmount = $amount * $recoveryCase->origin_branch_attribution_pct / 100;
                     
-                    $attr1 = Expense::create([
-                        'office_id' => $loan->office_id,
+                    Expense::create([
+                        'office_id' => $recoveryCase->origin_branch_id,
                         'created_by_id' => $user->id,
                         'expense_type_id' => 1, // Default expense type
                         'name' => 'Recovery Attribution - Origin Branch, Case #' . $recoveryCase->id,
@@ -492,7 +492,7 @@ class RecoveryCaseController extends Controller
                 if ($recoveryCase->supporting_branch_attribution_pct > 0) {
                     $attributionAmount = $amount * $recoveryCase->supporting_branch_attribution_pct / 100;
                     
-                    $attr2 = Expense::create([
+                    Expense::create([
                         'office_id' => $recoveryCase->supporting_branch_id,
                         'created_by_id' => $user->id,
                         'expense_type_id' => 1, // Default expense type

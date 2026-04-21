@@ -28,6 +28,7 @@ use App\Models\LoanRepaymentSchedule;
 use App\Models\LoanTransaction;
 use App\Models\LoanTransactionUnapproved;
 use App\Models\LoanTransactionsPending;
+use App\Services\BulkSMS;
 use App\Models\LoanTopUp;
 use App\Models\Note;
 use App\Models\PaymentDetail;
@@ -61,9 +62,12 @@ use App\Services\NotifixService;
 
 class LoanController extends Controller
 {
+    protected $bulkSms;
+
     public function __construct()
     {
         $this->middleware('sentinel');
+        $this->bulkSms = app(BulkSMS::class);
     }
 
 
@@ -1522,8 +1526,10 @@ class LoanController extends Controller
         ]);
         Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
         Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup);
-        Flash::success(trans('general.successfully_saved'));
-        return redirect('loan/' . $loan->id . '/show');
+                Flash::success(trans('general.successfully_saved'));
+
+
+                return redirect('loan/' . $loan->id . '/show');
     }
 
 
@@ -3028,7 +3034,6 @@ class LoanController extends Controller
                 $loan_transaction->notes_pd = $request->notes;
                 // $loan_transaction->request_id = $request->$id;
                 $loan_transaction->save();
-                $this->store_dept_recovery($request, $loan_transaction->id);
                 $client_id = $loan->client_id;
                 $client = \App\Models\Client::find($client_id);
                 Http::post('https://notifications.whencefinancesystem.com/emit', [
@@ -3151,6 +3156,23 @@ class LoanController extends Controller
                 $client = \App\Models\Client::find($loan->client_id);
                 Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
 
+                // // Send SMS to client about the transaction
+                // $amount = $Trans->credit;
+                // $date = $Trans->date;
+                // $paymentType = $Trans->payment_apply_to;
+                // $dueDate = $loan->first_repayment_date ? date('d M Y', strtotime($loan->first_repayment_date)) : 'N/A';
+                // $loanStatus = $loan->status;
+
+                // if ($paymentType == 'full_payment') {
+                //     $message = "Dear {$client->first_name} {$client->last_name}, your loan has been fully paid off. Payment of ZMW {$amount} received on {$date}. Loan Status: {$loanStatus}. Thank you for banking with us.";
+                // } elseif ($paymentType == 'part_payment') {
+                //     $message = "Dear {$client->first_name} {$client->last_name}, your loan part payment of ZMW {$amount} has been received on {$date}. Next due date: {$dueDate}. Loan Status: {$loanStatus}. Thank you.";
+                // } else {
+                //     $message = "Dear {$client->first_name} {$client->last_name}, your loan repayment of ZMW {$amount} has been processed on {$date}. Payment Type: {$paymentType}. Loan Status: {$loanStatus}. Thank you.";
+                // }
+
+                // $this->bulkSms->sendToClients([$client], $message);
+                
                 GeneralHelper::audit_trail("Create Repayment", "Loans", $id);
 
                 Flash::success(trans('general.successfully_saved'));
@@ -3159,15 +3181,10 @@ class LoanController extends Controller
         }
     }
 
-    public function store_dept_recovery(Request $request, $loan_transaction_id = null){
-        // Store recovery payment when payment_apply_to is 'debt_recovery'
-        if ($request->has('payment_apply_to') && $request->payment_apply_to == 'debt_recovery') {
-            $loanTransaction = null;
-            if ($loan_transaction_id) {
-                $loanTransaction = LoanTransaction::find($loan_transaction_id);
-            }
-            
-            // Get the recovery case
+    public function store_debt_recovery(Request $request){
+            dd($request);
+        try {
+                        // Get the recovery case
             $recoveryCase = \App\Models\RecoveryCase::find($request->recovery_case_id);
             
             if ($recoveryCase) {
@@ -3197,7 +3214,7 @@ class LoanController extends Controller
                 // Create recovery payment record
                 $recoveryPayment = new \App\Models\RecoveryPayment();
                 $recoveryPayment->recovery_case_id = $recoveryCase->id;
-                $recoveryPayment->transaction_id = $loan_transaction_id;
+                $recoveryPayment->transaction_id = null;
                 $recoveryPayment->recorded_by = Sentinel::getUser()->id;
                 $recoveryPayment->receipt_number = $request->receipt_number ?? \App\Models\RecoveryPayment::generateReceiptNumber();
                 $recoveryPayment->amount = $amount;
@@ -3248,8 +3265,9 @@ class LoanController extends Controller
                 
                 return $recoveryPayment;
             }
+        } catch (\Throwable $th) {
+            return null;
         }
-        return null;
     }
 
     public function edit_repayment($loan_transaction)

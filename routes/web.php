@@ -37,6 +37,7 @@ use App\Http\Controllers\Recoveries\RecoveryReportController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\AuditController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -397,6 +398,10 @@ Route::group(['prefix' => 'office'], function () {
     Route::get('{office}/show', 'OfficeController@show');
     Route::post('{id}/update', 'OfficeController@update');
     Route::get('{id}/delete', 'OfficeController@delete');
+});
+//route for audits
+Route::group(['prefix' => 'audits'], function () {
+    Route::get('/', [AuditController::class, 'index'])->name('audits.index');
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {
@@ -759,6 +764,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('{loan}/repayment/create', 'LoanController@create_repayment');
     ////////////////////////////////////////////////////////////////////////////////////////
     Route::post('{id}/repayment/store', 'LoanController@transaction_fp_pp');
+    Route::post('{id}/repayment/case/store', 'LoanController@store_debt_recovery');
     Route::get('repayment/{loan_transaction}/edit', 'LoanController@edit_repayment');
     Route::post('repayment/{id}/update', 'LoanController@update_repayment');
     Route::get('repayment/{id}/reverse', 'LoanController@reverse_repayment');
@@ -1762,32 +1768,5 @@ Route::group(['prefix' => 'recovery'], function () {
     });
 
 });
-
-/**
- * Helper function for hybrid JWT login and controller call
- */
-function handleHybridRoute(Request $request, $controllerMethod)
-{
-    $token = $request->query('token');
-    if (!$token) {
-        return response()->json(['success' => false, 'message' => 'Token missing'], 401);
-    }
-
-    try {
-        $payload = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
-    } catch (\Exception $e) {
-        return response()->json(['success' => false, 'message' => 'Invalid token: ' . $e->getMessage()], 401);
-    }
-
-    $user = Sentinel::findById($payload->id);
-    if (!$user) {
-        return response()->json(['success' => false, 'message' => 'User not found'], 404);
-    }
-
-    Sentinel::login($user); // sets laravel_session
-
-    // Call the controller method with the current request
-    return app()->call($controllerMethod, ['request' => $request]);
-}
 
 Route::get('/offices', [OfficeController::class, 'getOffices']);

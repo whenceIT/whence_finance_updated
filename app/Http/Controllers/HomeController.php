@@ -18,6 +18,7 @@ use Sentinel;
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Activation;
 use App\Http\Requests;
+use App\Services\AuditorService;
 use App\Models\Client;
 use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
@@ -30,9 +31,11 @@ use App\Services\NotifixService;
 
 class HomeController extends Controller
 {
-    public function __construct()
-    {
+    protected $auditorService;
 
+    public function __construct(AuditorService $auditorService)
+    {
+        $this->auditorService = $auditorService;
     }
 
     /**
@@ -266,6 +269,10 @@ class HomeController extends Controller
             try {
                 if (Sentinel::authenticate($credentials, $remember)) {
                     //GeneralHelper::audit_trail("Logged in to system");
+
+                    // Log login audit
+                    $this->auditorService->logLogin(Sentinel::getUser()->id, $request);
+
                     if (Sentinel::getUser()->blocked == 1) {
                         //prevent login
                         Flash::warning(trans('general.user_blocked'));
