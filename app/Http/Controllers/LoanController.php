@@ -3156,22 +3156,26 @@ class LoanController extends Controller
                 $client = \App\Models\Client::find($loan->client_id);
                 Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
 
-                // // Send SMS to client about the transaction
-                // $amount = $Trans->credit;
-                // $date = $Trans->date;
-                // $paymentType = $Trans->payment_apply_to;
-                // $dueDate = $loan->first_repayment_date ? date('d M Y', strtotime($loan->first_repayment_date)) : 'N/A';
-                // $loanStatus = $loan->status;
+                // Send SMS to client about the transaction
+                $amount = $Trans->credit;
+                $date = $Trans->date;
+                $paymentType = $Trans->payment_apply_to;
+                $dueDate = $loan->first_repayment_date ? date('d M Y', strtotime($loan->first_repayment_date)) : 'N/A';
+                $loanStatus = $loan->status;
 
-                // if ($paymentType == 'full_payment') {
-                //     $message = "Dear {$client->first_name} {$client->last_name}, your loan has been fully paid off. Payment of ZMW {$amount} received on {$date}. Loan Status: {$loanStatus}. Thank you for banking with us.";
-                // } elseif ($paymentType == 'part_payment') {
-                //     $message = "Dear {$client->first_name} {$client->last_name}, your loan part payment of ZMW {$amount} has been received on {$date}. Next due date: {$dueDate}. Loan Status: {$loanStatus}. Thank you.";
-                // } else {
-                //     $message = "Dear {$client->first_name} {$client->last_name}, your loan repayment of ZMW {$amount} has been processed on {$date}. Payment Type: {$paymentType}. Loan Status: {$loanStatus}. Thank you.";
-                // }
+                if ($paymentType == 'full_payment') {
+                    $message = "Dear {$client->first_name} {$client->last_name}, your loan has been fully paid off. Payment of ZMW {$amount} received on {$date}. Loan Status: {$loanStatus}. Thank you for banking with us.";
+                } elseif ($paymentType == 'part_payment') {
+                    $message = "Dear {$client->first_name} {$client->last_name}, your loan part payment of ZMW {$amount} has been received on {$date}. Next due date: {$dueDate}. Loan Status: {$loanStatus}. Thank you.";
+                } else {
+                    $message = "Dear {$client->first_name} {$client->last_name}, your loan repayment of ZMW {$amount} has been processed on {$date}. Payment Type: {$paymentType}. Loan Status: {$loanStatus}. Thank you.";
+                }
 
-                // $this->bulkSms->sendToClients([$client], $message);
+                // Send SMS to client about the transaction (only for enabled offices)
+                $enabledOffices = config('smsoffices.enabled_offices', []);
+                if (in_array($loan->office_id, $enabledOffices)) {
+                    $this->bulkSms->sendToClients([$client], $message);
+                }
                 
                 GeneralHelper::audit_trail("Create Repayment", "Loans", $id);
 
@@ -3181,9 +3185,10 @@ class LoanController extends Controller
         }
     }
 
-    public function store_debt_recovery(Request $request){
-            dd($request);
+    public function store_debt_recovery(Request $request, $loan){
+          
         try {
+            $loan = Loan::where('id', $loan)->first();
                         // Get the recovery case
             $recoveryCase = \App\Models\RecoveryCase::find($request->recovery_case_id);
             
@@ -3261,11 +3266,16 @@ class LoanController extends Controller
                     $recoveryCase->settlement_amount = $amount;
                     $recoveryCase->resolved_date = date('Y-m-d');
                     $recoveryCase->save();
+
+                    $loan->status = 'closed';
+                    $loan->save();
                 }
                 
-                return $recoveryPayment;
+                Flash::success(trans('general.successfully_saved'));
+                return redirect('loan/' . $loan->id . '/show');
             }
         } catch (\Throwable $th) {
+            dd($th);
             return null;
         }
     }

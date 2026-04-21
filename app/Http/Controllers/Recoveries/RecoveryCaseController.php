@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
 use App\Models\RecoveryCase;
+use App\Models\RecoveryPayment;
 use App\Models\Loan;
 use App\Models\Expense;
 use App\Models\Office;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Laracasts\Flash\Flash;
+use App\Models\LedgerIncome;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class RecoveryCaseController extends Controller
@@ -396,8 +398,8 @@ class RecoveryCaseController extends Controller
             // Province manager - see all offices in province
             foreach ($offices as $office) {
                 if ($office->province_id == $province_id) {
-                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)
-                        ->where('is_recovery', 1)
+                    $transactions = RecoveryPayment::where('office_id', $office->id)
+                        ->where('status', 0)
                         ->get();
                     foreach ($transactions as $transaction) {
                         array_push($province_transactions, $transaction);
@@ -408,14 +410,26 @@ class RecoveryCaseController extends Controller
         } else {
             if ($role->role_id == "1" || $role->role_id == "10") {
                 // Admin sees all
-                $data = LoanTransactionUnapproved::where('is_recovery', 1)->get();
+                $data = RecoveryPayment::where('status', 0)->get();
             } else {
                 // Regular user sees office-specific
-                $data = LoanTransactionUnapproved::where('office_id', $office_id)
-                    ->where('is_recovery', 1)
+                $data = RecoveryPayment::where('office_id', $office_id)
+                    ->where('status', 0)
                     ->get();
             }
         }
+
+        $data = RecoveryPayment::where('status', 0)
+            ->with([
+                'recordedBy', 
+                'recoveryCase', 
+                'recoveryCase.loan', 
+                'recoveryCase.client',
+                'recoveryCase.originBranch',
+                'recoveryCase.supportingBranch',
+                'recoveryCase.assignedSpecialist'
+            ])
+            ->get();
 
         return view('loan.recoveries_approvals', compact('data'));
     }
@@ -423,42 +437,38 @@ class RecoveryCaseController extends Controller
     public function recoveriesApprove($id)
     {
         try {
-            $transaction = \App\Models\LoanTransactionUnapproved::findOrFail($id);
-            // dd($transaction);
-            // Approve the transaction using existing logic
-            $loan = $transaction->loan;
-            $pending_transactions = LoanTransactionUnapproved::where('loan_id', $loan->id)->get();
-            $count = count($pending_transactions);
-            if ($count > 1) {
-                Flash::warning("This loan has more than one pending transaction!!");
-                return redirect('loan/recoveries_approvals');
-            }
+            $payment = RecoveryPayment::where('id', $id)
+                ->with([
+                    'recordedBy', 
+                    'recoveryCase', 
+                    'recoveryCase.loan', 
+                    'recoveryCase.client',
+                    'recoveryCase.originBranch',
+                    'recoveryCase.supportingBranch',
+                    'recoveryCase.assignedSpecialist'
+                ])
+                ->firstOrFail();
+            $loan = $payment->recoveryCase->loan;
 
-            // Create approved transaction
+            // Create payment detail if needed (simplified for now)
             $payment_detail = new \App\Models\PaymentDetail();
-            $payment_detail->payment_type_id = $transaction->payment_type_id_pd;
-            $payment_detail->account_number = $transaction->account_number;
-            $payment_detail->cheque_number = $transaction->cheque_number;
-            $payment_detail->routing_code = $transaction->routing_code;
-            $payment_detail->receipt_number = $transaction->receipt_number;
-            $payment_detail->bank = $transaction->bank;
-            $payment_detail->notes = $transaction->notes_pd;
             $payment_detail->save();
 
+            // Create approved transaction
             $loan_transaction = new \App\Models\LoanTransaction();
-            $loan_transaction->created_by_id = $transaction->created_by_id;
+            $loan_transaction->created_by_id = $payment->recordedBy->id;
             $loan_transaction->office_id = $loan->office_id;
             $loan_transaction->loan_id = $loan->id;
             $loan_transaction->reversible = 1;
-            $loan_transaction->payment_apply_to = $transaction->payment_apply_to;
+            $loan_transaction->payment_apply_to = 'debt_recovery'; // Assuming this is debt recovery
             $loan_transaction->payment_detail_id = $payment_detail->id;
             $loan_transaction->transaction_type = "repayment";
-            $loan_transaction->date = $transaction->date;
-            $date = explode('-', $transaction->date);
+            $loan_transaction->date = $payment->payment_date;
+            $date = explode('-', $payment->payment_date);
             $loan_transaction->year = $date[0];
             $loan_transaction->month = $date[1];
-            $loan_transaction->credit = $transaction->credit;
-            $loan_transaction->notes = $transaction->notes;
+            $loan_transaction->credit = $payment->amount;
+            $loan_transaction->notes = $payment->notes;
             $loan_transaction->temp_id = $id;
             $loan_transaction->is_recovery = 1;
             $loan_transaction->save();
@@ -477,7 +487,7 @@ class RecoveryCaseController extends Controller
                         'office_id' => $recoveryCase->origin_branch_id,
                         'created_by_id' => $user->id,
                         'expense_type_id' => 1, // Default expense type
-                        'name' => 'Recovery Attribution - Origin Branch, Case #' . $recoveryCase->id,
+                        'name' => 'Recovery Attribution - Origin Branch, Case #' . $recoveryCase->case_number,
                         'amount' => $attributionAmount,
                         'date' => $loan_transaction->date,
                         'year' => $loan_transaction->year,
@@ -492,36 +502,23 @@ class RecoveryCaseController extends Controller
                 if ($recoveryCase->supporting_branch_attribution_pct > 0) {
                     $attributionAmount = $amount * $recoveryCase->supporting_branch_attribution_pct / 100;
                     
-                    Expense::create([
-                        'office_id' => $recoveryCase->supporting_branch_id,
-                        'created_by_id' => $user->id,
-                        'expense_type_id' => 1, // Default expense type
-                        'name' => 'Recovery Attribution - Supporting Branch, Case #' . $recoveryCase->id,
-                        'amount' => $attributionAmount,
+                    LedgerIncome::create([
                         'date' => $loan_transaction->date,
-                        'year' => $loan_transaction->year,
-                        'month' => $loan_transaction->month,
-                        'gl_account_id' => null,
-                        'notes' => 'Recovery attribution for loan ' . $loan->id,
-                        'is_attribution' => 1,
+                        'amount' => $attributionAmount,
+                        'from' => 'Debt Recovery Attribution - Supporting Branch, Case #' . $recoveryCase->case_number,
                     ]);
                 }
             }
 
             // Update RecoveryPayment status
-            $recoveryPayment = \App\Models\RecoveryPayment::where('transaction_id', $transaction->id)->first();
-            
-            if ($recoveryPayment) {
-                // dd($recoveryPayment);
-                $recoveryPayment->transaction_id = $loan_transaction->id;
-                $recoveryPayment->status = 1;
-                $recoveryPayment->save();
-            }
+            $payment->transaction_id = $loan_transaction->id;
+            $payment->status = 1;
+            $payment->save();
 
-            LoanTransactionUnapproved::where('id', $id)->delete();
             Flash::success('Recovery payment approved successfully.');
             return redirect('loan/recoveries_approvals');
         } catch (\Throwable $th) {
+            dd($th);
              Flash::error('An error occurred while approving the recovery payment.');
              return redirect('loan/recoveries_approvals');
         }
@@ -529,9 +526,9 @@ class RecoveryCaseController extends Controller
 
     public function recoveriesDecline($id)
     {
-        $transaction = \App\Models\LoanTransactionUnapproved::findOrFail($id);
-        // Delete the transaction
-        $transaction->delete();
+        $payment = RecoveryPayment::findOrFail($id);
+        // Delete the payment
+        $payment->delete();
         Flash::success('Recovery payment declined and deleted successfully.');
         return redirect('loan/recoveries_approvals');
     }

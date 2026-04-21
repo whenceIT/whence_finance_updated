@@ -47,7 +47,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
             <span class="info-box-icon bg-aqua"><i class="fa fa-bank"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Outstanding</span>
-                <span class="info-box-number">K {{ number_format($case->loan_outstanding_amount, 2) }}</span>
+                <span class="info-box-number">K {{ number_format(($case->loan_outstanding_amount ?? 0) - ($case->payments->sum('amount')), 2) }}</span>
             </div>
         </div>
     </div>
@@ -56,7 +56,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
             <span class="info-box-icon bg-green"><i class="fa fa-check-circle"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Recovered</span>
-                <span class="info-box-number">K {{ number_format($case->amount_recovered, 2) }}</span>
+                <span class="info-box-number">K {{ number_format($case->payments->sum('amount'), 2) }}</span>
             </div>
         </div>
     </div>
@@ -88,7 +88,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
                             <dt>Origin Branch:</dt><dd>{{ $case->originBranch?->name ?? '—' }}</dd>
                             <dt>Supporting Branch:</dt><dd>{{ $case->supportingBranch?->name ?? '—' }}</dd>
                             <dt>Escalated By:</dt><dd>{{ $case->escalatedBy?->first_name ?? '' }} {{ $case->escalatedBy?->last_name ?? '—' }}</dd>
-                            <dt>Escalation Date:</dt><dd>{{ $case->escalation_date?->format('Y-m-d') ?? '—' }}</dd>
+                            <dt>Escalation Date:</dt><dd>{{ $case->escalation_date ?? '—' }}</dd>
                             <dt>Days Past Due at Escalation:</dt><dd>{{ $case->days_past_due_at_escalation ?? '—' }}</dd>
                             <dt>LC Contact Attempts:</dt><dd>{{ $case->lc_contact_attempts ?? '—' }}</dd>
                         </dl>
@@ -111,8 +111,8 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
                         <dl class="dl-horizontal">
                             <dt>Legal Reference Number:</dt><dd>{{ $case->legal_reference_number ?? '—' }}</dd>
                             <dt>Lawyer Firm:</dt><dd>{{ $case->lawyer_firm ?? '—' }}</dd>
-                            <dt>Legal Filed Date:</dt><dd>{{ $case->legal_filed_date?->format('Y-m-d') ?? '—' }}</dd>
-                            <dt>Court Date:</dt><dd>{{ $case->court_date?->format('Y-m-d') ?? '—' }}</dd>
+                            <dt>Legal Filed Date:</dt><dd>{{ $case->legal_filed_date ?? '—' }}</dd>
+                            <dt>Court Date:</dt><dd>{{ $case->court_date ?? '—' }}</dd>
                             <dt>Legal Costs Incurred:</dt><dd>K {{ number_format($case->legal_costs_incurred, 2) }}</dd>
                             <dt>Enforcement Type:</dt><dd>{{ $case->enforcement_type ?? '—' }}</dd>
                         </dl>
@@ -121,7 +121,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
                         <dl class="dl-horizontal">
                             <dt>Skip Trace Tracking Code:</dt><dd>{{ $case->skip_trace_tracking_code ?? '—' }}</dd>
                             <dt>Client Located:</dt><dd>{{ $case->client_located ? 'Yes' : 'No' }}</dd>
-                            <dt>Located Date:</dt><dd>{{ $case->located_date?->format('Y-m-d') ?? '—' }}</dd>
+                            <dt>Located Date:</dt><dd>{{ $case->located_date ?? '—' }}</dd>
                             <dt>Skip Trace Costs:</dt><dd>K {{ number_format($case->skip_trace_costs, 2) }}</dd>
                             <dt>Client Last Known Location:</dt><dd>{{ $case->client_last_known_location ?? '—' }}</dd>
                             <dt>Client New Location:</dt><dd>{{ $case->client_new_location ?? '—' }}</dd>
@@ -130,7 +130,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
                     </div>
                     <div role="tabpanel" class="tab-pane" id="dormant">
                         <dl class="dl-horizontal">
-                            <dt>Last Payment Date:</dt><dd>{{ $case->last_payment_date?->format('Y-m-d') ?? '—' }}</dd>
+                            <dt>Last Payment Date:</dt><dd>{{ $case->last_payment_date ?? '—' }}</dd>
                             <dt>Dormant Days:</dt><dd>{{ $case->dormant_days ?? '—' }}</dd>
                             <dt>Revival Method:</dt><dd>{{ $case->revival_method ?? '—' }}</dd>
                         </dl>
@@ -138,9 +138,9 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
                     <div role="tabpanel" class="tab-pane" id="resolution">
                         <dl class="dl-horizontal">
                             <dt>Notes:</dt><dd>{{ $case->notes ?? '—' }}</dd>
-                            <dt>Target Resolution Date:</dt><dd>{{ $case->target_resolution_date?->format('Y-m-d') ?? '—' }}</dd>
-                            <dt>Resolved Date:</dt><dd>{{ $case->resolved_date?->format('Y-m-d') ?? '—' }}</dd>
-                            <dt>Approved Date:</dt><dd>{{ $case->approved_date?->format('Y-m-d') ?? '—' }}</dd>
+                            <dt>Target Resolution Date:</dt><dd>{{ $case->target_resolution_date ?? '—' }}</dd>
+                            <dt>Resolved Date:</dt><dd>{{ $case->resolved_date ?? '—' }}</dd>
+                            <dt>Approved Date:</dt><dd>{{ $case->approved_date ?? '—' }}</dd>
                             <dt>Is Resolved:</dt><dd>{{ $case->is_resolved ? 'Yes' : 'No' }}</dd>
                         </dl>
                     </div>
@@ -161,8 +161,8 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
                     <dt>Principal Amount:</dt><dd>K {{ number_format($case->loan->principal_amount ?? 0, 2) }}</dd>
                     <dt>Interest Rate:</dt><dd>{{ $case->loan->interest_rate ?? '—' }}%</dd>
                     <dt>Term:</dt><dd>{{ $case->loan->term ?? '—' }} months</dd>
-                    <dt>Disbursed Date:</dt><dd>{{ $case->loan->disbursed_date?->format('Y-m-d') ?? '—' }}</dd>
-                    <dt>Maturity Date:</dt><dd>{{ $case->loan->maturity_date?->format('Y-m-d') ?? '—' }}</dd>
+                    <dt>Disbursed Date:</dt><dd>{{ $case->loan->disbursed_date ?? '—' }}</dd>
+                    <dt>Maturity Date:</dt><dd>{{ $case->loan->maturity_date ?? '—' }}</dd>
                     <dt>Loan Officer:</dt><dd>{{ $case->loan->loan_officer?->first_name ?? '' }} {{ $case->loan->loan_officer?->last_name ?? '—' }}</dd>
                     <dt>Office:</dt><dd>{{ $case->loan->office?->name ?? '—' }}</dd>
                 </dl>
@@ -210,7 +210,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
                     <tbody>
                         @foreach($case->loan->transactions->take(10) as $transaction)
                         <tr>
-                            <td>{{ $transaction->date?->format('Y-m-d') ?? $transaction->created_at->format('Y-m-d') }}</td>
+                            <td>{{ $transaction->date ?? $transaction->created_at->format('Y-m-d') }}</td>
                             <td>{{ $transaction->type ?? '—' }}</td>
                             <td>K {{ number_format($transaction->amount ?? 0, 2) }}</td>
                             <td>{{ $transaction->recovery ? 'Yes' : 'No' }}</td>

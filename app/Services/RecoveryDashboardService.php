@@ -17,9 +17,13 @@ class RecoveryDashboardService
         
         $payments = RecoveryPayment::whereHas('recoveryCase', fn($q) => $q->forPeriod($period, $dateFrom, $dateTo))->where('status', 1);
 
-        // dd($payments->get());
         // Use amount_recovered on cases that have payments with status=1
-        $totalRecovered   = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date')->whereHas('payments', fn($q) => $q->where('status', 1))->sum('amount_recovered');
+        $totalRecovered = RecoveryPayment::where('status', 1)
+            ->whereHas('recoveryCase', function ($q) use ($period, $dateFrom, $dateTo) {
+                $q->forPeriod($period, $dateFrom, $dateTo)
+                ->whereNotNull('approved_date');
+            })
+            ->sum('amount'); // or 'amount' depending on your column
         $deptRecovered    = (clone $payments)->sum('recoveries_dept_amount');
         $activeCases      = RecoveryCase::active()->whereNotNull('approved_date')->count();
         $resolvedCases    = RecoveryCase::forPeriod($period)->whereNotNull('approved_date')->resolved()->count();
@@ -103,8 +107,13 @@ class RecoveryDashboardService
                 $resolvedCases = (clone $allCases)->resolved()->count();
 
                 // Amount recovered — sum directly from period cases (source of truth)
-                $totalRecovered = RecoveryCase::assignedTo($specialist->id)->forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date')->whereHas('payments', fn($q) => $q->where('status', 1))->sum('amount_recovered');
-
+                $totalRecovered = RecoveryPayment::where('status', 1)
+                    ->whereHas('recoveryCase', function ($q) use ($specialist, $period, $dateFrom, $dateTo) {
+                        $q->assignedTo($specialist->id)
+                        ->forPeriod($period, $dateFrom, $dateTo)
+                        ->whereNotNull('approved_date');
+                    })
+                    ->sum('amount'); // or 'amount_recovered' if that's your payment column
                 // Most common category across ALL assigned cases
                 $category = (clone $allCases)
                     ->selectRaw('category, count(*) as cnt')

@@ -64,9 +64,7 @@
                 </div>
             </form>
         </div>
-
-
-        {{ $data }}
+        
         <div class="box-body">
             <div class="table-responsive">
                 <table id="data-table" class="table table-bordered table-condensed table-hover">
@@ -122,7 +120,7 @@
                                     {{$key->created_by->first_name}} {{$key->created_by->last_name}}
                                 @endif
                             </td>
-                            <td>{{ $key->office->name }}</td> 
+                            <td>{{ $key->office->name }} - {{ $key->office->id }}</td> 
                             <td>
                                 <div class="btn-group">
                                     <!------------------------choose option----------------------------------------->
