@@ -3163,12 +3163,13 @@ class LoanController extends Controller
                 $dueDate = $loan->first_repayment_date ? date('d M Y', strtotime($loan->first_repayment_date)) : 'N/A';
                 $loanStatus = $loan->status;
 
+                //Create a message based on the payment type
                 if ($paymentType == 'full_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, your loan has been fully paid off. Payment of ZMW {$amount} received on {$date}. Loan Status: {$loanStatus}. Thank you for banking with us.";
+                    $message = "Dear {$client->first_name}, your loan is fully paid. ZMW {$amount} received on {$date}. Status: {$loanStatus}. Thank you. Call 0773425477 for queries.";
                 } elseif ($paymentType == 'part_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, your loan part payment of ZMW {$amount} has been received on {$date}. Next due date: {$dueDate}. Loan Status: {$loanStatus}. Thank you.";
+                    $message = "Dear {$client->first_name}, ZMW {$amount} received on {$date}. Next due: {$dueDate}. Status: {$loanStatus}. Thank you. Call 0773425477 for queries.";
                 } else {
-                    $message = "Dear {$client->first_name} {$client->last_name}, your loan repayment of ZMW {$amount} has been processed on {$date}. Payment Type: {$paymentType}. Loan Status: {$loanStatus}. Thank you.";
+                    $message = "Dear {$client->first_name}, ZMW {$amount} received on {$date}. Type: {$paymentType}. Status: {$loanStatus}. Thank you. Call 0773425477 for queries.";
                 }
 
                 // Send SMS to client about the transaction (only for enabled offices)
