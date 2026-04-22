@@ -936,11 +936,11 @@
                     @endif
                     <!-- Audit Trail -->
                     @if($role == 1)
-                    <!-- <li @if(Request::is('audits*')) class="active" @endif style="padding-left: 10px;">
+                    <li @if(Request::is('audits*')) class="active" @endif style="padding-left: 10px;">
                         <a href="{{ route('audits.index') }}">
                             <i class="fa fa-history"></i> <span>Risk Managemnt</span>
                         </a>
-                    </li> -->
+                    </li>
                     @endif
 
                     <!-- Settings -->

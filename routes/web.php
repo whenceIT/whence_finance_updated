@@ -402,6 +402,9 @@ Route::group(['prefix' => 'office'], function () {
 //route for audits
 Route::group(['prefix' => 'audits'], function () {
     Route::get('/', [AuditController::class, 'index'])->name('audits.index');
+    Route::get('/user/{id}', [AuditController::class, 'userAudits'])->name('audits.user');
+    Route::get('/{id}', [AuditController::class, 'show'])->name('audits.show');
+    Route::delete('/{id}', [AuditController::class, 'destroy'])->name('audits.destroy');
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {

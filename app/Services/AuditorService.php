@@ -14,31 +14,49 @@ class AuditorService
     {
         $query = \OwenIt\Auditing\Models\Audit::query();
 
-        if (isset($filters['auditable_type'])) {
+        if (!empty($filters['auditable_type'])) {
             $query->where('auditable_type', $filters['auditable_type']);
         }
 
-        if (isset($filters['auditable_id'])) {
+        if (!empty($filters['auditable_id'])) {
             $query->where('auditable_id', $filters['auditable_id']);
         }
 
-        if (isset($filters['user_id'])) {
+        if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
         }
 
-        if (isset($filters['event'])) {
+        if (!empty($filters['event'])) {
             $query->where('event', $filters['event']);
         }
 
-        if (isset($filters['created_at_from'])) {
+        if (!empty($filters['created_at_from'])) {
             $query->where('created_at', '>=', $filters['created_at_from']);
         }
 
-        if (isset($filters['created_at_to'])) {
+        if (!empty($filters['created_at_to'])) {
             $query->where('created_at', '<=', $filters['created_at_to']);
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(50);
+        if (!empty($filters['time_period'])) {
+            if ($filters['time_period'] === 'work_hours') {
+                $query->whereRaw("TIME(created_at) BETWEEN '06:00' AND '17:00'");
+            } elseif ($filters['time_period'] === 'after_hours') {
+                $query->where(function($q) {
+                    $q->whereRaw("TIME(created_at) BETWEEN '19:00' AND '23:59'")
+                      ->orWhereRaw("TIME(created_at) BETWEEN '00:00' AND '05:00'");
+                });
+            }
+        }
+
+        if (!empty($filters['user_name'])) {
+            $query->whereHas('user', function($q) use ($filters) {
+                $q->where('first_name', 'like', "%{$filters['user_name']}%")
+                  ->orWhere('last_name', 'like', "%{$filters['user_name']}%");
+            });
+        }
+
+        return $query->with('user.roles', 'auditable')->orderBy('created_at', 'desc')->paginate(50);
     }
 
     /**

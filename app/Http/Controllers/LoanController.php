@@ -3074,7 +3074,9 @@ class LoanController extends Controller
         $pending_transactions = LoanTransactionUnapproved::where('loan_id', $id)->get();
         $count = count($pending_transactions);
         $Trans = LoanTransactionUnapproved::find($trans_id);
-        $existing_transaction = LoanTransaction::where('loan_id', $id)->where('date', $Trans->date)->where('credit', $Trans->credit)->where('transaction_type', '!=', 'interest_waiver')->first();
+        // $existing_transaction = LoanTransaction::where('loan_id', $id)->where('date', $Trans->date)->where('credit', $Trans->credit)->where('transaction_type', '!=', 'interest_waiver')->first();
+        //disabled because client failing to add  2 transactions with same amount and date, we can add more checks to ensure its not a duplicate transaction instead of blocking all transactions with same amount and date
+        $existing_transaction = [];
 
         if ($count > 1) {
             Flash::warning("This loan has more than one pending transaction!!");

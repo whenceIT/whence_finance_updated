@@ -15,16 +15,40 @@ class AuditController extends Controller
     }
 
     /**
-     * Display a listing of audits
+     * Display a listing of users
      */
     public function index(Request $request)
     {
-        $filters = $request->only(['auditable_type', 'auditable_id', 'user_id', 'event', 'created_at_from', 'created_at_to']);
-        $audits = $this->auditorService->getAudits($filters);
-        $auditEvents = $this->auditorService->getAuditEvents();
-        $auditableTypes = $this->auditorService->getAuditableTypes();
+        try {
+            $users = \App\Models\User::query();
 
-        return view('audits.index', compact('audits', 'auditEvents', 'auditableTypes', 'filters'));
+            // Apply search filter
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $users->where(function($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            }
+
+            // Apply status filter
+            if ($request->filled('status')) {
+                if ($request->status === 'active') {
+                    $users->where('status', 'active');
+                } elseif ($request->status === 'inactive') {
+                    $users->where('status', '!=', 'active')->orWhereNull('status');
+                }
+            }
+
+            $users = $users->paginate(20);
+
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+            return back()->with('error', 'An error occurred while fetching users: ' . $th->getMessage());
+        }
+
+        return view('audits.index', compact('users'));
     }
 
     /**
@@ -76,5 +100,20 @@ class AuditController extends Controller
     {
         $this->auditorService->deleteAudit($id);
         return redirect()->route('audits.index')->with('success', 'Audit deleted successfully.');
+    }
+
+    /**
+     * Get audits for a specific user
+     */
+    public function userAudits(Request $request, $userId)
+    {
+        $user = \App\Models\User::findOrFail($userId);
+        $audits = $this->auditorService->getAudits(['user_id' => $userId]);
+
+        if ($request->ajax()) {
+            return response()->json($audits->take(20)); // Limit to recent 20 for AJAX
+        }
+
+        return view('audits.user', compact('user', 'audits'));
     }
 }

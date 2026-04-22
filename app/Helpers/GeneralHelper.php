@@ -18,6 +18,7 @@ use App\Models\GlAccount;
 use App\Models\GlJournalEntry;
 use App\Models\JournalEntry;
 use App\Models\Loan;
+use App\Models\User;
 use App\Models\LoanRepayment;
 use App\Models\LoanRepaymentSchedule;
 use App\Models\LoanSchedule;
@@ -3061,5 +3062,34 @@ public static function new_new_loan_total_balance($id)
                 ->where('payment_apply_to', 'debt_recovery')
                 ->count();
         }
+    }
+
+    /**
+     * Format user details for display
+     *
+     * @param \App\Models\User|null $user
+     * @return string
+     */
+    public static function formatUserDetails($user_id)
+    {
+        if (!$user_id) {
+            return 'System';
+        }
+
+        $user = User::where('id', $user_id)->first();
+        if (!$user) {
+            return 'System';
+        }
+
+        $role = $user->roles->first();
+        $roleName = $role ? $role->name : 'N/A';
+        $phone = $user->phone ?? 'N/A';
+
+        return [
+            'name'  => "{$user->first_name} {$user->last_name}",
+            'phone' => $phone,
+            'email' => $user->email,
+            'role'  => $roleName,
+        ];
     }
 }

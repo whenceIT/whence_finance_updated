@@ -77,7 +77,7 @@ class RecoveryDashboardService
                 'count'           => (clone $active)->count(),
                 'total_cases'     => (clone $allCases)->count(),
                 'total_value'     => (clone $active)->sum('loan_outstanding_amount'),
-                'amount_recovered'=> (clone $allCases)->whereHas('payments', fn($q) => $q->where('status', 1))->sum('amount_recovered'),
+                'amount_recovered'=> \App\Models\RecoveryPayment::where('status', 1)->whereHas('recoveryCase', fn($q) => $q->where('category', $cat))->sum('amount'),
                 'recent_cases'    => (clone $active)
                     ->with(['client', 'originBranch'])
                     ->latest()
