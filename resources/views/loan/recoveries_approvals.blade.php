@@ -27,6 +27,7 @@
                 </thead>
                 <tbody>
                 @foreach($data as $key)
+                @if($key->recoveryCase)
                 <?php
                     $client = $key?->recoveryCase?->client;
                 ?>
@@ -78,6 +79,7 @@
                             </a>
                         </td>
                     </tr>
+                @endif
                 @endforeach
                 </tbody>
             </table>
@@ -91,6 +93,7 @@
 
     <!-- Recovery Case Details Modals -->
     @foreach($data as $key)
+    @if($key->recoveryCase)
     <div class="modal fade" id="caseModal{{$key->id}}" tabindex="-1" role="dialog" aria-labelledby="caseModalLabel{{$key->id}}">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -271,6 +274,7 @@
             </div>
         </div>
     </div>
+    @endif
     @endforeach
 @endsection
 @section('footer-scripts')

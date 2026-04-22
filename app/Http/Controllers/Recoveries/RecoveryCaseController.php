@@ -420,10 +420,11 @@ class RecoveryCaseController extends Controller
         }
 
         $data = RecoveryPayment::where('status', 0)
+            ->whereHas('recoveryCase')
             ->with([
-                'recordedBy', 
-                'recoveryCase', 
-                'recoveryCase.loan', 
+                'recordedBy',
+                'recoveryCase',
+                'recoveryCase.loan',
                 'recoveryCase.client',
                 'recoveryCase.originBranch',
                 'recoveryCase.supportingBranch',
