@@ -3165,11 +3165,11 @@ class LoanController extends Controller
 
                 //Create a message based on the payment type
                 if ($paymentType == 'full_payment') {
-                    $message = "Dear {$client->first_name}, your loan is fully paid. ZMW {$amount} received on {$date}. Status: {$loanStatus}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name}, your loan is fully paid. ZMW {$amount} received on {$date}. Thank you. Call 0773425477 for queries.";
                 } elseif ($paymentType == 'part_payment') {
-                    $message = "Dear {$client->first_name}, ZMW {$amount} received on {$date}. Next due: {$dueDate}. Status: {$loanStatus}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name}, ZMW {$amount} received on {$date}. Next due: {$dueDate}. Thank you. Call 0773425477 for queries.";
                 } else {
-                    $message = "Dear {$client->first_name}, ZMW {$amount} received on {$date}. Type: {$paymentType}. Status: {$loanStatus}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name}, ZMW {$amount} received on {$date}. Type: {$paymentType}. Thank you. Call 0773425477 for queries.";
                 }
 
                 // Send SMS to client about the transaction (only for enabled offices)
