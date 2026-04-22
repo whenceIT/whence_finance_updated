@@ -28,7 +28,7 @@
                 <tbody>
                 @foreach($data as $key)
                 <?php
-                    $client = $key->recoveryCase->client;
+                    $client = $key?->recoveryCase?->client;
                 ?>
                     <tr>
                         <td>
@@ -51,7 +51,7 @@
                             @endif
                         </td>
                         @if(!empty($client))
-                        <td>{{$client->first_name}} {{$client->middle_name}} {{$client->last_name}}</td>
+                        <td>{{$client->first_name}} {{$client->last_name}}</td>
                         @else
                         <td>-</td>
                         @endif
