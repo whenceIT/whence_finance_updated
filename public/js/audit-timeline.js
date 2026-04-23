@@ -62,7 +62,8 @@ $(document).ready(function() {
 
                             html += '<h5>' + audit.event + '</h5>';
                             html += '<p><strong>Time:</strong> <span' + timeClass + '>' + auditTime.toLocaleTimeString() + '</span></p>';
-                 
+                            html += '</div>'; // close .timeline-content
+                            html += '</div>'; // close .timeline-item
                         });
 
                         html += '</div>';
