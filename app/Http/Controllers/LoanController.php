@@ -758,7 +758,7 @@ class LoanController extends Controller
         }
         
         // Log audit for accessing loan transactions top up approvals page
-        $this->auditorService->logTransactionTopUpApprovalsPage($user, request());
+       // $this->auditorService->logTransactionTopUpApprovalsPage($user, request());
         return view('loan.top_up_approvals', compact('data'));
     }
 
