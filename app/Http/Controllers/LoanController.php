@@ -29,6 +29,7 @@ use App\Models\LoanTransaction;
 use App\Models\LoanTransactionUnapproved;
 use App\Models\LoanTransactionsPending;
 use App\Services\BulkSMS;
+use App\Services\AuditorService;
 use App\Models\LoanTopUp;
 use App\Models\Note;
 use App\Models\PaymentDetail;
@@ -63,11 +64,13 @@ use App\Services\NotifixService;
 class LoanController extends Controller
 {
     protected $bulkSms;
+    protected $auditorService;
 
-    public function __construct()
+    public function __construct(AuditorService $auditorService)
     {
         $this->middleware('sentinel');
         $this->bulkSms = app(BulkSMS::class);
+        $this->auditorService = $auditorService;
     }
 
 
@@ -78,7 +81,24 @@ class LoanController extends Controller
      */
     public function index(Request $request)
     {
-        
+        $user = Sentinel::getUser();
+
+        // Log audit for accessing active loans
+        $this->auditorService->logCustomAudit(
+            'App\Models\User',
+            $user->id,
+            'accessed active loans view',
+            $user->id,
+            $request,
+            [],
+            [
+                'action' => 'viewed_active_loans',
+                'user_name' => $user->first_name . ' ' . $user->last_name,
+                'query' => $request->input('query', '')
+            ],
+            'loan_access'
+        );
+
         $query = $request->input('query');
         $loans = [];
 
@@ -98,7 +118,7 @@ class LoanController extends Controller
                 ->with('repayment_schedules')
                 ->get();
         }
-        
+
         return view('loan.data', compact('loans', 'query'));
     }
 
@@ -124,10 +144,12 @@ class LoanController extends Controller
 
     public function branch_index()
     {
+
         if (!Sentinel::hasAccess('loans.branch_loans')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+
 
         $user = Sentinel::getUser();
         $userId = $user->id;
@@ -164,6 +186,8 @@ class LoanController extends Controller
             });
         }
 
+        // Log audit for branch active loans
+        $this->auditorService->logBranchLoanAccess($user, request());
         $data = $query->get();
         return view('loan.branch_loans', compact('data'));
     }
@@ -171,6 +195,9 @@ class LoanController extends Controller
 
     public function reloan_approvals()
     {
+        $user = Sentinel::getUser();
+        // Log audit for accessing reloan approvals
+        $this->auditorService->logReloanApprovalsAccess($user, request());
 
         if (!Sentinel::hasAccess('expenses')) {
             Flash::warning("Permission Denied");
@@ -686,6 +713,9 @@ class LoanController extends Controller
                 $data = LoanTransactionUnapproved::where('office_id', $office_id)->get();
             }
         }
+        
+        // Log audit for accessing loan transactions approvals page
+        $this->auditorService->logTransactionApprovalsPage($user, request());
         return view('loan.transactions', compact('data','HasPendingCarryOvers',));
     }
 
@@ -726,6 +756,9 @@ class LoanController extends Controller
                 $data = LoanTopUp::where('office_id', $office_id)->get();
             }
         }
+        
+        // Log audit for accessing loan transactions top up approvals page
+        $this->auditorService->logTransactionTopUpApprovalsPage($user, request());
         return view('loan.top_up_approvals', compact('data'));
     }
 
@@ -1041,6 +1074,9 @@ class LoanController extends Controller
             Flash::warning($client->first_name . '  ' . $client->last_name . ' ' . 'already has a loan on' . ' ' . $loan_product->name);
             return redirect()->back();
         } else {
+            
+            // Log audit for creating a new client loan, log client information
+            $this->auditorService->logCreateClientLoan($user, request());
             return view(
                 'loan.create_client_loan',
                 compact('client', 'loan_product', 'userBranch')
@@ -1239,6 +1275,9 @@ class LoanController extends Controller
                 }
             }
             GeneralHelper::audit_trail("Create", "Loans", $loan->id);
+        // Log audit for creating a new client loan, log client and loan information
+            $user = Sentinel::getUser();
+            $this->auditorService->logStoreClientLoan($user, request(), $loan, $client);
             Flash::success(trans('general.successfully_saved'));
             return redirect('loan/' . $loan->id . '/show');
         }
@@ -1394,6 +1433,10 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+
+        // Log audit for accessing and viewing loan details page
+        $user = Sentinel::getUser();
+        $this->auditorService->logAccessedLoanDetail($user, request(), $loan);
         return view('loan.show', compact('loan'));
     }
 
@@ -1486,6 +1529,10 @@ class LoanController extends Controller
         $loan_topup->save();
         $loanTransDisbursed->save();
         $loanTransInterest->save();
+        
+        // Log audit for adding/approving top up
+        $user = Sentinel::getUser();
+        $this->auditorService->logAddedTopUp($user, request(), $loan);
         return redirect('loan/' . $loan->id . '/show');
     }
 
@@ -1526,10 +1573,13 @@ class LoanController extends Controller
         ]);
         Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
         Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup);
-                Flash::success(trans('general.successfully_saved'));
 
-
-                return redirect('loan/' . $loan->id . '/show');
+        
+        // Log audit for accessing and viewing top up approval requests page
+        $user = Sentinel::getUser();
+        $this->auditorService->logTopUpApproval($user, request(), $loan);
+        Flash::success(trans('general.successfully_saved'));
+        return redirect('loan/' . $loan->id . '/show');
     }
 
 
@@ -1550,6 +1600,11 @@ class LoanController extends Controller
         $loanTransInterest->save();
         Notifix::notifyLoanOfficerTopUpApproved($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
+        
+        
+        // Log audit for approving the topup
+        $user = Sentinel::getUser();
+        $this->auditorService->logTopUpApproved($user, request(), $loan);
         return redirect('loan/' . $id . '/show');
     }
 
@@ -1682,6 +1737,11 @@ class LoanController extends Controller
             }
             GeneralHelper::audit_trail("Update", "Loans", $loan->id);
             Flash::success(trans('general.successfully_saved'));
+            
+        
+            // Log audit for updating the client's loan
+            $user = Sentinel::getUser();
+            $this->auditorService->logLoanUpdated($user, request(), $loan);
             return redirect('loan/' . $loan->id . '/show');
         }
     }
@@ -2275,7 +2335,9 @@ class LoanController extends Controller
 
             // Notify loan officer that their loan has been approved
             Notifix::notifyLoanOfficerLoanApproved($loan, $client);
-
+            // Log audit for updating the client's loan
+            $user = Sentinel::getUser();
+            $this->auditorService->logLoanUpdated($user, request(), $loan);
             event(new LoanApproved($loan));
             GeneralHelper::audit_trail("Approve", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -2309,7 +2371,11 @@ class LoanController extends Controller
             $loan->save();
 
             // Notify loan officer that their loan has been declined
-            Notifix::notifyLoanOfficerLoanDeclined($loan, $client);
+            Notifix::notifyLoanOfficerLoanDeclined($loan, $client);  
+            
+            // Log audit for declining the client's loan
+            $user = Sentinel::getUser();
+            $this->auditorService->logDeclinedLoan($user, request(), $loan);
 
             GeneralHelper::audit_trail("Decline", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -2334,9 +2400,15 @@ class LoanController extends Controller
             $loan->loan_officer_id = $request->loan_officer_id;
             $loan->save();
             GeneralHelper::audit_trail("Update", "Loans", $id);
+            
+            // Log audit for changing the client's loan officer
+            $user = Sentinel::getUser();
+        
+            $this->auditorService->logChangedLoanOfficer($user, request(), $loan);
             Flash::success(trans('general.successfully_saved'));
             return redirect()->back();
         }
+
     }
 
     public function change_branch(Request $request, $id)
@@ -2358,6 +2430,11 @@ class LoanController extends Controller
             $loan->office_id = $request->office;
             $loan->save();
             GeneralHelper::audit_trail("Update", "Loans", $id);
+                        
+            // Log audit for changed branch
+            $user = Sentinel::getUser();
+        
+            $this->auditorService->logChangedBranch($user, request(), $loan);
             Flash::success(trans('general.successfully_saved'));
             return redirect()->back();
         }
@@ -2895,6 +2972,9 @@ class LoanController extends Controller
             // Notify loan officer that their loan has been disbursed
             Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
             Notifix::notifyDailyReminderToRiskManager('disbused a loan amount of K'.$loan->principal);
+            //define Log audit for disbursing loan
+            $user = Sentinel::getUser();
+            $this->auditorService->logDisbursedLoan($user, request(), $loan);
             event(new LoanDisbursed($loan));
             GeneralHelper::audit_trail("Disburse", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -3052,7 +3132,9 @@ class LoanController extends Controller
                 // Notify managers for transaction approval
                 Notifix::notifyBmToApproveTransaction($loan, $client, $request->amount);
                 Notifix::notifyRiskToReviewLoan($loan, $client, $request->amount);
-
+                //define Log audit for entering a transaction for approval, include $loan, client details in the log message
+                $user = Sentinel::getUser();
+                $this->auditorService->logEnteredTransaction($user, request(), $loan);
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');
             }
@@ -3157,7 +3239,10 @@ class LoanController extends Controller
                 // Notify Loan Officer that transaction has been approved
                 $client = \App\Models\Client::find($loan->client_id);
                 Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
-
+ 
+                //define Log audit for approving a transaction for approval, include $loan, client details in the log message
+                $user = Sentinel::getUser();
+                $this->auditorService->logApprovedTransaction($user, request(), $loan);
                 // Send SMS to client about the transaction
                 $amount = $Trans->credit;
                 $date = $Trans->date;
@@ -3273,7 +3358,10 @@ class LoanController extends Controller
                     $loan->status = 'closed';
                     $loan->save();
                 }
-                
+                // Log audit for entering a Debt recovery transaction for approval
+                $user = Sentinel::getUser();
+                $this->auditorService->logEntereedRecoveryTransactionForApproval($user, request(), $loan);
+
                 Flash::success(trans('general.successfully_saved'));
                 return redirect('loan/' . $loan->id . '/show');
             }
@@ -3657,6 +3745,9 @@ class LoanController extends Controller
             $loan->save();
         }
         GeneralHelper::audit_trail("Waive Transaction", "Loans", $id);
+        //Define this in audit servicevi In store_debt_recovery
+        $user = Sentinel::getUser();
+        $this->auditorService->logEnteredWaiverTransaction($user, request(), $loan);
         Flash::success(trans('general.successfully_saved'));
         return redirect()->back();
     }

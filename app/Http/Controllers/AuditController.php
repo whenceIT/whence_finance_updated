@@ -111,7 +111,9 @@ class AuditController extends Controller
         $audits = $this->auditorService->getAudits(['user_id' => $userId]);
 
         if ($request->ajax()) {
-            return response()->json($audits->take(20)); // Limit to recent 20 for AJAX
+            return response()->json([
+                'audits' => $audits->take(20)->values() // Limit to recent 20 for AJAX
+            ]);
         }
 
         return view('audits.user', compact('user', 'audits'));

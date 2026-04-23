@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('title')
-    Users List
+    Risk Detection System
 @endsection
 
 @section('content')
@@ -32,11 +32,9 @@
   <div class="box-header with-border">
     <h3 class="box-title">Users ({{ $users->total() }})</h3>
     <div class="box-tools">
-      @if(Sentinel::hasAccess('users.create'))
-        <a href="{{ url('user/create') }}" class="btn btn-primary btn-sm">
-          <i class="fa fa-plus"></i> New User
+        <a href="#" class="btn btn-primary btn-sm">
+          <i class="fa fa-plus"></i> New Case
         </a>
-      @endif
     </div>
   </div>
   <div class="box-body no-padding">
@@ -53,7 +51,7 @@
       </thead>
       <tbody>
         @forelse($users as $user)
-          <tr class="user-row" data-user-id="{{ $user->id }}" style="cursor:pointer;">
+          <tr class="user-row" data-user-id="{{ $user->id }}" style="cursor: pointer;">
             <td>{{ $user->id }}</td>
             <td>
               <strong>{{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: $user->email }}</strong>
@@ -66,15 +64,14 @@
               </span>
             </td>
             <td>
-              <a href="{{ url('user/' . $user->id . '/show') }}" class="btn btn-xs btn-default" onclick="event.stopPropagation();">View</a>
+              <a href="{{ route('audits.user', $user->id) }}" class="btn btn-xs btn-default">View</a>
             </td>
           </tr>
-          <tr class="audit-row" id="audit-{{ $user->id }}" style="display:none;">
+          <tr id="audit-{{ $user->id }}" class="audit-row" style="display: none;">
             <td colspan="6">
-              <div class="audit-details" style="padding:10px;background:#f9f9f9;">
-                <h5>Audit Logs for {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: $user->email }}</h5>
-                <div class="audit-content" id="audit-content-{{ $user->id }}">
-                  Loading...
+              <div id="audit-content-{{ $user->id }}" class="audit-timeline">
+                <div class="text-center">
+                  <i class="fa fa-spinner fa-spin"></i> Loading audit timeline...
                 </div>
               </div>
             </td>
@@ -96,45 +93,66 @@
 
 @endsection
 
-<script>
-$(document).ready(function() {
-    $('.user-row').on('click', function() {
-        var userId = $(this).data('user-id');
-        var auditRow = $('#audit-' + userId);
-        var auditContent = $('#audit-content-' + userId);
+@section('styles')
+<style>
+.audit-timeline {
+    margin: 10px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 5px;
+}
 
-        if (auditRow.is(':visible')) {
-            auditRow.hide();
-        } else {
-            if (auditContent.html() === 'Loading...') {
-                // Fetch audits
-                $.ajax({
-                    url: '{{ route("audits.user", ":userId") }}'.replace(':userId', userId),
-                    dataType: 'json',
-                    success: function(data) {
-                        if (data.data && data.data.length > 0) {
-                            var html = '<table class="table table-sm"><thead><tr><th>Date</th><th>Event</th><th>Auditable</th><th>Details</th></tr></thead><tbody>';
-                            data.data.forEach(function(audit) {
-                                html += '<tr>';
-                                html += '<td>' + audit.created_at + '</td>';
-                                html += '<td>' + audit.event + '</td>';
-                                html += '<td>' + (audit.auditable ? audit.auditable_type + ' #' + audit.auditable_id : 'N/A') + '</td>';
-                                html += '<td>' + JSON.stringify(audit.new_values) + '</td>';
-                                html += '</tr>';
-                            });
-                            html += '</tbody></table>';
-                            auditContent.html(html);
-                        } else {
-                            auditContent.html('<p>No audit logs found for this user.</p>');
-                        }
-                    },
-                    error: function() {
-                        auditContent.html('<p>Error loading audit logs.</p>');
-                    }
-                });
-            }
-            auditRow.show();
-        }
-    });
-});
-</script>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ddd;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    background: #007bff;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.timeline-content {
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-left: 3px solid #007bff;
+}
+
+.timeline-content h5 {
+    margin-top: 0;
+    color: #007bff;
+}
+
+.user-row:hover {
+    background-color: #f5f5f5 !important;
+}
+</style>
+@endsection
+
+@section('footer-scripts')
+
+<script src="{{ asset('js/audit-timeline.js') }}"></script>
+@endsection
