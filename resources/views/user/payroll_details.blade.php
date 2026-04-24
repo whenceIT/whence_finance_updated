@@ -28,15 +28,18 @@
                                     <div id="bank-fields" style="display: {{ old('salary_mode', $user->salary_mode) == 'Bank' ? 'block' : 'none' }};">
                                         <div class="form-group">
                                             <label for="bank_name" style="font-weight: bold; color: #333;">Bank Name</label>
-                                             <input type="text" name="bank_name" id="bank_name" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('bank_name', $user->bank_name) }}" placeholder="e.g., First National Bank">
+                                             <input type="text" name="bank_name" id="bank_name" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('bank_name', $user->bank_name) }}">
+                                             <small class="form-text text-muted">e.g., First National Bank</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="bank_account_number" style="font-weight: bold; color: #333;">Bank Account Number</label>
-                                             <input type="text" name="bank_account_number" id="bank_account_number" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('bank_account_number', $user->bank_account_number) }}" placeholder="e.g., 12345678901234">
+                                             <input type="text" name="bank_account_number" id="bank_account_number" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('bank_account_number', $user->bank_account_number) }}">
+                                             <small class="form-text text-muted">e.g., 12345678901234</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="branch" style="font-weight: bold; color: #333;">Bank Branch Name</label>
-                                             <input type="text" name="branch" id="branch" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('branch', $user->branch) }}" placeholder="e.g., Main Branch">
+                                             <input type="text" name="branch" id="branch" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('branch', $user->branch) }}">
+                                             <small class="form-text text-muted">e.g., Main Branch</small>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -53,21 +56,25 @@
                                     <h4 style="margin-bottom: 20px; color: #333;">Mandatory Details</h4>
                                     <div class="form-group">
                                         <label for="tpin" style="font-weight: bold; color: #333;">TPIN (Tax Payer Identification Number)</label>
-                                         <input type="text" name="tpin" id="tpin" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('tpin', $user->tpin) }}" pattern="[0-9]{10}" maxlength="10" minlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required placeholder="e.g., 1234567890">
+                                         <input type="text" name="tpin" id="tpin" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('tpin', $user->tpin) }}" pattern="[0-9]{10}" maxlength="10" minlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                         <small class="form-text text-muted">e.g., 1234567890</small>
                                     </div>
                                     <div class="form-group">
                                         <label for="ssn" style="font-weight: bold; color: #333;">SSN (Social Security Number)</label>
-                                         <input type="text" name="ssn" id="ssn" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('ssn', $user->ssn) }}" required placeholder="e.g., Z12345678">
+                                         <input type="text" name="ssn" id="ssn" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('ssn', $user->ssn) }}" required>
+                                         <small class="form-text text-muted">e.g., Z12345678</small>
                                     </div>
                                     <div id="nhima-field" style="display: {{ old('employment_type', $user->employment_type) == 'permanent' ? 'block' : 'none' }};">
                                         <div class="form-group">
                                             <label for="nhima" style="font-weight: bold; color: #333;">NIHMA (National Health Insurance Membership Authority)</label>
-                                             <input type="text" name="nhima" id="nhima" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('nhima', $user->nhima) }}" required placeholder="e.g., NHIMA123456">
+                                             <input type="text" name="nhima" id="nhima" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('nhima', $user->nhima) }}" required>
+                                             <small class="form-text text-muted">e.g., NHIMA123456</small>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="nrc_id" style="font-weight: bold; color: #333;">NRC (National Registration Card)</label>
-                                         <input type="text" name="nrc_id" id="nrc_id" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('nrc_id', $user->nrc_id) }}" required placeholder="e.g., 123456/78/9">
+                                         <input type="text" name="nrc_id" id="nrc_id" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('nrc_id', $user->nrc_id) }}" required>
+                                         <small class="form-text text-muted">e.g., 123456/78/9</small>
                                     </div>
                                     <div class="form-group">
                                         <label for="date_of_birth" style="font-weight: bold; color: #333;">Date of Birth</label>
@@ -75,7 +82,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; border-radius: 5px; padding: 12px; font-size: 18px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">Save Details</button>
+                            <!-- <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; border-radius: 5px; padding: 12px; font-size: 18px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">Save Details</button> -->
                         </form>
                     </div>
                 </div>
@@ -114,14 +121,6 @@ $(document).ready(function() {
     $('form').on('submit', function() {
         $('button[type=submit]').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving Details...');
     });
-});
-
-    $('#employment_type').change(function() {
-        if ($(this).val() == 'permanent') {
-            $('#nhima-field').show();
-        } else {
-            $('#nhima-field').hide();
-        }
     });
 });
 </script>
