@@ -121,7 +121,6 @@ $(document).ready(function() {
     $('form').on('submit', function() {
         $('button[type=submit]').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving Details...');
     });
-    });
 });
 </script>
 @endsection
