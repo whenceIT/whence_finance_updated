@@ -5,12 +5,15 @@
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-12">
-                <div class="card" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 10px; border: none;">
+            <div class="col-12">
+                <div class="card" style="box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-radius: 10px; border: none;">
                     <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px; font-weight: bold;">
                        Employee Payroll Data Capture
                     </div>
                     <div class="card-body" style="padding: 30px;">
+                        <div class="alert alert-info" style="margin-bottom: 20px;"> 
+                            <strong>Note:</strong> If you are not sure with the information to add in the form, please contact administration. Call 0975230170. 
+                        </div>
                         <form action="{{ url('user/payroll-details') }}" method="post" onsubmit="return validateForm()">
                             @csrf
                             <div class="row">
@@ -49,18 +52,19 @@
                                             <option value="permanent" {{ old('employment_type', $user->employment_type) == 'permanent' ? 'selected' : '' }}>Permanent</option>
                                             <option value="contract" {{ old('employment_type', $user->employment_type) == 'contract' ? 'selected' : '' }}>Contract</option>
                                             <option value="temporary" {{ old('employment_type', $user->employment_type) == 'temporary' ? 'selected' : '' }}>Temporary</option>
+                                            <option value="probation" {{ old('employment_type', $user->employment_type) == 'probation' ? 'selected' : '' }}>Probation</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <h4 style="margin-bottom: 20px; color: #333;">Mandatory Details</h4>
                                     <div class="form-group">
-                                        <label for="tpin" style="font-weight: bold; color: #333;">TPIN (Tax Payer Identification Number)</label>
+                                        <label for="tpin" style="font-weight: bold; color: #333;">TPIN (Tax Payer Identification Number) <span id="tpin-optional" style="display: none; color: #666;">(optional)</span></label>
                                          <input type="text" name="tpin" id="tpin" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('tpin', $user->tpin) }}" pattern="[0-9]{10}" maxlength="10" minlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
                                          <small class="form-text text-muted">e.g., 1234567890</small>
                                     </div>
                                     <div class="form-group">
-                                        <label for="ssn" style="font-weight: bold; color: #333;">SSN (Social Security Number)</label>
+                                        <label for="ssn" style="font-weight: bold; color: #333;">SSN (Social Security Number) <span id="ssn-optional" style="display: none; color: #666;">(optional)</span></label>
                                          <input type="text" name="ssn" id="ssn" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('ssn', $user->ssn) }}" required>
                                          <small class="form-text text-muted">e.g., Z12345678</small>
                                     </div>
@@ -103,7 +107,7 @@ $(document).ready(function() {
     });
 
     $('#salary_mode').change(function() {
-        if ($(this).val() == 'Bank') {
+        if ($(this).val() == 'Bank') {  
             $('#bank-fields').show();
         } else {
             $('#bank-fields').hide();
@@ -111,12 +115,27 @@ $(document).ready(function() {
     });
 
     $('#employment_type').change(function() {
-        if ($(this).val() == 'permanent') {
+        var val = $(this).val();
+        if (val == 'permanent') {
             $('#nhima-field').show();
+            $('#nhima').prop('required', true);
         } else {
             $('#nhima-field').hide();
+            $('#nhima').prop('required', false);
+        }
+        if (val == 'probation') {
+            $('#tpin').prop('required', false);
+            $('#tpin-optional').show();
+            $('#ssn').prop('required', false);
+            $('#ssn-optional').show();
+        } else {
+            $('#tpin').prop('required', true);
+            $('#tpin-optional').hide();
+            $('#ssn').prop('required', true);
+            $('#ssn-optional').hide();
         }
     });
+    $('#employment_type').trigger('change');
 
     $('form').on('submit', function() {
         $('button[type=submit]').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving Details...');

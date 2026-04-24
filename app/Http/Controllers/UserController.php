@@ -3053,10 +3053,11 @@ public function bmdashboard(Request $request){
             
             $user->salary_details = 1;
             $user->save();
-            
+            Flash::success("Successfully Saved payroll details");
             return redirect('/')->with('msg', 'Payroll details updated successfully.');
         } catch (\Throwable $th) {
-            dd($th);
+            \Log::error('Error saving payroll details: ' . $th->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while saving payroll details. Please try again.');
         }
     }
 }

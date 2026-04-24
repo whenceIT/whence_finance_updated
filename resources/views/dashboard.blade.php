@@ -4,6 +4,18 @@
 @endsection
 
 @section('content')
+    @if(session('msg'))
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('msg') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('error') }}
+        </div>
+    @endif
     <!-- What Clients see -->
 
     @if($role->role_id == '2')
