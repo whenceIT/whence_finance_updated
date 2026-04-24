@@ -100,12 +100,4 @@ $(document).ready(function() {
             auditRow.show();
         }
     });
-
-    // Real-time polling for visible audit timelines
-    setInterval(function() {
-        $('.audit-row:visible').each(function() {
-            var userId = $(this).attr('id').replace('audit-', '');
-            fetchAuditTimeline(userId);
-        });
-    }, 30000); // Update every 30 seconds
 });

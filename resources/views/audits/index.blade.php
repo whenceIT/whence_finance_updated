@@ -45,6 +45,9 @@
           <th>Name</th>
           <th>Email</th>
           <th>Phone</th>
+          <th>Office</th>
+          <th>District</th>
+          <th>Province</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -58,6 +61,9 @@
             </td>
             <td>{{ $user->email }}</td>
             <td>{{ $user->phone ?: '—' }}</td>
+            <td>{{ $user->office->name ?? 'N/A' }}</td>
+            <td>{{ $user->office->district->name ?? 'N/A' }}</td>
+            <td>{{ $user->office->province->name ?? 'N/A' }}</td>
             <td>
               <span class="label {{ $user->status === 'active' ? 'label-success' : 'label-default' }}">
                 {{ ucfirst($user->status ?? 'inactive') }}
@@ -68,10 +74,15 @@
             </td>
           </tr>
           <tr id="audit-{{ $user->id }}" class="audit-row" style="display: none;">
-            <td colspan="6">
+            <td colspan="9">
               <div id="audit-content-{{ $user->id }}" class="audit-timeline">
                 <div class="text-center">
                   <i class="fa fa-spinner fa-spin"></i> Loading audit timeline...
+                </div>
+                <div class="text-center" style="margin-top: 10px;">
+                  <button class="btn btn-sm btn-default" onclick="fetchAuditTimeline({{ $user->id }})">
+                    <i class="fa fa-refresh"></i> Refresh Timeline
+                  </button>
                 </div>
               </div>
             </td>
