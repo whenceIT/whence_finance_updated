@@ -8,6 +8,7 @@ use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
 use App\Models\Invoice;
 use App\Models\Payroll;
+use Illuminate\Http\Request;
 use App\Models\Permission;
 use App\Models\Repair;
 use App\Models\Setting;
@@ -21,7 +22,6 @@ use App\Models\UserPolicyResponse;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Cartalyst\Sentinel\Roles\EloquentRole;
 use Cartalyst\Sentinel\Roles\RoleInterface;
-use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Models\CycleDates;
 use App\Models\LoanTransaction;
@@ -3037,5 +3037,26 @@ public function bmdashboard(Request $request){
     {
         $data = \App\Models\DistrictRegional::with(['district', 'province'])->where('district_id', $id)->get()->unique('name');
         return response()->json($data);
+    }
+
+    public function payrollDetails()
+    {
+        $user = Sentinel::getUser();
+        return view('user.payroll_details', compact('user'));
+    }
+
+    public function savePayrollDetails(Request $request)
+    {
+        try {
+            $user = Sentinel::getUser();
+            $user->update($request->only(['salary_mode', 'bank_name', 'bank_account_number', 'branch', 'tpin', 'ssn', 'nhima', 'date_of_birth', 'employment_type']));
+            
+            $user->salary_details = 1;
+            $user->save();
+            
+            return redirect('/')->with('msg', 'Payroll details updated successfully.');
+        } catch (\Throwable $th) {
+            dd($th);
+        }
     }
 }

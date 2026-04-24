@@ -20,60 +20,58 @@
 
 
     <style>
+        .ledger-toggle {
+            margin: 20px 0 30px;
+        }
 
-       
-    .ledger-toggle {
-        margin: 20px 0 30px;
-    }
+        .toggle-wrapper {
+            position: relative;
+            display: inline-flex;
+            background: #f4f6f9;
+            border-radius: 30px;
+            padding: 4px;
+            box-shadow: inset 0 0 0 1px #ddd;
+        }
 
-    .toggle-wrapper {
-        position: relative;
-        display: inline-flex;
-        background: #f4f6f9;
-        border-radius: 30px;
-        padding: 4px;
-        box-shadow: inset 0 0 0 1px #ddd;
-    }
+        .toggle-btn {
+            position: relative;
+            z-index: 2;
+            background: none;
+            border: none;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #555;
+            outline: none;
+        }
 
-    .toggle-btn {
-        position: relative;
-        z-index: 2;
-        background: none;
-        border: none;
-        padding: 8px 20px;
-        cursor: pointer;
-        font-weight: 600;
-        color: #555;
-        outline: none;
-    }
+        .toggle-btn.active {
+            color: #fff;
+        }
 
-    .toggle-btn.active {
-        color: #fff;
-    }
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 33.333%;
+            height: calc(100% - 8px);
+            background: #00a65a;
+            border-radius: 25px;
+            transition: transform 0.3s ease;
+            z-index: 1;
+        }
 
-    .toggle-slider {
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        width: 33.333%;
-        height: calc(100% - 8px);
-        background: #00a65a;
-        border-radius: 25px;
-        transition: transform 0.3s ease;
-        z-index: 1;
-    }
+        .toggle-wrapper[data-active="disbursements"] .toggle-slider {
+            transform: translateX(100%);
+        }
 
-    .toggle-wrapper[data-active="disbursements"] .toggle-slider {
-        transform: translateX(100%);
-    }
+        .toggle-wrapper[data-active="adjustments"] .toggle-slider {
+            transform: translateX(200%);
+        }
 
-    .toggle-wrapper[data-active="adjustments"] .toggle-slider {
-        transform: translateX(200%);
-    }
-
-    .ledger-section {
-        padding: 30px 0;
-    }
+        .ledger-section {
+            padding: 30px 0;
+        }
 
 
         #loader-wrapper {
@@ -287,7 +285,7 @@
     <![endif]-->
     <!-- jQuery 2.2.3 -->
 
-    
+
     <script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/jqueryui/jquery-ui.min.js') }}" type="text/javascript"></script>
     <!-- Bootstrap 3.3.6 -->
@@ -299,36 +297,36 @@
     {{--End Page level scripts--}}
 </head>
 <?php
-    $userInfo = \App\Helpers\GeneralHelper::get_user_info();
-    $user = $userInfo->user;
-    $role = $userInfo->role;
-    $office = $userInfo->office;
+$userInfo = \App\Helpers\GeneralHelper::get_user_info();
+$user = $userInfo->user;
+$role = $userInfo->role;
+$office = $userInfo->office;
 ?>
 <div class="modal fade" id="announcementModal" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      
-      <div class="modal-header bg-primary">
-        <h4 class="modal-title text-white" id="announcementTitle"></h4>
-      </div>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
 
-      <div class="modal-body">
-        <p id="announcementMessage"></p>
-      </div>
+            <div class="modal-header bg-primary">
+                <h4 class="modal-title text-white" id="announcementTitle"></h4>
+            </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="closeAnnouncement">
-          Close
-        </button>
-      </div>
+            <div class="modal-body">
+                <p id="announcementMessage"></p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="closeAnnouncement">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-  #announcementModal {
-    z-index: 9999;
-  }
+    #announcementModal {
+        z-index: 9999;
+    }
 </style>
 <!-- Bottom Sheet Modal -->
 <div class="bottom-sheet-overlay" id="surveyBottomSheetOverlay">
@@ -339,7 +337,8 @@
         <div class="bottom-sheet-content">
             <h3 class="bottom-sheet-title">We Value Your Feedback!</h3>
             <p class="bottom-sheet-description">
-                Help us improve our services by taking a quick survey. Your feedback is important to us and will help us serve you better.
+                Help us improve our services by taking a quick survey. Your feedback is important to us and will help us
+                serve you better.
             </p>
             <a href="#" class="bottom-sheet-btn" id="surveyLink">Take Survey</a>
         </div>
@@ -354,29 +353,36 @@
         <div class="bottom-sheet-content">
             <h3 class="bottom-sheet-title">Tools</h3>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                @if($role && in_array($role, ['1','4','6','9','10']))
-                <!-- <a href="https://erp.whencefinancesystem.com/app" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                    <i class="fa fa-cogs" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
-                    <span style="font-size: 12px;">ERPNext</span>
-                </a> -->
+                @if($role && in_array($role, ['1', '4', '6', '9', '10']))
+                    <!-- <a href="https://erp.whencefinancesystem.com/app" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                        <i class="fa fa-cogs" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                        <span style="font-size: 12px;">ERPNext</span>
+                    </a> -->
                 @endif
 
-                <a href="{{ url('learning') }}" title="Whence Learn" style="text-decoration: none; color: #333; text-align: center; padding: 8px; border-radius: 8px; background: transparent; display: inline-block; transition: all 0.3s;">
-                    <img src="{{ asset('images/education.gif') }}" alt="Education" style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
+                <a href="{{ url('learning') }}" title="Whence Learn"
+                    style="text-decoration: none; color: #333; text-align: center; padding: 8px; border-radius: 8px; background: transparent; display: inline-block; transition: all 0.3s;">
+                    <img src="{{ asset('images/education.gif') }}" alt="Education"
+                        style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
                     <span style="font-size: 11px; font-weight: 500;">Whence Learn</span>
                 </a>
 
-                <a href="https://meet.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                    <img src="{{ asset('anim/conference.gif') }}" alt="Education" style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
+                <a href="https://meet.google.com" target="_blank"
+                    style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                    <img src="{{ asset('anim/conference.gif') }}" alt="Education"
+                        style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
                     <span style="font-size: 12px;">Google Meet</span>
                 </a>
 
-                <a href="https://mail.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                    <img src="{{ asset('anim/gmail.gif') }}" alt="Education" style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
+                <a href="https://mail.google.com" target="_blank"
+                    style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                    <img src="{{ asset('anim/gmail.gif') }}" alt="Education"
+                        style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
                     <span style="font-size: 12px;">Gmail</span>
                 </a>
 
-                <a href="{{ url('logout') }}" style="text-decoration: none; color: #fff; text-align: center; padding: 10px; border-radius: 8px; background: #dc3545; transition: background 0.3s;">
+                <a href="{{ url('logout') }}"
+                    style="text-decoration: none; color: #fff; text-align: center; padding: 10px; border-radius: 8px; background: #dc3545; transition: background 0.3s;">
                     <i class="fa fa-sign-out" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
                     <span style="font-size: 12px;">Logout</span>
                 </a>
@@ -399,7 +405,8 @@
                 </span>
             </a>
             <!-- Mobile Header (visible on small screens ≤767px) -->
-            <div class="mobile-header" style="display: none; justify-content: center; align-items: center; height: 50px; width: 100%; position: relative;">
+            <div class="mobile-header"
+                style="display: none; justify-content: center; align-items: center; height: 50px; width: 100%; position: relative;">
                 <a href="{{url('/')}}" class="logo"
                     style="display: flex; align-items: center; height: 50px; padding: 0 10px;">
                     <img src="{{ asset('images/w/logo.jpg') }}" alt="Whence Finance Logo"
@@ -409,12 +416,15 @@
                     </span>
                 </a>
                 <!-- Add a Notification  -->
-                <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                <a href="#" onclick="toggleNotificationDropdown(event); return false;"
+                    style="color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-bell" style="font-size: 18px;"></i>
-                    <span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
+                    <span id="notificationBadge"
+                        style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
                 </a>
                 <!-- Tools Menu (visible on mobile) -->
-                <a href="#" onclick="toggleUserDropdown(event); return false;" style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                <a href="#" onclick="toggleUserDropdown(event); return false;"
+                    style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-cog" style="font-size: 18px;"></i>
                 </a>
             </div>
@@ -424,37 +434,42 @@
                     .desktop-header {
                         display: block !important;
                     }
+
                     .mobile-header {
                         display: none !important;
                     }
                 }
-                
+
                 /* Mobile header: visible on screens <= 767px */
                 @media (max-width: 767px) {
                     .desktop-header {
                         display: none !important;
                     }
+
                     .mobile-header {
                         display: flex !important;
                     }
+
                     #hide-in-mobile-view {
                         display: none !important;
                     }
                 }
-                
+
                 /* Hide desktop navbar elements on mobile */
                 @media (max-width: 767px) {
-                    .main-header .navbar > .navbar-custom-menu,
-                    .main-header .navbar > .navbar-search {
+
+                    .main-header .navbar>.navbar-custom-menu,
+                    .main-header .navbar>.navbar-search {
                         display: none !important;
                     }
+
                     .main-header .navbar {
                         display: flex !important;
                         justify-content: flex-start !important;
                     }
                 }
             </style>
-            
+
             <style>
                 /* Hide mobile wrench button on desktop (>= 768px) */
                 @media (min-width: 768px) {
@@ -462,7 +477,7 @@
                         display: none !important;
                     }
                 }
-                
+
                 /* Show mobile wrench button only on mobile (<= 767px) */
                 @media (max-width: 767px) {
                     .mobile-wrench-btn {
@@ -471,8 +486,9 @@
                 }
             </style>
             <!-- Header Navbar: style can be found in header.less -->
-            <nav class="navbar navbar-static-top" style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
-            <!-- Sidebar toggle button-->
+            <nav class="navbar navbar-static-top"
+                style="background-color:#00a04a; display: flex; justify-content: space-between; align-items: center;">
+                <!-- Sidebar toggle button-->
                 <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button" style="color: #ffffff;">
                     <span class="sr-only">
                         Toggle navigation
@@ -480,35 +496,43 @@
                 </a>
 
                 @if($role && in_array($role, ['1', '6', '4', '9', '10']))
-                <!-- Search Bar -->
-                <div class="navbar-search" style="flex: 1; display: flex; justify-content: center; position: relative;">
-                    <div class="input-group" style="width: 350px;">
-                        <div class="input-group-btn">
-                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="search-type-btn" style="border-radius: 25px 0 0 25px; border-right: none; background: #f8f9fa; color: #333; font-weight: bold; margin-top: 0.55%;">
-                                Staff <span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu" id="search-type-menu">
-                                <li><a href="#" data-value="staff">Staff</a></li>
-                                <li><a href="#" data-value="client">Client</a></li>
-                            </ul>
+                    <!-- Search Bar -->
+                    <div class="navbar-search" style="flex: 1; display: flex; justify-content: center; position: relative;">
+                        <div class="input-group" style="width: 350px;">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false" id="search-type-btn"
+                                    style="border-radius: 25px 0 0 25px; border-right: none; background: #f8f9fa; color: #333; font-weight: bold; margin-top: 0.55%;">
+                                    Staff <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" id="search-type-menu">
+                                    <li><a href="#" data-value="staff">Staff</a></li>
+                                    <li><a href="#" data-value="client">Client</a></li>
+                                </ul>
+                            </div>
+                            <input type="text" id="user-search" placeholder="Search for staff..." class="form-control"
+                                style="border-radius: 0 25px 25px 0; border-left: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <span class="input-group-addon"
+                                style="border-radius: 0 25px 25px 0; border-left: none; background: transparent; border: none;">
+                                <i class="fa fa-search" style="color: #666;"></i>
+                            </span>
                         </div>
-                        <input type="text" id="user-search" placeholder="Search for staff..." class="form-control" style="border-radius: 0 25px 25px 0; border-left: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <span class="input-group-addon" style="border-radius: 0 25px 25px 0; border-left: none; background: transparent; border: none;">
-                            <i class="fa fa-search" style="color: #666;"></i>
-                        </span>
+                        <div id="search-results"
+                            style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ddd; width: 350px; max-height: 250px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; margin-top: 5px;">
+                        </div>
                     </div>
-                    <div id="search-results" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ddd; width: 350px; max-height: 250px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; margin-top: 5px;"></div>
-                </div>
                 @else
-                <div class="col-md-10"></div>
+                    <div class="col-md-10"></div>
                 @endif
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
                     <!-- Add a Notification  -->
-                    <a href="#" onclick="toggleNotificationDropdown(event); return false;" style="margin-top:2px; margin-right: 90px; color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                    <a href="#" onclick="toggleNotificationDropdown(event); return false;"
+                        style="margin-top:2px; margin-right: 90px; color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                         <i class="fa fa-bell" style="font-size: 18px;"></i>
-                        <span id="notificationBadgeDesk" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
+                        <span id="notificationBadgeDesk"
+                            style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
                     </a>
                     <ul class="nav navbar-nav">
                         @if($user)
@@ -527,40 +551,51 @@
                                             {{ $user->first_name }} {{ $user->last_name }}
                                         </p>
                                         <p style="color: #444; font-size: 13px; margin-top: 2px; margin-bottom: 5px;">
-                                            <i class="fa fa-briefcase"></i> {{ $user->roles->first() ? $user->roles->first()->name : 'Staff' }}
+                                            <i class="fa fa-briefcase"></i>
+                                            {{ $user->roles->first() ? $user->roles->first()->name : 'Staff' }}
                                         </p>
                                         <p style="color: #000000; font-weight: bold; margin-bottom: 5px;">
                                             {{  isset($user->office) ? $user->office->name : ''}}
-                                            <small style="color: #00b30fff;">{{ $user->province ? ' ' . $user->province->name : '' }} PROVINCE</small>
+                                            <small
+                                                style="color: #00b30fff;">{{ $user->province ? ' ' . $user->province->name : '' }}
+                                                PROVINCE</small>
                                         </p>
-                                        <small style="color: #666;">Member since {{ $user->created_at->format('M. Y') }}</small>
+                                        <small style="color: #666;">Member since
+                                            {{ $user->created_at->format('M. Y') }}</small>
                                     </li>
 
                                     <!-- External System Links -->
-                                    <li class="user-body" style="padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <li class="user-body"
+                                        style="padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
                                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                                            @if($role && in_array($role, ['1','4','6','9','10']))
-                                            <!-- <a href="https://erp.whencefinancesystem.com/app" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                                                <i class="fa fa-cogs" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
-                                                <span style="font-size: 12px;">ERPNext</span>
-                                            </a> -->
+                                            @if($role && in_array($role, ['1', '4', '6', '9', '10']))
+                                                <!-- <a href="https://erp.whencefinancesystem.com/app" title="comming soon" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                                        <i class="fa fa-cogs" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                                        <span style="font-size: 12px;">ERPNext</span>
+                                                    </a> -->
                                             @endif
 
-                                            <a href="{{ url('learning') }}" title="Whence Learn" style="text-decoration: none; color: #333; text-align: center; padding: 8px; border-radius: 8px; background: transparent; display: inline-block; transition: all 0.3s;">
-                                                <img src="{{ asset('images/education.gif') }}" alt="Education" style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
+                                            <a href="{{ url('learning') }}" title="Whence Learn"
+                                                style="text-decoration: none; color: #333; text-align: center; padding: 8px; border-radius: 8px; background: transparent; display: inline-block; transition: all 0.3s;">
+                                                <img src="{{ asset('images/education.gif') }}" alt="Education"
+                                                    style="width: 36px; height: 36px; display: block; margin: 0 auto 4px;">
                                                 <span style="font-size: 11px; font-weight: 500;">Whence Learn</span>
                                             </a>
 
-                                            <a href="https://meet.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                                                <i class="fa fa-video-camera" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                            <a href="https://meet.google.com" target="_blank"
+                                                style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                                <i class="fa fa-video-camera"
+                                                    style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
                                                 <span style="font-size: 12px;">Google Meet</span>
                                             </a>
 
-                                            <a href="https://mail.google.com" target="_blank" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
-                                                <i class="fa fa-envelope" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                            <a href="https://mail.google.com" target="_blank"
+                                                style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                                <i class="fa fa-envelope"
+                                                    style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
                                                 <span style="font-size: 12px;">Gmail</span>
                                             </a>
-                            
+
 
                                         </div>
                                     </li>
@@ -631,6 +666,7 @@
                     $user = Sentinel::getUser();
                     $showInductionModal = false;
                     $showPolicyModal = false;
+                    $showPayrollModal = false;
 
                     if ($user && request()->route() && request()->route()->getName() !== 'policies.view_policies') {
                         // Induction Check
@@ -641,6 +677,8 @@
                             $showPolicyModal = !\App\Models\InductionChecklist::hasCompletedPolicies($user->id);
                         }
                     }
+
+
                 @endphp
                 @if($showInductionModal && $role !== 11)
                     @include('partials.induction_modal')
@@ -660,6 +698,32 @@
                     <script>
                         // Prevent closing the modal
                         document.getElementById('policyModal').addEventListener('click', function (event) {
+                            event.stopPropagation();
+                        });
+                        document.addEventListener('keydown', function (event) {
+                            if (event.key === 'Escape') {
+                                event.preventDefault();
+                            }
+                        });
+                    </script>
+                @elseif(Sentinel::getUser() && Sentinel::getUser()->salary_details == 0 && !request()->routeIs('user.payroll.details') && Sentinel::getUser()->id != 2 && Sentinel::getUser()->id != 3)
+                    <!-- Payroll Details Required Modal -->
+                    <div id="payrollModal"
+                        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
+                        <div
+                            style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                            <h3 style="margin-bottom: 20px; color: #333;">Payroll Data Submission Required</h3>
+                            <p style="margin-bottom: 30px; color: #666;">
+                                To support accurate payroll processing and other HR operations, please complete and submit your payroll details.
+                                Kindly note that the payroll cycle is approaching its closure, and timely submission is required.
+                            </p>
+                            <a href="{{ url('user/payroll-details') }}" class="btn btn-primary btn-lg"
+                                style="padding: 10px 30px; font-size: 16px;">Submit Details</a>
+                        </div>
+                    </div>
+                    <script>
+                        // Prevent closing the modal
+                        document.getElementById('payrollModal').addEventListener('click', function (event) {
                             event.stopPropagation();
                         });
                         document.addEventListener('keydown', function (event) {
@@ -819,46 +883,46 @@
                 // Create the container div
                 const div = document.createElement('div');
                 div.style.cssText = `
-                    position: fixed;
-                    top: 25px;
-                    right: 25px;
-                    width: 320px;
-                    background: #ffffff;
-                    border-radius: 12px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-                    overflow: hidden;
-                    z-index: 9999;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    color: #333;
-                    transform: translateX(150%);
-                    opacity: 0;
-                    transition: all 0.5s ease;
-                `;
+                        position: fixed;
+                        top: 25px;
+                        right: 25px;
+                        width: 320px;
+                        background: #ffffff;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                        overflow: hidden;
+                        z-index: 9999;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        color: #333;
+                        transform: translateX(150%);
+                        opacity: 0;
+                        transition: all 0.5s ease;
+                    `;
 
                 // Inner content
                 div.innerHTML = `
-                    <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
-                            TRANSACTION ALERT 🔔
-                        </h4>
-                        <p style="margin: 3px 0; font-size: 14px;"><strong>Type:</strong> ${data.type || 'N/A'}</p>
-                        <p style="margin: 3px 0; font-size: 14px;"><strong>Amount:</strong> ${data.amount || 'N/A'}</p>
-                        <p style="margin: 3px 0; font-size: 14px;"><strong>Client:</strong> ${data.client || 'N/A'}</p>
-                        <p style="margin: 3px 0; font-size: 14px;"><strong>Added by:</strong> ${data.created_by || 'N/A'}</p>
-                        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                            <button style="
-                                background: #007bff;
-                                color: #fff;
-                                border: none;
-                                border-radius: 6px;
-                                padding: 6px 14px;
-                                font-size: 13px;
-                                cursor: pointer;
-                                transition: background 0.3s ease;
-                            ">Close</button>
+                        <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
+                                TRANSACTION ALERT 🔔
+                            </h4>
+                            <p style="margin: 3px 0; font-size: 14px;"><strong>Type:</strong> ${data.type || 'N/A'}</p>
+                            <p style="margin: 3px 0; font-size: 14px;"><strong>Amount:</strong> ${data.amount || 'N/A'}</p>
+                            <p style="margin: 3px 0; font-size: 14px;"><strong>Client:</strong> ${data.client || 'N/A'}</p>
+                            <p style="margin: 3px 0; font-size: 14px;"><strong>Added by:</strong> ${data.created_by || 'N/A'}</p>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                <button style="
+                                    background: #007bff;
+                                    color: #fff;
+                                    border: none;
+                                    border-radius: 6px;
+                                    padding: 6px 14px;
+                                    font-size: 13px;
+                                    cursor: pointer;
+                                    transition: background 0.3s ease;
+                                ">Close</button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
                 // Add to document
                 document.body.appendChild(div);
@@ -878,7 +942,7 @@
             }
 
 
-                       function showTicketNotification(data) {
+            function showTicketNotification(data) {
                 // Play notification sound
                 const audio = new Audio('https://www.myinstants.com/media/sounds/undertakers-bell_2UwFCIe.mp3'); // You can replace this URL with your own sound
                 audio.play();
@@ -886,46 +950,46 @@
                 // Create the container div
                 const div = document.createElement('div');
                 div.style.cssText = `
-                    position: fixed;
-                    top: 25px;
-                    right: 25px;
-                    width: 320px;
-                    background: #ffffff;
-                    border-radius: 12px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-                    overflow: hidden;
-                    z-index: 9999;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    color: #333;
-                    transform: translateX(150%);
-                    opacity: 0;
-                    transition: all 0.5s ease;
-                `;
+                        position: fixed;
+                        top: 25px;
+                        right: 25px;
+                        width: 320px;
+                        background: #ffffff;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                        overflow: hidden;
+                        z-index: 9999;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        color: #333;
+                        transform: translateX(150%);
+                        opacity: 0;
+                        transition: all 0.5s ease;
+                    `;
 
                 // Inner content
                 div.innerHTML = `
-                    <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
-                            NEW TICKET ALERT 🔔
-                        </h4>
-                        <p style="margin: 3px 0; font-size: 14px;"><strong>Name:</strong> ${data.name || 'N/A'}</p>
-                        <p style="margin: 3px 0; font-size: 14px;"><strong>Type:</strong> ${data.type || 'N/A'}</p>
-                        <p style="margin: 3px 0; font-size: 14px;"><strong>Created by:</strong> ${data.user || 'N/A'}</p>
-                        <p style="margin: 3px 0; font-size: 14px;"><strong>Branch:</strong> ${data.office || 'N/A'}</p>
-                        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                            <button style="
-                                background: #007bff;
-                                color: #fff;
-                                border: none;
-                                border-radius: 6px;
-                                padding: 6px 14px;
-                                font-size: 13px;
-                                cursor: pointer;
-                                transition: background 0.3s ease;
-                            ">Close</button>
+                        <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
+                                NEW TICKET ALERT 🔔
+                            </h4>
+                            <p style="margin: 3px 0; font-size: 14px;"><strong>Name:</strong> ${data.name || 'N/A'}</p>
+                            <p style="margin: 3px 0; font-size: 14px;"><strong>Type:</strong> ${data.type || 'N/A'}</p>
+                            <p style="margin: 3px 0; font-size: 14px;"><strong>Created by:</strong> ${data.user || 'N/A'}</p>
+                            <p style="margin: 3px 0; font-size: 14px;"><strong>Branch:</strong> ${data.office || 'N/A'}</p>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                <button style="
+                                    background: #007bff;
+                                    color: #fff;
+                                    border: none;
+                                    border-radius: 6px;
+                                    padding: 6px 14px;
+                                    font-size: 13px;
+                                    cursor: pointer;
+                                    transition: background 0.3s ease;
+                                ">Close</button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
                 // Add to document
                 document.body.appendChild(div);
@@ -955,42 +1019,42 @@
                 // Create the container div
                 const div = document.createElement('div');
                 div.style.cssText = `
-                    position: fixed;
-                    top: 25px;
-                    right: 25px;
-                    width: 320px;
-                    background: #ffffff;
-                    border-radius: 12px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-                    overflow: hidden;
-                    z-index: 9999;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    color: #333;
-                    transform: translateX(150%);
-                    opacity: 0;
-                    transition: all 0.5s ease;
-                `;
+                        position: fixed;
+                        top: 25px;
+                        right: 25px;
+                        width: 320px;
+                        background: #ffffff;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                        overflow: hidden;
+                        z-index: 9999;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        color: #333;
+                        transform: translateX(150%);
+                        opacity: 0;
+                        transition: all 0.5s ease;
+                    `;
 
                 // Inner content
                 div.innerHTML = `
-                    <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
-                            NOTIFICATION TEST 🔔
-                        </h4>
-                        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                            <button style="
-                                background: #007bff;
-                                color: #fff;
-                                border: none;
-                                border-radius: 6px;
-                                padding: 6px 14px;
-                                font-size: 13px;
-                                cursor: pointer;
-                                transition: background 0.3s ease;
-                            ">Close</button>
+                        <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
+                                NOTIFICATION TEST 🔔
+                            </h4>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                <button style="
+                                    background: #007bff;
+                                    color: #fff;
+                                    border: none;
+                                    border-radius: 6px;
+                                    padding: 6px 14px;
+                                    font-size: 13px;
+                                    cursor: pointer;
+                                    transition: background 0.3s ease;
+                                ">Close</button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
                 // Add to document
                 document.body.appendChild(div);
@@ -1023,12 +1087,12 @@
 
             });
 
-              socket.on('ticket.created', (data) => {
-                  if ("{{ $role }}" === "1") {
-                showTicketNotification(data)
-                  }
+            socket.on('ticket.created', (data) => {
+                if ("{{ $role }}" === "1") {
+                    showTicketNotification(data)
+                }
             });
-           
+
 
             socket.on('notification.created', (data) => {
                 showNotificationTest()
@@ -1042,58 +1106,77 @@
     </script>
 
     @if($role !== 11)
-        @include('partials.profile_completion_wizard')
+        <!-- include('partials.profile_completion_wizard') -->
     @endif
 
-    
+
     <!-- Floating SMS Button -->
     @if($role == 1)
-    <div id="sms-floating-btn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #00a65a; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s;">
-        <i class="fa fa-envelope" style="color: white; font-size: 24px;"></i>
-    </div>
+        <div id="sms-floating-btn"
+            style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #00a65a; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s;">
+            <i class="fa fa-envelope" style="color: white; font-size: 24px;"></i>
+        </div>
     @endif
 
     @if($role == 1)
-    @php
-    $offices = App\Models\Office::select('id', 'name')->get();
-    @endphp
-    <script>
-    var offices = @json($offices);
-    </script>
+        @php
+            $offices = App\Models\Office::select('id', 'name')->get();
+        @endphp
+        <script>
+            var offices = @json($offices);
+        </script>
     @endif
 
     <!-- SMS Modal -->
-    <div id="sms-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1001;">
-        <div style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+    <div id="sms-modal"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1001;">
+        <div
+            style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
             <h4 style="margin: 0 0 15px 0; color: #333;">Send SMS </h4>
             <form id="sms-form">
                 <div style="margin-bottom: 15px;">
-                    <label for="sms-type" style="display: block; margin-bottom: 5px; font-weight: bold;">Message Type:</label>
-                    <select id="sms-type" name="message_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                    <label for="sms-type" style="display: block; margin-bottom: 5px; font-weight: bold;">Message
+                        Type:</label>
+                    <select id="sms-type" name="message_type"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                        required>
                         <option value="single">Single SMS</option>
                         <option value="overdue">Overdue Reminder</option>
                     </select>
                 </div>
                 <div id="single-sms-fields">
                     <div style="margin-bottom: 15px;">
-                        <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone Number:</label>
-                        <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                        <label for="sms-phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone
+                            Number:</label>
+                        <input type="text" id="sms-phone" name="phone" placeholder="Enter phone number"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                            required>
                     </div>
                     <div style="margin-bottom: 15px;">
-                        <label for="sms-message" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
-                        <textarea id="sms-message" name="message" placeholder="Enter message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;" required></textarea>
+                        <label for="sms-message"
+                            style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
+                        <textarea id="sms-message" name="message" placeholder="Enter message" rows="4"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;"
+                            required></textarea>
                     </div>
                 </div>
                 <div id="bulk-sms-fields" style="display: none;">
-                    <label for="sms-office" style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
-                    <select id="sms-office" name="office_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
+                    <label for="sms-office"
+                        style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
+                    <select id="sms-office" name="office_id"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                        required>
                         Options will be populated via JS
                     </select>
                 </div>
-                <p class="sample-text" style="display: none;">Dear Customer, this is a reminder that your loan of ZMW 0 is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.</p>
+                <p class="sample-text" style="display: none;">Dear Customer, this is a reminder that your loan of ZMW 0
+                    is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance,
+                    contact 0972654596.</p>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" id="sms-cancel" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
-                    <button type="submit" style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
+                    <button type="button" id="sms-cancel"
+                        style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+                    <button type="submit"
+                        style="padding: 10px 20px; background: #00a65a; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
                 </div>
             </form>
             <div id="sms-response" style="margin-top: 15px; display: none;"></div>
@@ -1102,18 +1185,18 @@
 
     <script>
         // SMS Modal Script
-        $(document).ready(function() {
-            $('#sms-floating-btn').on('click', function() {
+        $(document).ready(function () {
+            $('#sms-floating-btn').on('click', function () {
                 $('#sms-modal').css('display', 'flex');
             });
 
-            $('#sms-cancel').on('click', function() {
+            $('#sms-cancel').on('click', function () {
                 $('#sms-modal').hide();
                 $('#sms-form')[0].reset();
                 $('#sms-response').hide();
             });
 
-            $('#sms-modal').on('click', function(e) {
+            $('#sms-modal').on('click', function (e) {
                 if (e.target === this) {
                     $(this).hide();
                     $('#sms-form')[0].reset();
@@ -1123,12 +1206,12 @@
 
             // Load offices for the select
             $('#sms-office').empty().append('<option value="">Select Office</option>');
-            offices.forEach(function(office) {
+            offices.forEach(function (office) {
                 $('#sms-office').append('<option value="' + office.id + '">' + office.name + '</option>');
             });
 
             // Toggle fields based on message type
-            $('#sms-type').on('change', function() {
+            $('#sms-type').on('change', function () {
                 if ($(this).val() === 'overdue') {
                     $('#single-sms-fields').hide();
                     $('#bulk-sms-fields').show();
@@ -1146,7 +1229,7 @@
                 }
             });
 
-            $('#sms-form').on('submit', function(e) {
+            $('#sms-form').on('submit', function (e) {
                 e.preventDefault();
                 console.log('Form submitted');
                 var formData = $(this).serialize();
@@ -1162,7 +1245,7 @@
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             $('#sms-response').html('<div style="color: #28a745;">SMS sent successfully!</div>');
                             $('#sms-form')[0].reset();
@@ -1170,14 +1253,14 @@
                             $('#sms-response').html('<div style="color: #dc3545;">Error: ' + (response.error || 'Unknown error') + '</div>');
                         }
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         $('#sms-response').html('<div style="color: #dc3545;">Error: ' + xhr.responseJSON?.message || 'Failed to send SMS' + '</div>');
                     }
                 });
             });
         });
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             var currentSearchType = 'staff';
 
             function updateSearchType(type) {
@@ -1188,7 +1271,7 @@
                 $('#user-search').attr('placeholder', placeholder);
             }
 
-            $('#search-type-menu a').on('click', function(e) {
+            $('#search-type-menu a').on('click', function (e) {
                 e.preventDefault();
                 var type = $(this).data('value');
                 updateSearchType(type);
@@ -1196,7 +1279,7 @@
 
             updateSearchType('staff'); // Initial
 
-            $('#user-search').on('input', function() {
+            $('#user-search').on('input', function () {
                 var query = $(this).val();
                 var url = currentSearchType === 'staff' ? '/user/search' : '/client/search';
                 if (query.length > 2) {
@@ -1204,30 +1287,30 @@
                         url: url,
                         method: 'GET',
                         data: { q: query },
-                        success: function(data) {
+                        success: function (data) {
                             var results = $('#search-results');
                             results.empty();
                             if (data.length > 0) {
-                                data.forEach(function(item) {
+                                data.forEach(function (item) {
                                     var itemDiv = $('<div class="search-item" style="padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; color: #333; font-size: 14px;"></div>');
                                     if (currentSearchType === 'staff') {
                                         itemDiv.html('<strong>' + item.first_name + ' ' + item.last_name + '</strong><br><small style="color: #666;">' + item.email + ' | ' + (item.office ? item.office.name : 'No Office') + '</small>');
-                                        itemDiv.on('click', function() {
+                                        itemDiv.on('click', function () {
                                             $('#fullscreen-loader').fadeIn(200);
-                                            setTimeout(function() {
+                                            setTimeout(function () {
                                                 window.location.href = '/user/' + item.id + '/staff_info';
                                             }, 100);
                                         });
                                     } else {
                                         itemDiv.html('<strong>' + item.first_name + ' ' + item.last_name + '</strong><br><small style="color: #666;">' + item.mobile + ' | ' + (item.office ? item.office.name : 'No Office') + '</small>');
-                                        itemDiv.on('click', function() {
+                                        itemDiv.on('click', function () {
                                             $('#fullscreen-loader').fadeIn(200);
-                                            setTimeout(function() {
+                                            setTimeout(function () {
                                                 window.location.href = '/client/' + item.id + '/show';
                                             }, 100);
                                         });
                                     }
-                                    itemDiv.hover(function() { $(this).css('background', '#f8f9fa'); }, function() { $(this).css('background', 'transparent'); });
+                                    itemDiv.hover(function () { $(this).css('background', '#f8f9fa'); }, function () { $(this).css('background', 'transparent'); });
                                     results.append(itemDiv);
                                 });
                                 results.show();
@@ -1242,7 +1325,7 @@
             });
 
             // Hide results when clicking outside
-            $(document).on('click', function(e) {
+            $(document).on('click', function (e) {
                 if (!$(e.target).closest('.navbar-search').length) {
                     $('#search-results').hide();
                 }
@@ -1252,7 +1335,7 @@
 
     <!-- Survey Bottom Sheet Modal Script -->
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Get current route name
             var currentRoute = "{{ request()->route()->getName() }}";
 
@@ -1261,13 +1344,13 @@
             var role = {{ $role }};
 
             // Close bottom sheet when clicking close button
-            $('#closeSurveyBottomSheet').on('click', function() {
+            $('#closeSurveyBottomSheet').on('click', function () {
                 $('#surveyBottomSheetOverlay').removeClass('active');
                 $('#surveyBottomSheet').removeClass('active');
             });
 
             // Close bottom sheet when clicking overlay
-            $('#surveyBottomSheetOverlay').on('click', function(e) {
+            $('#surveyBottomSheetOverlay').on('click', function (e) {
                 if (e.target === this) {
                     $('#surveyBottomSheetOverlay').removeClass('active');
                     $('#surveyBottomSheet').removeClass('active');
@@ -1279,10 +1362,10 @@
 
             // Show survey 2 seconds after page load if user hasn't seen it
             if (!hasSeenSurvey && role !== 11) {
-                setTimeout(function() {
-                    $('#surveyBottomSheetOverlay').addClass('active');
-                    $('#surveyBottomSheet').addClass('active');
-                }, 2000);
+                // setTimeout(function () {
+                //     $('#surveyBottomSheetOverlay').addClass('active');
+                //     $('#surveyBottomSheet').addClass('active');
+                // }, 2000);
             }
         });
     </script>
@@ -1296,13 +1379,13 @@
         }
 
         // Close tools bottom sheet when clicking close button
-        $('#closeToolsBottomSheet').on('click', function() {
+        $('#closeToolsBottomSheet').on('click', function () {
             $('#toolsBottomSheetOverlay').removeClass('active');
             $('#toolsBottomSheet').removeClass('active');
         });
 
         // Close tools bottom sheet when clicking overlay
-        $('#toolsBottomSheetOverlay').on('click', function(e) {
+        $('#toolsBottomSheetOverlay').on('click', function (e) {
             if (e.target === this) {
                 $('#toolsBottomSheetOverlay').removeClass('active');
                 $('#toolsBottomSheet').removeClass('active');
@@ -1318,4 +1401,5 @@
     <script src="{{ asset('js/notifications.js') }}"></script>
 
 </body>
+
 </html>

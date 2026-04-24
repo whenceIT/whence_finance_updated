@@ -70,6 +70,10 @@ class User extends EloquentUser
         'internal_from_date',
         'internal_to_date',
         'position_id',
+        'tpin',
+        'ssn',
+        'nhima',
+        'salary_details',
     ];
     public function payroll()
     {

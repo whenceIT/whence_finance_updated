@@ -354,6 +354,9 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('permission/{permission}/edit', 'UserController@editPermission');
     Route::post('permission/{id}/update', 'UserController@updatePermission');
     Route::get('permission/{id}/delete', 'UserController@deletePermission');
+    Route::get('payroll-details', 'UserController@payrollDetails')->name('user.payroll.details');
+    Route::post('payroll-details', 'UserController@savePayrollDetails');
+    Route::get('payroll-details/export', 'UserController@exportPayrollDetails');
     //manage roles
     Route::get('role/data', 'UserController@indexRole');
     Route::get('role/create', 'UserController@createRole');
