@@ -82,7 +82,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; border-radius: 5px; padding: 12px; font-size: 18px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">Save Details</button> -->
+                            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; border-radius: 5px; padding: 12px; font-size: 18px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">Save Details</button>
                         </form>
                     </div>
                 </div>
