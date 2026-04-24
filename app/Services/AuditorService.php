@@ -244,7 +244,7 @@ class AuditorService
     /**
      * Log creating a new client loan event
      */
-    public function logCreateClientLoan($user, $request)
+    public function logCreateClientLoan($user, $request, $client)
     {
         $clientId = $request->route('client');
         $loanProductId = $request->route('loan_product');
@@ -252,16 +252,20 @@ class AuditorService
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'initiated creation of new client loan',
+            'Created a new client loan',
             $user->id,
             $request,
             [],
             [
-                'action' => 'create_client_loan_initiated',
+                'action' => 'created_a_new_client_loan',
                 'user_name' => $user->first_name . ' ' . $user->last_name,
-                'client_id' => $clientId,
+                'client_id' => $client->id,
+                'client_first_name' => $client->first_name ?? null,
+                'client_last_name' => $client->last_name ?? null,
+                'client_phone' => $client->phone ?? null,
                 'loan_product_id' => $loanProductId,
-                'office_id' => $user->office_id ?? null
+                'office_id' => $user->office_id ?? null,
+                'office_name' => $user->office->name ?? null
             ],
             'loan_creation'
         );
@@ -275,7 +279,8 @@ class AuditorService
         $newValues = [
             'action' => 'create_client_loan_completed',
             'user_name' => $user->first_name . ' ' . $user->last_name,
-            'office_id' => $user->office_id ?? null
+            'office_id' => $user->office_id ?? null,
+            'office_name' => $user->office->name ?? null
         ];
 
         // Add loan information if available
@@ -283,6 +288,7 @@ class AuditorService
             $newValues['loan_id'] = $loan->id;
             $newValues['loan_amount'] = $loan->principal ?? $request->principal;
             $newValues['loan_product_id'] = $loan->loan_product_id ?? $request->route('loan_product');
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
         } else {
             $newValues['loan_amount'] = $request->principal;
             $newValues['loan_product_id'] = $request->route('loan_product');
@@ -292,6 +298,9 @@ class AuditorService
         if ($client) {
             $newValues['client_id'] = $client->id;
             $newValues['client_name'] = $client->first_name . ' ' . $client->last_name;
+            $newValues['client_first_name'] = $client->first_name ?? null;
+            $newValues['client_last_name'] = $client->last_name ?? null;
+            $newValues['client_phone'] = $client->phone ?? null;
         } else {
             $newValues['client_id'] = $request->route('client');
         }
@@ -351,6 +360,7 @@ class AuditorService
             'action' => 'added_loan_topup',
             'user_name' => $user->first_name . ' ' . $user->last_name,
             'office_id' => $user->office_id ?? null,
+            'office_name' => $user->office->name ?? null,
             'topup_amount' => $request->amount,
             'topup_date' => $request->top_up_date ?? date('Y-m-d')
         ];
@@ -359,17 +369,30 @@ class AuditorService
         if ($loan) {
             $newValues['loan_id'] = $loan->id;
             $newValues['loan_principal'] = $loan->principal;
+            $newValues['loan_amount'] = $loan->principal;
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
             $newValues['client_id'] = $loan->client_id;
+            $newValues['client_first_name'] = $loan->client->first_name ?? null;
+            $newValues['client_last_name'] = $loan->client->last_name ?? null;
+            $newValues['client_phone'] = $loan->client->phone ?? null;
             $newValues['balance_before'] = $loan->principal; // Original loan amount
             $newValues['balance_after'] = $loan->principal + $request->amount; // New total
         } else {
             $newValues['loan_id'] = $request->route('id');
         }
 
+        $message = 'added top up of ' . number_format($request->amount, 2) . ' to loan';
+        if ($loan && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+        if ($user->office) {
+            $message .= ' at office ' . $user->office->name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'added top up to loan',
+            $message,
             $user->id,
             $request,
             [],
@@ -387,6 +410,7 @@ class AuditorService
             'action' => 'submitted_topup_approval_request',
             'user_name' => $user->first_name . ' ' . $user->last_name,
             'office_id' => $user->office_id ?? null,
+            'office_name' => $user->office->name ?? null,
             'topup_amount' => $request->amount,
             'topup_date' => $request->top_up_date ?? date('Y-m-d')
         ];
@@ -395,17 +419,30 @@ class AuditorService
         if ($loan) {
             $newValues['loan_id'] = $loan->id;
             $newValues['loan_principal'] = $loan->principal;
+            $newValues['loan_amount'] = $loan->principal;
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
             $newValues['client_id'] = $loan->client_id;
+            $newValues['client_first_name'] = $loan->client->first_name ?? null;
+            $newValues['client_last_name'] = $loan->client->last_name ?? null;
+            $newValues['client_phone'] = $loan->client->phone ?? null;
             $newValues['balance_before'] = $loan->principal;
             $newValues['balance_after'] = $loan->principal + $request->amount;
         } else {
             $newValues['loan_id'] = $request->route('id');
         }
 
+        $message = 'submitted top up approval request of ' . number_format($request->amount, 2);
+        if ($loan && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+        if ($user->office) {
+            $message .= ' at office ' . $user->office->name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'submitted top up approval request',
+            $message,
             $user->id,
             $request,
             [],
@@ -422,7 +459,8 @@ class AuditorService
         $newValues = [
             'action' => 'approved_loan_topup',
             'user_name' => $user->first_name . ' ' . $user->last_name,
-            'office_id' => $user->office_id ?? null
+            'office_id' => $user->office_id ?? null,
+            'office_name' => $user->office->name ?? null
         ];
 
         // Add topup information if available
@@ -438,16 +476,30 @@ class AuditorService
         if ($loan) {
             $newValues['loan_id'] = $loan->id;
             $newValues['loan_principal'] = $loan->principal;
+            $newValues['loan_amount'] = $loan->principal;
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
             $newValues['client_id'] = $loan->client_id;
+            $newValues['client_first_name'] = $loan->client->first_name ?? null;
+            $newValues['client_last_name'] = $loan->client->last_name ?? null;
+            $newValues['client_phone'] = $loan->client->phone ?? null;
         } else {
             $newValues['loan_id'] = $request->route('id');
             $newValues['topup_id'] = $request->route('trans_id');
         }
 
+        $amount = $topup ? $topup->amount : ($request->amount ?? 0);
+        $message = 'approved loan top up of ' . number_format($amount, 2);
+        if ($loan && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+        if ($user->office) {
+            $message .= ' at office ' . $user->office->name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'approved loan top up',
+            $message,
             $user->id,
             $request,
             [],
@@ -464,15 +516,21 @@ class AuditorService
         $newValues = [
             'action' => 'updated_client_loan',
             'user_name' => $user->first_name . ' ' . $user->last_name,
-            'office_id' => $user->office_id ?? null
+            'office_id' => $user->office_id ?? null,
+            'office_name' => $user->office->name ?? null
         ];
 
         // Add loan information if available
         if ($loan) {
             $newValues['loan_id'] = $loan->id;
             $newValues['loan_principal'] = $loan->principal;
+            $newValues['loan_amount'] = $loan->principal;
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
             $newValues['loan_status'] = $loan->status;
             $newValues['client_id'] = $loan->client_id;
+            $newValues['client_first_name'] = $loan->client->first_name ?? null;
+            $newValues['client_last_name'] = $loan->client->last_name ?? null;
+            $newValues['client_phone'] = $loan->client->phone ?? null;
             $newValues['loan_product_id'] = $loan->loan_product_id;
         } else {
             $newValues['loan_id'] = $request->route('id');
@@ -489,10 +547,31 @@ class AuditorService
             $newValues['updated_interest_rate'] = $request->interest_rate;
         }
 
+        $message = 'updated client loan';
+        $updates = [];
+        if ($request->has('principal')) {
+            $updates[] = 'principal to ' . number_format($request->principal, 2);
+        }
+        if ($request->has('loan_term')) {
+            $updates[] = 'term to ' . $request->loan_term;
+        }
+        if ($request->has('interest_rate')) {
+            $updates[] = 'interest rate to ' . $request->interest_rate . '%';
+        }
+        if (!empty($updates)) {
+            $message .= ' (' . implode(', ', $updates) . ')';
+        }
+        if ($loan && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+        if ($user->office) {
+            $message .= ' at office ' . $user->office->name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'updated client loan',
+            $message,
             $user->id,
             $request,
             [],
@@ -510,6 +589,7 @@ class AuditorService
             'action'      => 'declined_client_loan',
             'user_name'   => $user->first_name . ' ' . $user->last_name,
             'office_id'   => $user->office_id ?? null,
+            'office_name' => $user->office->name ?? null,
             'reason'      => $request->reason ?? $request->decline_reason ?? null,
             'declined_at' => now()->toDateTimeString(),
         ];
@@ -518,17 +598,30 @@ class AuditorService
         if ($loan) {
             $newValues['loan_id']         = $loan->id;
             $newValues['loan_principal']  = $loan->principal;
+            $newValues['loan_amount']     = $loan->principal;
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
             $newValues['loan_status']     = $loan->status;
             $newValues['client_id']       = $loan->client_id;
+            $newValues['client_first_name'] = $loan->client->first_name ?? null;
+            $newValues['client_last_name'] = $loan->client->last_name ?? null;
+            $newValues['client_phone']    = $loan->client->phone ?? null;
             $newValues['loan_product_id'] = $loan->loan_product_id;
         } else {
             $newValues['loan_id'] = $request->route('id') ?? $request->route('loan');
         }
 
+        $message = 'declined client loan';
+        if ($loan && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+        if ($user->office) {
+            $message .= ' at office ' . $user->office->name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'declined client loan',
+            $message,
             $user->id,
             $request,
             [],
@@ -546,26 +639,50 @@ class AuditorService
             'action'           => 'changed_loan_officer',
             'user_name'        => $user->first_name . ' ' . $user->last_name,
             'office_id'        => $user->office_id ?? null,
+            'office_name'      => $user->office->name ?? null,
             'new_officer_id'   => $request->loan_officer_id ?? $request->officer_id ?? $request->user_id ?? null,
+            'new_officer_name' => null, // Will be set below
             'changed_at'       => now()->toDateTimeString(),
         ];
+
+        // Get new officer name
+        if ($newValues['new_officer_id']) {
+            $newOfficer = \App\Models\User::find($newValues['new_officer_id']);
+            $newValues['new_officer_name'] = $newOfficer ? $newOfficer->first_name . ' ' . $newOfficer->last_name : null;
+        }
 
         // Add loan information if available
         if ($loan) {
             $newValues['loan_id']            = $loan->id;
             $newValues['loan_principal']     = $loan->principal;
+            $newValues['loan_amount']        = $loan->principal;
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
             $newValues['loan_status']        = $loan->status;
             $newValues['client_id']          = $loan->client_id;
+            $newValues['client_first_name']  = $loan->client->first_name ?? null;
+            $newValues['client_last_name']   = $loan->client->last_name ?? null;
+            $newValues['client_phone']       = $loan->client->phone ?? null;
             $newValues['loan_product_id']    = $loan->loan_product_id;
             $newValues['old_officer_id']     = $loan->user_id ?? $loan->loan_officer_id ?? null;
         } else {
             $newValues['loan_id'] = $request->route('id') ?? $request->route('loan');
         }
 
+        $message = 'changed loan officer';
+        if ($newValues['new_officer_name']) {
+            $message .= ' to ' . $newValues['new_officer_name'];
+        }
+        if ($loan && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+        if ($user->office) {
+            $message .= ' at office ' . $user->office->name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'changed loan officer',
+            $message,
             $user->id,
             $request,
             [],
@@ -583,26 +700,50 @@ class AuditorService
             'action'          => 'changed_loan_branch',
             'user_name'       => $user->first_name . ' ' . $user->last_name,
             'office_id'       => $user->office_id ?? null,
+            'office_name'     => $user->office->name ?? null,
             'new_branch_id'   => $request->branch_id ?? $request->office_id ?? null,
+            'new_branch_name' => null, // Will be set below
             'changed_at'      => now()->toDateTimeString(),
         ];
+
+        // Get new branch name
+        if ($newValues['new_branch_id']) {
+            $newBranch = \App\Models\Office::find($newValues['new_branch_id']);
+            $newValues['new_branch_name'] = $newBranch ? $newBranch->name : null;
+        }
 
         // Add loan information if available
         if ($loan) {
             $newValues['loan_id']          = $loan->id;
             $newValues['loan_principal']   = $loan->principal;
+            $newValues['loan_amount']      = $loan->principal;
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
             $newValues['loan_status']      = $loan->status;
             $newValues['client_id']        = $loan->client_id;
+            $newValues['client_first_name'] = $loan->client->first_name ?? null;
+            $newValues['client_last_name']  = $loan->client->last_name ?? null;
+            $newValues['client_phone']     = $loan->client->phone ?? null;
             $newValues['loan_product_id']  = $loan->loan_product_id;
             $newValues['old_branch_id']    = $loan->office_id ?? $loan->branch_id ?? null;
         } else {
             $newValues['loan_id'] = $request->route('id') ?? $request->route('loan');
         }
 
+        $message = 'changed loan branch';
+        if ($newValues['new_branch_name']) {
+            $message .= ' to ' . $newValues['new_branch_name'];
+        }
+        if ($loan && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+        if ($user->office) {
+            $message .= ' at office ' . $user->office->name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'changed loan branch',
+            $message,
             $user->id,
             $request,
             [],
@@ -620,6 +761,7 @@ class AuditorService
             'action'        => 'disbursed_client_loan',
             'user_name'     => $user->first_name . ' ' . $user->last_name,
             'office_id'     => $user->office_id ?? null,
+            'office_name'   => $user->office->name ?? null,
             'disbursed_at'  => now()->toDateTimeString(),
         ];
 
@@ -627,6 +769,8 @@ class AuditorService
         if ($loan) {
             $newValues['loan_id']          = $loan->id;
             $newValues['loan_principal']   = $loan->principal;
+            $newValues['loan_amount']      = $loan->principal;
+            $newValues['loan_first_installment_date'] = $loan->first_installment_date ?? null;
             $newValues['loan_status']      = $loan->status;
             $newValues['loan_product_id']  = $loan->loan_product_id;
             $newValues['interest_rate']    = $loan->interest_rate ?? null;
@@ -638,6 +782,9 @@ class AuditorService
             // Include client details if relationship is loaded
             if ($loan->relationLoaded('client') && $loan->client) {
                 $newValues['client_name'] = $loan->client->first_name . ' ' . $loan->client->last_name;
+                $newValues['client_first_name'] = $loan->client->first_name;
+                $newValues['client_last_name'] = $loan->client->last_name;
+                $newValues['client_phone'] = $loan->client->phone ?? null;
                 $newValues['client_nrc']  = $loan->client->nrc ?? null;
             }
 
@@ -655,10 +802,21 @@ class AuditorService
             $newValues['first_payment_date'] = $request->first_payment_date;
         }
 
+        $message = 'disbursed client loan';
+        if ($loan) {
+            $message .= ' of ' . number_format($loan->principal, 2);
+            if ($loan->relationLoaded('client') && $loan->client) {
+                $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+            }
+        }
+        if ($user->office) {
+            $message .= ' at office ' . $user->office->name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'disbursed client loan',
+            $message,
             $user->id,
             $request,
             [],
@@ -676,6 +834,7 @@ class AuditorService
             'action'             => 'submitted_transaction_for_approval',
             'user_name'          => $user->first_name . ' ' . $user->last_name,
             'office_id'          => $user->office_id ?? null,
+            'office_name'        => $user->office->name ?? null,
             'transaction_amount' => $request->amount ?? null,
             'transaction_type'   => $request->type ?? $request->transaction_type ?? null,
             'transaction_date'   => $request->date ?? $request->transaction_date ?? date('Y-m-d'),
@@ -699,10 +858,21 @@ class AuditorService
             $newValues['loan_id'] = $request->route('id') ?? $request->route('loan');
         }
 
+        $message = 'submitted transaction for approval';
+        if ($request->amount) {
+            $message .= ' of ' . number_format($request->amount, 2);
+        }
+        if ($request->type ?? $request->transaction_type) {
+            $message .= ' (' . ($request->type ?? $request->transaction_type) . ')';
+        }
+        if ($loan && $loan->relationLoaded('client') && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'submitted transaction for approval',
+            $message,
             $user->id,
             $request,
             [],
@@ -720,6 +890,7 @@ class AuditorService
             'action'             => 'entered_transaction_for_approval',
             'user_name'          => $user->first_name . ' ' . $user->last_name,
             'office_id'          => $user->office_id ?? null,
+            'office_name'        => $user->office->name ?? null,
             'transaction_amount' => $request->amount ?? null,
             'transaction_type'   => $request->type ?? $request->transaction_type ?? null,
             'transaction_date'   => $request->date ?? $request->transaction_date ?? date('Y-m-d'),

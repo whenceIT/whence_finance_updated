@@ -1076,7 +1076,7 @@ class LoanController extends Controller
         } else {
             
             // Log audit for creating a new client loan, log client information
-          //  $this->auditorService->logCreateClientLoan($user, request());
+           $this->auditorService->logCreateClientLoan(Sentinel::getUser(), request(), $client);
             return view(
                 'loan.create_client_loan',
                 compact('client', 'loan_product', 'userBranch')
@@ -1277,7 +1277,7 @@ class LoanController extends Controller
             GeneralHelper::audit_trail("Create", "Loans", $loan->id);
         // Log audit for creating a new client loan, log client and loan information
             $user = Sentinel::getUser();
-        //    $this->auditorService->logStoreClientLoan($user, request(), $loan, $client);
+            $this->auditorService->logStoreClientLoan($user, request(), $loan, $client);
             Flash::success(trans('general.successfully_saved'));
             return redirect('loan/' . $loan->id . '/show');
         }
@@ -3252,11 +3252,11 @@ class LoanController extends Controller
 
                 //Create a message based on the payment type
                 if ($paymentType == 'full_payment') {
-                    $message = "Dear {$client->first_name}, your loan is fully paid. ZMW {$amount} received on {$date}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount}  successfully received on {$date}. Thank you. Call 0773425477 for queries.";
                 } elseif ($paymentType == 'part_payment') {
-                    $message = "Dear {$client->first_name}, ZMW {$amount} received on {$date}. Next due: {$dueDate}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} successfully received on {$date}. Thank you. Call 0773425477 for queries.";
                 } else {
-                    $message = "Dear {$client->first_name}, ZMW {$amount} received on {$date}. Type: {$paymentType}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} successfully received on {$date}. Thank you. Call 0773425477 for queries.";
                 }
 
                 // Send SMS to client about the transaction (only for enabled offices)
