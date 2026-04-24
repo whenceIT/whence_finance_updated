@@ -715,7 +715,7 @@ class LoanController extends Controller
         }
         
         // Log audit for accessing loan transactions approvals page
-        $this->auditorService->logTransactionApprovalsPage($user, request());
+        $this->auditorService->logTransactionApprovalsPage(Sentinel::getUser(), request());
         return view('loan.transactions', compact('data','HasPendingCarryOvers',));
     }
 
