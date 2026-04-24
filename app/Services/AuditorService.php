@@ -852,21 +852,13 @@ class AuditorService
             // Include client details if relationship is loaded
             if ($loan->relationLoaded('client') && $loan->client) {
                 $newValues['client_name'] = $loan->client->first_name . ' ' . $loan->client->last_name;
+                $newValues['client_first_name'] = $loan->client->first_name;
+                $newValues['client_last_name'] = $loan->client->last_name;
+                $newValues['client_phone'] = $loan->client->phone ?? null;
                 $newValues['client_nrc']  = $loan->client->nrc ?? null;
             }
         } else {
             $newValues['loan_id'] = $request->route('id') ?? $request->route('loan');
-        }
-
-        $message = 'submitted transaction for approval';
-        if ($request->amount) {
-            $message .= ' of ' . number_format($request->amount, 2);
-        }
-        if ($request->type ?? $request->transaction_type) {
-            $message .= ' (' . ($request->type ?? $request->transaction_type) . ')';
-        }
-        if ($loan && $loan->relationLoaded('client') && $loan->client) {
-            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
         }
 
         $this->logCustomAudit(
@@ -914,10 +906,21 @@ class AuditorService
             $newValues['loan_id'] = $request->route('id') ?? $request->route('loan');
         }
 
+        $message = 'entered transaction for approval';
+        if ($request->amount) {
+            $message .= ' of ' . number_format($request->amount, 2);
+        }
+        if ($request->type ?? $request->transaction_type) {
+            $message .= ' (' . ($request->type ?? $request->transaction_type) . ')';
+        }
+        if ($loan && $loan->relationLoaded('client') && $loan->client) {
+            $message .= ' for client ' . $loan->client->first_name . ' ' . $loan->client->last_name;
+        }
+
         $this->logCustomAudit(
             'App\Models\User',
             $user->id,
-            'entered transaction for approval',
+            $message,
             $user->id,
             $request,
             [],

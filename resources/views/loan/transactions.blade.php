@@ -52,7 +52,7 @@
                         <td>{{number_format($key->credit,2)}}</td>
                         <td>{{ number_format($balance, 2) }}</td>
                         <td>{{$key->date}}</td>
-                        <td>{{$key->payment_apply_to}} ({{ $payment_type }})</td>
+                        <td class="{{ $mismatch ? 'bg-danger [color:white]' : '' }}">{{$key->payment_apply_to}} ({{ $payment_type }})</td>
                         <?php
                            $todaysDate = date('Y-m-d');
                         ?>
@@ -81,7 +81,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Transaction Details</h4>
+                    <h4 class="modal-title" style="color:blue;">Transaction Details</h4>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -107,11 +107,11 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <h5>Client Information</h5>
+                            <h5 style="color:blue;">Client Information</h5>
                             <p><strong>Name:</strong> <span id="modal-client-name"></span></p>
                         </div>
                         <div class="col-md-6">
-                            <h5>Staff Information</h5>
+                            <h5 style="color:blue;">Staff Information</h5>
                             <p><strong>Loan Officer:</strong> <span id="modal-loan-officer"></span></p>
                             <p><strong>Branch:</strong> <span id="modal-branch"></span></p>
                         </div>
