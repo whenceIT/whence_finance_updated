@@ -758,7 +758,7 @@ class LoanController extends Controller
         }
         
         // Log audit for accessing loan transactions top up approvals page
-        $this->auditorService->logTransactionTopUpApprovalsPage($user, request());
+
         return view('loan.top_up_approvals', compact('data'));
     }
 
@@ -1076,7 +1076,7 @@ class LoanController extends Controller
         } else {
             
             // Log audit for creating a new client loan, log client information
-            $this->auditorService->logCreateClientLoan($user, request());
+          //  $this->auditorService->logCreateClientLoan($user, request());
             return view(
                 'loan.create_client_loan',
                 compact('client', 'loan_product', 'userBranch')
@@ -1277,7 +1277,7 @@ class LoanController extends Controller
             GeneralHelper::audit_trail("Create", "Loans", $loan->id);
         // Log audit for creating a new client loan, log client and loan information
             $user = Sentinel::getUser();
-            $this->auditorService->logStoreClientLoan($user, request(), $loan, $client);
+        //    $this->auditorService->logStoreClientLoan($user, request(), $loan, $client);
             Flash::success(trans('general.successfully_saved'));
             return redirect('loan/' . $loan->id . '/show');
         }
