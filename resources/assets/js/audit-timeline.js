@@ -40,12 +40,22 @@ $(document).ready(function() {
                     });
 
                     var html = '<div class="timeline" style="position: relative; padding-left: 30px;">';
-                    html += '<style>.timeline::before { content: ""; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: #ddd; }';
-                    html += '.timeline-item { position: relative; margin-bottom: 20px; }';
-                    html += '.timeline-marker { position: absolute; left: -22px; top: 5px; width: 12px; height: 12px; background: #007bff; border-radius: 50%; border: 2px solid #fff; }';
-                    html += '.timeline-content { background: #f8f9fa; padding: 10px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }';
-                    html += '.date-group { margin-bottom: 30px; }';
-                    html += '.date-header { font-weight: bold; font-size: 16px; color: #007bff; margin-bottom: 15px; padding: 5px 10px; background: #e9ecef; border-radius: 3px; }</style>';
+                    html += '<style>';
+                    html += '.timeline { position: relative; padding-left: 40px; }';
+                    html += '.timeline::before { content: ""; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, #007bff, #0056b3); }';
+                    html += '.timeline-item { position: relative; margin-bottom: 25px; display: flex; align-items: flex-start; }';
+                    html += '.timeline-marker { position: absolute; left: -28px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; background: #007bff; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,123,255,0.4); }';
+                    html += '.timeline-marker::after { content: "\\f00c"; font-family: "Font Awesome 5 Free"; font-weight: 900; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 8px; color: #fff; }';
+                    html += '.timeline-content { flex: 1; background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); border: 1px solid #e9ecef; transition: all 0.3s ease; }';
+                    html += '.timeline-content:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,123,255,0.15); }';
+                    html += '.date-group { margin-bottom: 35px; }';
+                    html += '.date-header { font-weight: 600; font-size: 14px; color: #495057; margin-bottom: 20px; padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: inline-block; color: #fff; text-transform: uppercase; letter-spacing: 1px; }';
+                    html += '.timeline-event { font-size: 16px; font-weight: 600; color: #212529; margin-bottom: 8px; }';
+                    html += '.timeline-meta { display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; }';
+                    html += '.timeline-time { color: #6c757d; font-size: 13px; display: flex; align-items: center; gap: 5px; }';
+                    html += '.timeline-time.after-hours { color: #dc3545; font-weight: 600; }';
+                    html += '.timeline-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 20px; font-size: 12px; transition: all 0.3s ease; }';
+                    html += '</style>';
 
                     Object.keys(groupedAudits).forEach(function(dateKey) {
                         html += '<div class="date-group">';
@@ -58,12 +68,16 @@ $(document).ready(function() {
                             var auditTime = new Date(audit.created_at);
                             var hour = auditTime.getHours();
                             var isAfterHours = (hour >= 19 || hour <= 5);
-                            var timeClass = isAfterHours ? ' style="color: #dc3545; font-weight: bold;"' : '';
+                            var timeClass = isAfterHours ? ' after-hours' : '';
+                            var timeIcon = isAfterHours ? '<i class="fa fa-moon"></i>' : '<i class="fa fa-clock"></i>';
 
-                            html += '<h5>' + audit.event + '</h5>';
-                            html += '<p><strong>Time:</strong> <span' + timeClass + '>' + auditTime.toLocaleTimeString() + '</span></p>';
-                            html += '<a href="{{ url("audits") }}/' + audit.id + '" class="btn btn-sm btn-info" target="_blank">Details</a>';
-                            html += '</div></div>';
+                            html += '<div class="timeline-event">' + audit.event + '</div>';
+                            html += '<div class="timeline-meta">';
+                            html += '<span class="timeline-time' + timeClass + '">' + timeIcon + ' ' + auditTime.toLocaleTimeString() + '</span>';
+                            html += '<a href="{{ url("audits") }}/' + audit.id + '" class="btn btn-sm btn-info timeline-btn" target="_blank"><i class="fa fa-eye"></i> Details</a>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
                         });
 
                         html += '</div>';
