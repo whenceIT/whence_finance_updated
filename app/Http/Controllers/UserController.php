@@ -764,7 +764,30 @@ public function bmdashboard(Request $request){
 
         if ($role->role_id == '4' || $role->role_id == '12') {
 
+        $branchStaffCount = User::where('office_id', $userBranch)->where('status','Active')->count();
+       $existing_payroll_count = Payroll::where('office_id', $userBranch)
+    ->whereYear('payroll_date', now()->year)
+    ->whereMonth('payroll_date', now()->month)
+    ->count();
+
+    if ($branchStaffCount !== $existing_payroll_count) {
+    return redirect('/payroll/create_wage_bill');
+}
+
+
+
         if ($role->role_id == '4' || $role->role_id == '12') {
+
+
+             $branchStaffCount = User::where('office_id', $userBranch)->where('status','Active')->count();
+       $existing_payroll_count = Payroll::where('office_id', $userBranch)
+    ->whereYear('payroll_date', now()->year)
+    ->whereMonth('payroll_date', now()->month)
+    ->count();
+
+    if ($branchStaffCount !== $existing_payroll_count) {
+    return redirect('/payroll/create_wage_bill');
+}
 
           return redirect('/user/bmdashboard');  
         }
@@ -891,6 +914,16 @@ public function bmdashboard(Request $request){
         }
 
         if ($role->role_id == '6') {
+
+             $branchStaffCount = User::where('office_id', $userBranch)->where('status','Active')->count();
+       $existing_payroll_count = Payroll::where('office_id', $userBranch)
+    ->whereYear('payroll_date', now()->year)
+    ->whereMonth('payroll_date', now()->month)
+    ->count();
+
+    if ($branchStaffCount !== $existing_payroll_count) {
+    return redirect('/payroll/create_wage_bill');
+}
 
           return redirect('/user/pmdashboard');  
         }
