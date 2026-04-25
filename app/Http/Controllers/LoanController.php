@@ -6,6 +6,7 @@ use App\Events\LoanApproved;
 use App\Events\LoanCreated;
 use App\Events\LoanDisbursed;
 use App\Events\RepaymentCreated;
+use App\Models\Payroll;
 use App\Events\RepaymentUpdated;
 use App\Events\TransactionUpdated;
 use App\Helpers\GeneralHelper;
@@ -195,6 +196,8 @@ class LoanController extends Controller
 
     public function reloan_approvals()
     {
+
+
         $user = Sentinel::getUser();
         // Log audit for accessing reloan approvals
         $this->auditorService->logReloanApprovalsAccess($user, request());
@@ -204,7 +207,26 @@ class LoanController extends Controller
             return redirect()->back();
         }
 
+         $userId = Sentinel::getUser()->id;
         $office_id = Sentinel::getUser()->office_id;
+          $roleNew = UserRole::where('user_id', $userId)->first();
+
+
+
+          
+      if($roleNew->role_id == '4' || $roleNew->role_id == '12' || $roleNew->role_id == "6"){
+
+ $branchStaffCount = User::where('office_id', $office_id)->where('status','Active')->count();
+       $existing_payroll_count = Payroll::where('office_id', $office_id)
+    ->whereYear('payroll_date', now()->year)
+    ->whereMonth('payroll_date', now()->month)
+    ->count();
+
+    if ($branchStaffCount !== $existing_payroll_count) {
+    return redirect('/payroll/create_wage_bill');
+}
+      }
+
         if (Sentinel::hasAccess('settings')) {
             $data = LoanTransactionsPending::get();
         } else {
@@ -669,16 +691,31 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+           $userId = Sentinel::getUser()->id;
+          $role = Sentinel::getUser()->roles->first();
+        $office_id = Sentinel::getUser()->office_id;
+          $roleNew = UserRole::where('user_id', $userId)->first();
+
+      if($roleNew->role_id == '4' || $roleNew->role_id == '12' || $roleNew->role_id == "6"){
+
+ $branchStaffCount = User::where('office_id', $office_id)->where('status','Active')->count();
+       $existing_payroll_count = Payroll::where('office_id', $office_id)
+    ->whereYear('payroll_date', now()->year)
+    ->whereMonth('payroll_date', now()->month)
+    ->count();
+
+    if ($branchStaffCount !== $existing_payroll_count) {
+    return redirect('/payroll/create_wage_bill');
+}
+      }
 
          $HasPendingCarryOvers = false;
-        $role = Sentinel::getUser()->roles->first();
         $carry_overs = 0;
 
         
         $province_transactions = [];
-        $userId = Sentinel::getUser()->id;
+     
         $province_id = Sentinel::getUser()->province_id;
-        $office_id = Sentinel::getUser()->office_id;
         $offices = Office::get();
         $role = UserRole::where('user_id', $userId)->first();
 
@@ -780,9 +817,14 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+
+         $userId = Sentinel::getUser()->id;
+        $role = UserRole::where('user_id', $userId)->first();
+         $office_id = Sentinel::getUser()->office_id;
+
         $data = [];
         $offices = Office::get();
-        $userId = Sentinel::getUser()->id;
+       
         $province_id = Sentinel::getUser()->province_id;
         $role = UserRole::where('user_id', $userId)->first();
         $office_id = Sentinel::getUser()->office_id;
@@ -811,6 +853,8 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+
+        
         $data = Loan::where('status', 'approved')->get();
 
         return view('loan.awaiting_disbursement', compact('data'));

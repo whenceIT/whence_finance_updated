@@ -10,6 +10,13 @@ $dates = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augus
 $year = date('Y');
 ?>
 <div class="box box-primary">
+
+{{-- Warning for Deposits --}}
+<div class="alert alert-danger">
+    <strong>April 2026 Payroll Notice</strong><br>
+    Kindly ensure payroll is entered for all branch members. Transaction approvals will be unavailable until this is completed.
+</div>
+
     <div class="box-header with-border">
         <h3 class="box-title">Add Payroll</h3>
 

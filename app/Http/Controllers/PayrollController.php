@@ -135,50 +135,91 @@ class PayrollController extends Controller
 public function company_payroll_excel(Request $request)
 {
     $office_id = $request->office_id;
-    $month = $request->month; // format YYYY-MM
+    $month = $request->month;
 
     if (!$month) {
-        $month = date('Y-m');
+        $month = now()->format('Y-m');
     }
 
-    // Query payrolls
+    $start = \Carbon\Carbon::parse($month)->startOfMonth();
+    $end = \Carbon\Carbon::parse($month)->endOfMonth();
+
     $query = Payroll::query();
+
     if ($office_id) {
         $query->where('office_id', $office_id);
     }
-    $query->whereMonth('payroll_date', date('m', strtotime($month)))
-          ->whereYear('payroll_date', date('Y', strtotime($month)));
+
+    // ✅ FIXED month filter (same as UI)
+    $query->whereBetween('payroll_date', [$start, $end]);
 
     $payroll_list = $query->orderByDesc('payroll_date')->get();
 
-    // Prepare data for Excel
+    $fields = PayrollTemplateMeta::all();
+
     $data_rows = [];
+
+    // ✅ Totals
+    $totals = [
+        'basic_pay' => 0,
+        'net_pay' => 0,
+        'napsa' => 0,
+        'nhima' => 0,
+        'paye' => 0,
+    ];
+
     foreach ($payroll_list as $payroll) {
+
         $payroll_info = PayrollMeta::where('payroll_id', $payroll->id)->get();
-        $row = ['Staff' => $payroll->employee_name];
+
+        $row = [
+            'Staff' => $payroll->employee_name,
+            'Branch' => optional($payroll->office)->name,
+            'Email' => optional($payroll->user)->email,
+        ];
 
         $additions = 0;
         $deductions = 0;
 
-        foreach ($payroll_info as $info) {
-            $field = PayrollTemplateMeta::find($info->payroll_template_meta_id);
-            $value = $info->value ?? 0;
+        foreach ($fields as $field) {
+            $value = 0;
+
+            foreach ($payroll_info as $info) {
+                if ($info->payroll_template_meta_id == $field->id) {
+                    $value = $info->value ?? 0;
+                }
+            }
+
             $row[$field->name] = $value;
 
             if ($field->type == 'addition') $additions += $value;
             if ($field->type == 'deduction') $deductions += $value;
+
+            // Totals by name
+            $name = strtolower($field->name);
+
+            if (str_contains($name, 'basic')) $totals['basic_pay'] += $value;
+            if (str_contains($name, 'napsa')) $totals['napsa'] += $value;
+            if (str_contains($name, 'nhima')) $totals['nhima'] += $value;
+            if (str_contains($name, 'paye')) $totals['paye'] += $value;
         }
 
-        $row['Net Pay'] = $additions - $deductions;
+        $net = $additions - $deductions;
+
+        $row['Net Pay'] = $net;
+        $row['Job Level'] = optional(optional($payroll->user)->position)->name;
         $row['Date'] = date("M, Y", strtotime($payroll->payroll_date));
+
+        $totals['net_pay'] += $net;
 
         $data_rows[] = $row;
     }
 
     $data = [
         'data' => collect($data_rows),
-        'office_id' => $office_id,
+        'fields' => $fields,
         'month' => $month,
+        'totals' => $totals,
     ];
 
     return Excel::download(
@@ -189,10 +230,10 @@ public function company_payroll_excel(Request $request)
 
 
     //NEW NEW
-public function company_payroll(Request $request)
-{
+public function company_payroll(Request $request) {
+
     $office_id = $request->office_id;
-    $month = $request->month; // format YYYY-MM
+    $month = $request->month;
 
     $query = Payroll::query();
 
@@ -201,19 +242,81 @@ public function company_payroll(Request $request)
         $query->where('office_id', $office_id);
     }
 
-    // Filter by month
-    if ($month) {
-        $query->whereMonth('payroll_date', date('m', strtotime($month)))
-              ->whereYear('payroll_date', date('Y', strtotime($month)));
+    // ✅ Use current month ONLY if no month is selected
+    if (!$month) {
+        $month = now()->format('Y-m');
     }
+
+    $start = \Carbon\Carbon::parse($month)->startOfMonth();
+    $end = \Carbon\Carbon::parse($month)->endOfMonth();
+
+    $query->whereBetween('payroll_date', [$start, $end]);
 
     $payroll_list = $query->orderByDesc('payroll_date')->get();
 
-    // Get payroll fields and offices for filters
+    $totals = [
+    'employees' => $payroll_list->count(),
+    'basic_pay' => 0,
+    'net_pay' => 0,
+    'napsa' => 0,
+    'nhima' => 0,
+    'paye' => 0,
+];
+
+foreach ($payroll_list as $payroll) {
+
+    $payroll_info = PayrollMeta::where('payroll_id', $payroll->id)->get();
+
+    $additions = 0;
+    $deductions = 0;
+
+    foreach ($payroll_info as $info) {
+        $field = PayrollTemplateMeta::where('id', $info->payroll_template_meta_id)->first();
+
+        if (!$field) continue;
+
+        // Totals by type
+        if ($field->type == 'addition') {
+            $additions += $info->value;
+        }
+
+        if ($field->type == 'deduction') {
+            $deductions += $info->value;
+        }
+
+        // Totals by name (case insensitive match)
+        $name = strtolower($field->name);
+
+        if (str_contains($name, 'basic')) {
+            $totals['basic_pay'] += $info->value;
+        }
+
+        if (str_contains($name, 'napsa')) {
+            $totals['napsa'] += $info->value;
+        }
+
+        if (str_contains($name, 'nhima')) {
+            $totals['nhima'] += $info->value;
+        }
+
+        if (str_contains($name, 'paye')) {
+            $totals['paye'] += $info->value;
+        }
+    }
+
+    $totals['net_pay'] += ($additions - $deductions);
+}
+
     $payroll_fields = PayrollTemplateMeta::all();
     $offices = Office::all();
 
-    return view('payroll.company_payroll', compact('payroll_list', 'payroll_fields', 'offices'));
+    return view('payroll.company_payroll', compact(
+        'payroll_list',
+        'payroll_fields',
+        'offices',
+        'month', // 👈 pass it to blade
+          'totals'
+    ));
 }
 
     //NEW
