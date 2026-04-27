@@ -1281,11 +1281,15 @@
                             @endif
 
                                @if(Sentinel::hasAccess('settings'))
-                                <li><a href="{{ url('payroll/company_nhima') }}"><i class="fa fa-circle-o"></i>Company Nhima</a></li>
+                                <li><a href="{{ url('payroll/company_nhima') }}"><i class="fa fa-circle-o"></i>Company NHIMA</a></li>
                             @endif
                             
                                @if(Sentinel::hasAccess('settings'))
-                                <li><a href="{{ url('payroll/company_paye') }}"><i class="fa fa-circle-o"></i>Company Paye</a></li>
+                                <li><a href="{{ url('payroll/company_paye') }}"><i class="fa fa-circle-o"></i>Company PAYE</a></li>
+                            @endif
+
+                                @if(Sentinel::hasAccess('settings'))
+                                <li><a href="{{ url('payroll/company_napsa') }}"><i class="fa fa-circle-o"></i>Company NAPSA</a></li>
                             @endif
                             @if(Sentinel::hasAccess('expenses'))
                                 <li><a href="{{ url('payroll/create_wage_bill') }}"><i class="fa fa-circle-o"></i> Add payroll</a></li>
