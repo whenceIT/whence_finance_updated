@@ -3101,7 +3101,6 @@ public function bmdashboard(Request $request){
             // If mobile is selected, also update the user's phone/mobile fields
             if ($request->salary_mode == 'Mobile' && $request->mobile_number) {
                 $data['phone'] = $request->mobile_number;
-                $data['mobile_number'] = $request->mobile_number;
             }
             
             $user->update($data);

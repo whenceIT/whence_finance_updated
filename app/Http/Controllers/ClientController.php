@@ -18,6 +18,7 @@ use App\Models\Document;
 use App\Models\Loan;
 use App\Models\Note;
 use App\Models\Office;
+use App\Models\Notifix;
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 use League\Flysystem\Filesystem;
