@@ -573,6 +573,78 @@ foreach ($payroll_list as $payroll) {
     ));
 }
 
+public function company_paye_excel(Request $request)
+{
+    $office_id = $request->office_id;
+    $month = $request->month;
+
+    if (!$month) {
+        $month = now()->format('Y-m');
+    }
+
+    $start = \Carbon\Carbon::parse($month)->startOfMonth();
+    $end = \Carbon\Carbon::parse($month)->endOfMonth();
+
+    $query = Payroll::query();
+
+    if ($office_id) {
+        $query->where('office_id', $office_id);
+    }
+
+    $query->whereBetween('payroll_date', [$start, $end]);
+
+    $payroll_list = $query->orderByDesc('payroll_date')->get();
+
+    $data_rows = [];
+
+    // ✅ Totals (same as cards)
+    $totals = [
+        'employees' => $payroll_list->count(),
+        'basic_pay' => 0,
+        'paye' => 0,
+    ];
+
+    foreach ($payroll_list as $payroll) {
+
+        $paye = PayrollMeta::where('payroll_id', $payroll->id)
+            ->where('payroll_template_meta_id', 5)
+            ->first();
+
+        $gross = PayrollMeta::where('payroll_id', $payroll->id)
+            ->where('payroll_template_meta_id', 1)
+            ->first();
+
+        $gross_value = $gross->value ?? 0;
+        $paye_value = $paye->value ?? 0;
+
+        // ✅ totals
+        $totals['basic_pay'] += $gross_value;
+        $totals['paye'] += $paye_value;
+
+        $data_rows[] = [
+            'TPIN' => "'" . optional($payroll->user)->tpin, // prevent E+ issue
+            'Employee Name' => $payroll->employee_name,
+            'Employment Nature' => optional($payroll->user)->employment_type,
+            'Gross Emoluments' => $gross_value,
+            'Chargeable Emoluments' => $gross_value,
+            'Total Tax Credited' => 0,
+            'Tax Deducted' => $paye_value,
+            'Tax Adjusted' => 0,
+        ];
+    }
+
+    $data = [
+        'rows' => collect($data_rows),
+        'totals' => $totals,
+        'month' => $month,
+    ];
+
+    return Excel::download(
+        new ExportReport("payroll.company_paye_excel", $data),
+        'Company_PAYE_' . date("F_Y", strtotime($month)) . '.xlsx'
+    );
+}
+
 
     //NEW
     public function myPayslips(){

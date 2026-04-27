@@ -58,7 +58,7 @@ Company PAYE
             </button>
 
             <button type="submit"
-                    formaction="{{ url('payroll/export_nhima') }}"
+                    formaction="{{ url('payroll/export_paye') }}"
                     formmethod="GET"
                     class="btn btn-success">
                 Download Excel
