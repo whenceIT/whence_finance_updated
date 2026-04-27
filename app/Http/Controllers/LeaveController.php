@@ -365,9 +365,11 @@ public function myLeavedays(Request $request)
         if ($user->inRole(1)) {
             // Admin sees all
         } elseif ($user->inRole(6)) {
-            $query->whereIn('office_id', function ($q) use ($user) {
-                $q->select('id')->from('offices')->where('province_id', $user->province_id);
-            });
+            
+            $query->where('office_id', $user->office_id);
+            // $query->whereIn('office_id', function ($q) use ($user) {
+            //     $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            // });
         } elseif ($user->inRole(4)) {
             $query->where('office_id', $user->office_id);
         } else {
