@@ -362,22 +362,22 @@ public function myLeavedays(Request $request)
             ->where('commencement_date', '<=', $currentDate)
             ->where('return_date', '>=', $currentDate);
 
-        if ($user->inRole(1)) {
-            // Admin sees all
-        } elseif ($user->inRole(6)) {
+        // if ($user->inRole(1)) {
+        //     // Admin sees all
+        // } elseif ($user->inRole(6)) {
             
-            $query->where('office_id', $user->office_id);
-            // $query->whereIn('office_id', function ($q) use ($user) {
-            //     $q->select('id')->from('offices')->where('province_id', $user->province_id);
-            // });
-        } elseif ($user->inRole(4)) {
-            $query->where('office_id', $user->office_id);
-        } else {
+        //     $query->where('office_id', $user->office_id);
+        //     // $query->whereIn('office_id', function ($q) use ($user) {
+        //     //     $q->select('id')->from('offices')->where('province_id', $user->province_id);
+        //     // });
+        // } elseif ($user->inRole(4)) {
+        //     $query->where('office_id', $user->office_id);
+        // } else {
             
-            $query->where('office_id', $user->office_id);
-            // Default to showing nothing or all? preserving "all" for now as per other controllers being default-permissive if not caught
-            // But technically safer to restricting. I will show ALL to avoid regression for other roles not mentioned.
-        }
+        //     $query->where('office_id', $user->office_id);
+        //     // Default to showing nothing or all? preserving "all" for now as per other controllers being default-permissive if not caught
+        //     // But technically safer to restricting. I will show ALL to avoid regression for other roles not mentioned.
+        // }
 
         $leave = $query->get();
         return view('leave.active_leave', compact('leave'));
