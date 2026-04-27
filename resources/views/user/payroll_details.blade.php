@@ -68,6 +68,7 @@
                                             <option value="contract" {{ old('employment_type', $user->employment_type) == 'contract' ? 'selected' : '' }}>Contract</option>
                                             <option value="temporary" {{ old('employment_type', $user->employment_type) == 'temporary' ? 'selected' : '' }}>Temporary</option>
                                             <option value="probation" {{ old('employment_type', $user->employment_type) == 'probation' ? 'selected' : '' }}>Probation</option>
+                                            <option value="intern" {{ old('employment_type', $user->employment_type) == 'intern' ? 'selected' : '' }}>Intern</option>
                                         </select>
                                     </div>
                                 </div>
@@ -145,7 +146,7 @@ $(document).ready(function() {
             $('#nhima-field').hide();
             $('#nhima').prop('required', false);
         }
-        if (val == 'probation') {
+        if (val == 'probation' || val == 'intern') {
             $('#tpin').prop('required', false);
             $('#tpin-optional').show();
             $('#ssn').prop('required', false);
