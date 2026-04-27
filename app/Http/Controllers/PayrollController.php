@@ -228,6 +228,79 @@ public function company_payroll_excel(Request $request)
     );
 }
 
+public function company_nhima_excel(Request $request)
+{
+    $office_id = $request->office_id;
+    $month = $request->month;
+
+    if (!$month) {
+        $month = now()->format('Y-m');
+    }
+
+    $start = \Carbon\Carbon::parse($month)->startOfMonth();
+    $end = \Carbon\Carbon::parse($month)->endOfMonth();
+
+    $query = Payroll::query();
+
+    if ($office_id) {
+        $query->where('office_id', $office_id);
+    }
+
+    $query->whereBetween('payroll_date', [$start, $end]);
+
+    $payroll_list = $query->orderByDesc('payroll_date')->get();
+
+    $data_rows = [];
+
+    // ✅ Totals (same as your UI cards)
+    $totals = [
+        'employees' => $payroll_list->count(),
+        'basic_pay' => 0,
+        'nhima' => 0,
+    ];
+
+    foreach ($payroll_list as $payroll) {
+
+        $nhima = PayrollMeta::where('payroll_id', $payroll->id)
+            ->where('payroll_template_meta_id', 6)
+            ->first();
+
+        $gross = PayrollMeta::where('payroll_id', $payroll->id)
+            ->where('payroll_template_meta_id', 1)
+            ->first();
+
+        $gross_value = $gross->value ?? 0;
+        $nhima_value = $nhima->value ?? 0;
+
+        // ✅ accumulate totals
+        $totals['basic_pay'] += $gross_value;
+        $totals['nhima'] += $nhima_value;
+
+        $data_rows[] = [
+            'Company NHIMA No' => 'NHIS2002512788',
+            'Year' => \Carbon\Carbon::parse($payroll->payroll_date)->format('Y'),
+            'Month' => \Carbon\Carbon::parse($payroll->payroll_date)->format('F'),
+            'NHIMA No' => "'" . optional($payroll->user)->nhima,
+            'NRC' => optional($payroll->user)->nrc_id,
+            'Employee Name' => $payroll->employee_name,
+            'Date of Birth' => optional($payroll->user)->date_of_birth,
+            'Gross Pay' => $gross_value,
+            'Employee Contribution' => $nhima_value,
+            'Employer Contribution' => $nhima_value,
+        ];
+    }
+
+    $data = [
+        'rows' => collect($data_rows),
+        'totals' => $totals,
+        'month' => $month,
+    ];
+
+    return Excel::download(
+        new ExportReport("payroll.company_nhima_excel", $data),
+        'Company_NHIMA_' . date("F_Y", strtotime($month)) . '.xlsx'
+    );
+}
 
     //NEW NEW
 public function company_payroll(Request $request) {
@@ -262,6 +335,7 @@ public function company_payroll(Request $request) {
     'nhima' => 0,
     'paye' => 0,
 ];
+
 
 foreach ($payroll_list as $payroll) {
 
@@ -318,6 +392,187 @@ foreach ($payroll_list as $payroll) {
           'totals'
     ));
 }
+
+
+public function company_nhima(Request $request) {
+
+    $office_id = $request->office_id;
+    $month = $request->month;
+
+     $query = Payroll::query();
+
+    if ($office_id) {
+        $query->where('office_id', $office_id);
+    }
+
+     if (!$month) {
+        $month = now()->format('Y-m');
+    }
+
+    $start = \Carbon\Carbon::parse($month)->startOfMonth();
+    $end = \Carbon\Carbon::parse($month)->endOfMonth();
+
+    $query->whereBetween('payroll_date', [$start, $end]);
+
+    $payroll_list = $query->orderByDesc('payroll_date')->get();
+
+    $totals = [
+    'employees' => $payroll_list->count(),
+    'basic_pay' => 0,
+    'net_pay' => 0,
+    'napsa' => 0,
+    'nhima' => 0,
+    'paye' => 0,
+];
+
+foreach ($payroll_list as $payroll) {
+
+   $payroll_info = PayrollMeta::where('payroll_id', $payroll->id)
+    ->whereIn('payroll_template_meta_id', [1, 6])
+    ->get();
+
+    $additions = 0;
+    $deductions = 0;
+
+    foreach ($payroll_info as $info) {
+        $field = PayrollTemplateMeta::where('id', $info->payroll_template_meta_id)->first();
+
+        if (!$field) continue;
+
+        // Totals by type
+        if ($field->type == 'addition') {
+            $additions += $info->value;
+        }
+
+        if ($field->type == 'deduction') {
+            $deductions += $info->value;
+        }
+
+        // Totals by name (case insensitive match)
+        $name = strtolower($field->name);
+
+        if (str_contains($name, 'basic')) {
+            $totals['basic_pay'] += $info->value;
+        }
+
+        if (str_contains($name, 'napsa')) {
+            $totals['napsa'] += $info->value;
+        }
+
+        if (str_contains($name, 'nhima')) {
+            $totals['nhima'] += $info->value;
+        }
+
+        if (str_contains($name, 'paye')) {
+            $totals['paye'] += $info->value;
+        }
+    }
+
+    $totals['net_pay'] += ($additions - $deductions);
+}
+
+ $payroll_fields = PayrollTemplateMeta::whereIn('id', [1, 6])->get();
+    $offices = Office::all();
+
+    return view('payroll.company_nhima',compact(
+           'payroll_list',
+        'payroll_fields',
+        'offices',
+        'month', // 👈 pass it to blade
+          'totals'
+    ));
+}
+
+
+public function company_paye(Request $request) {
+
+    $office_id = $request->office_id;
+    $month = $request->month;
+
+     $query = Payroll::query();
+
+    if ($office_id) {
+        $query->where('office_id', $office_id);
+    }
+
+     if (!$month) {
+        $month = now()->format('Y-m');
+    }
+
+    $start = \Carbon\Carbon::parse($month)->startOfMonth();
+    $end = \Carbon\Carbon::parse($month)->endOfMonth();
+
+    $query->whereBetween('payroll_date', [$start, $end]);
+
+    $payroll_list = $query->orderByDesc('payroll_date')->get();
+
+    $totals = [
+    'employees' => $payroll_list->count(),
+    'basic_pay' => 0,
+    'net_pay' => 0,
+    'napsa' => 0,
+    'nhima' => 0,
+    'paye' => 0,
+];
+
+foreach ($payroll_list as $payroll) {
+
+   $payroll_info = PayrollMeta::where('payroll_id', $payroll->id)
+    ->whereIn('payroll_template_meta_id', [1, 5])
+    ->get();
+
+    $additions = 0;
+    $deductions = 0;
+
+    foreach ($payroll_info as $info) {
+        $field = PayrollTemplateMeta::where('id', $info->payroll_template_meta_id)->first();
+
+        if (!$field) continue;
+
+        // Totals by type
+        if ($field->type == 'addition') {
+            $additions += $info->value;
+        }
+
+        if ($field->type == 'deduction') {
+            $deductions += $info->value;
+        }
+
+        // Totals by name (case insensitive match)
+        $name = strtolower($field->name);
+
+        if (str_contains($name, 'basic')) {
+            $totals['basic_pay'] += $info->value;
+        }
+
+        if (str_contains($name, 'napsa')) {
+            $totals['napsa'] += $info->value;
+        }
+
+        if (str_contains($name, 'nhima')) {
+            $totals['nhima'] += $info->value;
+        }
+
+        if (str_contains($name, 'paye')) {
+            $totals['paye'] += $info->value;
+        }
+    }
+
+    $totals['net_pay'] += ($additions - $deductions);
+}
+
+ $payroll_fields = PayrollTemplateMeta::whereIn('id', [1, 6])->get();
+    $offices = Office::all();
+
+    return view('payroll.company_paye',compact(
+           'payroll_list',
+        'payroll_fields',
+        'offices',
+        'month', // 👈 pass it to blade
+          'totals'
+    ));
+}
+
 
     //NEW
     public function myPayslips(){

@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-Company Payroll
+Company Nhima
 @endsection
 
 @section('content')
@@ -12,6 +12,8 @@ Company Payroll
         {{-- ✅ Header --}}
         @php
             $displayMonth = \Carbon\Carbon::parse($month)->format('F Y');
+            $month = \Carbon\Carbon::parse($month)->format('F');
+            $year = \Carbon\Carbon::parse($month)->format('Y');
         @endphp
 
         <div class="text-center mb-4" style="border-bottom: 2px solid #eee; padding-bottom: 10px;">
@@ -20,7 +22,7 @@ Company Payroll
             </h2>
 
             <p style="margin:5px 0 0; font-size:16px; color:#555;">
-                {{ $displayMonth }} — Monthly Payroll Register
+                {{ $displayMonth }} — Monthly Nhima Register
             </p>
         </div>
 
@@ -56,7 +58,7 @@ Company Payroll
             </button>
 
             <button type="submit"
-                    formaction="{{ url('payroll/export') }}"
+                    formaction="{{ url('payroll/export_nhima') }}"
                     formmethod="GET"
                     class="btn btn-success">
                 Download Excel
@@ -75,10 +77,7 @@ Company Payroll
                 $cards = [
                     ['label' => 'Total Employees', 'value' => $totals['employees'], 'color' => 'bg-aqua'],
                     ['label' => 'Total Basic Pay', 'value' => number_format($totals['basic_pay'],2), 'color' => 'bg-green'],
-                    ['label' => 'Total Net Pay', 'value' => number_format($totals['net_pay'],2), 'color' => 'bg-blue'],
-                    ['label' => 'Total NAPSA', 'value' => number_format($totals['napsa'],2), 'color' => 'bg-yellow'],
                     ['label' => 'Total NHIMA', 'value' => number_format($totals['nhima'],2), 'color' => 'bg-red'],
-                    ['label' => 'Total PAYE', 'value' => number_format($totals['paye'],2), 'color' => 'bg-purple'],
                 ];
             @endphp
 
@@ -101,19 +100,18 @@ Company Payroll
 
                 <thead>
                     <tr style="background:#1f2d3d; color:white; font-size:13px;">
+                        <th>Company NHIMA No</th>
+                        <th>Year</th>
+                        <th>Month</th>
+                        <th>Nhima No</th>
+                        <th>NRC</th>
                         <th>Employee Name</th>
-                        <th>Branch</th>
-                        <th>Email</th>
-
-                        @foreach($payroll_fields as $payroll_field)
-                            <th>{{ $payroll_field->name }}</th>
-                        @endforeach
-
-                        <th>Net Pay</th>
-                        <th>Salary Band</th>
-                        <th>Job Level</th>
-                        <th>Date</th>
-                        <th>Action</th>
+                        <th>Date of Birth</th>
+                        <th>Gross Pay</th>
+                        <th>Employee Contribution</th>
+                        <th>Employer Contribution</th>
+                     
+                       
                     </tr>
                 </thead>
 
@@ -140,40 +138,38 @@ Company Payroll
                         @endif
 
                         @php
-                            $payroll_info = PayrollMeta::where('payroll_id',$payroll->id)->get();
+
+    $nhima_info = PayrollMeta::where('payroll_id', $payroll->id)
+    ->whereIn('payroll_template_meta_id', [6])
+    ->first();
+
+     $gross_info = PayrollMeta::where('payroll_id', $payroll->id)
+    ->whereIn('payroll_template_meta_id', [1])
+    ->first();
+
                             $additions = 0;
                             $deductions = 0;
 
-                            foreach($payroll_info as $info){
-                                $payroll_field = PayrollTemplateMeta::where('id',$info->payroll_template_meta_id)->first();
-
-                                if($payroll_field && $payroll_field->type == 'addition') $additions += $info->value;
-                                if($payroll_field && $payroll_field->type == 'deduction') $deductions += $info->value;
-                            }
-
-                            $net_pay = $additions - $deductions;
+                       
                         @endphp
 
                         <tr>
+                            <td>NHIS2002512788</td>
+                            <td>{{$year}}</td>
+                            <td>{{$month}}</td>
+                            <td>{{ $payroll->user->nhima }}</td>
+                            <td>{{ $payroll->user->nrc_id }}-</td>
                             <td>{{ $payroll->employee_name }}</td>
-                            <td>{{ $payroll->office->name }}</td>
-                            <td>{{ $payroll->user->email }}</td>
+                            <td>{{ $payroll->user->date_of_birth }}</td>
+                              <td>{{$gross_info->value}}</td>
+                            <td>{{ $nhima_info->value }}</td>
+                            <td>{{ $nhima_info->value }}</td>
+                          
+            
+                        
 
-                            @foreach($payroll_info as $info)
-                                <td>{{ number_format($info->value ?? 0,2) }}</td>
-                            @endforeach
-
-                            <td>{{ number_format($net_pay,2) }}</td>
-                            <td>-</td>
-                           <td>{{ optional($payroll->user->position)->name }}</td>
-                            <td>{{ date("M, Y", strtotime($payroll->payroll_date)) }}</td>
-
-                            <td>
-                                <a class="btn bg-blue"
-                                   href="{{ url('payroll/'.$payroll->id.'/payslip') }}">
-                                    Generate payslip
-                                </a>
-                            </td>
+                          
+                      
                         </tr>
 
                     @endforeach
