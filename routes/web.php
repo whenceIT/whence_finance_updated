@@ -1372,11 +1372,15 @@ Route::group(['prefix' => 'payroll'], function () {
     Route::post('store', 'PayrollController@store');
     Route::any('create_wage_bill', 'PayrollController@create_wage_bill');
     Route::any('company_payroll','PayrollController@company_payroll');
+    Route::any('company_nhima','PayrollController@company_nhima');
+    Route::any('company_paye','PayrollController@company_paye');
     Route::post('create_new_payroll', 'PayrollController@create_new_payroll');
     Route::get('{payroll}/show', 'PayrollController@show');
     Route::get('{payroll}/edit', 'PayrollController@edit');
     Route::post('{id}/update', 'PayrollController@update');
     Route::get('export','PayrollController@company_payroll_excel');
+    Route::get('export_nhima','PayrollController@company_nhima_excel');
+     Route::get('export_paye','PayrollController@company_paye_excel');
     Route::get('{id}/delete', 'PayrollController@delete');
     Route::get('getUser/{id}', 'PayrollController@getUser');
     Route::get('{id}/payslip', 'PayrollController@pdfPayslip');
