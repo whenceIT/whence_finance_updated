@@ -1158,7 +1158,7 @@ $office = $userInfo->office;
                             style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
                         <textarea id="sms-message" name="message" placeholder="Enter message" rows="4"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;"
-                            ></textarea>
+                            required></textarea>
                     </div>
                 </div>
                 <div id="bulk-sms-fields" style="display: none;">
@@ -1166,7 +1166,7 @@ $office = $userInfo->office;
                         style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
                     <select id="sms-office" name="office_id"
                         style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                        required>
+                        >
                         Options will be populated via JS
                     </select>
                 </div>
