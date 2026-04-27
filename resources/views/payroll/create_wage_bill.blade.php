@@ -41,7 +41,7 @@ $year = date('Y');
                 <div class="col-md-4">
                     <select name="user_id" class="form-control" id="user_id" required>
                         <option></option>
-                        @foreach(\App\Models\User::where('office_id',$userBranch)->get() as $key)
+                        @foreach(\App\Models\User::where('office_id',$userBranch)->where('status','Active')->get() as $key)
                         @if(!Sentinel::findUserById($key->id)->inRole('client'))
                         <option value="{{$key->id}}">{{$key->first_name}} {{$key->last_name}} </option>
                         @endif
