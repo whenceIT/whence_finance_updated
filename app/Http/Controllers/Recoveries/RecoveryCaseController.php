@@ -346,13 +346,10 @@ class RecoveryCaseController extends Controller
             $data = $province_cases;
         } elseif($role->role_id == "1" || $role->role_id == "10" ) {
             // Admin sees all
-            $data = \App\Models\RecoveryCase::whereNull('approved_date')
+            $data = RecoveryCase::whereNull('approved_date')
                 ->with(['client', 'loan', 'assignedSpecialist'])
                 ->get();
-            // Regular Admin Assistant (Recoveries Unit) sees office-specific
-            $data = \App\Models\RecoveryCase::whereNull('approved_date')
-                ->with(['client', 'loan', 'assignedSpecialist'])
-                ->get();
+                // check soft deletes
         }else{
             // Regular user sees office-specific
             $data = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
