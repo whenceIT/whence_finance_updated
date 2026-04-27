@@ -683,7 +683,7 @@ $office = $userInfo->office;
                 
                 @if($showInductionModal && $role !== 11)
                     @include('partials.induction_modal')
-                @elseif($showPolicyModal)
+                @elseif(false)
                     <!-- Policy Response Required Modal -->
                     <div id="policyModal"
                         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
