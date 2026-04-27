@@ -154,10 +154,10 @@ Company PAYE
                             <td>{{ $payroll->user->nhima }}</td>
                              <td>{{ $payroll->employee_name }}</td>
                              <td>{{ $payroll->user->employment_type }}</td>
-                            <td>{{ $paye_info->value }}</td>
-                            <td>{{ $paye_info->value }}</td>
+                             <td>{{$gross_info->value}}</td>
+                             <td>{{$gross_info->value}}</td>
                             <td>0</td>
-                            <td>{{$gross_info->value}}</td>
+                            <td>{{ $paye_info->value }}</td>
                              <td>0</td>
                    
                       
