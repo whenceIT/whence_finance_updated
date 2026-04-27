@@ -151,6 +151,7 @@ $(document).ready(function() {
             $('#tpin-optional').show();
             $('#ssn').prop('required', false);
             $('#ssn-optional').show();
+            $('#nhima').prop('required', false);
         } else {
             $('#tpin').prop('required', true);
             $('#tpin-optional').hide();
