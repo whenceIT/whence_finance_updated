@@ -214,7 +214,7 @@ class Loan extends Model
             AND l.status = 'disbursed'
             AND l.first_repayment_date IS NOT NULL
             AND l.first_repayment_date < CURRENT_DATE
-            AND l.created_at >= '2024-12-01'
+            AND c.created_at >= '2024-12-01'
 
         ORDER BY
             l.first_repayment_date ASC";
