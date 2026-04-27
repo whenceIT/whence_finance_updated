@@ -371,6 +371,8 @@ public function myLeavedays(Request $request)
         } elseif ($user->inRole(4)) {
             $query->where('office_id', $user->office_id);
         } else {
+            
+            $query->where('office_id', $user->office_id);
             // Default to showing nothing or all? preserving "all" for now as per other controllers being default-permissive if not caught
             // But technically safer to restricting. I will show ALL to avoid regression for other roles not mentioned.
         }
