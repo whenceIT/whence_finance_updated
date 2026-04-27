@@ -141,8 +141,8 @@ class RecoveryCaseController extends Controller
     {
         try {            
             $request->validate([
-                'loan_id'                 => 'required|exists:loans,id',
-                'origin_branch_id'        => 'required|exists:offices,id',
+                'loan_id'                 => 'required',
+                'origin_branch_id'        => 'required',
                 'category'                => 'required|in:' . implode(',', array_keys(RecoveryCase::CATEGORIES)),
                 'loan_outstanding_amount' => 'required|numeric|min:0',
             ]);
