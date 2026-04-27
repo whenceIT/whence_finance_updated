@@ -63,7 +63,21 @@ class SmsGateway extends Model
                 'mobile' => $loan->Client_Phone,
             ];
             $amount = $loan->principal; // or approved_amount?
-            $message = 'Dear Customer, this is a reminder that your loan of ZMW ' . number_format($amount, 2) . ' is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.';
+            $balance = null;
+            try {
+                $balance = \App\Helpers\GeneralHelper::loan_total_balance($loan->id);
+                if ($balance === null || $balance === false || !is_numeric($balance)) {
+                    $balance = null;
+                }
+            } catch (\Exception $e) {
+                $balance = null;
+            }
+
+            $message = 'Dear Customer, this is a reminder that your loan of ZMW ' . number_format($amount, 2);
+            if ($balance !== null) {
+                $message .= ' with outstanding balance of ZMW ' . number_format($balance, 2);
+            }
+            $message .= ' is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.';
 
             $bulkSms = new BulkSMS();
             $result = $bulkSms->sendToClients([$client], $message);
