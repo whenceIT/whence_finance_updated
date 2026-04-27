@@ -77,7 +77,7 @@ class SmsGateway extends Model
             if ($balance !== null) {
                 $message .= ' with outstanding balance of ZMW ' . number_format($balance, 2);
             }
-            $message .= ' is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0972654596.';
+            $message .= ' is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance, contact 0773425477.';
 
             $bulkSms = new BulkSMS();
             $result = $bulkSms->sendToClients([$client], $message);
