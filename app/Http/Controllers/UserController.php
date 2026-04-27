@@ -3082,10 +3082,33 @@ public function bmdashboard(Request $request){
     {
         try {
             $user = Sentinel::getUser();
-            $user->update($request->only(['salary_mode', 'bank_name', 'bank_account_number', 'branch', 'tpin', 'ssn', 'nhima', 'date_of_birth', 'employment_type']));
+            
+            // Build the data array with only the fields we want to update
+            $data = $request->only([
+                'salary_mode', 
+                'bank_name', 
+                'bank_account_number', 
+                'branch', 
+                'tpin', 
+                'ssn', 
+                'nhima', 
+                'date_of_birth', 
+                'employment_type',
+                'mobile_number',
+                'mobile_network'
+            ]);
+            
+            // If mobile is selected, also update the user's phone/mobile fields
+            if ($request->salary_mode == 'Mobile' && $request->mobile_number) {
+                $data['phone'] = $request->mobile_number;
+                $data['mobile_number'] = $request->mobile_number;
+            }
+            
+            $user->update($data);
             
             $user->salary_details = 1;
             $user->save();
+            
             Flash::success("Successfully Saved payroll details");
             return redirect('/')->with('msg', 'Payroll details updated successfully.');
         } catch (\Throwable $th) {

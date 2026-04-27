@@ -7,7 +7,7 @@
         <div class="row justify-content-center">
             <div class="col-12">
                 <div class="card" style="box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-radius: 10px; border: none;">
-                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px; font-weight: bold;">
+                    <div class="card-header" style="background: linear-gradient(135deg, #ceced2 0%, #fefeff 100%); color: #5a5a8492; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px; font-weight: bold;">
                        Employee Payroll Data Capture
                     </div>
                     <div class="card-body" style="padding: 30px;">
@@ -43,6 +43,21 @@
                                             <label for="branch" style="font-weight: bold; color: #333;">Bank Branch Name</label>
                                              <input type="text" name="branch" id="branch" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('branch', $user->branch) }}">
                                              <small class="form-text text-muted">e.g., Main Branch</small>
+                                        </div>
+                                    </div>
+                                    <div id="mobile-fields" style="display: {{ old('salary_mode', $user->salary_mode) == 'Mobile' ? 'block' : 'none' }};">
+                                        <div class="form-group">
+                                            <label for="mobile_number" style="font-weight: bold; color: #333;">Mobile Number (for Mobile Money)</label>
+                                             <input type="text" name="mobile_number" id="mobile_number" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;" value="{{ old('mobile_number', $user->mobile ?? $user->phone) }}" placeholder="e.g., 0977123456">
+                                             <small class="form-text text-muted">This number will receive salary via Mobile Money (MTN/Airtel)</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="mobile_network" style="font-weight: bold; color: #333;">Mobile Network</label>
+                                            <select name="mobile_network" id="mobile_network" class="form-control" style="border-radius: 5px; border: 1px solid #ddd;;">
+                                                <option value="">Select Network</option>
+                                                <option value="mtn" {{ old('mobile_network', $user->salary_mode) == 'Mobile' ? 'selected' : '' }}>MTN</option>
+                                                <option value="airtel" {{ old('mobile_network', $user->salary_mode) == 'Mobile' ? 'selected' : '' }}>Airtel</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -107,12 +122,19 @@ $(document).ready(function() {
     });
 
     $('#salary_mode').change(function() {
-        if ($(this).val() == 'Bank') {  
+        var val = $(this).val();
+        if (val == 'Bank') {  
             $('#bank-fields').show();
+            $('#mobile-fields').hide();
+        } else if (val == 'Mobile') {
+            $('#bank-fields').hide();
+            $('#mobile-fields').show();
         } else {
             $('#bank-fields').hide();
+            $('#mobile-fields').hide();
         }
     });
+    $('#salary_mode').trigger('change');
 
     $('#employment_type').change(function() {
         var val = $(this).val();

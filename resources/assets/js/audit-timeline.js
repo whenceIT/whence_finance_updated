@@ -39,36 +39,41 @@ $(document).ready(function() {
                         groupedAudits[dateKey].push(audit);
                     });
 
-                    var html = '<div class="timeline" style="position: relative; padding-left: 30px;">';
-                    html += '<style>.timeline::before { content: ""; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: #ddd; }';
-                    html += '.timeline-item { position: relative; margin-bottom: 20px; }';
-                    html += '.timeline-marker { position: absolute; left: -22px; top: 5px; width: 12px; height: 12px; background: #007bff; border-radius: 50%; border: 2px solid #fff; }';
-                    html += '.timeline-content { background: #f8f9fa; padding: 10px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }';
-                    html += '.date-group { margin-bottom: 30px; }';
-                    html += '.date-header { font-weight: bold; font-size: 16px; color: #007bff; margin-bottom: 15px; padding: 5px 10px; background: #e9ecef; border-radius: 3px; }</style>';
+                    var html = '<div class="audit-timeline-wrapper" id="audit-timeline-' + userId + '">';
+                    html += '<div class="timeline-header">';
+                    html += '<span><i class="fa fa-history"></i> Click row to toggle</span>';
+                    html += '<button class="refresh-audit-btn" data-user-id="' + userId + '"><i class="fa fa-refresh"></i> Refresh</button>';
+                    html += '</div>';
+                    html += '<div class="timeline">';
+                    html += '<div class="timeline-line"></div>';
 
                     Object.keys(groupedAudits).forEach(function(dateKey) {
                         html += '<div class="date-group">';
                         html += '<div class="date-header">' + dateKey + '</div>';
 
                         groupedAudits[dateKey].forEach(function(audit) {
-                            html += '<div class="timeline-item">';
-                            html += '<div class="timeline-marker"></div>';
-                            html += '<div class="timeline-content">';
                             var auditTime = new Date(audit.created_at);
                             var hour = auditTime.getHours();
                             var isAfterHours = (hour >= 19 || hour <= 5);
-                            var timeClass = isAfterHours ? ' style="color: #dc3545; font-weight: bold;"' : '';
+                            var timeClass = isAfterHours ? ' after-hours' : '';
+                            var timeIcon = isAfterHours ? '<i class="fa fa-moon"></i>' : '<i class="fa fa-clock"></i>';
 
-                            html += '<h5>' + audit.event + '</h5>';
-                            html += '<p><strong>Time:</strong> <span' + timeClass + '>' + auditTime.toLocaleTimeString() + '</span></p>';
-                            html += '<a href="{{ url("audits") }}/' + audit.id + '" class="btn btn-sm btn-info" target="_blank">Details</a>';
-                            html += '</div></div>';
+                            html += '<div class="timeline-item">';
+                            html += '<div class="timeline-marker"></div>';
+                            html += '<div class="timeline-content">';
+                            html += '<div class="timeline-event">' + audit.event + '</div>';
+                            html += '<div class="timeline-meta">';
+                            html += '<span class="timeline-time' + timeClass + '">' + timeIcon + ' ' + auditTime.toLocaleTimeString() + '</span>';
+                            html += '<a href="{{ url("audits") }}/' + audit.id + '" class="timeline-btn" target="_blank"><i class="fa fa-eye"></i> Details</a>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
                         });
 
                         html += '</div>';
                     });
 
+                    html += '</div>';
                     html += '</div>';
                     auditContent.html(html);
                 } else {
@@ -83,7 +88,7 @@ $(document).ready(function() {
 
     // Handle user row clicks
     $('.user-row').on('click', function(e) {
-        // Prevent click if clicking on the View button
+        // Prevent click if clicking on the View or Refresh button
         if ($(e.target).closest('a').length > 0) return;
 
         var userId = $(this).data('user-id');
@@ -101,11 +106,22 @@ $(document).ready(function() {
         }
     });
 
-    // Real-time polling for visible audit timelines
-    setInterval(function() {
-        $('.audit-row:visible').each(function() {
-            var userId = $(this).attr('id').replace('audit-', '');
-            fetchAuditTimeline(userId);
-        });
-    }, 30000); // Update every 30 seconds
+    // Handle refresh button clicks
+    $(document).on('click', '.refresh-audit-btn', function(e) {
+        e.stopPropagation();
+        var userId = $(this).data('user-id');
+        var btn = $(this);
+        
+        // Add spinning animation
+        btn.html('<i class="fa fa-spinner fa-spin"></i> Refreshing...');
+        btn.prop('disabled', true);
+        
+        fetchAuditTimeline(userId);
+        
+        // Reset button after a short delay
+        setTimeout(function() {
+            btn.html('<i class="fa fa-refresh"></i> Refresh');
+            btn.prop('disabled', false);
+        }, 1000);
+    });
 });

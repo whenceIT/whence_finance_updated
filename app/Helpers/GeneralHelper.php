@@ -2923,7 +2923,7 @@ public static function new_new_loan_total_balance($id)
         // Find Risk
         $ma = \App\Models\User::where('position_id',14)
             ->first();
-        $managers['rk'] = $ma ? $ma->id : null;
+        $managers['rk'] = 8;
         
         return $managers;
     }
