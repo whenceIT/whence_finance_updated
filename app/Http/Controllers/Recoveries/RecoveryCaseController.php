@@ -349,6 +349,8 @@ class RecoveryCaseController extends Controller
             $data = \App\Models\RecoveryCase::whereNull('approved_date')
                 ->with(['client', 'loan', 'assignedSpecialist'])
                 ->get();
+
+                dd($data);
         }else{
             // Regular user sees office-specific
             $data = \App\Models\RecoveryCase::where('origin_branch_id', $office_id)
