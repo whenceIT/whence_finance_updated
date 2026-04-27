@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-Company NHIMA
+Company NAPSA
 @endsection
 
 @section('content')
@@ -22,7 +22,7 @@ Company NHIMA
             </h2>
 
             <p style="margin:5px 0 0; font-size:16px; color:#555;">
-                {{ $displayMonth }} — Monthly NHIMA Register
+                {{ $displayMonth }} — Monthly NAPSA Register
             </p>
         </div>
 
@@ -58,7 +58,7 @@ Company NHIMA
             </button>
 
             <button type="submit"
-                    formaction="{{ url('payroll/export_nhima') }}"
+                    formaction="{{ url('payroll/export_napsa') }}"
                     formmethod="GET"
                     class="btn btn-success">
                 Download Excel
@@ -77,7 +77,7 @@ Company NHIMA
                 $cards = [
                     ['label' => 'Total Employees', 'value' => $totals['employees'], 'color' => 'bg-aqua'],
                     ['label' => 'Total Basic Pay', 'value' => number_format($totals['basic_pay'],2), 'color' => 'bg-green'],
-                    ['label' => 'Total NHIMA', 'value' => number_format($totals['nhima'],2), 'color' => 'bg-red'],
+                     ['label' => 'Total NAPSA', 'value' => number_format($totals['napsa'],2), 'color' => 'bg-yellow'],
                 ];
             @endphp
 
@@ -100,10 +100,10 @@ Company NHIMA
 
                 <thead>
                     <tr style="background:#1f2d3d; color:white; font-size:13px;">
-                        <th>Company NHIMA No</th>
+                        <th>Company NAPSA No</th>
                         <th>Year</th>
                         <th>Month</th>
-                        <th>Nhima No</th>
+                        <th>Social Security Number(NAPSA)</th>
                         <th>NRC</th>
                         <th>Employee Name</th>
                         <th>Date of Birth</th>
@@ -139,8 +139,8 @@ Company NHIMA
 
                         @php
 
-    $nhima_info = PayrollMeta::where('payroll_id', $payroll->id)
-    ->whereIn('payroll_template_meta_id', [6])
+    $napsa_info = PayrollMeta::where('payroll_id', $payroll->id)
+    ->whereIn('payroll_template_meta_id', [4])
     ->first();
 
      $gross_info = PayrollMeta::where('payroll_id', $payroll->id)
@@ -154,16 +154,16 @@ Company NHIMA
                         @endphp
 
                         <tr>
-                            <td>NHIS2002512788</td>
+                            <td>5149944</td>
                             <td>{{$year}}</td>
                             <td>{{$month}}</td>
-                            <td>{{ $payroll->user->nhima }}</td>
+                            <td>{{ $payroll->user->ssn }}</td>
                             <td>{{ $payroll->user->nrc_id }}-</td>
                             <td>{{ $payroll->employee_name }}</td>
                             <td>{{ $payroll->user->date_of_birth }}</td>
                               <td>{{$gross_info->value}}</td>
-                            <td>{{ $nhima_info->value }}</td>
-                            <td>{{ $nhima_info->value }}</td>
+                            <td>{{ $napsa_info->value }}</td>
+                            <td>{{ $napsa_info->value }}</td>
                           
             
                         
