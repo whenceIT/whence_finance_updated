@@ -1298,6 +1298,17 @@ Route::group(['prefix' => 'policies'], function () {
     Route::get('declined-responses', 'PolicyController@getDeclinedResponses');
     Route::post('reset-response/{userId}/{policyId}', 'PolicyController@resetUserResponse');
     Route::get('{policyId}/delete', 'PolicyController@deletePolicy')->name('policies.delete');
+
+    // Policy Violations
+    Route::get('violations/list', 'PolicyController@getViolations')->name('policies.violations.list');
+    Route::post('violations/store', 'PolicyController@storeViolation')->name('policies.violations.store');
+    Route::post('violations/update-status', 'PolicyController@updateViolationStatus')->name('policies.violations.updateStatus');
+    Route::post('violations/attach-evidence', 'PolicyController@attachViolationEvidence')->name('policies.violations.attachEvidence');
+    Route::get('violations/{id}', 'PolicyController@showViolation')->name('policies.violations.show');
+    Route::get('violations/branches/list', 'PolicyController@getViolationBranches')->name('policies.violations.branches');
+    Route::get('violations/categories/list', 'PolicyController@getViolationCategories')->name('policies.violations.categories');
+    Route::get('violations/users/list', 'PolicyController@getViolationUsers')->name('policies.violations.users');
+    Route::get('violations/policies/list', 'PolicyController@getViolationPolicies')->name('policies.violations.policies');
 });
 
 //staff survey routes

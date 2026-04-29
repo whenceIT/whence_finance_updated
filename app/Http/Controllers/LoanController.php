@@ -704,9 +704,9 @@ class LoanController extends Controller
     ->whereMonth('payroll_date', now()->month)
     ->count();
 
-    if ($branchStaffCount !== $existing_payroll_count) {
-    return redirect('/payroll/create_wage_bill');
-}
+//     if ($branchStaffCount !== $existing_payroll_count) {
+//     return redirect('/payroll/create_wage_bill');
+// }
       }
 
          $HasPendingCarryOvers = false;

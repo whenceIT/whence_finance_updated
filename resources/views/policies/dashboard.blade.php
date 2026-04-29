@@ -554,6 +554,175 @@
     .policy-dashboard-page .empty-state p {
         font-size: var(--pd-font-base);
     }
+
+    /* Declined Policies Modal Styles */
+    .declined-policies-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .user-declined-group {
+        margin-bottom: 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .user-declined-summary {
+        padding: 15px;
+        cursor: pointer;
+        background: #f8fafc;
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        list-style: none;
+    }
+
+    .user-declined-summary:hover {
+        background: #f1f5f9;
+    }
+
+    .user-declined-summary::marker {
+        content: '▶';
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+
+    .user-declined-group[open] .user-declined-summary::marker {
+        content: '▼';
+    }
+
+    .declined-count {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .user-declined-policies {
+        padding: 0 15px 15px 15px;
+    }
+
+    .declined-policy-item {
+        padding: 10px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #fff;
+        margin-bottom: 8px;
+        border-radius: 6px;
+    }
+
+    .declined-policy-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .policy-info strong {
+        color: #ef4444;
+        font-size: 1rem;
+    }
+
+    .policy-info small {
+        color: #64748b;
+        line-height: 1.4;
+    }
+
+    /* Policy Violations Modal Styles */
+    .violations-container {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .violations-filters {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-row .form-control {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .violations-list {
+        margin-bottom: 20px;
+    }
+
+    .violation-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .violation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .violation-status {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-investigating { background: #dbeafe; color: #2563eb; }
+    .status-resolved { background: #d1fae5; color: #059669; }
+    .status-escalated { background: #fee2e2; color: #dc2626; }
+
+    .violation-details p {
+        margin: 5px 0;
+        font-size: 0.9rem;
+    }
+
+    .violation-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .violation-actions .btn {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+
+    .add-violation-section {
+        text-align: center;
+        padding: 15px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .evidence-list {
+        margin-top: 10px;
+    }
+
+    .evidence-item {
+        display: inline-block;
+        margin: 5px;
+        padding: 5px 10px;
+        background: #f1f5f9;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+
+    .evidence-item a {
+        color: #2563eb;
+        text-decoration: none;
+    }
 </style>
 
 <div class="policy-dashboard-page">
@@ -630,7 +799,7 @@
         </div>
 
         <!-- Declined -->
-        <div class="bento-card span-3 stat-danger">
+        <div class="bento-card span-3 stat-danger" onclick="showDeclinedPoliciesModal()">
             <div class="card-header">
                 <span class="card-title">Declined</span>
                 <div class="card-icon">
@@ -645,8 +814,24 @@
             </div>
         </div>
 
+        <!-- Policy Violations -->
+        <div class="bento-card span-3 stat-warning" onclick="showViolationsModal()">
+            <div class="card-header">
+                <span class="card-title">Violations</span>
+                <div class="card-icon">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </div>
+            </div>
+            <div class="card-value">{{ $violationsCount ?? 0 }}</div>
+            <div class="card-label">Policy violations</div>
+            <div class="card-trend trend-down">
+                <i class="fa fa-flag"></i>
+                Needs investigation
+            </div>
+        </div>
+
         <!-- Quick Actions -->
-        <div class="bento-card span-4">
+        <div class="bento-card span-3">
             <div class="card-header">
                 <span class="card-title">Quick Actions</span>
                 <div class="card-icon" style="background: #e0e7ff; color: #6366f1;">
@@ -674,7 +859,7 @@
         </div>
 
         <!-- Response Status -->
-        <div class="bento-card span-4">
+        <div class="bento-card span-3">
             <div class="card-header">
                 <span class="card-title">Response Status</span>
                 <div class="card-icon" style="background: #d1fae5; color: #10b981;">
@@ -690,7 +875,7 @@
                 @endphp
                 <div class="progress-item">
                     <div class="progress-header">
-                        <span class="progress-label">Acknowledged</span>
+                        <span class="progress-label">Acknowledged/Accepted</span>
                         <span class="progress-value">{{ $ackPercent }}%</span>
                     </div>
                     <div class="progress-bar">
@@ -719,7 +904,7 @@
         </div>
 
         <!-- Categories -->
-        <div class="bento-card span-4">
+        <div class="bento-card span-3">
             <div class="card-header">
                 <span class="card-title">Policy Categories</span>
                 <div class="card-icon" style="background: #ede9fe; color: #8b5cf6;">
@@ -828,4 +1013,365 @@
         </div>
     </div>
 </div>
+
+<!-- Declined Policies Modal -->
+<div class="bottom-sheet-overlay" id="declinedPoliciesOverlay">
+    <div class="bottom-sheet" id="declinedPoliciesSheet">
+        <button class="bottom-sheet-close" id="closeDeclinedPoliciesSheet">&times;</button>
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content">
+            <h3 class="bottom-sheet-title">Declined Policies</h3>
+            <div class="declined-policies-list">
+                @php
+                    $grouped = collect($declinedPolicies)->groupBy(function($response) {
+                        return $response->user->id ?? 'unknown';
+                    });
+                @endphp
+                @forelse($grouped as $userId => $responses)
+                <details class="user-declined-group">
+                    <summary class="user-declined-summary">
+                        <strong>{{ $responses->first()->user->first_name ?? 'Unknown' }} {{ $responses->first()->user->last_name ?? '' }}</strong>
+                        <span class="declined-count">({{ $responses->count() }} policies)</span>
+                    </summary>
+                    <div class="user-declined-policies">
+                        @foreach($responses as $response)
+                        <div class="declined-policy-item">
+                            <div class="policy-info">
+                                <strong>{{ $response->policy->title ?? 'Unknown Policy' }}</strong>
+                                <br>
+                                <small>
+                                    Date: {{ $response->created_at->format('M d, Y H:i') }}
+                                </small>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </details>
+                @empty
+                <p>No declined policies found.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Policy Violations Modal -->
+<div class="bottom-sheet-overlay" id="violationsOverlay">
+    <div class="bottom-sheet" id="violationsSheet">
+        <button class="bottom-sheet-close" id="closeViolationsSheet">&times;</button>
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content">
+            <h3 class="bottom-sheet-title">Policy Violation Reports</h3>
+            <div class="violations-container">
+                <!-- Filters -->
+                <div class="violations-filters">
+                    <div class="filter-row">
+                        <select id="violationStatus" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="investigating">Investigating</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="escalated">Escalated</option>
+                        </select>
+                        <select id="violationBranch" class="form-control">
+                            <option value="">All Branches</option>
+                        </select>
+                        <select id="violationPolicyType" class="form-control">
+                            <option value="">All Policy Types</option>
+                        </select>
+                        <input type="date" id="violationDateFrom" class="form-control">
+                        <input type="date" id="violationDateTo" class="form-control">
+                        <button class="btn btn-primary" onclick="filterViolations()">Filter</button>
+                        <button class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Violations List -->
+                <div class="violations-list" id="violationsList">
+                    <div class="empty-state" id="noViolations">
+                        <i class="fa fa-clipboard-list"></i>
+                        <p>No violations found matching the filters.</p>
+                    </div>
+                </div>
+
+                <!-- Add New Violation -->
+                <div class="add-violation-section">
+                    <button class="btn btn-primary" onclick="showAddViolationForm()">Report New Violation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Violation Modal -->
+<div class="modal fade" id="addViolationModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Report Policy Violation</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addViolationForm">
+                    <div class="form-group">
+                        <label for="violationUser">User</label>
+                        <select id="violationUser" class="form-control" required>
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="violationPolicy">Policy Violated</label>
+                        <select id="violationPolicy" class="form-control" required>
+                            <option value="">Select Policy</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="violationDescription">Description</label>
+                        <textarea id="violationDescription" class="form-control" rows="3" placeholder="Describe the violation..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="violationEvidence">Attach Evidence</label>
+                        <input type="file" id="violationEvidence" class="form-control" multiple accept="image/*,.pdf,.doc,.docx">
+                        <small class="form-text text-muted">Supported formats: Images, PDF, Word documents</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitViolation()">Report Violation</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showDeclinedPoliciesModal() {
+        $('#declinedPoliciesOverlay').addClass('active');
+        $('#declinedPoliciesSheet').addClass('active');
+    }
+
+    // Close declined policies modal when clicking close button
+    $('#closeDeclinedPoliciesSheet').on('click', function () {
+        $('#declinedPoliciesOverlay').removeClass('active');
+        $('#declinedPoliciesSheet').removeClass('active');
+    });
+
+    // Close declined policies modal when clicking overlay
+    $('#declinedPoliciesOverlay').on('click', function (e) {
+        if (e.target === this) {
+            $('#declinedPoliciesOverlay').removeClass('active');
+            $('#declinedPoliciesSheet').removeClass('active');
+        }
+    });
+
+    function showViolationsModal() {
+        $('#violationsOverlay').addClass('active');
+        $('#violationsSheet').addClass('active');
+        loadViolations();
+        loadFilterOptions();
+    }
+
+    // Close violations modal when clicking close button
+    $('#closeViolationsSheet').on('click', function () {
+        $('#violationsOverlay').removeClass('active');
+        $('#violationsSheet').removeClass('active');
+    });
+
+    // Close violations modal when clicking overlay
+    $('#violationsOverlay').on('click', function (e) {
+        if (e.target === this) {
+            $('#violationsOverlay').removeClass('active');
+            $('#violationsSheet').removeClass('active');
+        }
+    });
+
+    function loadViolations() {
+        // AJAX call to load violations
+        $.get('{{ route("policies.violations.list") }}')
+            .done(function(data) {
+                renderViolations(data);
+            })
+            .fail(function() {
+                $('#violationsList').html('<p>Error loading violations.</p>');
+            });
+    }
+
+    function renderViolations(violations) {
+        if (violations.length === 0) {
+            $('#violationsList').html('<div class="empty-state"><i class="fa fa-clipboard-list"></i><p>No violations found matching the filters.</p></div>');
+            return;
+        }
+
+        let html = '';
+        violations.forEach(function(violation) {
+            html += `
+                <div class="violation-item" data-id="${violation.id}">
+                    <div class="violation-header">
+                        <strong>${violation.policy_title}</strong>
+                        <span class="violation-status status-${violation.status}">${violation.status.charAt(0).toUpperCase() + violation.status.slice(1)}</span>
+                    </div>
+                    <div class="violation-details">
+                        <p><strong>User:</strong> ${violation.user_name}</p>
+                        <p><strong>Branch:</strong> ${violation.branch_name || 'N/A'}</p>
+                        <p><strong>Date:</strong> ${violation.created_at}</p>
+                        <p><strong>Description:</strong> ${violation.description}</p>
+                        ${violation.evidence_count > 0 ? `<p><strong>Evidence:</strong> ${violation.evidence_count} files attached</p>` : ''}
+                    </div>
+                    <div class="violation-actions">
+                        ${violation.status === 'pending' ? '<button class="btn btn-sm btn-warning" onclick="changeStatus(' + violation.id + ', \'investigating\')">Investigate</button>' : ''}
+                        ${violation.status === 'investigating' ? '<button class="btn btn-sm btn-success" onclick="changeStatus(' + violation.id + ', \'resolved\')">Resolve</button>' : ''}
+                        ${violation.status === 'pending' || violation.status === 'investigating' ? '<button class="btn btn-sm btn-danger" onclick="changeStatus(' + violation.id + ', \'escalated\')">Escalate</button>' : ''}
+                        <button class="btn btn-sm btn-info" onclick="attachEvidence(' + violation.id + ')">Attach Evidence</button>
+                        <button class="btn btn-sm btn-secondary" onclick="viewDetails(' + violation.id + ')">View Details</button>
+                    </div>
+                </div>
+            `;
+        });
+        $('#violationsList').html(html);
+    }
+
+    function loadFilterOptions() {
+        // Load branches
+        $.get('{{ route("policies.violations.branches") }}')
+            .done(function(branches) {
+                let options = '<option value="">All Branches</option>';
+                branches.forEach(function(branch) {
+                    options += `<option value="${branch.id}">${branch.name}</option>`;
+                });
+                $('#violationBranch').html(options);
+            });
+
+        // Load policy categories
+        $.get('{{ route("policies.violations.categories") }}')
+            .done(function(categories) {
+                let options = '<option value="">All Policy Types</option>';
+                categories.forEach(function(category) {
+                    options += `<option value="${category.id}">${category.name}</option>`;
+                });
+                $('#violationPolicyType').html(options);
+            });
+    }
+
+    function filterViolations() {
+        const filters = {
+            status: $('#violationStatus').val(),
+            branch_id: $('#violationBranch').val(),
+            category_id: $('#violationPolicyType').val(),
+            date_from: $('#violationDateFrom').val(),
+            date_to: $('#violationDateTo').val()
+        };
+
+        $.get('{{ route("policies.violations.list") }}', filters)
+            .done(function(data) {
+                renderViolations(data);
+            });
+    }
+
+    function clearFilters() {
+        $('#violationStatus, #violationBranch, #violationPolicyType, #violationDateFrom, #violationDateTo').val('');
+        loadViolations();
+    }
+
+    function changeStatus(violationId, newStatus) {
+        $.post('{{ route("policies.violations.updateStatus") }}', {
+            violation_id: violationId,
+            status: newStatus,
+            _token: '{{ csrf_token() }}'
+        })
+        .done(function() {
+            loadViolations();
+        })
+        .fail(function() {
+            alert('Error updating status');
+        });
+    }
+
+    function attachEvidence(violationId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = 'image/*,.pdf,.doc,.docx';
+        input.onchange = function(e) {
+            const files = e.target.files;
+            const formData = new FormData();
+            formData.append('violation_id', violationId);
+            formData.append('_token', '{{ csrf_token() }}');
+            for (let i = 0; i < files.length; i++) {
+                formData.append('evidence[]', files[i]);
+            }
+
+            $.ajax({
+                url: '{{ route("policies.violations.attachEvidence") }}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function() {
+                    loadViolations();
+                },
+                error: function() {
+                    alert('Error attaching evidence');
+                }
+            });
+        };
+        input.click();
+    }
+
+    function viewDetails(violationId) {
+        // Open detailed view - could be another modal or redirect
+        window.open('/policies/violations/' + violationId, '_blank');
+    }
+
+    function showAddViolationForm() {
+        // Load users and policies for the form
+        $.get('{{ route("policies.violations.users") }}')
+            .done(function(users) {
+                let options = '<option value="">Select User</option>';
+                users.forEach(function(user) {
+                    options += `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`;
+                });
+                $('#violationUser').html(options);
+            });
+
+        $.get('{{ route("policies.violations.policies") }}')
+            .done(function(policies) {
+                let options = '<option value="">Select Policy</option>';
+                policies.forEach(function(policy) {
+                    options += `<option value="${policy.id}">${policy.title}</option>`;
+                });
+                $('#violationPolicy').html(options);
+            });
+
+        $('#addViolationModal').modal('show');
+    }
+
+    function submitViolation() {
+        const formData = new FormData();
+        formData.append('user_id', $('#violationUser').val());
+        formData.append('policy_id', $('#violationPolicy').val());
+        formData.append('description', $('#violationDescription').val());
+        formData.append('_token', '{{ csrf_token() }}');
+
+        const files = $('#violationEvidence')[0].files;
+        for (let i = 0; i < files.length; i++) {
+            formData.append('evidence[]', files[i]);
+        }
+
+        $.ajax({
+            url: '{{ route("policies.violations.store") }}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function() {
+                $('#addViolationModal').modal('hide');
+                $('#addViolationForm')[0].reset();
+                loadViolations();
+            },
+            error: function() {
+                alert('Error reporting violation');
+            }
+        });
+    }
+</script>
 @endsection
