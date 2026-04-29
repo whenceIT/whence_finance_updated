@@ -827,12 +827,18 @@
                     @if(Sentinel::hasAccess('reports'))
                     <li class="treeview @if(Request::is('policies/*')) active menu-open @endif" style="padding-left: 10px;">
                         <a href="#">
-                            <i class="fa fa-user"></i> <span>Company Policies</span>
+                            <i class="fa fa-book"></i> <span>Company Policies</span>
                             <span class="pull-right-container">
                                 <i class="fa fa-angle-left pull-right"></i>
                             </span>
                         </a>
                         <ul class="treeview-menu">
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                                <li><a href="{{ route('policies.dashboard') }}"><i class="fa fa-circle-o"></i> Policy Dashboard</a></li>
+                            @endif
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                                <li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
+                            @endif
                             @if(Sentinel::hasAccess('reports.client_reports'))
                                 <li><a href="{{ route('policies.user_responses') }}"><i class="fa fa-circle-o"></i> User Responses</a></li>
                             @endif
@@ -938,7 +944,7 @@
                     @if($role == 1)
                     <li @if(Request::is('audits*')) class="active" @endif style="padding-left: 10px;">
                         <a href="{{ route('audits.index') }}">
-                            <i class="fa fa-history"></i> <span>Risk Managemnt</span>
+                            <i class="fa fa-history"></i> <span>Risk Management</span>
                         </a>
                     </li>
                     @endif

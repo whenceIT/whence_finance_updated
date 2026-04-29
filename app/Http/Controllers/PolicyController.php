@@ -24,6 +24,66 @@ class PolicyController extends Controller
     }
 
     /**
+     * Policy Management Dashboard
+     * 
+     * Bento Grid Dashboard with overview of all policy management features
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function dashboard()
+    {
+        $user = Sentinel::getUser();
+        $isManagerial = $this->isManagerialUser($user);
+        $isAdmin = $this->isAdmin($user);
+
+        // Get policy statistics
+        $totalPolicies = Policy::count();
+        $activePolicies = $totalPolicies; // All policies are considered active if no is_active column
+        
+        // Get response statistics
+        $totalResponses = UserPolicyResponse::count();
+        $acknowledgedCount = UserPolicyResponse::where('status', 'acknowledged')->count();
+        $pendingCount = UserPolicyResponse::where('status', 'pending')->count();
+        $declinedCount = UserPolicyResponse::where('status', 'declined')->count();
+
+        // Get categories (without is_active filter)
+        $categories = PolicyCategory::orderBy('sort_order')
+            ->get();
+
+        // Get recent policies
+        $recentPolicies = Policy::with('category')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Get recent responses
+        $recentResponses = UserPolicyResponse::with(['user', 'policy'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Get pending responses count by category
+        $pendingByCategory = Policy::withCount(['userPolicyResponses' => function ($q) {
+            $q->where('status', 'pending');
+        }])->get();
+
+        return view('policies.dashboard', compact(
+            'totalPolicies',
+            'activePolicies',
+            'totalResponses',
+            'acknowledgedCount',
+            'pendingCount',
+            'declinedCount',
+            'categories',
+            'recentPolicies',
+            'recentResponses',
+            'pendingByCategory',
+            'isManagerial',
+            'isAdmin'
+        ));
+    }
+
+    /**
      * Check if user has managerial access based on role ID
      * 
      * Role IDs:

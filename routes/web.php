@@ -1287,7 +1287,7 @@ Route::group(['prefix' => 'resignation'], function () {
 
 //company policies
 Route::group(['prefix' => 'policies'], function () {
-
+    Route::get('dashboard', 'PolicyController@dashboard')->name('policies.dashboard');
     Route::get('view_policies', 'PolicyController@viewPolicies')->name('policies.view_policies');
     Route::get('user_responses', 'PolicyController@userResponses')->name('policies.user_responses');
     Route::get('add_policies', 'PolicyController@addPolicies')->name('policies.add_policies');
