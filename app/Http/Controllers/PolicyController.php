@@ -56,8 +56,9 @@ class PolicyController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get categories (without is_active filter)
-        $categories = PolicyCategory::orderBy('sort_order')
+        // Get categories with policy count
+        $categories = PolicyCategory::withCount('policies')
+            ->orderBy('sort_order')
             ->get();
 
         // Get recent policies

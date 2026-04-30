@@ -204,29 +204,62 @@
     .policy-dashboard-page .span-12 { grid-column: span 12; }
 
     /* Stat Cards Colors */
+    .policy-dashboard-page .stat-primary, 
+    .policy-dashboard-page .stat-success, 
+    .policy-dashboard-page .stat-warning, 
+    .policy-dashboard-page .stat-danger, 
+    .policy-dashboard-page .stat-info {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+    }
+
     .policy-dashboard-page .stat-primary { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
     .policy-dashboard-page .stat-success { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); }
     .policy-dashboard-page .stat-warning { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); }
     .policy-dashboard-page .stat-danger { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); }
     .policy-dashboard-page .stat-info { background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); }
 
-    .policy-dashboard-page .stat-card {
-        color: white;
+    /* White text for all stat gradient cards */
+    .policy-dashboard-page .stat-primary .card-title,
+    .policy-dashboard-page .stat-success .card-title,
+    .policy-dashboard-page .stat-warning .card-title,
+    .policy-dashboard-page .stat-danger .card-title,
+    .policy-dashboard-page .stat-info .card-title {
+        color: white !important;
     }
 
-    .policy-dashboard-page .stat-card .card-icon {
+    .policy-dashboard-page .stat-primary .card-value,
+    .policy-dashboard-page .stat-success .card-value,
+    .policy-dashboard-page .stat-warning .card-value,
+    .policy-dashboard-page .stat-danger .card-value,
+    .policy-dashboard-page .stat-info .card-value {
+        color: white !important;
+    }
+
+    .policy-dashboard-page .stat-primary .card-label,
+    .policy-dashboard-page .stat-success .card-label,
+    .policy-dashboard-page .stat-warning .card-label,
+    .policy-dashboard-page .stat-danger .card-label,
+    .policy-dashboard-page .stat-info .card-label {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .policy-dashboard-page .stat-primary .card-trend,
+    .policy-dashboard-page .stat-success .card-trend,
+    .policy-dashboard-page .stat-warning .card-trend,
+    .policy-dashboard-page .stat-danger .card-trend,
+    .policy-dashboard-page .stat-info .card-trend {
         background: rgba(255, 255, 255, 0.2);
         color: white;
     }
 
-    .policy-dashboard-page .stat-card .card-value,
-    .policy-dashboard-page .stat-card .card-title,
-    .policy-dashboard-page .stat-card .card-label {
+    .policy-dashboard-page .stat-primary .card-icon,
+    .policy-dashboard-page .stat-success .card-icon,
+    .policy-dashboard-page .stat-warning .card-icon,
+    .policy-dashboard-page .stat-danger .card-icon,
+    .policy-dashboard-page .stat-info .card-icon {
+        background: rgba(255, 255, 255, 0.2);
         color: white;
-    }
-
-    .policy-dashboard-page .stat-card .card-label {
-        opacity: 0.9;
     }
 
     /* Quick Actions */
