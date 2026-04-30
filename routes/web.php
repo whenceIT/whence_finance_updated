@@ -301,6 +301,10 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
 Route::group(['prefix' => 'hr'],function(){
     Route::get('employees','HRController@employees');
     Route::get('{id}/employee','HRController@employee');
+    Route::post('administrative-records', 'HRController@storeAdministrativeRecord');
+    Route::get('administrative-records', 'HRController@administrativeRecords');
+    Route::post('administrative-records/{id}/approve', 'HRController@approveRecord');
+    Route::post('administrative-records/{id}/decline', 'HRController@declineRecord');
 });
 
 //route for users
