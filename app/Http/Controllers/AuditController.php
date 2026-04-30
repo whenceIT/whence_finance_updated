@@ -41,14 +41,23 @@ class AuditController extends Controller
                 }
             }
 
+            // Apply role filter
+            if ($request->filled('role_id')) {
+                $users->whereHas('role', function($q) use ($request) {
+                    $q->where('role_id', $request->role_id);
+                });
+            }
+
             $users = $users->paginate(20);
+
+            $roles = \DB::table('roles')->select('id', 'name')->get();
 
         } catch (\Throwable $th) {
             dd($th->getMessage());
             return back()->with('error', 'An error occurred while fetching users: ' . $th->getMessage());
         }
 
-        return view('audits.index', compact('users'));
+        return view('audits.index', compact('users', 'roles'));
     }
 
     /**

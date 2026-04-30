@@ -709,7 +709,7 @@ $office = $userInfo->office;
                     </script>
                 @elseif(Sentinel::getUser()->role->role_id != 11 && Sentinel::getUser() && Sentinel::getUser()->salary_details == 0 && !request()->routeIs('user.payroll.details') && Sentinel::getUser()->id != 2 && Sentinel::getUser()->id != 3)
                     <!-- Payroll Details Required Modal -->
-                    <div id="payrollModal"
+                    <!-- <div id="payrollModal"
                         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
                         <div
                             style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
@@ -721,7 +721,7 @@ $office = $userInfo->office;
                             <a href="{{ url('user/payroll-details') }}" class="btn btn-primary btn-lg"
                                 style="padding: 10px 30px; font-size: 16px;">Submit Details</a>
                         </div>
-                    </div>
+                    </div> -->
                     <script>
                         // Prevent closing the modal
                         document.getElementById('payrollModal').addEventListener('click', function (event) {
@@ -1166,7 +1166,7 @@ $office = $userInfo->office;
                         style="display: block; margin-bottom: 5px; font-weight: bold;">Office:</label>
                     <select id="sms-office" name="office_id"
                         style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                        required>
+                        >
                         Options will be populated via JS
                     </select>
                 </div>

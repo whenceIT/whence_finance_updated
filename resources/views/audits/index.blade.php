@@ -22,6 +22,14 @@
           <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
         </select>
       </div>
+      <div style="flex:1;min-width:140px">
+        <select name="role_id" class="form-control">
+          <option value="">All Roles</option>
+          @foreach($roles as $role)
+            <option value="{{ $role->id }}" {{ request('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+          @endforeach
+        </select>
+      </div>
       <button type="submit" class="btn btn-default">Filter</button>
       <a href="{{ route('audits.index') }}" class="btn btn-default">Clear</a>
     </form>

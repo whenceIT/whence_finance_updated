@@ -6,7 +6,6 @@ use App\Helpers\GeneralHelper;
 use App\Models\Policy;
 use App\Models\PolicyCategory;
 use App\Models\UserPolicyResponse;
-use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Support\Facades\Storage;
 //use Illuminate\Support\Str;
@@ -21,6 +20,77 @@ class PolicyController extends Controller
     public function __construct()
     {
         $this->middleware('sentinel');
+    }
+
+    /**
+     * Policy Management Dashboard
+     * 
+     * Bento Grid Dashboard with overview of all policy management features
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function dashboard()
+    {
+        $user = Sentinel::getUser();
+        $isManagerial = $this->isManagerialUser($user);
+        $isAdmin = $this->isAdmin($user);
+
+        // Get policy statistics
+        $totalPolicies = Policy::count();
+        $activePolicies = $totalPolicies; // All policies are considered active if no is_active column
+        
+        // Get response statistics
+        $totalResponses = UserPolicyResponse::count();
+        $acknowledgedCount = UserPolicyResponse::where('status', 'accepted')->count();
+        $pendingCount = UserPolicyResponse::where('status', 'pending')->count();
+        $declinedCount = UserPolicyResponse::where('status', 'declined')->count();
+
+        // Get violations count (placeholder for now)
+        $violationsCount = 0; // \App\Models\PolicyViolation::count();
+
+        // Get declined policies for modal
+        $declinedPolicies = UserPolicyResponse::with(['user', 'policy'])
+            ->where('status', 'declined')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Get categories (without is_active filter)
+        $categories = PolicyCategory::orderBy('sort_order')
+            ->get();
+
+        // Get recent policies
+        $recentPolicies = Policy::with('category')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Get recent responses
+        $recentResponses = UserPolicyResponse::with(['user', 'policy'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Get pending responses count by category
+        $pendingByCategory = Policy::withCount(['userPolicyResponses' => function ($q) {
+            $q->where('status', 'pending');
+        }])->get();
+
+        return view('policies.dashboard', compact(
+            'totalPolicies',
+            'activePolicies',
+            'totalResponses',
+            'acknowledgedCount',
+            'pendingCount',
+            'declinedCount',
+            'categories',
+            'recentPolicies',
+            'recentResponses',
+            'pendingByCategory',
+            'isManagerial',
+            'isAdmin',
+            'declinedPolicies',
+            'violationsCount'
+        ));
     }
 
     /**
@@ -381,7 +451,7 @@ class PolicyController extends Controller
         // Check if user has permission to delete the policy
         $canDelete = false;
         $userRole = $user->roles->first();
-        
+
         if ($userRole && $userRole->id == 1) {
             // Admin can delete any policy
             $canDelete = true;
@@ -422,6 +492,151 @@ class PolicyController extends Controller
         }
 
         return redirect()->route('policies.view_policies');
+    }
+
+    /**
+     * Get policy violations
+     */
+    public function getViolations(Request $request)
+    {
+        // Placeholder for violations - in real implementation, use PolicyViolation model
+        $violations = collect([]); // \App\Models\PolicyViolation::query();
+
+        // Apply filters
+        if ($request->status) {
+            $violations = $violations->where('status', $request->status);
+        }
+        if ($request->branch_id) {
+            $violations = $violations->whereHas('user.office', function($q) use ($request) {
+                $q->where('id', $request->branch_id);
+            });
+        }
+        if ($request->category_id) {
+            $violations = $violations->whereHas('policy.category', function($q) use ($request) {
+                $q->where('id', $request->category_id);
+            });
+        }
+        if ($request->date_from) {
+            $violations = $violations->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $violations = $violations->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // For demo, return empty array
+        return response()->json([]);
+    }
+
+    /**
+     * Store new violation
+     */
+    public function storeViolation(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'policy_id' => 'required|exists:policies,id',
+            'description' => 'required|string',
+            'evidence.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:10240'
+        ]);
+
+        // Placeholder - in real implementation: \App\Models\PolicyViolation::create([...])
+
+        // Handle evidence files upload
+        if ($request->hasFile('evidence')) {
+            // Upload files and store paths
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Update violation status
+     */
+    public function updateViolationStatus(Request $request)
+    {
+        $request->validate([
+            'violation_id' => 'required|integer',
+            'status' => 'required|in:pending,investigating,resolved,escalated'
+        ]);
+
+        // Placeholder - in real implementation: PolicyViolation::find($request->violation_id)->update(['status' => $request->status])
+
+        // Auto-escalation logic for repeated offenders
+        if ($request->status === 'escalated') {
+            // Check if user has multiple violations and escalate further
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Attach evidence to violation
+     */
+    public function attachViolationEvidence(Request $request)
+    {
+        $request->validate([
+            'violation_id' => 'required|integer',
+            'evidence.*' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:10240'
+        ]);
+
+        // Placeholder - upload files and associate with violation
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Show violation details
+     */
+    public function showViolation($id)
+    {
+        // Placeholder - in real implementation, get violation with relationships
+        $violation = (object) [
+            'id' => $id,
+            'user' => (object) ['first_name' => 'John', 'last_name' => 'Doe'],
+            'policy' => (object) ['title' => 'Sample Policy'],
+            'description' => 'Sample violation description',
+            'status' => 'pending',
+            'created_at' => now(),
+            'evidence' => []
+        ];
+
+        return view('policies.violation-detail', compact('violation'));
+    }
+
+    /**
+     * Get branches for violations filter
+     */
+    public function getViolationBranches()
+    {
+        $branches = \App\Models\Office::select('id', 'name')->get();
+        return response()->json($branches);
+    }
+
+    /**
+     * Get categories for violations filter
+     */
+    public function getViolationCategories()
+    {
+        $categories = PolicyCategory::select('id', 'name')->get();
+        return response()->json($categories);
+    }
+
+    /**
+     * Get users for violation reporting
+     */
+    public function getViolationUsers()
+    {
+        $users = \App\Models\User::select('id', 'first_name', 'last_name')->get();
+        return response()->json($users);
+    }
+
+    /**
+     * Get policies for violation reporting
+     */
+    public function getViolationPolicies()
+    {
+        $policies = Policy::select('id', 'title')->get();
+        return response()->json($policies);
     }
 
 
