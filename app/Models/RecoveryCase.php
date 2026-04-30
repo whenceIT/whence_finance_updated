@@ -188,20 +188,15 @@ class RecoveryCase extends Model
     {
         $year = now()->year;
 
-        // Use a more robust approach to prevent duplicates
-        $lastCase = static::where('case_number', 'like', "RC-{$year}-%")
-                         ->orderBy('case_number', 'desc')
-                         ->lockForUpdate()
-                         ->first();
+        // Generate a random 6-digit number (100000-999999)
+        do {
+            $randomNumber = rand(10000, 999999);
+            $caseNumber = sprintf('RC-%d-%05d', $year, $randomNumber);
 
-        if (!$lastCase) {
-            $number = 1;
-        } else {
-            // Extract the number part from the case number (last 5 digits)
-            $lastNumber = (int)substr($lastCase->case_number, -5);
-            $number = $lastNumber + 1;
-        }
+            // Check if this case number already exists
+            $exists = static::where('case_number', $caseNumber)->exists();
+        } while ($exists);
 
-        return sprintf('RC-%d-%05d', $year, $number);
+        return $caseNumber;
     }
 }
