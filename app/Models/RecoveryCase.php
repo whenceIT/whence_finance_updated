@@ -187,12 +187,21 @@ class RecoveryCase extends Model
     public static function generateCaseNumber(): string
     {
         $year = now()->year;
-        $last = static::whereYear('created_at', $year)->lockForUpdate()->max('case_number');
-        if (!$last) {
+
+        // Use a more robust approach to prevent duplicates
+        $lastCase = static::where('case_number', 'like', "RC-{$year}-%")
+                         ->orderBy('case_number', 'desc')
+                         ->lockForUpdate()
+                         ->first();
+
+        if (!$lastCase) {
             $number = 1;
         } else {
-            $number = (int)substr($last, -5) + 1;
+            // Extract the number part from the case number (last 5 digits)
+            $lastNumber = (int)substr($lastCase->case_number, -5);
+            $number = $lastNumber + 1;
         }
+
         return sprintf('RC-%d-%05d', $year, $number);
     }
 }

@@ -4,6 +4,44 @@
 @endsection
 
 @section('content')
+<style>
+    .policy-of-the-day-content h4 {
+        color: #3c8dbc;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+
+    .policy-of-the-day-content p {
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 15px;
+    }
+
+    .policy-details {
+        margin-top: 15px;
+    }
+
+    .policy-details summary {
+        cursor: pointer;
+        color: #3c8dbc;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .policy-details summary:hover {
+        color: #2a6496;
+    }
+
+    .policy-details p {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f9f9f9;
+        border-left: 3px solid #3c8dbc;
+        font-size: 13px;
+    }
+</style>
+
     @if(session('msg'))
         <div class="alert alert-success alert-dismissible">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -16,6 +54,54 @@
             {{ session('error') }}
         </div>
     @endif
+
+    <!-- Policy of the Day -->
+    @php
+        $policyOfTheDay = \App\Models\PolicyOfTheDay::getTodaysPolicy();
+    @endphp
+
+    @if($policyOfTheDay)
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                        <i class="fa fa-star"></i>
+                        Policy of the Day
+                    </h3>
+                    @if($policyOfTheDay->policy)
+                        <div class="box-tools">
+                            <a href="{{ route('policies.view_policies') }}#policy-{{ $policyOfTheDay->policy->id }}" class="btn btn-xs btn-info">
+                                <i class="fa fa-external-link"></i> View Full Policy
+                            </a>
+                        </div>
+                    @endif
+                </div>
+                <div class="box-body">
+                    <div class="policy-of-the-day-content">
+                        <h4>{{ $policyOfTheDay->title }}</h4>
+                        <p class="text-muted">{{ $policyOfTheDay->content }}</p>
+                        @if($policyOfTheDay->full_content)
+                            <details class="policy-details">
+                                <summary>Read More</summary>
+                                <p>{{ $policyOfTheDay->full_content }}</p>
+                            </details>
+                        @endif
+                    </div>
+                </div>
+                @if($policyOfTheDay->scheduled_date)
+                <div class="box-footer">
+                    <small class="text-muted">
+                        <i class="fa fa-calendar"></i>
+                        Scheduled for {{ $policyOfTheDay->scheduled_date->format('M d, Y') }}
+                    </small>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- What Clients see -->
 
     @if($role->role_id == '2')
@@ -2591,9 +2677,7 @@ if($branchUser->role){
     <script src="{{ asset('assets/plugins/amcharts/plugins/export/export.min.js') }}" type="text/javascript"></script>
     @if(!Sentinel::inRole('client'))
         <script>
-        // Debug $launchNewCarryOver variable
-        console.log('launchNewCarryOver:', {{ $launchNewCarryOver ? 'true' : 'false' }});
-        console.log('launchNewCarryOver value:', @json($launchNewCarryOver));
+
 
         </script>
     @endif

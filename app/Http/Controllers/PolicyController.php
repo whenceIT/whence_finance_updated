@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\GeneralHelper;
 use App\Models\Policy;
 use App\Models\PolicyCategory;
+use App\Models\PolicyOfTheDay;
 use App\Models\PolicyViolation;
 use App\Models\UserPolicyResponse;
 use Illuminate\Http\Request;
@@ -684,6 +685,91 @@ class PolicyController extends Controller
     public function getViolationPolicies()
     {
         $policies = Policy::select('id', 'title')->get();
+        return response()->json($policies);
+    }
+
+    /**
+     * Get policy of the day
+     */
+    public function getPolicyOfTheDay()
+    {
+        $policyOfTheDay = PolicyOfTheDay::getTodaysPolicy();
+        return response()->json($policyOfTheDay);
+    }
+
+    /**
+     * Store new policy of the day
+     */
+    public function storePolicyOfTheDay(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'full_content' => 'nullable|string',
+            'policy_id' => 'nullable|exists:policies,id',
+            'scheduled_date' => 'nullable|date',
+            'is_random' => 'boolean',
+        ]);
+
+        PolicyOfTheDay::create([
+            'title' => $request->title,
+            'content' => $request->content,
+            'full_content' => $request->full_content,
+            'policy_id' => $request->policy_id,
+            'created_by' => Sentinel::getUser()->id,
+            'scheduled_date' => $request->scheduled_date,
+            'is_random' => $request->is_random ?? false,
+            'is_active' => true,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Update policy of the day
+     */
+    public function updatePolicyOfTheDay(Request $request, $id)
+    {
+        $policyOfTheDay = PolicyOfTheDay::findOrFail($id);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'full_content' => 'nullable|string',
+            'policy_id' => 'nullable|exists:policies,id',
+            'scheduled_date' => 'nullable|date',
+            'is_random' => 'boolean',
+            'is_active' => 'boolean',
+        ]);
+
+        $policyOfTheDay->update($request->only([
+            'title', 'content', 'full_content', 'policy_id',
+            'scheduled_date', 'is_random', 'is_active'
+        ]));
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Delete policy of the day
+     */
+    public function deletePolicyOfTheDay($id)
+    {
+        $policyOfTheDay = PolicyOfTheDay::findOrFail($id);
+        $policyOfTheDay->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get all policies of the day for management
+     */
+    public function getAllPoliciesOfTheDay()
+    {
+        $policies = PolicyOfTheDay::with(['policy', 'creator'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return response()->json($policies);
     }
 

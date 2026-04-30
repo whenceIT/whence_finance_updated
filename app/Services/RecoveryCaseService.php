@@ -13,7 +13,8 @@ class RecoveryCaseService
     public function openCase(array $data): RecoveryCase
     {
         return DB::transaction(function () use ($data) {
-            $data['case_number'] = RecoveryCase::generateCaseNumber();
+            // Generate unique case number with duplicate check
+            $data['case_number'] = $this->generateUniqueCaseNumber();
 
             // Set default attribution based on category
             $data = $this->applyDefaultAttribution($data);
@@ -32,7 +33,32 @@ class RecoveryCaseService
     }
 
     /**
-     * Transition a case to a new status and log the change.
+     * Generate a unique case number, checking for duplicates
+     */
+    private function generateUniqueCaseNumber(): string
+    {
+        $maxAttempts = 10; // Prevent infinite loops
+        $attempts = 0;
+
+        do {
+            $caseNumber = RecoveryCase::generateCaseNumber();
+
+            // Check if this case number already exists
+            $exists = RecoveryCase::where('case_number', $caseNumber)->exists();
+
+            $attempts++;
+        } while ($exists && $attempts < $maxAttempts);
+
+        if ($exists) {
+            // If we still have duplicates after max attempts, add timestamp
+            $caseNumber = RecoveryCase::generateCaseNumber() . '-' . now()->timestamp;
+        }
+
+        return $caseNumber;
+    }
+
+    /**
+     * Set default attribution percentages based on case category
      */
     public function updateStatus(RecoveryCase $case, string $newStatus, string $note = '', int $userId = null): RecoveryCase
     {
