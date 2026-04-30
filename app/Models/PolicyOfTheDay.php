@@ -74,20 +74,20 @@ class PolicyOfTheDay extends Model
      */
     public static function getTodaysPolicy()
     {
-        // First try scheduled for today
-        $policy = static::active()->today()->orderBy('created_at', 'desc')->first();
+        // First try scheduled for today - limit to 1
+        $policy = static::active()->today()->orderBy('created_at', 'desc')->limit(1)->first();
 
         if ($policy) {
             return $policy;
         }
 
-        // Then try random active policies
-        $randomPolicies = static::active()->random()->get();
-        if ($randomPolicies->isNotEmpty()) {
-            return $randomPolicies->random();
+        // Then try random active policies - limit to 1
+        $randomPolicy = static::active()->random()->limit(1)->first();
+        if ($randomPolicy) {
+            return $randomPolicy;
         }
 
-        // Finally, any active policy
-        return static::active()->orderBy('created_at', 'desc')->first();
+        // Finally, any active policy - limit to 1
+        return static::active()->orderBy('created_at', 'desc')->limit(1)->first();
     }
 }
