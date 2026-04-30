@@ -1333,6 +1333,11 @@
                             <i class="fa fa-circle-o"></i> Employee Records
                         </a>
                     </li>
+                    <li class="@if(Request::is('hr/administrative-records*')) active @endif">
+                        <a href="{{ url('hr/administrative-records') }}">
+                            <i class="fa fa-circle-o"></i> Administrative Records
+                        </a>
+                    </li>
                 </ul>
             </li>
             @endif

@@ -45,6 +45,7 @@ use stdClass;
 use Carbon\Carbon;
 use App\Models\AuditLogs;
 use App\Models\PayrollTemplateMeta;
+use App\Models\AdministrativeRecord;
 
 
 class HRController extends Controller{
@@ -261,16 +262,120 @@ if ($json !== false) {
      $role = Sentinel::getUser()->roles->first();
 
 
-     $employeePayrolls = Payroll::where('user_id', $employee->id)->get();
-     $payroll_fields = PayrollTemplateMeta::all();
+      $employeePayrolls = Payroll::where('user_id', $employee->id)->get();
+      $payroll_fields = PayrollTemplateMeta::all();
+
+      // Administrative Records
+      $employeeDisciplinaryRecords = AdministrativeRecord::where('employee_id', $employee->id)
+          ->where('record_type', 'disciplinary')
+          ->with('creator')
+          ->orderBy('created_at', 'desc')
+          ->get();
+
+      $employeeHealthRecords = AdministrativeRecord::where('employee_id', $employee->id)
+          ->where('record_type', 'health')
+          ->with('creator')
+          ->orderBy('created_at', 'desc')
+          ->get();
+
+      $employeeCareerRecords = AdministrativeRecord::where('employee_id', $employee->id)
+          ->where('record_type', 'career')
+          ->with('creator')
+          ->orderBy('recording_date', 'desc')
+          ->get();
 
             return view('hr.employee', compact('employee','data','start','end','data','userId','employeeLeaves',
         'leaveYears',
         'selectedLeaveYear',
-     'employeeAdvances',
+      'employeeAdvances',
         'advanceYears',
-        'selectedAdvanceYear','employeePayrolls','payroll_fields'));
-     
+        'selectedAdvanceYear','employeePayrolls','payroll_fields',
+        'employeeDisciplinaryRecords', 'employeeHealthRecords', 'employeeCareerRecords'));
+
+    }
+
+    public function storeAdministrativeRecord(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:users,id',
+            'record_type' => 'required|in:disciplinary,health,career',
+            'disciplinary_type' => 'nullable|string',
+            'warning_type' => 'nullable|string',
+            'warning_level' => 'nullable|string',
+            'health_type' => 'nullable|string',
+            'incident_type' => 'nullable|string',
+            'career_type' => 'nullable|string',
+            'name' => 'nullable|string',
+            'description' => 'nullable|string',
+            'recording_date' => 'nullable|date',
+            'comments' => 'nullable|string',
+            'number_of_days' => 'nullable|integer|min:1',
+            'absence_dates' => 'nullable|array',
+            'absence_dates.*' => 'nullable|date',
+        ]);
+
+        $data = $request->all();
+        $data['created_by'] = Sentinel::getUser()->id;
+
+        AdministrativeRecord::create($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Administrative record created successfully.'
+        ]);
+    }
+
+    public function administrativeRecords(Request $request)
+    {
+        $tab = $request->get('tab', 'pending');
+
+        $records = AdministrativeRecord::with(['employee', 'creator', 'approver'])
+            ->when($tab === 'pending', function($query) {
+                return $query->where('status', 'pending');
+            })
+            ->when($tab === 'active', function($query) {
+                return $query->where('status', 'active');
+            })
+            ->when($tab === 'declined', function($query) {
+                return $query->where('status', 'declined');
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return view('hr.administrative-records', compact('records', 'tab'));
+    }
+
+    public function approveRecord(Request $request, $id)
+    {
+        $record = AdministrativeRecord::findOrFail($id);
+
+        $record->update([
+            'status' => 'active',
+            'approved_by' => Sentinel::getUser()->id,
+            'approved_at' => now(),
+        ]);
+
+        Flash::success('Administrative record approved successfully.');
+        return redirect()->back();
+    }
+
+    public function declineRecord(Request $request, $id)
+    {
+        $request->validate([
+            'decline_reason' => 'required|string|max:500',
+        ]);
+
+        $record = AdministrativeRecord::findOrFail($id);
+
+        $record->update([
+            'status' => 'declined',
+            'approved_by' => Sentinel::getUser()->id,
+            'approved_at' => now(),
+            'decline_reason' => $request->decline_reason,
+        ]);
+
+        Flash::success('Administrative record declined.');
+        return redirect()->back();
     }
 
 

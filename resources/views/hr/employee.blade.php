@@ -202,9 +202,12 @@
                 <ul class="nav nav-tabs">
                     <li class="active"><a href="#general" data-toggle="tab">General Information</a></li>
                     <li><a href="#performance" data-toggle="tab">Performance</a></li>
-                    <li><a href="#payroll" data-toggle="tab">Payroll</a></li>
-                    <li><a href="#leave" data-toggle="tab">Leave</a></li>
-                    <li><a href="#advances" data-toggle="tab">Advances</a></li>
+                     <li><a href="#payroll" data-toggle="tab">Payroll</a></li>
+                     <li><a href="#leave" data-toggle="tab">Leave</a></li>
+                     <li><a href="#advances" data-toggle="tab">Advances</a></li>
+                     <li><a href="#disciplinary" data-toggle="tab">Disciplinary Actions</a></li>
+                     <li><a href="#health-records" data-toggle="tab">Health Records</a></li>
+                     <li><a href="#career-progression" data-toggle="tab">Career Progression</a></li>
                 </ul>
 
                 <div class="tab-content">
@@ -567,9 +570,130 @@
         </tbody>
     </table>
 </div>
-                  
 
-              
+{{-- Disciplinary Actions --}}
+<div class="tab-pane" id="disciplinary">
+    <div class="box-header with-border">
+        <h3 class="box-title">Disciplinary Action Records</h3>
+    </div>
+
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Action Type</th>
+                <th>Details</th>
+                <th>Level/Duration</th>
+                <th>Comments</th>
+                <th>Created By</th>
+            </tr>
+        </thead>
+        <tbody>
+                            @forelse($employeeDisciplinaryRecords as $record)
+                <tr>
+                    <td>{{ $record->created_at->format('d M Y') }}</td>
+                    <td>{{ ucfirst(str_replace('-', ' ', $record->disciplinary_type)) }}</td>
+                    <td>
+                        @if($record->warning_type)
+                            {{ ucfirst($record->warning_type) }}
+                        @elseif($record->number_of_days)
+                            {{ $record->number_of_days }} days<br>
+                            @if($record->absence_dates)
+                                <small>{{ collect($record->absence_dates)->map(function($date) { return \Carbon\Carbon::parse($date)->format('M j'); })->join(', ') }}</small>
+                            @endif
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td>{{ $record->warning_level ? ucfirst($record->warning_level) : ($record->number_of_days ? 'N/A' : '-') }}</td>
+                    <td>{{ $record->comments ?: '-' }}</td>
+                    <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="text-center">
+                        No disciplinary records found.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+{{-- Health Records --}}
+<div class="tab-pane" id="health-records">
+    <div class="box-header with-border">
+        <h3 class="box-title">Health Record Details</h3>
+    </div>
+
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Record Type</th>
+                <th>Incident Type</th>
+                <th>Description</th>
+                <th>Created By</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($employeeHealthRecords as $record)
+                <tr>
+                    <td>{{ $record->created_at->format('d M Y') }}</td>
+                    <td>{{ ucfirst(str_replace('-', ' ', $record->health_type)) }}</td>
+                    <td>{{ $record->incident_type ? ucfirst(str_replace('-', ' ', $record->incident_type)) : '-' }}</td>
+                    <td>{{ $record->description ?: '-' }}</td>
+                    <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5" class="text-center">
+                        No health records found.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+{{-- Career Progression --}}
+<div class="tab-pane" id="career-progression">
+    <div class="box-header with-border">
+        <h3 class="box-title">Career Progression Details</h3>
+    </div>
+
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Recording Date</th>
+                <th>Progression Type</th>
+                <th>Name/Title</th>
+                <th>Description</th>
+                <th>Created By</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($employeeCareerRecords as $record)
+                <tr>
+                    <td>{{ $record->recording_date ? $record->recording_date->format('d M Y') : $record->created_at->format('d M Y') }}</td>
+                    <td>{{ ucfirst(str_replace('-', ' ', $record->career_type)) }}</td>
+                    <td>{{ $record->name ?: '-' }}</td>
+                    <td>{{ $record->description ?: '-' }}</td>
+                    <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5" class="text-center">
+                        No career progression records found.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+
+
                 </div>
             </div>
         </div>
@@ -652,6 +776,20 @@
                             </select>
                         </div>
 
+                        <!-- Number of Days Field (for absenteeism and late-coming) -->
+                        <div class="form-group" id="days-field" style="display: none;">
+                            <label>Number of Days</label>
+                            <input type="number" class="form-control" id="number-of-days" min="1" placeholder="Enter number of days">
+                        </div>
+
+                        <!-- Dynamic Date Fields Container -->
+                        <div id="date-fields-container" style="display: none;">
+                            <label>Specify Dates</label>
+                            <div id="date-fields">
+                                <!-- Date fields will be dynamically added here -->
+                            </div>
+                        </div>
+
                         <!-- Warning Letter Sub-options -->
                         <div id="warning-options" style="display: none;">
                             <div class="form-group">
@@ -688,17 +826,17 @@
                             <label>Record Type</label>
                             <select class="form-control" id="health-type" required>
                                 <option value="">Choose record type</option>
-                                <option value="sick-letter">Sick Letter</option>
+                                <option value="sick-note">Sick Note</option>
+                                <option value="workplace-injury">Workplace Injury</option>
                             </select>
                         </div>
 
-                        <!-- Sick Letter Sub-options -->
-                        <div id="sick-letter-options" style="display: none;">
+                        <!-- Sick Note Sub-options -->
+                        <div id="sick-note-options" style="display: none;">
                             <div class="form-group">
                                 <label>Incident Type</label>
                                 <select class="form-control" id="incident-type">
                                     <option value="">Select incident type</option>
-                                    <option value="workplace-injury">Workplace Injury</option>
                                     <option value="workers-compensation">Workers Compensation</option>
                                 </select>
                             </div>
@@ -768,6 +906,27 @@
         currentStep = 1;
         selectedRecordType = null;
         formData = {};
+
+        // Reset form fields
+        $('#disciplinary-type').val('');
+        $('#warning-type').val('');
+        $('#warning-level').val('');
+        $('#disciplinary-comments').val('');
+        $('#number-of-days').val('');
+        $('#date-fields').empty();
+        $('#health-type').val('');
+        $('#incident-type').val('');
+        $('#health-description').val('');
+        $('#career-type').val('');
+        $('#career-name').val('');
+        $('#career-description').val('');
+        $('#career-date').val('{{ date('Y-m-d') }}');
+
+        // Hide all dynamic sections
+        $('#warning-options').hide();
+        $('#days-field').hide();
+        $('#date-fields-container').hide();
+        $('#sick-letter-options').hide();
 
         // Show first step, hide others
         showStep(1);
@@ -844,10 +1003,48 @@
 
     // Step 2: Dynamic form handling
     $('#disciplinary-type').change(function() {
-        if ($(this).val() === 'warning') {
+        const selectedType = $(this).val();
+
+        // Show/hide warning options
+        if (selectedType === 'warning') {
             $('#warning-options').show();
+            $('#days-field').hide();
+            $('#date-fields-container').hide();
+        } else if (selectedType === 'absenteeism' || selectedType === 'late-coming') {
+            $('#warning-options').hide();
+            $('#days-field').show();
+            $('#number-of-days').val(''); // Reset
+            $('#date-fields').empty(); // Clear previous dates
+            $('#date-fields-container').hide();
         } else {
             $('#warning-options').hide();
+            $('#days-field').hide();
+            $('#date-fields-container').hide();
+        }
+    });
+
+    // Handle number of days change to generate date fields
+    $('#number-of-days').change(function() {
+        const numDays = parseInt($(this).val());
+        const dateFieldsContainer = $('#date-fields');
+
+        if (numDays > 0 && numDays <= 30) { // Reasonable limit
+            dateFieldsContainer.empty();
+
+            for (let i = 1; i <= numDays; i++) {
+                const dateFieldHtml = `
+                    <div class="form-group">
+                        <label>Day ${i} Date</label>
+                        <input type="date" class="form-control absence-date" id="absence-date-${i}" name="absence_date_${i}" required>
+                    </div>
+                `;
+                dateFieldsContainer.append(dateFieldHtml);
+            }
+
+            $('#date-fields-container').show();
+        } else {
+            dateFieldsContainer.empty();
+            $('#date-fields-container').hide();
         }
     });
 
@@ -869,6 +1066,27 @@
             if (type === 'warning') {
                 if (!$('#warning-type').val() || !$('#warning-level').val()) {
                     alert('Please fill in all warning details.');
+                    return false;
+                }
+            } else if (type === 'absenteeism' || type === 'late-coming') {
+                const numDays = $('#number-of-days').val();
+                if (!numDays || numDays < 1) {
+                    alert('Please enter the number of days.');
+                    return false;
+                }
+
+                // Check if all date fields are filled
+                const dateFields = $('.absence-date');
+                let allDatesFilled = true;
+                dateFields.each(function() {
+                    if (!$(this).val()) {
+                        allDatesFilled = false;
+                        return false;
+                    }
+                });
+
+                if (!allDatesFilled) {
+                    alert('Please fill in all date fields.');
                     return false;
                 }
             }
@@ -900,7 +1118,16 @@
             formData.disciplinary_type = $('#disciplinary-type').val();
             formData.comments = $('#disciplinary-comments').val();
 
-            summaryHtml += '<div class="summary-item"><span class="summary-label">Action Type:</span><span class="summary-value">' + formData.disciplinary_type + '</span></div>';
+            let displayType = formData.disciplinary_type;
+            if (formData.disciplinary_type === 'absenteeism') {
+                displayType = 'Absenteeism Entry';
+            } else if (formData.disciplinary_type === 'late-coming') {
+                displayType = 'Late Coming';
+            } else if (formData.disciplinary_type === 'warning') {
+                displayType = 'Warning Letter';
+            }
+
+            summaryHtml += '<div class="summary-item"><span class="summary-label">Action Type:</span><span class="summary-value">' + displayType + '</span></div>';
 
             if (formData.disciplinary_type === 'warning') {
                 formData.warning_type = $('#warning-type').val();
@@ -908,6 +1135,20 @@
 
                 summaryHtml += '<div class="summary-item"><span class="summary-label">Warning Type:</span><span class="summary-value">' + formData.warning_type + '</span></div>';
                 summaryHtml += '<div class="summary-item"><span class="summary-label">Warning Level:</span><span class="summary-value">' + formData.warning_level + '</span></div>';
+            } else if (formData.disciplinary_type === 'absenteeism' || formData.disciplinary_type === 'late-coming') {
+                formData.number_of_days = $('#number-of-days').val();
+
+                // Collect all absence dates
+                const absenceDates = [];
+                $('.absence-date').each(function() {
+                    if ($(this).val()) {
+                        absenceDates.push($(this).val());
+                    }
+                });
+                formData.absence_dates = absenceDates;
+
+                summaryHtml += '<div class="summary-item"><span class="summary-label">Number of Days:</span><span class="summary-value">' + formData.number_of_days + '</span></div>';
+                summaryHtml += '<div class="summary-item"><span class="summary-label">Dates:</span><span class="summary-value">' + absenceDates.join(', ') + '</span></div>';
             }
 
             if (formData.comments) {
@@ -918,11 +1159,25 @@
             formData.health_type = $('#health-type').val();
             formData.description = $('#health-description').val();
 
-            summaryHtml += '<div class="summary-item"><span class="summary-label">Record Type:</span><span class="summary-value">' + formData.health_type + '</span></div>';
+            let displayType = formData.health_type;
+            if (formData.health_type === 'sick-letter') {
+                displayType = 'Sick Letter';
+            } else if (formData.health_type === 'workplace-injury') {
+                displayType = 'Workplace Injury';
+            }
+
+            summaryHtml += '<div class="summary-item"><span class="summary-label">Record Type:</span><span class="summary-value">' + displayType + '</span></div>';
 
             if ($('#incident-type').val()) {
                 formData.incident_type = $('#incident-type').val();
-                summaryHtml += '<div class="summary-item"><span class="summary-label">Incident Type:</span><span class="summary-value">' + formData.incident_type + '</span></div>';
+                summaryHtml += '<div class="summary-item"><span class="summary-label">Incident Type:</span><span class="summary-value">' + formData.incident_type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) + '</span></div>';
+            }
+
+            summaryHtml += '<div class="summary-item"><span class="summary-label">Record Type:</span><span class="summary-value">' + displayType + '</span></div>';
+
+            if ($('#incident-type').val()) {
+                formData.incident_type = $('#incident-type').val();
+                summaryHtml += '<div class="summary-item"><span class="summary-label">Incident Type:</span><span class="summary-value">' + formData.incident_type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) + '</span></div>';
             }
 
             if (formData.description) {
@@ -948,12 +1203,24 @@
     }
 
     function submitRecord() {
-        // Here you would send the data to the backend
-        console.log('Submitting record:', formData);
-
-        // For now, just show success and close modal
-        alert('Administrative record submitted successfully!');
-        $('#adminRecordModal').modal('hide');
+        // Send the data to the backend
+        $.ajax({
+            url: '{{ url("hr/administrative-records") }}',
+            type: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                alert('Administrative record submitted successfully!');
+                $('#adminRecordModal').modal('hide');
+                // Optionally reload the page or update the UI to show the new record
+                location.reload();
+            },
+            error: function(xhr, status, error) {
+                alert('Error submitting record: ' + xhr.responseJSON?.message || 'Unknown error');
+            }
+        });
     }
 </script>
 
