@@ -382,18 +382,24 @@ class AdvanceController extends Controller
 
     public function delete($id)
     {
-        $user = Sentinel::getUser();
-        $advance = Advance::where('id', $id)->where('user_id', $user->id)->where('status', 'pending')->first();
+       
+        try {
+            $user = Sentinel::getUser();
+            $advance = Advance::where('id', $id)->where('user_id', $user->id)->first();
 
-        if (!$advance) {
-            Flash::error('Advance not found or cannot be deleted.');
+            if (!$advance) {
+                Flash::error('Advance not found or cannot be deleted.');
+                return redirect()->back();
+            }
+
+            $advance->delete();
+            GeneralHelper::audit_trail("Delete", "Advances", $advance->id);
+            Flash::success('Pending advance deleted successfully.');
+            return redirect()->route('advances.my_advances');
+        } catch (\Throwable $th) {
+            Flash::error('An error occurred while deleting the advance: ' . $th->getMessage());
             return redirect()->back();
         }
-
-        $advance->delete();
-        GeneralHelper::audit_trail("Delete", "Advances", $advance->id);
-        Flash::success('Pending advance deleted successfully.');
-        return redirect()->route('advances.my_advances');
     }
 
 

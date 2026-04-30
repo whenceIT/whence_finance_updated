@@ -2591,7 +2591,9 @@ if($branchUser->role){
     <script src="{{ asset('assets/plugins/amcharts/plugins/export/export.min.js') }}" type="text/javascript"></script>
     @if(!Sentinel::inRole('client'))
         <script>
-
+        // Debug $launchNewCarryOver variable
+        console.log('launchNewCarryOver:', {{ $launchNewCarryOver ? 'true' : 'false' }});
+        console.log('launchNewCarryOver value:', @json($launchNewCarryOver));
 
         </script>
     @endif

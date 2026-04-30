@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Helpers\GeneralHelper;
 use App\Models\Policy;
 use App\Models\PolicyCategory;
+use App\Models\PolicyViolation;
 use App\Models\UserPolicyResponse;
+use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Support\Facades\Storage;
 //use Illuminate\Support\Str;
@@ -45,8 +47,8 @@ class PolicyController extends Controller
         $pendingCount = UserPolicyResponse::where('status', 'pending')->count();
         $declinedCount = UserPolicyResponse::where('status', 'declined')->count();
 
-        // Get violations count (placeholder for now)
-        $violationsCount = 0; // \App\Models\PolicyViolation::count();
+        // Get violations count
+        $violationsCount = PolicyViolation::count();
 
         // Get declined policies for modal
         $declinedPolicies = UserPolicyResponse::with(['user', 'policy'])
@@ -499,32 +501,44 @@ class PolicyController extends Controller
      */
     public function getViolations(Request $request)
     {
-        // Placeholder for violations - in real implementation, use PolicyViolation model
-        $violations = collect([]); // \App\Models\PolicyViolation::query();
+        $query = PolicyViolation::with(['user.office', 'policy.category', 'reporter'])
+            ->orderBy('created_at', 'desc');
 
         // Apply filters
         if ($request->status) {
-            $violations = $violations->where('status', $request->status);
+            $query->where('status', $request->status);
         }
         if ($request->branch_id) {
-            $violations = $violations->whereHas('user.office', function($q) use ($request) {
+            $query->whereHas('user.office', function($q) use ($request) {
                 $q->where('id', $request->branch_id);
             });
         }
         if ($request->category_id) {
-            $violations = $violations->whereHas('policy.category', function($q) use ($request) {
+            $query->whereHas('policy.category', function($q) use ($request) {
                 $q->where('id', $request->category_id);
             });
         }
         if ($request->date_from) {
-            $violations = $violations->whereDate('created_at', '>=', $request->date_from);
+            $query->whereDate('created_at', '>=', $request->date_from);
         }
         if ($request->date_to) {
-            $violations = $violations->whereDate('created_at', '<=', $request->date_to);
+            $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        // For demo, return empty array
-        return response()->json([]);
+        $violations = $query->get();
+
+        return response()->json($violations->map(function ($violation) {
+            return [
+                'id' => $violation->id,
+                'user_name' => $violation->user->first_name . ' ' . $violation->user->last_name,
+                'branch_name' => $violation->user->office ? $violation->user->office->name : 'N/A',
+                'policy_title' => $violation->policy->title,
+                'description' => $violation->description,
+                'status' => $violation->status,
+                'created_at' => $violation->created_at->format('M d, Y H:i'),
+                'evidence_count' => $violation->evidence ? count($violation->evidence) : 0,
+            ];
+        }));
     }
 
     /**
@@ -539,12 +553,25 @@ class PolicyController extends Controller
             'evidence.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:10240'
         ]);
 
-        // Placeholder - in real implementation: \App\Models\PolicyViolation::create([...])
+        $evidenceFiles = [];
 
         // Handle evidence files upload
         if ($request->hasFile('evidence')) {
-            // Upload files and store paths
+            foreach ($request->file('evidence') as $file) {
+                $filename = uniqid() . '_' . $file->getClientOriginalName();
+                $file->storeAs('violations', $filename, 'public');
+                $evidenceFiles[] = $filename;
+            }
         }
+
+        PolicyViolation::create([
+            'user_id' => $request->user_id,
+            'policy_id' => $request->policy_id,
+            'reported_by' => Sentinel::getUser()->id,
+            'description' => $request->description,
+            'evidence' => $evidenceFiles,
+            'status' => 'pending',
+        ]);
 
         return response()->json(['success' => true]);
     }
@@ -559,11 +586,28 @@ class PolicyController extends Controller
             'status' => 'required|in:pending,investigating,resolved,escalated'
         ]);
 
-        // Placeholder - in real implementation: PolicyViolation::find($request->violation_id)->update(['status' => $request->status])
+        $violation = PolicyViolation::findOrFail($request->violation_id);
+
+        $updateData = ['status' => $request->status];
+
+        if ($request->status === 'resolved') {
+            $updateData['resolved_at'] = now();
+        }
+
+        $violation->update($updateData);
 
         // Auto-escalation logic for repeated offenders
         if ($request->status === 'escalated') {
-            // Check if user has multiple violations and escalate further
+            $userViolationCount = PolicyViolation::where('user_id', $violation->user_id)
+                ->where('status', 'escalated')
+                ->count();
+
+            // If user has 3 or more escalated violations, could trigger further actions
+            if ($userViolationCount >= 3) {
+                // Could send notification to HR, create incident report, etc.
+                // For now, just log
+                \Log::warning("User {$violation->user_id} has {$userViolationCount} escalated violations");
+            }
         }
 
         return response()->json(['success' => true]);
@@ -579,7 +623,19 @@ class PolicyController extends Controller
             'evidence.*' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:10240'
         ]);
 
-        // Placeholder - upload files and associate with violation
+        $violation = PolicyViolation::findOrFail($request->violation_id);
+        $evidenceFiles = $violation->evidence ?? [];
+
+        // Handle evidence files upload
+        if ($request->hasFile('evidence')) {
+            foreach ($request->file('evidence') as $file) {
+                $filename = uniqid() . '_' . $file->getClientOriginalName();
+                $file->storeAs('violations', $filename, 'public');
+                $evidenceFiles[] = $filename;
+            }
+        }
+
+        $violation->update(['evidence' => $evidenceFiles]);
 
         return response()->json(['success' => true]);
     }
@@ -589,16 +645,7 @@ class PolicyController extends Controller
      */
     public function showViolation($id)
     {
-        // Placeholder - in real implementation, get violation with relationships
-        $violation = (object) [
-            'id' => $id,
-            'user' => (object) ['first_name' => 'John', 'last_name' => 'Doe'],
-            'policy' => (object) ['title' => 'Sample Policy'],
-            'description' => 'Sample violation description',
-            'status' => 'pending',
-            'created_at' => now(),
-            'evidence' => []
-        ];
+        $violation = PolicyViolation::with(['user.office', 'policy', 'reporter'])->findOrFail($id);
 
         return view('policies.violation-detail', compact('violation'));
     }
