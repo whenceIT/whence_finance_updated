@@ -14,7 +14,6 @@ return new class extends Migration
     public function up()
     {
         Schema::table('administrative_records', function (Blueprint $table) {
-            $table->integer('number_of_days')->nullable()->after('comments');
             $table->json('absence_dates')->nullable()->after('number_of_days');
         });
     }
