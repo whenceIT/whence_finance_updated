@@ -303,6 +303,7 @@ Route::group(['prefix' => 'hr'],function(){
     Route::get('{id}/employee','HRController@employee');
     Route::post('administrative-records', 'HRController@storeAdministrativeRecord');
     Route::get('administrative-records', 'HRController@administrativeRecords');
+    Route::get('administrative-records/data', 'HRController@administrativeRecordsData');
     Route::post('administrative-records/{id}/approve', 'HRController@approveRecord');
     Route::post('administrative-records/{id}/decline', 'HRController@declineRecord');
 });
