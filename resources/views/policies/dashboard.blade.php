@@ -204,29 +204,62 @@
     .policy-dashboard-page .span-12 { grid-column: span 12; }
 
     /* Stat Cards Colors */
+    .policy-dashboard-page .stat-primary, 
+    .policy-dashboard-page .stat-success, 
+    .policy-dashboard-page .stat-warning, 
+    .policy-dashboard-page .stat-danger, 
+    .policy-dashboard-page .stat-info {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+    }
+
     .policy-dashboard-page .stat-primary { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
     .policy-dashboard-page .stat-success { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); }
     .policy-dashboard-page .stat-warning { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); }
     .policy-dashboard-page .stat-danger { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); }
     .policy-dashboard-page .stat-info { background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); }
 
-    .policy-dashboard-page .stat-card {
-        color: white;
+    /* White text for all stat gradient cards */
+    .policy-dashboard-page .stat-primary .card-title,
+    .policy-dashboard-page .stat-success .card-title,
+    .policy-dashboard-page .stat-warning .card-title,
+    .policy-dashboard-page .stat-danger .card-title,
+    .policy-dashboard-page .stat-info .card-title {
+        color: white !important;
     }
 
-    .policy-dashboard-page .stat-card .card-icon {
+    .policy-dashboard-page .stat-primary .card-value,
+    .policy-dashboard-page .stat-success .card-value,
+    .policy-dashboard-page .stat-warning .card-value,
+    .policy-dashboard-page .stat-danger .card-value,
+    .policy-dashboard-page .stat-info .card-value {
+        color: white !important;
+    }
+
+    .policy-dashboard-page .stat-primary .card-label,
+    .policy-dashboard-page .stat-success .card-label,
+    .policy-dashboard-page .stat-warning .card-label,
+    .policy-dashboard-page .stat-danger .card-label,
+    .policy-dashboard-page .stat-info .card-label {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .policy-dashboard-page .stat-primary .card-trend,
+    .policy-dashboard-page .stat-success .card-trend,
+    .policy-dashboard-page .stat-warning .card-trend,
+    .policy-dashboard-page .stat-danger .card-trend,
+    .policy-dashboard-page .stat-info .card-trend {
         background: rgba(255, 255, 255, 0.2);
         color: white;
     }
 
-    .policy-dashboard-page .stat-card .card-value,
-    .policy-dashboard-page .stat-card .card-title,
-    .policy-dashboard-page .stat-card .card-label {
+    .policy-dashboard-page .stat-primary .card-icon,
+    .policy-dashboard-page .stat-success .card-icon,
+    .policy-dashboard-page .stat-warning .card-icon,
+    .policy-dashboard-page .stat-danger .card-icon,
+    .policy-dashboard-page .stat-info .card-icon {
+        background: rgba(255, 255, 255, 0.2);
         color: white;
-    }
-
-    .policy-dashboard-page .stat-card .card-label {
-        opacity: 0.9;
     }
 
     /* Quick Actions */
@@ -626,6 +659,34 @@
         line-height: 1.4;
     }
 
+    /* Loading button styles */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+        pointer-events: none;
+    }
+
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
     /* Policy Violations Modal Styles */
     .violations-container {
         max-height: 500px;
@@ -685,7 +746,7 @@
 
     .violation-details p {
         margin: 5px 0;
-        font-size: 0.9rem;
+        font-size: 1.5rem;
     }
 
     .violation-actions {
@@ -745,6 +806,10 @@
                 <i class="fa fa-book"></i>
                 View All
             </a>
+            <button class="btn btn-info" onclick="showPolicyOfTheDayModal()">
+                <i class="fa fa-star"></i>
+                Policy of the Day
+            </button>
         </div>
     </div>
 
@@ -1144,6 +1209,52 @@
     </div>
 </div>
 
+<!-- Policy of the Day Modal -->
+<div class="modal fade" id="policyOfTheDayModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Create Policy of the Day</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="policyOfTheDayForm">
+                    <div class="form-group">
+                        <label for="potdTitle">Title</label>
+                        <input type="text" id="potdTitle" class="form-control" placeholder="Enter policy title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="potdContent">Short Content (Digestible format)</label>
+                        <textarea id="potdContent" class="form-control" rows="4" placeholder="Enter short, digestible content for dashboard display" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="potdFullContent">Full Content (Optional)</label>
+                        <textarea id="potdFullContent" class="form-control" rows="6" placeholder="Enter full content if different from short content"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="potdPolicy">Link to Existing Policy (Optional)</label>
+                        <select id="potdPolicy" class="form-control">
+                            <option value="">Select Policy (Optional)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="potdScheduledDate">Scheduled Date (Optional)</label>
+                        <input type="date" id="potdScheduledDate" class="form-control">
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="potdIsRandom" class="form-check-input">
+                        <label for="potdIsRandom" class="form-check-label">Allow random selection</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitPolicyOfTheDay()">Create Policy of the Day</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function showDeclinedPoliciesModal() {
         $('#declinedPoliciesOverlay').addClass('active');
@@ -1218,11 +1329,11 @@
                         ${violation.evidence_count > 0 ? `<p><strong>Evidence:</strong> ${violation.evidence_count} files attached</p>` : ''}
                     </div>
                     <div class="violation-actions">
-                        ${violation.status === 'pending' ? '<button class="btn btn-sm btn-warning" onclick="changeStatus(' + violation.id + ', \'investigating\')">Investigate</button>' : ''}
-                        ${violation.status === 'investigating' ? '<button class="btn btn-sm btn-success" onclick="changeStatus(' + violation.id + ', \'resolved\')">Resolve</button>' : ''}
-                        ${violation.status === 'pending' || violation.status === 'investigating' ? '<button class="btn btn-sm btn-danger" onclick="changeStatus(' + violation.id + ', \'escalated\')">Escalate</button>' : ''}
-                        <button class="btn btn-sm btn-info" onclick="attachEvidence(' + violation.id + ')">Attach Evidence</button>
-                        <button class="btn btn-sm btn-secondary" onclick="viewDetails(' + violation.id + ')">View Details</button>
+                        ${violation.status === 'pending' ? `<button class="btn btn-sm btn-warning" onclick="changeStatus(${violation.id}, 'investigating')">Investigate</button>` : ''}
+                        ${violation.status === 'investigating' ? `<button class="btn btn-sm btn-success" onclick="changeStatus(${violation.id}, 'resolved')">Resolve</button>` : ''}
+                        ${violation.status === 'pending' || violation.status === 'investigating' ? `<button class="btn btn-sm btn-danger" onclick="changeStatus(${violation.id}, 'escalated')">Escalate</button>` : ''}
+                        <button class="btn btn-sm btn-info" onclick="attachEvidence(${violation.id})">Attach Evidence</button>
+                        <button class="btn btn-sm btn-secondary" onclick="viewDetails(${violation.id})">View Details</button>
                     </div>
                 </div>
             `;
@@ -1318,7 +1429,7 @@
     }
 
     function viewDetails(violationId) {
-        // Open detailed view - could be another modal or redirect
+        // Open detailed view - using the correct path from route definition
         window.open('/policies/violations/' + violationId, '_blank');
     }
 
@@ -1372,6 +1483,57 @@
                 alert('Error reporting violation');
             }
         });
+    }
+
+    function showPolicyOfTheDayModal() {
+        // Simply open the modal to store Policy of the Day
+        $('#policyOfTheDayModal').modal('show');
+
+        // Optionally load policies for the dropdown (non-blocking)
+        $.get('{{ route("policies.violations.policies") }}')
+            .done(function(policies) {
+                let options = '<option value="">Select Policy (Optional)</option>';
+                policies.forEach(function(policy) {
+                    options += `<option value="${policy.id}">${policy.title}</option>`;
+                });
+                $('#potdPolicy').html(options);
+            })
+            .fail(function() {
+                // If loading fails, just leave empty
+                $('#potdPolicy').html('<option value="">Select Policy (Optional)</option>');
+            });
+    }
+
+    function submitPolicyOfTheDay() {
+        const submitBtn = $('button[onclick="submitPolicyOfTheDay()"]');
+        const originalText = submitBtn.text();
+
+        // Show loading state
+        submitBtn.prop('disabled', true).addClass('btn-loading').text('Creating...');
+
+        const formData = {
+            title: $('#potdTitle').val(),
+            content: $('#potdContent').val(),
+            full_content: $('#potdFullContent').val(),
+            policy_id: $('#potdPolicy').val(),
+            scheduled_date: $('#potdScheduledDate').val(),
+            is_random: $('#potdIsRandom').is(':checked') ? 1 : 0,
+            _token: '{{ csrf_token() }}'
+        };
+
+        $.post('{{ route("policies.policy-of-the-day.store") }}', formData)
+            .done(function() {
+                $('#policyOfTheDayModal').modal('hide');
+                $('#policyOfTheDayForm')[0].reset();
+                alert('Policy of the Day created successfully!');
+            })
+            .fail(function() {
+                alert('Error creating Policy of the Day');
+            })
+            .always(function() {
+                // Restore button state
+                submitBtn.prop('disabled', false).removeClass('btn-loading').text(originalText);
+            });
     }
 </script>
 @endsection

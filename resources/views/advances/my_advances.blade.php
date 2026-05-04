@@ -11,13 +11,14 @@
         <h3 class="box-title">My Advances</h3>
     </div>    
     <div class="box-body table-responsive">
-        @if ($advances->isEmpty())
-            @if ($pending_advances)
+        @if ($advances->isEmpty())=
+            @if (!$pending_advances->isEmpty())
                 <div class="alert alert-warning" style="cursor: pointer;" data-toggle="modal" data-target="#pendingAdvancesModal">
                     You have {{$pending_advances->count()}} pending advances that are awaiting approval. <strong>Click here to view and manage.</strong>
                 </div>
             @else
                 <p>No advances found.</p>
+                <p><a href="{{ route('advances.apply') }}" class="btn btn-primary">Apply for Advance</a></p>
             @endif
         @else
             <table class="table table-bordered table-hover table-striped" id="data-table">     
@@ -130,6 +131,7 @@
                     <table class="table table-bordered table-hover">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Name</th>
                                 <th>Amount Requested</th>
                                 <th>Installments</th>
@@ -141,6 +143,7 @@
                         <tbody>
                             @foreach($pending_advances as $advance)
                                 <tr>
+                                    <td>{{ $advance->id }}</td>
                                     <td>{{ $advance->first_name }} {{ $advance->last_name }}</td>
                                     <td>{{ $advance->amount }}</td>
                                     <td>{{ $advance->installments }}</td>

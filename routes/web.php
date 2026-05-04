@@ -301,6 +301,11 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
 Route::group(['prefix' => 'hr'],function(){
     Route::get('employees','HRController@employees');
     Route::get('{id}/employee','HRController@employee');
+    Route::post('administrative-records', 'HRController@storeAdministrativeRecord');
+    Route::get('administrative-records', 'HRController@administrativeRecords');
+    Route::get('administrative-records/data', 'HRController@administrativeRecordsData');
+    Route::post('administrative-records/{id}/approve', 'HRController@approveRecord');
+    Route::post('administrative-records/{id}/decline', 'HRController@declineRecord');
     Route::get('workforce_analytics','HRController@workforce_analytics');
 });
 
@@ -1310,6 +1315,13 @@ Route::group(['prefix' => 'policies'], function () {
     Route::get('violations/categories/list', 'PolicyController@getViolationCategories')->name('policies.violations.categories');
     Route::get('violations/users/list', 'PolicyController@getViolationUsers')->name('policies.violations.users');
     Route::get('violations/policies/list', 'PolicyController@getViolationPolicies')->name('policies.violations.policies');
+
+    // Policy of the Day
+    Route::get('policy-of-the-day', 'PolicyController@getPolicyOfTheDay')->name('policies.policy-of-the-day');
+    Route::post('policy-of-the-day/store', 'PolicyController@storePolicyOfTheDay')->name('policies.policy-of-the-day.store');
+    Route::put('policy-of-the-day/{id}', 'PolicyController@updatePolicyOfTheDay')->name('policies.policy-of-the-day.update');
+    Route::delete('policy-of-the-day/{id}', 'PolicyController@deletePolicyOfTheDay')->name('policies.policy-of-the-day.delete');
+    Route::get('policy-of-the-day/all', 'PolicyController@getAllPoliciesOfTheDay')->name('policies.policy-of-the-day.all');
 });
 
 //staff survey routes
