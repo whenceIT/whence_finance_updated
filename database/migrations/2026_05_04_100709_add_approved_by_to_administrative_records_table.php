@@ -14,9 +14,13 @@ return new class extends Migration
     public function up()
     {
         Schema::table('administrative_records', function (Blueprint $table) {
-            $table->unsignedInteger('approved_by')->nullable();
-            $table->timestamp('approved_at')->nullable();
-            $table->foreign('approved_by')->references('id')->on('users');
+            if (!Schema::hasColumn('administrative_records', 'approved_by')) {
+                $table->unsignedInteger('approved_by')->nullable();
+                $table->foreign('approved_by')->references('id')->on('users');
+            }
+            if (!Schema::hasColumn('administrative_records', 'approved_at')) {
+                $table->timestamp('approved_at')->nullable();
+            }
         });
     }
 
@@ -28,8 +32,13 @@ return new class extends Migration
     public function down()
     {
         Schema::table('administrative_records', function (Blueprint $table) {
-            $table->dropForeign(['approved_by']);
-            $table->dropColumn(['approved_by', 'approved_at']);
+            if (Schema::hasColumn('administrative_records', 'approved_by')) {
+                $table->dropForeign(['approved_by']);
+                $table->dropColumn('approved_by');
+            }
+            if (Schema::hasColumn('administrative_records', 'approved_at')) {
+                $table->dropColumn('approved_at');
+            }
         });
     }
 };

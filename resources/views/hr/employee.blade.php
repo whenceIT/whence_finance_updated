@@ -587,6 +587,7 @@
                 <th>Comments</th>
                 <th>Created By</th>
                 <th>Status</th>
+                <th>Approved By</th>
             </tr>
         </thead>
         <tbody>
@@ -610,10 +611,11 @@
                     <td>{{ $record->comments ?: '-' }}</td>
                     <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
                     <td>{{ ucfirst($record->status) }}</td>
+                    <td>{{ $record->approver ? $record->approver->first_name . ' ' . $record->approver->last_name : '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="8" class="text-center">
                         No disciplinary records found.
                     </td>
                 </tr>
@@ -637,6 +639,7 @@
                 <th>Description</th>
                 <th>Created By</th>
                 <th>Status</th>
+                <th>Approved By</th>
             </tr>
         </thead>
         <tbody>
@@ -648,6 +651,7 @@
                     <td>{{ $record->description ?: '-' }}</td>
                     <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
                     <td>{{ ucfirst($record->status) }}</td>
+                    <td>{{ $record->approver ? $record->approver->first_name . ' ' . $record->approver->last_name : '-' }}</td>
                 </tr>
             @empty
                 <tr>
@@ -675,6 +679,7 @@
                 <th>Description</th>
                 <th>Created By</th>
                 <th>Status</th>
+                <th>Approved By</th>
             </tr>
         </thead>
         <tbody>
@@ -686,6 +691,7 @@
                     <td>{{ $record->description ?: '-' }}</td>
                     <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
                     <td>{{ ucfirst($record->status) }}</td>
+                    <td>{{ $record->approver ? $record->approver->first_name . ' ' . $record->approver->last_name : '-' }}</td>
                 </tr>
             @empty
                 <tr>
