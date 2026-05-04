@@ -1333,7 +1333,17 @@
                             <i class="fa fa-circle-o"></i> Employee Records
                         </a>
                     </li>
+
+
+                       <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
+                        <a href="{{ url('hr/workforce_analytics') }}">
+                            <i class="fa fa-circle-o"></i> Workforce Analytics
+                        </a>
+                    </li>
+
                 </ul>
+
+          
             </li>
             @endif
 

@@ -301,6 +301,7 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
 Route::group(['prefix' => 'hr'],function(){
     Route::get('employees','HRController@employees');
     Route::get('{id}/employee','HRController@employee');
+    Route::get('workforce_analytics','HRController@workforce_analytics');
 });
 
 //route for users

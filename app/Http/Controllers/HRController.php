@@ -22,6 +22,7 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Cartalyst\Sentinel\Roles\EloquentRole;
 use Cartalyst\Sentinel\Roles\RoleInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use App\Http\Requests;
 use App\Models\CycleDates;
 use App\Models\LoanTransaction;
@@ -348,5 +349,21 @@ if ($json !== false) {
         return new \DateTime("first monday of july $year");
     }
 
+
+    public function workforce_analytics()
+    {
+        $baseUrl = 'https://lms2backend.whencefinancesystem.com'; // e.g. http://localhost:3000
+
+        // Fetch data from external API
+        $diversity = Http::get($baseUrl . '/diversity-and-inclusion')->json();
+        $tenure = Http::get($baseUrl . '/tenure-and-stability')->json();
+        $offices = Http::get($baseUrl . '/office-workforce-insights')->json();
+
+            return view('hr.workforce_analytics', [
+            'diversity' => $diversity,
+            'tenure' => $tenure,
+            'offices' => $offices
+        ]);
+    }
 
 }
