@@ -335,8 +335,8 @@ function checkCompletedDeposits() {
                 valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
                 break;
 
-            case 'withinhere':
-    valid = /^1777356230718931$/.test(currentReferenceNumber);
+   case 'withinhere':
+    valid = /^\d{16}$/.test(currentReferenceNumber);
     break;
         }
 
