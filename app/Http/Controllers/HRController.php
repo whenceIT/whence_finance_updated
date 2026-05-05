@@ -22,6 +22,7 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Cartalyst\Sentinel\Roles\EloquentRole;
 use Cartalyst\Sentinel\Roles\RoleInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use App\Http\Requests;
 use App\Models\CycleDates;
 use App\Models\LoanTransaction;
@@ -315,6 +316,7 @@ if ($json !== false) {
         ]);
 
         $data = $request->all();
+        $data['status'] = 'pending';
         $data['created_by'] = Sentinel::getUser()->id;
 
         AdministrativeRecord::create($data);
@@ -342,7 +344,77 @@ if ($json !== false) {
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('hr.administrative-records', compact('records', 'tab'));
+        $recordTypeStats = AdministrativeRecord::selectRaw(
+                'record_type, count(*) as total, '
+                . 'sum(case when status = "pending" then 1 else 0 end) as pending, '
+                . 'sum(case when status = "active" then 1 else 0 end) as active, '
+                . 'sum(case when status = "declined" then 1 else 0 end) as declined'
+            )
+            ->groupBy('record_type')
+            ->get()
+            ->keyBy('record_type')
+            ->map(function ($row) {
+                return [
+                    'total' => (int) $row->total,
+                    'pending' => (int) $row->pending,
+                    'active' => (int) $row->active,
+                    'declined' => (int) $row->declined,
+                ];
+            })->toArray();
+
+        $statusCounts = AdministrativeRecord::selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        return view('hr.administrative-records', compact('records', 'tab', 'recordTypeStats', 'statusCounts'));
+    }
+
+    public function administrativeRecordsData(Request $request)
+    {
+        $status = $request->get('status', 'pending');
+        if (! in_array($status, ['pending', 'active', 'declined'])) {
+            return response()->json(['message' => 'Invalid status'], 422);
+        }
+
+        $records = AdministrativeRecord::with(['employee', 'creator', 'approver'])
+            ->where('status', $status)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $response = $records->map(function ($record) {
+            return [
+                'id' => $record->id,
+                'record_type' => $record->record_type,
+                'disciplinary_type' => $record->disciplinary_type,
+                'warning_type' => $record->warning_type,
+                'warning_level' => $record->warning_level,
+                'health_type' => $record->health_type,
+                'incident_type' => $record->incident_type,
+                'career_type' => $record->career_type,
+                'name' => $record->name,
+                'description' => $record->description,
+                'recording_date' => optional($record->recording_date)->format('d M Y'),
+                'comments' => $record->comments,
+                'number_of_days' => $record->number_of_days,
+                'absence_dates' => $record->absence_dates,
+                'status' => $record->status,
+                'created_at' => $record->created_at->format('d M Y'),
+                'employee' => [
+                    'full_name' => $record->employee->first_name . ' ' . $record->employee->last_name,
+                    'employee_number' => $record->employee->employee_number ?? 'No ID',
+                ],
+                'creator_name' => $record->creator ? $record->creator->first_name . ' ' . $record->creator->last_name : 'Unknown',
+                'approver_name' => $record->approver ? $record->approver->first_name . ' ' . $record->approver->last_name : 'Unknown',
+                'approved_at' => optional($record->approved_at)->format('d M Y'),
+                'decline_reason' => $record->decline_reason,
+            ];
+        });
+
+        return response()->json([
+            'records' => $response,
+            'total' => $records->count(),
+        ]);
     }
 
     public function approveRecord(Request $request, $id)
@@ -453,5 +525,21 @@ if ($json !== false) {
         return new \DateTime("first monday of july $year");
     }
 
+
+    public function workforce_analytics()
+    {
+        $baseUrl = 'https://lms2backend.whencefinancesystem.com'; // e.g. http://localhost:3000
+
+        // Fetch data from external API
+        $diversity = Http::get($baseUrl . '/diversity-and-inclusion')->json();
+        $tenure = Http::get($baseUrl . '/tenure-and-stability')->json();
+        $offices = Http::get($baseUrl . '/office-workforce-insights')->json();
+
+            return view('hr.workforce_analytics', [
+            'diversity' => $diversity,
+            'tenure' => $tenure,
+            'offices' => $offices
+        ]);
+    }
 
 }

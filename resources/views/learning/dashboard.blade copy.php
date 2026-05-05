@@ -709,8 +709,14 @@
     <button onclick="switchTab('featured')" id="tab-featured" class="tab-pill">
         <i class="fa fa-star"></i> Featured Topics
     </button>
+    <button onclick="switchTab('all')" id="tab-all" class="tab-pill">
+        <i class="fa fa-th-large"></i> All
+    </button>
     <button onclick="switchTab('courses')" id="tab-courses" class="tab-pill">
         <i class="fa fa-graduation-cap"></i> Training Courses
+    </button>
+    <button onclick="switchTab('uploads')" id="tab-uploads" class="tab-pill">
+        <i class="fa fa-cloud-upload"></i> Uploads
     </button>
 </div>
 
@@ -750,65 +756,6 @@
     <span id="content-count" style="font-size: 13px; color: var(--text-secondary);">
     Showing {{ $isFeaturedTab ? count($topicsWithUploads) : (count($courses) + $uploads->count()) }} items
     </span>
-</div>
-
-
-<!-- Unified Content Grid -->
-<div class="unified-grid" id="content-grid">
-   
-    <!-- Courses -->
-        @if(!$isFeaturedTab)
-                @foreach($courses as $course)
-              <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}"
-                       onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
-                      <div class="card-image type-course" style="{{ $course['poster'] ? 'background: none;' : '' }}">
-                              @if($course['poster'])
-                                      <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
-                              @else
-                                      <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
-                              @endif
-                              <div class="card-badge">Course</div>
-                              <div class="play-overlay">
-                                      <div class="play-button">
-                                              <i class="fa fa-play"></i>
-                                      </div>
-                              </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="card-category">{{ $course['category'] }}</div>
-                        <h3 class="card-title">{{ $course['title'] }}</h3>
-                        <div class="card-meta">
-                               <span>
-                                <i class="fa fa-eye"></i>
-                                @php
-                                $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
-                                $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
-                            @endphp
-                            {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% viewed
-                               </span>
-                        </div>
-                    </div>
-            </div>
-            @endforeach
-        @endif
-    
-        
-
-        <!-- No Results Message (hidden by default) -->
-        <div class="no-results" id="no-results" style="display: none;">
-            <i class="fa fa-search"></i>
-            <h3>No Results Found</h3>
-            <p>Try adjusting your search or filter criteria</p>
-        </div>
-        
-        <!-- Load More Button for Other Tabs -->
-        @if(!$isFeaturedTab)
-        <div class="load-more-container" id="load-more-container">
-            <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
-                <i class="fa fa-plus"></i> Load More
-            </button>
-        </div>
-        @endif
 </div>
 
 <!-- Featured Topics Container (for featured tab) -->
@@ -1006,6 +953,97 @@
 </div>
 
 
+<!-- Unified Content Grid -->
+<div class="unified-grid" id="content-grid">
+    @if(!$isFeaturedTab)
+  
+        @foreach($courses as $course)
+            <div class="content-card" data-type="course" data-title="{{ $course['title'] }}" data-category="{{ $course['category'] }}" data-progress="{{ $course['progress'] }}" onclick="window.location.href='{{ url('learning/course/' . $course['id']) }}'">
+                <div class="card-image type-course" style="{{ isset($course['poster']) && $course['poster'] ? 'background: none;' : '' }}">
+                    @if($course['poster'])
+                        <img src="{{ $course['poster'] }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $course['title'] }}">
+                    @else
+                        <i class="fa {{ $course['icon'] ?? 'fa-graduation-cap' }}"></i>
+                    @endif
+                    <div class="card-badge">Course</div>
+                    <div class="play-overlay">
+                        <div class="play-button">
+                            <i class="fa fa-play"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="card-category">{{ $course['category'] }}</div>
+                    <h3 class="card-title">{{ $course['title'] }}</h3>
+                    <!-- Progress Bar (if enrolled and in progress) -->
+                    @if($course['enrolled'] && $course['progress'] > 0)
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ $course['progress'] }}%;"></div>
+                    </div>
+                    <span class="progress-text" style="display: block; margin-top: 6px; font-size: 12px; color: var(--text-secondary);">{{ $course['progress'] }}% Complete</span>
+                    @endif
+                    <div class="card-meta">
+                        <span>
+                            <i class="fa fa-eye"></i>
+                            @php
+                                $courseModel = \App\Models\TrainingMaterial::with('allTopics')->find($course['id']);
+                                $totalTopicViews = $courseModel ? $courseModel->allTopics->sum('view_count') : 0;
+                            @endphp
+                            {{ \App\Helpers\GeneralHelper::calculate_view_percentage($totalTopicViews) }}% viewed
+                        </span>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+        
+    @endif
+    
+        <!-- Regular Upload Cards (for other tabs) -->
+        @if(!$isFeaturedTab)
+                @foreach($uploads as $upload)
+              <div class="content-card" data-type="{{ $upload->type }}" data-title="{{ $upload->name }}" data-category="{{ ucfirst($upload->type) }}" data-progress="0"
+                       onclick="playMedia('{{ $upload->type }}', '{{ $upload->path }}', '{{ addslashes($upload->name) }}', '{{ $upload->formatted_size ?? 'N/A' }}', '{{ $upload->poster ?? '' }}')">
+                      <div class="card-image type-{{ $upload->type }}" style="{{ $upload->poster ? 'background: none;' : '' }}">
+                              @if($upload->poster)
+                                      <img src="{{ $upload->poster }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $upload->name }}">
+                              @else
+                                      <i class="fa {{ $upload->icon ?? 'fa-file' }}"></i>
+                              @endif
+                              <div class="card-badge">{{ ucfirst($upload->type) }}</div>
+                              <div class="play-overlay">
+                                      <div class="play-button">
+                                              <i class="fa fa-play"></i>
+                                      </div>
+                              </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-category">{{ ucfirst($upload->type) }}</div>
+                        <h3 class="card-title">{{ $upload->name }}</h3>
+                        <div class="card-meta">
+                                <span><i class="fa fa-database"></i> {{ $upload->formatted_size ?? 'N/A' }}</span>
+                                <span><i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($upload->views_count ?? 0) }}% views</span>
+                        </div>
+                    </div>
+            </div>
+            @endforeach
+        @endif
+
+        <!-- No Results Message (hidden by default) -->
+        <div class="no-results" id="no-results" style="display: none;">
+            <i class="fa fa-search"></i>
+            <h3>No Results Found</h3>
+            <p>Try adjusting your search or filter criteria</p>
+        </div>
+        
+        <!-- Load More Button for Other Tabs -->
+        @if(!$isFeaturedTab)
+        <div class="load-more-container" id="load-more-container">
+            <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
+                <i class="fa fa-plus"></i> Load More
+            </button>
+        </div>
+        @endif
+</div>
 
 <script>
 var currentTab = 'all';

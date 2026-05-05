@@ -8,152 +8,112 @@
         <small>Approve, review, and manage employee administrative records</small>
     </h1>
 </section>
-
+<!-- put bento grid dashboard stats -->
 <section class="content">
+    <div class="row">
+        <div class="col-md-4 col-sm-6">
+            <div class="small-box bg-red">
+                <div class="inner">
+                    <h3>{{ $recordTypeStats['disciplinary']['total'] ?? 0 }}</h3>
+                    <p>Disciplinary Records</p>
+                    <!-- <p class="small">
+                        Pending: {{ $recordTypeStats['disciplinary']['pending'] ?? 0 }}<br>
+                        Active: {{ $recordTypeStats['disciplinary']['active'] ?? 0 }}<br>
+                        Declined: {{ $recordTypeStats['disciplinary']['declined'] ?? 0 }}
+                    </p> -->
+                </div>
+                <div class="icon">
+                    <i class="fa fa-gavel"></i>
+                </div>
+                <a href="{{ url('hr/administrative-records?tab=pending') }}" class="small-box-footer">
+                    View approvals <i class="fa fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-sm-6">
+            <div class="small-box bg-aqua">
+                <div class="inner">
+                    <h3>{{ $recordTypeStats['health']['total'] ?? 0 }}</h3>
+                    <p>Health Records</p>
+                    <!-- <p class="small">
+                        Pending: {{ $recordTypeStats['health']['pending'] ?? 0 }}<br>
+                        Active: {{ $recordTypeStats['health']['active'] ?? 0 }}<br>
+                        Declined: {{ $recordTypeStats['health']['declined'] ?? 0 }}
+                    </p> -->
+                </div>
+                <div class="icon">
+                    <i class="fa fa-heartbeat"></i>
+                </div>
+                <a href="{{ url('hr/administrative-records?tab=pending') }}" class="small-box-footer">
+                    View approvals <i class="fa fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-sm-6">
+            <div class="small-box bg-green">
+                <div class="inner">
+                    <h3>{{ $recordTypeStats['career']['total'] ?? 0 }}</h3>
+                    <p>Career Progression</p>
+                    <!-- <p class="small">
+                        Pending: {{ $recordTypeStats['career']['pending'] ?? 0 }}<br>
+                        Active: {{ $recordTypeStats['career']['active'] ?? 0 }}<br>
+                        Declined: {{ $recordTypeStats['career']['declined'] ?? 0 }}
+                    </p> -->
+                </div>
+                <div class="icon">
+                    <i class="fa fa-briefcase"></i>
+                </div>
+                <a href="{{ url('hr/administrative-records?tab=pending') }}" class="small-box-footer">
+                    View approvals <i class="fa fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div class="box box-primary">
         <div class="box-header with-border">
             <ul class="nav nav-tabs">
                 <li class="{{ request('tab', 'pending') === 'pending' ? 'active' : '' }}">
-                    <a href="{{ url('hr/administrative-records?tab=pending') }}">
+                    <a href="{{ url('hr/administrative-records?tab=pending') }}" class="admin-records-tab" data-status="pending">
                         <i class="fa fa-clock-o"></i> Approvals
-                        @if($tab === 'pending')
-                            <span class="badge badge-warning">{{ $records->total() }}</span>
-                        @endif
+                        <span class="badge badge-warning tab-count" data-status="pending">{{ $statusCounts['pending'] ?? 0 }}</span>
                     </a>
                 </li>
                 <li class="{{ $tab === 'active' ? 'active' : '' }}">
-                    <a href="{{ url('hr/administrative-records?tab=active') }}">
+                    <a href="{{ url('hr/administrative-records?tab=active') }}" class="admin-records-tab" data-status="active">
                         <i class="fa fa-check"></i> Active
-                        @if($tab === 'active')
-                            <span class="badge badge-success">{{ $records->total() }}</span>
-                        @endif
+                        <span class="badge badge-success tab-count" data-status="active">{{ $statusCounts['active'] ?? 0 }}</span>
                     </a>
                 </li>
                 <li class="{{ $tab === 'declined' ? 'active' : '' }}">
-                    <a href="{{ url('hr/administrative-records?tab=declined') }}">
+                    <a href="{{ url('hr/administrative-records?tab=declined') }}" class="admin-records-tab" data-status="declined">
                         <i class="fa fa-times"></i> Declined
-                        @if($tab === 'declined')
-                            <span class="badge badge-danger">{{ $records->total() }}</span>
-                        @endif
+                        <span class="badge badge-danger tab-count" data-status="declined">{{ $statusCounts['declined'] ?? 0 }}</span>
                     </a>
                 </li>
             </ul>
         </div>
 
         <div class="box-body">
-            @if($records->count())
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>Employee</th>
-                                <th>Record Type</th>
-                                <th>Details</th>
-                                <th>Created By</th>
-                                <th>Date</th>
-                                @if($tab === 'pending')
-                                    <th>Actions</th>
-                                @elseif($tab === 'declined')
-                                    <th>Decline Reason</th>
-                                @else
-                                    <th>Approved By</th>
-                                @endif
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($records as $record)
-                                <tr>
-                                    <td>
-                                        <strong>{{ $record->employee->first_name }} {{ $record->employee->last_name }}</strong><br>
-                                        <small class="text-muted">{{ $record->employee->employee_number ?? 'No ID' }}</small>
-                                    </td>
-                                    <td>
-                                        <span class="label label-primary">{{ ucfirst($record->record_type) }}</span>
-                                    </td>
-                                    <td>
-                                        @if($record->record_type === 'disciplinary')
-                                            <strong>Type:</strong> {{ ucfirst(str_replace('-', ' ', $record->disciplinary_type)) }}<br>
-                                            @if($record->warning_type)
-                                                <strong>Warning:</strong> {{ ucfirst($record->warning_type) }} ({{ ucfirst($record->warning_level) }})<br>
-                                            @endif
-                                            @if($record->number_of_days)
-                                                <strong>Number of Days:</strong> {{ $record->number_of_days }}<br>
-                                                @if($record->absence_dates)
-                                                    <strong>Dates:</strong> {{ collect($record->absence_dates)->map(function($date) { return \Carbon\Carbon::parse($date)->format('M j, Y'); })->join(', ') }}<br>
-                                                @endif
-                                            @endif
-                                            @if($record->comments)
-                                                <strong>Comments:</strong> {{ Str::limit($record->comments, 50) }}
-                                            @endif
-                                        @elseif($record->record_type === 'health')
-                                            <strong>Type:</strong> {{ ucfirst(str_replace('-', ' ', $record->health_type)) }}<br>
-                                            @if($record->incident_type)
-                                                <strong>Incident:</strong> {{ ucfirst(str_replace('-', ' ', $record->incident_type)) }}<br>
-                                            @endif
-                                            @if($record->description)
-                                                <strong>Description:</strong> {{ Str::limit($record->description, 50) }}
-                                            @endif
-                                        @elseif($record->record_type === 'career')
-                                            <strong>Type:</strong> {{ ucfirst(str_replace('-', ' ', $record->career_type)) }}<br>
-                                            @if($record->name)
-                                                <strong>Name:</strong> {{ $record->name }}<br>
-                                            @endif
-                                            @if($record->description)
-                                                <strong>Description:</strong> {{ Str::limit($record->description, 50) }}
-                                            @endif
-                                        @endif
-                                    </td>
-                                    <td>{{ $record->creator->first_name }} {{ $record->creator->last_name }}</td>
-                                    <td>{{ $record->created_at->format('d M Y') }}</td>
-                                    @if($tab === 'pending')
-                                        <td>
-                                            <form action="{{ url('hr/administrative-records/'.$record->id.'/approve') }}" method="POST" style="display: inline;">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success btn-xs" onclick="return confirm('Are you sure you want to approve this record?')">
-                                                    <i class="fa fa-check"></i> Approve
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-xs" onclick="declineRecord({{ $record->id }}, '{{ addslashes($record->employee->first_name.' '.$record->employee->last_name) }}')">
-                                                <i class="fa fa-times"></i> Decline
-                                            </button>
-                                        </td>
-                                    @elseif($tab === 'declined')
-                                        <td>
-                                            <span class="text-danger">{{ $record->decline_reason }}</span><br>
-                                            <small class="text-muted">Declined by: {{ $record->approver->first_name ?? 'Unknown' }} {{ $record->approver->last_name ?? '' }}</small>
-                                        </td>
-                                    @else
-                                        <td>
-                                            {{ $record->approver->first_name ?? 'Unknown' }} {{ $record->approver->last_name ?? '' }}<br>
-                                            <small class="text-muted">{{ $record->approved_at ? $record->approved_at->format('d M Y') : '' }}</small>
-                                        </td>
-                                    @endif
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="text-center">
-                    {{ $records->appends(['tab' => $tab])->links() }}
-                </div>
-            @else
-                <div class="alert alert-info text-center">
-                    @if($tab === 'pending')
-                        <i class="fa fa-clock-o fa-3x"></i>
-                        <h4>No pending records</h4>
-                        <p>All administrative records have been processed.</p>
-                    @elseif($tab === 'active')
-                        <i class="fa fa-check fa-3x"></i>
-                        <h4>No active records</h4>
-                        <p>No approved administrative records found.</p>
-                    @else
-                        <i class="fa fa-times fa-3x"></i>
-                        <h4>No declined records</h4>
-                        <p>No declined administrative records found.</p>
-                    @endif
-                </div>
-            @endif
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Record Type</th>
+                            <th>Details</th>
+                            <th>Created By</th>
+                            <th>Date</th>
+                            <th id="administrativeRecordsActionHeader">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="administrativeRecordsTableBody">
+                        <tr><td colspan="6" class="text-center">Loading records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </section>
@@ -193,5 +153,177 @@ function declineRecord(recordId, employeeName) {
     $('#decline_reason').val('');
     $('#declineModal').modal('show');
 }
+</script>
+
+<script>
+(function() {
+    const dataUrl = '{{ url('hr/administrative-records/data') }}';
+    const recordsBody = document.getElementById('administrativeRecordsTableBody');
+    const tabLinks = document.querySelectorAll('.admin-records-tab');
+    const tabCounts = document.querySelectorAll('.tab-count');
+    const activeStatus = '{{ $tab }}' || 'pending';
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function createRecordDetails(record) {
+        if (record.record_type === 'disciplinary') {
+            let details = `<strong>Type:</strong> ${escapeHtml(record.disciplinary_type || 'N/A')}<br>`;
+            if (record.warning_type) {
+                details += `<strong>Warning:</strong> ${escapeHtml(record.warning_type)} (${escapeHtml(record.warning_level || 'N/A')})<br>`;
+            }
+            if (record.number_of_days) {
+                details += `<strong>Number of Days:</strong> ${escapeHtml(record.number_of_days)}<br>`;
+                if (record.absence_dates && record.absence_dates.length) {
+                    const dateBadges = record.absence_dates.map(d => `<span class="badge badge-info">${new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>`).join(' ');
+                    details += `<strong>Dates:</strong> ${dateBadges}<br>`;
+                }
+            }
+            if (record.comments) {
+                details += `<strong>Comments:</strong> ${escapeHtml(record.comments)}`;
+            }
+            return details;
+        }
+
+        if (record.record_type === 'health') {
+            let details = `<strong>Type:</strong> ${escapeHtml(record.health_type || 'N/A')}<br>`;
+            if (record.incident_type) {
+                details += `<strong>Incident:</strong> ${escapeHtml(record.incident_type)}<br>`;
+            }
+            if (record.description) {
+                details += `<strong>Description:</strong> ${escapeHtml(record.description)}`;
+            }
+            return details;
+        }
+
+        if (record.record_type === 'career') {
+            let details = `<strong>Type:</strong> ${escapeHtml(record.career_type || 'N/A')}<br>`;
+            if (record.name) {
+                details += `<strong>Name:</strong> ${escapeHtml(record.name)}<br>`;
+            }
+            if (record.description) {
+                details += `<strong>Description:</strong> ${escapeHtml(record.description)}`;
+            }
+            return details;
+        }
+
+        return '';
+    }
+
+    function updateTabSelection(status) {
+        tabLinks.forEach(link => {
+            const li = link.closest('li');
+            if (!li) return;
+            if (link.dataset.status === status) {
+                li.classList.add('active');
+            } else {
+                li.classList.remove('active');
+            }
+        });
+
+        // Update action header based on status
+        const actionHeader = document.getElementById('administrativeRecordsActionHeader');
+        if (status === 'pending') {
+            actionHeader.textContent = 'Actions';
+        } else if (status === 'declined') {
+            actionHeader.textContent = 'Decline Reason';
+        } else {
+            actionHeader.textContent = 'Approved By';
+        }
+    }
+
+    function updateTabCount(status, total) {
+        tabCounts.forEach(count => {
+            if (count.dataset.status === status) {
+                count.textContent = total;
+            }
+        });
+    }
+
+    function renderRecords(records, status) {
+        if (!records.length) {
+            recordsBody.innerHTML = `<tr><td colspan="6" class="text-center">No ${escapeHtml(status)} records found.</td></tr>`;
+            return;
+        }
+
+        const rows = records.map(record => {
+            let actionCell = '';
+            if (status === 'pending') {
+                const employeeName = escapeHtml(record.employee.full_name);
+                actionCell = `
+                    <td>
+                        <form action="{{ url('hr/administrative-records') }}/` + record.id + `/approve" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="btn btn-success btn-xs" onclick="return confirm('Are you sure you want to approve this record?')">
+                                <i class="fa fa-check"></i> Approve
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger btn-xs" onclick="declineRecord(${record.id}, '${employeeName}')">
+                            <i class="fa fa-times"></i> Decline
+                        </button>
+                    </td>
+                `;
+            } else if (status === 'declined') {
+                actionCell = `<td><span class="text-danger">${escapeHtml(record.decline_reason || 'N/A')}</span><br><small class="text-muted">Declined by: ${escapeHtml(record.approver_name || 'Unknown')}</small></td>`;
+            } else {
+                actionCell = `<td>${escapeHtml(record.approver_name || 'Unknown')}<br><small class="text-muted">${escapeHtml(record.approved_at || '')}</small></td>`;
+            }
+
+            return `
+                <tr>
+                    <td>
+                        <strong>${escapeHtml(record.employee.full_name)}</strong><br>
+                        <small class="text-muted">${escapeHtml(record.employee.employee_number)}</small>
+                    </td>
+                    <td><span class="label label-primary">${escapeHtml(record.record_type)}</span></td>
+                    <td>${createRecordDetails(record)}</td>
+                    <td>${escapeHtml(record.creator_name)}</td>
+                    <td>${escapeHtml(record.created_at)}</td>
+                    ${actionCell}
+                </tr>
+            `;
+        }).join('');
+
+        recordsBody.innerHTML = rows;
+    }
+
+    async function fetchRecords(status) {
+        updateTabSelection(status);
+        recordsBody.innerHTML = `<tr><td colspan="6" class="text-center">Loading records...</td></tr>`;
+
+        try {
+            const response = await fetch(`${dataUrl}?status=${encodeURIComponent(status)}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const payload = await response.json();
+            renderRecords(payload.records, status);
+            updateTabCount(status, payload.total);
+            window.history.replaceState({}, '', `{{ url('hr/administrative-records') }}?tab=${status}`);
+        } catch (error) {
+            recordsBody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">Unable to load records. Please refresh the page.</td></tr>`;
+            console.error('Failed to load administrative records:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                fetchRecords(this.dataset.status);
+            });
+        });
+
+        fetchRecords(activeStatus);
+    });
+})();
 </script>
 @endsection

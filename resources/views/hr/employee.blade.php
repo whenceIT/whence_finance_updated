@@ -586,6 +586,8 @@
                 <th>Level/Duration</th>
                 <th>Comments</th>
                 <th>Created By</th>
+                <th>Status</th>
+                <th>Approved By</th>
             </tr>
         </thead>
         <tbody>
@@ -608,10 +610,12 @@
                     <td>{{ $record->warning_level ? ucfirst($record->warning_level) : ($record->number_of_days ? 'N/A' : '-') }}</td>
                     <td>{{ $record->comments ?: '-' }}</td>
                     <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
+                    <td>{{ ucfirst($record->status) }}</td>
+                    <td>{{ $record->approver ? $record->approver->first_name . ' ' . $record->approver->last_name : '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="text-center">
+                    <td colspan="8" class="text-center">
                         No disciplinary records found.
                     </td>
                 </tr>
@@ -634,6 +638,8 @@
                 <th>Incident Type</th>
                 <th>Description</th>
                 <th>Created By</th>
+                <th>Status</th>
+                <th>Approved By</th>
             </tr>
         </thead>
         <tbody>
@@ -644,10 +650,12 @@
                     <td>{{ $record->incident_type ? ucfirst(str_replace('-', ' ', $record->incident_type)) : '-' }}</td>
                     <td>{{ $record->description ?: '-' }}</td>
                     <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
+                    <td>{{ ucfirst($record->status) }}</td>
+                    <td>{{ $record->approver ? $record->approver->first_name . ' ' . $record->approver->last_name : '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center">
+                    <td colspan="7" class="text-center">
                         No health records found.
                     </td>
                 </tr>
@@ -670,6 +678,8 @@
                 <th>Name/Title</th>
                 <th>Description</th>
                 <th>Created By</th>
+                <th>Status</th>
+                <th>Approved By</th>
             </tr>
         </thead>
         <tbody>
@@ -680,10 +690,12 @@
                     <td>{{ $record->name ?: '-' }}</td>
                     <td>{{ $record->description ?: '-' }}</td>
                     <td>{{ $record->creator->first_name ?? 'Unknown' }} {{ $record->creator->last_name ?? '' }}</td>
+                    <td>{{ ucfirst($record->status) }}</td>
+                    <td>{{ $record->approver ? $record->approver->first_name . ' ' . $record->approver->last_name : '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center">
+                    <td colspan="7" class="text-center">
                         No career progression records found.
                     </td>
                 </tr>
