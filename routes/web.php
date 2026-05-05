@@ -17,6 +17,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\GOAController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
 use App\Http\Controllers\InductionController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\Recoveries\RecoveryReportController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\FleetController;
 use App\Http\Controllers\AuditController;
 use Firebase\JWT\Key;
 
@@ -305,6 +307,18 @@ Route::group(['prefix' => 'hr'],function(){
     Route::get('administrative-records', 'HRController@administrativeRecords');
     Route::post('administrative-records/{id}/approve', 'HRController@approveRecord');
     Route::post('administrative-records/{id}/decline', 'HRController@declineRecord');
+});
+
+// GOA Manager routes
+Route::group(['prefix' => 'goa_dashboard'], function () {
+    Route::get('/', 'GOAController@index')->name('goa.index');
+    Route::get('fleet-management', 'GOAController@fleetManagement')->name('goa.fleet-management');
+    Route::get('vacancies-and-staffing', 'GOAController@vacanciesAndStaffing')->name('goa.vacancies-and-staffing');
+    Route::resource('fleets', FleetController::class);
+    Route::post('maintenance/store', 'FleetController@storeMaintenance')->name('maintenance.store');
+    Route::post('staff/update-position', 'StaffController@updatePosition')->name('staff.update-position');
+    Route::post('staff/store-department', 'StaffController@storeDepartment')->name('staff.store-department');
+    Route::post('staff/store-role', 'StaffController@storeRole')->name('staff.store-role');
 });
 
 //route for users
