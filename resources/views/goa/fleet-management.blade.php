@@ -633,15 +633,20 @@
                 <li style="{{ $liStyle }}">
                     <div style="display: flex; align-items: center; flex: 1;">
                         <div>
-                            <strong style="color: #0d6efd; font-size: 1.3rem;">{{ $schedule->fleet->vehicle_id ?? 'N/A' }}</strong>
-                            <p style="margin-bottom: 0; color: #6c757d; font-size: 1.4rem;">{{ $schedule->maintenance_type }}</p>
-                            <p style="margin-bottom: 0; color: #6c757d; font-size: 1.3rem;">Office: {{ $schedule->fleet->office->name ?? 'N/A' }}</p>
-                            <p style="margin-bottom: 0; color: #6c757d; font-size: 1.3rem;">Assigned to: {{ $schedule->fleet->user->first_name ?? 'N/A' }} {{ $schedule->fleet->user->last_name ?? '' }}</p>
+                            <strong style="color: #0d6efd; font-size: 1.2rem;">{{ $schedule->fleet->vehicle_id ?? 'N/A' }}</strong>
+                            <p style="margin-bottom: 0; color: #6c757d; font-size: 1.1rem;">{{ $schedule->maintenance_type }}</p>
+                            <p style="margin-bottom: 0; color: #6c757d; font-size: 1rem;">Office: {{ $schedule->fleet->office->name ?? 'N/A' }}</p>
+                            <p style="margin-bottom: 0; color: #6c757d; font-size: 1rem;">Assigned to: {{ $schedule->fleet->user->first_name ?? 'N/A' }} {{ $schedule->fleet->user->last_name ?? '' }}</p>
                             @if($schedule->technician)
-                                <p style="margin-bottom: 0; color: #6c757d; font-size: 1.2rem;">Technician: {{ $schedule->technician }}</p>
+                                <p style="margin-bottom: 0; color: #6c757d; font-size: 1rem;">Technician: {{ $schedule->technician }}</p>
                             @endif
                             @if($schedule->notes)
-                                <p style="margin-bottom: 0; color: #6c757d; font-size: 1.2rem;">{{ $schedule->notes }}</p>
+                                <p style="margin-bottom: 0; color: #6c757d; font-size: 1rem;">{{ $schedule->notes }}</p>
+                            @endif
+                            @if($daysUntilDue !== null)
+                                <p style="margin-bottom: 0; {{ $daysUntilDue < 0 ? 'color: #dc3545;' : ($daysUntilDue <= 5 ? 'color: #ff9900;' : 'color: #28a745;') }} font-size: 1rem; font-weight: 600;">
+                                    {{ $daysUntilDue > 0 ? "Due in {$daysUntilDue} day(s)" : ($daysUntilDue < 0 ? 'Overdue by ' . abs($daysUntilDue) . ' day(s)' : 'Due today') }}
+                                </p>
                             @endif
                         </div>
                         <div>
@@ -814,6 +819,17 @@
                                         <option>Tire Rotation</option>
                                         <option>Brake Inspection</option>
                                         <option>Engine Check</option>
+                                        <option>Battery Replacement</option>
+                                        <option>Air Filter Change</option>
+                                        <option>Fuel Filter Replacement</option>
+                                        <option>Transmission Service</option>
+                                        <option>Coolant Flush</option>
+                                        <option>Spark Plugs Replacement</option>
+                                        <option>Wheel Alignment</option>
+                                        <option>Suspension Check</option>
+                                        <option>Exhaust System Inspection</option>
+                                        <option>Timing Belt Replacement</option>
+                                        <option>General Inspection</option>
                                     </select>
                                 </div>
                             </div>
