@@ -2,7 +2,6 @@
 @section('title')
     GOA Manager - Dashboard
 @endsection
-
 @section('content')
 <!-- Include ApexCharts -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts/dist/apexcharts.css">
@@ -232,7 +231,7 @@
 
 .sidebar-title {
     font-size: 1.250rem;
-    font-weight: 800;
+    font-weight: 600;
     color: #1e293b;
     margin: 0;
 }
@@ -543,27 +542,16 @@
         <!-- Main Dashboard Area -->
         <div class="main-dashboard">
 
-    <div style="display: flex; flex-direction: row; gap: 24px; flex-wrap: wrap;">
-        <!-- Fleet Distribution Chart -->
-        <div class="chart-card" style="flex: 1; min-width: 400px;">
-            <div class="chart-header">
-                <h3 class="chart-title">Fleet Distribution</h3>
-            </div>
-            <div class="chart-content">
-                <div id="fleet-chart" class="chart-container"></div>
-            </div>
-        </div>
+        <div>
 
-        <!-- Staffing Overview Chart -->
-        <div class="chart-card" style="flex: 1; min-width: 400px;">
-            <div class="chart-header">
-                <h3 class="chart-title">Staffing Overview</h3>
-            </div>
-            <div class="chart-content">
-                <div id="staffing-chart" class="chart-container"></div>
-            </div>
-        </div>
-    </div>
+            <!-- Staffing Status Card -->
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-icon staff-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
+                        <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
+                        </svg>
+                    </div>
                     <h3 class="status-title" style="color: #002c04;">Staffing Status</h3>
                 </div>
                 <div class="status-content">
@@ -690,13 +678,11 @@
                     <div id="sidebar-alerts">
                         @if($insurancePastDue->count() > 0)
                             <div class="alert-section alert-critical">
-                                <h5>Insurance Past Due</h5>
+                                <h3>Insurance Past Due ({{ $insurancePastDue->count() }})</h3>
                                 <ul class="alert-list">
                                     @foreach($insurancePastDue as $fleet)
                                         <li class="alert-item">
-                                            <strong>{{ $fleet->vehicle_id }}</strong> ({{ $fleet->vehicle_type }} - {{ $fleet->vehicle_model }})<br>
-                                            <small>Assigned to: {{ $fleet->user ? $fleet->user->first_name . ' ' . $fleet->user->last_name : 'Unassigned' }} | Office: {{ $fleet->office ? $fleet->office->name : 'N/A' }}</small><br>
-                                            <small>Expired {{ $fleet->insurance_expire_date->diffForHumans() }}</small>
+                                            <strong>{{ $fleet->vehicle_id }}</strong> - Expired {{ $fleet->insurance_expire_date->diffForHumans() }}
                                         </li>
                                     @endforeach
                                 </ul>
@@ -705,13 +691,11 @@
 
                         @if($insuranceExpiredRecent->count() > 0)
                             <div class="alert-section alert-critical">
-                                <h5>Insurance Expired</h5>
+                                <h3>Insurance Expired ({{ $insuranceExpiredRecent->count() }})</h3>
                                 <ul class="alert-list">
                                     @foreach($insuranceExpiredRecent as $fleet)
                                         <li class="alert-item">
-                                            <strong>{{ $fleet->vehicle_id }}</strong> ({{ $fleet->vehicle_type }} - {{ $fleet->vehicle_model }})<br>
-                                            <small>Assigned to: {{ $fleet->user ? $fleet->user->first_name . ' ' . $fleet->user->last_name : 'Unassigned' }} | Office: {{ $fleet->office ? $fleet->office->name : 'N/A' }}</small><br>
-                                            <small>Expired {{ $fleet->insurance_expire_date->diffForHumans() }}</small>
+                                            <strong>{{ $fleet->vehicle_id }}</strong> - Expired {{ $fleet->insurance_expire_date->diffForHumans() }}
                                         </li>
                                     @endforeach
                                 </ul>
@@ -720,7 +704,7 @@
 
                         @if($maintenancePastDue->count() > 0)
                             <div class="alert-section alert-critical">
-                                <h4>Maintenance Past Due ({{ $maintenancePastDue->count() }})</h4>
+                                <h3>Maintenance Past Due ({{ $maintenancePastDue->count() }})</h3>
                                 <ul class="alert-list">
                                     @foreach($maintenancePastDue as $schedule)
                                         <li class="alert-item">
@@ -733,13 +717,11 @@
 
                         @if($insuranceExpiringSoon->count() > 0)
                             <div class="alert-section alert-warning">
-                                <h5>Insurance Expiring Soon</h5>
+                                <h3>Insurance Expiring Soon ({{ $insuranceExpiringSoon->count() }})</h3>
                                 <ul class="alert-list">
                                     @foreach($insuranceExpiringSoon as $fleet)
                                         <li class="alert-item">
-                                            <strong>{{ $fleet->vehicle_id }}</strong> ({{ $fleet->vehicle_type }} - {{ $fleet->vehicle_model }})<br>
-                                            <small>Assigned to: {{ $fleet->user ? $fleet->user->first_name . ' ' . $fleet->user->last_name : 'Unassigned' }} | Office: {{ $fleet->office ? $fleet->office->name : 'N/A' }}</small><br>
-                                            <small>Expires {{ $fleet->insurance_expire_date->format('M d, Y') }}</small>
+                                            <strong>{{ $fleet->vehicle_id }}</strong> - Expires {{ $fleet->insurance_expire_date->format('M d, Y') }}
                                         </li>
                                     @endforeach
                                 </ul>
@@ -748,7 +730,7 @@
 
                         @if($maintenanceSoon->count() > 0)
                             <div class="alert-section alert-warning">
-                                <h4>Maintenance Due Soon</h4>
+                                <h3>Maintenance Due Soon ({{ $maintenanceSoon->count() }})</h3>
                                 <ul class="alert-list">
                                     @foreach($maintenanceSoon as $schedule)
                                         <li class="alert-item">
@@ -765,7 +747,7 @@
                     </div>
                 </div>
             </div>
-
+        
             <!-- Quick Stats -->
             <div class="sidebar-section">
                 <div class="sidebar-header">
@@ -780,7 +762,7 @@
                     </div>
                 </div>
             </div>
-
+            <br>
             <!-- Quick Actions -->
             <div class="sidebar-section">
                 <div class="sidebar-header">

@@ -425,27 +425,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($recentHires as $hire)
+                        @foreach($recentHires as $hire)
                         <tr>
-                            <td>{{ $hire->name }}</td>
-                            <td>{{ $hire->name }}</td>
-                            <td>{{ $hire->department ? $hire->department->name : 'N/A' }}</td>
-                            <td>{{ $hire->updated_at ? $hire->updated_at->format('Y-m-d') : 'N/A' }}</td>
-                            <td>
-                                @if($hire->status == 'Open')
-                                    <span class="badge badge-success">Open</span>
-                                @elseif($hire->status == 'In Review')
-                                    <span class="badge badge-warning">In Review</span>
-                                @else
-                                    <span class="badge badge-secondary">{{ ucfirst($hire->status ?: 'Unknown') }}</span>
-                                @endif
-                            </td>
+                            <td>{{ $hire->full_name }}</td>
+                            <td>{{ $hire->position->name ?? 'N/A' }}</td>
+                            <td>{{ $hire->position->department->name ?? 'N/A' }}</td>
+                            <td>{{ $hire->date_of_joining }}</td>
+                            <td><span class="badge badge-success">Active</span></td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="text-center">No recent positions found.</td>
-                        </tr>
-                        @endforelse
+                        @endforeach
+                       
                     </tbody>
                 </table>
             </div>
