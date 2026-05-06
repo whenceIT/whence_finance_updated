@@ -173,7 +173,7 @@
             border: 1px solid #d1d5db;
             background: #f8fafc;
             color: #0f172a;
-            font-size: 0.95rem;
+            font-size: 1.25rem;
         }
 
         .fleet-modal-textarea {

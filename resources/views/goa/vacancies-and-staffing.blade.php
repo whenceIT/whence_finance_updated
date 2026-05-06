@@ -179,7 +179,7 @@
             padding: 0.8rem 1rem;
             border: 1px solid #d1d5db;
             border-radius: 0.75rem;
-            font-size: 0.95rem;
+            font-size: 1.25rem;
             color: #495057;
             background: #f8f9fa;
         }
