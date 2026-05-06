@@ -77,14 +77,14 @@
             background: #2563eb;
             color: white;
             font-weight: 600;
-            padding: 0.75rem 1.25rem;
+            padding: 1rem 1.25rem;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.95rem;
+            font-size: 1.295rem;
         }
 
         .fleet-action-btn.secondary {
