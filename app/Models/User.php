@@ -139,7 +139,7 @@ class User extends EloquentUser
 
     public function position()
     {
-        return $this->hasOne(Position::class, 'id', 'position_id');
+        return $this->belongsTo(Position::class, 'position_id');
     }
 
     public function getPositionNameAttribute()

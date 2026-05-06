@@ -1336,7 +1336,7 @@
             </li>
             @endif
 
-                          {{-- ====================================================== --}}
+            {{-- ====================================================== --}}
             {{-- HUMAN RESOURCES MODULE                                 --}}
             {{-- ====================================================== --}}
 
@@ -1349,19 +1349,23 @@
                     </span>
                 </a>
                 <ul class="treeview-menu">
+                    
                     <li class="@if(Request::is('hr/employees')) active @endif">
                         <a href="{{ url('hr/employees') }}">
                             <i class="fa fa-circle-o"></i> Employee Records
                         </a>
                     </li>
-
-
-                       <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
+                    <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
                         <a href="{{ url('hr/workforce_analytics') }}">
                             <i class="fa fa-circle-o"></i> Workforce Analytics
                         </a>
                     </li>
 
+                    <li class="@if(Request::is('hr/administrative-records*')) active @endif">
+                        <a href="{{ url('hr/administrative-records') }}">
+                            <i class="fa fa-circle-o"></i> Administrative Records
+                        </a>
+                    </li>
                 </ul>
 
           
@@ -1377,7 +1381,6 @@
                     <a href="#">
                         <i class="fa fa-refresh"></i> <span>Recoveries</span>
                         <span class="pull-right-container">
-                            @if($role != 3 || $role != 2 || $role != 11)<span class="label label-danger pull-right" style="background-color: #ff1900; animation: pulse-red 2s infinite;">Beta</span>@endif
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>
