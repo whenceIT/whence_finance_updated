@@ -114,8 +114,8 @@ class GOAController extends Controller
             $dept->filled_positions = Position::where('department_id', $dept->id)->where('is_vacant', 0)->count();
         }
 
-        // Recent hires (recently updated positions)
-        $recentHires = Position::with('department')->orderBy('updated_at', 'desc')->limit(10)->get();
+        // Recent hires (users with positions updated_at)
+        $recentHires = User::with('position.department')->whereNotNull('position_id')->orderBy('updated_at', 'desc')->limit(10)->get();
 
         return view('goa.vacancies-and-staffing', compact('positions', 'departments', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'recentHires'));
     }
