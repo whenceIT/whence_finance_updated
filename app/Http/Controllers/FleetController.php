@@ -35,7 +35,7 @@ class FleetController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'vehicle_id' => 'nullable|string|max:100',
+            'vehicle_id' => 'nullable|string|max:100|unique:fleets,vehicle_id',
             'vehicle_type' => 'nullable|string|max:100',
             'vehicle_model' => 'nullable|string|max:100',
             'assigned_to' => 'nullable|string|max:150',
@@ -49,6 +49,13 @@ class FleetController extends Controller
             'last_maintenance' => 'nullable|date',
         ]);
 
+        if (empty($data['vehicle_id'])) {
+            do {
+                $num = mt_rand(10000, 999999);
+                $data['vehicle_id'] = $num;
+            } while (Fleet::where('vehicle_id', $data['vehicle_id'])->exists());
+        }
+
         Fleet::create($data);
 
         return redirect()->route('fleets.index')->with('success', 'Fleet record created successfully.');
@@ -57,7 +64,7 @@ class FleetController extends Controller
     public function storeMaintenance(Request $request)
     {
         try {
-            
+
         $data = $request->validate([
             'maintenanceVehicleId' => 'required|string',
             'maintenanceType' => 'required|string',
@@ -87,6 +94,22 @@ class FleetController extends Controller
         }
     }
 
+    public function completeMaintenance(Request $request, $id)
+    {
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $schedule = FleetMaintenanceSchedule::findOrFail($id);
+        $schedule->update([
+            'status' => 'completed',
+            'amount' => $data['amount'],
+            'completed_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Maintenance marked as completed.');
+    }
+
     public function show(Fleet $fleet)
     {
         return view('goa.fleet-show', compact('fleet'));
@@ -94,7 +117,9 @@ class FleetController extends Controller
 
     public function edit(Fleet $fleet)
     {
-        return view('goa.fleet-edit', compact('fleet'));
+        $offices = Office::where('active', 1)->orderBy('name')->get();
+        $users = User::whereNull('deleted_at')->orderBy('first_name')->get();
+        return view('goa.fleet-edit', compact('fleet', 'offices', 'users'));
     }
 
     public function update(Request $request, Fleet $fleet)
@@ -106,12 +131,9 @@ class FleetController extends Controller
             'assigned_to' => 'nullable|string|max:150',
             'office_id' => 'nullable|integer',
             'color' => 'nullable|string|max:50',
-            'date_purchased' => 'nullable|date',
-            'insurance_expire_date' => 'nullable|date',
             'current_value' => 'nullable|numeric|min:0',
             'white_book' => 'required|in:available,none',
             'vehicle_status' => 'nullable|string|max:50',
-            'last_maintenance' => 'nullable|date',
         ]);
 
         $fleet->update($data);

@@ -83,7 +83,7 @@
 	        </li>
 
 
-               @if($role == 1)
+            @if($role == 1)
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/poadashboard') }}">
                     <i class="fa fa-dashboard"></i> <span>POA Dashboard</span>
@@ -91,8 +91,28 @@
 	        </li>
              @endif
 
-              @if($role == 4 || $role == 6)
-               <li class="@if(Request::is('dashboard')) active @endif">
+             
+            @if($role == 1)
+            <!-- ============================================
+                 GOA MANAGER SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-building"></i> <span>GOA Manager</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
+                    <li><a href="{{ route('goa.fleet-management') }}"><i class="fa fa-circle-o"></i> Fleet Management</a></li>
+                    <li><a href="{{ route('goa.vacancies-and-staffing') }}"><i class="fa fa-circle-o"></i> Vacancies & Staffing</a></li>
+                </ul>
+            </li>
+            @endif
+
+            @if($role == 4 || $role == 6)
+            <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/manager_performance') }}">
                     <i class="fa fa-line-chart"></i> <span>Manager Performance</span>
                 </a>
@@ -737,23 +757,6 @@
                 </ul>
             </li>
             @endif
-
-            <!-- ============================================
-                 GOA MANAGER SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-building"></i> <span>GOA Manager</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                    <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
-                    <li><a href="{{ route('goa.fleet-management') }}"><i class="fa fa-circle-o"></i> Fleet Management</a></li>
-                    <li><a href="{{ route('goa.vacancies-and-staffing') }}"><i class="fa fa-circle-o"></i> Vacancies & Staffing</a></li>
-                </ul>
-            </li>
 
             <!-- ============================================
                  ADMINISTRATION SECTION

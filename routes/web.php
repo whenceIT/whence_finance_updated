@@ -318,9 +318,13 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('vacancies-and-staffing', 'GOAController@vacanciesAndStaffing')->name('goa.vacancies-and-staffing');
     Route::resource('fleets', FleetController::class);
     Route::post('maintenance/store', 'FleetController@storeMaintenance')->name('maintenance.store');
+    Route::post('maintenance/{id}/complete', 'FleetController@completeMaintenance')->name('maintenance.complete');
     Route::post('staff/update-position', 'StaffController@updatePosition')->name('staff.update-position');
     Route::post('staff/store-department', 'StaffController@storeDepartment')->name('staff.store-department');
     Route::post('staff/store-role', 'StaffController@storeRole')->name('staff.store-role');
+    Route::post('position/{id}/remove', 'GOAController@removePosition')->name('goa.position.remove');
+    Route::post('position/{id}/fill', 'GOAController@fillPosition')->name('goa.position.fill');
+    Route::get('position/{id}', 'GOAController@showPosition')->name('goa.position.show');
 });
 
 //route for users

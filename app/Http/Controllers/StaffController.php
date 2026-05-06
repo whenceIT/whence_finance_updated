@@ -52,7 +52,7 @@ class StaffController extends Controller
     {
         $data = $request->validate([
             'roleTitle' => 'required|string|max:255',
-            'roleDepartment' => 'nullable|string|max:255',
+            'roleDepartment' => 'nullable|integer',
             'roleLevel' => 'required|in:Entry,Mid,Senior',
             'roleDescription' => 'nullable|string',
         ]);
@@ -63,7 +63,7 @@ class StaffController extends Controller
             'is_vacant' => 0, // new position, not vacant
             'num_of_vacancies' => 0,
             'num_of_active' => 0,
-            'department_id' => null,
+            'department_id' => $data['roleDepartment'],
             'posted_date' => null,
             'status' => 'Active',
             'date_added' => now(),

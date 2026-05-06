@@ -33,6 +33,11 @@ class Position extends Model
         'deleted_at' => 'datetime',
     ];
 
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
     public function uploads()
     {
         return $this->belongsToMany(GeneralUpload::class, 'general_upload_position')

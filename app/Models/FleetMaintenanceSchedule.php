@@ -17,11 +17,13 @@ class FleetMaintenanceSchedule extends Model
         'notes',
         'status',
         'completed_at',
+        'amount',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'completed_at' => 'date',
+        'amount' => 'decimal:2',
     ];
 
     public function fleet()
