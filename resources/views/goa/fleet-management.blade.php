@@ -655,7 +655,7 @@
                             <div>
                                 <div class="fleet-modal-form-group">
                                     <label class="fleet-modal-label" for="maintenanceVehicleId">Vehicle ID</label>
-                                    <select class="fleet-modal-select" id="maintenanceVehicleId" name="maintenanceVehicleId">
+                                    <select class="fleet-modal-select" id="maintenanceVehicleId" name="maintenanceVehicleId" required>
                                         <option value="">-- Select Vehicle --</option>
                                         @foreach($fleets as $fleet)
                                             <option value="{{ $fleet->vehicle_id }}">{{ $fleet->vehicle_id }} ({{ $fleet->office ? $fleet->office->name : 'No Office' }})</option>
@@ -664,7 +664,8 @@
                                 </div>
                                 <div class="fleet-modal-form-group">
                                     <label class="fleet-modal-label" for="maintenanceType">Maintenance Type</label>
-                                    <select class="fleet-modal-select" id="maintenanceType" name="maintenanceType">
+                                    <select class="fleet-modal-select" id="maintenanceType" name="maintenanceType" required>
+                                        <option value="">-- Select Type --</option>
                                         <option>Oil Change</option>
                                         <option>Tire Rotation</option>
                                         <option>Brake Inspection</option>
@@ -677,11 +678,11 @@
                             <div>
                                 <div class="fleet-modal-form-group">
                                     <label class="fleet-modal-label" for="maintenanceTechnician">Technician</label>
-                                    <input class="fleet-modal-input" id="maintenanceTechnician" name="maintenanceTechnician" type="text" placeholder="Maintenance Dept">
+                                    <input class="fleet-modal-input" id="maintenanceTechnician" name="maintenanceTechnician" type="text" placeholder="Maintenance Dept" required>
                                 </div>
                                 <div class="fleet-modal-form-group">
                                     <label class="fleet-modal-label" for="maintenanceDueDate">Due Date</label>
-                                    <input class="fleet-modal-input" id="maintenanceDueDate" name="maintenanceDueDate" type="date">
+                                    <input class="fleet-modal-input" id="maintenanceDueDate" name="maintenanceDueDate" type="date" required>
                                 </div>
                             </div>
                         </div>

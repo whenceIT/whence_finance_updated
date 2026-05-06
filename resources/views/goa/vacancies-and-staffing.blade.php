@@ -478,15 +478,15 @@
                     <div class="staffing-modal-section" data-type="addDepartment">
                         <div class="staffing-modal-form-group">
                             <label class="staffing-modal-label" for="departmentName">Department Name</label>
-                            <input class="staffing-modal-input" id="departmentName" name="departmentName" type="text" placeholder="Human Resources">
+                            <input class="staffing-modal-input" id="departmentName" name="departmentName" type="text" placeholder="Human Resources" required>
                         </div>
                         <div class="staffing-modal-form-group">
                             <label class="staffing-modal-label" for="departmentHead">Department Head</label>
-                            <input class="staffing-modal-input" id="departmentHead" name="departmentHead" type="text" placeholder="Jane Smith">
+                            <input class="staffing-modal-input" id="departmentHead" name="departmentHead" type="text" placeholder="Jane Smith" required>
                         </div>
                         <div class="staffing-modal-form-group">
                             <label class="staffing-modal-label" for="departmentCapacity">Current Capacity</label>
-                            <input class="staffing-modal-input" id="departmentCapacity" name="departmentCapacity" type="number" placeholder="50">
+                            <input class="staffing-modal-input" id="departmentCapacity" name="departmentCapacity" type="number" placeholder="50" required>
                         </div>
                         <div class="staffing-modal-form-group">
                             <label class="staffing-modal-label" for="departmentNotes">Notes</label>
@@ -501,11 +501,11 @@
                     <div class="staffing-modal-section" data-type="addRole">
                         <div class="staffing-modal-form-group">
                             <label class="staffing-modal-label" for="roleTitle">New Position Title</label>
-                            <input class="staffing-modal-input" id="roleTitle" name="roleTitle" type="text" placeholder="IT Support Specialist">
+                            <input class="staffing-modal-input" id="roleTitle" name="roleTitle" type="text" placeholder="IT Support Specialist" required>
                         </div>
                         <div class="staffing-modal-form-group">
                             <label class="staffing-modal-label" for="roleDepartment">Department</label>
-                            <select class="staffing-modal-select" id="roleDepartment" name="roleDepartment">
+                            <select class="staffing-modal-select" id="roleDepartment" name="roleDepartment" required>
                                 <option value="">Select a Department</option>
                                 @foreach($departments as $department)
                                     <option value="{{ $department->id }}">{{ $department->name }}</option>
