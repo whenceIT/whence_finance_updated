@@ -2,7 +2,6 @@
 @section('title')
     GOA Manager - Edit Fleet Vehicle
 @endsection
-
 @section('content')
 <div class="container-fluid">
     <div class="row">
@@ -24,7 +23,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-
     @if($errors->any())
         <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
             <strong>There were some issues with your submission.</strong>
