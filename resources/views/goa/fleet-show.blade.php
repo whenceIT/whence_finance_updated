@@ -49,7 +49,7 @@
                                 <dd class="col-sm-8">{{ $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('Y-m-d') : 'N/A' }}</dd>
 
                                 <dt class="col-sm-4">Current Value</dt>
-                                <dd class="col-sm-8">{{ $fleet->current_value ? '$' . number_format($fleet->current_value, 2) : 'N/A' }}</dd>
+                                <dd class="col-sm-8">{{ $fleet->current_value ? 'ZMW ' . number_format($fleet->current_value, 2) : 'N/A' }}</dd>
 
                                 <dt class="col-sm-4">White Book</dt>
                                 <dd class="col-sm-8">{{ ucfirst($fleet->white_book) }}</dd>

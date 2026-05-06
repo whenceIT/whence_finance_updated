@@ -82,14 +82,18 @@ class GOAController extends Controller
         $departments = Department::where('active', 1)->orderBy('name')->get();
 
         // Fleet statistics
-        $totalVehicles = Fleet::count();
-        $activeVehicles = Fleet::where('vehicle_status', 'Active')->count();
-        $maintenanceVehicles = Fleet::where('vehicle_status', 'Maintenance')->count();
-        $outOfServiceVehicles = Fleet::where('vehicle_status', 'Out of Service')->count();
+        $totalFleets = Fleet::with('office', 'user')->get();
+        $activeFleets = Fleet::with('office', 'user')->where('vehicle_status', 'Active')->get();
+        $maintenanceFleets = Fleet::with('office', 'user')->where('vehicle_status', 'Maintenance')->get();
+        $outOfServiceFleets = Fleet::with('office', 'user')->where('vehicle_status', 'Out of Service')->get();
+        $totalVehicles = $totalFleets->count();
+        $activeVehicles = $activeFleets->count();
+        $maintenanceVehicles = $maintenanceFleets->count();
+        $outOfServiceVehicles = $outOfServiceFleets->count();
 
         $maintenanceSchedules = FleetMaintenanceSchedule::with('fleet')->where('status', 'pending')->orderBy('due_date')->get();
 
-        return view('goa.fleet-management', compact('fleets', 'offices', 'users', 'totalVehicles', 'activeVehicles', 'maintenanceVehicles', 'outOfServiceVehicles', 'maintenanceSchedules'));
+        return view('goa.fleet-management', compact('fleets', 'offices', 'users', 'totalVehicles', 'activeVehicles', 'maintenanceVehicles', 'outOfServiceVehicles', 'maintenanceSchedules', 'totalFleets', 'activeFleets', 'maintenanceFleets', 'outOfServiceFleets'));
     }
 
     /**
