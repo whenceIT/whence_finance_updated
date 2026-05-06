@@ -13,10 +13,12 @@ class Department extends Model
         'name',
         'head',
         'capacity',
+        'active',
         'notes',
     ];
 
     protected $casts = [
         'capacity' => 'integer',
+        'active' => 'boolean',
     ];
 }
