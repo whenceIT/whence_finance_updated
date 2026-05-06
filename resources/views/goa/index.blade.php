@@ -231,7 +231,7 @@
 
 .sidebar-title {
     font-size: 1.250rem;
-    font-weight: 600;
+    font-weight: 900;
     color: #1e293b;
     margin: 0;
 }
