@@ -430,7 +430,7 @@
                             <td>{{ $hire->first_name . ' ' . $hire->last_name }}</td>
                             <td>{{ $hire->position->name ?? 'N/A' }}</td>
                             <td>{{ $hire->position->department->name ?? 'N/A' }}</td>
-                            <td>{{ $hire->date_of_joining ? $hire->date_of_joining->format('Y-m-d') : 'N/A' }}</td>
+                            <td>{{ $hire->updated_at ? $hire->updated_at : 'N/A' }}</td>
                             <td><span class="badge badge-success">Active</span></td>
                         </tr>
                         @endforeach
