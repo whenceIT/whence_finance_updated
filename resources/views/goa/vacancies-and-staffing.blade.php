@@ -425,7 +425,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($recentHires as $hire)
+                        <!-- @foreach($recentHires as $hire)
                         <tr>
                             <td>{{ $hire->first_name . ' ' . $hire->last_name }}</td>
                             <td>{{ $hire->position->name ?? 'N/A' }}</td>
@@ -433,7 +433,7 @@
                             <td>{{ $hire->updated_at ? $hire->updated_at : 'N/A' }}</td>
                             <td><span class="badge badge-success">Active</span></td>
                         </tr>
-                        @endforeach
+                        @endforeach -->
                        
                     </tbody>
                 </table>
