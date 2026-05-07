@@ -425,7 +425,7 @@
                                 <td>{{ $fleet->color ?: '-' }}</td>
                                 <td>{{ $fleet->date_purchased ? $fleet->date_purchased->format('Y-m-d') : '-' }}</td>
                                 <td>{{ $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('Y-m-d') : '-' }}</td>
-                                <td>{{ $fleet->current_value ? '$' . number_format($fleet->current_value, 2) : '-' }}</td>
+                                <td>{{ $fleet->current_value ? 'K' . number_format($fleet->current_value, 2) : '-' }}</td>
                                 <td>{{ ucfirst($fleet->white_book) }}</td>
                                 <td>
                                     @if($fleet->vehicle_status == 'Active')
