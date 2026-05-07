@@ -278,8 +278,9 @@ function checkCompletedDeposits() {
                 hint.text('Format: FJB2606341708208');
                 referenceInput.attr('placeholder', 'FJB2606341708208');
                 break;
-    case 'withinhere':
-    valid = /^\d+$/.test(currentReferenceNumber);
+            case 'withinhere':
+    hint.text('Format: 1777356230718931');
+    referenceInput.attr('placeholder', '1777356230718931');
     break;
 
             default:
@@ -333,9 +334,8 @@ function checkCompletedDeposits() {
             case 'access':
                 valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
                 break;
-
-   case 'withinhere':
-    valid = /^\d{16}$/.test(currentReferenceNumber);
+case 'withinhere':
+    valid = /^\d+$/.test(currentReferenceNumber);
     break;
         }
 
