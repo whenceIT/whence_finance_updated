@@ -514,9 +514,9 @@
                     $liClass = 'list-group-item py-3 d-flex flex-column align-items-center';
                     if ($daysUntilDue !== null) {
                         if ($daysUntilDue <= 5 && $daysUntilDue >= 0) {
-                            $liClass .= ' bg-warning-light';
+                            $liClass .= ' bg-warning';
                         } elseif ($daysUntilDue < 0) {
-                            $liClass .= ' bg-danger pulse';
+                            $liClass .= ' bg-danger';
                         }
                     }
                 @endphp
@@ -524,20 +524,20 @@
                     <div class="d-flex justify-content-between align-items-center w-100 mb-2">
                         <div>
                             <strong class="text-primary">{{ $schedule->fleet->vehicle_id ?? 'N/A' }}</strong>
-                            <p class="mb-0 text-muted small">{{ $schedule->maintenance_type }}</p>
+                            <p class="mb-0 text-muted">{{ $schedule->maintenance_type }}</p>
                             @if($schedule->technician)
-                                <p class="mb-0 text-muted small">Technician: {{ $schedule->technician }}</p>
+                                <p class="mb-0 text-muted">Technician: {{ $schedule->technician }}</p>
                             @endif
                             @if($schedule->notes)
-                                <p class="mb-0 text-muted small">{{ $schedule->notes }}</p>
+                                <p class="mb-0 text-muted">{{ $schedule->notes }}</p>
                             @endif
                         </div>
                         <span class="badge {{ $daysUntilDue < 0 ? 'badge-danger' : 'badge-warning' }}">Due: {{ $schedule->due_date ? $schedule->due_date->format('Y-m-d') : 'N/A' }}</span>
                     </div>
                     <form method="POST" action="{{ route('maintenance.complete', $schedule->id) }}" class="d-flex align-items-center gap-2">
                         @csrf
-                        <input type="number" name="amount" step="0.01" placeholder="Amount" class="form-control form-control-sm" style="width: 100px;" required>
-                        <button type="submit" class="btn btn-success btn-sm">Mark Completed</button>
+                        <input type="number" name="amount" step="0.01" placeholder="Amount" class="form-control form-control" style="width: 100px;" required>
+                        <button type="submit" class="btn btn-success btn-md">Mark Completed</button>
                     </form>
                 </li>
                 @empty
