@@ -278,9 +278,8 @@ function checkCompletedDeposits() {
                 hint.text('Format: FJB2606341708208');
                 referenceInput.attr('placeholder', 'FJB2606341708208');
                 break;
-            case 'withinhere':
-    hint.text('Format: 1777356230718931');
-    referenceInput.attr('placeholder', '1777356230718931');
+    case 'withinhere':
+    valid = /^\d+$/.test(currentReferenceNumber);
     break;
 
             default:
