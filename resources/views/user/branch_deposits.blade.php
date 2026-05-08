@@ -334,9 +334,8 @@ function checkCompletedDeposits() {
             case 'access':
                 valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
                 break;
-
-   case 'withinhere':
-    valid = /^\d{16}$/.test(currentReferenceNumber);
+case 'withinhere':
+    valid = /^\d+$/.test(currentReferenceNumber);
     break;
         }
 
