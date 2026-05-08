@@ -151,7 +151,10 @@ class LearningSettingController extends Controller
                 ->with('toastr_message', 'You do not have permission to access this settings page.');
         }
 
-        return view('learning.settings.platform');
+        $currentPushMode = \App\Models\PlatformSetting::where('key', 'content_push_mode')->first();
+        $currentPushModeValue = $currentPushMode ? $currentPushMode->value : 'manual';
+
+        return view('learning.settings.platform', compact('currentPushModeValue'));
     }
 
     /**

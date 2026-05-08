@@ -1,12 +1,20 @@
 @php
-    $unviewedUploads = \App\Models\GeneralTopic::getAssignedTrainings(5);
+    use App\Helpers\LearningHelper;
+    $currentTime = date('H:i');
+    $showAdvisor = false;
+    if (($currentTime >= '06:00' && $currentTime <= '09:00') ||
+        ($currentTime >= '12:00' && $currentTime <= '13:30') ||
+        ($currentTime >= '15:00' && $currentTime <= '16:00')) {
+        $showAdvisor = true;
+    }
+    $learningContent = $showAdvisor ? \App\Models\GeneralUpload::pushlearningContent(5) : [];
+    $canCloseAdvisor = $showAdvisor ? LearningHelper::hasCompletedDailyLearning() : false;
 @endphp
 
-@dd($unviewedUploads)
-@if(isset($unviewedUploads) && count($unviewedUploads) > 0)
+@if($showAdvisor && isset($learningContent) && count($learningContent) > 0)
     <!-- Training Hub Advisor - Slide-in Bottom Sheet -->
     <div id="trainingHubAdvisor" class="training-hub-advisor-sheet">
-        <div class="advisor-header" onclick="toggleTrainingHubAdvisor()">
+        <div class="advisor-header" onclick="toggleTrainingHubAdvisor()" @if(!$canCloseAdvisor) style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);" @endif>
             <div class="advisor-title">
                 <div class="logo-container">
                     <svg class="learning-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -25,26 +33,28 @@
                 </div>
                 <div class="title-text">
                     <h4>Training Hub Advisor</h4>
-                    <span class="subtitle">Your personalized learning journey</span>
-                </div>
-                <div class="toggle-indicator">
-                    <i class="fa fa-chevron-up"></i>
+                    <span class="subtitle">
+                        @if($canCloseAdvisor)
+                            Your personalized learning journey
+                        @else
+                            Access to the LMS will continue once you have watched at least one training video for more than 10 minutes.
+                        @endif
+                    </span>
                 </div>
             </div>
-            <button type="button" class="advisor-close" onclick="event.stopPropagation(); toggleTrainingHubAdvisor()">
+            <button type="button" class="advisor-close" @if(!$canCloseAdvisor) style="display:none;" @endif onclick="event.stopPropagation(); toggleTrainingHubAdvisor()">
                 <i class="fa fa-times"></i>
             </button>
         </div>
         <div class="advisor-content">
             <div class="content-badge">
                 <i class="fa fa-lightbulb-o"></i>
-                <span>{{ isset($unviewedUploads) ? count($unviewedUploads) : 0 }} new resources to explore</span>
+                <span>{{ isset($learningContent) ? count($learningContent) : 0 }} new resources to explore</span>
             </div>
-            <p class="intro-text">Based on your position, here are training resources assigned to you that you haven't viewed yet:</p>
             <ul class="advisor-topics-list">
-            @foreach($unviewedUploads as $upload)
+            @foreach($learningContent as $upload)
                 <li class="topic-item">
-                    <a href="{{ url('/learning/general-uploads/' . $upload->id) }}" class="topic-link">
+                    <a target="_blank" href="{{ url('learning/general-uploads/watch-and-learning?upload=' . $upload->id) }}" class="topic-link">
                         @if($upload->poster)
                         <div class="topic-image">
                             <img src="{{ $upload->poster }}" alt="{{ $upload->name }}" onerror="this.style.display='none'">
@@ -65,7 +75,7 @@
         </div>
         <div class="advisor-footer">
             <a href="{{ url('/learning') }}" class="view-all-link">
-                <span>View all training materials</span>
+                <span>I want to see other training materials</span>
                 <i class="fa fa-arrow-right"></i>
             </a>
         </div>
@@ -426,14 +436,22 @@
     </style>
 
     <script>
+        var canCloseAdvisor = {{ $canCloseAdvisor ? 'true' : 'false' }};
+
+        
+            
+
         // Open the slide-in sheet on page load with animation
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                var sheet = document.getElementById('trainingHubAdvisor');
-                if (sheet) {
-                    sheet.classList.add('show');
+            var sheet = document.getElementById('trainingHubAdvisor');
+            if (sheet) {
+                // Check if advisor was previously closed
+                if (localStorage.getItem('isTrainingAdvisorClosed') !== 'true') {
+                    setTimeout(function() {
+                        sheet.classList.add('show');
+                    }, 600);
                 }
-            }, 600);
+            }
         });
 
         // Function to close the sheet (collapses to header only)
@@ -443,14 +461,21 @@
 
         // Function to toggle the sheet (open/close)
         function toggleTrainingHubAdvisor() {
+            // If daily learning not completed, don't allow closing
+            if (!canCloseAdvisor) {
+                return;
+            }
+
             var sheet = document.getElementById('trainingHubAdvisor');
             if (sheet) {
                 if (sheet.classList.contains('show')) {
                     sheet.classList.remove('show');
                     sheet.classList.add('collapsed');
+                    localStorage.setItem('isTrainingAdvisorClosed', 'true');
                 } else {
                     sheet.classList.add('show');
                     sheet.classList.remove('collapsed');
+                    localStorage.setItem('isTrainingAdvisorClosed', 'false');
                 }
             }
         }

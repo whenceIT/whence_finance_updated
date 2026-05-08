@@ -136,6 +136,12 @@ class GeneralUploadsController extends Controller
         return view('learning.watch-and-learning', compact('uploads', 'topicName', 'topicPoster', 'autoPlayUpload'));
     }
 
+    public function updateDailyLearningAdvisor(Request $request)
+    {
+        \App\Helpers\LearningHelper::updateDailyLearning();
+        return response()->json(['success' => true]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

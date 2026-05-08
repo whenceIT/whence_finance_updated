@@ -292,10 +292,10 @@
                         View Full Policy
                     </a>
                 @endif
-                <a href="{{ route('policies.dashboard') }}" target="_blank">
+                <!-- <a href="{{ route('policies.dashboard') }}" target="_blank">
                     <i class="fa fa-shield"></i>
                     Policy Center
-                </a>
+                </a> -->
             </div>
         </div>
     </div>

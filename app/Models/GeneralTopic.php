@@ -96,48 +96,5 @@ class GeneralTopic extends Model
         return $query->get();
     }
 
-    /**
-     * Get assigned trainings for the current authenticated user's position
-     * This is a convenience method that handles getting the current user and their position
-     *
-     * @param int|null $limit Maximum number of topics to return (optional)
-     * @return \Illuminate\Database\Eloquent\Collection
-     */
-    public static function getAssignedTrainings($limit = null)
-    {
-        // Get current user using Sentinel
-        $user = \Cartalyst\Sentinel\Laravel\Facades\Sentinel::getUser();
-
-        if (!$user) {
-            return collect([]);
-        }
-
-        $userPositionId = $user->position_id ?? null;
-
-        if (!$userPositionId) {
-            return collect([]);
-        }
-
-        // Get all upload IDs the user has viewed
-        $viewedUploadIds = GeneralView::where('user_id', $user->id)
-            ->where('type', 'upload')
-            ->pluck('item_id')
-            ->toArray();
-
-        // Build query for uploads assigned to user's position
-        $query = GeneralUpload::whereRaw('EXISTS (
-                SELECT 1 FROM general_upload_position pup
-                INNER JOIN job_positions jp ON jp.id = pup.position_id
-                WHERE pup.general_upload_id = general_uploads.id AND jp.id = ?
-            )', [$userPositionId])
-            ->with('positions')
-            ->whereNotIn('id', $viewedUploadIds)
-            ->select(['id', 'name', 'type', 'path', 'file_size', 'mime_type', 'uploaded_by', 'poster', 'general_topic_id', 'views_count', 'likes_count']);
-
-        if ($limit) {
-            $query->limit($limit);
-        }
-
-        return $query->get();
-    }
+    
 }
