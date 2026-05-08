@@ -294,6 +294,7 @@ function totalAmount($transactions) {
 
 </section>
 
+@include('components.policy-of-the-day')
 @endsection
 
 @section('footer-scripts')

@@ -255,7 +255,7 @@ function startEngagementTracking(uploadId) {
 
         // Check every 5 seconds if 2 minutes have passed
         engagementTimer = setInterval(() => {
-            if (!hasIncremented && startTime && (Date.now() - startTime) >= 120000) { // 120 seconds = 2 minutes
+            if (!hasIncremented && startTime && (Date.now() - startTime) >= 600000) { // 600 seconds = 10 minutes
                 incrementView(uploadId);
                 hasIncremented = true;
                 stopEngagementTracking();
@@ -290,6 +290,8 @@ function incrementView(uploadId) {
         if (data.success) {
             // Update views count in UI
             updateCountsInUI();
+            // Update daily learning
+            updateDailyLearning();
         }
     })
     .catch(error => console.error('Error incrementing view:', error));
@@ -297,7 +299,25 @@ function incrementView(uploadId) {
 
 // Function to update counts in UI
 function updateCountsInUI() {
-  
+
+}
+
+// Function to update daily learning
+function updateDailyLearning() {
+    fetch('{{ url('learning/general-uploads/update-daily-learning') }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Daily learning updated');
+        }
+    })
+    .catch(error => console.error('Error updating daily learning:', error));
 }
 
 // Play media inline (YouTube-like)

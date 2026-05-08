@@ -15,6 +15,216 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src='https://cdn.plot.ly/plotly-2.24.1.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function toggleNotificationDropdown(event) {
+            event.preventDefault();
+            var isActive = $('#notificationPanel').hasClass('active');
+            $('#notificationOverlay').toggleClass('active');
+            $('#notificationPanel').toggleClass('active');
+
+            if (!isActive) {
+                // Opening the panel, fetch notifications
+                fetchNotifications();
+            }
+            markAllNotificationsAsRead();
+        }
+
+        function fetchNotifications() {
+            fetch('/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    renderNotifications(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching notifications - Page may be expired, try to login again ', error);
+                    document.getElementById('notificationList').innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fa fa-exclamation-triangle" style="font-size: 40px; margin-bottom: 10px;"></i><p>Error loading notifications</p></div>';
+                });
+        }
+
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            const badge = document.getElementById('notificationBadge');
+
+            // Reset active confirm
+            activeConfirm = null;
+
+            if (notifications.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fa fa-bell-o" style="font-size: 40px; margin-bottom: 10px;"></i><p>No notifications</p></div>';
+                badge.style.display = 'none';
+                return;
+            }
+
+            badge.textContent = notifications.length;
+            badge.style.display = 'inline';
+
+            let html = '';
+            notifications.forEach(notification => {
+                let iconHtml = '';
+                if (notification.type === 'training_recommendation' && notification.upload_poster) {
+                    iconHtml = `<img src="${notification.upload_poster}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;" alt="Training Resource">`;
+                } else {
+                    const iconClass = getNotificationIcon(notification.type);
+                    iconHtml = `<i class="${iconClass}" style="font-size: 24px; color: #007bff;"></i>`;
+                }
+
+                let actionHtml = '';
+                if (notification.type === 'training_recommendation') {
+                    actionHtml = `<button class="notification-action-btn" onclick="handleTrainingAction('${notification.id}', '${notification.training_id}', '${notification.employee_id}')">View Details</button>`;
+                } else if (notification.type === 'loan_disbursement') {
+                    actionHtml = `<button class="notification-action-btn" onclick="handleLoanAction('${notification.id}', '${notification.loan_id}')">View Loan</button>`;
+                } else if (notification.type === 'birthday') {
+                    actionHtml = `<button class="notification-action-btn" onclick="handleBirthdayAction('${notification.id}')">View Profile</button>`;
+                } else if (notification.type === 'anniversary') {
+                    actionHtml = `<button class="notification-action-btn" onclick="handleAnniversaryAction('${notification.id}')">View Profile</button>`;
+                } else if (notification.type === 'new_employee') {
+                    actionHtml = `<button class="notification-action-btn" onclick="handleNewEmployeeAction('${notification.id}')">View Profile</button>`;
+                } else if (notification.type === 'administrative_record') {
+                    actionHtml = `<button class="notification-action-btn" onclick="handleAdministrativeRecordAction('${notification.id}')">View Record</button>`;
+                } else if (notification.type === 'loan_maturity') {
+                    actionHtml = `<button class="notification-action-btn" onclick="handleLoanMaturityAction('${notification.id}')">View Loan</button>`;
+                } else if (notification.type === 'loan_default') {
+                    actionHtml = `<button class="notification-action-btn" onclick="handleLoanDefaultAction('${notification.id}')">View Loan</button>`;
+                }
+
+                html += `
+                    <div class="notification-item" data-id="${notification.id}">
+                        <div class="notification-icon">
+                            ${iconHtml}
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">${notification.title}</div>
+                            <div class="notification-message">${notification.message}</div>
+                            <div class="notification-time">${notification.created_at_formatted}</div>
+                        </div>
+                        <div class="notification-actions">
+                            ${actionHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        function getNotificationIcon(type) {
+            const iconMap = {
+                'training_recommendation': 'fa fa-graduation-cap',
+                'loan_disbursement': 'fa fa-money',
+                'birthday': 'fa fa-birthday-cake',
+                'anniversary': 'fa fa-calendar',
+                'new_employee': 'fa fa-user-plus',
+                'administrative_record': 'fa fa-file-text',
+                'loan_maturity': 'fa fa-calendar-check-o',
+                'loan_default': 'fa fa-exclamation-triangle'
+            };
+            return iconMap[type] || 'fa fa-bell';
+        }
+
+        function closeNotificationPanel() {
+            $('#notificationOverlay').removeClass('active');
+            $('#notificationPanel').removeClass('active');
+        }
+
+        function handleTrainingAction(notificationId, trainingId, employeeId) {
+            markNotificationAsRead(notificationId);
+            window.location.href = `/training/${trainingId}`;
+        }
+
+        function handleLoanAction(notificationId, loanId) {
+            markNotificationAsRead(notificationId);
+            window.location.href = `/loan/${loanId}`;
+        }
+
+        function handleBirthdayAction(notificationId) {
+            markNotificationAsRead(notificationId);
+            window.location.href = `/employee/profile`;
+        }
+
+        function handleAnniversaryAction(notificationId) {
+            markNotificationAsRead(notificationId);
+            window.location.href = `/employee/profile`;
+        }
+
+        function handleNewEmployeeAction(notificationId) {
+            markNotificationAsRead(notificationId);
+            window.location.href = `/employee/profile`;
+        }
+
+        function handleAdministrativeRecordAction(notificationId) {
+            markNotificationAsRead(notificationId);
+            window.location.href = `/administrative-records`;
+        }
+
+        function handleLoanMaturityAction(notificationId) {
+            markNotificationAsRead(notificationId);
+            window.location.href = `/loan`;
+        }
+
+        function handleLoanDefaultAction(notificationId) {
+            markNotificationAsRead(notificationId);
+            window.location.href = `/loan`;
+        }
+
+        function markNotificationAsRead(notificationId) {
+            fetch(`/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the badge count
+                    const badge = document.getElementById('notificationBadge');
+                    const currentCount = parseInt(badge.textContent) || 0;
+                    if (currentCount > 0) {
+                        badge.textContent = currentCount - 1;
+                        if (currentCount - 1 === 0) {
+                            badge.style.display = 'none';
+                        }
+                    }
+                    // Optionally remove the notification from the list or mark it as read
+                    const notificationItem = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+                    if (notificationItem) {
+                        notificationItem.classList.add('read');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
+        }
+
+        function markAllNotificationsAsRead() {
+            fetch('/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide the badge
+                    const badge = document.getElementById('notificationBadge');
+                    badge.style.display = 'none';
+                    // Mark all notifications as read in the UI
+                    document.querySelectorAll('.notification-item').forEach(item => {
+                        item.classList.add('read');
+                    });
+                } else {
+                    console.log('Failed to mark notifications as read');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking all notifications as read:', error);
+                console.log('Failed to mark notifications as read');
+            });
+        }
+    </script>
     <link rel="stylesheet" href="dist/css/adminlte.min.css">
     </link>
 
@@ -751,7 +961,13 @@ $office = $userInfo->office;
         </footer>
     </div>
     <!-- ./wrapper -->
-
+     
+    @if(session('reset_training_advisor'))
+    <script>
+        // Reset training advisor closed state on login
+        localStorage.setItem('isTrainingAdvisorClosed', 'false');
+    </script>
+    @endif
     <!-- FastClick -->
     <script src="{{ asset('assets/plugins/fastclick/lib/fastclick.js') }}"></script>
     <script src="{{ asset('assets/plugins/icheck/icheck.min.js') }}"></script>
@@ -1184,6 +1400,7 @@ $office = $userInfo->office;
         </div>
     </div>
 
+    @include('partials.training_hub_content_pusher')
     <script>
         // SMS Modal Script
         $(document).ready(function () {
@@ -1399,7 +1616,6 @@ $office = $userInfo->office;
 
 
     @include('components.notification')
-    <script src="{{ asset('js/notifications.js') }}"></script>
 
 </body>
 

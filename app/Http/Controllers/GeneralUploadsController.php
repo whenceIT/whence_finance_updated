@@ -136,6 +136,12 @@ class GeneralUploadsController extends Controller
         return view('learning.watch-and-learning', compact('uploads', 'topicName', 'topicPoster', 'autoPlayUpload'));
     }
 
+    public function updateDailyLearningAdvisor(Request $request)
+    {
+        \App\Helpers\LearningHelper::updateDailyLearning();
+        return response()->json(['success' => true]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -578,6 +584,29 @@ class GeneralUploadsController extends Controller
         return response()->json([
             'success' => true,
             'views_count' => $upload->views_count
+        ]);
+    }
+
+    /**
+     * Assign positions to the specified upload.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function assignPositions(Request $request)
+    {
+        $request->validate([
+            'upload_id' => 'required|exists:general_uploads,id',
+            'position_ids' => 'nullable|array',
+            'position_ids.*' => 'integer|exists:job_positions,id'
+        ]);
+
+        $upload = GeneralUpload::findOrFail($request->upload_id);
+        $upload->positions()->sync($request->position_ids ?? []);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Positions assigned successfully'
         ]);
     }
     
