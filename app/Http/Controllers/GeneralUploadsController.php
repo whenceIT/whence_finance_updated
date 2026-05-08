@@ -580,6 +580,29 @@ class GeneralUploadsController extends Controller
             'views_count' => $upload->views_count
         ]);
     }
+
+    /**
+     * Assign positions to the specified upload.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function assignPositions(Request $request)
+    {
+        $request->validate([
+            'upload_id' => 'required|exists:general_uploads,id',
+            'position_ids' => 'nullable|array',
+            'position_ids.*' => 'integer|exists:job_positions,id'
+        ]);
+
+        $upload = GeneralUpload::findOrFail($request->upload_id);
+        $upload->positions()->sync($request->position_ids ?? []);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Positions assigned successfully'
+        ]);
+    }
     
     /**
      * Save uploaded file directly to S3

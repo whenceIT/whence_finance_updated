@@ -1184,6 +1184,8 @@ $office = $userInfo->office;
         </div>
     </div>
 
+    @include('partials.training_hub_advisor')
+    @include('partials.training_hub_content_pusher')
     <script>
         // SMS Modal Script
         $(document).ready(function () {

@@ -295,8 +295,9 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::delete('/{id}', [GeneralUploadsController::class, 'destroy'])->name('learning.general-uploads.destroy');
      Route::get('/{id}/download', [GeneralUploadsController::class, 'download'])->name('learning.general-uploads.download');
      Route::post('/{id}/toggle-status', [GeneralUploadsController::class, 'toggleStatus'])->name('learning.general-uploads.toggle-status');
-     Route::post('/{id}/like', [GeneralUploadsController::class, 'like'])->name('learning.general-uploads.like');
-     Route::post('/{id}/increment-view', [GeneralUploadsController::class, 'incrementView'])->name('learning.general-uploads.increment-view');
+      Route::post('/{id}/like', [GeneralUploadsController::class, 'like'])->name('learning.general-uploads.like');
+      Route::post('/{id}/increment-view', [GeneralUploadsController::class, 'incrementView'])->name('learning.general-uploads.increment-view');
+      Route::post('/assign-positions', [GeneralUploadsController::class, 'assignPositions'])->name('learning.general-uploads.assign-positions');
  });
 
 
