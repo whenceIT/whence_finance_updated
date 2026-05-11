@@ -44,7 +44,7 @@
 
                 <div class="form-group">
     <label for="withinhere_branch_id" class="control-label col-md-3">
-        WithinHere Branch
+        Withinhere Branch
     </label>
     <div class="col-md-9">
         <select name="withinhere_branch_id"
