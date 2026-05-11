@@ -78,6 +78,7 @@ class OfficeController extends Controller
         $office->province_id = $request->province_id;
         $office->district_id = $request->district_id;
         $office->district_regional_id = $request->district_regional_id;
+        $office->withinhere_branch_id = $request->withinhere_branch_id;
         $office->save();
         GeneralHelper::audit_trail("Create", "Branches", $office->id);
         Flash::success(trans('general.successfully_saved'));
@@ -127,6 +128,7 @@ class OfficeController extends Controller
         $office->province_id = $request->province_id;
         $office->district_id = $request->district_id;
         $office->district_regional_id = $request->district_regional_id;
+        $office->withinhere_branch_id = $request->withinhere_branch_id;
         $office->notes = $request->notes;
         $office->save();
         GeneralHelper::audit_trail("Update", "Branches", $office->id);

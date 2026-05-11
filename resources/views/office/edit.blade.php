@@ -41,6 +41,19 @@
                     </div>
 
                 </div>
+
+                <div class="form-group">
+    <label for="withinhere_branch_id" class="control-label col-md-3">
+        WithinHere Branch
+    </label>
+    <div class="col-md-9">
+        <select name="withinhere_branch_id"
+            class="form-control select2"
+            id="withinhere_branch_id">
+            <option value=""></option>
+        </select>
+    </div>
+</div>
                 <div class="form-group">
                     <label for="branch_capacity" class="control-label col-md-3">Branch Capacity</label>
                     <div class="col-md-9">
@@ -184,5 +197,42 @@
         // Initialize loading on page load
         $('#province_id').trigger('change');
         $('#district_id').trigger('change');
+
+        $(document).ready(function () {
+
+    $.ajax({
+        url: "https://withinheremobileapi.com/api/v1/businesses/entities/company/8ea1213f-fa3b-44c7-b0e3-404a39be73e4/branches",
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+
+            $('#withinhere_branch_id').empty();
+            $('#withinhere_branch_id').append('<option value=""></option>');
+
+            if (response && response.success && response.data) {
+
+                $.each(response.data, function (key, value) {
+
+                    $('#withinhere_branch_id').append(
+                        `<option value="${value.branch_id}">${value.branch_name}</option>`
+                    );
+
+                });
+
+                // 🔥 IMPORTANT: set existing value AFTER options load
+                let selected = "{{ $office->withinhere_branch_id ?? '' }}";
+                if (selected) {
+                    $('#withinhere_branch_id').val(selected).trigger('change');
+                }
+
+                $('#withinhere_branch_id').select2({ width: '100%' });
+            }
+        },
+        error: function (xhr) {
+            console.log("Failed to load branches", xhr.responseText);
+        }
+    });
+
+});
     </script>
 @endsection
