@@ -77,6 +77,7 @@ class GOAController extends Controller
     public function fleetManagement()
     {
         $fleets = Fleet::with('office')->latest()->paginate(15);
+        $totalValue = Fleet::sum('current_value');
         $offices = Office::where('active', 1)->orderBy('name')->get();
         $users = User::whereNull('deleted_at')->orderBy('first_name')->get();
         $departments = Department::where('active', 1)->orderBy('name')->get();
@@ -93,7 +94,7 @@ class GOAController extends Controller
 
         $maintenanceSchedules = FleetMaintenanceSchedule::with('fleet')->where('status', 'pending')->orderBy('due_date')->get();
 
-        return view('goa.fleet-management', compact('fleets', 'offices', 'users', 'totalVehicles', 'activeVehicles', 'maintenanceVehicles', 'outOfServiceVehicles', 'maintenanceSchedules', 'totalFleets', 'activeFleets', 'maintenanceFleets', 'outOfServiceFleets'));
+        return view('goa.fleet-management', compact('fleets', 'offices', 'users', 'totalVehicles', 'activeVehicles', 'maintenanceVehicles', 'outOfServiceVehicles', 'maintenanceSchedules', 'totalFleets', 'activeFleets', 'maintenanceFleets', 'outOfServiceFleets', 'totalValue'));
     }
 
     /**

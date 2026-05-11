@@ -58,7 +58,7 @@ class FleetController extends Controller
 
         Fleet::create($data);
 
-        return redirect()->route('fleets.index')->with('success', 'Fleet record created successfully.');
+        return redirect()->back()->with('success', 'Fleet record created successfully.');
     }
 
     public function storeMaintenance(Request $request)

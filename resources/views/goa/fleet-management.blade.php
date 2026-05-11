@@ -449,6 +449,16 @@
                                         <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
                                         </svg>
                                     </a>
+                                    <form action="{{ route('fleets.destroy', $fleet->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this vehicle?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V6a.5.5 0 0 1-.5-.5z"/>
+                                                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 0-1-1H1a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1H.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 3.885 16h8.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a1 1 0 0 1-1-1V2a1 1 0 0 0-1-1h-1a1 1 0 0 1-1 1v1a1 1 0 0 0-1 1zm-3-2a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1h-3a.5.5 0 0 0-.5.5zM4 1.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1h-3a.5.5 0 0 0-.5.5z"/>
+                                            </svg>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty
@@ -457,6 +467,13 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="7"></td>
+                            <td><strong>Total: K{{ number_format($totalValue, 2) }}</strong></td>
+                            <td colspan="5"></td>
+                        </tr>
+                    </tfoot>
                 </table>
                 {{ $fleets->links() }}
             </div>
