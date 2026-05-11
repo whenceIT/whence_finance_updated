@@ -8,6 +8,7 @@ use App\Models\Office;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\Department;
+use App\Models\Vacancy;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -106,11 +107,13 @@ class GOAController extends Controller
     {
         $positions = Position::where('is_vacant', 1)->get();
         $departments = Department::orderBy('name')->get();
+        $vacancies = Vacancy::with(['position.department', 'office'])->get();
+        $offices = Office::where('active', 1)->orderBy('name')->get();
 
         // Staffing statistics
         $totalPositions = Position::count();
         $filledPositions = Position::where('is_vacant', 0)->count();
-        $vacantPositions = Position::where('is_vacant', 1)->count();
+        $vacantPositions = $vacancies->count();
         $inProcessPositions = Position::where('status', 'In Review')->count();
 
         // Department stats
@@ -122,7 +125,7 @@ class GOAController extends Controller
         // Recent hires (users with positions updated_at)
         $recentHires = User::with('position.department')->whereNotNull('position_id')->orderBy('updated_at', 'desc')->limit(10)->get();
 
-        return view('goa.vacancies-and-staffing', compact('positions', 'departments', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'recentHires'));
+        return view('goa.vacancies-and-staffing', compact('positions', 'departments', 'vacancies', 'offices', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'recentHires'));
     }
 
     public function removePosition($id)

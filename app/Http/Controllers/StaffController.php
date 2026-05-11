@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use App\Models\Position;
+use App\Models\Vacancy;
 use Illuminate\Http\Request;
 
 class StaffController extends Controller
@@ -12,21 +13,33 @@ class StaffController extends Controller
     {
         $data = $request->validate([
             'positionId' => 'required|integer|exists:job_positions,id',
+            'officeId' => 'required|integer|exists:offices,id',
             'numOfVacancies' => 'nullable|integer|min:0',
             'numOfActive' => 'nullable|integer|min:0',
         ]);
 
         $position = Position::find($data['positionId']);
+        $vacancy = Vacancy::updateOrCreate(
+            [
+                'position_id' => $position->id,
+                'office_id' => $data['officeId'],
+            ],
+            [
+                'num_of_vacancies' => $data['numOfVacancies'] ?? 0,
+                'status' => 'Open',
+            ]
+        );
+
         $position->update([
             'num_of_vacancies' => $data['numOfVacancies'] ?? 0,
             'num_of_active' => $data['numOfActive'] ?? 0,
-            'status' => 'open',
-            'is_vacant' => 1,
+            'status' => 'Open',
+            'is_vacant' => ($data['numOfVacancies'] ?? 0) > 0 ? 1 : 0,
             'date_added' => now(),
             'posted_date' => now(),
         ]);
 
-        return redirect()->route('goa.vacancies-and-staffing')->with('success', 'Position updated successfully.');
+        return redirect()->route('goa.vacancies-and-staffing')->with('success', 'Vacancy saved successfully.');
     }
 
     public function storeDepartment(Request $request)
