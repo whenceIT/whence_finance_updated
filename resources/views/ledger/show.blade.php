@@ -163,6 +163,5 @@
     </div>
 </div>
 
-@include('partials.training_hub_advisor')
 @endsection
 

@@ -95,4 +95,6 @@ class GeneralTopic extends Model
 
         return $query->get();
     }
+
+    
 }

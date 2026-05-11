@@ -74,6 +74,7 @@ class User extends EloquentUser
         'ssn',
         'nhima',
         'salary_details',
+        'daily_learning',
     ];
     public function payroll()
     {

@@ -40,6 +40,7 @@ use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\FleetController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\PlatformController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -219,7 +220,8 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/courses', [LearningSettingController::class, 'courses'])->name('learning.settings.courses');
     Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
     Route::get('/settings/courses/resource-preview', [LearningSettingController::class, 'resourcePreview'])->name('learning.settings.courses.resource-preview');
-    
+    Route::post('/settings/set-content-push-mode', [PlatformController::class, 'setContentPushMode'])->name('learning.settings.set-content-push-mode');
+
     // Trainer Management Routes
     Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
     Route::get('/api/users-by-role/{roleId}', [LearningSettingController::class, 'getUsersByRole']);
@@ -295,8 +297,10 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::delete('/{id}', [GeneralUploadsController::class, 'destroy'])->name('learning.general-uploads.destroy');
      Route::get('/{id}/download', [GeneralUploadsController::class, 'download'])->name('learning.general-uploads.download');
      Route::post('/{id}/toggle-status', [GeneralUploadsController::class, 'toggleStatus'])->name('learning.general-uploads.toggle-status');
-     Route::post('/{id}/like', [GeneralUploadsController::class, 'like'])->name('learning.general-uploads.like');
-     Route::post('/{id}/increment-view', [GeneralUploadsController::class, 'incrementView'])->name('learning.general-uploads.increment-view');
+      Route::post('/{id}/like', [GeneralUploadsController::class, 'like'])->name('learning.general-uploads.like');
+      Route::post('/{id}/increment-view', [GeneralUploadsController::class, 'incrementView'])->name('learning.general-uploads.increment-view');
+      Route::post('/assign-positions', [GeneralUploadsController::class, 'assignPositions'])->name('learning.general-uploads.assign-positions');
+      Route::post('/update-daily-learning', [GeneralUploadsController::class, 'updateDailyLearningAdvisor'])->name('learning.general-uploads.update-daily-learning');
  });
 
 

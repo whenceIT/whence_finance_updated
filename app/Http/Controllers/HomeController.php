@@ -303,6 +303,7 @@ class HomeController extends Controller
 
                     }
 
+                    session()->flash('reset_training_advisor', true);
                     return redirect('dashboard');
                 } else {
                     //return back
