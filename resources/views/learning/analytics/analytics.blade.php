@@ -999,7 +999,7 @@
                                 <td>{{ $engagement['duration'] ?? '0:00' }}</td>
                                 <td>
                                     <span class="completion-status {{ strtolower($engagement['completion_status'] ?? 'not-started') }}">
-                                        {{ $engagement['completion_status'] ?? 'Not Started' }}
+                                        {{ $engagement['completion_status'] ?? 'Partially viewed and left' }}
                                     </span>
                                 </td>
                                 <td>{{ $engagement['last_activity'] ?? 'N/A' }}</td>

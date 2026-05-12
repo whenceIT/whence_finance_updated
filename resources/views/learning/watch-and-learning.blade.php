@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fa fa-eye"></i> {{ \App\Helpers\GeneralHelper::calculate_view_percentage($upload->views_count ?? 0) }}% viewers
                     </span>                    
                     <span style="color: var(--text-secondary); font-size: 12px;">
-                        {{ $upload->created_at->format('M d, Y') }}
+                        {{ $upload->created_at->toFormattedDateString() }}
                     </span>
                 </div>
                 <div style="display: flex; gap: 8px;">
@@ -475,7 +475,7 @@ function playMedia(type, path, name, size, poster = '', uploadId) {
         // Video player with poster if available
         var posterAttr = poster ? `poster="${poster}"` : '';
         wrapper.innerHTML = `
-            <video id="dashboard-video-player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" style="width: 100%; height: 100%; object-fit: cover;" ${posterAttr}>
+            <video id="dashboard-video-player" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" style="width: 100%; height: 100%;" ${posterAttr}>
                 <source src="${path}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
@@ -485,6 +485,7 @@ function playMedia(type, path, name, size, poster = '', uploadId) {
             autoplay: true,
             preload: 'auto',
             fluid: true,
+            fill: true,
             playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2]
         });
 
@@ -536,7 +537,7 @@ function playMedia(type, path, name, size, poster = '', uploadId) {
         }
         videojs('dashboard-audio-player', {
             controls: true,
-            autoplay: true,
+            autoplay: false,
             preload: 'auto',
             fluid: true,
             playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],

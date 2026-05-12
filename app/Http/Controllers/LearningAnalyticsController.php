@@ -345,7 +345,7 @@ class LearningAnalyticsController extends Controller
                     'opened' => $view->opened,
                     'duration' => $view->duration ? gmdate('i:s', $view->duration) : '0:00',
                     'completion_status' => $view->completion_status ?: 'Not Started',
-                    'last_activity' => $view->updated_at->format('M d, Y'),
+                    'last_activity' => $view->updated_at->toFormattedDateString(),
                 ];
             });
     }
@@ -566,7 +566,7 @@ class LearningAnalyticsController extends Controller
                         'name' => $view->upload->name,
                         'type' => $view->upload->type,
                         'topic' => $view->upload->generalTopic ? $view->upload->generalTopic->name : 'No Topic',
-                        'last_viewed' => $view->updated_at->format('M d, Y H:i'),
+                        'last_viewed' => $view->updated_at->toFormattedDateString(),
                     ];
                 }),
                 'total' => $materials->count(),
@@ -605,7 +605,7 @@ class LearningAnalyticsController extends Controller
                     'name' => $upload ? $upload->name : 'N/A',
                     'type' => $upload ? $upload->type : 'N/A',
                     'topic' => $upload && $upload->generalTopic ? $upload->generalTopic->name : 'No Topic',
-                    'last_viewed' => $grouped->last_viewed->format('M d, Y H:i'),
+                    'last_viewed' => Carbon::parse($grouped->last_viewed)->toFormattedDateString(),
                     'avg_duration' => round($grouped->avg_duration),
                     'avg_duration_formatted' => gmdate('i:s', $grouped->avg_duration),
                 ];
@@ -644,7 +644,7 @@ class LearningAnalyticsController extends Controller
                         'name' => $view->upload->name,
                         'type' => $view->upload->type,
                         'topic' => $view->upload->generalTopic ? $view->upload->generalTopic->name : 'No Topic',
-                        'last_viewed' => $view->updated_at->format('M d, Y H:i'),
+                        'last_viewed' => $view->updated_at->toFormattedDateString(),
                     ];
                 }),
                 'total' => $materials->count(),
