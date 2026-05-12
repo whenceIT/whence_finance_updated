@@ -749,13 +749,13 @@
                                     <input class="fleet-modal-input" id="vehicleModel" name="vehicle_model" type="text" placeholder="Toyota Camry" required>
                                 </div>
                                 <div class="fleet-modal-form-group">
-                                    <label class="fleet-modal-label" for="datePurchased">Date Purchased</label>
-                                    <input class="fleet-modal-input" id="datePurchased" name="date_purchased" type="date" required>
+                                    <label class="fleet-modal-label" for="datePurchased">Date Purchased (Optional)</label>
+                                    <input class="fleet-modal-input" id="datePurchased" name="date_purchased" type="date">
                                 </div>
 
                                 <div class="fleet-modal-form-group">
-                                    <label class="fleet-modal-label" for="currentValue">Current Value</label>
-                                    <input class="fleet-modal-input" id="currentValue" name="current_value" type="number" step="0.01" placeholder="12500.00" required>
+                                    <label class="fleet-modal-label" for="currentValue">Current Value (Optional)</label>
+                                    <input class="fleet-modal-input" id="currentValue" name="current_value" type="number" step="0.01" placeholder="12500.00">
                                 </div>
                                 <div class="fleet-modal-form-group">
                                     <label class="fleet-modal-label" for="lastMaintenance">Last Maintenance</label>
