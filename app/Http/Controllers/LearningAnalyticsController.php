@@ -44,15 +44,27 @@ class LearningAnalyticsController extends Controller
         // Overall Statistics
         $overallStats = $this->getOverallStats();
 
+        // Engagement Statistics
+        $engagementStats = $this->getEngagementStats();
+
+        // Individual Engagement
+        $individualEngagement = $this->getIndividualEngagement();
+
+        // Executive Summary
+        $executiveSummary = $this->getExecutiveSummary();
+
         // Chart Data
         $chartData = $this->getChartData($period);
 
-        return view('learning.analytics', compact(
+        return view('learning.analytics.analytics', compact(
             'courseAnalytics',
             'uploadAnalytics',
             'topCourses',
             'topUploads',
             'overallStats',
+            'engagementStats',
+            'individualEngagement',
+            'executiveSummary',
             'chartData',
             'period'
         ));
@@ -297,6 +309,69 @@ class LearningAnalyticsController extends Controller
         ];
     }
 
+    private function getEngagementStats()
+    {
+        $openedCount = GeneralView::where('type', 'upload')->where('opened', true)->distinct('item_id')->count('item_id');
+
+        $avgDuration = GeneralView::where('type', 'upload')->whereNotNull('duration')->avg('duration');
+
+        $totalViews = GeneralView::where('type', 'upload')->count();
+        $completedCount = GeneralView::where('type', 'upload')->where('completion_status', 'completed')->count();
+        $completionRate = $totalViews > 0 ? ($completedCount / $totalViews) * 100 : 0;
+
+        $activeLearners = GeneralView::where('type', 'upload')->distinct('user_id')->count('user_id');
+
+        return [
+            'opened_count' => $openedCount,
+            'avg_duration' => $avgDuration ? gmdate('i:s', $avgDuration) : '0:00',
+            'avg_duration_raw' => $avgDuration ? round($avgDuration) : 0,
+            'completion_rate' => round($completionRate),
+            'active_learners' => $activeLearners,
+        ];
+    }
+
+    private function getIndividualEngagement()
+    {
+        return GeneralView::where('type', 'upload')
+            ->with(['user', 'upload'])
+            ->orderBy('updated_at', 'desc')
+            ->take(100)
+            ->get()
+            ->map(function($view) {
+                return [
+                    'user_name' => $view->user ? $view->user->first_name . ' ' . $view->user->last_name : 'Unknown',
+                    'user_email' => $view->user ? $view->user->email : '',
+                    'material_title' => $view->upload ? $view->upload->name : 'N/A',
+                    'opened' => $view->opened,
+                    'duration' => $view->duration ? gmdate('i:s', $view->duration) : '0:00',
+                    'completion_status' => $view->completion_status ?: 'Not Started',
+                    'last_activity' => $view->updated_at->format('M d, Y'),
+                ];
+            });
+    }
+
+    private function getExecutiveSummary()
+    {
+        $totalEngaged = GeneralView::where('type', 'upload')->distinct('user_id')->count('user_id');
+
+        $avgCompletionTime = GeneralView::where('type', 'upload')->whereNotNull('duration')->avg('duration');
+        $avgCompletionTimeFormatted = $avgCompletionTime ? gmdate('i:s', $avgCompletionTime) : '0:00';
+
+        // Dummy for now
+        $topDepartment = 'HR';
+        $deptCompletionRate = 85;
+        $retentionRate = 75;
+
+        return [
+            'total_engaged' => $totalEngaged,
+            'engaged_growth' => 10, // dummy
+            'avg_completion_time' => $avgCompletionTimeFormatted,
+            'top_department' => $topDepartment,
+            'dept_completion_rate' => $deptCompletionRate,
+            'retention_rate' => $retentionRate,
+        ];
+    }
+
     private function getOfficeAnalytics()
     {
         // Get course views by office (through users who created content)
@@ -350,7 +425,6 @@ class LearningAnalyticsController extends Controller
         ];
     }
 
-
     private function getDaysArray($period)
     {
         $days = [];
@@ -365,7 +439,7 @@ class LearningAnalyticsController extends Controller
 
     /**
      * Get viewers for a specific item (course, upload, category, etc.)
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -462,6 +536,118 @@ class LearningAnalyticsController extends Controller
                 'viewers' => $viewers,
                 'item_title' => $itemTitle,
                 'total' => $viewers->count()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get opened materials list
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOpenedMaterials(Request $request)
+    {
+        try {
+            $materials = GeneralView::where('type', 'upload')
+                ->where('opened', true)
+                ->with('upload')
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->unique('item_id')
+                ->values();
+
+            return response()->json([
+                'materials' => $materials->map(function($view) {
+                    return [
+                        'id' => $view->upload->id,
+                        'name' => $view->upload->name,
+                        'type' => $view->upload->type,
+                        'topic' => $view->upload->generalTopic ? $view->upload->generalTopic->name : 'No Topic',
+                        'last_viewed' => $view->updated_at->format('M d, Y H:i'),
+                    ];
+                }),
+                'total' => $materials->count(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get materials with average engagement duration
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAverageDurationMaterials(Request $request)
+    {
+        try {
+            // Get grouped data
+            $groupedViews = GeneralView::where('type', 'upload')
+                ->whereNotNull('duration')
+                ->where('duration', '>', 0)
+                ->selectRaw('item_id, MAX(updated_at) as last_viewed, AVG(duration) as avg_duration')
+                ->groupBy('item_id')
+                ->orderBy('last_viewed', 'desc')
+                ->get();
+
+            // Get upload details
+            $uploadIds = $groupedViews->pluck('item_id');
+            $uploads = GeneralUpload::with('generalTopic')->whereIn('id', $uploadIds)->get()->keyBy('id');
+
+            $materials = $groupedViews->map(function($grouped) use ($uploads) {
+                $upload = $uploads->get($grouped->item_id);
+                return [
+                    'id' => $grouped->item_id,
+                    'name' => $upload ? $upload->name : 'N/A',
+                    'type' => $upload ? $upload->type : 'N/A',
+                    'topic' => $upload && $upload->generalTopic ? $upload->generalTopic->name : 'No Topic',
+                    'last_viewed' => $grouped->last_viewed->format('M d, Y H:i'),
+                    'avg_duration' => round($grouped->avg_duration),
+                    'avg_duration_formatted' => gmdate('i:s', $grouped->avg_duration),
+                ];
+            });
+
+            return response()->json([
+                'materials' => $materials,
+                'total' => $materials->count(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get completed materials list
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getCompletedMaterials(Request $request)
+    {
+        try {
+            $materials = GeneralView::where('type', 'upload')
+                ->where('completion_status', 'completed')
+                ->with('upload')
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->unique('item_id')
+                ->values();
+
+            return response()->json([
+                'materials' => $materials->map(function($view) {
+                    return [
+                        'id' => $view->upload->id,
+                        'name' => $view->upload->name,
+                        'type' => $view->upload->type,
+                        'topic' => $view->upload->generalTopic ? $view->upload->generalTopic->name : 'No Topic',
+                        'last_viewed' => $view->updated_at->format('M d, Y H:i'),
+                    ];
+                }),
+                'total' => $materials->count(),
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);

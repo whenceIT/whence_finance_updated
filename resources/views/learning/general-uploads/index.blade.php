@@ -256,23 +256,26 @@ document.addEventListener('DOMContentLoaded', function() {
 let currentUploadId = null;
 let startTime = null;
 let hasIncremented = false;
+let hasCompletedEngagement = false;
 let engagementTimer = null;
+
+const ENGAGEMENT_THRESHOLD_MS = 120000; // 2 minutes
+const ENGAGEMENT_THRESHOLD_MINUTES = 2;
 
 // Function to start engagement tracking
 function startEngagementTracking(uploadId) {
     if (currentUploadId !== uploadId) {
-        // Reset previous tracking
         stopEngagementTracking();
         currentUploadId = uploadId;
         startTime = Date.now();
         hasIncremented = false;
+        hasCompletedEngagement = false;
 
         // Check every 5 seconds if 2 minutes have passed
         engagementTimer = setInterval(() => {
-            if (!hasIncremented && startTime && (Date.now() - startTime) >= 120000) { // 120 seconds = 2 minutes
-                incrementView(uploadId);
+            if (!hasIncremented && startTime && (Date.now() - startTime) >= ENGAGEMENT_THRESHOLD_MS) {
+                incrementView(uploadId, {duration: ENGAGEMENT_THRESHOLD_MINUTES, opened: true});
                 hasIncremented = true;
-                stopEngagementTracking();
             }
         }, 5000);
     }
@@ -284,25 +287,57 @@ function stopEngagementTracking() {
         clearInterval(engagementTimer);
         engagementTimer = null;
     }
+
+    if (currentUploadId && startTime && hasIncremented && !hasCompletedEngagement) {
+        const elapsedMinutes = Math.max(1, Math.ceil((Date.now() - startTime) / 60000));
+        const extraMinutes = Math.max(0, elapsedMinutes - ENGAGEMENT_THRESHOLD_MINUTES);
+        if (extraMinutes > 0) {
+            incrementView(currentUploadId, {duration: extraMinutes});
+        }
+    }
+
     currentUploadId = null;
     startTime = null;
     hasIncremented = false;
+    hasCompletedEngagement = false;
+}
+
+// Function to track completion for uploads
+function handleUploadCompletion(uploadId) {
+    if (!currentUploadId || hasCompletedEngagement) {
+        return;
+    }
+
+    hasCompletedEngagement = true;
+    const elapsedMinutes = Math.max(1, Math.ceil((Date.now() - startTime) / 60000));
+    const payload = {opened: true, completion_status: 'completed'};
+
+    if (!hasIncremented) {
+        payload.duration = elapsedMinutes;
+        hasIncremented = true;
+    } else {
+        const extraMinutes = Math.max(0, elapsedMinutes - ENGAGEMENT_THRESHOLD_MINUTES);
+        if (extraMinutes > 0) {
+            payload.duration = extraMinutes;
+        }
+    }
+
+    incrementView(uploadId, payload);
 }
 
 // Function to increment view count
-function incrementView(uploadId) {
-    // Increment view
+function incrementView(uploadId, payload = {duration: ENGAGEMENT_THRESHOLD_MINUTES, opened: true}) {
     fetch('{{ url('learning/general-uploads') }}/' + uploadId + '/increment-view', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify(payload)
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update views count in UI
             updateCountsInUI();
         }
     })
@@ -361,6 +396,13 @@ function playMedia(type, path, name, size, poster = '', uploadId) {
             fluid: true,
             playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2]
         });
+
+        var videoElement = document.getElementById('dashboard-video-player');
+        if (videoElement) {
+            videoElement.addEventListener('ended', function() {
+                handleUploadCompletion(uploadId);
+            });
+        }
     } else if (type === 'audio') {
         // Audio player with enhanced custom styling
         wrapper.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
@@ -398,6 +440,13 @@ function playMedia(type, path, name, size, poster = '', uploadId) {
                 }
             }
         });
+
+        var audioElement = document.getElementById('dashboard-audio-player');
+        if (audioElement) {
+            audioElement.addEventListener('ended', function() {
+                handleUploadCompletion(uploadId);
+            });
+        }
     } else if (type === 'image') {
         // Image preview
         wrapper.style.background = '#000';
