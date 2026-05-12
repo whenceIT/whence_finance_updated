@@ -72,6 +72,19 @@
                                     required id="external_id">
                             </div>
                         </div>
+
+                        <div class="form-group">
+    <label for="withinhere_branch_id" class="control-label col-md-3">
+        Withinhere Branch
+    </label>
+    <div class="col-md-9">
+        <select name="withinhere_branch_id"
+            class="form-control select2"
+            id="withinhere_branch_id" required>
+            <option value=""></option>
+        </select>
+    </div>
+</div>
                         <div class="form-group">
                             <label for="branch_capacity" class="control-label col-md-3">Branch Capacity</label>
                             <div class="col-md-9">
@@ -262,5 +275,39 @@
                     $('#district_regional_id').append('<option value=""></option>');
                 }
             });
+
+            // Load WithinHere branches
+$(document).ready(function () {
+
+    $.ajax({
+        url: "https://withinheremobileapi.com/api/v1/businesses/entities/company/8ea1213f-fa3b-44c7-b0e3-404a39be73e4/branches",
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+
+            $('#withinhere_branch_id').empty();
+            $('#withinhere_branch_id').append('<option value=""></option>');
+
+            if (response.success && response.data) {
+      
+
+                $.each(response.data, function (key, value) {
+
+                    $('#withinhere_branch_id').append(
+                        '<option value="' + value.branch_id + '">' +
+                        value.branch_name +
+                        '</option>'
+                    );
+
+                });
+
+            }
+        },
+        error: function (xhr, status, error) {
+            console.log('Failed to load WithinHere branches:', error);
+        }
+    });
+
+});
         </script>
     @endsection

@@ -40,6 +40,7 @@ use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\FleetController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\RiskController;
 use App\Http\Controllers\PlatformController;
 use Firebase\JWT\Key;
 
@@ -439,6 +440,22 @@ Route::group(['prefix' => 'audits'], function () {
     Route::get('/user/{id}', [AuditController::class, 'userAudits'])->name('audits.user');
     Route::get('/{id}', [AuditController::class, 'show'])->name('audits.show');
     Route::delete('/{id}', [AuditController::class, 'destroy'])->name('audits.destroy');
+});
+//route for risk management
+Route::group(['prefix' => 'risk'], function () {
+    Route::get('overview', [RiskController::class, 'overview']);
+    Route::get('audit-trail', [RiskController::class, 'auditTrail']);
+    Route::get('heat-map', [RiskController::class, 'heatMap']);
+    Route::get('branch-ranking', [RiskController::class, 'branchRanking']);
+    Route::get('fraud-feed', [RiskController::class, 'fraudFeed']);
+    Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
+    Route::get('policy-breach', [RiskController::class, 'policyBreach']);
+    Route::get('cost-value', [RiskController::class, 'costValue']);
+    Route::get('geographic-intelligence', [RiskController::class, 'geographicIntelligence']);
+    Route::get('escalation-tracking', [RiskController::class, 'escalationTracking']);
+    Route::get('staff-profiles', [RiskController::class, 'staffProfiles']);
+    Route::get('executive-summary', [RiskController::class, 'executiveSummary']);
+    Route::get('decision-sla', [RiskController::class, 'decisionSla']);
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {

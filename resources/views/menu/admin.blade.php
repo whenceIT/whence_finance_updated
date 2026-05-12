@@ -120,6 +120,31 @@
             @endif
 
 
+            <!-- Audit Trail / Risk Management -->
+            @if($role == 1)
+            <li class="treeview @if(Request::is('risk*') || Request::is('audits*')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-history"></i> <span>Risk Management</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li @if(Request::is('audits*')) class="active" @endif><a href="{{ url('risk/overview') }}"><i class="fa fa-circle-o"></i> Overview</a></li>
+                    <li @if(Request::is('audits*')) class="active" @endif><a href="{{ route('audits.index') }}"><i class="fa fa-circle-o"></i> Audit Trail</a></li>
+                    <li @if(Request::is('risk/heat-map*')) class="active" @endif><a href="{{ url('risk/heat-map') }}"><i class="fa fa-circle-o"></i> Risk Heat Map</a></li>
+                    <li @if(Request::is('risk/branch-ranking*')) class="active" @endif><a href="{{ url('risk/branch-ranking') }}"><i class="fa fa-circle-o"></i> Branch Risk Ranking</a></li>
+                    <li @if(Request::is('risk/fraud-feed*')) class="active" @endif><a href="{{ url('risk/fraud-feed') }}"><i class="fa fa-circle-o"></i> Real-Time Risk</a></li>
+                    <li @if(Request::is('risk/recovery-efficiency*')) class="active" @endif><a href="{{ url('risk/recovery-efficiency') }}"><i class="fa fa-circle-o"></i> Recovery Tracker</a></li>
+                    <li @if(Request::is('risk/policy-breach*')) class="active" @endif><a href="{{ url('risk/policy-breach') }}"><i class="fa fa-circle-o"></i> Policy Breach Tracker</a></li>
+                    <li @if(Request::is('risk/cost-value*')) class="active" @endif><a href="{{ url('risk/cost-value') }}"><i class="fa fa-circle-o"></i> Risk Cost vs Value<br>Preservation Analytics</a></li>
+                    <li @if(Request::is('risk/geographic-intelligence*')) class="active" @endif><a href="{{ url('risk/geographic-intelligence') }}"><i class="fa fa-circle-o"></i> Geographic Risk<br>Intelligence</a></li>
+                    <li @if(Request::is('risk/escalation-tracking*')) class="active" @endif><a href="{{ url('risk/escalation-tracking') }}"><i class="fa fa-circle-o"></i> Executive Escalation<br>Tracking</a></li>
+                    <li @if(Request::is('risk/staff-profiles*')) class="active" @endif><a href="{{ url('risk/staff-profiles') }}"><i class="fa fa-circle-o"></i> Staff Risk Profiling</a></li>
+                </ul>
+            </li>
+            @endif
+
             <li class="@if(Request::is('ticket*')) active @endif">
                 <a href="{{ url('ticket') }}">
                     <i class="fa fa-ticket"></i> <span>Tickets</span>
@@ -959,14 +984,6 @@
                                 <li><a href="{{ url('asset/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',1)}} {{trans_choice('general.asset',1)}} {{trans_choice('general.type',2)}}</a></li>
                             @endif
                         </ul>
-                    </li>
-                    @endif
-                    <!-- Audit Trail -->
-                    @if($role == 1)
-                    <li @if(Request::is('audits*')) class="active" @endif style="padding-left: 10px;">
-                        <a href="{{ route('audits.index') }}">
-                            <i class="fa fa-history"></i> <span>Risk Management</span>
-                        </a>
                     </li>
                     @endif
 

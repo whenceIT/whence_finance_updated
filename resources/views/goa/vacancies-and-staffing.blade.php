@@ -297,8 +297,10 @@
                     <thead>
                         <tr>
                             <th>Position ID</th>
+                            <th>Office</th>
                             <th>Department</th>
                             <th>Position Title</th>
+                            <th>Vacancies</th>
                             <th>Status</th>
                             <th>Posted Date</th>
                             <th>Date Added</th>
@@ -306,37 +308,39 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($positions as $position)
+                        @forelse($vacancies as $vacancy)
                         <tr>
                                 <td>
                                     @php
-                                        $name = trim(explode('(', $position->name)[0]);
+                                        $name = trim(explode('(', $vacancy->position->name)[0]);
                                         $words = explode(' ', $name);
                                         $initials = strtoupper(implode('', array_map(function($w) { return isset($w[0]) ? $w[0] : ''; }, $words)));
                                     @endphp
-                                    {{ $initials }}{{ $position->id }}
+                                    {{ $initials }}{{ $vacancy->position->id }}
                                 </td>
-                            <td>{{ $position->department_id ? 'Department ' . $position->department_id : 'N/A' }}</td>
-                            <td>{{ $position->name }}</td>
+                            <td>{{ $vacancy->office->name ?? 'N/A' }}</td>
+                            <td>{{ $vacancy->position->department->name ?? 'N/A' }}</td>
+                            <td>{{ $vacancy->position->name }}</td>
+                            <td>{{ $vacancy->num_of_vacancies }}</td>
                             <td>
-                                @if($position->status == 'Open')
+                                @if($vacancy->status == 'Open')
                                     <span class="badge badge-success">Open</span>
-                                @elseif($position->status == 'In Review')
+                                @elseif($vacancy->status == 'In Review')
                                     <span class="badge badge-warning">In Review</span>
                                 @else
-                                    <span class="badge badge-danger">{{ $position->status }}</span>
+                                    <span class="badge badge-danger">{{ $vacancy->status }}</span>
                                 @endif
                             </td>
-                                <td>{{ $position->posted_date ? $position->posted_date->diffForHumans() : 'N/A' }}</td>
-                                <td>{{ $position->date_added ? $position->date_added->format('Y-m-d') : 'N/A' }}</td>
+                                <td>{{ $vacancy->position->posted_date ? $vacancy->position->posted_date->diffForHumans() : 'N/A' }}</td>
+                                <td>{{ $vacancy->position->date_added ? $vacancy->position->date_added->format('Y-m-d') : 'N/A' }}</td>
                                 <td>
-                                    <form method="POST" action="{{ route('goa.position.remove', $position->id) }}" style="display:inline;">
+                                    <form method="POST" action="{{ route('goa.position.remove', $vacancy->position->id) }}" style="display:inline;">
                                         @csrf
                                         @method('POST')
                                         <button type="submit" class="btn btn-sm btn-danger">Remove</button>
                                     </form>
-                                    <button class="btn btn-sm btn-info" onclick="viewPosition({{ $position->id }})">View</button>
-                                    <form method="POST" action="{{ route('goa.position.fill', $position->id) }}" style="display:inline;">
+                                    <button class="btn btn-sm btn-info" onclick="viewPosition({{ $vacancy->position->id }})">View</button>
+                                    <form method="POST" action="{{ route('goa.position.fill', $vacancy->position->id) }}" style="display:inline;">
                                         @csrf
                                         @method('POST')
                                         <button type="submit" class="btn btn-sm btn-success">Fill Position</button>
@@ -457,11 +461,20 @@
                     @csrf
                     <div class="staffing-modal-section active" data-type="addPosition">
                         <div class="staffing-modal-form-group">
-                            <label class="staffing-modal-label" for="positionId">Select Vacant Position</label>
-                            <select class="staffing-modal-select" id="positionId" name="positionId">
+                            <label class="staffing-modal-label" for="positionId">Select Position</label>
+                            <select class="staffing-modal-select" id="positionId" name="positionId" required>
                                 <option value="">-- Select Position --</option>
                                 @foreach(\App\Models\Position::all() as $pos)
                                     <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="staffing-modal-form-group">
+                            <label class="staffing-modal-label" for="officeId">Office</label>
+                            <select class="staffing-modal-select" id="officeId" name="officeId" required>
+                                <option value="">-- Select Office --</option>
+                                @foreach($offices as $office)
+                                    <option value="{{ $office->id }}">{{ $office->name }}</option>
                                 @endforeach
                             </select>
                         </div>
