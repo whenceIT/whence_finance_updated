@@ -571,19 +571,28 @@ class GeneralUploadsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function incrementView($id)
+    public function incrementView(Request $request, $id)
     {
         $upload = GeneralUpload::findOrFail($id);
 
-        // Record the viewer
-        \App\Models\GeneralView::recordView('upload', $id);
+        $duration = $request->input('duration');
+        $completionStatus = $request->input('completion_status');
+        $opened = $request->boolean('opened', true);
 
-        // Increment views_count
-        $upload->increment('views_count');
+        $viewRecorded = \App\Models\GeneralView::recordView('upload', $id, null, [
+            'opened' => $opened,
+            'duration' => $duration !== null ? intval($duration) : null,
+            'completion_status' => $completionStatus
+        ]);
+
+        if ($viewRecorded) {
+            $upload->increment('views_count');
+        }
 
         return response()->json([
             'success' => true,
-            'views_count' => $upload->views_count
+            'views_count' => $upload->fresh()->views_count,
+            'view_recorded' => $viewRecorded
         ]);
     }
 

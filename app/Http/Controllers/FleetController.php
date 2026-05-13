@@ -58,7 +58,7 @@ class FleetController extends Controller
 
         Fleet::create($data);
 
-        return redirect()->route('fleets.index')->with('success', 'Fleet record created successfully.');
+        return redirect()->back()->with('success', 'Fleet record created successfully.');
     }
 
     public function storeMaintenance(Request $request)
@@ -84,13 +84,12 @@ class FleetController extends Controller
                 'notes' => $data['maintenanceNotes'],
             ]);
 
-            return redirect()->route('fleets.index')->with('success', 'Maintenance scheduled successfully.');
+            return redirect()->back()->with('success', 'Maintenance scheduled successfully.');
         } else {
-            return redirect()->route('fleets.index')->with('error', 'Vehicle not found.');
+            return redirect()->back()->with('error', 'Vehicle not found.');
         }
         } catch (\Throwable $th) {
-            dd($th->getMessage());
-             return redirect()->route('fleets.index')->with('error', 'An error occurred while scheduling maintenance.');
+             return redirect()->back()->with('error', 'An error occurred while scheduling maintenance.');
         }
     }
 
@@ -138,13 +137,13 @@ class FleetController extends Controller
 
         $fleet->update($data);
 
-        return redirect()->route('fleets.index')->with('success', 'Fleet record updated successfully.');
+        return redirect()->route('goa.fleet-management')->with('success', 'Fleet record updated successfully.');
     }
 
     public function destroy(Fleet $fleet)
     {
         $fleet->delete();
 
-        return redirect()->route('fleets.index')->with('success', 'Fleet record deleted successfully.');
+        return redirect()->back()->with('success', 'Fleet record deleted successfully.');
     }
 }
