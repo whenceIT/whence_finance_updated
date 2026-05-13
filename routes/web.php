@@ -214,6 +214,9 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
       // Analytics
       Route::get('/analytics', [App\Http\Controllers\LearningAnalyticsController::class, 'index'])->name('learning.analytics');
       Route::get('/analytics/viewers', [App\Http\Controllers\LearningAnalyticsController::class, 'getItemViewers'])->name('learning.analytics.viewers');
+      Route::get('/analytics/opened-materials', [App\Http\Controllers\LearningAnalyticsController::class, 'getOpenedMaterials'])->name('learning.analytics.opened-materials');
+      Route::get('/analytics/average-duration-materials', [App\Http\Controllers\LearningAnalyticsController::class, 'getAverageDurationMaterials'])->name('learning.analytics.average-duration-materials');
+      Route::get('/analytics/completed-materials', [App\Http\Controllers\LearningAnalyticsController::class, 'getCompletedMaterials'])->name('learning.analytics.completed-materials');
     Route::get('/settings/categories', [LearningSettingController::class, 'categories'])->name('learning.settings.categories');
     Route::get('/settings/students', [LearningSettingController::class, 'students'])->name('learning.settings.students');
     Route::get('/settings/teachers', [LearningSettingController::class, 'teachers'])->name('learning.settings.teachers');
@@ -706,6 +709,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('recovery_case_approve/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseApprove');
     Route::get('recovery_case_decline/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseDecline');
     Route::get('top_up_approvals', 'LoanController@top_up_approvals');
+    Route::get('pending_client_app_applications','LoanController@pending_client_app_applications');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
     Route::get('loan/waiver-approvals', 'LoanController@showWaiver')->name('waiver.approvals');

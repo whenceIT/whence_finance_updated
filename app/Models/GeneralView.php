@@ -9,7 +9,15 @@ class GeneralView extends Model
     protected $fillable = [
         'type',
         'user_id',
-        'item_id'
+        'item_id',
+        'opened',
+        'duration',
+        'completion_status'
+    ];
+
+    protected $casts = [
+        'opened' => 'boolean',
+        'duration' => 'integer'
     ];
 
     /**
@@ -21,6 +29,14 @@ class GeneralView extends Model
     }
 
     /**
+     * Get the upload if type is upload.
+     */
+    public function upload()
+    {
+        return $this->belongsTo(\App\Models\GeneralUpload::class, 'item_id');
+    }
+
+    /**
      * Record a view for a specific item.
      *
      * @param string $type The type of content (upload, topic, course, etc.)
@@ -28,7 +44,7 @@ class GeneralView extends Model
      * @param int|null $userId The ID of the user who viewed. If null, uses current user.
      * @return bool Whether the view was recorded (true) or already exists (false)
      */
-    public static function recordView($type, $itemId, $userId = null)
+    public static function recordView($type, $itemId, $userId = null, $attributes = [])
     {
         if ($userId === null) {
             $user = \Cartalyst\Sentinel\Laravel\Facades\Sentinel::getUser();
@@ -38,21 +54,47 @@ class GeneralView extends Model
             $userId = $user->id;
         }
 
-        // Check if already viewed by this user
-        $exists = self::where('type', $type)
+        $record = self::where('type', $type)
             ->where('item_id', $itemId)
             ->where('user_id', $userId)
-            ->exists();
+            ->first();
 
-        if ($exists) {
+        $opened = $attributes['opened'] ?? true;
+        $duration = array_key_exists('duration', $attributes) ? intval($attributes['duration']) : null;
+        $completionStatus = $attributes['completion_status'] ?? null;
+
+        if ($record) {
+            $dirty = false;
+
+            if ($opened && !$record->opened) {
+                $record->opened = true;
+                $dirty = true;
+            }
+
+            if ($duration !== null && $duration > 0) {
+                $record->duration = ($record->duration ?? 0) + $duration;
+                $dirty = true;
+            }
+
+            if ($completionStatus && $record->completion_status !== $completionStatus) {
+                $record->completion_status = $completionStatus;
+                $dirty = true;
+            }
+
+            if ($dirty) {
+                $record->save();
+            }
+
             return false; // Already viewed
         }
 
-        // Record the view
         self::create([
             'type' => $type,
             'user_id' => $userId,
-            'item_id' => $itemId
+            'item_id' => $itemId,
+            'opened' => $opened,
+            'duration' => $duration ?? 0,
+            'completion_status' => $completionStatus
         ]);
 
         return true; // New view recorded

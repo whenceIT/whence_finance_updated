@@ -249,7 +249,6 @@
                 } else {
                     $('#district_id').empty();
                     $('#district_id').append('<option value=""></option>');
-
                     $('#district_regional_id').empty();
                     $('#district_regional_id').append('<option value=""></option>');
                 }
