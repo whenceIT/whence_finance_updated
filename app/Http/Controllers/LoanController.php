@@ -60,6 +60,7 @@ use App\Models\CarryOver;
 use App\Models\Province;
 use App\Models\Notifix;
 use App\Services\NotifixService;
+use App\Models\ClientAppLoanApplications;
 
 
 class LoanController extends Controller
@@ -754,6 +755,48 @@ class LoanController extends Controller
         // Log audit for accessing loan transactions approvals page
         $this->auditorService->logTransactionApprovalsPage(Sentinel::getUser(), request());
         return view('loan.transactions', compact('data','HasPendingCarryOvers',));
+    }
+
+
+    public function pending_client_app_applications()
+    {
+        
+        if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+            $province_transactions = [];
+
+
+         $userId = Sentinel::getUser()->id;
+         $offices = Office::get();
+         $province_id = Sentinel::getUser()->province_id;
+         $role = UserRole::where('user_id', $userId)->first();
+         $office_id = Sentinel::getUser()->office_id;
+
+        if($role->role_id == "6"){
+              foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $transactions = ClientAppLoanApplications::where('branch', $office->id)->get();
+                    foreach ($transactions as $transaction) {
+                        array_push($province_transactions, $transaction);
+                    }
+                }
+            }
+
+            $data = $province_transactions;
+
+        }else{
+             if (Sentinel::hasAccess('settings')) {
+                $data =  ClientAppLoanApplications::get();
+            } else {
+                $data = ClientAppLoanApplications::where('branch', $office_id)->get();
+            }
+        }
+
+         return view('loan.client_app_loan_applications', compact('data',));
+
     }
 
 
