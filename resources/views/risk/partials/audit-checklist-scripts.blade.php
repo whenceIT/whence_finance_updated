@@ -18,6 +18,41 @@
         'Section 9 — Audit Conclusion & Sign-Off'
     ];
 
+    /* ── Initialize Select2 for branch selector ───────────────── */
+    function initBranchSelect() {
+        if (typeof $.fn.select2 !== 'undefined') {
+            $('.select2-branch').select2({
+                placeholder: '— Search and select a branch —',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#auditChecklistModal') // Fix for modal focus issue
+            });
+
+            // Handle branch selection change
+            $('#s1OfficeSelect').on('change', function() {
+                var selectedOption = $(this).find('option:selected');
+                var branchDetailsDiv = $('#s1BranchDetails');
+
+                if (selectedOption.val()) {
+                    // Populate branch details from data attributes
+                    $('#s1BranchCode').val(selectedOption.data('code') || '');
+                    $('#s1BranchProvince').val(selectedOption.data('province') || '');
+                    $('#s1BranchDistrict').val(selectedOption.data('district') || '');
+                    $('#s1BranchAddress').val(selectedOption.data('address') || '');
+                    $('#s1BranchPhone').val(selectedOption.data('phone') || '');
+                    $('#s1BranchEmail').val(selectedOption.data('email') || '');
+
+                    // Show the branch details section
+                    branchDetailsDiv.slideDown(300);
+                } else {
+                    // Hide and clear branch details if no branch selected
+                    branchDetailsDiv.slideUp(300);
+                    $('#s1BranchCode, #s1BranchProvince, #s1BranchDistrict, #s1BranchAddress, #s1BranchPhone, #s1BranchEmail').val('');
+                }
+            });
+        }
+    }
+
     /* ── Risk scoring ─────────────────────────────────────────── */
     function getRiskRating(count) {
         if (count <= 3)  return { label: '🟢 LOW — Branch is compliant',                color: '#27ae60' };
@@ -93,6 +128,19 @@
         modal.addEventListener('show.bs.modal', function () {
             currentStep = 1;
             showStep(1);
+            
+            // Initialize Select2 when modal opens
+            initBranchSelect();
+        });
+        
+        // Clean up Select2 when modal closes
+        modal.addEventListener('hidden.bs.modal', function () {
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('.select2-branch').select2('destroy');
+            }
+            $('#s1OfficeSelect').val('');
+            $('#s1BranchDetails').slideUp(300);
+            $('#s1BranchCode, #s1BranchProvince, #s1BranchDistrict, #s1BranchAddress, #s1BranchPhone, #s1BranchEmail').val('');
         });
     }
 
@@ -143,6 +191,55 @@
         if (radio.classList.contains('fraud-indicator-radio')) updateFraudAlert();
         if (radio.classList.contains('fail-radio'))            updateRiskScore();
     });
+
+    /* ── Toggle functions ─────────────────────────────────────── */
+    window.toggleZeroCashPolicy = function () {
+        var expanded = document.getElementById('zeroCashPolicyExpanded');
+        var toggle = event.target;
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+            toggle.textContent = ' See Less';
+        } else {
+            expanded.style.display = 'none';
+            toggle.textContent = ' See More';
+        }
+    };
+
+    window.toggleCollectionsPolicy = function () {
+        var expanded = document.getElementById('collectionsPolicyExpanded');
+        var toggle = event.target;
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+            toggle.textContent = ' See Less';
+        } else {
+            expanded.style.display = 'none';
+            toggle.textContent = ' See More';
+        }
+    };
+
+    window.toggleFraudWarning = function () {
+        var expanded = document.getElementById('fraudWarningExpanded');
+        var toggle = event.target;
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+            toggle.textContent = ' See Less';
+        } else {
+            expanded.style.display = 'none';
+            toggle.textContent = ' See More';
+        }
+    };
+
+    window.toggleStaffingPolicy = function () {
+        var expanded = document.getElementById('staffingPolicyExpanded');
+        var toggle = event.target;
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+            toggle.textContent = ' See Less';
+        } else {
+            expanded.style.display = 'none';
+            toggle.textContent = ' See More';
+        }
+    };
 
     /* ── Submit ───────────────────────────────────────────────── */
     window.submitAuditChecklist = function () {

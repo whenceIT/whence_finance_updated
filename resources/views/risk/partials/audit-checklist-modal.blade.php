@@ -1,5 +1,37 @@
-﻿     <!-- AUDIT CHECKLIST WIZARD MODAL  (v3.0 — Cashless Operations)
-     ============================================================  -->
+﻿      <!-- AUDIT CHECKLIST WIZARD MODAL  (v3.0 — Cashless Operations)
+      ============================================================  -->
+<style>
+.audit-radio-wrap {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+.audit-radio-wrap:hover {
+    opacity: 0.8;
+}
+.audit-radio-wrap.pass-wrap {
+    background: #27ae60;
+    color: white;
+    border-color: #27ae60;
+}
+.audit-radio-wrap.fail-wrap {
+    background: #e74c3c;
+    color: white;
+    border-color: #e74c3c;
+}
+.audit-radio-wrap input[type="radio"] {
+    display: none;
+}
+.audit-radio-wrap.is-checked {
+    border-width: 2px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+</style>
 <div class="modal fade" id="auditChecklistModal" tabindex="-1" role="dialog" aria-labelledby="auditChecklistModalLabel" aria-modal="true">
     <div class="modal-dialog" role="document" style="width:98%;margin:10px auto;">
         <div class="modal-content">
@@ -128,23 +160,82 @@
                             </p>
                         </div>
                         <div style="padding:24px;">
+                            {{-- Branch search-select — populated from offices table --}}
+                            <div class="form-group">
+                                <label>Branch Name <span class="text-danger">*</span></label>
+                                <select class="form-control select2" name="s1_office_id" id="s1OfficeSelect" style="width:100%;">
+                                    <option value="">— Search and select a branch —</option>
+                                    @foreach(\App\Models\Office::where('active', 1)->orderBy('name')->get() as $office)
+                                    <option value="{{ $office->id }}"
+                                        data-name="{{ $office->name }}"
+                                        data-code="{{ $office->external_id ?? '' }}"
+                                        data-address="{{ $office->address ?? '' }}"
+                                        data-phone="{{ $office->phone ?? '' }}"
+                                        data-email="{{ $office->email ?? '' }}"
+                                        data-province="{{ optional($office->province)->name ?? '' }}"
+                                        data-district="{{ optional($office->district)->name ?? '' }}">
+                                        {{ $office->name }}{{ $office->external_id ? ' ('.$office->external_id.')' : '' }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                <div style="margin-top:4px;font-size:12px;">
+                                    <span class="text-muted"><i class="fa fa-check-circle text-success"></i> <strong>How to verify:</strong> Check against official branch register or system records.</span>
+                                    &nbsp;&nbsp;
+                                    <span class="text-danger"><i class="fa fa-flag"></i> <strong>Red flag:</strong> Name differs from system record — possible confusion or wrong location.</span>
+                                </div>
+                            </div>
+
+                            {{-- Auto-filled branch details (read-only, populated by JS on selection) --}}
+                            <div id="s1BranchDetails" style="display:none;">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Branch Code / ID</label>
+                                            <input type="text" class="form-control" name="s1_branch_code" id="s1BranchCode" readonly
+                                                   style="background:#f9f9f9;" placeholder="Auto-filled">
+                                            <div style="margin-top:4px;font-size:12px;">
+                                                <span class="text-muted"><i class="fa fa-check-circle text-success"></i> <strong>How to verify:</strong> Cross-check with the branch management system.</span>
+                                                &nbsp;&nbsp;
+                                                <span class="text-danger"><i class="fa fa-flag"></i> <strong>Red flag:</strong> No code recorded — audit may be attributed to wrong branch.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Province</label>
+                                            <input type="text" class="form-control" id="s1BranchProvince" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>District</label>
+                                            <input type="text" class="form-control" id="s1BranchDistrict" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Address</label>
+                                            <input type="text" class="form-control" id="s1BranchAddress" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Phone</label>
+                                            <input type="text" class="form-control" id="s1BranchPhone" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Email</label>
+                                            <input type="text" class="form-control" id="s1BranchEmail" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             @php $s1items = [
-                                [
-                                    'id'     => 's1_branch_name',
-                                    'label'  => 'Branch Name',
-                                    'verify' => 'Check against official branch register or system records.',
-                                    'flag'   => 'Name differs from system record — possible confusion or wrong location.',
-                                    'type'   => 'text',
-                                    'ph'     => 'Full official branch name as it appears in the system',
-                                ],
-                                [
-                                    'id'     => 's1_branch_code',
-                                    'label'  => 'Branch Code / ID',
-                                    'verify' => 'Cross-check with the branch management system.',
-                                    'flag'   => 'No code recorded — audit may be attributed to wrong branch.',
-                                    'type'   => 'text',
-                                    'ph'     => 'e.g. LCA-001',
-                                ],
                                 [
                                     'id'     => 's1_audit_date',
                                     'label'  => 'Audit Date',
@@ -170,12 +261,20 @@
                                     'ph'     => 'e.g. Withinhere wallet controls, loan files, collections, staff conduct',
                                 ],
                                 [
-                                    'id'     => 's1_period',
-                                    'label'  => 'Period Under Review',
+                                    'id'     => 's1_period_start',
+                                    'label'  => 'Period Under Review (Start Date)',
                                     'verify' => 'Match to the reporting period covered by the Withinhere wallet transaction history.',
                                     'flag'   => 'Period unclear — makes it impossible to match wallet transactions and records.',
-                                    'type'   => 'text',
-                                    'ph'     => 'e.g. 01 Mar 2026 – 31 Mar 2026',
+                                    'type'   => 'date',
+                                    'ph'     => '',
+                                ],
+                                [
+                                    'id'     => 's1_period_end',
+                                    'label'  => 'Period Under Review (End Date)',
+                                    'verify' => 'Match to the reporting period covered by the Withinhere wallet transaction history.',
+                                    'flag'   => 'Period unclear — makes it impossible to match wallet transactions and records.',
+                                    'type'   => 'date',
+                                    'ph'     => '',
                                 ],
                             ]; @endphp
 
@@ -246,14 +345,20 @@
                                     This institution does not permit any physical cash to be held or handled at branch level at any time.
                                     All client payments must be received through the <strong>Withinhere app</strong>, the <strong>Whence Financial Services app</strong>,
                                     or the <strong>company mobile money lines</strong>. All loan disbursements must be made exclusively through the
-                                    <strong>Withinhere branch wallet</strong>. A payment received via mobile money is <strong>NOT confirmed</strong> until it has been
-                                    transferred into the Withinhere branch wallet. Only the Branch Manager is authorised to initiate this transfer,
-                                    and it must occur in the same transaction — no delay is permitted.
+                                    <strong>Withinhere branch wallet</strong>.
+                                    <span class="expand-toggle" style="cursor:pointer; color:#c0392b; font-weight:bold;" onclick="toggleZeroCashPolicy()"> See More</span>
                                 </p>
-                                <p style="margin:8px 0 0;" class="text-muted">
-                                    This section verifies that the branch is operating in full compliance with the cashless policy and that the
-                                    Withinhere wallet is being used correctly as the single authorised channel for all money movement.
-                                </p>
+                                <div id="zeroCashPolicyExpanded" style="display:none;">
+                                    <p style="margin:8px 0 0;">
+                                        A payment received via mobile money is <strong>NOT confirmed</strong> until it has been
+                                        transferred into the Withinhere branch wallet. Only the Branch Manager is authorised to initiate this transfer,
+                                        and it must occur in the same transaction — no delay is permitted.
+                                    </p>
+                                    <p style="margin:8px 0 0;" class="text-muted">
+                                        This section verifies that the branch is operating in full compliance with the cashless policy and that the
+                                        Withinhere wallet is being used correctly as the single authorised channel for all money movement.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         <div style="padding:24px;">
@@ -457,8 +562,18 @@
                                         <td class="text-muted" style="font-size:12px;">{{ $item['check'] }}</td>
                                         <td style="font-size:12px;color:#1a5276;">{{ $item['verify'] }}</td>
                                         <td style="font-size:12px;color:#922b21;">{{ $item['flag'] }}</td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="pass"></td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio"></td>
+                                         <td style="text-align:center;">
+                                            <label class="audit-radio-wrap pass-wrap" title="Pass">
+                                                <input type="radio" name="{{ $item['id'] }}" value="pass">
+                                                <i class="fa fa-check-circle audit-icon"></i>
+                                            </label>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <label class="audit-radio-wrap fail-wrap" title="Fail">
+                                                <input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio">
+                                                <i class="fa fa-times-circle audit-icon"></i>
+                                            </label>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colspan="6">
@@ -504,8 +619,13 @@
                             <p class="text-muted" style="margin:6px 0 0;">
                                 Under the cashless policy, all client repayments must be received through the Withinhere app, the Whence Financial Services app,
                                 or company mobile money lines and <strong>immediately transferred to the Withinhere branch wallet</strong>.
-                                This section verifies that every collection is fully accounted for in the wallet.
+                                <span class="expand-toggle" style="cursor:pointer; color:#c0392b; font-weight:bold;" onclick="toggleCollectionsPolicy()"> See More</span>
                             </p>
+                            <div id="collectionsPolicyExpanded" style="display:none;">
+                                <p class="text-muted" style="margin:8px 0 0;">
+                                    This section verifies that every collection is fully accounted for in the wallet.
+                                </p>
+                            </div>
                         </div>
                         <div style="padding:24px;">
                             @php $s4items = [
@@ -570,8 +690,18 @@
                                         <td class="text-muted" style="font-size:12px;">{{ $item['check'] }}</td>
                                         <td style="font-size:12px;color:#1a5276;">{{ $item['verify'] }}</td>
                                         <td style="font-size:12px;color:#922b21;">{{ $item['flag'] }}</td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="pass"></td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio"></td>
+                                         <td style="text-align:center;">
+                                            <label class="audit-radio-wrap pass-wrap" title="Pass">
+                                                <input type="radio" name="{{ $item['id'] }}" value="pass">
+                                                <i class="fa fa-check-circle audit-icon"></i>
+                                            </label>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <label class="audit-radio-wrap fail-wrap" title="Fail">
+                                                <input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio">
+                                                <i class="fa fa-times-circle audit-icon"></i>
+                                            </label>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colspan="6">
@@ -612,8 +742,13 @@
                                 <p style="margin:0;">
                                     This section identifies patterns that, individually, might have an innocent explanation, but together signal a
                                     high likelihood of ongoing fraud.
-                                    <strong>If you tick ✗ on three or more items in this section, treat it as a Critical finding and contact the Risk Manager immediately before leaving the branch.</strong>
+                                    <span class="expand-toggle" style="cursor:pointer; color:#c0392b; font-weight:bold;" onclick="toggleFraudWarning()"> See More</span>
                                 </p>
+                                <div id="fraudWarningExpanded" style="display:none;">
+                                    <p style="margin:8px 0 0;">
+                                        <strong>If you tick ✗ on three or more items in this section, treat it as a Critical finding and contact the Risk Manager immediately before leaving the branch.</strong>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         <div style="padding:24px;">
@@ -704,14 +839,19 @@
 
                     {{-- =============================================
                          STEP 7 — STAFF & PROCESS COMPLIANCE
-                         ============================================= --}}
+                    ============================================= --}}
                     <div class="audit-step" id="step-7" style="display:none;">
                         <div style="background:#f4f4f4;border-bottom:2px solid #c0392b;padding:14px 24px;">
                             <h4 style="margin:0;color:#c0392b;"><i class="fa fa-users"></i>&nbsp; Section 6 &mdash; Staff &amp; Process Compliance</h4>
                             <p class="text-muted" style="margin:6px 0 0;">
                                 Most fraud is enabled by weak process controls — one person having too much unsupervised access.
-                                This section checks whether the staffing structure is designed to <strong>prevent, not enable</strong>, misconduct.
+                                <span class="expand-toggle" style="cursor:pointer; color:#c0392b; font-weight:bold;" onclick="toggleStaffingPolicy()"> See More</span>
                             </p>
+                            <div id="staffingPolicyExpanded" style="display:none;">
+                                <p class="text-muted" style="margin:8px 0 0;">
+                                    This section checks whether the staffing structure is designed to <strong>prevent, not enable</strong>, misconduct.
+                                </p>
+                            </div>
                         </div>
                         <div style="padding:24px;">
                             @php $s6items = [
@@ -783,8 +923,18 @@
                                         <td class="text-muted" style="font-size:12px;">{{ $item['check'] }}</td>
                                         <td style="font-size:12px;color:#1a5276;">{{ $item['verify'] }}</td>
                                         <td style="font-size:12px;color:#922b21;">{{ $item['flag'] }}</td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="pass"></td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio"></td>
+                                         <td style="text-align:center;">
+                                            <label class="audit-radio-wrap pass-wrap" title="Pass">
+                                                <input type="radio" name="{{ $item['id'] }}" value="pass">
+                                                <i class="fa fa-check-circle audit-icon"></i>
+                                            </label>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <label class="audit-radio-wrap fail-wrap" title="Fail">
+                                                <input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio">
+                                                <i class="fa fa-times-circle audit-icon"></i>
+                                            </label>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colspan="6">
@@ -895,8 +1045,18 @@
                                         <td class="text-muted" style="font-size:12px;">{{ $item['check'] }}</td>
                                         <td style="font-size:12px;color:#1a5276;">{{ $item['verify'] }}</td>
                                         <td style="font-size:12px;color:#922b21;">{{ $item['flag'] }}</td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="pass"></td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio"></td>
+                                         <td style="text-align:center;">
+                                            <label class="audit-radio-wrap pass-wrap" title="Pass">
+                                                <input type="radio" name="{{ $item['id'] }}" value="pass">
+                                                <i class="fa fa-check-circle audit-icon"></i>
+                                            </label>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <label class="audit-radio-wrap fail-wrap" title="Fail">
+                                                <input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio">
+                                                <i class="fa fa-times-circle audit-icon"></i>
+                                            </label>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colspan="6">
@@ -988,8 +1148,18 @@
                                         <td class="text-muted" style="font-size:12px;">{{ $item['check'] }}</td>
                                         <td style="font-size:12px;color:#1a5276;">{{ $item['verify'] }}</td>
                                         <td style="font-size:12px;color:#922b21;">{{ $item['flag'] }}</td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="pass"></td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio"></td>
+                                         <td style="text-align:center;">
+                                            <label class="audit-radio-wrap pass-wrap" title="Pass">
+                                                <input type="radio" name="{{ $item['id'] }}" value="pass">
+                                                <i class="fa fa-check-circle audit-icon"></i>
+                                            </label>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <label class="audit-radio-wrap fail-wrap" title="Fail">
+                                                <input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio">
+                                                <i class="fa fa-times-circle audit-icon"></i>
+                                            </label>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colspan="6">
@@ -1090,8 +1260,18 @@
                                         <td class="text-muted" style="font-size:12px;">{{ $item['check'] }}</td>
                                         <td style="font-size:12px;color:#1a5276;">{{ $item['verify'] }}</td>
                                         <td style="font-size:12px;color:#922b21;">{{ $item['flag'] }}</td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="pass"></td>
-                                        <td style="text-align:center;"><input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio"></td>
+                                         <td style="text-align:center;">
+                                            <label class="audit-radio-wrap pass-wrap" title="Pass">
+                                                <input type="radio" name="{{ $item['id'] }}" value="pass">
+                                                <i class="fa fa-check-circle audit-icon"></i>
+                                            </label>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <label class="audit-radio-wrap fail-wrap" title="Fail">
+                                                <input type="radio" name="{{ $item['id'] }}" value="fail" class="fail-radio">
+                                                <i class="fa fa-times-circle audit-icon"></i>
+                                            </label>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colspan="6">

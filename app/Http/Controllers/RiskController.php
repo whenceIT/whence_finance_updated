@@ -6,6 +6,11 @@ use Illuminate\Http\Request;
 
 class RiskController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('sentinel');
+    }
+    
     public function overview()
     {
         return view('risk.overview');
