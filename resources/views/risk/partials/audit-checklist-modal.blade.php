@@ -163,17 +163,10 @@
                             {{-- Branch search-select — populated from offices table --}}
                             <div class="form-group">
                                 <label>Branch Name <span class="text-danger">*</span></label>
-                                <select class="form-control select2" name="s1_office_id" id="s1OfficeSelect" style="width:100%;">
+                                <select class="form-control" name="s1_office_id" style="width:100%;">
                                     <option value="">— Search and select a branch —</option>
                                     @foreach(\App\Models\Office::where('active', 1)->orderBy('name')->get() as $office)
-                                    <option value="{{ $office->id }}"
-                                        data-name="{{ $office->name }}"
-                                        data-code="{{ $office->external_id ?? '' }}"
-                                        data-address="{{ $office->address ?? '' }}"
-                                        data-phone="{{ $office->phone ?? '' }}"
-                                        data-email="{{ $office->email ?? '' }}"
-                                        data-province="{{ optional($office->province)->name ?? '' }}"
-                                        data-district="{{ optional($office->district)->name ?? '' }}">
+                                    <option value="{{ $office->id }}">
                                         {{ $office->name }}{{ $office->external_id ? ' ('.$office->external_id.')' : '' }}
                                     </option>
                                     @endforeach
