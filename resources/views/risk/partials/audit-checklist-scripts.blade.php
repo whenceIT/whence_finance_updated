@@ -4,6 +4,7 @@
 
     var TOTAL_STEPS = 10;
     var currentStep = 1;
+    var activeSteps = [1,2,3,4,5,6,7,8,9,10];
 
     var stepLabels = [
         'How to Use This Checklist',
@@ -27,27 +28,78 @@
                 width: '100%',
                 dropdownParent: $('#auditChecklistModal') // Fix for modal focus issue
             });
+        }
+    }
 
-            // Handle branch selection change
-            $('#s1OfficeSelect').on('change', function() {
-                var selectedOption = $(this).find('option:selected');
-                var branchDetailsDiv = $('#s1BranchDetails');
+    /* ── Handle audit scope change ───────────────── */
+    function handleScopeChange() {
+        var scopeSelect = document.getElementById('s1_audit_scope');
+        if (scopeSelect) {
+            scopeSelect.addEventListener('change', function() {
+                var selectedSections = Array.from(scopeSelect.selectedOptions).map(o => parseInt(o.value));
+                activeSteps = [1]; // intro always
+                for (let s of selectedSections) {
+                    activeSteps.push(s + 1); // section 1 -> step 2
+                }
+                TOTAL_STEPS = activeSteps.length;
+                // Reset to step 1 if changed
+                currentStep = 1;
+                showStep(1);
+            });
+        }
+    }
 
-                if (selectedOption.val()) {
+    /* ── Handle branch selection change ───────────────── */
+    function handleBranchChange() {
+        var select = document.getElementById('s1OfficeSelect');
+        if (select) {
+            select.addEventListener('change', function() {
+                var selectedOption = this.options[this.selectedIndex];
+                var branchDetailsDiv = document.getElementById('s1BranchDetails');
+                var officeId = selectedOption.value;
+
+                if (officeId) {
+                    console.log('Office selected:', officeId);
                     // Populate branch details from data attributes
-                    $('#s1BranchCode').val(selectedOption.data('code') || '');
-                    $('#s1BranchProvince').val(selectedOption.data('province') || '');
-                    $('#s1BranchDistrict').val(selectedOption.data('district') || '');
-                    $('#s1BranchAddress').val(selectedOption.data('address') || '');
-                    $('#s1BranchPhone').val(selectedOption.data('phone') || '');
-                    $('#s1BranchEmail').val(selectedOption.data('email') || '');
+                    document.getElementById('s1BranchCode').value = selectedOption.getAttribute('data-code') || '';
+
+                    // Fetch additional audit data
+                    fetch(window.location.origin + '/risk/office-audit-data/' + officeId)
+                        .then(function(response) {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(function(data) {
+                            console.log('Data received:', data);
+                            document.getElementById('s3_total_active').value = data.s3_total_active || 0;
+                            document.getElementById('s3_incomplete_files').value = data.s3_incomplete_files || 0;
+                            document.getElementById('s4_system_collections').value = data.s4_system_collections || 0;
+                            document.getElementById('s4_wallet_collections').value = data.s4_wallet_collections || 0;
+                            document.getElementById('s6_total_staff').value = data.s6_total_staff || 0;
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to fetch office audit data:', error);
+                        });
 
                     // Show the branch details section
-                    branchDetailsDiv.slideDown(300);
+                    if (branchDetailsDiv) branchDetailsDiv.style.display = 'block';
                 } else {
                     // Hide and clear branch details if no branch selected
-                    branchDetailsDiv.slideUp(300);
-                    $('#s1BranchCode, #s1BranchProvince, #s1BranchDistrict, #s1BranchAddress, #s1BranchPhone, #s1BranchEmail').val('');
+                    if (branchDetailsDiv) branchDetailsDiv.style.display = 'none';
+                    document.getElementById('s1BranchCode').value = '';
+                    document.getElementById('s1BranchProvince').value = '';
+                    document.getElementById('s1BranchDistrict').value = '';
+                    document.getElementById('s1BranchAddress').value = '';
+                    document.getElementById('s1BranchPhone').value = '';
+                    document.getElementById('s1BranchEmail').value = '';
+                    // Clear audit data fields
+                    document.getElementById('s3_total_active').value = '';
+                    document.getElementById('s3_incomplete_files').value = '';
+                    document.getElementById('s4_system_collections').value = '';
+                    document.getElementById('s4_wallet_collections').value = '';
+                    document.getElementById('s6_total_staff').value = '';
                 }
             });
         }
@@ -90,7 +142,8 @@
             el.style.display = 'none';
         });
 
-        var target = document.getElementById('step-' + n);
+        var stepId = activeSteps[n - 1];
+        var target = document.getElementById('step-' + stepId);
         if (target) target.style.display = 'block';
 
         var pct = Math.round((n / TOTAL_STEPS) * 100);
@@ -98,7 +151,7 @@
         if (bar) { bar.style.width = pct + '%'; bar.setAttribute('aria-valuenow', pct); }
 
         var lbl = document.getElementById('auditStepLabel');
-        if (lbl) lbl.textContent = 'Step ' + n + ' of ' + TOTAL_STEPS + ' \u2014 ' + stepLabels[n - 1];
+        if (lbl) lbl.textContent = 'Step ' + n + ' of ' + TOTAL_STEPS + ' \u2014 ' + stepLabels[stepId - 1];
 
         var prevBtn   = document.getElementById('auditPrevBtn');
         var nextBtn   = document.getElementById('auditNextBtn');
@@ -131,18 +184,44 @@
             
             // Initialize Select2 when modal opens
             initBranchSelect();
+            // Attach change handlers
+            handleBranchChange();
+            handleScopeChange();
         });
-        
+
         // Clean up Select2 when modal closes
         modal.addEventListener('hidden.bs.modal', function () {
+            activeSteps = [1,2,3,4,5,6,7,8,9,10];
+            TOTAL_STEPS = 10;
             if (typeof $.fn.select2 !== 'undefined') {
                 $('.select2-branch').select2('destroy');
             }
-            $('#s1OfficeSelect').val('');
-            $('#s1BranchDetails').slideUp(300);
-            $('#s1BranchCode, #s1BranchProvince, #s1BranchDistrict, #s1BranchAddress, #s1BranchPhone, #s1BranchEmail').val('');
+            document.getElementById('s1OfficeSelect').value = '';
+            var scopeSelect = document.getElementById('s1_audit_scope');
+            if (scopeSelect) {
+                for (let option of scopeSelect.options) {
+                    option.selected = false;
+                }
+            }
+            var branchDetailsDiv = document.getElementById('s1BranchDetails');
+            if (branchDetailsDiv) branchDetailsDiv.style.display = 'none';
+            document.getElementById('s1BranchCode').value = '';
+            document.getElementById('s1BranchProvince').value = '';
+            document.getElementById('s1BranchDistrict').value = '';
+            document.getElementById('s1BranchAddress').value = '';
+            document.getElementById('s1BranchPhone').value = '';
+            document.getElementById('s1BranchEmail').value = '';
+            document.getElementById('s3_total_active').value = '';
+            document.getElementById('s3_incomplete_files').value = '';
+            document.getElementById('s4_system_collections').value = '';
+            document.getElementById('s4_wallet_collections').value = '';
+            document.getElementById('s6_total_staff').value = '';
         });
     }
+
+    // Attach change handlers immediately in case modal is already shown or for testing
+    handleBranchChange();
+    handleScopeChange();
 
     /* ── Live listeners ───────────────────────────────────────── */
     document.addEventListener('change', function (e) {
@@ -243,8 +322,8 @@
 
     /* ── Submit ───────────────────────────────────────────────── */
     window.submitAuditChecklist = function () {
-        alert('Audit checklist submitted successfully. A copy will be saved to the Risk Management records.');
-        $('#auditChecklistModal').modal('hide');
+        // Submit the form
+        document.getElementById('auditForm').submit();
     };
 
 })();

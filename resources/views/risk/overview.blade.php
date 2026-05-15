@@ -63,6 +63,12 @@ tr.row-failed > td.fail-cell-active {
 @endpush
 
 @section('content')
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        {{ session('success') }}
+    </div>
+@endif
 <div class="row">
     <div class="col-md-12">
         <div class="box box-primary">
@@ -76,56 +82,6 @@ tr.row-failed > td.fail-cell-active {
             </div>
             <div class="box-body">
                 <p>Welcome to the Risk Management Overview. This page provides a high-level summary of all risk-related activities and metrics.</p>
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="info-box">
-                            <span class="info-box-icon bg-red"><i class="fa fa-warning"></i></span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">Critical Risks</span>
-                                <span class="info-box-number">0</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="info-box">
-                            <span class="info-box-icon bg-yellow"><i class="fa fa-exclamation-triangle"></i></span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">High Risks</span>
-                                <span class="info-box-number">0</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="info-box">
-                            <span class="info-box-icon bg-blue"><i class="fa fa-info-circle"></i></span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">Moderate Risks</span>
-                                <span class="info-box-number">0</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="info-box">
-                            <span class="info-box-icon bg-green"><i class="fa fa-check-circle"></i></span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">Low Risks</span>
-                                <span class="info-box-number">0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="box box-solid">
-                            <div class="box-header">
-                                <h3 class="box-title">Risk Trends</h3>
-                            </div>
-                            <div class="box-body">
-                                <p>Chart placeholder for risk trends over time.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -136,129 +92,50 @@ tr.row-failed > td.fail-cell-active {
      BRANCH AUDIT RESULTS OVERVIEW
      ============================================================ -->
 @php
-/*
- * Sample data — replace with DB query once audit submissions are persisted.
- * Shape: [ branch_name, last_audit, auditor, rating, fail_count, sections[] ]
- * Each section: [ name, short, pass, fail, na ]
- */
 $sectionShorts = ['Admin','Wallet','Loans','Collections','Fraud','Staff','Systems','Reporting','Conclusion'];
 
-$branches = [
-    [
-        'name'       => 'Lusaka Central',
-        'code'       => 'LCA-001',
-        'last_audit' => '30 Apr 2026',
-        'auditor'    => 'M. Banda',
-        'fail_count' => 2,
-        'rating'     => 'low',
-        'sections'   => [
-            ['pass'=>7,'fail'=>0,'na'=>0],
-            ['pass'=>9,'fail'=>1,'na'=>0],
-            ['pass'=>7,'fail'=>0,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>7,'fail'=>0,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>5,'fail'=>1,'na'=>1],
-            ['pass'=>5,'fail'=>0,'na'=>0],
-        ],
-    ],
-    [
-        'name'       => 'Kitwe Branch',
-        'code'       => 'KTW-002',
-        'last_audit' => '28 Apr 2026',
-        'auditor'    => 'P. Mwale',
-        'fail_count' => 6,
-        'rating'     => 'medium',
-        'sections'   => [
-            ['pass'=>7,'fail'=>0,'na'=>0],
-            ['pass'=>7,'fail'=>3,'na'=>0],
-            ['pass'=>5,'fail'=>2,'na'=>0],
-            ['pass'=>5,'fail'=>1,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>1],
-            ['pass'=>5,'fail'=>0,'na'=>1],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>5,'fail'=>0,'na'=>0],
-        ],
-    ],
-    [
-        'name'       => 'Ndola Office',
-        'code'       => 'NDL-003',
-        'last_audit' => '25 Apr 2026',
-        'auditor'    => 'C. Phiri',
-        'fail_count' => 10,
-        'rating'     => 'high',
-        'sections'   => [
-            ['pass'=>6,'fail'=>1,'na'=>0],
-            ['pass'=>6,'fail'=>4,'na'=>0],
-            ['pass'=>4,'fail'=>3,'na'=>0],
-            ['pass'=>4,'fail'=>2,'na'=>0],
-            ['pass'=>4,'fail'=>2,'na'=>0],
-            ['pass'=>5,'fail'=>2,'na'=>0],
-            ['pass'=>4,'fail'=>2,'na'=>0],
-            ['pass'=>5,'fail'=>1,'na'=>0],
-            ['pass'=>4,'fail'=>1,'na'=>0],
-        ],
-    ],
-    [
-        'name'       => 'Livingstone Branch',
-        'code'       => 'LVS-004',
-        'last_audit' => '22 Apr 2026',
-        'auditor'    => 'R. Tembo',
-        'fail_count' => 15,
-        'rating'     => 'critical',
-        'sections'   => [
-            ['pass'=>5,'fail'=>2,'na'=>0],
-            ['pass'=>4,'fail'=>6,'na'=>0],
-            ['pass'=>3,'fail'=>4,'na'=>0],
-            ['pass'=>2,'fail'=>4,'na'=>0],
-            ['pass'=>2,'fail'=>4,'na'=>0],
-            ['pass'=>3,'fail'=>4,'na'=>0],
-            ['pass'=>3,'fail'=>3,'na'=>0],
-            ['pass'=>3,'fail'=>3,'na'=>0],
-            ['pass'=>3,'fail'=>2,'na'=>0],
-        ],
-    ],
-    [
-        'name'       => 'Chipata Office',
-        'code'       => 'CHP-005',
-        'last_audit' => '20 Apr 2026',
-        'auditor'    => 'N. Zulu',
-        'fail_count' => 0,
-        'rating'     => 'low',
-        'sections'   => [
-            ['pass'=>7,'fail'=>0,'na'=>0],
-            ['pass'=>10,'fail'=>0,'na'=>0],
-            ['pass'=>7,'fail'=>0,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>7,'fail'=>0,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>5,'fail'=>0,'na'=>0],
-        ],
-    ],
-    [
-        'name'       => 'Kabwe Branch',
-        'code'       => 'KBW-006',
-        'last_audit' => '18 Apr 2026',
-        'auditor'    => 'T. Mulenga',
-        'fail_count' => 5,
-        'rating'     => 'medium',
-        'sections'   => [
-            ['pass'=>7,'fail'=>0,'na'=>0],
-            ['pass'=>8,'fail'=>2,'na'=>0],
-            ['pass'=>6,'fail'=>1,'na'=>0],
-            ['pass'=>5,'fail'=>1,'na'=>0],
-            ['pass'=>5,'fail'=>1,'na'=>0],
-            ['pass'=>6,'fail'=>1,'na'=>0],
-            ['pass'=>5,'fail'=>0,'na'=>1],
-            ['pass'=>6,'fail'=>0,'na'=>0],
-            ['pass'=>5,'fail'=>0,'na'=>0],
-        ],
-    ],
-];
+$submissions = \App\Models\AuditSubmission::with('office', 'auditor')->latest()->take(20)->get();
+
+$branches = $submissions->map(function($sub) use ($sectionShorts) {
+    $sections = [];
+    $failCount = 0;
+    $sectionItemCounts = [
+        0 => 10, // s2 has 10 items
+        1 => 7,  // s3
+        2 => 2,  // s4
+        3 => 7,  // s5
+        4 => 8,  // s6
+        5 => 8,  // s7
+        6 => 6,  // s8
+        7 => 2,  // s9
+    ];
+    foreach ($sectionShorts as $i => $short) {
+        $s = $i + 2;
+        $pass = 0;
+        $fail = 0;
+        $na = 0;
+        $itemCount = $sectionItemCounts[$i] ?? 0;
+        for ($j = 1; $j <= $itemCount; $j++) {
+            $field = "s{$s}_{$j}";
+            $value = $sub->$field;
+            if ($value === 'pass') $pass++;
+            elseif ($value === 'fail') $fail++;
+            elseif ($value === 'na') $na++;
+        }
+        $sections[] = ['pass' => $pass, 'fail' => $fail, 'na' => $na];
+        $failCount += $fail;
+    }
+    return [
+        'submission_id' => $sub->id,
+        'name' => $sub->office->name ?? 'Unknown',
+        'code' => $sub->office->external_id ?? '',
+        'last_audit' => $sub->created_at->format('d M Y'),
+        'auditor' => $sub->auditor_name,
+        'fail_count' => $failCount,
+        'rating' => $sub->risk_rating,
+        'sections' => $sections,
+    ];
+})->toArray();
 
 $ratingConfig = [
     'low'      => ['label'=>'🟢 LOW',      'color'=>'#27ae60','bg'=>'#eafaf1','badge'=>'success'],
@@ -355,7 +232,7 @@ $ratingConfig = [
                                             $barColor = $sec['fail'] === 0 ? '#27ae60' : ($sec['fail'] <= 1 ? '#f39c12' : '#c0392b');
                                         @endphp
                                         <tr style="border-bottom:1px solid #f5f5f5;">
-                                            <td style="padding:4px 4px;color:#444;">{{ $sname }}</td>
+                                            <td style="padding:4px 4px;color:#444;cursor:pointer;" onclick="loadSectionDetails({{ $branch['submission_id'] }}, {{ $si + 2 }}, '{{ $sname }}')">{{ $sname }}</td>
                                             <td style="padding:4px 4px;text-align:center;color:#27ae60;font-weight:bold;">{{ $sec['pass'] }}</td>
                                             <td style="padding:4px 4px;text-align:center;{{ $sec['fail'] > 0 ? 'color:#c0392b;font-weight:bold;' : 'color:#ccc;' }}">
                                                 {{ $sec['fail'] > 0 ? $sec['fail'] : '—' }}
@@ -395,5 +272,48 @@ $ratingConfig = [
 @include('risk.partials.audit-checklist-modal')
 
 @include('risk.partials.audit-checklist-scripts')
+
+<!-- Modal for section details -->
+<div class="modal fade" id="sectionDetailsModal" tabindex="-1" role="dialog" aria-labelledby="sectionDetailsModalLabel">
+    <div class="modal-dialog" role="document" style="width:80%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="sectionDetailsModalLabel">Section Details</h4>
+            </div>
+            <div class="modal-body">
+                <div id="sectionDetailsContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadSectionDetails(submissionId, section, sectionName) {
+    fetch('/risk/audit-section-details/' + submissionId + '/' + section)
+        .then(response => response.json())
+        .then(data => {
+            let content = '<h4>' + sectionName + '</h4><ul class="list-group">';
+            data.forEach(item => {
+                let statusIcon = '';
+                if (item.status === 'pass') statusIcon = '<i class="fa fa-check text-success"></i>';
+                else if (item.status === 'fail') statusIcon = '<i class="fa fa-times text-danger"></i>';
+                else if (item.status === 'na') statusIcon = '<i class="fa fa-minus text-muted"></i>';
+                content += '<li class="list-group-item">' + statusIcon + ' ' + item.label;
+                if (item.notes) content += '<br><small class="text-muted">Notes: ' + item.notes + '</small>';
+                content += '</li>';
+            });
+            content += '</ul>';
+            document.getElementById('sectionDetailsContent').innerHTML = content;
+            document.getElementById('sectionDetailsModalLabel').textContent = sectionName + ' Details';
+            $('#sectionDetailsModal').modal('show');
+        })
+        .catch(error => console.error('Error:', error));
+}
+</script>
 
 @endsection

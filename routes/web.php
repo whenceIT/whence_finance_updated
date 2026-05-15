@@ -456,6 +456,9 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('staff-profiles', [RiskController::class, 'staffProfiles']);
     Route::get('executive-summary', [RiskController::class, 'executiveSummary']);
     Route::get('decision-sla', [RiskController::class, 'decisionSla']);
+    Route::get('office-audit-data/{officeId}', [RiskController::class, 'getOfficeAuditData']);
+    Route::get('audit-section-details/{submissionId}/{section}', [RiskController::class, 'getAuditSectionDetails']);
+    Route::post('store-audit-submission', [RiskController::class, 'storeAuditSubmission'])->name('risk.store-audit-submission');
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {

@@ -56,6 +56,8 @@
 
             {{-- Body --}}
             <div class="modal-body" style="padding:0;max-height:75vh;overflow-y:auto;">
+                <form id="auditForm" method="POST" action="{{ route('risk.store-audit-submission') }}">
+                    @csrf
                 <div id="auditWizard">
 
                     {{-- =============================================
@@ -163,10 +165,10 @@
                             {{-- Branch search-select — populated from offices table --}}
                             <div class="form-group">
                                 <label>Branch Name <span class="text-danger">*</span></label>
-                                <select class="form-control" name="s1_office_id" style="width:100%;">
+                                <select class="form-control select2-branch" id="s1OfficeSelect" name="s1_office_id" style="width:100%;">
                                     <option value="">— Search and select a branch —</option>
-                                    @foreach(\App\Models\Office::where('active', 1)->orderBy('name')->get() as $office)
-                                    <option value="{{ $office->id }}">
+                                    @foreach(\App\Models\Office::with('province', 'district')->where('active', 1)->orderBy('name')->get() as $office)
+                                    <option value="{{ $office->id }}" data-code="{{ $office->external_id }}">
                                         {{ $office->name }}{{ $office->external_id ? ' ('.$office->external_id.')' : '' }}
                                     </option>
                                     @endforeach
@@ -193,39 +195,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>Province</label>
-                                            <input type="text" class="form-control" id="s1BranchProvince" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>District</label>
-                                            <input type="text" class="form-control" id="s1BranchDistrict" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
-                                        </div>
-                                    </div>
+
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>Address</label>
-                                            <input type="text" class="form-control" id="s1BranchAddress" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>Phone</label>
-                                            <input type="text" class="form-control" id="s1BranchPhone" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>Email</label>
-                                            <input type="text" class="form-control" id="s1BranchEmail" readonly style="background:#f9f9f9;" placeholder="Auto-filled">
-                                        </div>
-                                    </div>
-                                </div>
+                    
                             </div>
 
                             @php $s1items = [
@@ -250,8 +222,21 @@
                                     'label'  => 'Audit Scope',
                                     'verify' => 'Confirm scope with Provincial Manager, Administration, or Risk Manager before starting.',
                                     'flag'   => 'Scope so broad it is unworkable, or so narrow key risks are missed.',
-                                    'type'   => 'text',
-                                    'ph'     => 'e.g. Withinhere wallet controls, loan files, collections, staff conduct',
+                                    'type'   => 'select',
+                                    'multiple' => true,
+                                    'class'  => 'form-control select2',
+                                    'placeholder' => 'Select one or more applicable audit sections',
+                                    'options' => [
+                                        'Section 1 — Audit Administration',
+                                        'Section 2 — Withinhere Wallet & Digital Payment Controls',
+                                        'Section 3 — Loan Portfolio Integrity',
+                                        'Section 4 — Collections & Recoveries',
+                                        'Section 5 — Fraud Risk Indicators',
+                                        'Section 6 — Staff & Process Compliance',
+                                        'Section 7 — System & Control Environment',
+                                        'Section 8 — Reporting & Governance',
+                                        'Section 9 — Audit Conclusion & Sign-Off'
+                                    ],
                                 ],
                                 [
                                     'id'     => 's1_period_start',
@@ -274,7 +259,19 @@
                             @foreach($s1items as $item)
                             <div class="form-group">
                                 <label>{{ $item['label'] }} <span class="text-danger">*</span></label>
-                                <input type="{{ $item['type'] }}" class="form-control" name="{{ $item['id'] }}" placeholder="{{ $item['ph'] }}">
+                                @if($item['type'] == 'select')
+                                    <select class="{{ $item['class'] ?? 'form-control' }}" name="{{ $item['id'] }}{{ $item['multiple'] ? '[]' : '' }}" {{ $item['multiple'] ? 'multiple' : '' }}
+                                            {{ !empty($item['placeholder']) ? 'data-placeholder="'.$item['placeholder'].'"' : '' }} style="width:100%;">
+                                        @if(!empty($item['placeholder']))
+                                            <option></option>
+                                        @endif
+                                        @foreach($item['options'] as $option)
+                                            <option value="{{ $option }}">{{ $option }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <input type="{{ $item['type'] }}" class="form-control" name="{{ $item['id'] }}" placeholder="{{ $item['ph'] }}">
+                                @endif
                                 <div style="margin-top:4px;font-size:12px;">
                                     <span class="text-muted"><i class="fa fa-check-circle text-success"></i> <strong>How to verify:</strong> {{ $item['verify'] }}</span>
                                     &nbsp;&nbsp;
@@ -580,7 +577,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Total Active Loans (System)</label>
-                                        <input type="number" class="form-control" name="s3_total_active" placeholder="0">
+                                        <input type="number" class="form-control" id="s3_total_active" name="s3_total_active" placeholder="0">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -592,7 +589,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Number of Incomplete Files Found</label>
-                                        <input type="number" class="form-control" name="s3_incomplete_files" placeholder="0">
+                                        <input type="number" class="form-control" id="s3_incomplete_files" name="s3_incomplete_files" placeholder="0">
                                     </div>
                                 </div>
                             </div>
@@ -708,13 +705,13 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Total Collections per System (Period)</label>
-                                        <input type="text" class="form-control" name="s4_system_collections" placeholder="e.g. K 450,000.00">
+                                        <input type="text" class="form-control" id="s4_system_collections" name="s4_system_collections" placeholder="e.g. K 450,000.00">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Total Collections per Withinhere Wallet (Period)</label>
-                                        <input type="text" class="form-control" name="s4_wallet_collections" placeholder="e.g. K 450,000.00">
+                                        <input type="text" class="form-control" id="s4_wallet_collections" name="s4_wallet_collections" placeholder="e.g. K 450,000.00">
                                     </div>
                                 </div>
                             </div>
@@ -941,7 +938,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Total Branch Staff</label>
-                                        <input type="number" class="form-control" name="s6_total_staff" placeholder="0">
+                                        <input type="number" class="form-control" id="s6_total_staff" name="s6_total_staff" placeholder="0">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -1347,6 +1344,7 @@
                     </div>
 
                 </div>{{-- /#auditWizard --}}
+                </form>
             </div>{{-- /.modal-body --}}
 
             {{-- Footer --}}
