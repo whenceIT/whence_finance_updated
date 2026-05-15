@@ -60,6 +60,7 @@ use App\Models\CarryOver;
 use App\Models\Province;
 use App\Models\Notifix;
 use App\Services\NotifixService;
+use App\Models\ClientAppLoanApplications;
 
 
 class LoanController extends Controller
@@ -754,6 +755,48 @@ class LoanController extends Controller
         // Log audit for accessing loan transactions approvals page
         $this->auditorService->logTransactionApprovalsPage(Sentinel::getUser(), request());
         return view('loan.transactions', compact('data','HasPendingCarryOvers',));
+    }
+
+
+    public function pending_client_app_applications()
+    {
+        
+        if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+            $province_transactions = [];
+
+
+         $userId = Sentinel::getUser()->id;
+         $offices = Office::get();
+         $province_id = Sentinel::getUser()->province_id;
+         $role = UserRole::where('user_id', $userId)->first();
+         $office_id = Sentinel::getUser()->office_id;
+
+        if($role->role_id == "6"){
+              foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $transactions = ClientAppLoanApplications::where('branch', $office->id)->get();
+                    foreach ($transactions as $transaction) {
+                        array_push($province_transactions, $transaction);
+                    }
+                }
+            }
+
+            $data = $province_transactions;
+
+        }else{
+             if (Sentinel::hasAccess('settings')) {
+                $data =  ClientAppLoanApplications::get();
+            } else {
+                $data = ClientAppLoanApplications::where('branch', $office_id)->get();
+            }
+        }
+
+         return view('loan.client_app_loan_applications', compact('data',));
+
     }
 
 
@@ -3288,19 +3331,25 @@ class LoanController extends Controller
                 $user = Sentinel::getUser();
                 $this->auditorService->logApprovedTransaction($user, request(), $loan);
                 // Send SMS to client about the transaction
-                $amount = $Trans->credit;
+                $amount = number_format($Trans->credit, 2);
                 $date = $Trans->date;
                 $paymentType = $Trans->payment_apply_to;
                 $dueDate = $loan->first_repayment_date ? date('d M Y', strtotime($loan->first_repayment_date)) : 'N/A';
                 $loanStatus = $loan->status;
 
+                if($loan->office_id == 8){
+                    $balance = GeneralHelper::loan_total_balance($loan->id);
+                    $inline = ', your new loan balance is ZMW ' . number_format($balance, 2) . '.';
+                }else{
+                    $inline = '';
+                }
                 //Create a message based on the payment type
                 if ($paymentType == 'full_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount}  successfully received on {$date}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount} successfully received on {$date} Thank you. Call 0773425477 for queries.";
                 } elseif ($paymentType == 'part_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} successfully received on {$date}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully received on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
                 } else {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} successfully received on {$date}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully received on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
                 }
 
                 // Send SMS to client about the transaction (only for enabled offices)

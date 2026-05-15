@@ -745,6 +745,12 @@
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('loan/managers_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
+
+                      @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('loan/pending_client_app_applications') }}"><i class="fa fa-circle-o"></i>Client App Loan Applications @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\ClientAppLoanApplications::whereIn('status', ['pending'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\ClientAppLoanApplications::whereIn('status', ['pending'])->where('branch',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+
+
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/top_up_approvals') }}"><i class="fa fa-circle-o"></i> Top Ups Pending Approval @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\LoanTopUp::whereIn('status', ['pending'])->where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif

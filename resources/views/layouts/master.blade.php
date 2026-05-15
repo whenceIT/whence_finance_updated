@@ -934,9 +934,9 @@ $office = $userInfo->office;
                     </div> -->
                     <script>
                         // Prevent closing the modal
-                        document.getElementById('payrollModal').addEventListener('click', function (event) {
-                            event.stopPropagation();
-                        });
+                        // document.getElementById('payrollModal').addEventListener('click', function (event) {
+                        //     event.stopPropagation();
+                        // });
                         document.addEventListener('keydown', function (event) {
                             if (event.key === 'Escape') {
                                 event.preventDefault();
@@ -1046,7 +1046,12 @@ $office = $userInfo->office;
             const url = "https://lms2backend.whencefinancesystem.com/announcement";
 
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     if (!data || !data.title || !data.message || !data.end_date) return;
 
@@ -1072,7 +1077,10 @@ $office = $userInfo->office;
                     });
 
                 })
-                .catch(err => console.error("Announcement fetch failed:", err));
+                .catch(err => {
+                    // Silently fail - announcement is not critical
+                    console.log("Announcement service unavailable");
+                });
 
         });
     </script>

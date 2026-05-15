@@ -585,7 +585,12 @@
             const url = "https://lms2backend.whencefinancesystem.com/announcement";
 
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     if (!data || !data.title || !data.message || !data.end_date) return;
 
@@ -611,7 +616,10 @@
                     });
 
                 })
-                .catch(err => console.error("Announcement fetch failed:", err));
+                .catch(err => {
+                    // Silently fail - announcement is not critical
+                    console.log("Announcement service unavailable");
+                });
 
         });
     </script>
