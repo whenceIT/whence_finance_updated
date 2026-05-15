@@ -42,6 +42,12 @@ class Kernel extends ConsoleKernel
                  ->withoutOverlapping()
                  ->runInBackground();
 
+        // Push performance-linked training triggers daily at 07:00
+        $schedule->command('training:push-performance-triggers')
+                 ->dailyAt('07:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+
         // $schedule->command('inspire')
         //          ->hourly();
     }

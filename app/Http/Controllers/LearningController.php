@@ -21,7 +21,8 @@ class LearningController extends Controller
      */
     public function index(\Illuminate\Http\Request $request)
     {
-        $user = Sentinel::getUser();
+       try {
+         $user = Sentinel::getUser();
         
         // Get page number from request
         $page = $request->input('page', 1);
@@ -82,10 +83,12 @@ class LearningController extends Controller
         // Share categories with all views
         view()->share('categories', $categories);
         
+        
         // Check if featured tab is active
         $isFeaturedTab = $request->input('tab') === 'featured' ? true : false;
         
         if ($isFeaturedTab) {
+           
             // For featured tab, get uploads grouped by general topic (only videos)
             $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) use ($user) {
                 $query->where('type', 'video')
@@ -106,6 +109,7 @@ class LearningController extends Controller
                 return $topic['uploads']->count() > 0;
             })->toArray();
 
+
             // Flatten uploads for statistics and backward compatibility (only videos)
             $uploads = \App\Models\GeneralUpload::where('type', 'video')
                 ->whereHas('positions', function($q) use ($user) {
@@ -114,12 +118,15 @@ class LearningController extends Controller
                     // }
                 })->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
         } else {
+            
             // For other tabs, get general uploads normally
             $uploads = \App\Models\GeneralUpload::whereHas('positions', function($q) use ($user) {
-                if ($user->position_id) {
-                    $q->where('id', $user->position_id);
-                }
+                // if ($user->position_id) {
+                //     $q->where('id', $user->position_id);
+                // }
             })->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'uploads_page', $page);
+
+        
             $topicsWithUploads = \App\Models\GeneralTopic::with(['uploads' => function($query) use ($user) {
                 // $query->whereHas('positions', function($q) use ($user) {
                 //     if ($user->position_id) {
@@ -137,6 +144,7 @@ class LearningController extends Controller
             })->filter(function($topic) {
                 return $topic['uploads']->count() > 0;
             })->toArray();
+            
         }
         
         // Fetch grouped uploads for browsing (12 max per type)
@@ -156,6 +164,9 @@ class LearningController extends Controller
             ->get();
         
         return view('learning.dashboard', compact('courses', 'stats', 'uploads', 'topicsWithUploads', 'isFeaturedTab', 'page', 'perPage', 'groupedVideos', 'groupedAudios', 'groupedDocuments'));
+       } catch (\Throwable $th) {
+        //  dd($th);
+       }
     }
 
     /**
