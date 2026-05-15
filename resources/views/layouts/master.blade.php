@@ -1615,6 +1615,7 @@ $office = $userInfo->office;
 
 
 
+    @include('components.performance_pusher')
     @include('components.notification')
 
 </body>

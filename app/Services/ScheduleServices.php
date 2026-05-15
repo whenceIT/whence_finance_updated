@@ -43,5 +43,18 @@ class ScheduleServices
         Artisan::call('notifications:send-expenses');
     }
 
+    /**
+     * Run performance-linked training triggers daily at 07:00
+     *
+     * Analyses performance indicators and pushes relevant training content:
+     *  - High loan defaults → vetting & due-diligence materials
+     *  - High staff turnover → leadership & management materials
+     *  - Declining client base → client management materials
+     */
+    public function runPerformanceLinkedTraining()
+    {
+        Artisan::call('training:push-performance-triggers');
+    }
+
 
 }
