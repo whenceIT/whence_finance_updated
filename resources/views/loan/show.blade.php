@@ -554,7 +554,9 @@
 
                         <div class="row">
                             <div class="col-md-12">
-                                @if(Sentinel::getUser()->office_id != 36)
+
+                            <!-- Loan Details Modification RiskBlocking::RB1() -->
+                                @if(Sentinel::getUser()->office_id != 0)
                                 <div class="pull-right btn-group">
                                     @if(Sentinel::hasAccess('loans.transactions.create'))
                                         <a href="{{ url('loan/'.$loan->id.'/repayment/create') }}"
