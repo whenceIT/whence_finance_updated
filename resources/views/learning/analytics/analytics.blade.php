@@ -734,6 +734,7 @@
         <div class="date-filter">
             <label for="period-select" style="font-weight: 500; color: var(--text-primary);">Period:</label>
             <select id="period-select" onchange="changePeriod(this.value)">
+                <option value="today" {{ $period == 'today' ? 'selected' : '' }}>Today</option>
                 <option value="7" {{ $period == '7' ? 'selected' : '' }}>Last 7 days</option>
                 <option value="30" {{ $period == '30' ? 'selected' : '' }}>Last 30 days</option>
                 <option value="90" {{ $period == '90' ? 'selected' : '' }}>Last 90 days</option>
@@ -746,362 +747,24 @@
             <button type="button" class="tab-button active" onclick="setActiveTab('analytics-tab')" role="tab" aria-selected="true" aria-controls="analytics-tab">Analytics</button>
             <button type="button" class="tab-button" onclick="setActiveTab('engagement-tab')" role="tab" aria-selected="false" aria-controls="engagement-tab">Engagement Tracking</button>
             <button type="button" class="tab-button" onclick="setActiveTab('feedback-tab')" role="tab" aria-selected="false" aria-controls="feedback-tab">Feedback Loop to Users</button>
+
+            <button type="button" class="tab-button" onclick="setActiveTab('management-tab')" role="tab" aria-selected="false" aria-controls="management-tab">Management & Executive Dashboard</button>
         </div>
 
     <div id="analytics-tab" class="tab-panel active">
-
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-title">Total Views</div>
-            <div class="kpi-value">{{ number_format($overallStats['total_views']) }}</div>
-            <div class="kpi-change neutral">
-                <i class="fa fa-eye"></i>
-                {{\App\Helpers\GeneralHelper::calculate_view_percentage($overallStats['total_views'])}}% of total users
-            </div>
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-title">Course Topics Views</div>
-            <div class="kpi-value">{{ number_format($overallStats['total_course_views']) }}</div>
-            <div class="kpi-change positive">
-                <i class="fa fa-graduation-cap"></i>
-                {{\App\Helpers\GeneralHelper::calculate_view_percentage($overallStats['total_course_views'])}}% of total users
-            </div>
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-title">Course Views</div>
-            <div class="kpi-value">{{ number_format($overallStats['total_course_views']) }}</div>
-            <div class="kpi-change neutral">
-                <i class="fa fa-file-text"></i>
-                {{\App\Helpers\GeneralHelper::calculate_view_percentage($overallStats['total_course_views'])}}% of total users
-            </div>
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-title">Upload Views</div>
-            <div class="kpi-value">{{ number_format($overallStats['total_upload_views']) }}</div>
-            <div class="kpi-change neutral">
-                <i class="fa fa-cloud-upload"></i>
-                {{\App\Helpers\GeneralHelper::calculate_view_percentage($overallStats['total_upload_views'])}}% of total users
-            </div>
-        </div>
+        @include('learning.analytics.analytics-tab')
     </div>
-
-    
-
-    <!-- Top Performers -->
-    <div class="performers-container">
-        <!-- Top Courses -->
-        <div class="performer-card">
-            <h3 class="chart-title">
-                <i class="fa fa-trophy"></i>
-                Top Performing Courses
-            </h3>
-            <ul class="performer-list">
-                @foreach($topCourses as $index => $course)
-                <li class="performer-item">
-                    <span class="performer-name">
-                        <span style="color: var(--primary-color); margin-right: 8px;">#{{ $index + 1 }}</span>
-                        {{ $course['title'] }}
-                    </span>
-                    <span class="performer-metric clickable-views" onclick="showViewers('course', '{{ $course['id'] ?? $index }}', '{{ addslashes($course['title']) }}')">{{ number_format($course['views']) }} views ({{ \App\Helpers\GeneralHelper::calculate_view_percentage($course['views']) }}%)</span>
-                </li>
-                @endforeach
-            </ul>
-        </div>
-
-        <!-- Top Uploads -->
-        <div class="performer-card">
-            <h3 class="chart-title">
-                <i class="fa fa-star"></i>
-                Top Performing Uploads
-            </h3>
-            <ul class="performer-list">
-                @foreach($topUploads as $index => $upload)
-                    @if(!empty($upload['topic']))
-                    <li class="performer-item">
-                        <span class="performer-name">
-                            <span style="color: var(--primary-color); margin-right: 8px;">#{{ $index + 1 }}</span>
-                            {{ $upload['topic'] }}
-                        </span>
-                        <span class="performer-metric clickable-views" onclick="showViewers('upload', '{{ $upload['id'] ?? $index }}', '{{ addslashes($upload['topic']) }}')">{{ number_format($upload['views']) }} views ({{ \App\Helpers\GeneralHelper::calculate_view_percentage($upload['views']) }}%)</span>
-                    </li>
-                    @endif
-                @endforeach
-            </ul>
-        </div>
-    </div>
-
-    <!-- Content Breakdown -->
-    <div class="breakdown-container">
-        <!-- Course Categories -->
-        <div class="breakdown-card">
-            <h3 class="chart-title">
-                <i class="fa fa-tags"></i>
-                Course Categories
-            </h3>
-            <ul class="breakdown-list">
-                @foreach($chartData['course_categories'] as $index => $category)
-                <li class="breakdown-item">
-                    <span class="breakdown-name">{{ $category['category'] }}</span>
-                    <div class="breakdown-stats">
-                        <span class="breakdown-count">{{ $category['count'] }} courses</span>
-                        <span class="breakdown-views clickable-views" onclick="showViewers('category', '{{ $index }}', '{{ addslashes($category['category']) }}')">{{ number_format($category['views']) }} views ({{ \App\Helpers\GeneralHelper::calculate_view_percentage($category['views']) }}%)</span>
-                    </div>
-                </li>
-                @endforeach
-            </ul>
-        </div>
-
-        <!-- Content Types Breakdown -->
-        <div class="breakdown-card">
-            <h3 class="chart-title">
-                <i class="fa fa-file"></i>
-                Upload Types
-            </h3>
-            <ul class="breakdown-list">
-                @foreach($chartData['content_types'] as $index => $type)
-                <li class="breakdown-item">
-                    <span class="breakdown-name">{{ $type['type'] }}</span>
-                    <div class="breakdown-stats">
-                        <span class="breakdown-count">{{ $type['count'] }} files</span>
-                        <span class="breakdown-views clickable-views" onclick="showViewers('content_type', '{{ $index }}', '{{ addslashes($type['type']) }}')">{{ number_format($type['views']) }} views ({{ \App\Helpers\GeneralHelper::calculate_view_percentage($type['views']) }}%)</span>
-                    </div>
-                </li>
-                @endforeach
-            </ul>
-        </div>
-    </div>
-
-    <!-- Office Analytics -->
-    <!-- <div class="charts-container">
-        <div class="chart-card">
-            <h3 class="chart-title">
-                <i class="fa fa-building"></i>
-                Office Performance
-            </h3>
-            <div id="office-performance-chart" class="chart-container"></div>
-        </div>
-    </div> -->
-    <br>
-    <!-- Detailed Analytics Tables -->
-    <div class="breakdown-container">
-        <!-- Office Analytics Table -->
-        <div class="breakdown-card">
-            <h3 class="chart-title">
-                <i class="fa fa-building"></i>
-                Course Views by Office
-            </h3>
-            <ul class="breakdown-list">
-                @foreach($chartData['office_analytics']['course_views'] as $index => $office)
-                <li class="breakdown-item">
-                    <span class="breakdown-name">{{ $office['office'] }}</span>
-                    <div class="breakdown-stats">
-                        <span class="breakdown-count">{{ $office['courses_count'] }} courses</span>
-                        <span class="breakdown-views clickable-views" onclick="showViewers('office', '{{ $index }}', '{{ addslashes($office['office']) }}')">{{ number_format($office['views']) }} views ({{ \App\Helpers\GeneralHelper::calculate_view_percentage($office['views']) }}%)</span>
-                    </div>
-                </li>
-                @endforeach
-            </ul>
-        </div>
-    </div>
-
-</div>
 
     <div id="engagement-tab" class="tab-panel">
-
-    <!-- Engagement Tracking -->
-    <div class="engagement-container">
-        <h2 class="analytics-title" style="margin-bottom: 20px;">
-            <i class="fa fa-chart-line"></i>
-            Engagement Tracking
-        </h2>
-
-        <!-- Individual Engagement Cards -->
-        <div class="kpi-grid">
-            <div class="kpi-card clickable-views" onclick="showOpenedMaterials()">
-                <div class="kpi-title">Material Opened</div>
-                <div class="kpi-value">{{ number_format($engagementStats['opened_count'] ?? 0) }}</div>
-                <div class="kpi-change positive">
-                    <i class="fa fa-eye"></i>
-                    {{ \App\Helpers\GeneralHelper::calculate_view_percentage($engagementStats['opened_count'] ?? 0) }}% of total users
-                </div>
-            </div>
-
-            <div class="kpi-card clickable-views" onclick="showAverageDurationMaterials()">
-                <div class="kpi-title">Average Engagement Duration</div>
-                <div class="kpi-value">{{ $engagementStats['avg_duration'] ?? '0:00' }}</div>
-                <div class="kpi-change neutral">
-                    <i class="fa fa-clock"></i>
-                    {{ $engagementStats['avg_duration_raw'] ?? 0 }} seconds average
-                </div>
-            </div>
-
-            <div class="kpi-card clickable-views" onclick="showCompletedMaterials()">
-                <div class="kpi-title">Completion Rate</div>
-                <div class="kpi-value">{{ number_format($engagementStats['completion_rate'] ?? 0) }}%</div>
-                <div class="kpi-change positive">
-                    <i class="fa fa-check-circle"></i>
-                    Materials completed
-                </div>
-            </div>
-
-            <div class="kpi-card">
-                <div class="kpi-title">Active Learners</div>
-                <div class="kpi-value">{{ number_format($engagementStats['active_learners'] ?? 0) }}</div>
-                <div class="kpi-change neutral">
-                    <i class="fa fa-users"></i>
-                    Engaged this period
-                </div>
-            </div>
-        </div>
-
-        <!-- Individual Engagement Table -->
-        <div class="breakdown-container">
-            <div class="breakdown-card">
-                <h3 class="chart-title">
-                    <i class="fa fa-user-clock"></i>
-                    Individual Engagement Details
-                </h3>
-                <div class="engagement-table-container">
-                    <table class="engagement-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Material</th>
-                                <th>Opened</th>
-                                <th>Duration</th>
-                                <th>Completion Status</th>
-                                <th>Last Activity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($individualEngagement ?? [] as $engagement)
-                            <tr>
-                                <td class="user-cell">
-                                    <div class="user-info">
-                                        <div class="user-avatar">{{ substr($engagement['user_name'] ?? 'U', 0, 1) }}</div>
-                                        <div>
-                                            <div class="user-name">{{ $engagement['user_name'] ?? 'Unknown User' }}</div>
-                                            <div class="user-email">{{ $engagement['user_email'] ?? '' }}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ $engagement['material_title'] ?? 'N/A' }}</td>
-                                <td>
-                                    <span class="status-indicator {{ $engagement['opened'] ? 'opened' : 'not-opened' }}">
-                                        <i class="fa {{ $engagement['opened'] ? 'fa-check' : 'fa-times' }}"></i>
-                                        {{ $engagement['opened'] ? 'Yes' : 'No' }}
-                                    </span>
-                                </td>
-                                <td>{{ $engagement['duration'] ?? '0:00' }}</td>
-                                <td>
-                                    <span class="completion-status {{ strtolower($engagement['completion_status'] ?? 'not-started') }}">
-                                        {{ $engagement['completion_status'] ?? 'Partially viewed and left' }}
-                                    </span>
-                                </td>
-                                <td>{{ $engagement['last_activity'] ?? 'N/A' }}</td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="no-data">No engagement data available</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Aggregated Summaries for Management -->
-        <div class="breakdown-container">
-            <div class="breakdown-card">
-                <h3 class="chart-title">
-                    <i class="fa fa-chart-bar"></i>
-                    Executive Summary
-                </h3>
-                <div class="summary-grid">
-                    <div class="summary-item">
-                        <div class="summary-label">Total Engaged Users</div>
-                        <div class="summary-value">{{ number_format($executiveSummary['total_engaged'] ?? 0) }}</div>
-                        <div class="summary-change positive">
-                            <i class="fa fa-arrow-up"></i>
-                            {{ $executiveSummary['engaged_growth'] ?? 0 }}% from last period
-                        </div>
-                    </div>
-
-                    <div class="summary-item">
-                        <div class="summary-label">Average Completion Time</div>
-                        <div class="summary-value">{{ $executiveSummary['avg_completion_time'] ?? '0:00' }}</div>
-                        <div class="summary-change neutral">
-                            <i class="fa fa-clock"></i>
-                            Across all materials
-                        </div>
-                    </div>
-
-                    <div class="summary-item">
-                        <div class="summary-label">Top Performing Department</div>
-                        <div class="summary-value">{{ $executiveSummary['top_department'] ?? 'N/A' }}</div>
-                        <div class="summary-change positive">
-                            <i class="fa fa-trophy"></i>
-                            {{ $executiveSummary['dept_completion_rate'] ?? 0 }}% completion
-                        </div>
-                    </div>
-
-                    <div class="summary-item">
-                        <div class="summary-label">Learning Retention Rate</div>
-                        <div class="summary-value">{{ number_format($executiveSummary['retention_rate'] ?? 0) }}%</div>
-                        <div class="summary-change positive">
-                            <i class="fa fa-brain"></i>
-                            Based on re-engagement
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('learning.analytics.engagement-tab')
     </div>
+
+    <div id="management-tab" class="tab-panel">
+        @include('learning.analytics.management-tab')
     </div>
+
     <div id="feedback-tab" class="tab-panel">
-        <div class="breakdown-container">
-            <div class="breakdown-card">
-                <h3 class="chart-title">
-                    <i class="fa fa-comments"></i>
-                    Feedback Loop to Users
-                </h3>
-                <ul class="breakdown-list">
-                    <li class="breakdown-item">
-                        <span class="breakdown-name">Weekly User Summary Generator</span>
-                        <div class="breakdown-stats">
-                            <span class="breakdown-count">Automated summaries</span>
-                            <span class="breakdown-views">Build weekly digest reports for users</span>
-                        </div>
-                    </li>
-                    <li class="breakdown-item">
-                        <span class="breakdown-name">Consumed vs Ignored</span>
-                        <div class="breakdown-stats">
-                            <span class="breakdown-count">Engagement logic</span>
-                            <span class="breakdown-views">Track content consumption and ignore patterns</span>
-                        </div>
-                    </li>
-                    <li class="breakdown-item">
-                        <span class="breakdown-name">Notification Delivery</span>
-                        <div class="breakdown-stats">
-                            <span class="breakdown-count">In-system alerts</span>
-                            <span class="breakdown-views">Send dashboard notifications to users</span>
-                        </div>
-                    </li>
-                    <li class="breakdown-item">
-                        <span class="breakdown-name">User-facing Dashboard Widget</span>
-                        <div class="breakdown-stats">
-                            <span class="breakdown-count">Activity overview</span>
-                            <span class="breakdown-views">Show user activity and summary metrics</span>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        @include('learning.analytics.feedback-tab')
     </div>
 </div>
 
@@ -1463,5 +1126,7 @@ function setActiveTab(tabId) {
 function changePeriod(value) {
     window.location.href = '{{ url("learning/analytics") }}?period=' + value;
 }
+
+
 </script>
 @endsection
