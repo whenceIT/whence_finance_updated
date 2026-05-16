@@ -554,6 +554,7 @@
 
                         <div class="row">
                             <div class="col-md-12">
+                                @if(Sentinel::getUser()->office_id != 36)
                                 <div class="pull-right btn-group">
                                     @if(Sentinel::hasAccess('loans.transactions.create'))
                                         <a href="{{ url('loan/'.$loan->id.'/repayment/create') }}"
@@ -698,6 +699,7 @@
 
                                     </ul>
                                 </div>
+                                @endif
                             </div>
 
 

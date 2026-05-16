@@ -129,36 +129,259 @@ class RiskController extends Controller
 
     public function storeAuditSubmission(Request $request)
     {
-        $data = $request->except(['_token']);
+        $step = (int) $request->input('save_step', 0);
+        $submission = null;
 
-        // Handle audit_scope as array
-        if (isset($data['s1_audit_scope']) && is_array($data['s1_audit_scope'])) {
-            $data['audit_scope'] = json_encode($data['s1_audit_scope']);
+        if ($request->filled('audit_submission_id')) {
+            $submission = \App\Models\AuditSubmission::find($request->input('audit_submission_id'));
         }
 
-        // Calculate fail_count
-        $failCount = 0;
+        try {
+            if ($step > 0) {
+                $submission = $this->saveAuditStep($request, $step, $submission);
+                return response()->json([
+                    'success' => true,
+                    'submission_id' => $submission->id,
+                    'message' => 'Step ' . $step . ' saved successfully.'
+                ]);
+            }
+
+            // Final submission: ensure audit administration is saved first
+            $submission = $this->saveAuditStep($request, 2, $submission);
+            $this->saveFinalSubmission($request, $submission);
+
+            return redirect('/risk/overview')->with('success', 'Audit checklist submitted successfully.');
+        } catch (\Exception $e) {
+            if ($step > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+
+            throw $e;
+        }
+    }
+
+    private function saveAuditStep(Request $request, int $step, ?\App\Models\AuditSubmission $submission = null)
+    {
+        switch ($step) {
+            case 2:
+                return $this->saveAuditAdministrationStep($request, $submission);
+            case 3:
+                return $this->saveDigitalPaymentControlsStep($request, $submission);
+            case 4:
+                return $this->saveLoanPortfolioStep($request, $submission);
+            case 5:
+                return $this->saveCollectionsStep($request, $submission);
+            case 6:
+                return $this->saveFraudIndicatorsStep($request, $submission);
+            case 7:
+                return $this->saveStaffProcessStep($request, $submission);
+            case 8:
+                return $this->saveSystemControlStep($request, $submission);
+            case 9:
+                return $this->saveReportingGovernanceStep($request, $submission);
+            case 10:
+                return $this->saveAuditConclusionStep($request, $submission);
+            default:
+                throw new \InvalidArgumentException('Unsupported audit step: ' . $step);
+        }
+    }
+
+    private function createOrUpdateSubmission(array $data, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if ($submission) {
+            $submission->update($data);
+            return $submission;
+        }
+
+        return \App\Models\AuditSubmission::create($data);
+    }
+
+    private function saveAuditAdministrationStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        $data = [
+            'office_id' => $request->input('s1_office_id'),
+            'audit_date' => $request->input('s1_audit_date'),
+            'auditor_name' => $request->input('s1_auditor_name'),
+            'audit_type' => $request->input('s1_audit_type'),
+            'unannounced' => $request->input('s1_unannounced'),
+            'manager_present' => $request->input('s1_manager_present'),
+            'manager_name' => $request->input('s1_manager_name'),
+            'opening_remarks' => $request->input('s1_opening_remarks'),
+            'period_start' => $request->input('s1_period_start'),
+            'period_end' => $request->input('s1_period_end'),
+            'auditor_id' => Sentinel::getUser()->id,
+        ];
+
+        if ($request->has('s1_audit_scope')) {
+            $scope = $request->input('s1_audit_scope');
+            $data['audit_scope'] = is_array($scope) ? json_encode($scope) : $scope;
+        }
+
+        if (empty($data['office_id'])) {
+            throw new \InvalidArgumentException('Branch selection is required before saving Audit Administration.');
+        }
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveDigitalPaymentControlsStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if (!$submission) {
+            throw new \InvalidArgumentException('Audit submission must exist before saving Wallet & Digital Payment Controls data.');
+        }
+
+        $data = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $data["s2_{$i}"] = $request->input("s2_{$i}");
+            $data["s2_{$i}_notes"] = $request->input("s2_{$i}_notes");
+        }
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveLoanPortfolioStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if (!$submission) {
+            throw new \InvalidArgumentException('Audit submission must exist before saving Loan Portfolio data.');
+        }
+
+        $data = [];
+        for ($i = 1; $i <= 7; $i++) {
+            $data["s3_{$i}"] = $request->input("s3_{$i}");
+            $data["s3_{$i}_notes"] = $request->input("s3_{$i}_notes");
+        }
+        $data['s3_total_active'] = $request->input('s3_total_active');
+        $data['s3_incomplete_files'] = $request->input('s3_incomplete_files');
+        $data['s3_notes'] = $request->input('s3_notes');
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveCollectionsStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if (!$submission) {
+            throw new \InvalidArgumentException('Audit submission must exist before saving Collections data.');
+        }
+
+        $data = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $data["s4_{$i}"] = $request->input("s4_{$i}");
+            $data["s4_{$i}_notes"] = $request->input("s4_{$i}_notes");
+        }
+        $data['s4_system_collections'] = $request->input('s4_system_collections');
+        $data['s4_wallet_collections'] = $request->input('s4_wallet_collections');
+        $data['s4_notes'] = $request->input('s4_notes');
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveFraudIndicatorsStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if (!$submission) {
+            throw new \InvalidArgumentException('Audit submission must exist before saving Fraud Indicators data.');
+        }
+
+        $data = [];
+        for ($i = 1; $i <= 7; $i++) {
+            $data["s5_{$i}"] = $request->input("s5_{$i}");
+            $data["s5_{$i}_notes"] = $request->input("s5_{$i}_notes");
+        }
+        $data['s5_notes'] = $request->input('s5_notes');
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveStaffProcessStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if (!$submission) {
+            throw new \InvalidArgumentException('Audit submission must exist before saving Staff & Process data.');
+        }
+
+        $data = [];
+        for ($i = 1; $i <= 8; $i++) {
+            $data["s6_{$i}"] = $request->input("s6_{$i}");
+            $data["s6_{$i}_notes"] = $request->input("s6_{$i}_notes");
+        }
+        $data['s6_total_staff'] = $request->input('s6_total_staff');
+        $data['s6_notes'] = $request->input('s6_notes');
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveSystemControlStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if (!$submission) {
+            throw new \InvalidArgumentException('Audit submission must exist before saving System & Control data.');
+        }
+
+        $data = [];
+        for ($i = 1; $i <= 8; $i++) {
+            $data["s7_{$i}"] = $request->input("s7_{$i}");
+            $data["s7_{$i}_notes"] = $request->input("s7_{$i}_notes");
+        }
+        $data['s7_notes'] = $request->input('s7_notes');
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveReportingGovernanceStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if (!$submission) {
+            throw new \InvalidArgumentException('Audit submission must exist before saving Reporting & Governance data.');
+        }
+
+        $data = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $data["s8_{$i}"] = $request->input("s8_{$i}");
+            $data["s8_{$i}_notes"] = $request->input("s8_{$i}_notes");
+        }
+        $data['s8_notes'] = $request->input('s8_notes');
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveAuditConclusionStep(Request $request, ?\App\Models\AuditSubmission $submission = null)
+    {
+        if (!$submission) {
+            throw new \InvalidArgumentException('Audit submission must exist before saving Audit Conclusion data.');
+        }
+
+        $data = [];
+        for ($i = 1; $i <= 2; $i++) {
+            $data["s9_{$i}"] = $request->input("s9_{$i}");
+            $data["s9_{$i}_notes"] = $request->input("s9_{$i}_notes");
+        }
+        $data['s9_notes'] = $request->input('s9_notes');
+
+        return $this->createOrUpdateSubmission($data, $submission);
+    }
+
+    private function saveFinalSubmission(Request $request, \App\Models\AuditSubmission $submission)
+    {
+        $submission->fail_count = 0;
         for ($s = 2; $s <= 9; $s++) {
-            for ($i = 1; $i <= 10; $i++) { // max 10 items per section
-                $field = "s{$s}_{$i}";
-                if (isset($data[$field]) && $data[$field] === 'fail') {
-                    $failCount++;
+            $max = ($s === 3) ? 7 : (($s === 4) ? 6 : (($s === 5) ? 7 : (($s === 6) ? 8 : (($s === 7) ? 8 : (($s === 8) ? 6 : 2)))));
+            for ($i = 1; $i <= $max; $i++) {
+                if ($request->input("s{$s}_{$i}") === 'fail') {
+                    $submission->fail_count++;
                 }
             }
         }
 
         $riskRating = 'low';
-        if ($failCount >= 13) $riskRating = 'critical';
-        elseif ($failCount >= 8) $riskRating = 'high';
-        elseif ($failCount >= 4) $riskRating = 'medium';
+        if ($submission->fail_count >= 13) {
+            $riskRating = 'critical';
+        } elseif ($submission->fail_count >= 8) {
+            $riskRating = 'high';
+        } elseif ($submission->fail_count >= 4) {
+            $riskRating = 'medium';
+        }
 
-        $data['auditor_id'] = Sentinel::getUser()->id;
-        $data['fail_count'] = $failCount;
-        $data['risk_rating'] = $riskRating;
-
-        $submission = \App\Models\AuditSubmission::create($data);
-
-        return redirect('/risk/overview')->with('success', 'Audit checklist submitted successfully.');
+        $submission->risk_rating = $riskRating;
+        $submission->save();
     }
 
     public function getAuditSectionDetails($submissionId, $section)
@@ -166,75 +389,7 @@ class RiskController extends Controller
         $submission = \App\Models\AuditSubmission::findOrFail($submissionId);
         $section = (int) $section;
 
-        // Define section items (same as in modal)
-        $sectionItems = [
-            2 => [
-                's2_1' => 'Zero physical cash confirmed at branch',
-                's2_2' => 'All client payments received via authorised channels only',
-                's2_3' => 'Mobile money payments transferred to Withinhere wallet immediately',
-                's2_4' => 'Only Branch Manager initiates mobile-money-to-wallet transfers',
-                's2_5' => 'Withinhere wallet balance reconciles with loan system records',
-                's2_6' => 'No loans disbursed via mobile money or any channel other than Withinhere',
-                's2_7' => 'Client disbursement channel preference documented',
-                's2_8' => 'No inter-branch transfers without Withinhere audit compliance and authorisation',
-                's2_9' => 'Withinhere wallet audit trail reviewed',
-                's2_10' => 'Exception or error transactions investigated and resolved',
-            ],
-            3 => [
-                's3_1' => 'Client files complete & verified',
-                's3_2' => 'Loan approvals within authorised limits',
-                's3_3' => 'No ghost clients (verify via phone calls)',
-                's3_4' => 'Loan disbursements match Withinhere wallet outflows',
-                's3_5' => 'Interest rates applied correctly',
-                's3_6' => 'No expired or rolled-over loans without re-approval',
-                's3_7' => 'Loan purpose verification conducted',
-            ],
-            4 => [
-                's4_1' => 'Collections recorded in Withinhere match total repayments due',
-                's4_2' => 'No recycling of collections — all repayments go to Withinhere wallet before any disbursement',
-            ],
-            5 => [
-                's5_1' => 'Fraud indicator 1',
-                's5_2' => 'Fraud indicator 2',
-                's5_3' => 'Fraud indicator 3',
-                's5_4' => 'Fraud indicator 4',
-                's5_5' => 'Fraud indicator 5',
-                's5_6' => 'Fraud indicator 6',
-                's5_7' => 'Fraud indicator 7',
-            ],
-            6 => [
-                's6_1' => 'Staff item 1',
-                's6_2' => 'Staff item 2',
-                's6_3' => 'Staff item 3',
-                's6_4' => 'Staff item 4',
-                's6_5' => 'Staff item 5',
-                's6_6' => 'Staff item 6',
-                's6_7' => 'Staff item 7',
-                's6_8' => 'Staff item 8',
-            ],
-            7 => [
-                's7_1' => 'System item 1',
-                's7_2' => 'System item 2',
-                's7_3' => 'System item 3',
-                's7_4' => 'System item 4',
-                's7_5' => 'System item 5',
-                's7_6' => 'System item 6',
-                's7_7' => 'System item 7',
-                's7_8' => 'System item 8',
-            ],
-            8 => [
-                's8_1' => 'Reporting item 1',
-                's8_2' => 'Reporting item 2',
-                's8_3' => 'Reporting item 3',
-                's8_4' => 'Reporting item 4',
-                's8_5' => 'Reporting item 5',
-                's8_6' => 'Reporting item 6',
-            ],
-            9 => [
-                's9_1' => 'Conclusion item 1',
-                's9_2' => 'Conclusion item 2',
-            ],
-        ];
+        $sectionItems = config('risk-audit.section_items', []);
 
         $items = [];
         if (isset($sectionItems[$section])) {

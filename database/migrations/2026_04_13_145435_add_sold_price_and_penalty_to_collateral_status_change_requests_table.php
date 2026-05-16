@@ -13,10 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('collateral_status_change_requests', function (Blueprint $table) {
-            $table->decimal('sold_price', 15, 2)->nullable()->after('reason');
-            $table->decimal('penalty', 15, 2)->nullable()->after('sold_price');
-        });
+        // Schema::table('collateral_status_change_requests', function (Blueprint $table) {
+        //     $table->decimal('sold_price', 15, 2)->nullable()->after('reason');
+        //     $table->decimal('penalty', 15, 2)->nullable()->after('sold_price');
+        // });
     }
 
     /**

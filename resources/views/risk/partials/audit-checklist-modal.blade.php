@@ -58,6 +58,7 @@
             <div class="modal-body" style="padding:0;max-height:75vh;overflow-y:auto;">
                 <form id="auditForm" method="POST" action="{{ route('risk.store-audit-submission') }}">
                     @csrf
+                    <input type="hidden" name="audit_submission_id" id="audit_submission_id" value="">
                 <div id="auditWizard">
 
                     {{-- =============================================

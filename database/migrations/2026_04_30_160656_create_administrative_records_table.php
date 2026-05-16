@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('administrative_records', function (Blueprint $table) {
-            $table->bigIncrement('id');
+            $table->bigIncrements('id');
             $table->unsignedInteger('employee_id');
             $table->enum('record_type', ['disciplinary', 'health', 'career']);
             $table->string('disciplinary_type')->nullable();

@@ -19,16 +19,134 @@
         'Section 9 — Audit Conclusion & Sign-Off'
     ];
 
-    /* ── Initialize Select2 for branch selector ───────────────── */
-    function initBranchSelect() {
+    /* ── Initialize Select2 for wizard fields ───────────────── */
+    function initWizardSelect2() {
         if (typeof $.fn.select2 !== 'undefined') {
-            $('.select2-branch').select2({
-                placeholder: '— Search and select a branch —',
+            $('.select2-branch, #auditChecklistModal .select2').select2({
+                placeholder: '— Search and select —',
                 allowClear: true,
                 width: '100%',
-                dropdownParent: $('#auditChecklistModal') // Fix for modal focus issue
+                dropdownParent: $('#auditChecklistModal')
             });
         }
+    }
+
+    /* ── Validate required fields for step 2 before saving ───────────────── */
+    function validateStep2() {
+        var required = [
+            's1_office_id',
+            's1_audit_date',
+            's1_auditor_name',
+            's1_audit_scope[]',
+            's1_period_start',
+            's1_period_end',
+            's1_audit_type',
+            's1_unannounced',
+            's1_manager_present',
+            's1_manager_name',
+            's1_opening_remarks'
+        ];
+
+        var missing = [];
+
+        required.forEach(function (name) {
+            var field = document.getElementsByName(name)[0];
+            if (!field) return;
+
+            if (name.endsWith('[]')) {
+                var select = document.getElementsByName(name)[0];
+                if (!select || select.selectedOptions.length === 0) {
+                    missing.push('Audit Scope');
+                }
+                return;
+            }
+
+            if (!field.value || field.value.trim() === '') {
+                var label = field.closest('.form-group') ? field.closest('.form-group').querySelector('label') : null;
+                missing.push(label ? label.textContent.replace('*', '').trim() : name);
+            }
+        });
+
+        if (missing.length) {
+            alert('Please complete the required fields for Step 2 before continuing:\n\n' + missing.join('\n'));
+            return false;
+        }
+
+        return true;
+    }
+
+    /* ── Save current wizard step via AJAX ───────────────── */
+    function saveStep(stepId, onSuccess) {
+        if (stepId === 1) {
+            if (onSuccess) onSuccess(true);
+            return;
+        }
+
+        if (stepId === 2 && !validateStep2()) {
+            if (onSuccess) onSuccess(false);
+            return;
+        }
+
+        var form = document.getElementById('auditForm');
+        var step = document.getElementById('step-' + stepId);
+        if (!form || !step) {
+            if (onSuccess) onSuccess(false);
+            return;
+        }
+
+        var formData = new FormData();
+        var token = form.querySelector('input[name="_token"]');
+        if (token) formData.append('_token', token.value);
+
+        var submissionId = document.getElementById('audit_submission_id');
+        if (submissionId && submissionId.value) {
+            formData.append('audit_submission_id', submissionId.value);
+        }
+        formData.append('save_step', stepId);
+
+        step.querySelectorAll('input[name], select[name], textarea[name]').forEach(function (field) {
+            if (!field.name) return;
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                if (!field.checked) return;
+            }
+            if (field.tagName.toLowerCase() === 'select' && field.multiple) {
+                Array.from(field.selectedOptions).forEach(function (option) {
+                    formData.append(field.name, option.value);
+                });
+                return;
+            }
+            formData.append(field.name, field.value);
+        });
+
+        fetch('{{ route('risk.store-audit-submission') }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(function (response) {
+            if (!response.ok) {
+                return response.json().then(function (data) {
+                    throw new Error(data.message || 'Unable to save step.');
+                });
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            if (data && data.submission_id) {
+                var submissionInput = document.getElementById('audit_submission_id');
+                if (submissionInput) {
+                    submissionInput.value = data.submission_id;
+                }
+            }
+            if (onSuccess) onSuccess(true);
+        })
+        .catch(function (error) {
+            console.error('Step save failed:', error);
+            alert('Unable to save Step 2 data. Please check your entries and try again.');
+            if (onSuccess) onSuccess(false);
+        });
     }
 
     /* ── Handle audit scope change ───────────────── */
@@ -171,6 +289,17 @@
     window.auditWizardNav = function (direction) {
         var next = currentStep + direction;
         if (next < 1 || next > TOTAL_STEPS) return;
+
+        var currentStepId = activeSteps[currentStep - 1];
+        if (direction === 1 && currentStepId !== 1) {
+            saveStep(currentStepId, function (success) {
+                if (!success) return;
+                currentStep = next;
+                showStep(currentStep);
+            });
+            return;
+        }
+
         currentStep = next;
         showStep(currentStep);
     };
@@ -183,7 +312,7 @@
             showStep(1);
             
             // Initialize Select2 when modal opens
-            initBranchSelect();
+            initWizardSelect2();
             // Attach change handlers
             handleBranchChange();
             handleScopeChange();
@@ -194,7 +323,7 @@
             activeSteps = [1,2,3,4,5,6,7,8,9,10];
             TOTAL_STEPS = 10;
             if (typeof $.fn.select2 !== 'undefined') {
-                $('.select2-branch').select2('destroy');
+                $('.select2-branch, #auditChecklistModal .select2').select2('destroy');
             }
             document.getElementById('s1OfficeSelect').value = '';
             var scopeSelect = document.getElementById('s1_audit_scope');
@@ -211,6 +340,8 @@
             document.getElementById('s1BranchAddress').value = '';
             document.getElementById('s1BranchPhone').value = '';
             document.getElementById('s1BranchEmail').value = '';
+            var submissionInput = document.getElementById('audit_submission_id');
+            if (submissionInput) submissionInput.value = '';
             document.getElementById('s3_total_active').value = '';
             document.getElementById('s3_incomplete_files').value = '';
             document.getElementById('s4_system_collections').value = '';

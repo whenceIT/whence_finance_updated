@@ -1,0 +1,81 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Bug Condition** - Incorrect Section Item Counts
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the bug exists
+  - **Scoped PBT Approach**: For this deterministic bug, scope the property to the concrete failing cases (indices 5, 6, and 8) to ensure reproducibility
+  - Test that `$sectionItemCounts[5]` returns 8 (Staff section s6 has 8 items)
+  - Test that `$sectionItemCounts[6]` returns 8 (Systems section s7 has 8 items)
+  - Test that `$sectionItemCounts[8]` returns 2 (Conclusion section s9 has 2 items)
+  - Test the complete array matches expected values: [0, 10, 7, 6, 7, 8, 8, 6, 2]
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bug exists)
+  - Document counterexamples found:
+    - Index 5 returns 7 instead of 8
+    - Index 6 returns 6 instead of 8
+    - Index 8 is undefined (missing from array)
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.6, 1.7, 1.9, 2.6, 2.7, 2.9_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Iteration and Calculation Logic
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for iteration patterns:
+    - The `foreach ($sectionShorts as $i => $short)` loop structure
+    - The field name generation pattern `$field = "s{$s}_{$j}"` where `$s = $i + 1`
+    - The null coalescing operator usage `$itemCount = $sectionItemCounts[$i] ?? 0`
+    - The pass/fail/na counting algorithm within each section iteration
+  - Write property-based tests capturing observed behavior patterns:
+    - Test that iteration through `$sectionShorts` array (indices 0-8) continues to work identically
+    - Test that field name generation continues to produce correct patterns (s1_*, s2_*, etc.)
+    - Test that the counting algorithm structure remains unchanged (only counts change due to correct values)
+    - Test that array access patterns continue to work with null coalescing operator
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [x] 3. Fix for incorrect section item counts in $sectionItemCounts array
+
+  - [x] 3.1 Implement the fix in resources/views/risk/overview.blade.php
+    - Update line 107-116 where `$sectionItemCounts` array is defined
+    - Change index 5 from 7 to 8 (Staff section s6 has 8 items)
+    - Change index 6 from 6 to 8 (Systems section s7 has 8 items)
+    - Add missing index 8 with value 2 (Conclusion section s9 has 2 items)
+    - Verify indices 0-4 and 7 remain unchanged (already correct)
+    - Add inline comment referencing audit-checklist-modal.blade.php as source of truth
+    - _Bug_Condition: isBugCondition(input) where input.arrayName == '$sectionItemCounts' AND input.index IN [5, 6, 8]_
+    - _Expected_Behavior: For all indices 0-8, $sectionItemCounts[i] returns correct count [0, 10, 7, 6, 7, 8, 8, 6, 2]_
+    - _Preservation: Iteration logic, field name generation, counting algorithms, and array access patterns remain unchanged_
+    - _Requirements: 1.6, 1.7, 1.9, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.1, 3.2, 3.3, 3.4, 3.5_
+
+  - [x] 3.2 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Correct Section Item Counts
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - Verify index 5 now returns 8
+    - Verify index 6 now returns 8
+    - Verify index 8 now returns 2
+    - Verify complete array matches [0, 10, 7, 6, 7, 8, 8, 6, 2]
+    - _Requirements: 2.6, 2.7, 2.9_
+
+  - [x] 3.3 Verify preservation tests still pass
+    - **Property 2: Preservation** - Iteration and Calculation Logic
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm iteration patterns work identically with corrected counts
+    - Confirm field name generation continues to work correctly
+    - Confirm counting algorithms execute without modification
+    - Confirm array access patterns continue to function properly
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
