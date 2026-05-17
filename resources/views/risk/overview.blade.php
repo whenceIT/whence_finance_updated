@@ -105,13 +105,13 @@
         $sectionShorts = ['Admin', 'Wallet', 'Loans', 'Collections', 'Fraud', 'Staff', 'Systems', 'Reporting', 'Conclusion'];
 
         $sectionItemCounts = [
-            0 => 0, // Admin — metadata only
+            0 => 0,  // Admin — metadata only
             1 => 10, // Wallet (s2)
             2 => 7,  // Loans (s3)
             3 => 6,  // Collections (s4)
-            4 => 7,  // Fraud (s5)
+            4 => 6,  // Fraud (s5)
             5 => 7,  // Staff (s6)
-            6 => 6,  // Systems (s7)
+            6 => 8,  // Systems (s7)
             7 => 6,  // Reporting (s8)
             8 => 2,  // Conclusion (s9)
         ];
@@ -123,21 +123,51 @@
             $sections = [];
             $failCount = 0;
             foreach ($sectionShorts as $i => $short) {
-                $s = $i + 2;
+                // Skip Admin section (index 0) as it has no pass/fail/na items
+                if ($i === 0) {
+                    $sections[] = ['pass' => 0, 'fail' => 0, 'na' => 0];
+                    continue;
+                }
+                
+                // Map section index to database field prefix
+                // $i=1 (Wallet) -> s2, $i=2 (Loans) -> s3, etc.
+                $s = $i + 1;
                 $pass = 0;
                 $fail = 0;
                 $na = 0;
                 $itemCount = $sectionItemCounts[$i] ?? 0;
+                
                 for ($j = 1; $j <= $itemCount; $j++) {
                     $field = "s{$s}_{$j}";
                     $value = $sub->$field;
-                    if ($value === 'pass')
-                        $pass++;
-                    elseif ($value === 'fail')
-                        $fail++;
-                    elseif ($value === 'na')
-                        $na++;
+                    
+                    // Section 5 (Fraud) uses 'present'/'not_present' instead of 'pass'/'fail'
+                    if ($i === 4) {
+                        if ($value === 'not_present')
+                            $pass++;
+                        elseif ($value === 'present')
+                            $fail++;
+                    } else {
+                        if ($value === 'pass')
+                            $pass++;
+                        elseif ($value === 'fail')
+                            $fail++;
+                        elseif ($value === 'na')
+                            $na++;
+                    }
                 }
+                
+                // Log the final counts for this section
+                if ($i === 4) {
+                    \Log::info('Fraud section final counts', [
+                        'section_index' => $i,
+                        'pass' => $pass,
+                        'fail' => $fail,
+                        'na' => $na,
+                        'submission_id' => $sub->id
+                    ]);
+                }
+                
                 $sections[] = ['pass' => $pass, 'fail' => $fail, 'na' => $na];
                 $failCount += $fail;
             }
@@ -151,8 +181,13 @@
                 'name' => $sub->office->name ?? 'Unknown',
                 'code' => $sub->office->external_id ?? '',
                 'audit_date' => $sub->audit_date ? $sub->audit_date->format('d M Y') : 'Unknown',
+                'audit_date_human' => $sub->audit_date ? $sub->audit_date->diffForHumans() : 'Unknown',
                 'last_audit' => $sub->created_at->format('d M Y'),
+                'created_at_human' => $sub->created_at->diffForHumans(),
                 'auditor' => $sub->auditor_name,
+                'audit_type' => $sub->audit_type,
+                'opening_remarks' => $sub->opening_remarks,
+                'unannounced' => $sub->unannounced,
                 'fail_count' => $failCount,
                 'rating' => $ratingKey,
                 'is_complete' => $complete,
@@ -164,6 +199,14 @@
         $completeAudits = array_values(array_filter($branches, fn($b) => $b['is_complete'] && !$b['is_scheduled']));
         $scheduledAudits = array_values(array_filter($branches, fn($b) => $b['is_scheduled']));
         $incompleteAudits = array_values(array_filter($branches, fn($b) => !$b['is_complete'] && !$b['is_scheduled']));
+
+        // Get offices that have never been audited
+        $auditedOfficeIds = $submissions->pluck('office_id')->unique()->toArray();
+        $unauditedOffices = \App\Models\Office::with(['province', 'district', 'manager'])
+            ->whereNotIn('id', $auditedOfficeIds)
+            ->where('active', 1)
+            ->orderBy('name')
+            ->get();
 
         $ratingConfig = [
             'low' => ['label' => '🟢 LOW', 'color' => '#27ae60', 'bg' => '#eafaf1', 'badge' => 'success'],
@@ -221,40 +264,21 @@
                                     ({{ count($incompleteAudits) }})</a></li>
                             <li><a href="#tab-scheduled" data-toggle="tab">Scheduled Audits
                                     ({{ count($scheduledAudits) }})</a></li>
+                            <li><a href="#tab-unaudited" data-toggle="tab">Un-audited Offices
+                                    ({{ count($unauditedOffices) }})</a></li>
                         </ul>
                         <div class="tab-content" style="padding:15px;border:1px solid #ddd;border-top:none;">
                             <div class="tab-pane active" id="tab-complete">
-                                @if(count($completeAudits) === 0)
-                                    <div class="alert alert-info">No complete audits found.</div>
-                                @else
-                                    <div class="row">
-                                        @foreach($completeAudits as $branch)
-                                            @include('risk.partials.audit-branch-card', ['branch' => $branch, 'ratingConfig' => $ratingConfig, 'sectionShorts' => $sectionShorts])
-                                        @endforeach
-                                    </div>
-                                @endif
+                                @include('risk.partials.tab-complete-audits')
                             </div>
                             <div class="tab-pane" id="tab-incomplete">
-                                @if(count($incompleteAudits) === 0)
-                                    <div class="alert alert-info">No incomplete audits currently in progress.</div>
-                                @else
-                                    <div class="row">
-                                        @foreach($incompleteAudits as $branch)
-                                            @include('risk.partials.audit-branch-card', ['branch' => $branch, 'ratingConfig' => $ratingConfig, 'sectionShorts' => $sectionShorts])
-                                        @endforeach
-                                    </div>
-                                @endif
+                                @include('risk.partials.tab-incomplete-audits')
                             </div>
                             <div class="tab-pane" id="tab-scheduled">
-                                @if(count($scheduledAudits) === 0)
-                                    <div class="alert alert-info">No scheduled audits found.</div>
-                                @else
-                                    <div class="row">
-                                        @foreach($scheduledAudits as $branch)
-                                            @include('risk.partials.audit-branch-card', ['branch' => $branch, 'ratingConfig' => $ratingConfig, 'sectionShorts' => $sectionShorts])
-                                        @endforeach
-                                    </div>
-                                @endif
+                                @include('risk.partials.tab-scheduled-audits')
+                            </div>
+                            <div class="tab-pane" id="tab-unaudited">
+                                @include('risk.partials.tab-unaudited-offices')
                             </div>
                         </div>
                     </div>
@@ -287,6 +311,42 @@
     </div>
 
     <script>
+        function preSelectOffice(officeId) {
+            // Wait for modal to be shown, then set the office dropdown
+            $('#auditChecklistModal').on('shown.bs.modal', function () {
+                $('#s1_office_id').val(officeId).trigger('change');
+            });
+        }
+
+        function confirmDeleteAudit(submissionId, branchName) {
+            if (confirm('Are you sure you want to delete the incomplete audit for ' + branchName + '? This action cannot be undone.')) {
+                deleteAudit(submissionId);
+            }
+        }
+
+        function deleteAudit(submissionId) {
+            fetch('/risk/audit-submission/' + submissionId, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Audit deleted successfully.');
+                    location.reload();
+                } else {
+                    alert('Error deleting audit: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting audit. Please try again.');
+            });
+        }
+
         function loadSectionDetails(submissionId, section, sectionName) {
             fetch('/risk/audit-section-details/' + submissionId + '/' + section)
                 .then(response => response.json())

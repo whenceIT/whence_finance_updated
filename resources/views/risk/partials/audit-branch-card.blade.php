@@ -16,8 +16,36 @@
                     {{ $rc['label'] }}
                 </span>
             </div>
+            
+            {{-- Audit metadata row --}}
             <div style="margin-top:8px;font-size:12px;color:#555;">
-                <i class="fa fa-calendar-o"></i> {{ $branch['audit_date'] }}
+                {{-- Audit type badge --}}
+                @if(!empty($branch['audit_type']))
+                    @php
+                        $typeIcons = [
+                            'routine' => ['icon' => 'fa-calendar-check-o', 'color' => '#3498db'],
+                            'special' => ['icon' => 'fa-star', 'color' => '#f39c12'],
+                            'follow-up' => ['icon' => 'fa-repeat', 'color' => '#9b59b6'],
+                            'investigation' => ['icon' => 'fa-search', 'color' => '#e74c3c'],
+                        ];
+                        $typeConfig = $typeIcons[strtolower($branch['audit_type'])] ?? ['icon' => 'fa-clipboard', 'color' => '#95a5a6'];
+                    @endphp
+                    <span class="label" style="background:{{ $typeConfig['color'] }};font-size:10px;padding:3px 6px;margin-right:6px;">
+                        <i class="fa {{ $typeConfig['icon'] }}"></i> {{ ucfirst($branch['audit_type']) }}
+                    </span>
+                @endif
+                
+                {{-- Unannounced badge --}}
+                @if(!empty($branch['unannounced']) && strtolower($branch['unannounced']) === 'yes')
+                    <span class="label label-warning" style="font-size:10px;padding:3px 6px;margin-right:6px;">
+                        <i class="fa fa-bolt"></i> Unannounced
+                    </span>
+                @endif
+            </div>
+            
+            {{-- Time and auditor info --}}
+            <div style="margin-top:6px;font-size:11px;color:#666;">
+                <i class="fa fa-clock-o"></i> {{ $branch['created_at_human'] ?? $branch['audit_date_human'] }}
                 &nbsp;&nbsp;
                 <i class="fa fa-user-o"></i> {{ $branch['auditor'] }}
                 &nbsp;&nbsp;
@@ -25,6 +53,14 @@
                     <i class="fa fa-times-circle"></i> {{ $branch['fail_count'] }} fail{{ $branch['fail_count'] !== 1 ? 's' : '' }}
                 </strong>
             </div>
+            
+            {{-- Opening remarks preview --}}
+            @if(!empty($branch['opening_remarks']))
+                <div style="margin-top:6px;padding:6px 8px;background:rgba(255,255,255,0.5);border-radius:3px;font-size:11px;color:#555;font-style:italic;">
+                    <i class="fa fa-comment-o" style="color:#95a5a6;"></i>
+                    {{ $branch['opening_remarks'] }}
+                </div>
+            @endif
         </div>
 
         {{-- Section breakdown --}}
@@ -55,7 +91,9 @@
 
                         @else
                             @php
-                                $sec   = $branch['sections'][$si - 1] ?? $branch['sections'][$si] ?? ['pass'=>0,'fail'=>0,'na'=>0];
+                                // sections[0] = Admin, sections[1] = Wallet, sections[2] = Loans, etc.
+                                // $si matches the sections array index directly
+                                $sec   = $branch['sections'][$si] ?? ['pass'=>0,'fail'=>0,'na'=>0];
                                 $total = $sec['pass'] + $sec['fail'] + $sec['na'];
                                 $pct   = $total > 0 ? round(($sec['pass'] / $total) * 100) : 0;
                                 $barColor = $sec['fail'] === 0 ? '#27ae60' : ($sec['fail'] <= 1 ? '#f39c12' : '#c0392b');
@@ -74,7 +112,6 @@
                                 </td>
                             </tr>
                         @endif
-
                     @endforeach
                 </tbody>
             </table>
@@ -88,6 +125,11 @@
             <a href="#" class="btn btn-xs btn-danger" style="margin-left:4px;">
                 <i class="fa fa-clipboard"></i> Re-Audit
             </a>
+            @if(isset($showDelete) && $showDelete)
+                <button type="button" class="btn btn-xs btn-danger" style="margin-left:4px;" onclick="confirmDeleteAudit({{ $branch['submission_id'] }}, '{{ $branch['name'] }}')">
+                    <i class="fa fa-trash"></i> Delete
+                </button>
+            @endif
         </div>
 
     </div>

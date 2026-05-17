@@ -451,10 +451,143 @@
         }
     };
 
+    /* ── Pre-select office from unaudited offices tab ──────────── */
+    window.preSelectOffice = function (officeId) {
+        var modalJq = $('#auditChecklistModal');
+        var applySelection = function() {
+            var select = document.getElementById('s1OfficeSelect');
+            if (!select || !officeId) return;
+
+            // If select2 is initialized, use its API so UI updates correctly
+            if (typeof $.fn.select2 !== 'undefined' && $(select).data('select2')) {
+                $(select).val(officeId).trigger('change');
+            } else {
+                select.value = officeId;
+                var evt = new Event('change', { bubbles: true });
+                select.dispatchEvent(evt);
+            }
+
+            // Ensure branch details are visible in case change handler didn't run yet
+            var branchDetailsDiv = document.getElementById('s1BranchDetails');
+            if (branchDetailsDiv) branchDetailsDiv.style.display = 'block';
+        };
+
+        // If modal already visible, apply immediately
+        if (modalJq.is(':visible')) {
+            applySelection();
+            return;
+        }
+
+        // Apply once modal has been shown (use one() to avoid duplicate bindings)
+        modalJq.one('shown.bs.modal', function () {
+            // Small delay so select2 init in show handler (if any) completes
+            setTimeout(applySelection, 50);
+        });
+
+        // Open the modal if it's not already opening via data-attributes
+        if (!modalJq.is(':visible')) {
+            modalJq.modal('show');
+        }
+    };"}]}]
+
     /* ── Submit ───────────────────────────────────────────────── */
     window.submitAuditChecklist = function () {
-        // Submit the form
-        document.getElementById('auditForm').submit();
+        var submitBtn = document.getElementById('auditSubmitBtn');
+        var form = document.getElementById('auditForm');
+        
+        if (!form) {
+            alert('Form not found');
+            return;
+        }
+
+        // Validate required fields in section 9
+        var requiredFields = [
+            { name: 'key_findings', label: 'Key Findings Summary' },
+            { name: 'immediate_actions', label: 'Immediate Actions Required' },
+            { name: 'followup_date', label: 'Follow-up Audit Date' },
+            { name: 'escalation_required', label: 'Immediate Escalation Required' },
+            { name: 'auditor_signature', label: 'Auditor Signature' },
+            { name: 'signoff_datetime', label: 'Date & Time of Sign-Off' },
+            { name: 'manager_acknowledgement', label: 'Branch Manager Acknowledgement' }
+        ];
+
+        var missing = [];
+        requiredFields.forEach(function(field) {
+            var input = form.querySelector('[name="' + field.name + '"]');
+            if (!input || !input.value || input.value.trim() === '') {
+                missing.push(field.label);
+            }
+        });
+
+        if (missing.length > 0) {
+            alert('Please complete the following required fields:\n\n' + missing.join('\n'));
+            return;
+        }
+
+        // Disable button and show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+
+        var formData = new FormData(form);
+        formData.append('final_submit', '1');
+
+        fetch('{{ route('risk.store-audit-submission') }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                return response.json().then(function(data) {
+                    throw new Error(data.message || 'Unable to submit audit.');
+                });
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            // Show success popup with SweetAlert
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Audit Submitted Successfully!',
+                    text: 'The audit checklist has been completed and saved.',
+                    type: 'success',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#27ae60'
+                }, function() {
+                    // Close modal and reload page
+                    $('#auditChecklistModal').modal('hide');
+                    location.reload();
+                });
+            } else {
+                alert('Audit submitted successfully!');
+                $('#auditChecklistModal').modal('hide');
+                location.reload();
+            }
+        })
+        .catch(function(error) {
+            console.error('Audit submission failed:', error);
+            
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa fa-check"></i> Submit Audit';
+            
+            // Show error message
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Submission Failed',
+                    text: error.message || 'Unable to submit audit. Please check your entries and try again.',
+                    type: 'error',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#e74c3c'
+                });
+            } else {
+                alert('Unable to submit audit. Please check your entries and try again.\n\n' + (error.message || ''));
+            }
+        });
     };
 
 })();

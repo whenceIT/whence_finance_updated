@@ -130,6 +130,7 @@ class RiskController extends Controller
     public function storeAuditSubmission(Request $request)
     {
         $step = (int) $request->input('save_step', 0);
+        $isFinalSubmit = $request->input('final_submit') === '1';
         $submission = null;
 
         if ($request->filled('audit_submission_id')) {
@@ -150,9 +151,18 @@ class RiskController extends Controller
             $submission = $this->saveAuditStep($request, 2, $submission);
             $this->saveFinalSubmission($request, $submission);
 
+            // If it's an AJAX request (final_submit), return JSON
+            if ($isFinalSubmit || $request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'submission_id' => $submission->id,
+                    'message' => 'Audit checklist submitted successfully.'
+                ]);
+            }
+
             return redirect('/risk/overview')->with('success', 'Audit checklist submitted successfully.');
         } catch (\Exception $e) {
-            if ($step > 0) {
+            if ($step > 0 || $isFinalSubmit || $request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage(),
@@ -196,6 +206,11 @@ class RiskController extends Controller
             return $submission;
         }
 
+        // Set default risk_rating for new submissions
+        if (!isset($data['risk_rating'])) {
+            $data['risk_rating'] = 'pending';
+        }
+
         return \App\Models\AuditSubmission::create($data);
     }
 
@@ -222,6 +237,15 @@ class RiskController extends Controller
 
         if (empty($data['office_id'])) {
             throw new \InvalidArgumentException('Branch selection is required before saving Audit Administration.');
+        }
+
+        // If no submission exists, check if one already exists for this office + period combination
+        if (!$submission) {
+            $submission = \App\Models\AuditSubmission::where('office_id', $data['office_id'])
+                ->where('audit_date', $data['audit_date'])
+                ->where('period_start', $data['period_start'])
+                ->where('period_end', $data['period_end'])
+                ->first();
         }
 
         return $this->createOrUpdateSubmission($data, $submission);
@@ -350,11 +374,26 @@ class RiskController extends Controller
         }
 
         $data = [];
-        for ($i = 1; $i <= 2; $i++) {
+        
+        // Save all 5 section 9 items (s9_1 through s9_5)
+        for ($i = 1; $i <= 5; $i++) {
             $data["s9_{$i}"] = $request->input("s9_{$i}");
             $data["s9_{$i}_notes"] = $request->input("s9_{$i}_notes");
         }
+        
+        // Save section 9 overall notes
         $data['s9_notes'] = $request->input('s9_notes');
+        
+        // Save additional conclusion fields
+        $data['key_findings'] = $request->input('key_findings');
+        $data['immediate_actions'] = $request->input('immediate_actions');
+        $data['recommendations'] = $request->input('recommendations');
+        $data['followup_date'] = $request->input('followup_date');
+        $data['escalation_required'] = $request->input('escalation_required');
+        $data['auditor_signature'] = $request->input('auditor_signature');
+        $data['signoff_datetime'] = $request->input('signoff_datetime');
+        $data['manager_acknowledgement'] = $request->input('manager_acknowledgement');
+        $data['manager_comments'] = $request->input('manager_comments');
 
         return $this->createOrUpdateSubmission($data, $submission);
     }
@@ -405,5 +444,29 @@ class RiskController extends Controller
         }
 
         return response()->json($items);
+    }
+
+    public function deleteAuditSubmission($submissionId)
+    {
+        try {
+            $submission = \App\Models\AuditSubmission::findOrFail($submissionId);
+            
+            // Optional: Add permission check here
+            // if (!Sentinel::hasAccess('audits.delete')) {
+            //     return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            // }
+            
+            $submission->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Audit submission deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

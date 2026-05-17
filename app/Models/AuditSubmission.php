@@ -17,6 +17,11 @@ class AuditSubmission extends Model
         'period_end' => 'date',
     ];
 
+    protected $attributes = [
+        'risk_rating' => 'pending',
+        'fail_count' => 0,
+    ];
+
     public function office()
     {
         return $this->belongsTo(Office::class);

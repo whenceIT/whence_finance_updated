@@ -1180,22 +1180,6 @@
                         </div>
                         <div style="padding:24px;">
 
-                            {{-- Live risk score display --}}
-                            <div class="row" style="margin-bottom:20px;">
-                                <div class="col-md-12">
-                                    <div class="box box-solid" id="riskScoreBox" style="border-color:#27ae60;">
-                                        <div class="box-header" style="background:#27ae60;color:#fff;padding:10px 15px;">
-                                            <h4 style="margin:0;"><i class="fa fa-tachometer"></i>&nbsp; Live Risk Score</h4>
-                                        </div>
-                                        <div class="box-body" style="text-align:center;padding:16px;">
-                                            <h2 id="failCount" style="margin:0;font-size:48px;color:#27ae60;">0</h2>
-                                            <p style="margin:4px 0 0;" class="text-muted">Total ✗ (Fail) items across all sections</p>
-                                            <h4 id="riskRatingLabel" style="margin:10px 0 0;color:#27ae60;">🟢 LOW — Branch is compliant</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                             @php $s9items = [
                                 [
                                     'id'     => 's9_1',
