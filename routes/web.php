@@ -458,6 +458,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('decision-sla', [RiskController::class, 'decisionSla']);
     Route::get('office-audit-data/{officeId}', [RiskController::class, 'getOfficeAuditData']);
     Route::get('audit-section-details/{submissionId}/{section}', [RiskController::class, 'getAuditSectionDetails']);
+    Route::get('audit-report/{submissionId}', [RiskController::class, 'getFullAuditReport'])->name('risk.full-audit-report');
     Route::post('store-audit-submission', [RiskController::class, 'storeAuditSubmission'])->name('risk.store-audit-submission');
     Route::delete('audit-submission/{submissionId}', [RiskController::class, 'deleteAuditSubmission'])->name('risk.delete-audit-submission');
 });

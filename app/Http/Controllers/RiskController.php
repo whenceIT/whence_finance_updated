@@ -470,4 +470,34 @@ class RiskController extends Controller
             ], 500);
         }
     }
+
+    public function getFullAuditReport($submissionId)
+    {
+        $submission = \App\Models\AuditSubmission::with(['office', 'auditor'])
+            ->findOrFail($submissionId);
+
+        $sectionShorts = config('risk-audit.section_names', []);
+        $sectionItems  = config('risk-audit.section_items', []);
+        $ratingConfig  = config('risk-audit.rating_config', config('risk-audit.fail_rating', []));
+        $rc = ($ratingConfig && is_array($ratingConfig))
+            ? ($ratingConfig[$submission->risk_rating] ?? $ratingConfig['pending'] ?? ['label' => ucfirst($submission->risk_rating), 'color' => '#333'])
+            : null;
+
+        return response()->json([
+            'office'      => $submission->office ? $submission->office->name : null,
+            'audit_date'  => $submission->audit_date ? $submission->audit_date->format('d M Y') : '',
+            'auditor'     => $submission->auditor ? $submission->auditor->name : 'N/A',
+            'fail_count'  => (int) $submission->fail_count,
+            'risk_rating' => $submission->risk_rating,
+            'risk_label'  => $rc ? ($rc['label'] ?? ucfirst($submission->risk_rating)) : ucfirst($submission->risk_rating),
+            'risk_color'  => $rc ? ($rc['color'] ?? '#333') : '#333',
+            'opening_remarks' => $submission->opening_remarks,
+            'key_findings'    => $submission->key_findings,
+            'immediate_actions'   => $submission->immediate_actions,
+            'recommendations'     => $submission->recommendations,
+            'sections'    => $submission->sections ?? [],
+            'section_shorts' => $sectionShorts,
+            'section_items'  => $sectionItems,
+        ]);
+    }
 }

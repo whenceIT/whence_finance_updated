@@ -183,6 +183,7 @@
                 'audit_date' => $sub->audit_date ? $sub->audit_date->format('d M Y') : 'Unknown',
                 'audit_date_human' => $sub->audit_date ? $sub->audit_date->diffForHumans() : 'Unknown',
                 'last_audit' => $sub->created_at->format('d M Y'),
+                'created_at' => $sub->created_at->format('d M Y'),
                 'created_at_human' => $sub->created_at->diffForHumans(),
                 'auditor' => $sub->auditor_name,
                 'audit_type' => $sub->audit_type,
