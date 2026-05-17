@@ -1,4 +1,6 @@
 ﻿<script>
+// Global stub to avoid ReferenceError if inline onclick runs before full script loads
+window.auditWizardNav = function(direction) { console.warn('auditWizardNav called before initialization:', direction); };
 (function () {
     'use strict';
 
@@ -488,7 +490,7 @@
         if (!modalJq.is(':visible')) {
             modalJq.modal('show');
         }
-    };"}]}]
+    };
 
     /* ── Submit ───────────────────────────────────────────────── */
     window.submitAuditChecklist = function () {

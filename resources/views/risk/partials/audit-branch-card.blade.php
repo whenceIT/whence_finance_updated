@@ -96,7 +96,11 @@
                                 $sec   = $branch['sections'][$si] ?? ['pass'=>0,'fail'=>0,'na'=>0];
                                 $total = $sec['pass'] + $sec['fail'] + $sec['na'];
                                 $pct   = $total > 0 ? round(($sec['pass'] / $total) * 100) : 0;
-                                $barColor = $sec['fail'] === 0 ? '#27ae60' : ($sec['fail'] <= 1 ? '#f39c12' : '#c0392b');
+                                $failRatio = $total > 0 ? ($sec['fail'] / $total) : 0;
+                                $barColor  = $failRatio == 0              ? '#0fea6a'
+                                           : ($failRatio <= 0.10        ? '#f39c12'
+                                           : ($failRatio <= 0.25        ? '#e06b05'
+                                           : '#ff0000'));
                             @endphp
                             <tr style="border-bottom:1px solid #f5f5f5;">
                                 <td style="padding:4px 4px;color:#444;cursor:pointer;" onclick="loadSectionDetails({{ $branch['submission_id'] }}, {{ $si }}, '{{ $sname }}')">{{ $sname }}</td>

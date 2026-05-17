@@ -147,8 +147,9 @@ class RiskController extends Controller
                 ]);
             }
 
-            // Final submission: ensure audit administration is saved first
+            // Final submission: save admin section, then conclusion/sign-off, then risk calc
             $submission = $this->saveAuditStep($request, 2, $submission);
+            $submission = $this->saveAuditConclusionStep($request, $submission);
             $this->saveFinalSubmission($request, $submission);
 
             // If it's an AJAX request (final_submit), return JSON
@@ -342,7 +343,7 @@ class RiskController extends Controller
         }
 
         $data = [];
-        for ($i = 1; $i <= 8; $i++) {
+        for ($i = 1; $i <= 6; $i++) {
             $data["s7_{$i}"] = $request->input("s7_{$i}");
             $data["s7_{$i}_notes"] = $request->input("s7_{$i}_notes");
         }
@@ -375,7 +376,7 @@ class RiskController extends Controller
 
         $data = [];
         
-        // Save all 5 section 9 items (s9_1 through s9_5)
+        // Save all 5 section 9 checklist items and their notes (s9_1 through s9_5)
         for ($i = 1; $i <= 5; $i++) {
             $data["s9_{$i}"] = $request->input("s9_{$i}");
             $data["s9_{$i}_notes"] = $request->input("s9_{$i}_notes");
@@ -384,16 +385,16 @@ class RiskController extends Controller
         // Save section 9 overall notes
         $data['s9_notes'] = $request->input('s9_notes');
         
-        // Save additional conclusion fields
-        $data['key_findings'] = $request->input('key_findings');
-        $data['immediate_actions'] = $request->input('immediate_actions');
-        $data['recommendations'] = $request->input('recommendations');
-        $data['followup_date'] = $request->input('followup_date');
+        // Save additional conclusion / sign-off fields
+        $data['key_findings']        = $request->input('key_findings');
+        $data['immediate_actions']   = $request->input('immediate_actions');
+        $data['recommendations']     = $request->input('recommendations');
+        $data['followup_date']       = $request->input('followup_date');
         $data['escalation_required'] = $request->input('escalation_required');
-        $data['auditor_signature'] = $request->input('auditor_signature');
-        $data['signoff_datetime'] = $request->input('signoff_datetime');
+        $data['auditor_signature']   = $request->input('auditor_signature');
+        $data['signoff_datetime']    = $request->input('signoff_datetime');
         $data['manager_acknowledgement'] = $request->input('manager_acknowledgement');
-        $data['manager_comments'] = $request->input('manager_comments');
+        $data['manager_comments']    = $request->input('manager_comments');
 
         return $this->createOrUpdateSubmission($data, $submission);
     }
@@ -402,7 +403,7 @@ class RiskController extends Controller
     {
         $submission->fail_count = 0;
         for ($s = 2; $s <= 9; $s++) {
-            $max = ($s === 3) ? 7 : (($s === 4) ? 6 : (($s === 5) ? 7 : (($s === 6) ? 8 : (($s === 7) ? 8 : (($s === 8) ? 6 : 2)))));
+            $max = ($s === 3) ? 7 : (($s === 4) ? 6 : (($s === 5) ? 7 : (($s === 6) ? 8 : (($s === 7) ? 6 : (($s === 8) ? 6 : 2)))));
             for ($i = 1; $i <= $max; $i++) {
                 if ($request->input("s{$s}_{$i}") === 'fail') {
                     $submission->fail_count++;

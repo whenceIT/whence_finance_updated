@@ -221,7 +221,7 @@
         <div class="col-md-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h3 class="box-title"><i class="fa fa-building-o"></i>&nbsp; Branch Audit Results — All Offices</h3>
+                    <h3 class="box-title"><i class="fa fa-building-o"></i>&nbsp; Branch <span class="badge bage-xl badge-primary">Completed</span> Audit Results — All Offices</h3>
                     <div class="box-tools pull-right">
                         <span class="label label-default" style="font-size:12px;">{{ count($branches) }} branches</span>
                         &nbsp;
