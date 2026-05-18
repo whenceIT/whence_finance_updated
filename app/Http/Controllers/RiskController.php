@@ -471,6 +471,28 @@ class RiskController extends Controller
         }
     }
 
+    public function printAuditReport($submissionId)
+    {
+        $submission = \App\Models\AuditSubmission::with(['office', 'auditor'])
+            ->findOrFail($submissionId);
+
+        $sectionShorts = config('risk-audit.section_names', []);
+        $sectionItems  = config('risk-audit.section_items', []);
+        $ratingConfig  = config('risk-audit.rating_config', config('risk-audit.fail_rating', []));
+        $rc            = ($ratingConfig && is_array($ratingConfig))
+            ? ($ratingConfig[$submission->risk_rating] ?? $ratingConfig['pending'] ?? ['label' => ucfirst($submission->risk_rating), 'color' => '#333'])
+            : null;
+
+        return view('risk.print-audit-report', [
+            'submission'     => $submission,
+            'sectionShorts'  => $sectionShorts,
+            'sectionItems'   => $sectionItems,
+            'ratingConfig'   => $ratingConfig,
+            'rc'             => $rc,
+            'itemCounts'     => config('risk-audit.section_item_counts', []),
+        ]);
+    }
+
     public function getFullAuditReport($submissionId)
     {
         $submission = \App\Models\AuditSubmission::with(['office', 'auditor'])

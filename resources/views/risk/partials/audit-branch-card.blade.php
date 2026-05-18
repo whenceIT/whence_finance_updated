@@ -137,17 +137,17 @@
 
         {{-- Card footer --}}
         <div class="box-footer" style="padding:8px 14px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:right;">
-            <a href="#" class="btn btn-xs btn-default" id="viewReportBtn-{{ $branch['submission_id'] }}" data-submission-id="{{ $branch['submission_id'] }}">
-                <i class="fa fa-eye"></i> View Full Report
+            <a href="{{ route('risk.audit-report-print', $branch['submission_id']) }}" class="btn btn-xs btn-default" target="_blank" title="Print Full Report">
+                <i class="fa fa-print"></i> Print Full Report
             </a>
-            <a href="#" class="btn btn-xs btn-danger" style="margin-left:4px;">
+            <!-- <a href="#" class="btn btn-xs btn-danger" style="margin-left:4px;">
                 <i class="fa fa-clipboard"></i> Re-Audit
-            </a>
-            @if(isset($showDelete) && $showDelete)
+            </a> -->
+            <!-- @if(isset($showDelete) && $showDelete) -->
                 <button type="button" class="btn btn-xs btn-danger" style="margin-left:4px;" onclick="confirmDeleteAudit({{ $branch['submission_id'] }}, '{{ $branch['name'] }}')">
                     <i class="fa fa-trash"></i> Delete
                 </button>
-            @endif
+            <!-- @endif -->
         </div>
 
     </div>
