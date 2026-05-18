@@ -24,12 +24,80 @@ class RiskController extends Controller
 
     public function heatMap()
     {
-        return view('risk.heat-map');
-    }
+        $ratingConfig = [
+            'low'     => ['label' => 'LOW',      'hex' => '#27ae60', 'scale' => '#a8e6cf'],
+            'medium'  => ['label' => 'MODERATE', 'hex' => '#f39c12', 'scale' => '#ffd27a'],
+            'high'    => ['label' => 'HIGH',     'hex' => '#e74c3c', 'scale' => '#f5abab'],
+            'critical'=> ['label' => 'CRITICAL', 'hex' => '#7b241c', 'scale' => '#d97c7c'],
+            'pending' => ['label' => 'NO DATA',  'hex' => '#95a5a6', 'scale' => '#d5dbdb'],
+        ];
 
-    public function branchRanking()
-    {
-        return view('risk.branch-ranking');
+        // Latest audit submission per office (safe for all MySQL versions)
+        $latestSubs = \App\Models\AuditSubmission::query()
+            ->select('office_id', 'risk_rating', 'fail_count', 'audit_date', 'audit_type')
+            ->whereNotNull('office_id')
+            ->whereIn('id', function ($q) {
+                $q->selectRaw('MAX(id)')->from('audit_submissions')->whereNotNull('office_id')->groupBy('office_id');
+            })
+            ->get();
+
+        $officeRatings = [];
+        foreach ($latestSubs as $sub) {
+            $key = strtolower(trim((string) $sub->risk_rating)) ?: 'pending';
+            $officeRatings[$sub->office_id] = [
+                'rating'     => $key,
+                'fail_count' => (int) $sub->fail_count,
+                'audit_label'=> trim($sub->audit_date . ' ' . str_replace('_',' ', $sub->audit_type ?? '')),
+                'label'      => ($ratingConfig[$key]['label'] ?? 'NO DATA'),
+                'hex'        => ($ratingConfig[$key]['hex']   ?? '#95a5a6'),
+            ];
+        }
+
+        // All active offices with province + district, preloading latest rating
+        $allOffices = \App\Models\Office::with(['province', 'district', 'manager'])
+            ->where('active', 1)
+            ->orderBy('name')
+            ->get()
+            ->groupBy('province.name');
+
+        // Provincial summaries
+        $provincial = [];
+        foreach ($allOffices as $provName => $offices) {
+            $ratings = [];
+            foreach ($offices as $o) {
+                $r = $officeRatings[$o->id]['rating'] ?? 'pending';
+                $ratings[$r] = ($ratings[$r] ?? 0) + 1;
+            }
+            // Worst-case rating for province tint
+            $worst = 'pending';
+            foreach (['critical', 'high', 'medium', 'low', 'pending'] as $candidate) {
+                if (!empty($ratings[$candidate])) { $worst = $candidate; break; }
+            }
+            $provincial[$provName ?? 'Unknown'] = [
+                'offices'  => $offices,
+                'ratings'  => $ratings,
+                'worst'    => $worst,
+                'hex'      => $ratingConfig[$worst]['hex'] ?? '#95a5a6',
+                'label'    => $ratingConfig[$worst]['label'] ?? 'NO DATA',
+                'bg_light' => ($ratingConfig[$worst]['scale'] ?? '#d5dbdb') . '22',
+                'total'    => $offices->count(),
+            ];
+        }
+        ksort($provincial);
+
+        // National totals
+        $totals = ['low'=>0,'medium'=>0,'high'=>0,'critical'=>0,'pending'=>0];
+        foreach ($provincial as $pd) {
+            foreach ($pd['ratings'] as $r => $cnt) { $totals[$r] = ($totals[$r] ?? 0) + $cnt; }
+        }
+
+        return view('risk.heat-map', [
+            'provincial'    => $provincial,
+            'totals'        => $totals,
+            'ratingConfig'  => $ratingConfig,
+            'officeRatings' => $officeRatings,
+            'totalOffices'  => $allOffices->flatten()->count(),
+        ]);
     }
 
     public function fraudFeed()

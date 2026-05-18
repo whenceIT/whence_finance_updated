@@ -483,12 +483,12 @@
                 @php
                     $f9 = "s9_{$i}";
                     $f9n = $f9 . '_notes';
-                    $v9 = $submission->$f9 ?? '';
-                    $n9 = $submission->$f9n ?? '';
-                    $v9l = strtolower((string)$v9);
-                    if ($v9l === 'pass') { $ic='&#10003;'; $cls9='status-pass'; $lt='Pass'; }
-                    elseif ($v9l === 'fail') { $ic='&#10007;'; $cls9='status-fail'; $lt='Fail'; }
-                    else { $ic='&#8212;'; $cls9='status-na'; $lt='—'; }
+                     $v9 = $submission->$f9 ?? '';
+                     $n9 = $submission->$f9n ?? '';
+                     $v9l = strtolower((string)$v9);
+                     if ($v9l === 'pass') { $ic='✓'; $cls9='status-pass'; $lt='Pass'; }
+                     elseif ($v9l === 'fail') { $ic='✗'; $cls9='status-fail'; $lt='Fail'; }
+                     else { $ic='—'; $cls9='status-na'; $lt='—'; }
                 @endphp
                 <tr>
                     <td><strong>{{ $s9Labels[$f9] }}</strong> <span class="muted">({{ $f9 }})</span></td>
