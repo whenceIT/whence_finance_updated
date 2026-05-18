@@ -36,26 +36,25 @@ class RiskController extends Controller
         $provinceFilter = trim((string) $request->input('province', ''));
         $searchTerm     = trim((string) $request->input('search', ''));
 
-        // ── 1. Latest completed submission per office (one record each) ──────
+        // ── 1. Latest completed submission per office (by audit_date DESC, id DESC) ──
         $latestSubs = \App\Models\AuditSubmission::query()
-            ->select('office_id', 'risk_rating', 'fail_count', 'audit_date', 'audit_type',
-                     // s2 (10)
-                     's2_1','s2_2','s2_3','s2_4','s2_5','s2_6','s2_7','s2_8','s2_9','s2_10',
-                     // s3 (7)
-                     's3_1','s3_2','s3_3','s3_4','s3_5','s3_6','s3_7',
-                     // s4 (6)
-                     's4_1','s4_2','s4_3','s4_4','s4_5','s4_6',
-                     // s5 (6)
-                     's5_1','s5_2','s5_3','s5_4','s5_5','s5_6',
-                     // s6 (8)
-                     's6_1','s6_2','s6_3','s6_4','s6_5','s6_6','s6_7','s6_8',
-                     // s7 (6)
-                     's7_1','s7_2','s7_3','s7_4','s7_5','s7_6',
-                     // s8 (6)
-                     's8_1','s8_2','s8_3','s8_4','s8_5','s8_6')
-            ->whereNotNull('office_id')
-            ->whereIn('id', function ($q) {
-                $q->selectRaw('MAX(id)')->from('audit_submissions')->whereNotNull('office_id')->groupBy('office_id');
+            ->selectRaw('audit_submissions.*')
+            ->joinSub(function ($q) {
+                $q->selectRaw('MAX(a2.id) as id')
+                  ->from('audit_submissions as a2')
+                  ->whereNotNull('a2.office_id')
+                  ->joinSub(function ($q2) {
+                      $q2->selectRaw('office_id, MAX(audit_date) as max_ad')
+                        ->from('audit_submissions')
+                        ->whereNotNull('office_id')
+                        ->groupBy('office_id');
+                  }, 'mx2', function ($j) {
+                      $j->on('a2.office_id', '=', 'mx2.office_id')
+                        ->on('a2.audit_date', '=', 'mx2.max_ad');
+                  })
+                  ->groupBy('a2.office_id');
+            }, 'mx', function ($j) {
+                $j->on('audit_submissions.id', '=', 'mx.id');
             })
             ->get();
 
@@ -154,10 +153,14 @@ class RiskController extends Controller
             ];
         }
 
-        // Sort highest-risk first
-        usort($rows, function ($a, $b) {
+        // Sort lowest-risk first (pending -> low -> medium -> high -> critical)
+        $gradeOrder = ['pending'=>0, 'low'=>1, 'medium'=>2, 'high'=>3, 'critical'=>4];
+        usort($rows, function ($a, $b) use ($gradeOrder) {
+            $ra = $gradeOrder[$a['rating']] ?? 0;
+            $rb = $gradeOrder[$b['rating']] ?? 0;
+            if ($ra !== $rb) return $ra <=> $rb;
             if ($b['score'] === $a['score']) return $a['office']->name <=> $b['office']->name;
-            return $b['score'] <=> $a['score'];
+            return $a['score'] <=> $b['score'];
         });
 
         // Attach rank
@@ -193,15 +196,27 @@ class RiskController extends Controller
             'pending' => ['label' => 'NO DATA',  'hex' => '#95a5a6', 'scale' => '#d5dbdb'],
         ];
 
-        // Latest audit submission per office (safe for all MySQL versions)
+        // Latest audit submission per office (by audit_date DESC, id DESC)
         $latestSubs = \App\Models\AuditSubmission::query()
-            ->select('office_id', 'risk_rating', 'fail_count', 'audit_date', 'audit_type')
-            ->whereNotNull('office_id')
-            ->whereIn('id', function ($q) {
-                $q->selectRaw('MAX(id)')->from('audit_submissions')->whereNotNull('office_id')->groupBy('office_id');
+            ->selectRaw('audit_submissions.*')
+            ->joinSub(function ($q) {
+                $q->selectRaw('MAX(a2.id) as id')
+                  ->from('audit_submissions as a2')
+                  ->whereNotNull('a2.office_id')
+                  ->joinSub(function ($q2) {
+                      $q2->selectRaw('office_id, MAX(audit_date) as max_ad')
+                        ->from('audit_submissions')
+                        ->whereNotNull('office_id')
+                        ->groupBy('office_id');
+                  }, 'mx2', function ($j) {
+                      $j->on('a2.office_id', '=', 'mx2.office_id')
+                        ->on('a2.audit_date', '=', 'mx2.max_ad');
+                  })
+                  ->groupBy('a2.office_id');
+            }, 'mx', function ($j) {
+                $j->on('audit_submissions.id', '=', 'mx.id');
             })
             ->get();
-
         $officeRatings = [];
         foreach ($latestSubs as $sub) {
             $key = strtolower(trim((string) $sub->risk_rating)) ?: 'pending';
@@ -749,6 +764,81 @@ class RiskController extends Controller
             'sections'    => $submission->sections ?? [],
             'section_shorts' => $sectionShorts,
             'section_items'  => $sectionItems,
+        ]);
+    }
+
+    public function getOfficeAuditHistory($officeId)
+    {
+        $officeId = (int) $officeId;
+        $office   = \App\Models\Office::findOrFail($officeId);
+
+        $ratingConfig   = config('risk-audit.rating_config', config('risk-audit.fail_rating', []));
+        $sectionShorts  = config('risk-audit.section_names', []);
+        $sectionIndexes = config('risk-audit.section_item_counts', []);
+
+        $submissions = \App\Models\AuditSubmission::with(['auditor'])
+            ->where('office_id', $officeId)
+            ->orderByDesc('audit_date')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $list = [];
+        foreach ($submissions as $sub) {
+            $rc = ($ratingConfig && is_array($ratingConfig))
+                ? ($ratingConfig[$sub->risk_rating] ?? $ratingConfig['pending'] ?? null)
+                : null;
+
+            // ── Compute section pass/fail/na counts ─────────────────────────
+            $sections = [];
+            foreach ($sectionShorts as $si => $sname) {
+                if ($si === 0) {
+                    $sections[] = ['pass' => 0, 'fail' => 0, 'na' => 0];
+                    continue;
+                }
+                $secPrefix  = $si + 1; // s2=1, s3=2, …  s9=8
+                $itemCount  = $sectionIndexes[$si] ?? 0;
+                $pass = $fail = $na = 0;
+                for ($j = 1; $j <= $itemCount; $j++) {
+                    $field  = "s{$secPrefix}_{$j}";
+                    $value  = $sub->$field ?? null;
+                    // Fraud (sec index 4) uses present/not_present
+                    if ($si === 4) {
+                        if ($value === 'not_present') $pass++;
+                        elseif ($value === 'present') $fail++;
+                    } else {
+                        if ($value === 'pass')    $pass++;
+                        elseif ($value === 'fail') $fail++;
+                        elseif ($value === 'na')   $na++;
+                    }
+                }
+                $sections[] = ['pass' => $pass, 'fail' => $fail, 'na' => $na];
+            }
+
+            $list[] = [
+                'submission_id'  => (int) $sub->id,
+                'audit_date'     => $sub->audit_date ? $sub->audit_date->format('d M Y') : '—',
+                'audit_type'     => $sub->audit_type ?? '',
+                'auditor'        => ($sub->auditor ? $sub->auditor->name : ($sub->auditor_name ?? '—')),
+                'fail_count'     => (int) $sub->fail_count,
+                'risk_rating'    => $sub->risk_rating,
+                'risk_label'     => $rc['label'] ?? ucfirst($sub->risk_rating),
+                'risk_color'     => $rc['color'] ?? '#333',
+                'sections'       => $sections,
+                'created_at'     => $sub->created_at ? $sub->created_at->format('d M Y H:i') : '',
+                'opening_remarks'=> $sub->opening_remarks ?? '',
+                'key_findings'   => $sub->key_findings ?? '',
+                'immediate_actions' => $sub->immediate_actions ?? '',
+                'recommendations'   => $sub->recommendations ?? '',
+            ];
+        }
+
+        return response()->json([
+            'office'    => $office->name,
+            'code'      => $office->external_id ?? ('#' . $office->id),
+            'province'  => $office->province?->name ?? '—',
+            'district'  => $office->district?->name ?? '—',
+            'total'     => count($list),
+            'audits'    => $list,
         ]);
     }
 }

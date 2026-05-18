@@ -70,7 +70,7 @@
     <div class="col-md-12">
         <div class="box box-primary">
             <div class="box-header with-border">
-                <h3 class="box-title"><i class="fa fa-fire"></i>&nbsp; Enterprise Risk Heat Map For Lateast Completed Audits</h3>
+                <h3 class="box-title"><i class="fa fa-fire"></i>&nbsp; Enterprise Risk Heat Map For Latest Completed Audits</h3>
                 <div class="box-tools pull-right">
                     <span class="label label-default" style="font-size:12px;">{{ $totalOffices }} offices</span>
                     &nbsp;
@@ -78,6 +78,19 @@
                 </div>
             </div>
             <div class="box-body" style="padding:16px;">
+
+                {{-- Risk-level filter --}}
+                <div style="margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                    <label for="hm-risk-filter" style="font-size:9.5pt;font-weight:700;color:#555;margin:0;">Risk level:</label>
+                    <select id="hm-risk-filter" class="form-control input-sm" style="max-width:200px;" onchange="hmFilterRisk()">
+                        <option value="">All Levels</option>
+                        @foreach(['critical','high','medium','low','pending'] as $rk)
+                            @php $rkCfg = $ratingConfig[$rk] ?? ['label'=>'N/A']; @endphp
+                            <option value="{{ $rk }}">{{ strtoupper($rk) }} – {{ $rkCfg['label'] }}</option>
+                        @endforeach
+                    </select>
+                    <span id="hm-empty-msg" style="display:none;font-size:9.5pt;color:#999;font-style:italic;">No offices match that risk level.</span>
+                </div>
 
                 {{-- NATIONAL COUNTERS STRIP --}}
                 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;">
@@ -169,7 +182,6 @@
                                         $label= $or['label']     ?? 'NO DATA';
                                         $fc   = $or['fail_count']?? 0;
                                         $al   = $or['audit_label']?? '';
-                                        $mg   = $office->manager->name ?? '—';
 
                                         $bgMap = [
                                             'critical'=> 'rgba(188, 16, 0, 0.36)',
