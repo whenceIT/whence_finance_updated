@@ -445,8 +445,8 @@ Route::group(['prefix' => 'audits'], function () {
 Route::group(['prefix' => 'risk'], function () {
     Route::get('overview', [RiskController::class, 'overview']);
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
-    Route::get('heat-map', [RiskController::class, 'heatMap']);
-    Route::get('branch-ranking', [RiskController::class, 'branchRanking']);
+    Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
+    Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
     Route::get('fraud-feed', [RiskController::class, 'fraudFeed']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
     Route::get('policy-breach', [RiskController::class, 'policyBreach']);

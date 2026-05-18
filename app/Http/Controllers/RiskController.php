@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use App\Models\Province;
 
 class RiskController extends Controller
 {
@@ -20,6 +21,166 @@ class RiskController extends Controller
     public function auditTrail()
     {
         return redirect()->route('audits.index');
+    }
+
+    public function branchRanking(Request $request)
+    {
+        $ratingConfig = [
+            'low'     => ['label' => 'LOW',      'hex' => '#27ae60'],
+            'medium'  => ['label' => 'MODERATE', 'hex' => '#f39c12'],
+            'high'    => ['label' => 'HIGH',     'hex' => '#e74c3c'],
+            'critical'=> ['label' => 'CRITICAL', 'hex' => '#7b241c'],
+            'pending' => ['label' => 'NO DATA',  'hex' => '#95a5a6'],
+        ];
+
+        $provinceFilter = trim((string) $request->input('province', ''));
+        $searchTerm     = trim((string) $request->input('search', ''));
+
+        // ── 1. Latest completed submission per office (one record each) ──────
+        $latestSubs = \App\Models\AuditSubmission::query()
+            ->select('office_id', 'risk_rating', 'fail_count', 'audit_date', 'audit_type',
+                     // s2 (10)
+                     's2_1','s2_2','s2_3','s2_4','s2_5','s2_6','s2_7','s2_8','s2_9','s2_10',
+                     // s3 (7)
+                     's3_1','s3_2','s3_3','s3_4','s3_5','s3_6','s3_7',
+                     // s4 (6)
+                     's4_1','s4_2','s4_3','s4_4','s4_5','s4_6',
+                     // s5 (6)
+                     's5_1','s5_2','s5_3','s5_4','s5_5','s5_6',
+                     // s6 (8)
+                     's6_1','s6_2','s6_3','s6_4','s6_5','s6_6','s6_7','s6_8',
+                     // s7 (6)
+                     's7_1','s7_2','s7_3','s7_4','s7_5','s7_6',
+                     // s8 (6)
+                     's8_1','s8_2','s8_3','s8_4','s8_5','s8_6')
+            ->whereNotNull('office_id')
+            ->whereIn('id', function ($q) {
+                $q->selectRaw('MAX(id)')->from('audit_submissions')->whereNotNull('office_id')->groupBy('office_id');
+            })
+            ->get();
+
+        $subMap = [];
+        foreach ($latestSubs as $sub) {
+            $subMap[$sub->office_id] = $sub;
+        }
+
+        // ── 2. All active offices with province/district ──────────────────────
+        $officesQuery = \App\Models\Office::with(['province', 'district', 'manager'])
+            ->where('active', 1)
+            ->orderBy('name');
+
+        if ($provinceFilter !== '') {
+            $officesQuery->whereHas('province', function ($q) use ($provinceFilter) {
+                $q->where('name', $provinceFilter);
+            });
+        }
+
+        if ($searchTerm !== '') {
+            $officesQuery->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('external_id', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        $allOffices = $officesQuery->get();
+
+        // ── 3. Weighted scoring per office ────────────────────────────────────
+        // Category weights based on actual audit_submissions table columns
+        $weights = [
+            // Section 2 – Wallet / Digital Payment Controls (10 items × 5 = 50)
+            's2' => ['weight' => 5, 'count' => 10],
+            // Section 3 – Loan Portfolio (7 items × 8 = 56)
+            's3' => ['weight' => 8, 'count' => 7],
+            // Section 4 – Collections (6 items × 6 = 36)
+            's4' => ['weight' => 6, 'count' => 6],
+            // Section 5 – Fraud Indicators (6 items × 10 = 60)
+            's5' => ['weight' => 10, 'count' => 6],
+            // Section 6 – Staff & Process (8 items × 3 = 24)
+            's6' => ['weight' => 3, 'count' => 8],
+            // Section 7 – System & Control (6 items × 4 = 24)
+            's7' => ['weight' => 4, 'count' => 6],
+            // Section 8 – Reporting & Governance (6 items × 5 = 30)
+            's8' => ['weight' => 5, 'count' => 6],
+        ];
+
+        $rows = [];
+        foreach ($allOffices as $office) {
+            $sub     = $subMap[$office->id] ?? null;
+            $score   = 0;
+            $factors = [];
+            $fails   = 0;
+
+            if ($sub) {
+                foreach ($weights as $sec => $cfg) {
+                    $secFails = 0;
+                    for ($i = 1; $i <= $cfg['count']; $i++) {
+                        $field = "{$sec}_{$i}";
+                        if (($sub->$field ?? null) === 'fail') {
+                            $secFails++;
+                        }
+                    }
+                    $score += $secFails * $cfg['weight'];
+                    if ($secFails > 0) {
+                        $factors[] = strtoupper($sec) . "({$secFails})";
+                    }
+                }
+
+                // Conclude from overall fail_count
+                $fails  = (int) ($sub->fail_count ?? 0);
+                $score += $fails;
+
+                if ($fails >= 13) {
+                    $rating = 'critical';
+                } elseif ($fails >= 8) {
+                    $rating = 'high';
+                } elseif ($fails >= 4) {
+                    $rating = 'medium';
+                } else {
+                    $rating = 'low';
+                }
+            } else {
+                $rating = 'pending';
+            }
+
+            $rows[] = [
+                'office'   => $office,
+                'province' => $office->province->name ?? '—',
+                'district' => $office->district->name ?? '—',
+                'score'    => $score,
+                'rating'   => $rating,
+                'fails'    => $fails,
+                'factors'  => $factors,
+                'sub'      => $sub,
+            ];
+        }
+
+        // Sort highest-risk first
+        usort($rows, function ($a, $b) {
+            if ($b['score'] === $a['score']) return $a['office']->name <=> $b['office']->name;
+            return $b['score'] <=> $a['score'];
+        });
+
+        // Attach rank
+        foreach ($rows as $idx => &$row) { $row['rank'] = $idx + 1; }
+        unset($row);
+
+        // ── 4. Summary stats ──────────────────────────────────────────────────
+        $summary = ['critical' => 0, 'high' => 0, 'medium' => 0, 'low' => 0];
+        foreach ($rows as $row) {
+            if (isset($summary[$row['rating']])) { $summary[$row['rating']]++; }
+        }
+
+        return view('risk.branch-ranking', [
+            'rows'           => $rows,
+            'ratingConfig'   => $ratingConfig,
+            'summary'        => $summary,
+            'totalBranches'  => count($rows),
+            'provinces'      => \App\Models\Province::orderBy('name')->pluck('name')->all(),
+            'filters'        => [
+                'province' => $provinceFilter,
+                'search'   => $searchTerm,
+            ],
+        ]);
     }
 
     public function heatMap()

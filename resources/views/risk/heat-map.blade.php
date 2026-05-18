@@ -7,10 +7,10 @@
 @push('styles')
 <style>
     /* ── Heat-map token palette ── */
-    .hm-low      { background:#eafaf1; border-left:4px solid #27ae60; }
+    .hm-low      { background:#eafaf1; border-left:4px solid #07b851; }
     .hm-medium   { background:#fef9e7; border-left:4px solid #f39c12; }
-    .hm-high     { background:#fdedec; border-left:4px solid #e74c3c; }
-    .hm-critical { background:#f9ebea; border-left:4px solid #7b241c; }
+    .hm-high     { background:#fdedec; border-left:4px solid #ff0000; }
+    .hm-critical { background:#f9ebea; border-left:4px solid #770a00; }
     .hm-pending  { background:#f3f3f3; border-left:4px solid #95a5a6; }
 
     .hm-pill-low      { background:#27ae60; color:#fff; }
@@ -70,7 +70,7 @@
     <div class="col-md-12">
         <div class="box box-primary">
             <div class="box-header with-border">
-                <h3 class="box-title"><i class="fa fa-fire"></i>&nbsp; Enterprise Risk Heat Map</h3>
+                <h3 class="box-title"><i class="fa fa-fire"></i>&nbsp; Enterprise Risk Heat Map For Lateast Completed Audits</h3>
                 <div class="box-tools pull-right">
                     <span class="label label-default" style="font-size:12px;">{{ $totalOffices }} offices</span>
                     &nbsp;
@@ -89,7 +89,7 @@
                             $icon = ($rk === 'critical') ? '🚨' : (($rk === 'high') ? '🔴' : (($rk === 'medium') ? '🟡' : (($rk === 'low') ? '🟢' : '⬜')));
                             $lbl  = $cfg['label'];
                             $bg   = $rk === 'critical' ? '#f9ebea' : ($rk === 'high' ? '#fdedec' : ($rk === 'medium' ? '#fef9e7' : ($rk === 'low' ? '#eafaf1' : '#f3f3f3')));
-                            $bc   = $rk === 'critical' ? '#7b241c' : ($rk === 'high' ? '#e74c3c' : ($rk === 'medium' ? '#f39c12' : ($rk === 'low' ? '#27ae60' : '#95a5a6')));
+                            $bc   = $rk === 'critical' ? '#610e06' : ($rk === 'high' ? '#ff1900' : ($rk === 'medium' ? '#f39c12' : ($rk === 'low' ? '#27ae60' : '#95a5a6')));
                         @endphp
                         <div style="position:relative;background:{{ $bg }};border:2px solid {{ $bc }};border-radius:8px;padding:16px 8px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08);">
                             <div style="position:absolute;top:0;left:0;right:0;height:4px;background:{{ $bc }};border-radius:0;"></div>
@@ -99,36 +99,11 @@
                         </div>
                     @endforeach
                 </div>
+                
+                <hr>
 
-                {{-- LEGEND + FILTERS --}}
-                <div class="row" style="margin-bottom:18px;">
-                    <div class="col-md-8">
-                        <div class="hm-legend-item" style="margin-bottom:5px;"><strong style="font-size:9.5pt;">Risk Grading Legend</strong></div>
-                        <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                            @foreach($ratingConfig as $key => $cfg)
-                                <div class="hm-legend-item">
-                                    <div class="hm-legend-swatch" style="background:{{ $cfg['hex'] }};"></div>
-                                    <span>{{ $cfg['label'] }}</span>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div class="col-md-4" style="padding-top:4px;">
-                        <label style="font-size:8.5pt;color:#888;">Filter by Risk Level</label><br>
-                        <select id="hm-risk-filter" class="form-control input-sm"
-                                style="max-width:200px;" onchange="hmFilterRisk()">
-                            <option value="">All Risk Levels</option>
-                            <option value="critical">Critical</option>
-                            <option value="high">High</option>
-                            <option value="medium">Moderate</option>
-                            <option value="low">Low</option>
-                            <option value="pending">No Data Yet</option>
-                        </select>
-                    </div>
-                 </div>
-
-                 {{-- PROVINCE GRID – TILES CONTAINING OFFICE TILES --}}
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+                {{-- PROVINCE GRID – TILES CONTAINING OFFICE TILES --}}
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;">
 
                     @foreach($provincial as $provName => $pd)
                         @php
@@ -155,14 +130,14 @@
                                     <span style="font-weight:700;font-size:11pt;color:#222;">{{ $provName }}</span>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:6px;">
-                                    @foreach($ratingKeys as $rkIn)
+                                    <!-- @foreach($ratingKeys as $rkIn)
                                         @php $rcIn = $pd['ratings'][$rkIn] ?? 0; @endphp
                                         @if($rcIn > 0)
                                             @php $rhIn = $ratingConfig[$rkIn]['hex'] ?? '#95a5a6'; @endphp
                                             <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ $rhIn }};"
                                                   title="{{ $ratingConfig[$rkIn]['label'] ?? '' }}: {{ $rcIn }}"></span>
                                         @endif
-                                    @endforeach
+                                    @endforeach -->
                                     <span style="font-size:8.5pt;font-weight:700;color:{{ $worstHex }};margin-left:4px;">
                                         {{ $pd['label'] }}
                                     </span>
@@ -197,8 +172,8 @@
                                         $mg   = $office->manager->name ?? '—';
 
                                         $bgMap = [
-                                            'critical'=> 'rgba(123,36,28,0.10)',
-                                            'high'    => 'rgba(231,76,60,0.08)',
+                                            'critical'=> 'rgba(188, 16, 0, 0.36)',
+                                            'high'    => 'rgba(255, 25, 0, 0.12)',
                                             'medium'  => 'rgba(243,156,18,0.08)',
                                             'low'     => 'rgba(39,174,96,0.08)',
                                             'pending' => 'rgba(149,165,166,0.09)',
