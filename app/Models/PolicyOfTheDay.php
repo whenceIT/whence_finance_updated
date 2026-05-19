@@ -68,26 +68,14 @@ class PolicyOfTheDay extends Model
         return $query->where('is_random', true);
     }
 
-    /**
-     * Get the policy of the day for display
-     * Priority: Scheduled for today > Random > Any active
-     */
-    public static function getTodaysPolicy()
-    {
-        // First try scheduled for today - limit to 1
-        $policy = static::active()->today()->orderBy('created_at', 'desc')->limit(1)->first();
+      /**
+       * Get the policy of the day for display
+       * Priority: Scheduled for today > Random > Any active
+       */
+      public static function getTodaysPolicy()
+      {
+          // First try scheduled for today - limit to 1
+          return static::active()->whereRaw("DATE(created_at) = CURDATE()")->orderBy('created_at', 'desc')->limit(1)->first();
 
-        if ($policy) {
-            return $policy;
-        }
-
-        // Then try random active policies - limit to 1
-        $randomPolicy = static::active()->random()->limit(1)->first();
-        if ($randomPolicy) {
-            return $randomPolicy;
-        }
-
-        // Finally, any active policy - limit to 1
-        return static::active()->orderBy('created_at', 'desc')->limit(1)->first();
-    }
+      }
 }

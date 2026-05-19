@@ -934,9 +934,9 @@ $office = $userInfo->office;
                     </div> -->
                     <script>
                         // Prevent closing the modal
-                        document.getElementById('payrollModal').addEventListener('click', function (event) {
-                            event.stopPropagation();
-                        });
+                        // document.getElementById('payrollModal').addEventListener('click', function (event) {
+                        //     event.stopPropagation();
+                        // });
                         document.addEventListener('keydown', function (event) {
                             if (event.key === 'Escape') {
                                 event.preventDefault();
@@ -1046,7 +1046,12 @@ $office = $userInfo->office;
             const url = "https://lms2backend.whencefinancesystem.com/announcement";
 
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     if (!data || !data.title || !data.message || !data.end_date) return;
 
@@ -1072,7 +1077,10 @@ $office = $userInfo->office;
                     });
 
                 })
-                .catch(err => console.error("Announcement fetch failed:", err));
+                .catch(err => {
+                    // Silently fail - announcement is not critical
+                    console.log("Announcement service unavailable");
+                });
 
         });
     </script>
@@ -1386,9 +1394,9 @@ $office = $userInfo->office;
                         Options will be populated via JS
                     </select>
                 </div>
-                <p class="sample-text" style="display: none;">Dear Customer, this is a reminder that your loan of ZMW 0
+                <p class="sample-text" style="display: none; padding:2px;">Dear Customer, this is a reminder that your loan of ZMW 0
                     is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance,
-                    contact 0972654596.</p>
+                    contact 0773425477.</p>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel"
                         style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
@@ -1615,6 +1623,7 @@ $office = $userInfo->office;
 
 
 
+    @include('components.performance_pusher')
     @include('components.notification')
 
 </body>

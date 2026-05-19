@@ -1,0 +1,597 @@
+﻿<script>
+// Global stub to avoid ReferenceError if inline onclick runs before full script loads
+window.auditWizardNav = function(direction) { console.warn('auditWizardNav called before initialization:', direction); };
+(function () {
+    'use strict';
+
+    var TOTAL_STEPS = 10;
+    var currentStep = 1;
+    var activeSteps = [1,2,3,4,5,6,7,8,9,10];
+
+    var stepLabels = [
+        'How to Use This Checklist',
+        'Section 1 — Audit Administration',
+        'Section 2 — Withinhere Wallet & Digital Payment Controls',
+        'Section 3 — Loan Portfolio Integrity',
+        'Section 4 — Collections & Recoveries',
+        'Section 5 — Fraud Risk Indicators',
+        'Section 6 — Staff & Process Compliance',
+        'Section 7 — System & Control Environment',
+        'Section 8 — Reporting & Governance',
+        'Section 9 — Audit Conclusion & Sign-Off'
+    ];
+
+    /* ── Initialize Select2 for wizard fields ───────────────── */
+    function initWizardSelect2() {
+        if (typeof $.fn.select2 !== 'undefined') {
+            $('.select2-branch, #auditChecklistModal .select2').select2({
+                placeholder: '— Search and select —',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#auditChecklistModal')
+            });
+        }
+    }
+
+    /* ── Validate required fields for step 2 before saving ───────────────── */
+    function validateStep2() {
+        var required = [
+            's1_office_id',
+            's1_audit_date',
+            's1_auditor_name',
+            's1_audit_scope[]',
+            's1_period_start',
+            's1_period_end',
+            's1_audit_type',
+            's1_unannounced',
+            's1_manager_present',
+            's1_manager_name',
+            's1_opening_remarks'
+        ];
+
+        var missing = [];
+
+        required.forEach(function (name) {
+            var field = document.getElementsByName(name)[0];
+            if (!field) return;
+
+            if (name.endsWith('[]')) {
+                var select = document.getElementsByName(name)[0];
+                if (!select || select.selectedOptions.length === 0) {
+                    missing.push('Audit Scope');
+                }
+                return;
+            }
+
+            if (!field.value || field.value.trim() === '') {
+                var label = field.closest('.form-group') ? field.closest('.form-group').querySelector('label') : null;
+                missing.push(label ? label.textContent.replace('*', '').trim() : name);
+            }
+        });
+
+        if (missing.length) {
+            alert('Please complete the required fields for Step 2 before continuing:\n\n' + missing.join('\n'));
+            return false;
+        }
+
+        return true;
+    }
+
+    /* ── Save current wizard step via AJAX ───────────────── */
+    function saveStep(stepId, onSuccess) {
+        if (stepId === 1) {
+            if (onSuccess) onSuccess(true);
+            return;
+        }
+
+        if (stepId === 2 && !validateStep2()) {
+            if (onSuccess) onSuccess(false);
+            return;
+        }
+
+        var form = document.getElementById('auditForm');
+        var step = document.getElementById('step-' + stepId);
+        if (!form || !step) {
+            if (onSuccess) onSuccess(false);
+            return;
+        }
+
+        var formData = new FormData();
+        var token = form.querySelector('input[name="_token"]');
+        if (token) formData.append('_token', token.value);
+
+        var submissionId = document.getElementById('audit_submission_id');
+        if (submissionId && submissionId.value) {
+            formData.append('audit_submission_id', submissionId.value);
+        }
+        formData.append('save_step', stepId);
+
+        step.querySelectorAll('input[name], select[name], textarea[name]').forEach(function (field) {
+            if (!field.name) return;
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                if (!field.checked) return;
+            }
+            if (field.tagName.toLowerCase() === 'select' && field.multiple) {
+                Array.from(field.selectedOptions).forEach(function (option) {
+                    formData.append(field.name, option.value);
+                });
+                return;
+            }
+            formData.append(field.name, field.value);
+        });
+
+        fetch('{{ route('risk.store-audit-submission') }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(function (response) {
+            if (!response.ok) {
+                return response.json().then(function (data) {
+                    throw new Error(data.message || 'Unable to save step.');
+                });
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            if (data && data.submission_id) {
+                var submissionInput = document.getElementById('audit_submission_id');
+                if (submissionInput) {
+                    submissionInput.value = data.submission_id;
+                }
+            }
+            if (onSuccess) onSuccess(true);
+        })
+        .catch(function (error) {
+            console.error('Step save failed:', error);
+            alert('Unable to save Step 2 data. Please check your entries and try again.');
+            if (onSuccess) onSuccess(false);
+        });
+    }
+
+    /* ── Handle audit scope change ───────────────── */
+    function handleScopeChange() {
+        var scopeSelect = document.getElementById('s1_audit_scope');
+        if (scopeSelect) {
+            scopeSelect.addEventListener('change', function() {
+                var selectedSections = Array.from(scopeSelect.selectedOptions).map(o => parseInt(o.value));
+                activeSteps = [1]; // intro always
+                for (let s of selectedSections) {
+                    activeSteps.push(s + 1); // section 1 -> step 2
+                }
+                TOTAL_STEPS = activeSteps.length;
+                // Reset to step 1 if changed
+                currentStep = 1;
+                showStep(1);
+            });
+        }
+    }
+
+    /* ── Handle branch selection change ───────────────── */
+    function handleBranchChange() {
+        var select = document.getElementById('s1OfficeSelect');
+        if (select) {
+            select.addEventListener('change', function() {
+                var selectedOption = this.options[this.selectedIndex];
+                var branchDetailsDiv = document.getElementById('s1BranchDetails');
+                var officeId = selectedOption.value;
+
+                if (officeId) {
+                    console.log('Office selected:', officeId);
+                    // Populate branch details from data attributes
+                    document.getElementById('s1BranchCode').value = selectedOption.getAttribute('data-code') || '';
+
+                    // Fetch additional audit data
+                    fetch(window.location.origin + '/risk/office-audit-data/' + officeId)
+                        .then(function(response) {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(function(data) {
+                            console.log('Data received:', data);
+                            document.getElementById('s3_total_active').value = data.s3_total_active || 0;
+                            document.getElementById('s3_incomplete_files').value = data.s3_incomplete_files || 0;
+                            document.getElementById('s4_system_collections').value = data.s4_system_collections || 0;
+                            document.getElementById('s4_wallet_collections').value = data.s4_wallet_collections || 0;
+                            document.getElementById('s6_total_staff').value = data.s6_total_staff || 0;
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to fetch office audit data:', error);
+                        });
+
+                    // Show the branch details section
+                    if (branchDetailsDiv) branchDetailsDiv.style.display = 'block';
+                } else {
+                    // Hide and clear branch details if no branch selected
+                    if (branchDetailsDiv) branchDetailsDiv.style.display = 'none';
+                    document.getElementById('s1BranchCode').value = '';
+                    document.getElementById('s1BranchProvince').value = '';
+                    document.getElementById('s1BranchDistrict').value = '';
+                    document.getElementById('s1BranchAddress').value = '';
+                    document.getElementById('s1BranchPhone').value = '';
+                    document.getElementById('s1BranchEmail').value = '';
+                    // Clear audit data fields
+                    document.getElementById('s3_total_active').value = '';
+                    document.getElementById('s3_incomplete_files').value = '';
+                    document.getElementById('s4_system_collections').value = '';
+                    document.getElementById('s4_wallet_collections').value = '';
+                    document.getElementById('s6_total_staff').value = '';
+                }
+            });
+        }
+    }
+
+    /* ── Risk scoring ─────────────────────────────────────────── */
+    function getRiskRating(count) {
+        if (count <= 3)  return { label: '🟢 LOW — Branch is compliant',                color: '#27ae60' };
+        if (count <= 7)  return { label: '🟡 MEDIUM — Weaknesses present',              color: '#f39c12' };
+        if (count <= 12) return { label: '🔴 HIGH — Significant control failures',       color: '#e74c3c' };
+        return               { label: '🚨 CRITICAL — Immediate escalation required',    color: '#7b241c' };
+    }
+
+    function updateRiskScore() {
+        var fails = document.querySelectorAll('.fail-radio:checked').length;
+        var rating = getRiskRating(fails);
+
+        var countEl  = document.getElementById('failCount');
+        var labelEl  = document.getElementById('riskRatingLabel');
+        var boxEl    = document.getElementById('riskScoreBox');
+
+        if (countEl)  { countEl.textContent  = fails; countEl.style.color = rating.color; }
+        if (labelEl)  { labelEl.textContent  = rating.label; labelEl.style.color = rating.color; }
+        if (boxEl)    { boxEl.style.borderColor = rating.color; }
+
+        var header = boxEl ? boxEl.querySelector('.box-header') : null;
+        if (header) header.style.background = rating.color;
+    }
+
+    /* ── Fraud indicator alert ────────────────────────────────── */
+    function updateFraudAlert() {
+        var presentCount = document.querySelectorAll('.fraud-indicator-radio:checked').length;
+        var alertBox = document.getElementById('fraudAlert');
+        if (alertBox) alertBox.style.display = (presentCount >= 3) ? 'block' : 'none';
+    }
+
+    /* ── Step navigation ──────────────────────────────────────── */
+    function showStep(n) {
+        document.querySelectorAll('.audit-step').forEach(function (el) {
+            el.style.display = 'none';
+        });
+
+        var stepId = activeSteps[n - 1];
+        var target = document.getElementById('step-' + stepId);
+        if (target) target.style.display = 'block';
+
+        var pct = Math.round((n / TOTAL_STEPS) * 100);
+        var bar = document.getElementById('auditProgressBar');
+        if (bar) { bar.style.width = pct + '%'; bar.setAttribute('aria-valuenow', pct); }
+
+        var lbl = document.getElementById('auditStepLabel');
+        if (lbl) lbl.textContent = 'Step ' + n + ' of ' + TOTAL_STEPS + ' \u2014 ' + stepLabels[stepId - 1];
+
+        var prevBtn   = document.getElementById('auditPrevBtn');
+        var nextBtn   = document.getElementById('auditNextBtn');
+        var submitBtn = document.getElementById('auditSubmitBtn');
+
+        if (prevBtn)   prevBtn.style.display   = (n === 1) ? 'none' : 'inline-block';
+        if (n === TOTAL_STEPS) {
+            if (nextBtn)   nextBtn.style.display   = 'none';
+            if (submitBtn) submitBtn.style.display = 'inline-block';
+            updateRiskScore();
+        } else {
+            if (nextBtn)   nextBtn.style.display   = 'inline-block';
+            if (submitBtn) submitBtn.style.display = 'none';
+        }
+    }
+
+    window.auditWizardNav = function (direction) {
+        var next = currentStep + direction;
+        if (next < 1 || next > TOTAL_STEPS) return;
+
+        var currentStepId = activeSteps[currentStep - 1];
+        if (direction === 1 && currentStepId !== 1) {
+            saveStep(currentStepId, function (success) {
+                if (!success) return;
+                currentStep = next;
+                showStep(currentStep);
+            });
+            return;
+        }
+
+        currentStep = next;
+        showStep(currentStep);
+    };
+
+    /* ── Reset on open ────────────────────────────────────────── */
+    var modal = document.getElementById('auditChecklistModal');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function () {
+            currentStep = 1;
+            showStep(1);
+            
+            // Initialize Select2 when modal opens
+            initWizardSelect2();
+            // Attach change handlers
+            handleBranchChange();
+            handleScopeChange();
+        });
+
+        // Clean up Select2 when modal closes
+        modal.addEventListener('hidden.bs.modal', function () {
+            activeSteps = [1,2,3,4,5,6,7,8,9,10];
+            TOTAL_STEPS = 10;
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('.select2-branch, #auditChecklistModal .select2').select2('destroy');
+            }
+            document.getElementById('s1OfficeSelect').value = '';
+            var scopeSelect = document.getElementById('s1_audit_scope');
+            if (scopeSelect) {
+                for (let option of scopeSelect.options) {
+                    option.selected = false;
+                }
+            }
+            var branchDetailsDiv = document.getElementById('s1BranchDetails');
+            if (branchDetailsDiv) branchDetailsDiv.style.display = 'none';
+            document.getElementById('s1BranchCode').value = '';
+            document.getElementById('s1BranchProvince').value = '';
+            document.getElementById('s1BranchDistrict').value = '';
+            document.getElementById('s1BranchAddress').value = '';
+            document.getElementById('s1BranchPhone').value = '';
+            document.getElementById('s1BranchEmail').value = '';
+            var submissionInput = document.getElementById('audit_submission_id');
+            if (submissionInput) submissionInput.value = '';
+            document.getElementById('s3_total_active').value = '';
+            document.getElementById('s3_incomplete_files').value = '';
+            document.getElementById('s4_system_collections').value = '';
+            document.getElementById('s4_wallet_collections').value = '';
+            document.getElementById('s6_total_staff').value = '';
+        });
+    }
+
+    // Attach change handlers immediately in case modal is already shown or for testing
+    handleBranchChange();
+    handleScopeChange();
+
+    /* ── Live listeners ───────────────────────────────────────── */
+    document.addEventListener('change', function (e) {
+        if (!e.target) return;
+
+        var radio = e.target;
+
+        /* Handle any audit radio wrap toggle */
+        if (radio.closest && radio.closest('.audit-radio-wrap')) {
+            var wrap = radio.closest('.audit-radio-wrap');
+            var name = radio.name;
+
+            /* Reset all wraps sharing this radio name */
+            document.querySelectorAll('.audit-radio-wrap input[name="' + name + '"]').forEach(function (inp) {
+                var w = inp.closest('.audit-radio-wrap');
+                var td = inp.closest('td');
+                w.classList.remove('is-checked');
+                if (td) td.classList.remove('fail-cell-active');
+            });
+
+            /* Mark the selected wrap */
+            wrap.classList.add('is-checked');
+
+            /* If it's a fail radio, highlight the cell and the data row */
+            var isFail = radio.classList.contains('fail-radio');
+            var td = radio.closest('td');
+            var tr = radio.closest('tr');
+
+            if (isFail) {
+                if (td) td.classList.add('fail-cell-active');
+                /* Find the data row (the one before the notes row) and mark it */
+                if (tr) tr.classList.add('row-failed');
+                /* Also mark the notes row below */
+                var notesRow = tr ? tr.nextElementSibling : null;
+                if (notesRow) notesRow.classList.add('row-failed');
+            } else {
+                /* Clearing fail state when pass is selected */
+                if (tr) {
+                    tr.classList.remove('row-failed');
+                    var notesRow = tr.nextElementSibling;
+                    if (notesRow) notesRow.classList.remove('row-failed');
+                }
+            }
+        }
+
+        if (radio.classList.contains('fraud-indicator-radio')) updateFraudAlert();
+        if (radio.classList.contains('fail-radio'))            updateRiskScore();
+    });
+
+    /* ── Toggle functions ─────────────────────────────────────── */
+    window.toggleZeroCashPolicy = function () {
+        var expanded = document.getElementById('zeroCashPolicyExpanded');
+        var toggle = event.target;
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+            toggle.textContent = ' See Less';
+        } else {
+            expanded.style.display = 'none';
+            toggle.textContent = ' See More';
+        }
+    };
+
+    window.toggleCollectionsPolicy = function () {
+        var expanded = document.getElementById('collectionsPolicyExpanded');
+        var toggle = event.target;
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+            toggle.textContent = ' See Less';
+        } else {
+            expanded.style.display = 'none';
+            toggle.textContent = ' See More';
+        }
+    };
+
+    window.toggleFraudWarning = function () {
+        var expanded = document.getElementById('fraudWarningExpanded');
+        var toggle = event.target;
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+            toggle.textContent = ' See Less';
+        } else {
+            expanded.style.display = 'none';
+            toggle.textContent = ' See More';
+        }
+    };
+
+    window.toggleStaffingPolicy = function () {
+        var expanded = document.getElementById('staffingPolicyExpanded');
+        var toggle = event.target;
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+            toggle.textContent = ' See Less';
+        } else {
+            expanded.style.display = 'none';
+            toggle.textContent = ' See More';
+        }
+    };
+
+    /* ── Pre-select office from unaudited offices tab ──────────── */
+    window.preSelectOffice = function (officeId) {
+        var modalJq = $('#auditChecklistModal');
+        var applySelection = function() {
+            var select = document.getElementById('s1OfficeSelect');
+            if (!select || !officeId) return;
+
+            // If select2 is initialized, use its API so UI updates correctly
+            if (typeof $.fn.select2 !== 'undefined' && $(select).data('select2')) {
+                $(select).val(officeId).trigger('change');
+            } else {
+                select.value = officeId;
+                var evt = new Event('change', { bubbles: true });
+                select.dispatchEvent(evt);
+            }
+
+            // Ensure branch details are visible in case change handler didn't run yet
+            var branchDetailsDiv = document.getElementById('s1BranchDetails');
+            if (branchDetailsDiv) branchDetailsDiv.style.display = 'block';
+        };
+
+        // If modal already visible, apply immediately
+        if (modalJq.is(':visible')) {
+            applySelection();
+            return;
+        }
+
+        // Apply once modal has been shown (use one() to avoid duplicate bindings)
+        modalJq.one('shown.bs.modal', function () {
+            // Small delay so select2 init in show handler (if any) completes
+            setTimeout(applySelection, 50);
+        });
+
+        // Open the modal if it's not already opening via data-attributes
+        if (!modalJq.is(':visible')) {
+            modalJq.modal('show');
+        }
+    };
+
+    /* ── Submit ───────────────────────────────────────────────── */
+    window.submitAuditChecklist = function () {
+        var submitBtn = document.getElementById('auditSubmitBtn');
+        var form = document.getElementById('auditForm');
+        
+        if (!form) {
+            alert('Form not found');
+            return;
+        }
+
+        // Validate required fields in section 9
+        var requiredFields = [
+            { name: 'key_findings', label: 'Key Findings Summary' },
+            { name: 'immediate_actions', label: 'Immediate Actions Required' },
+            { name: 'followup_date', label: 'Follow-up Audit Date' },
+            { name: 'escalation_required', label: 'Immediate Escalation Required' },
+            { name: 'auditor_signature', label: 'Auditor Signature' },
+            { name: 'signoff_datetime', label: 'Date & Time of Sign-Off' },
+            { name: 'manager_acknowledgement', label: 'Branch Manager Acknowledgement' }
+        ];
+
+        var missing = [];
+        requiredFields.forEach(function(field) {
+            var input = form.querySelector('[name="' + field.name + '"]');
+            if (!input || !input.value || input.value.trim() === '') {
+                missing.push(field.label);
+            }
+        });
+
+        if (missing.length > 0) {
+            alert('Please complete the following required fields:\n\n' + missing.join('\n'));
+            return;
+        }
+
+        // Disable button and show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+
+        var formData = new FormData(form);
+        formData.append('final_submit', '1');
+
+        fetch('{{ route('risk.store-audit-submission') }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                return response.json().then(function(data) {
+                    throw new Error(data.message || 'Unable to submit audit.');
+                });
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            // Show success popup with SweetAlert
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Audit Submitted Successfully!',
+                    text: 'The audit checklist has been completed and saved.',
+                    type: 'success',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#27ae60'
+                }, function() {
+                    // Close modal and reload page
+                    $('#auditChecklistModal').modal('hide');
+                    location.reload();
+                });
+            } else {
+                alert('Audit submitted successfully!');
+                $('#auditChecklistModal').modal('hide');
+                location.reload();
+            }
+        })
+        .catch(function(error) {
+            console.error('Audit submission failed:', error);
+            
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa fa-check"></i> Submit Audit';
+            
+            // Show error message
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Submission Failed',
+                    text: error.message || 'Unable to submit audit. Please check your entries and try again.',
+                    type: 'error',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#e74c3c'
+                });
+            } else {
+                alert('Unable to submit audit. Please check your entries and try again.\n\n' + (error.message || ''));
+            }
+        });
+    };
+
+})();
+</script>
+

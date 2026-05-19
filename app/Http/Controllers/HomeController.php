@@ -273,7 +273,7 @@ class HomeController extends Controller
                     // Log login audit
                     $this->auditorService->logLogin(Sentinel::getUser()->id, $request);
 
-                    if (Sentinel::getUser()->blocked == 1) {
+                    if (Sentinel::getUser()->blocked == 1 && Sentinel::getUser()->status != 'Active') {
                         //prevent login
                         Flash::warning(trans('general.user_blocked'));
                         Sentinel::logout(null, true);
@@ -368,7 +368,7 @@ class HomeController extends Controller
             try {
                 if (Sentinel::authenticate($credentials, $remember)) {
                     //GeneralHelper::audit_trail("Logged in to system");
-                    if (Sentinel::getUser()->blocked == 1) {
+                    if (Sentinel::getUser()->blocked == 1 || Sentinel::getUser()->status != 'Active') {
                         //prevent login
                         Flash::warning(trans('general.user_blocked'));
                         Sentinel::logout(null, true);

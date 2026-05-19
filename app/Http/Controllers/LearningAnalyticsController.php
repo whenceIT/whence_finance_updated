@@ -27,8 +27,8 @@ class LearningAnalyticsController extends Controller
 {
     public function index(Request $request)
     {
-        // Get date period (default to last 30 days)
-        $period = $request->get('period', '30');
+        // Get date period (default to today)
+        $period = $request->get('period', 'today');
         $startDate = $this->getStartDate($period);
 
         // Course Analytics
@@ -38,23 +38,26 @@ class LearningAnalyticsController extends Controller
         $uploadAnalytics = $this->getUploadAnalytics($startDate);
 
         // Top Performing Content
-        $topCourses = $this->getTopCourses();
-        $topUploads = $this->getTopUploads();
+        $topCourses = $this->getTopCourses($startDate);
+        $topUploads = $this->getTopUploads($startDate);
 
         // Overall Statistics
-        $overallStats = $this->getOverallStats();
+        $overallStats = $this->getOverallStats($startDate);
 
         // Engagement Statistics
-        $engagementStats = $this->getEngagementStats();
+        $engagementStats = $this->getEngagementStats($startDate);
 
         // Individual Engagement
-        $individualEngagement = $this->getIndividualEngagement();
+        $individualEngagement = $this->getIndividualEngagement($startDate);
 
         // Executive Summary
-        $executiveSummary = $this->getExecutiveSummary();
+        $executiveSummary = $this->getExecutiveSummary($startDate);
 
         // Chart Data
         $chartData = $this->getChartData($period);
+
+        // Management Dashboard Data
+        $managementData = $this->getManagementDashboardData($startDate);
 
         return view('learning.analytics.analytics', compact(
             'courseAnalytics',
@@ -66,6 +69,7 @@ class LearningAnalyticsController extends Controller
             'individualEngagement',
             'executiveSummary',
             'chartData',
+            'managementData',
             'period'
         ));
     }
@@ -73,6 +77,8 @@ class LearningAnalyticsController extends Controller
     private function getStartDate($period)
     {
         switch ($period) {
+            case 'today':
+                return Carbon::today();
             case '7':
                 return Carbon::now()->subDays(7);
             case '30':
@@ -82,7 +88,7 @@ class LearningAnalyticsController extends Controller
             case '365':
                 return Carbon::now()->subDays(365);
             default:
-                return Carbon::now()->subDays(30);
+                return Carbon::today();
         }
     }
 
@@ -90,6 +96,7 @@ class LearningAnalyticsController extends Controller
     {
         $courses = TrainingMaterial::with(['allTopics', 'categories'])
             ->active()
+            ->where('created_at', '>=', $startDate)
             ->get();
 
         $analytics = [];
@@ -116,6 +123,7 @@ class LearningAnalyticsController extends Controller
     private function getUploadAnalytics($startDate)
     {
         $uploads = GeneralUpload::with('generalTopic')
+            ->where('created_at', '>=', $startDate)
             ->get();
 
         $analytics = [];
@@ -136,10 +144,11 @@ class LearningAnalyticsController extends Controller
         return collect($analytics)->sortByDesc('views_count')->values();
     }
 
-    private function getTopCourses($limit = 10)
+    private function getTopCourses($startDate, $limit = 10)
     {
         return TrainingMaterial::with(['allTopics', 'categories'])
             ->active()
+            ->where('created_at', '>=', $startDate)
             ->get()
             ->map(function ($course) {
                 $category = $course->categories->first();
@@ -156,9 +165,10 @@ class LearningAnalyticsController extends Controller
             ->values();
     }
 
-    private function getTopUploads($limit = 10)
+    private function getTopUploads($startDate, $limit = 10)
     {
         return GeneralUpload::with('generalTopic')
+            ->where('created_at', '>=', $startDate)
             ->orderBy('views_count', 'desc')
             ->take($limit)
             ->get()
@@ -174,23 +184,25 @@ class LearningAnalyticsController extends Controller
             });
     }
 
-    private function getOverallStats()
+    private function getOverallStats($startDate)
     {
-        $totalCourses = TrainingMaterial::active()->count();
-        $totalTopics = CourseTopic::count();
-        $totalUploads = GeneralUpload::count();
+        $totalCourses = TrainingMaterial::active()->where('created_at', '>=', $startDate)->count();
+        $totalTopics = CourseTopic::where('created_at', '>=', $startDate)->count();
+        $totalUploads = GeneralUpload::where('created_at', '>=', $startDate)->count();
 
         $totalCourseViews = TrainingMaterial::with('allTopics')
             ->active()
+            ->where('created_at', '>=', $startDate)
             ->get()
             ->sum(function ($course) {
                 return $course->allTopics->sum('view_count');
             });
 
-        $totalUploadViews = GeneralUpload::sum('views_count');
+        $totalUploadViews = GeneralUpload::where('created_at', '>=', $startDate)->sum('views_count');
 
         $totalEnrollments = TrainingMaterial::with('enrollments')
             ->active()
+            ->where('created_at', '>=', $startDate)
             ->get()
             ->sum(function ($course) {
                 return $course->enrollments->count();
@@ -198,6 +210,7 @@ class LearningAnalyticsController extends Controller
 
         $avgCompletionRate = TrainingMaterial::with(['enrollments', 'allTopics'])
             ->active()
+            ->where('created_at', '>=', $startDate)
             ->get()
             ->avg(function ($course) {
                 return $this->calculateCompletionRate($course);
@@ -234,12 +247,13 @@ class LearningAnalyticsController extends Controller
         // Get actual view data aggregated by date (for now we'll create daily distribution)
         $totalCourseViews = TrainingMaterial::with('allTopics')
             ->active()
+            ->where('created_at', '>=', $startDate)
             ->get()
             ->sum(function ($course) {
                 return $course->allTopics->sum('view_count');
             });
 
-        $totalUploadViews = GeneralUpload::sum('views_count');
+        $totalUploadViews = GeneralUpload::where('created_at', '>=', $startDate)->sum('views_count');
         $totalDays = count($days);
 
         // Distribute total views across the period for visualization
@@ -264,6 +278,7 @@ class LearningAnalyticsController extends Controller
 
         // Content type distribution with actual data
         $contentTypeData = GeneralUpload::selectRaw('type, COUNT(*) as count, SUM(views_count) as views')
+            ->where('created_at', '>=', $startDate)
             ->groupBy('type')
             ->get()
             ->map(function ($item) {
@@ -277,6 +292,7 @@ class LearningAnalyticsController extends Controller
         // Course categories with actual data
         $courseCategoriesData = TrainingMaterial::with(['categories', 'allTopics'])
             ->active()
+            ->where('created_at', '>=', $startDate)
             ->get()
             ->groupBy(function ($course) {
                 $category = $course->categories->first();
@@ -296,7 +312,7 @@ class LearningAnalyticsController extends Controller
             ->values();
 
         // Office-based analytics
-        $officeAnalytics = $this->getOfficeAnalytics();
+        $officeAnalytics = $this->getOfficeAnalytics($startDate);
 
         return [
             'period_labels' => $days,
@@ -309,17 +325,32 @@ class LearningAnalyticsController extends Controller
         ];
     }
 
-    private function getEngagementStats()
+    private function getEngagementStats($startDate)
     {
-        $openedCount = GeneralView::where('type', 'upload')->where('opened', true)->distinct('item_id')->count('item_id');
+        $openedCount = GeneralView::where('type', 'upload')
+            ->where('opened', true)
+            ->where('updated_at', '>=', $startDate)
+            ->distinct('item_id')
+            ->count('item_id');
 
-        $avgDuration = GeneralView::where('type', 'upload')->whereNotNull('duration')->avg('duration');
+        $avgDuration = GeneralView::where('type', 'upload')
+            ->whereNotNull('duration')
+            ->where('updated_at', '>=', $startDate)
+            ->avg('duration');
 
-        $totalViews = GeneralView::where('type', 'upload')->count();
-        $completedCount = GeneralView::where('type', 'upload')->where('completion_status', 'completed')->count();
+        $totalViews = GeneralView::where('type', 'upload')
+            ->where('updated_at', '>=', $startDate)
+            ->count();
+        $completedCount = GeneralView::where('type', 'upload')
+            ->where('completion_status', 'completed')
+            ->where('updated_at', '>=', $startDate)
+            ->count();
         $completionRate = $totalViews > 0 ? ($completedCount / $totalViews) * 100 : 0;
 
-        $activeLearners = GeneralView::where('type', 'upload')->distinct('user_id')->count('user_id');
+        $activeLearners = GeneralView::where('type', 'upload')
+            ->where('updated_at', '>=', $startDate)
+            ->distinct('user_id')
+            ->count('user_id');
 
         return [
             'opened_count' => $openedCount,
@@ -330,9 +361,10 @@ class LearningAnalyticsController extends Controller
         ];
     }
 
-    private function getIndividualEngagement()
+    private function getIndividualEngagement($startDate)
     {
         return GeneralView::where('type', 'upload')
+            ->where('updated_at', '>=', $startDate)
             ->with(['user', 'upload'])
             ->orderBy('updated_at', 'desc')
             ->take(100)
@@ -350,11 +382,17 @@ class LearningAnalyticsController extends Controller
             });
     }
 
-    private function getExecutiveSummary()
+    private function getExecutiveSummary($startDate)
     {
-        $totalEngaged = GeneralView::where('type', 'upload')->distinct('user_id')->count('user_id');
+        $totalEngaged = GeneralView::where('type', 'upload')
+            ->where('updated_at', '>=', $startDate)
+            ->distinct('user_id')
+            ->count('user_id');
 
-        $avgCompletionTime = GeneralView::where('type', 'upload')->whereNotNull('duration')->avg('duration');
+        $avgCompletionTime = GeneralView::where('type', 'upload')
+            ->where('updated_at', '>=', $startDate)
+            ->whereNotNull('duration')
+            ->avg('duration');
         $avgCompletionTimeFormatted = $avgCompletionTime ? gmdate('i:s', $avgCompletionTime) : '0:00';
 
         // Dummy for now
@@ -372,11 +410,12 @@ class LearningAnalyticsController extends Controller
         ];
     }
 
-    private function getOfficeAnalytics()
+    private function getOfficeAnalytics($startDate)
     {
         // Get course views by office (through users who created content)
         $courseViewsByOffice = TrainingMaterial::with(['allTopics', 'creator.office'])
             ->active()
+            ->where('created_at', '>=', $startDate)
             ->get()
             ->groupBy(function ($course) {
                 return $course->creator && $course->creator->office
@@ -402,6 +441,7 @@ class LearningAnalyticsController extends Controller
 
         // Get upload views by office
         $uploadViewsByOffice = GeneralUpload::with(['user.office'])
+            ->where('created_at', '>=', $startDate)
             ->get()
             ->groupBy(function ($upload) {
                 return $upload->user && $upload->user->office
@@ -435,6 +475,67 @@ class LearningAnalyticsController extends Controller
         }
 
         return $days;
+    }
+
+    private function getManagementDashboardData($startDate)
+    {
+        $startDateFilter = $startDate; // Ensure variable is in scope
+
+        // Aggregated engagement metrics by role
+        $roleMetrics = \DB::table('general_views')
+            ->join('users', 'general_views.user_id', '=', 'users.id')
+            ->join('role_users', 'users.id', '=', 'role_users.user_id')
+            ->where('general_views.updated_at', '>=', $startDateFilter)
+            ->selectRaw('role_users.role_id, COUNT(DISTINCT general_views.user_id) as user_count, AVG(general_views.duration) as avg_duration')
+            ->groupBy('role_users.role_id')
+            ->get();
+
+        // Engagement by office
+        $officeMetrics = \DB::table('general_views')
+            ->join('users', 'general_views.user_id', '=', 'users.id')
+            ->where('general_views.updated_at', '>=', $startDateFilter)
+            ->whereNotNull('users.office_id')
+            ->selectRaw('users.office_id, COUNT(DISTINCT general_views.user_id) as user_count, COUNT(general_views.id) as total_views')
+            ->groupBy('users.office_id')
+            ->get();
+
+        // Performance correlation data
+        $performanceCorrelation = \DB::table('loans')
+            ->join('users', 'loans.client_id', '=', 'users.id')
+            ->leftJoin('general_views', function($join) use ($startDateFilter) {
+                $join->on('users.id', '=', 'general_views.user_id')
+                     ->where('general_views.type', 'upload')
+                     ->where('general_views.updated_at', '>=', $startDateFilter);
+            })
+            ->selectRaw('COUNT(DISTINCT CASE WHEN loans.status = "defaulted" THEN users.id END) as default_users,
+                       COUNT(DISTINCT CASE WHEN loans.status != "defaulted" THEN users.id END) as good_users,
+                       AVG(CASE WHEN general_views.duration IS NOT NULL THEN general_views.duration END) as avg_views_default,
+                       AVG(CASE WHEN general_views.duration IS NULL THEN 0 END) as avg_views_good')
+            ->first();
+
+        // Risk indicators
+        $riskIndicators = \DB::table('users')
+            ->leftJoin('general_views', function($join) use ($startDateFilter) {
+                $join->on('users.id', '=', 'general_views.user_id')
+                     ->where('general_views.type', 'upload')
+                     ->where('general_views.updated_at', '>=', $startDateFilter);
+            })
+            ->leftJoin('loans', 'users.id', '=', 'loans.client_id')
+            ->selectRaw('users.id, users.first_name, users.last_name,
+                       COUNT(DISTINCT general_views.id) as total_views,
+                       COUNT(DISTINCT CASE WHEN loans.status = "defaulted" THEN loans.id END) as default_loans,
+                       COUNT(DISTINCT loans.id) as total_loans')
+            ->groupBy('users.id', 'users.first_name', 'users.last_name')
+            ->havingRaw('total_views < 5 OR default_loans > 0')
+            ->limit(10)
+            ->get();
+
+        return [
+            'role_metrics' => $roleMetrics,
+            'office_metrics' => $officeMetrics,
+            'performance_correlation' => $performanceCorrelation,
+            'risk_indicators' => $riskIndicators,
+        ];
     }
 
     /**

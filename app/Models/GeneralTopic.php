@@ -13,6 +13,7 @@ class GeneralTopic extends Model
     protected $fillable = [
         'name',
         'description',
+        'category',
         'poster'
     ];
 

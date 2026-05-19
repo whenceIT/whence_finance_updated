@@ -443,10 +443,10 @@ Route::group(['prefix' => 'audits'], function () {
 });
 //route for risk management
 Route::group(['prefix' => 'risk'], function () {
-    Route::get('overview', [RiskController::class, 'overview']);
+    Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
-    Route::get('heat-map', [RiskController::class, 'heatMap']);
-    Route::get('branch-ranking', [RiskController::class, 'branchRanking']);
+    Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
+    Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
     Route::get('fraud-feed', [RiskController::class, 'fraudFeed']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
     Route::get('policy-breach', [RiskController::class, 'policyBreach']);
@@ -456,6 +456,13 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('staff-profiles', [RiskController::class, 'staffProfiles']);
     Route::get('executive-summary', [RiskController::class, 'executiveSummary']);
     Route::get('decision-sla', [RiskController::class, 'decisionSla']);
+    Route::get('office-audit-data/{officeId}', [RiskController::class, 'getOfficeAuditData']);
+    Route::get('audit-section-details/{submissionId}/{section}', [RiskController::class, 'getAuditSectionDetails']);
+    Route::get('audit-history/{officeId}', [RiskController::class, 'getOfficeAuditHistory'])->name('risk.audit-history');
+    Route::get('audit-report/{submissionId}', [RiskController::class, 'getFullAuditReport'])->name('risk.full-audit-report');
+    Route::get('audit-report-print/{submissionId}', [RiskController::class, 'printAuditReport'])->name('risk.audit-report-print');
+    Route::post('store-audit-submission', [RiskController::class, 'storeAuditSubmission'])->name('risk.store-audit-submission');
+    Route::delete('audit-submission/{submissionId}', [RiskController::class, 'deleteAuditSubmission'])->name('risk.delete-audit-submission');
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {

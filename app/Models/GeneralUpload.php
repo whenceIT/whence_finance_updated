@@ -14,6 +14,7 @@ class GeneralUpload extends Model
         'type',
         'file_size',
         'mime_type',
+        'category',
         'uploaded_by',
         'poster',
         'general_topic_id',

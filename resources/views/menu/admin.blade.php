@@ -82,8 +82,8 @@
                 </a>
 	        </li>
 
-
-            @if($role == 1)
+            <!-- Check the config/role.php with predefined users accounts ids -->
+            @hasRole('role.exec', 'role.poa' )
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/poadashboard') }}">
                     <i class="fa fa-dashboard"></i> <span>POA Dashboard</span>
@@ -92,7 +92,7 @@
              @endif
 
              
-            @if($role == 1)
+            @hasRole('role.exec', 'role.goa')
             <!-- ============================================
                  GOA MANAGER SECTION
             ============================================ -->
@@ -121,7 +121,7 @@
 
 
             <!-- Audit Trail / Risk Management -->
-            @if($role == 1)
+            @hasRole('role.exec', 'role.risk')
             <li class="treeview @if(Request::is('risk*') || Request::is('audits*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-history"></i> <span>Risk Management</span>
@@ -885,16 +885,16 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            @hasRole('role.exec','role.policy_manager')
                                 <li><a href="{{ route('policies.dashboard') }}"><i class="fa fa-circle-o"></i> Policy Dashboard</a></li>
                             @endif
                             @if(Sentinel::hasAccess('reports.client_reports'))
                                 <li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
                             @endif
-                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            @hasRole('role.exec','role.policy_manager')
                                 <li><a href="{{ route('policies.user_responses') }}"><i class="fa fa-circle-o"></i> User Responses</a></li>
                             @endif
-                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            @hasRole('role.exec','role.policy_manager')
                                 <li><a href="{{ route('policies.add_policies') }}"><i class="fa fa-circle-o"></i> Add Policies</a></li>
                             @endif
                         </ul>

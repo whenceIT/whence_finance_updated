@@ -49,6 +49,11 @@ class Office extends Model
         return $this->hasOne(DistrictRegional::class, 'id', 'district_regional_id');
     }
 
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
     public function charges()
     {
         return $this->hasMany(LoanCharge::class, 'loan_id', 'id');

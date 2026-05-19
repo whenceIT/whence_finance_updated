@@ -3331,19 +3331,25 @@ class LoanController extends Controller
                 $user = Sentinel::getUser();
                 $this->auditorService->logApprovedTransaction($user, request(), $loan);
                 // Send SMS to client about the transaction
-                $amount = $Trans->credit;
+                $amount = number_format($Trans->credit, 2);
                 $date = $Trans->date;
                 $paymentType = $Trans->payment_apply_to;
                 $dueDate = $loan->first_repayment_date ? date('d M Y', strtotime($loan->first_repayment_date)) : 'N/A';
                 $loanStatus = $loan->status;
 
+                if($loan->office_id == 8){
+                    $balance = GeneralHelper::loan_total_balance($loan->id);
+                    $inline = ', your new loan balance is ZMW ' . number_format($balance, 2) . '.';
+                }else{
+                    $inline = '';
+                }
                 //Create a message based on the payment type
                 if ($paymentType == 'full_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount}  successfully received on {$date}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount} successfully received on {$date} Thank you. Call 0773425477 for queries.";
                 } elseif ($paymentType == 'part_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} successfully received on {$date}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully received on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
                 } else {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} successfully received on {$date}. Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully received on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
                 }
 
                 // Send SMS to client about the transaction (only for enabled offices)
