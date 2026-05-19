@@ -263,38 +263,54 @@ Policy Management | System
             @endif
         </div>
 
-        <!-- Recent Activity -->
-        <div class="bento-card span-6">
-            <div class="card-header">
-                <span class="card-title">Recent Activity</span>
-                <div class="card-icon" style="background: #fef3c7; color: #f59e0b;">
-                    <i class="fa fa-history"></i>
-                </div>
-            </div>
-            @if($recentResponses->count() > 0)
-            <div class="activity-list">
-                @foreach($recentResponses as $response)
-                <div class="activity-item">
-                    <div class="activity-avatar">
-                        {{ substr($response->user->first_name ?? 'U', 0, 1) }}{{ substr($response->user->last_name ?? '', 0, 1) }}
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">{{ $response->user->first_name ?? 'Unknown' }} {{ $response->user->last_name ?? '' }}</div>
-                        <div class="activity-meta">{{ $response->policy->title ?? 'Unknown Policy' }}</div>
-                    </div>
-                    <span class="activity-badge badge-{{ $response->status }}">
-                        {{ ucfirst($response->status) }}
-                    </span>
-                </div>
-                @endforeach
-            </div>
-            @else
-            <div class="empty-state">
-                <i class="fa fa-inbox"></i>
-                <p>No recent activity</p>
-            </div>
-            @endif
-        </div>
+         <!-- Recent Activity -->
+         <div class="bento-card span-6">
+             <div class="card-header">
+                 <span class="card-title">Recent Activity</span>
+                 <div class="card-icon" style="background: #fef3c7; color: #f59e0b;">
+                     <i class="fa fa-history"></i>
+                 </div>
+             </div>
+             @php
+                 $groupedResponses = collect($recentResponses)->groupBy(function($response) {
+                     return $response->user->id ?? 'unknown';
+                 });
+             @endphp
+             @if($groupedResponses->count() > 0)
+             <div class="activity-list">
+                 @foreach($groupedResponses as $userId => $responses)
+                 @php
+                     $user = $responses->first()->user;
+                 @endphp
+                 <div class="user-activity-group">
+                     <div class="activity-item user-header">
+                         <div class="activity-avatar">
+                             {{ substr($user->first_name ?? 'U', 0, 1) }}{{ substr($user->last_name ?? '', 0, 1) }}
+                         </div>
+                         <div class="activity-content">
+                             <div class="activity-title">{{ $user->first_name ?? 'Unknown' }} {{ $user->last_name ?? '' }}</div>
+                             <div class="activity-meta">{{ $responses->count() }} recent activities</div>
+                         </div>
+                     </div>
+                     @foreach($responses as $response)
+                     <div class="activity-item">
+                        <div class="activity-content">
+                            <div class="activity-title">{{ $response->policy->title ?? 'Unknown Policy' }}</div>
+                            {{ ucfirst($response->status) }}
+                            <div class="activity-meta">{{ $response->created_at->diffForHumans() }}</div>
+                        </div>
+                     </div>
+                     @endforeach
+                 </div>
+                 @endforeach
+             </div>
+             @else
+             <div class="empty-state">
+                 <i class="fa fa-inbox"></i>
+                 <p>No recent activity</p>
+             </div>
+             @endif
+         </div>
     </div>
 </div>
 

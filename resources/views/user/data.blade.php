@@ -19,6 +19,7 @@
             <table class="table  table-bordered table-hover table-striped" id="data-table">
                 <thead>
                 <tr>
+                    <th>ID</th>
                     <th>{{ trans('general.name') }}</th>
                     <th>{{ trans('general.gender') }}</th>
                     <th>Province</th>
@@ -36,6 +37,7 @@
                 @if($key->role && $key->role->role_id != 2)
       
                     <tr>
+                        <td><span class="badge badge-info">{{ $key->id }}</span></td>
                         <td>{{ $key->first_name }} {{ $key->last_name }}</td>
                         <td>
                             @if($key->gender=="male")

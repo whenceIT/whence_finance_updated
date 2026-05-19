@@ -3092,4 +3092,22 @@ public static function new_new_loan_total_balance($id)
             'role'  => $roleName,
         ];
     }
+
+    /**
+     * Merge one or more config('role.xxx') arrays into a deduplicated
+     * list of user-ID strings.
+     *
+     * Usage:  GeneralHelper::mergedRoleIds('role.exec', 'role.goa', 'role.risk')
+     */
+    public static function mergedRoleIds(string ...$keys): array
+    {
+        $result = [];
+        foreach ($keys as $key) {
+            $val = config($key, []);
+            if (is_array($val)) {
+                $result = array_merge($result, $val);
+            }
+        }
+        return array_unique(array_map('strval', $result));
+    }
 }

@@ -321,6 +321,75 @@
     border-radius: 10px;
 }
 
+/* For grouped activity items, make content flex row with space between */
+.policy-dashboard-page .user-activity-group .activity-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+}
+
+/* Make activity content take remaining space and align properly */
+.policy-dashboard-page .user-activity-group .activity-item .activity-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+}
+
+/* Ensure avatar and badge maintain proper sizing */
+.policy-dashboard-page .user-activity-group .activity-item .activity-avatar {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+}
+
+.policy-dashboard-page .user-activity-group .activity-item .activity-badge {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Style the content elements for better appearance */
+.policy-dashboard-page .user-activity-group .activity-item .activity-content .activity-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.policy-dashboard-page .user-activity-group .activity-item .activity-content .activity-meta {
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+/* User Activity Group Styles */
+.policy-dashboard-page .user-activity-group {
+    background: var(--pd-gray-50);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.policy-dashboard-page .user-activity-group .activity-item.user-header {
+    background: var(--pd-primary);
+    color: white;
+    font-weight: 600;
+    padding: 1rem;
+}
+
+.policy-dashboard-page .user-activity-group .activity-item.user-header .activity-avatar {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.policy-dashboard-page .user-activity-group .activity-item {
+    border-top: 1px solid var(--pd-gray-100);
+}
+
+.policy-dashboard-page .user-activity-group .activity-item:first-child {
+    border-top: none;
+}
+
 .policy-dashboard-page .activity-avatar {
     width: 40px;
     height: 40px;

@@ -36,6 +36,17 @@ class AppServiceProvider extends ServiceProvider
             return str_replace(':field', $parameters[0], $message);
         });
         Schema::defaultStringLength(191);
+
+        /**
+         * Blade directive: @hasRole('role.goa', 'role.risk')
+         * Checks the current user's ID against one or more config('role.xxx') arrays.
+         */
+        \Blade::if('hasRole', function (string ...$keys) {
+            $user = \Cartalyst\Sentinel\Laravel\Facades\Sentinel::getUser();
+            if (!$user) return false;
+            $merged = \App\Helpers\GeneralHelper::mergedRoleIds(...$keys);
+            return in_array((string) $user->id, $merged, true);
+        });
     }
 
     /**
