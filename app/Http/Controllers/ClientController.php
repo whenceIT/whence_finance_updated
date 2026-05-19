@@ -412,7 +412,7 @@ class ClientController extends Controller
             }
         }
         // Notify Risk Manager of new client creation
-        Notifix::notifyRkNewClientCreated($client, Sentinel::getUser(), $office);
+     //   Notifix::notifyRkNewClientCreated($client, Sentinel::getUser(), $office);
 
         GeneralHelper::audit_trail("Create", "Clients", $client->id);
         Flash::success(trans('general.successfully_saved'));
