@@ -3,13 +3,13 @@
 namespace App\Services;
 
 use App\Models\Alert;
-use App\Models\AuditLogs;
 use App\Models\Client;
 use App\Models\LoanTransaction;
 use App\Models\User;
 use App\Models\Office;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use OwenIt\Auditing\Models\Audit;
 
 class AlertService
 {
@@ -56,26 +56,34 @@ class AlertService
     protected static function detectAfterHoursLogins(): int
     {
         $created = 0;
+        $made = 0;
         // Business hours: 06:00 – 19:00
         $cutoffStart = '06:00:00';
         $cutoffEnd   = '19:00:00';
 
-        $logs = AuditLogs::with('user')->get();
+        $logs = Audit::with('user')
+            ->where(function ($q) use ($cutoffStart, $cutoffEnd) {
+                $q->whereRaw('TIME(created_at) < ?', [$cutoffStart])
+                  ->orWhereRaw('TIME(created_at) >= ?', [$cutoffEnd]);
+            })
+            ->get();
 
         foreach ($logs as $log) {
-            if (self::isAfterHours($log->date, $cutoffStart, $cutoffEnd)) {
-                $created += (int) self::maybeCreate([
-                    'rule'         => 'after_hours_login',
-                    'severity'     => 'critical',
-                    'title'        => 'After-hours system login detected',
-                    'description'  => sprintf(
-                        'User "%s" logged in outside business hours (06:00–19:00) at %s.',
-                        $log->user->full_name ?? ('User #' . $log->done_by),
-                        $log->date
-                    ),
-                    'reference_id' => $log->done_by,
-                    'meta'         => ['user_id' => $log->done_by, 'login_time' => $log->date],
-                ]);
+            if ($made >= 5) break;
+            if ((int) self::maybeCreate([
+                'rule'         => 'after_hours_login',
+                'severity'     => 'critical',
+                'title'        => 'After-hours system login detected',
+                'description'  => sprintf(
+                    'User "%s" logged in outside business hours (06:00–19:00) at %s.',
+                    $log->user->name ?? ('User #' . $log->user_id),
+                    $log->created_at
+                ),
+                'reference_id' => $log->user_id,
+                'meta'         => ['user_id' => $log->user_id, 'login_time' => $log->created_at],
+            ])) {
+                $created++;
+                $made++;
             }
         }
 
@@ -87,6 +95,7 @@ class AlertService
     protected static function detectDuplicateNrc(): int
     {
         $created = 0;
+        $made = 0;
 
         $dupes = Client::select('nrc_number')
             ->where('nrc_number', '<>', '')
@@ -97,6 +106,7 @@ class AlertService
             ->get();
 
         foreach ($dupes as $row) {
+            if ($made >= 5) break;
             $clients = Client::where('nrc_number', $row->nrc_number)
                 ->with('office')
                 ->get();
@@ -105,7 +115,7 @@ class AlertService
                 return ($c->office ? $c->office->name : 'Unknown') . ' / ' . trim(($c->first_name ?? '') . ' ' . ($c->last_name ?? ''));
             })->implode('; ');
 
-            $created += (int) self::maybeCreate([
+            if ((int) self::maybeCreate([
                 'rule'         => 'duplicate_nrc',
                 'severity'     => 'critical',
                 'title'        => 'Duplicate NRC number detected',
@@ -117,7 +127,10 @@ class AlertService
                 ),
                 'reference_id' => $clients->first()->id ?? null,
                 'meta'         => ['nrc_number' => $row->nrc_number, 'count' => $clients->count()],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         return $created;
@@ -128,6 +141,7 @@ class AlertService
     protected static function detectNullCriticalFields(): int
     {
         $created = 0;
+        $made = 0;
 
         // Staff-linked clients: null staff_id means unassigned
         $orphanClients = Client::where('status', 'active')
@@ -147,6 +161,7 @@ class AlertService
             ->get();
 
         foreach ($orphanClients as $client) {
+            if ($made >= 5) break;
             $missing = [];
             foreach (['first_name', 'last_name', 'nrc_number', 'phone', 'mobile'] as $field) {
                 if (empty($client->$field)) {
@@ -154,7 +169,7 @@ class AlertService
                 }
             }
 
-            $created += (int) self::maybeCreate([
+            if ((int) self::maybeCreate([
                 'rule'         => 'null_critical_fields',
                 'severity'     => 'warning',
                 'title'        => 'Active client with incomplete mandatory fields',
@@ -167,19 +182,23 @@ class AlertService
                 ),
                 'reference_id' => $client->id,
                 'meta'         => ['client_id' => $client->id, 'missing' => $missing],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         // Soft-deleted clients still linked to active loans
         $deletedClients = Client::onlyTrashed()
-            ->whereHas('loan', function ($q) {
+            ->whereHas('loans', function ($q) {
                 $q->whereIn('status', ['disbursed', 'pending', 'approved']);
             })
-            ->with(['office', 'loan'])
+            ->with(['office', 'loans'])
             ->get();
 
         foreach ($deletedClients as $client) {
-            $created += (int) self::maybeCreate([
+            if ($made >= 5) break;
+            if ((int) self::maybeCreate([
                 'rule'         => 'deleted_client_active_loan',
                 'severity'     => 'critical',
                 'title'        => 'Soft-deleted client still has active loan',
@@ -188,12 +207,15 @@ class AlertService
                     trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')),
                     $client->id,
                     $client->office->name ?? 'Unknown',
-                    $client->loan->status ?? 'unknown',
-                    $client->loan->id ?? '?'
+                    $client->loans->first()->status ?? 'unknown',
+                    $client->loans->first()->id ?? '?'
                 ),
                 'reference_id' => $client->id,
-                'meta'         => ['client_id' => $client->id, 'loan_id' => $client->loan->id ?? null],
-            ]);
+                'meta'         => ['client_id' => $client->id, 'loan_id' => $client->loans->first()->id ?? null],
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         return $created;
@@ -204,13 +226,15 @@ class AlertService
     protected static function detectBlacklistedClients(): int
     {
         $created = 0;
+        $made = 0;
 
         $blacklisted = Client::where('blacklisted', 1)
             ->with(['office'])
             ->get();
 
         foreach ($blacklisted as $client) {
-            $created += (int) self::maybeCreate([
+            if ($made >= 5) break;
+            if ((int) self::maybeCreate([
                 'rule'         => 'blacklisted_client',
                 'severity'     => 'warning',
                 'title'        => 'Blacklisted client in system',
@@ -224,7 +248,10 @@ class AlertService
                 ),
                 'reference_id' => $client->id,
                 'meta'         => ['client_id' => $client->id, 'blacklisted_date' => $client->date_blacklisted],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         return $created;
@@ -235,6 +262,7 @@ class AlertService
     protected static function detectSuspiciousReversals(): int
     {
         $created = 0;
+        $made = 0;
 
         $reversed = LoanTransaction::with(['loan.client', 'office', 'created_by'])
             ->where('reversed', 1)
@@ -242,11 +270,12 @@ class AlertService
             ->get();
 
         foreach ($reversed as $tx) {
+            if ($made >= 5) break;
             $clientName = $tx->loan->client
                 ? trim(($tx->loan->client->first_name ?? '') . ' ' . ($tx->loan->client->last_name ?? ''))
                 : 'Unknown';
 
-            $created += (int) self::maybeCreate([
+            if ((int) self::maybeCreate([
                 'rule'         => 'suspicious_reversal',
                 'severity'     => 'critical',
                 'title'        => 'User-initiated transaction reversal',
@@ -267,7 +296,10 @@ class AlertService
                     'type'            => $tx->transaction_type,
                     'reversed_by'     => $tx->created_by_id,
                 ],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         return $created;
@@ -278,6 +310,7 @@ class AlertService
     protected static function detectAfterHoursTransactions(): int
     {
         $created = 0;
+        $made = 0;
         $cutoffStart = '06:00:00';
         $cutoffEnd   = '19:00:00';
 
@@ -287,6 +320,7 @@ class AlertService
             ->get();
 
         foreach ($txs as $tx) {
+            if ($made >= 5) break;
             $time = $tx->created_at ? $tx->created_at->format('H:i:s') : '';
             if ($time === '' || !self::isAfterHours($time, $cutoffStart, $cutoffEnd)) {
                 continue;
@@ -296,7 +330,7 @@ class AlertService
                 ? trim(($tx->loan->client->first_name ?? '') . ' ' . ($tx->loan->client->last_name ?? ''))
                 : 'Unknown';
 
-            $created += (int) self::maybeCreate([
+            if ((int) self::maybeCreate([
                 'rule'         => 'after_hours_transaction',
                 'severity'     => 'warning',
                 'title'        => 'After-hours loan transaction',
@@ -311,7 +345,10 @@ class AlertService
                 ),
                 'reference_id' => $tx->loan_id,
                 'meta'         => ['transaction_id' => $tx->id, 'time' => $time],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         return $created;
@@ -322,6 +359,7 @@ class AlertService
     protected static function detectRecoveryTransactions(): int
     {
         $created = 0;
+        $made = 0;
 
         $recoveries = LoanTransaction::with(['loan.client', 'office'])
             ->where('is_recovery', 1)
@@ -330,11 +368,12 @@ class AlertService
             ->get();
 
         foreach ($recoveries as $tx) {
+            if ($made >= 5) break;
             $clientName = $tx->loan->client
                 ? trim(($tx->loan->client->first_name ?? '') . ' ' . ($tx->loan->client->last_name ?? ''))
                 : 'Unknown';
 
-            $created += (int) self::maybeCreate([
+            if ((int) self::maybeCreate([
                 'rule'         => 'recovery_transaction',
                 'severity'     => 'info',
                 'title'        => 'Recovery payment recorded',
@@ -348,7 +387,10 @@ class AlertService
                 ),
                 'reference_id' => $tx->loan_id,
                 'meta'         => ['transaction_id' => $tx->id, 'amount' => $tx->amount ?? 0],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         return $created;
@@ -359,6 +401,7 @@ class AlertService
     protected static function detectStaffPayments(): int
     {
         $created = 0;
+        $made = 0;
 
         // Build a lowercase set of all staff phone/mobile numbers
         $staffPhones = User::where('status', 'active')
@@ -387,6 +430,7 @@ class AlertService
             ->get();
 
         foreach ($txs as $tx) {
+            if ($made >= 5) break;
             $phoneField = strtolower($tx->payment_detail->phone ?? '');
             if ($phoneField === '' || !in_array($phoneField, $staffNumbers, true)) {
                 continue;
@@ -397,7 +441,7 @@ class AlertService
                   ->orWhereRaw('LOWER(mobile_number) = ?', [$phoneField]);
             })->first();
 
-            $created += (int) self::maybeCreate([
+            if ((int) self::maybeCreate([
                 'rule'         => 'staff_linked_payment',
                 'severity'     => 'critical',
                 'title'        => 'Payment linked to staff phone number',
@@ -415,7 +459,10 @@ class AlertService
                     'matched_number' => $phoneField,
                     'staff_id'       => $staffName->id ?? null,
                 ],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         return $created;
@@ -426,13 +473,15 @@ class AlertService
     protected static function detectBlockedOrNo2FAUsers(): int
     {
         $created = 0;
+        $made = 0;
 
         $blocked = User::where('blocked', 1)
             ->where('status', 'active')
             ->get();
 
         foreach ($blocked as $user) {
-            $created += (int) self::maybeCreate([
+            if ($made >= 5) break;
+            if ((int) self::maybeCreate([
                 'rule'         => 'blocked_active_user',
                 'severity'     => 'warning',
                 'title'        => 'Blocked user account still active',
@@ -444,7 +493,10 @@ class AlertService
                 ),
                 'reference_id' => $user->id,
                 'meta'         => ['user_id' => $user->id, 'blocked' => true],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         // Users with high-risk roles who have 2FA disabled
@@ -453,6 +505,7 @@ class AlertService
             ->get();
 
         foreach ($no2fa as $user) {
+            if ($made >= 5) break;
             // Only flag senior roles
             $roleIds = \App\Helpers\GeneralHelper::mergedRoleIds(
                 'role.exec', 'role.risk', 'role.poa', 'role.ma', 'role.chair'
@@ -461,7 +514,7 @@ class AlertService
                 continue;
             }
 
-            $created += (int) self::maybeCreate([
+            if ((int) self::maybeCreate([
                 'rule'         => 'senior_user_no_2fa',
                 'severity'     => 'warning',
                 'title'        => 'Senior user without two-factor authentication',
@@ -473,7 +526,10 @@ class AlertService
                 ),
                 'reference_id' => $user->id,
                 'meta'         => ['user_id' => $user->id, 'two_factor_enabled' => false],
-            ]);
+            ])) {
+                $created++;
+                $made++;
+            }
         }
 
         return $created;

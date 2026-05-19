@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\Province;
 use Carbon\Carbon;
+use App\Services\AlertService;
 
 class RiskController extends Controller
 {
@@ -401,6 +402,9 @@ class RiskController extends Controller
 
     public function fraudFeed(Request $request)
     {
+        // Run fraud rules once per page view so fresh alerts are always populated
+        AlertService::runAll();
+        
         if ($request->wantsJson() || $request->format === 'json') {
             $severity = (string) ($request->input('severity') ?? '');
             $unread   = (bool) $request->boolean('unread');

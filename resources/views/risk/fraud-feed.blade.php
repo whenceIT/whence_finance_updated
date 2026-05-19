@@ -15,26 +15,70 @@
 
     .ff-alert-card {
         border-radius:6px;
-        padding:12px 14px;
         margin-bottom:10px;
         background:#fff;
-        box-shadow:0 1px 3px rgba(0,0,0,.08);
-        transition:background .2s, box-shadow .2s;
+        box-shadow:0 1px 3px rgba(0,0,0,.10);
+        transition:background .2s, box-shadow .2s, opacity .25s;
         animation: ffSlideIn .3s ease-out;
+        overflow:hidden;
     }
-    .ff-alert-card.is-read {
-        opacity:.72;
-    }
-    .ff-alert-card:hover { box-shadow:0 2px 8px rgba(0,0,0,.14); }
+    .ff-alert-card.is-read { opacity:.65; }
+    .ff-alert-card:hover { box-shadow:0 3px 10px rgba(0,0,0,.16); }
+    .ff-alert-card.unread { background:#fffdfd; }
 
-    .ff-alert-card.unread {
-        background:#fffdfd;
+    .ff-accent {
+        transition: filter .15s;
+    }
+    .ff-alert-card:hover .ff-accent { filter: brightness(1.08); }
+
+    /* Complete / dismiss button */
+    .ff-complete-btn {
+        cursor:pointer;
+        font-size:10px;
+        font-weight:600;
+        letter-spacing:.03em;
+        padding:3px 10px;
+        border:1px solid #27ae60;
+        color:#27ae60;
+        background:transparent;
+        border-radius:4px;
+        transition:background .15s, color .15s;
+        white-space:nowrap;
+    }
+    .ff-complete-btn:hover  { background:#27ae60; color:#fff; }
+    .ff-complete-btn:active { background:#1e8449; color:#fff; }
+
+    /* tiny meta badge */
+    .ff-rule-badge {
+        font-size:9px;
+        font-weight:600;
+        letter-spacing:.04em;
+        text-transform:uppercase;
+        padding:2px 7px;
+        border-radius:3px;
+        background:#ecf0f1;
+        color:#555;
+    }
+    .ff-sev-chip {
+        font-size:9px;
+        font-weight:700;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        padding:2px 7px;
+        border-radius:3px;
+        color:#fff;
     }
 
     @keyframes ffSlideIn {
         from { opacity:0; transform:translateY(-8px); }
         to   { opacity:1; transform:translateY(0); }
     }
+
+    @keyframes ffFadeOut {
+        from { opacity:1; max-height:200px; transform:scale(1); margin-bottom:10px; }
+        to   { opacity:0; max-height:0;   transform:scale(.96); margin-bottom:0; overflow:hidden; }
+    }
+    .ff-dismissing { animation: ffFadeOut .25s ease-in forwards; }
 
     .ff-pulse {
         display:inline-block;
@@ -214,23 +258,62 @@
     var timer     = null;
     var busy      = false;
 
-    // ── Render alert HTML ───────────────────────────────────────────────────
+     // ── Render alert HTML ───────────────────────────────────────────────────
     function renderCard(a) {
-        return '<div class="ff-alert-card ff-severity-' + a.severity + (a.is_read ? ' is-read' : ' unread') + '"' +
+        var sev = a.severity || 'info';
+        var colors = {critical:'#c0392b',warning:'#f39c12',info:'#3498db'};
+        var bg     = colors[sev] || '#3498db';
+        var timeStr = escHtml(a.created_at);
+        var readCls = a.is_read ? ' is-read' : ' unread';
+
+        return '<div class="ff-alert-card ff-severity-' + sev + readCls + '"' +
                ' data-id="' + a.id + '">' +
-               '  <div style="display:flex;align-items:flex-start;gap:8px;">' +
-               '    <div style="font-size:18pt;flex-shrink:0;line-height:1;">' +
-                           ffIcon(a.severity) + '</div>' +
-               '    <div style="flex:1;min-width:0;">' +
-               '      <div style="font-weight:700;color:#333;font-size:13px;margin-bottom:2px;">' + escHtml(a.title) + '</div>' +
-               '      <div style="font-size:12px;color:#555;line-height:1.5;">' + escHtml(a.description) + '</div>' +
-               '    </div>' +
-               '    <div style="flex-shrink:0;text-align:right;">' +
-               '      <span class="label ff-badge-' + a.severity + '" style="color:#fff;font-size:10px;padding:2px 7px;border-radius:3px;">' +
-                           a.severity.toUpperCase() + '</span>' +
-               '      <div style="font-size:10px;color:#aaa;margin-top:2px;">' + a.created_at + '</div>' +
-               '    </div>' +
+
+               /* top accent strip */
+               '<div class="ff-accent" style="' +
+               'background:' + bg + ';padding:3px 14px;border-radius:6px 6px 0 0;' +
+               'display:flex;align-items:center;justify-content:space-between;">' +
+               '  <span style="font-size:9px;font-weight:700;letter-spacing:.06em;color:#fff;text-transform:uppercase;">' +
+                   ffIcon(sev) + ' ' + sev.toUpperCase() + '</span>' +
+               '  <span style="font-size:9px;color:rgba(255,255,255,.75);">' + timeStr + '</span>' +
+               '</div>' +
+
+               /* body row */
+               '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px 6px;">' +
+
+               /* severity icon (large) */
+               '<div style="flex-shrink:0;font-size:20pt;line-height:1;padding-top:2px;">' +
+                   ffIcon(sev) + '</div>' +
+
+               /* text content */
+               '<div style="flex:1;min-width:0;">' +
+               '  <div style="font-weight:700;color:#222;font-size:13.5px;margin-bottom:4px;line-height:1.3;">' +
+                       escHtml(a.title) + '</div>' +
+
+               /* description */
+               '  <div style="font-size:12px;color:#555;line-height:1.6;margin-bottom:8px;">' +
+                       escHtml(a.description) + '</div>' +
+
+               /* meta footer inside card */
+               '  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+               '    ' + severityBadge(sev) +
+                       ruleBadge(a.rule) +
                '  </div>' +
+               '</div>' +
+
+               /* right column: creator + complete button */
+               '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-top:4px;">' +
+               (a.created_by
+                ? '<div style="font-size:10px;color:#999;white-space:nowrap;" title="Created by">' +
+                       '<i class="fa fa-user"></i> ' + escHtml(a.created_by) +
+                  '</div>'
+                : '') +
+               '  <button class="ff-complete-btn" data-id="' + a.id + '" ' +
+               '          title="Mark complete and dismiss">' +
+               '    <i class="fa fa-check-circle"></i> Complete</button>' +
+               '</div>' +
+
+               '</div>' +      /* end body row */
                '</div>';
     }
 
@@ -244,6 +327,53 @@
         var d = document.createElement('div');
         d.appendChild(document.createTextNode(s || ''));
         return d.innerHTML;
+    }
+
+    /* ── Quick badge helpers ─────────────────────────────────────────────── */
+    function severityBadge(sev) {
+        var colors = {critical:'#c0392b', warning:'#f39c12', info:'#3498db'};
+        var c = colors[sev] || '#777';
+        var lbl = (sev || 'info').toUpperCase();
+        return '<span class="ff-sev-chip" style="background:' + c + ';">' + lbl + '</span>';
+    }
+
+    function ruleBadge(rule) {
+        return '<span class="ff-rule-badge" title="Rule: ' + escHtml(rule) + '">' +
+               '<i class="fa fa-tag"></i> ' + escHtml((rule || '').replace(/_/g,' ')) +
+               '</span>';
+    }
+
+    /* ── Mark-complete → delete alert ────────────────────────────────────── */
+    function ffCompleteAlert(id) {
+        var card = document.querySelector('.ff-alert-card[data-id="' + id + '"]');
+        if (!card) return;
+
+        /* optimistic dismiss animation */
+        card.classList.add('ff-dismissing');
+
+        fetch('{{ route("risk.fraud-alert.destroy", "") }}' + id, {
+            method : 'DELETE',
+            headers: {
+                'Content-Type'     : 'application/json',
+                'X-Requested-With' : 'XMLHttpRequest',
+                'X-CSRF-TOKEN'     : '{{ csrf_token() }}',
+            },
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    card.addEventListener('animationend', function () { card.remove(); });
+                    /* refresh count */
+                    return supervisorTick();
+                } else {
+                    card.classList.remove('ff-dismissing');
+                    console.warn('Complete failed:', data.message);
+                }
+            })
+            .catch(function (err) {
+                card.classList.remove('ff-dismissing');
+                console.error('Complete error:', err);
+            });
     }
 
     // ── Fetch alerts from backend ───────────────────────────────────────────
