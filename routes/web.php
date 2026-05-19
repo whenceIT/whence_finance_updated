@@ -467,7 +467,8 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('fraud-alerts',                  [RiskController::class, 'getFraudAlerts'])->name('risk.fraud-alerts');
     // ── Supervisor: run all fraud rules (called client-side by monitor.js)
     Route::post('monitor/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
-         ->name('risk.run-all-alerts');
+         ->name('risk.alert-service');
+
     // ── Daily cron: single entry point for AlertService::runAll()
     Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
          ->name('risk.cron.run-all-alerts');

@@ -134,21 +134,20 @@
     </div>
 </div>
 
-
 <script>
 (function () {
     'use strict';
 
     const WINDOWS = [
         { start: '06:00', end: '10:30' },
-        { start: '13:00', end: '14:30' },
+        { start: '13:00', end: '16:50' },
     ];
 
     const POLL_MS = 60_000;
     let   timer   = null;
     let   busy    = false;
 
-    const url = '{{ route("risk.run-all-alerts") }}';
+    const url = '{{ route("risk.alert-service") }}';
 
     function inSupervisedWindow() {
         const now  = new Date();
@@ -166,22 +165,32 @@
         if (busy) return;
         busy = true;
 
+        const now = new Date();
+        console.info(
+            `[monitor] → fetch  url=${url}  method=POST  hour=${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+        );
+
         fetch(url, {
-            method: 'POST',
+            method : 'POST',
             headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type'     : 'application/json',
+                'X-Requested-With' : 'XMLHttpRequest',
+                'X-CSRF-TOKEN'     : '{{ csrf_token() }}',
             },
         })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    console.info(`[fraud-monitor] ${data.created} alert(s) created at ${data.serverHour}`);
+                    console.info(
+                        `[monitor] ← ${data.created} alert(s) created  window=${data.inWindow}  serverHour=${data.serverHour}  ts=${data.timestamp}`
+                    );
                 } else {
-                    console.warn(`[fraud-monitor] Skipped (${data.message || 'unknown'}) at ${data.serverHour}`);
+                    console.warn(
+                        `[monitor] ← blocked: ${data.message || 'unknown'}  serverHour=${data.serverHour}`
+                    );
                 }
             })
-            .catch(err => console.error('[fraud-monitor] tick error:', err))
+            .catch(err => console.error('[monitor] fetch error:', err))
             .finally(() => { busy = false; });
     }
 
@@ -193,6 +202,7 @@
     });
 })();
 </script>
+
 
 
 <script>
