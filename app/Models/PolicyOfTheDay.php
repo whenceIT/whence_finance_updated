@@ -77,5 +77,6 @@ class PolicyOfTheDay extends Model
           // First try scheduled for today - limit to 1
           return static::active()->whereRaw("DATE(created_at) = CURDATE()")->orderBy('created_at', 'desc')->limit(1)->first();
 
+          
       }
 }

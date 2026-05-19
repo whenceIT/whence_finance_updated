@@ -285,18 +285,14 @@
                 @endif
             </div>
 
-            <div class="policy-actions">
-                @if($policyOfTheDay->policy)
-                    <a href="{{ route('policies.view_policies') }}#policy-{{ $policyOfTheDay->policy->id }}" target="_blank">
-                        <i class="fa fa-external-link"></i>
-                        View Full Policy
-                    </a>
-                @endif
-                <!-- <a href="{{ route('policies.dashboard') }}" target="_blank">
-                    <i class="fa fa-shield"></i>
-                    Policy Center
-                </a> -->
-            </div>
+             <div class="policy-actions">
+                 @if($policyOfTheDay->policy)
+                     <a href="{{ route('policies.view', ['id' => $policyOfTheDay->policy->id]) }}" target="_blank">
+                         <i class="fa fa-external-link"></i>
+                         View Full Policy
+                     </a>
+                 @endif
+             </div>
         </div>
     </div>
 </div>

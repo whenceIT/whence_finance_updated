@@ -1199,10 +1199,10 @@
                         </div>
                         <div class="form-group">
                             <label for="phone"
-                                   class="control-label col-md-3">{{trans_choice('general.phone',1)}}</label>
+                                   class="control-label col-md-3">Confirm Client's {{trans_choice('general.phone',1)}} Number</label>
                             <div class="col-md-9">
                                 <input type="text" name="phone" class="form-control"
-                                       value="{{ ($client->phone ?: $client->mobile) ? substr($client->phone ?: $client->mobile, 0, -10) : '' }}"
+                                       value="{{ ($client->phone ?: $client->mobile) ? $client->phone ?: $client->mobile : '' }}"
                                      id="phone" required>
                             </div>
                         </div>

@@ -399,9 +399,61 @@ class RiskController extends Controller
         ]);
     }
 
-    public function fraudFeed()
+    public function fraudFeed(Request $request)
     {
+        if ($request->wantsJson() || $request->format === 'json') {
+            $severity = (string) ($request->input('severity') ?? '');
+            $unread   = (bool) $request->boolean('unread');
+            $hours    = (int) ($request->input('hours') ?? 168);
+
+            return $this->buildFeedQuery($severity, $unread, $hours);
+        }
+
         return view('risk.fraud-feed');
+    }
+
+    /**
+     * JSON API for the fraud-feed JS supervisor.
+     * Accepts: severity (critical|warning|info), unread (0/1), hours (integer)
+     */
+    public function getFraudAlerts(Request $request)
+    {
+        $severity = (string) ($request->input('severity') ?? '');
+        $unread   = (bool) $request->boolean('unread');
+        $hours    = (int) ($request->input('hours') ?? 168);
+
+        return $this->buildFeedQuery($severity, $unread, $hours);
+    }
+
+    protected function buildFeedQuery(string $severity, bool $unread, int $hours)
+    {
+        $alerts = \App\Models\Alert::with('creator')
+            ->when($severity, fn($q) => $q->where('severity', $severity))
+            ->when($unread,  fn($q) => $q->where('is_read', false))
+            ->where('created_at', '>=', now()->subHours($hours))
+            ->orderByDesc('created_at')
+            ->take(200)
+            ->get();
+
+        $total = $alerts->count();
+
+        return response()->json([
+            'total'   => $total,
+            'alerts'  => $alerts->map(function ($a) {
+                return [
+                    'id'          => $a->id,
+                    'rule'        => $a->rule,
+                    'severity'    => $a->severity,
+                    'title'       => $a->title,
+                    'description' => $a->description,
+                    'reference_id'=> $a->reference_id,
+                    'meta'        => $a->meta,
+                    'is_read'     => (bool) $a->is_read,
+                    'created_at'  => $a->created_at ? $a->created_at->format('d M Y H:i') : '',
+                    'created_by'  => $a->creator ? $a->creator->full_name ?? ($a->creator->first_name . ' ' . $a->creator->last_name) : null,
+                ];
+            })->all(),
+        ]);
     }
 
     public function recoveryEfficiency()
