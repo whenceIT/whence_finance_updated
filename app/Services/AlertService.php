@@ -26,9 +26,9 @@ class AlertService
         $created += self::detectBlacklistedClients();
         $created += self::detectSuspiciousReversals();
         $created += self::detectAfterHoursTransactions();
-        $created += self::detectRecoveryTransactions();
+        // $created += self::detectRecoveryTransactions();
         $created += self::detectStaffPayments();
-        $created += self::detectBlockedOrNo2FAUsers();
+        // $created += self::detectBlockedOrNo2FAUsers();
         return $created;
     }
 
