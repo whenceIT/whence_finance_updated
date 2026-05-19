@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\Province;
+use Carbon\Carbon;
 
 class RiskController extends Controller
 {
@@ -13,9 +14,131 @@ class RiskController extends Controller
         $this->middleware('sentinel');
     }
     
-    public function overview()
+    public function overview(Request $request)
     {
-        return view('risk.overview');
+        $sectionShorts  = config('risk-audit.section_names', [
+            0 => 'Admin', 1 => 'Wallet', 2 => 'Loans', 3 => 'Collections',
+            4 => 'Fraud', 5 => 'Staff', 6 => 'Systems', 7 => 'Reporting', 8 => 'Conclusion',
+        ]);
+
+        $sectionItemCounts = config('risk-audit.section_item_counts', [
+            0 => 0, 1 => 10, 2 => 7, 3 => 6, 4 => 6, 5 => 7, 6 => 8, 7 => 6, 8 => 2,
+        ]);
+
+        $ratingConfig = [
+            'low'     => ['label' => '🟢 LOW',      'color' => '#27ae60', 'bg' => '#eafaf1', 'badge' => 'success'],
+            'medium'  => ['label' => '🟡 MODERATE', 'color' => '#f39c12', 'bg' => '#fef9e7', 'badge' => 'warning'],
+            'high'    => ['label' => '🔴 HIGH',     'color' => '#e74c3c', 'bg' => '#fdedec', 'badge' => 'danger' ],
+            'critical'=> ['label' => '🚨 CRITICAL', 'color' => '#7b241c', 'bg' => '#f9ebea', 'badge' => 'danger' ],
+            'pending' => ['label' => '⚪ PENDING',  'color' => '#7f8c8d', 'bg' => '#f3f3f3', 'badge' => 'default'],
+        ];
+
+        $today = Carbon::today();
+
+        $filterStart = $request->filled('filter_start') ? Carbon::createFromFormat('Y-m-d', $request->input('filter_start'))->startOfDay() : null;
+        $filterEnd   = $request->filled('filter_end')   ? Carbon::createFromFormat('Y-m-d', $request->input('filter_end'))->endOfDay() : null;
+
+        $submissionsQuery = \App\Models\AuditSubmission::with('office', 'auditor');
+
+        if ($filterStart) {
+            $submissionsQuery->where('created_at', '>=', $filterStart);
+        }
+        if ($filterEnd) {
+            $submissionsQuery->where('created_at', '<=', $filterEnd);
+        }
+
+        $submissions = $submissionsQuery->latest()->take(50)->get();
+
+        $branches = $submissions->map(function ($sub) use ($sectionShorts, $sectionItemCounts, $today, $ratingConfig) {
+            $sections  = [];
+            $failCount = 0;
+
+            foreach ($sectionShorts as $i => $short) {
+                if ($i === 0) {
+                    $sections[] = ['pass' => 0, 'fail' => 0, 'na' => 0];
+                    continue;
+                }
+
+                $s      = $i + 1;
+                $pass   = $fail = $na = 0;
+                $itemCount = $sectionItemCounts[$i] ?? 0;
+
+                for ($j = 1; $j <= $itemCount; $j++) {
+                    $field = "s{$s}_{$j}";
+                    $value = $sub->$field;
+
+                    if ($i === 4) {
+                        if ($value === 'not_present') $pass++;
+                        elseif ($value === 'present') $fail++;
+                    } else {
+                        if ($value === 'pass')  $pass++;
+                        elseif ($value === 'fail') $fail++;
+                        elseif ($value === 'na')   $na++;
+                    }
+                }
+
+                $sections[]  = ['pass' => $pass, 'fail' => $fail, 'na' => $na];
+                $failCount  += $fail;
+            }
+
+            $ratingKey = trim((string) ($sub->risk_rating ?? '')) ?: 'pending';
+            $scheduled = $sub->audit_date && $sub->audit_date->gt($today);
+            $complete  = !$scheduled && $ratingKey !== 'pending';
+
+            return [
+                'submission_id'    => $sub->id,
+                'name'             => $sub->office->name ?? 'Unknown',
+                'code'             => $sub->office->external_id ?? '',
+                'audit_date'       => $sub->audit_date ? $sub->audit_date->format('d M Y') : 'Unknown',
+                'audit_date_human' => $sub->audit_date ? $sub->audit_date->diffForHumans() : 'Unknown',
+                'last_audit'       => $sub->created_at->format('d M Y'),
+                'created_at'       => $sub->created_at->format('d M Y'),
+                'created_at_human' => $sub->created_at->diffForHumans(),
+                'auditor'          => $sub->auditor_name,
+                'audit_type'       => $sub->audit_type,
+                'opening_remarks'  => $sub->opening_remarks,
+                'unannounced'      => $sub->unannounced,
+                'fail_count'       => $failCount,
+                'rating'           => $ratingKey,
+                'is_complete'      => $complete,
+                'is_scheduled'     => $scheduled,
+                'sections'         => $sections,
+            ];
+        })->toArray();
+
+        $completeAudits   = array_values(array_filter($branches, fn($b) => $b['is_complete'] && !$b['is_scheduled']));
+        $scheduledAudits  = array_values(array_filter($branches, fn($b) => $b['is_scheduled']));
+        $incompleteAudits = array_values(array_filter($branches, fn($b) => !$b['is_complete'] && !$b['is_scheduled']));
+
+        // Group complete audits by month-year (newest first)
+        $grouped = [];
+        foreach ($completeAudits as $branch) {
+            $dt  = Carbon::parse($branch['created_at']);
+            $key = $dt->format('F Y');
+            $grouped[$key][] = $branch;
+        }
+        krsort($grouped);
+
+        // Offices never audited
+        $auditedOfficeIds  = $submissions->pluck('office_id')->unique()->toArray();
+        $unauditedOffices  = \App\Models\Office::with(['province', 'district', 'manager'])
+            ->whereNotIn('id', $auditedOfficeIds)
+            ->where('active', 1)
+            ->orderBy('name')
+            ->get();
+
+        // Summary counts per rating
+        $counts = ['low' => 0, 'medium' => 0, 'high' => 0, 'critical' => 0, 'pending' => 0];
+        foreach ($branches as $b) {
+            if (isset($counts[$b['rating']])) $counts[$b['rating']]++;
+        }
+
+        return view('risk.overview', compact(
+            'sectionShorts', 'sectionItemCounts', 'ratingConfig',
+            'branches', 'completeAudits', 'grouped', 'scheduledAudits',
+            'incompleteAudits', 'unauditedOffices', 'counts',
+            'filterStart', 'filterEnd'
+        ));
     }
 
     public function auditTrail()
@@ -792,7 +915,7 @@ class RiskController extends Controller
             $sections = [];
             foreach ($sectionShorts as $si => $sname) {
                 if ($si === 0) {
-                    $sections[] = ['pass' => 0, 'fail' => 0, 'na' => 0];
+                    $sections[] = ['pass' => 0, 'fail' => 0, 'na' => 0, 'name' => $sname];
                     continue;
                 }
                 $secPrefix  = $si + 1; // s2=1, s3=2, …  s9=8
@@ -811,7 +934,7 @@ class RiskController extends Controller
                         elseif ($value === 'na')   $na++;
                     }
                 }
-                $sections[] = ['pass' => $pass, 'fail' => $fail, 'na' => $na];
+                $sections[] = ['pass' => $pass, 'fail' => $fail, 'na' => $na, 'name' => $sname];
             }
 
             $list[] = [

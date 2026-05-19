@@ -443,7 +443,7 @@ Route::group(['prefix' => 'audits'], function () {
 });
 //route for risk management
 Route::group(['prefix' => 'risk'], function () {
-    Route::get('overview', [RiskController::class, 'overview']);
+    Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');

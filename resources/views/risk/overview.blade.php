@@ -97,127 +97,42 @@
         </div>
     </div>
 
+    <!-- Date filter bar -->
+    <div class="row" style="margin-bottom:16px;">
+        <div class="col-md-12">
+            <form method="GET" action="{{ route('risk.overview') }}" class="form-inline" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                @csrf
+                <label style="font-size:13px;font-weight:600;color:#555;">Filter by date:</label>
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <label for="filter_start" style="font-size:12px;color:#888;">From</label>
+                    <input type="date" name="filter_start" id="filter_start" class="form-control input-sm"
+                           value="{{ $filterStart ? $filterStart->format('Y-m-d') : '' }}" style="width:150px;">
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <label for="filter_end" style="font-size:12px;color:#888;">To</label>
+                    <input type="date" name="filter_end" id="filter_end" class="form-control input-sm"
+                           value="{{ $filterEnd ? $filterEnd->format('Y-m-d') : '' }}" style="width:150px;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-filter"></i> Apply</button>
+                <a href="{{ route('risk.overview') }}" class="btn btn-default btn-sm"><i class="fa fa-refresh"></i> Reset</a>
+                @if($filterStart || $filterEnd)
+                <span class="text-info" style="font-size:12px;">
+                    <i class="fa fa-info-circle"></i>
+                    @if($filterStart)
+                    From {{ $filterStart->format('d M Y') }}
+                    @endif
+                    @if($filterEnd)
+                    To {{ $filterEnd->format('d M Y') }}
+                    @endif
+                </span>
+                @endif
+            </form>
+        </div>
+    </div>
 
     <!-- ============================================================
          BRANCH AUDIT RESULTS OVERVIEW
          ============================================================ -->
-    @php
-        $sectionShorts = ['Admin', 'Wallet', 'Loans', 'Collections', 'Fraud', 'Staff', 'Systems', 'Reporting', 'Conclusion'];
-
-        $sectionItemCounts = [
-            0 => 0,  // Admin — metadata only
-            1 => 10, // Wallet (s2)
-            2 => 7,  // Loans (s3)
-            3 => 6,  // Collections (s4)
-            4 => 6,  // Fraud (s5)
-            5 => 7,  // Staff (s6)
-            6 => 8,  // Systems (s7)
-            7 => 6,  // Reporting (s8)
-            8 => 2,  // Conclusion (s9)
-        ];
-
-        $today = \Carbon\Carbon::today();
-        $submissions = \App\Models\AuditSubmission::with('office', 'auditor')->latest()->take(50)->get();
-
-        $branches = $submissions->map(function ($sub) use ($sectionShorts, $sectionItemCounts, $today) {
-            $sections = [];
-            $failCount = 0;
-            foreach ($sectionShorts as $i => $short) {
-                // Skip Admin section (index 0) as it has no pass/fail/na items
-                if ($i === 0) {
-                    $sections[] = ['pass' => 0, 'fail' => 0, 'na' => 0];
-                    continue;
-                }
-                
-                // Map section index to database field prefix
-                // $i=1 (Wallet) -> s2, $i=2 (Loans) -> s3, etc.
-                $s = $i + 1;
-                $pass = 0;
-                $fail = 0;
-                $na = 0;
-                $itemCount = $sectionItemCounts[$i] ?? 0;
-                
-                for ($j = 1; $j <= $itemCount; $j++) {
-                    $field = "s{$s}_{$j}";
-                    $value = $sub->$field;
-                    
-                    // Section 5 (Fraud) uses 'present'/'not_present' instead of 'pass'/'fail'
-                    if ($i === 4) {
-                        if ($value === 'not_present')
-                            $pass++;
-                        elseif ($value === 'present')
-                            $fail++;
-                    } else {
-                        if ($value === 'pass')
-                            $pass++;
-                        elseif ($value === 'fail')
-                            $fail++;
-                        elseif ($value === 'na')
-                            $na++;
-                    }
-                }
-                
-                // Log the final counts for this section
-                if ($i === 4) {
-                    \Log::info('Fraud section final counts', [
-                        'section_index' => $i,
-                        'pass' => $pass,
-                        'fail' => $fail,
-                        'na' => $na,
-                        'submission_id' => $sub->id
-                    ]);
-                }
-                
-                $sections[] = ['pass' => $pass, 'fail' => $fail, 'na' => $na];
-                $failCount += $fail;
-            }
-
-            $ratingKey = trim((string) ($sub->risk_rating ?? '')) ?: 'pending';
-            $scheduled = $sub->audit_date && $sub->audit_date->gt($today);
-            $complete = !$scheduled && $ratingKey !== 'pending';
-
-            return [
-                'submission_id' => $sub->id,
-                'name' => $sub->office->name ?? 'Unknown',
-                'code' => $sub->office->external_id ?? '',
-                'audit_date' => $sub->audit_date ? $sub->audit_date->format('d M Y') : 'Unknown',
-                'audit_date_human' => $sub->audit_date ? $sub->audit_date->diffForHumans() : 'Unknown',
-                'last_audit' => $sub->created_at->format('d M Y'),
-                'created_at' => $sub->created_at->format('d M Y'),
-                'created_at_human' => $sub->created_at->diffForHumans(),
-                'auditor' => $sub->auditor_name,
-                'audit_type' => $sub->audit_type,
-                'opening_remarks' => $sub->opening_remarks,
-                'unannounced' => $sub->unannounced,
-                'fail_count' => $failCount,
-                'rating' => $ratingKey,
-                'is_complete' => $complete,
-                'is_scheduled' => $scheduled,
-                'sections' => $sections,
-            ];
-        })->toArray();
-
-        $completeAudits = array_values(array_filter($branches, fn($b) => $b['is_complete'] && !$b['is_scheduled']));
-        $scheduledAudits = array_values(array_filter($branches, fn($b) => $b['is_scheduled']));
-        $incompleteAudits = array_values(array_filter($branches, fn($b) => !$b['is_complete'] && !$b['is_scheduled']));
-
-        // Get offices that have never been audited
-        $auditedOfficeIds = $submissions->pluck('office_id')->unique()->toArray();
-        $unauditedOffices = \App\Models\Office::with(['province', 'district', 'manager'])
-            ->whereNotIn('id', $auditedOfficeIds)
-            ->where('active', 1)
-            ->orderBy('name')
-            ->get();
-
-        $ratingConfig = [
-            'low' => ['label' => '🟢 LOW', 'color' => '#27ae60', 'bg' => '#eafaf1', 'badge' => 'success'],
-            'medium' => ['label' => '🟡 MEDIUM', 'color' => '#f39c12', 'bg' => '#fef9e7', 'badge' => 'warning'],
-            'high' => ['label' => '🔴 HIGH', 'color' => '#e74c3c', 'bg' => '#fdedec', 'badge' => 'danger'],
-            'critical' => ['label' => '🚨 CRITICAL', 'color' => '#7b241c', 'bg' => '#f9ebea', 'badge' => 'danger'],
-            'pending' => ['label' => '⚪ PENDING', 'color' => '#7f8c8d', 'bg' => '#f3f3f3', 'badge' => 'default'],
-        ];
-    @endphp
-
     <div class="row" style="margin-top:20px;">
         <div class="col-md-12">
             <div class="box box-primary">
@@ -233,12 +148,6 @@
                 <div class="box-body" style="padding:16px;">
 
                     {{-- Summary strip --}}
-                    @php
-                        $counts = ['low' => 0, 'medium' => 0, 'high' => 0, 'critical' => 0, 'pending' => 0];
-                        foreach ($branches as $b) {
-                            $counts[$b['rating']] = ($counts[$b['rating']] ?? 0) + 1;
-                        }
-                    @endphp
                     <div class="row" style="margin-bottom:20px;">
                         @foreach(['low' => ['bg-green', 'fa-check-circle'], 'medium' => ['bg-yellow', 'fa-exclamation-circle'], 'high' => ['bg-red', 'fa-times-circle'], 'critical' => ['bg-red', 'fa-exclamation-triangle']] as $r => $cfg)
                             <div class="col-md-3 col-sm-6">

@@ -1,15 +1,5 @@
 @php
-    // Group audits by Month-Year (derived from audit_date 'd M Y')
-    $grouped = [];
-    foreach ($completeAudits as $branch) {
-        // Reconstruct a parseable date from 'd M Y' (e.g. "15 May 2026")
-        $dt   = \Carbon\Carbon::parse($branch['created_at']);
-        $key  = $dt->format('F Y');
-        if (!isset($grouped[$key])) $grouped[$key] = [];
-        $grouped[$key][] = $branch;
-    }
-    // Sort groups newest first
-    krsort($grouped);
+    // $grouped is pre-built in the controller (key = 'F Y', value = [branches])
 @endphp
 
 {{-- ── Live search filter ──────────────────────────────────────── --}}

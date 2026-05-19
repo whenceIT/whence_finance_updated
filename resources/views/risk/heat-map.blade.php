@@ -113,128 +113,146 @@
                     @endforeach
                 </div>
                 
-                <hr>
+                {{-- ═══ BENTO CARD — Provincial Breakdown ═══ --}}
+                <div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-top:8px;">
+                    <div style="display:flex;flex-direction:column;flex:1;">
 
-                {{-- PROVINCE GRID – TILES CONTAINING OFFICE TILES --}}
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;">
-
-                    @foreach($provincial as $provName => $pd)
-                        @php
-                            $worstHex = ($ratingConfig[$pd['worst']]['hex'] ?? '#95a5a6');
-                            $ratingKeys = ['critical','high','medium','low','pending'];
-                            $bgMapProv = [
-                                'critical'=> 'rgb(255, 255, 255)',
-                                'high'    => 'rgb(255, 255, 255)',
-                                'medium'  => 'rgb(255, 255, 255)',
-                                'low'     => 'rgb(255, 255, 255)',
-                                'pending' => 'rgb(255, 255, 255)',
-                            ];
-                            $bgProv = $bgMapProv[$pd['worst']] ?? $bgMapProv['pending'];
-                        @endphp
-
-                        {{-- Province tile --}}
-                        <div class="hm-province-tile"
-                             style="background:{{ $bgProv }};border-radius:6px;overflow:hidden;">
-
-                            {{-- Province header --}}
-                            <div style="padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid {{ $worstHex }}22;">
-                                <div style="display:flex;align-items:center;gap:6px;">
-                                    <i class="fa fa-map-marker" style="color:{{ $worstHex }};font-size:11pt;"></i>
-                                    <span style="font-weight:700;font-size:11pt;color:#222;">{{ $provName }}</span>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:6px;">
-                                    <!-- @foreach($ratingKeys as $rkIn)
-                                        @php $rcIn = $pd['ratings'][$rkIn] ?? 0; @endphp
-                                        @if($rcIn > 0)
-                                            @php $rhIn = $ratingConfig[$rkIn]['hex'] ?? '#95a5a6'; @endphp
-                                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ $rhIn }};"
-                                                  title="{{ $ratingConfig[$rkIn]['label'] ?? '' }}: {{ $rcIn }}"></span>
-                                        @endif
-                                    @endforeach -->
-                                    <span style="font-size:8.5pt;font-weight:700;color:{{ $worstHex }};margin-left:4px;">
-                                        {{ $pd['label'] }}
-                                    </span>
-                                </div>
+                    {{-- Bento card header --}}
+                    <div style="padding:14px 20px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:12pt;">
+                                <i class="fa fa-globe"></i>
+                            </span>
+                            <div>
+                                <div style="font-weight:700;font-size:11.5pt;color:#222;line-height:1.2;">Provincial Breakdown</div>
+                                <div style="font-size:8pt;color:#999;margin-top:1px;">Risk distribution by province &amp; branch</div>
                             </div>
+                        </div>
+                        <span style="font-size:8pt;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">{{ count($provincial) }} Provinces</span>
+                    </div>
 
-                            {{-- Summary pill strip --}}
-                            <div style="padding:6px 10px 4px;display:flex;flex-wrap:wrap;gap:3px;border-bottom:1px solid #eee;">
-                                @foreach($ratingKeys as $rk)
-                                    @php $rc = $pd['ratings'][$rk] ?? 0; @endphp
-                                    @if($rc > 0)
-                                        @php $rkHex  = ($ratingConfig[$rk]['hex'] ?? '#95a5a6'); $rkLabel = ($ratingConfig[$rk]['label'] ?? 'N/A'); @endphp
-                                        <span style="display:inline-block;padding:1px 7px;border-radius:10px;font-size:7.5pt;font-weight:700;color:#fff;background:{{ $rkHex }};">
-                                            {{ $rkLabel }}: {{ $rc }}
+                    {{-- Bento card body — flex row --}}
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;padding:16px;">
+
+                        @foreach($provincial as $provName => $pd)
+                            @php
+                                $worstHex = ($ratingConfig[$pd['worst']]['hex'] ?? '#95a5a6');
+                                $ratingKeys = ['critical','high','medium','low','pending'];
+                                $bgMapProv = [
+                                    'critical'=> 'rgb(255, 255, 255)',
+                                    'high'    => 'rgb(255, 255, 255)',
+                                    'medium'  => 'rgb(255, 255, 255)',
+                                    'low'     => 'rgb(255, 255, 255)',
+                                    'pending' => 'rgb(255, 255, 255)',
+                                ];
+                                $bgProv = $bgMapProv[$pd['worst']] ?? $bgMapProv['pending'];
+                            @endphp
+
+                            {{-- Province tile --}}
+                            <div class="hm-province-tile"
+                                 style="background:{{ $bgProv }};border-radius:8px;overflow:hidden;border:1px solid #e8e8e8;flex:1 1 320px;min-width:300px;max-width:100%;">
+
+                                {{-- Province header --}}
+                                <div style="padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid {{ $worstHex }}22;">
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <i class="fa fa-map-marker" style="color:{{ $worstHex }};font-size:11pt;"></i>
+                                        <span style="font-weight:700;font-size:11pt;color:#222;">{{ $provName }}</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <!-- @foreach($ratingKeys as $rkIn)
+                                            @php $rcIn = $pd['ratings'][$rkIn] ?? 0; @endphp
+                                            @if($rcIn > 0)
+                                                @php $rhIn = $ratingConfig[$rkIn]['hex'] ?? '#95a5a6'; @endphp
+                                                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ $rhIn }};"
+                                                      title="{{ $ratingConfig[$rkIn]['label'] ?? '' }}: {{ $rcIn }}"></span>
+                                            @endif
+                                        @endforeach -->
+                                        <span style="font-size:8.5pt;font-weight:700;color:{{ $worstHex }};margin-left:4px;">
+                                            {{ $pd['label'] }}
                                         </span>
-                                    @endif
-                                @endforeach
-                                <span style="font-size:7.5pt;color:#aaa;margin-left:auto;">{{ $pd['total'] }} branch{{ $pd['total'] !== 1 ? 'es' : '' }}</span>
-                            </div>
+                                    </div>
+                                </div>
 
-                            {{-- Office tile sub-grid --}}
-                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px;padding:9px;">
+                                {{-- Summary pill strip --}}
+                                <div style="padding:6px 10px 4px;display:flex;flex-wrap:wrap;gap:3px;border-bottom:1px solid #eee;">
+                                    @foreach($ratingKeys as $rk)
+                                        @php $rc = $pd['ratings'][$rk] ?? 0; @endphp
+                                        @if($rc > 0)
+                                            @php $rkHex  = ($ratingConfig[$rk]['hex'] ?? '#95a5a6'); $rkLabel = ($ratingConfig[$rk]['label'] ?? 'N/A'); @endphp
+                                            <span style="display:inline-block;padding:1px 7px;border-radius:10px;font-size:7.5pt;font-weight:700;color:#fff;background:{{ $rkHex }};">
+                                                {{ $rkLabel }}: {{ $rc }}
+                                            </span>
+                                        @endif
+                                    @endforeach
+                                    <span style="font-size:7.5pt;color:#aaa;margin-left:auto;">{{ $pd['total'] }} branch{{ $pd['total'] !== 1 ? 'es' : '' }}</span>
+                                </div>
 
-                                @foreach($pd['offices'] as $office)
-                                    @php
-                                        $or   = $officeRatings[$office->id] ?? null;
-                                        $rk   = $or['rating']    ?? 'pending';
-                                        $hex  = $or['hex']       ?? ($ratingConfig[$rk]['hex'] ?? '#95a5a6');
-                                        $label= $or['label']     ?? 'NO DATA';
-                                        $fc   = $or['fail_count']?? 0;
-                                        $al   = $or['audit_label']?? '';
+                                {{-- Office tile sub-grid --}}
+                                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px;padding:9px;">
 
-                                        $bgMap = [
-                                            'critical'=> 'rgba(188, 16, 0, 0.36)',
-                                            'high'    => 'rgba(255, 25, 0, 0.12)',
-                                            'medium'  => 'rgba(243,156,18,0.08)',
-                                            'low'     => 'rgba(39,174,96,0.08)',
-                                            'pending' => 'rgba(149,165,166,0.09)',
-                                        ];
-                                        $bg = $bgMap[$rk] ?? $bgMap['pending'];
-                                    @endphp
-                                    <div class="hm-office hm-{{ $rk }}"
-                                         style="background:{{ $bg }};border:1px solid {{ $hex }}22;border-left:3px solid {{ $hex }};border-radius:4px;padding:7px 8px;cursor:default;"
-                                         id="office-{{ $rk }}-{{ $office->id }}">
-                                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;">
-                                            <div style="min-width:0;">
-                                                <div style="font-weight:600;font-size:9pt;color:#222;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                    <i class="fa fa-map-marker"
-                                                       style="color:{{ $hex }};margin-right:2px;font-size:8pt;"></i>{{ $office->name }}
-                                                </div>
-                                                <div style="font-size:7.5pt;color:#999;margin-top:1px;">
-                                                    @if($office->external_id)
-                                                        {{ $office->external_id }}
-                                                    @elseif($or)
-                                                        #{{ $office->id }}
-                                                    @else
-                                                        Not yet audited
+                                    @foreach($pd['offices'] as $office)
+                                        @php
+                                            $or   = $officeRatings[$office->id] ?? null;
+                                            $rk   = $or['rating']    ?? 'pending';
+                                            $hex  = $or['hex']       ?? ($ratingConfig[$rk]['hex'] ?? '#95a5a6');
+                                            $label= $or['label']     ?? 'NO DATA';
+                                            $fc   = $or['fail_count']?? 0;
+                                            $al   = $or['audit_label']?? '';
+
+                                            $bgMap = [
+                                                'critical'=> 'rgba(188, 16, 0, 0.36)',
+                                                'high'    => 'rgba(255, 25, 0, 0.12)',
+                                                'medium'  => 'rgba(243,156,18,0.08)',
+                                                'low'     => 'rgba(39,174,96,0.08)',
+                                                'pending' => 'rgba(149,165,166,0.09)',
+                                            ];
+                                            $bg = $bgMap[$rk] ?? $bgMap['pending'];
+                                        @endphp
+                                        <div class="hm-office hm-{{ $rk }}"
+                                             style="background:{{ $bg }};border:1px solid {{ $hex }}22;border-left:3px solid {{ $hex }};border-radius:4px;padding:7px 8px;cursor:default;"
+                                             id="office-{{ $rk }}-{{ $office->id }}">
+                                            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;">
+                                                <div style="min-width:0;">
+                                                    <div style="font-weight:600;font-size:9pt;color:#222;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                        <i class="fa fa-map-marker"
+                                                           style="color:{{ $hex }};margin-right:2px;font-size:8pt;"></i>{{ $office->name }}
+                                                    </div>
+                                                    <div style="font-size:7.5pt;color:#999;margin-top:1px;">
+                                                        @if($office->external_id)
+                                                            {{ $office->external_id }}
+                                                        @elseif($or)
+                                                            #{{ $office->id }}
+                                                        @else
+                                                            Not yet audited
+                                                        @endif
+                                                    </div>
+                                                    @if($fc > 0)
+                                                        <div style="font-size:7.5pt;color:#c0392b;font-weight:700;margin-top:2px;">
+                                                            <i class="fa fa-times-circle"></i> {{ $fc }} fail{{ $fc !== 1 ? 's' : '' }}
+                                                        </div>
                                                     @endif
                                                 </div>
-                                                @if($fc > 0)
-                                                    <div style="font-size:7.5pt;color:#c0392b;font-weight:700;margin-top:2px;">
-                                                        <i class="fa fa-times-circle"></i> {{ $fc }} fail{{ $fc !== 1 ? 's' : '' }}
-                                                    </div>
-                                                @endif
+                                                <span class="hm-badge hm-pill-{{ $rk }}"
+                                                      id="badge-{{ $office->id }}"
+                                                      style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:7.5pt;font-weight:700;color:#fff;background:{{ $hex }};white-space:nowrap;">
+                                                    {{ $label }}
+                                                </span>
                                             </div>
-                                            <span class="hm-badge hm-pill-{{ $rk }}"
-                                                  id="badge-{{ $office->id }}"
-                                                  style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:7.5pt;font-weight:700;color:#fff;background:{{ $hex }};white-space:nowrap;">
-                                                {{ $label }}
-                                            </span>
+                                            @if($al !== '')
+                                                <div style="font-size:7pt;color:#bbb;margin-top:3px;padding-top:3px;border-top:1px solid #eee;">
+                                                    <i class="fa fa-calendar"></i> {{ explode(' ', $al, 2)[0] ?? '' }}
+                                                </div>
+                                            @endif
                                         </div>
-                                        @if($al !== '')
-                                            <div style="font-size:7pt;color:#bbb;margin-top:3px;padding-top:3px;border-top:1px solid #eee;">
-                                                <i class="fa fa-calendar"></i> {{ explode(' ', $al, 2)[0] ?? '' }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endforeach
+                                    @endforeach
 
-                            </div>{{-- /hm-office-tile-grid --}}
-                        </div>{{-- /hm-province-tile --}}
-                    @endforeach
+                                </div>{{-- /hm-office-tile-grid --}}
+                            </div>{{-- /hm-province-tile --}}
+                        @endforeach
 
-                </div>{{-- /hm-province-grid --}}
+                    </div>{{-- /bento-flex-row --}}
+                </div>{{-- /bento-inner-flex --}}
+            </div>{{-- /bento-card --}}
 
                 @if($totalOffices === 0)
                     <div class="alert alert-info" style="margin-top:20px;">

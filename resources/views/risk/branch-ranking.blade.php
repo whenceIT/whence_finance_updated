@@ -310,25 +310,32 @@
                     ? '<span style="font-size:10px;padding:2px 6px;border-radius:3px;margin-right:4px;">' + br.audit_type.charAt(0).toUpperCase() + br.audit_type.slice(1) + '</span>'
                     : '';
 
-                html += '<div class="br-audit-card" style="border:1px solid #eee;border-top:3px solid ' + rc.hex + ';border-radius:6px;overflow:hidden;margin-bottom:0;">';
+                 html += '<div class="br-audit-card" style="border:1px solid #eee;border-top:3px solid ' + rc.hex + ';border-radius:6px;overflow:hidden;margin-bottom:0;">';
 
-                // Card header
-                html += '<div style="padding:10px 14px;background:' + rc.bg + ';cursor:pointer;" class="br-audit-card-head" data-index="' + idx + '">';
-                html += '  <div style="display:flex;justify-content:space-between;align-items:flex-start;">';
-                html += '    <div>';
-                html += '      <span style="font-size:13px;font-weight:700;color:#333;">' + date + '</span>';
-                html += '<br><small class="text-muted">' + typeBadge + 'Auditor: ' + auditor + '</small>';
-                html += '    </div>';
-                html += '    <div style="display:flex;align-items:center;gap:8px;">';
-                html += '      <span style="display:inline-block;padding:2px 10px;border-radius:3px;font-size:10px;font-weight:700;color:#fff;background:' + rc.hex + ';">' + rc.label + '</span>';
-                html += '      <span style="font-weight:700;color:' + (br.fail_count > 0 ? '#c0392b' : '#27ae60') + ';">' + br.fail_count + ' fail' + (br.fail_count !== 1 ? 's' : '') + '</span>';
-                html += '      <span class="br-toggle-icon" style="transition:transform .2s;"><i class="fa fa-chevron-down" style="color:#999;"></i></span>';
-                html += '    </div>';
-                html += '  </div>';
-                html += '</div>';
+                 // Card header
+                 html += '<div style="padding:10px 14px;background:' + rc.bg + ';cursor:pointer;" class="br-audit-card-head" data-index="' + idx + '">';
+                 html += '  <div style="display:flex;justify-content:space-between;align-items:flex-start;">';
+                 html += '    <div>';
+                 html += '      <span style="font-size:13px;font-weight:700;color:#333;">' + date + '</span>';
+                 html += '<br><small class="text-muted">' + typeBadge + 'Auditor: ' + auditor + '</small>';
+                 html += '    </div>';
+                 html += '    <div style="display:flex;align-items:center;gap:8px;">';
+                 html += '      <span style="display:inline-block;padding:2px 10px;border-radius:3px;font-size:10px;font-weight:700;color:#fff;background:' + rc.hex + ';">' + rc.label + '</span>';
+                 html += '      <span style="font-weight:700;color:' + (br.fail_count > 0 ? '#c0392b' : '#27ae60') + ';">' + br.fail_count + ' fail' + (br.fail_count !== 1 ? 's' : '') + '</span>';
+                 html += '      <span class="br-toggle-icon" style="transition:transform .2s;"><i class="fa fa-chevron-down" style="color:#999;"></i></span>';
+                 html += '    </div>';
+                 html += '  </div>';
+                 html += '</div>';
 
-                // Collapsible sections
-                html += '<div class="br-audit-sections" id="br-sec-' + idx + '" style="display:none;padding:4px 0;">';
+                 // Opening remarks
+                 if (br.opening_remarks) {
+                     html += '<div style="padding:10px 14px;background:#f8f9fa;border-left:3px solid #3498db;margin-bottom:8px;">';
+                     html += '  <p style="margin:0;color:#2c3e50;line-height:1.4;">' + br.opening_remarks + '</p>';
+                     html += '</div>';
+                 }
+
+                 // Collapsible sections
+                 html += '<div class="br-audit-sections" id="br-sec-' + idx + '" style="display:none;padding:4px 0;">';
                 html += br.sections.map(function (sec, si) {
                     var total  = sec.pass + sec.fail + sec.na;
                     if (total === 0) return '';
@@ -336,16 +343,16 @@
                     var failR  = total > 0 ? (sec.fail / total) : 0;
                     var barClr = failR === 0 ? '#27ae60' : (failR <= 0.10 ? '#f39c12' : (failR <= 0.25 ? '#e67e22' : '#c0392b'));
                     return '<div style="padding:6px 16px;">' +
-                        '  <div style="display:flex;align-items:center;gap:8px;">' +
-                        '    <span style="font-size:10px;color:#555;min-width:100px;font-weight:600;">Section ' + (si + 2) + '</span>' +
-                        '    <span style="font-size:10px;color:#27ae60;font-weight:700;min-width:20px;text-align:center;">' + sec.pass + '</span>' +
-                        '    <span style="font-size:10px;color:#c0392b;font-weight:700;min-width:20px;text-align:center;">' + (sec.fail > 0 ? sec.fail : '—') + '</span>' +
-                        '    <span style="font-size:10px;color:#aaa;min-width:20px;text-align:center;">' + (sec.na > 0 ? sec.na : '—') + '</span>' +
-                        '    <div style="flex:1;background:#eee;border-radius:3px;height:6px;overflow:hidden;">' +
-                        '      <div style="width:' + pct + '%;background:' + barClr + ';height:6px;border-radius:3px;"></div>' +
-                        '    </div>' +
-                        '  </div>' +
-                        '</div>';
+                         '  <div style="display:flex;align-items:center;gap:8px;">' +
+                         '    <span style="font-size:10px;color:#555;min-width:100px;font-weight:600;">' + (sec.name + (si + 1)) + '</span>' +
+                         '    <span style="font-size:10px;color:#27ae60;font-weight:700;min-width:20px;text-align:center;">' + sec.pass + '</span>' +
+                         '    <span style="font-size:10px;color:#c0392b;font-weight:700;min-width:20px;text-align:center;">' + (sec.fail > 0 ? sec.fail : '—') + '</span>' +
+                         '    <span style="font-size:10px;color:#aaa;min-width:20px;text-align:center;">' + (sec.na > 0 ? sec.na : '—') + '</span>' +
+                         '    <div style="flex:1;background:#eee;border-radius:3px;height:6px;overflow:hidden;">' +
+                         '      <div style="width:' + pct + '%;background:' + barClr + ';height:6px;border-radius:3px;"></div>' +
+                         '    </div>' +
+                         '  </div>' +
+                         '</div>';
                 }).join('');
                 html += '</div>';
 
