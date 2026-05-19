@@ -1394,9 +1394,9 @@ $office = $userInfo->office;
                         Options will be populated via JS
                     </select>
                 </div>
-                <p class="sample-text" style="display: none;">Dear Customer, this is a reminder that your loan of ZMW 0
+                <p class="sample-text" style="display: none; padding:2px;">Dear Customer, this is a reminder that your loan of ZMW 0
                     is overdue. Kindly make your payment to avoid penalties or further legal action. For assistance,
-                    contact 0972654596.</p>
+                    contact 0773425477.</p>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" id="sms-cancel"
                         style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
