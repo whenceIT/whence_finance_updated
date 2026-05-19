@@ -147,6 +147,32 @@
                     </div>
                 </div>
 
+                 <!-- Stats bar / meta row (refresh with each poll) -->
+                <div class="ff-stats-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+                     padding:8px 0 10px;border-bottom:1px solid #eee;margin-bottom:12px;font-size:12px;">
+                    <span class="ff-stat-item" id="ff-stat-total" title="Total alerts in window">
+                        <i class="fa fa-list" style="color:#555;"></i>&nbsp;
+                        <strong style="color:#222;">0</strong>&nbsp;total
+                    </span>
+                    <span class="ff-stat-item" id="ff-stat-critical" title="Critical alerts">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c0392b;margin-right:3px;"></span>
+                        <strong style="color:#c0392b;">0</strong>&nbsp;critical
+                    </span>
+                    <span class="ff-stat-item" id="ff-stat-warning" title="Warning alerts">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f39c12;margin-right:3px;"></span>
+                        <strong style="color:#f39c12;">0</strong>&nbsp;warning
+                    </span>
+                    <span class="ff-stat-item" id="ff-stat-info" title="Info alerts">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3498db;margin-right:3px;"></span>
+                        <strong style="color:#3498db;">0</strong>&nbsp;info
+                    </span>
+                    <span class="ff-stat-item" id="ff-stat-unread" title="Unread alerts"
+                          style="margin-left:auto;color:#888;">
+                        <i class="fa fa-envelope-o"></i>&nbsp;
+                        <strong>0</strong>&nbsp;unread
+                    </span>
+                </div>
+
                 <!-- Alert list container -->
                 <div id="ff-alert-list" style="max-height:520px;overflow-y:auto;">
                     <div style="text-align:center;padding:40px;color:#aaa;">
@@ -351,7 +377,7 @@
         /* optimistic dismiss animation */
         card.classList.add('ff-dismissing');
 
-        fetch('{{ route("risk.fraud-alert.destroy", "") }}' + id, {
+        fetch('{{ route("risk.fraud-alert.destroy", 0) }}'.replace('/0', '/' + id), {
             method : 'DELETE',
             headers: {
                 'Content-Type'     : 'application/json',
@@ -413,7 +439,36 @@
         return html;
     }
 
-    // ── Supervisor tick ──────────────────────────────────────────────────────
+    // ── Complete-button click delegation ─────────────────────────────────────
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.ff-complete-btn');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            ffCompleteAlert(btn.getAttribute('data-id'));
+        }
+    });
+
+    // ── Update the stats bar ───────────────────────────────────────────────────
+    function updateStatsBar(stats, total) {
+        stats = stats || {};
+        total = total || 0;
+        setStat('ff-stat-critical', stats.critical || 0);
+        setStat('ff-stat-warning',  stats.warning  || 0);
+        setStat('ff-stat-info',     stats.info     || 0);
+        /* unread = total − read */
+        var unread = total - (stats.read || 0);
+        unread = Math.max(0, unread);
+        var el = document.getElementById('ff-stat-unread');
+        if (el) el.querySelector('strong').textContent = unread;
+    }
+
+    function setStat(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.querySelector('strong').textContent = value;
+    }
+
+    // ── Supervisor tick ────────────────────────────────────────────────────────
     function supervisorTick() {
         // Guard: stop if any filter element is missing (e.g. before DOM ready)
         var sevEl    = document.getElementById('ff-severity');
@@ -441,6 +496,7 @@
                     var listEl = document.getElementById('ff-alert-list');
                     listEl.innerHTML = buildList(data);
                 }
+                updateStatsBar(data.stats, data.total);
                 document.getElementById('ff-count').textContent    = data.total || 0;
                 document.getElementById('ff-last-scan').textContent = new Date().toLocaleTimeString();
                 document.getElementById('ff-empty').style.display   = (!data.total) ? '' : 'none';

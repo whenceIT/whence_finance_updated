@@ -465,13 +465,18 @@ Route::group(['prefix' => 'risk'], function () {
     Route::delete('audit-submission/{submissionId}', [RiskController::class, 'deleteAuditSubmission'])->name('risk.delete-audit-submission');
     Route::get('fraud-feed',                    [RiskController::class, 'fraudFeed'])->name('risk.fraud-feed');
     Route::get('fraud-alerts',                  [RiskController::class, 'getFraudAlerts'])->name('risk.fraud-alerts');
+    Route::delete('fraud-alert/{id}',           [RiskController::class, 'destroyAlert'])->name('risk.fraud-alert.destroy');
     // ── Supervisor: run all fraud rules (called client-side by monitor.js)
     Route::post('monitor/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
          ->name('risk.alert-service');
 
-    // ── Daily cron: single entry point for AlertService::runAll()
-    Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
-         ->name('risk.cron.run-all-alerts');
+     // ── RiskController relay: thin pass-through to AlertService::runAll()
+     Route::get('run-all-alerts', [RiskController::class, 'runAll'])
+          ->name('risk.run-all-alerts');
+
+     // ── Daily cron: single entry point for AlertService::runAll()
+     Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
+          ->name('risk.cron.run-all-alerts');
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {

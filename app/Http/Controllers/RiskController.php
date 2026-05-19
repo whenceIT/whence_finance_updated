@@ -429,20 +429,48 @@ class RiskController extends Controller
         return $this->buildFeedQuery($severity, $unread, $hours);
     }
 
+    /**
+     * DELETE risk/fraud-alert/{id}
+     * Soft-dismiss an alert (is_read = true so it stays for audit trail)
+     */
+    public function destroyAlert($id)
+    {
+        $alert = \App\Models\Alert::findOrFail($id);
+        $alert->delete();   // hard delete — plain "completed/dismissed" action
+        return response()->json(['success' => true]);
+    }
+
     protected function buildFeedQuery(string $severity, bool $unread, int $hours)
     {
-        $alerts = \App\Models\Alert::with('creator')
+        $base = \App\Models\Alert::query()
             ->when($severity, fn($q) => $q->where('severity', $severity))
             ->when($unread,  fn($q) => $q->where('is_read', false))
-            ->where('created_at', '>=', now()->subHours($hours))
+            ->where('created_at', '>=', now()->subHours($hours));
+
+        $alerts = (clone $base)
+            ->with('creator')
             ->orderByDesc('created_at')
             ->take(200)
             ->get();
+
+        $stats = (clone $base)
+            ->selectRaw('severity, is_read, COUNT(*) as cnt')
+            ->groupBy('severity', 'is_read')
+            ->get()
+            ->reduce(function ($acc, $row) {
+                $sev = $row->severity;
+                $acc[$sev] = ($acc[$sev] ?? 0) + (int) $row->cnt;
+                if ($row->is_read) {
+                    $acc['read'] = ($acc['read'] ?? 0) + (int) $row->cnt;
+                }
+                return $acc;
+            }, []);
 
         $total = $alerts->count();
 
         return response()->json([
             'total'   => $total,
+            'stats'   => $stats,
             'alerts'  => $alerts->map(function ($a) {
                 return [
                     'id'          => $a->id,
@@ -1019,5 +1047,14 @@ class RiskController extends Controller
             'total'     => count($list),
             'audits'    => $list,
         ]);
+    }
+
+    /**
+     * Run all fraud-detection rules via AlertService and return the count.
+     * Thin relay so the risk UI can call /risk/run-all directly.
+     */
+    public function runAll(): int
+    {
+        return \App\Services\AlertService::runAll();
     }
 }
