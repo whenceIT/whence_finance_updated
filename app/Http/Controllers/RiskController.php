@@ -1079,7 +1079,7 @@ class RiskController extends Controller
         $offices = \App\Models\Office::orderBy('name')->get();
 
         // 2. All deposit types (sorted)
-        $depositTypes = \App\Models\DepositType::orderBy('name')->get();
+        $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get();
 
         // 3. Offices whose ids appear in the deposits table
         $officeIds = [];

@@ -131,7 +131,7 @@
             $currentPeriod = $period ?? 'month';
             $sel = fn($v) => $currentPeriod === $v ? ' selected' : '';
         ?>
-        <select id="da-period" onchange="daApplyFilter()">
+        <select id="da-period">
             <option value="overall"       {{ $sel('overall') }}>Overall</option>
             <option value="month"         {{ $sel('month') }}>This Month</option>
             <option value="quarter"       {{ $sel('quarter') }}>This Quarter</option>
@@ -216,19 +216,11 @@
     function fetchOffices(typeId, bodyEl) {
         bodyEl.innerHTML = '<p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading offices&hellip;</p>';
 
-        // Collect active filter params from the page URL
-        var params = new URLSearchParams(window.location.search);
-        var query  = (function() {
-            var p = (params.get('period') || '');
-            if (p === 'overall') return '';
-            var q = 'period=' + p;
-            if (p === 'custom') {
-                q += '&custom_month=' + (params.get('custom_month') || '')
-                   + '&custom_year='  + (params.get('custom_year') || '');
-            }
-            return q ? '?' + q : '';
-        })();
+        // Build query string from the URL (set by the da-period filter on every change)
+        var qs = window.location.search;                   // e.g. "?period=custom&custom_month=2&custom_year=2026"
+        var query = qs ? qs : '';
 
+        // When period=overall the key is already in the URL; controller handles null=false
         fetch('/risk/branch-deposit-audit/type/' + typeId + query, {
             headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }
         }).then(function(r) { return r.json(); }).then(function(resp) {
@@ -314,27 +306,36 @@
         });
     });
 
-    function daApplyFilter() {
-        var period  = document.getElementById('da-period').value;
-        var month   = document.getElementById('da-month').value;
-        var year    = document.getElementById('da-year').value;
-        if (period === 'custom') {
-            window.location.href = '?period=custom&custom_month=' + month + '&custom_year=' + year;
-        } else {
-            window.location.href = '?period=' + period;
-        }
-    }
-
-    // Show/hide the custom row on page load based on current period
+    // Period filter — wired via addEventListener so the handler is in the same scope
     (function() {
-        var period = document.getElementById('da-period');
+        var period  = document.getElementById('da-period');
         if (!period) return;
+
+        period.addEventListener('change', function() {
+            var value   = period.value;
+            var customR = document.getElementById('da-custom-row');
+
+            // Invalidate every expanded card so they re-fetch for the new period
+            document.querySelectorAll('.da-body[data-loaded]').forEach(function(body) {
+                body.dataset.loaded = '';
+            });
+
+            if (value === 'custom') {
+                var month = document.getElementById('da-month').value;
+                var year  = document.getElementById('da-year').value;
+                customR.style.display = 'flex';
+                window.location.href = '?period=custom&custom_month=' + month + '&custom_year=' + year;
+            } else {
+                customR.style.display = 'none';
+                window.location.href = '?period=' + value;
+            }
+        });
+
+        // Init on page load — show/hide custom row based on current selection
         var customR = document.getElementById('da-custom-row');
-        var updateCustom = function() {
+        if (customR) {
             customR.style.display = period.value === 'custom' ? 'flex' : 'none';
-        };
-        period.addEventListener('change', updateCustom);
-        updateCustom();
+        }
     })();
 
 })();
