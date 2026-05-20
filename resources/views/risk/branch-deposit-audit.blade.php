@@ -73,12 +73,45 @@
         background: #fffbe6 !important;
         color: #b7950b;
     }
-    .da-office-table tbody tr.da-row-warn td.da-amt { color: #b7950b; }
     .da-office-table tbody tr.da-row-warn { animation: daWarnPulse 2.5s ease-in-out infinite; }
     @keyframes daWarnPulse {
         0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
         50%       { box-shadow: inset 3px 0 0 0 #f39c12; }
     }
+    .da-month-grid { display: flex; gap: 3px; flex-wrap: nowrap; }
+    .da-month-box {
+        width: 22px; height: 22px; border-radius: 3px;
+        font-size: 9px; font-weight: 700; line-height: 22px;
+        text-align: center; display: inline-block;
+        background: #f0f0f0; color: #bbb;
+    }
+    .da-month-box.has {
+        background: #667eea; color: #fff;
+    }
+    .da-search-row {
+        display: flex; align-items: center; gap: 6px;
+        padding: 6px 8px; margin: 0 0 6px 0;
+        background: #f7f8fc; border-radius: 5px; border: 1px solid #e0e4ed;
+    }
+    .da-search-row i { color: #aaa; font-size: 13px; }
+    .da-search-row .da-office-search {
+        border: none; background: transparent; outline: none;
+        font-size: 13px; color: #444; width: 100%;
+    }
+    .da-search-row .da-office-search::placeholder { color: #bbb; }
+    .da-filter-bar {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        padding: 10px 16px; margin-bottom: 18px;
+        background: #f4f6fb; border-radius: 7px;
+        border: 1px solid #dde3ef;
+    }
+    .da-filter-bar label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+    .da-filter-bar select {
+        font-size: 13px; padding: 5px 8px; border: 1px solid #c7cfdf;
+        border-radius: 4px; background: #fff; color: #444; outline: none;
+    }
+    .da-filter-bar select:focus { border-color: #667eea; }
+    .da-custom-row { display: flex; align-items: center; gap: 6px; }
     .page-chrome { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #667eea; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
     .page-chrome h1  { margin: 0; font-size: 20px; font-weight: 700; }
     .page-chrome p   { margin: 4px 0 0; font-size: 13px; color: #666; }
@@ -89,6 +122,50 @@
     <div class="page-chrome">
         <h1><i class="fa fa-history"></i> Branch Deposit Audit</h1>
         <p>Click a deposit type to expand and view all offices, including those with no deposits, for that type.</p>
+    </div>
+
+    <div class="da-filter-bar">
+        <label><i class="fa fa-filter"></i> Period</label>
+
+        <?php
+            $currentPeriod = $period ?? 'month';
+            $sel = fn($v) => $currentPeriod === $v ? ' selected' : '';
+        ?>
+        <select id="da-period" onchange="daApplyFilter()">
+            <option value="overall"       {{ $sel('overall') }}>Overall</option>
+            <option value="month"         {{ $sel('month') }}>This Month</option>
+            <option value="quarter"       {{ $sel('quarter') }}>This Quarter</option>
+            <option value="year"          {{ $sel('year') }}>This Year</option>
+            <option value="this_circle"   {{ $sel('this_circle') }}>This Circle</option>
+            <option value="last_circle"   {{ $sel('last_circle') }}>Last Circle</option>
+            <option value="last_quarter"  {{ $sel('last_quarter') }}>Last Quarter</option>
+            <option value="last_month"    {{ $sel('last_month') }}>Last Month</option>
+            <option value="last_year"     {{ $sel('last_year') }}>Last Year</option>
+            <option value="custom"        {{ $sel('custom') }}>Custom…</option>
+        </select>
+
+        <div id="da-custom-row" class="da-custom-row" style="display:<?= $currentPeriod === 'custom' ? 'flex' : 'none' ?>">
+            <select id="da-month">
+                <?php
+                    $curMonth = $customMonth ?? date('n');
+                    $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    foreach ($months as $i => $m) {
+                        $v = $i + 1;
+                        echo '<option value="' . $v . '"' . ($curMonth === $v ? ' selected' : '') . '>' . $m . '</option>';
+                    }
+                ?>
+            </select>
+
+            <select id="da-year">
+                <?php
+                    $curYear  = $customYear ?? date('Y');
+                    $thisYear = date('Y');
+                    for ($y = $thisYear + 1; $y >= $thisYear - 3; $y--) {
+                        echo '<option value="' . $y . '"' . ($curYear === $y ? ' selected' : '') . '>' . $y . '</option>';
+                    }
+                ?>
+            </select>
+        </div>
     </div>
 
     <div id="daContainer">
@@ -108,16 +185,9 @@
                         <span class="da-stat" title="Offices with deposits">
                             <i class="fa fa-check-circle" style="color:#27ae60"></i> <strong>{{ $t['offices_with_deposits'] }}</strong> with deposits
                         </span>
-                        <span class="da-stat" title="Offices with total &gt; 0">
-                            <i class="fa fa-dollar" style="color:#f39c12"></i> <strong>{{ $t['offices_with_total'] }}</strong> with total
-                        </span>
                         <span class="da-stat" title="Overall total amount across all offices">
                             <i class="fa fa-line-chart" style="color:#667eea"></i> <strong>${{ number_format((float)$t['total_amount'], 2) }}</strong> total
                         </span>
-                    </div>
-                    <div class="da-search-wrap">
-                        <i class="fa fa-search"></i>
-                        <input type="text" class="da-office-search" placeholder="Search offices…" data-type-id="{{ $t['id'] }}" autocomplete="off" spellcheck="false">
                     </div>
                 </div>
             </div>
@@ -145,7 +215,21 @@
 
     function fetchOffices(typeId, bodyEl) {
         bodyEl.innerHTML = '<p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading offices&hellip;</p>';
-        fetch('/risk/branch-deposit-audit/type/' + typeId, {
+
+        // Collect active filter params from the page URL
+        var params = new URLSearchParams(window.location.search);
+        var query  = (function() {
+            var p = (params.get('period') || '');
+            if (p === 'overall') return '';
+            var q = 'period=' + p;
+            if (p === 'custom') {
+                q += '&custom_month=' + (params.get('custom_month') || '')
+                   + '&custom_year='  + (params.get('custom_year') || '');
+            }
+            return q ? '?' + q : '';
+        })();
+
+        fetch('/risk/branch-deposit-audit/type/' + typeId + query, {
             headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }
         }).then(function(r) { return r.json(); }).then(function(resp) {
             if (!resp.rows || resp.rows.length === 0) {
@@ -163,8 +247,9 @@
                 return (b.total || 0) - (a.total || 0);
             });
 
-            var html = '<table class="da-office-table"><thead>'
-                     + '<tr><th>#</th><th>Office</th><th>Deposits</th><th class="da-amt">Total Amount</th></tr>'
+            var html = '<div class="da-search-row"><i class="fa fa-search"></i><input type="text" class="da-office-search" placeholder="Filter offices&hellip;" autocomplete="off" spellcheck="false"></div>'
+                     + '<table class="da-office-table"><thead>'
+                     + '<tr><th>#</th><th>Office</th><th>Deposits</th><th class="da-amt">Total Amount</th><th>Months</th></tr>'
                      + '</thead><tbody>';
 
             resp.rows.forEach(function(row) {
@@ -174,11 +259,21 @@
                 } else if (!row.total || row.total === 0) {
                     cls = ' da-row-warn';
                 }
+
+                // Build 12 month boxes: Jan..Dec
+                var mNames = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+                var mBoxes = '';
+                for (var i = 0; i < 12; i++) {
+                    var cnt = (row.months && row.months[i]) || 0;
+                    mBoxes += '<span class="da-month-box' + (cnt > 0 ? ' has' : '') + '" title="' + mNames[i] + ': ' + cnt + ' deposit(s)">' + mNames[i] + '</span>';
+                }
+
                 html += '<tr class="' + cls + '">'
                       + '<td>' + (row.deposit_count > 0 ? '<span class="da-badge da-badge-success">' + row.deposit_count + '</span>' : '—') + '</td>'
                       + '<td>' + row.office_name + '</td>'
                       + '<td>' + (row.deposit_count > 0 ? row.deposit_count + ' deposit(s)' : '<em>No deposits</em>') + '</td>'
                       + '<td class="da-amt">' + (row.deposit_count > 0 ? toCurrency(row.total) : '—') + '</td>'
+                      + '<td><div class="da-month-grid">' + mBoxes + '</div></td>'
                       + '</tr>';
             });
 
@@ -218,6 +313,29 @@
             row.style.display = (term === '' || txt.indexOf(term) !== -1) ? '' : 'none';
         });
     });
+
+    function daApplyFilter() {
+        var period  = document.getElementById('da-period').value;
+        var month   = document.getElementById('da-month').value;
+        var year    = document.getElementById('da-year').value;
+        if (period === 'custom') {
+            window.location.href = '?period=custom&custom_month=' + month + '&custom_year=' + year;
+        } else {
+            window.location.href = '?period=' + period;
+        }
+    }
+
+    // Show/hide the custom row on page load based on current period
+    (function() {
+        var period = document.getElementById('da-period');
+        if (!period) return;
+        var customR = document.getElementById('da-custom-row');
+        var updateCustom = function() {
+            customR.style.display = period.value === 'custom' ? 'flex' : 'none';
+        };
+        period.addEventListener('change', updateCustom);
+        updateCustom();
+    })();
 
 })();
 </script>

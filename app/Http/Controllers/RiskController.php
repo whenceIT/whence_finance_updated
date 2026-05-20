@@ -1062,22 +1062,40 @@ class RiskController extends Controller
      * -- Branch Deposit Audit --
      * List deposit_types as collapsible cards; on expand show every office with a
      * full (outer) join so offices with no deposits appear as "Not Deposited".
+     * Supports date-period filtering via ?period= query param:
+     *   overall | month | quarter | year | this_circle | last_circle |
+     *   last_quarter | last_month | last_year | custom
+     * Custom also requires custom_month (1-12) and custom_year.
      */
-    public function branchDepositAudit()
+    public function branchDepositAudit(Request $request)
     {
+        $period       = $request->query('period', 'month');
+        $customMonth  = (int) $request->query('custom_month', date('n'));
+        $customYear   = (int) $request->query('custom_year', date('Y'));
+
+        [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
+
         // 1. All offices (sorted)
         $offices = \App\Models\Office::orderBy('name')->get();
 
         // 2. All deposit types (sorted)
         $depositTypes = \App\Models\DepositType::orderBy('name')->get();
 
-        // 3. All deposits that belong to a known office, grouped by deposit type
-        $officeIds    = [];
+        // 3. Offices whose ids appear in the deposits table
+        $officeIds = [];
         foreach ($offices as $office) {
             $officeIds[] = $office->id;
         }
 
-        $validDeposits  = \App\Models\Deposit::whereIn('office', $officeIds)->get();
+        // 4. Pull deposits — apply date filter only when a specific period is chosen
+        $depositQuery = \App\Models\Deposit::query()
+            ->whereIn('office', $officeIds);
+
+        if ($dateFrom !== null && $dateTo !== null) {
+            $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
+        }
+
+        $validDeposits  = $depositQuery->get();
         $depositsByType = [];
         foreach ($validDeposits as $dep) {
             $typeId = $dep->deposit_type;
@@ -1087,7 +1105,7 @@ class RiskController extends Controller
             $depositsByType[$typeId][] = $dep;
         }
 
-        // 4. Compute stats for every deposit type (plain foreach, no map/fn)
+        // 5. Compute stats for every deposit type (plain foreach, no map/fn)
         $types = [];
         foreach ($depositTypes as $type) {
             $depositsForType  = $depositsByType[$type->id] ?? [];
@@ -1101,7 +1119,6 @@ class RiskController extends Controller
                 $depositCount += 1;
                 $officesWithDep[$dep->office] = true;
 
-                // Track offices where sum of deposits > 0
                 if (!isset($officesWithTot[$dep->office])) {
                     $officesWithTot[$dep->office] = 0;
                 }
@@ -1128,39 +1145,158 @@ class RiskController extends Controller
             ];
         }
 
-        return view('risk.branch-deposit-audit', compact('types', 'offices'));
+        return view('risk.branch-deposit-audit', compact('types', 'offices'))
+            ->with('period', $period)
+            ->with('customMonth', $customMonth)
+            ->with('customYear', $customYear);
     }
 
     /**
-     * JSON: all offices for a single deposit type (full outer-join effect).
-     * Each row: { office_id, office_name, total, deposit_count }
+     * Compute the [startDate, endDate] string pair for a given period label.
+     * Returns [null, null] when no date filtering should be applied ("overall").
+     *
+     * Periods
+     * - overall         : no filter
+     * - month           : this calendar month
+     * - quarter         : this quarter
+     * - year            : this calendar year
+     * - this_circle     : 24 Nov → 24 Dec (for Dec); 24 last month → 24 this month
+     * - last_circle     : 24 Oct → 24 Nov (for Dec); 24 two months ago → 24 last month
+     * - last_quarter    : previous quarter
+     * - last_month      : previous calendar month
+     * - last_year       : previous calendar year
+     * - custom          : specific year + month (customMonth/customYear params)
      */
-    public function branchDepositAuditByType(int $depositTypeId)
+    private function getDepositDateRange(string $period, int $customMonth, int $customYear): array
     {
-        $offices = \App\Models\Office::orderBy('name')->get();
+        if ($period === 'overall') {
+            return [null, null];
+        }
 
-        $rows = $offices->map(function ($office) use ($depositTypeId) {
-            $total = \App\Models\Deposit::where('deposit_type', $depositTypeId)
-                ->where('office', $office->id)
-                ->sum('amount');
-
-            $count = \App\Models\Deposit::where('deposit_type', $depositTypeId)
-                ->where('office', $office->id)
-                ->count();
-
+        if ($period === 'custom') {
             return [
+                Carbon::create($customYear, $customMonth, 1)->startOfMonth()->toDateString(),
+                Carbon::create($customYear, $customMonth, 1)->endOfMonth()->toDateString(),
+            ];
+        }
+
+        // start-of-today / end-of-today anchored helpers
+        $now   = Carbon::now();
+
+        return match ($period) {
+            'month' => [
+                $now->copy()->startOfMonth()->toDateString(),
+                $now->copy()->endOfMonth()->toDateString(),
+            ],
+            'quarter' => [
+                $now->copy()->startOfQuarter()->toDateString(),
+                $now->copy()->endOfQuarter()->toDateString(),
+            ],
+            'year' => [
+                $now->copy()->startOfYear()->toDateString(),
+                $now->copy()->endOfYear()->toDateString(),
+            ],
+            'last_month' => [
+                $now->copy()->subMonth()->startOfMonth()->toDateString(),
+                $now->copy()->subMonth()->endOfMonth()->toDateString(),
+            ],
+            'last_quarter' => [
+                $now->copy()->subQuarter()->startOfQuarter()->toDateString(),
+                $now->copy()->subQuarter()->endOfQuarter()->toDateString(),
+            ],
+            'last_year' => [
+                $now->copy()->subYear()->startOfYear()->toDateString(),
+                $now->copy()->subYear()->endOfYear()->toDateString(),
+            ],
+            // This Circle  = 24th of last month → 24th of this month
+            'this_circle' => [
+                $now->copy()->subMonth()->day(24)->toDateString(),
+                $now->copy()->day(24)->toDateString(),
+            ],
+            // Last Circle  = 24th of two months ago → 24th of last month
+            'last_circle' => [
+                $now->copy()->subMonths(2)->day(24)->toDateString(),
+                $now->copy()->subMonth()->day(24)->toDateString(),
+            ],
+            default => [
+                $now->copy()->startOfMonth()->toDateString(),
+                $now->copy()->endOfMonth()->toDateString(),
+            ],
+
+        };
+    }
+    /**
+     * JSON: all offices for a single deposit type (full outer-join effect).
+     * Each row: { office_id, office_name, total, deposit_count, months }
+     * months = [jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec]
+     * Accepts the same ?period= filter as branchDepositAudit().
+     */
+    public function branchDepositAuditByType(int $depositTypeId, Request $request)
+    {
+        $period       = $request->query('period', 'month');
+        $customMonth  = (int) $request->query('custom_month', date('n'));
+        $customYear   = (int) $request->query('custom_year', date('Y'));
+
+        [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
+
+        $offices  = \App\Models\Office::orderBy('name')->get();
+
+        $depositQuery = \App\Models\Deposit::where('deposit_type', $depositTypeId);
+
+        if ($dateFrom !== null && $dateTo !== null) {
+            $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
+        }
+
+        $deposits = $depositQuery->get();
+
+        // Group deposits by office id
+        $depsByOffice = [];
+        foreach ($deposits as $dep) {
+            $oid = $dep->office;
+            if (!isset($depsByOffice[$oid])) {
+                $depsByOffice[$oid] = [];
+            }
+            $depsByOffice[$oid][] = $dep;
+        }
+
+        // Build one row per office
+        $rows = [];
+        foreach ($offices as $office) {
+            $officeDeps = $depsByOffice[$office->id] ?? [];
+
+            $total      = 0;
+            $count      = 0;
+            $monthCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            foreach ($officeDeps as $dep) {
+                $total      += (float) $dep->amount;
+                $count       += 1;
+                $monthNum    = (int) date('n', strtotime((string) $dep->date));
+                $monthCount[$monthNum - 1] += 1;
+            }
+
+            $rows[] = [
                 'office_id'     => $office->id,
                 'office_name'   => $office->name,
-                'total'         => (float) $total,
-                'deposit_count' => (int)   $count,
+                'total'         => $total,
+                'deposit_count' => $count,
+                'months'        => $monthCount,
             ];
-        });
+        }
 
         $stats = [
-            'offices_with_deposits' => $rows->where('deposit_count', '>', 0)->count(),
-            'offices_with_total'    => $rows->where('total', '>', 0)->count(),
-            'total_offices'         => $rows->count(),
+            'offices_with_deposits' => 0,
+            'offices_with_total'    => 0,
+            'total_offices'         => count($rows),
         ];
+        foreach ($rows as $row) {
+            if ($row['deposit_count'] > 0) {
+                $stats['offices_with_deposits'] += 1;
+            }
+            if ($row['total'] > 0) {
+                $stats['offices_with_total'] += 1;
+            }
+        }
 
         return response()->json(['rows' => $rows, 'stats' => $stats]);
     }
