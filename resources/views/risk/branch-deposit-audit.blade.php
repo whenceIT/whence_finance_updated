@@ -115,6 +115,61 @@
     .page-chrome { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #667eea; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
     .page-chrome h1  { margin: 0; font-size: 20px; font-weight: 700; }
     .page-chrome p   { margin: 4px 0 0; font-size: 13px; color: #666; }
+    .page-chrome #openOfficeDebtModal { margin-top: 10px; }
+
+    /* Modal-fullscreen override */
+    .od-dialog {
+        width: 96vw;
+        height: 92vh;
+        margin: 3vh auto;
+        padding: 0;
+    }
+    .od-dialog .modal-content {
+        height: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .od-dialog .modal-header { background: #2c3e50; color: #fff; padding: 16px 24px; }
+    .od-dialog .modal-header h4 { margin: 0; font-size: 16px; font-weight: 700; }
+    .od-dialog .modal-header .close { color: #fff; opacity: .8; font-size: 26px; margin-top: -4px; }
+
+    /* Debt table */
+    #odTable { font-size: 13px; }
+    #odTable thead th { background: #667eea; color: #fff; }
+    #odTable tbody td { vertical-align: middle; }
+    .od-debt-row td { border-top: 1px solid #eee; }
+
+    /* Status pill badge styling */
+    .od-status-pill {
+        display: inline-block; padding: 2px 10px; border-radius: 12px;
+        font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .od-status-pill.owing   { background: #fdecea; color: #c0392b; }
+    .od-status-pill.partial { background: #fff8e1; color: #f39c12; }
+    .od-status-pill.paid    { background: #eafaf1; color: #27ae60; }
+
+    /* Form inside modal.body */
+    .od-form-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; padding: 14px 16px; background: #f7f9fc; border: 1px solid #dde3ef; border-radius: 6px; }
+    .od-form-group { display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; }
+    .od-form-group label { font-size: 12px; font-weight: 600; color: #555; }
+    .od-form-group input, .od-form-group select, .od-form-group textarea { padding: 7px 10px; border: 1px solid #c7cfdf; border-radius: 4px; font-size: 13px; outline: none; }
+    .od-form-group input:focus, .od-form-group select:focus, .od-form-group textarea:focus { border-color: #667eea; }
+
+    /* Action cell */
+    .od-actions { display: flex; gap: 4px; }
+    .od-btn { padding: 3px 8px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; }
+    .od-btn-edit  { background: #fff3cd; color: #856404; }
+    .od-btn-del   { background: #fdecea; color: #c0392b; }
+    .od-btn-save  { background: #667eea; color: #fff; }
+    .od-btn-cancel{ background: #eee; color: #555; }
+
+    /* Shimmer */
+    #odShimmer { display: none; padding: 20px 24px; }
+    @keyframes shimmer-anim {
+        0%   { background-position: -400px 0; }
+        100% { background-position:  400px 0; }
+    }
+
 </style>
 
 <div class="content-wrapper" style="margin: 20px;">
@@ -122,6 +177,9 @@
     <div class="page-chrome">
         <h1><i class="fa fa-history"></i> Branch Deposit Audit</h1>
         <p>Click a deposit type to expand and view all offices, including those with no deposits, for that type.</p>
+        <a href="#odModal" class="btn btn-primary btn-sm" style="border-radius:6px;text-decoration:none;color:#fff;">
+            <i class="fa fa-balance-scale"></i> Office Debt Management
+        </a>
     </div>
 
     <div class="da-filter-bar">
@@ -210,7 +268,7 @@
 
     function toCurrency(val) {
         if (!val) return '–';
-        return parseFloat(val).toLocaleString('en-US', { style:'currency', currency:'USD' });
+        return parseFloat(val).toLocaleString('en-US', { style:'currency', currency:'ZMW' });
     }
 
     function fetchOffices(typeId, bodyEl) {
@@ -338,7 +396,293 @@
         }
     })();
 
+    // ── OfficeDebt Management ──────────────────────────────────────────────────
+    (function() {
+        // Markers
+        var $modal    = $('#odModal');
+        var $shimmer  = $('#odShimmer');
+        var $tableBody= $('#odTableBody');
+        var $formBar  = $('#odFormBar');
+        var $empty    = $('#odEmpty');
+        var editId    = function() { return $('#odEditId').val(); };
+
+        // Open modal → load data (delegated: survives second jQuery load in master layout)
+        $(document).on('click', '#openOfficeDebtModal', function() {
+            odResetForm();
+            odLoadTable();
+            $modal.modal('show');
+        });
+
+        function odResetForm() {
+            $('#odInputOffice').val('');
+            $('#odInputStatus').val('owing');
+            $('#odInputOriginal').val('');
+            $('#odInputOutstanding').val('');
+            $('#odInputNotes').val('');
+            $('#odEditId').val('');
+            $formBar.hide();
+        }
+
+        function odShowForm() {
+            $formBar[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            $formBar.show();
+        }
+
+        // ── Load table ──
+        function odLoadTable() {
+            $tableBody.empty();
+            $empty.hide();
+            $shimmer.show();
+
+            $.get('{{ route("risk.office-debts.list") }}', function(resp) {
+                $shimmer.hide();
+
+                if (!resp || resp.length === 0) {
+                    $empty.show();
+                    return;
+                }
+
+                resp.forEach(function(row) {
+                    $tableBody.append(odRowHtml(row));
+                });
+            }).fail(function() {
+                $shimmer.hide();
+                $tableBody.html('<tr><td colspan="6" style="padding:20px;text-align:center;color:#c0392b;">Error loading debt records. Try again.</td></tr>');
+            });
+        }
+
+        // ── Row HTML ──
+        function odRowHtml(row) {
+            var amountClass = function() {
+                if (row.outstanding_amount <= 0) return 'paid';
+                if (row.outstanding_amount < row.original_amount) return 'partial';
+                return 'owing';
+            };
+            var cls = amountClass();
+            var balance = row.outstanding_amount <= 0
+                ? '—'
+                : (function() {
+                    try { return parseFloat(row.outstanding_amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' }); }
+                    catch(e) { return row.outstanding_amount; }
+                  })();
+            var original = (function() {
+                try { return parseFloat(row.original_amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' }); }
+                catch(e) { return row.original_amount; }
+            })();
+
+            return '<tr class="od-debt-row" data-id="' + row.id + '">'
+                 + '<td>' + (row.office_name || '—') + '</td>'
+                 + '<td><span class="od-status-pill ' + cls + '">' + row.debt_status + '</span></td>'
+                 + '<td>' + original + '</td>'
+                 + '<td style="font-weight:700;color:' + (cls === 'owing' ? '#c0392b' : (cls === 'partial' ? '#f39c12' : '#27ae60')) + ';">' + balance + '</td>'
+                 + '<td style="color:#777;font-size:12px;">' + (row.notes || '') + '</td>'
+                 + '<td class="od-actions">'
+                 + '<button class="od-btn od-btn-edit"  title="Edit"   onclick="odEdit(' + row.id + ')"><i class="fa fa-pencil"></i></button> '
+                 + '<button class="od-btn od-btn-del"   title="Delete" onclick="odDel(' + row.id + ')"><i class="fa fa-trash"></i></button>'
+                 + '</td>'
+                 + '</tr>';
+        }
+
+        // ── New Record ──
+        $(document).on('click', '#odBtnNewRow', function() {
+            odResetForm();
+            odShowForm();
+        });
+
+        // ── Cancel new/edit ──
+        $(document).on('click', '#odBtnCancelForm', odResetForm);
+
+        // ── Edit row ──
+        window.odEdit = function(id) {
+            $.get('{{ route("risk.office-debts.list") }}', function(resp) {
+                var row = resp.find(function(r) { return r.id === id; });
+                if (!row) return;
+
+                $('#odEditId').val(id);
+                $('#odInputOffice').val(row.office_id);
+                $('#odInputStatus').val(row.debt_status);
+                $('#odInputOriginal').val(row.original_amount);
+                $('#odInputOutstanding').val(row.outstanding_amount);
+                $('#odInputNotes').val(row.notes);
+                odShowForm();
+
+                // Scroll form into view
+                $tableBody.find('tr[data-id="' + id + '"]')[0] && $tableBody.find('tr[data-id="' + id + '"]')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        };
+
+        // ── Delete row (soft-clear → hard-delete after double-confirm) ──
+        window.odDel = function(id) {
+            if (!confirm('Remove this debt record? The branch will no longer appear as carrying debt.')) return;
+            $.ajax({
+                url: '{{ route("risk.office-debts.destroy", ["id" => "__ID__"]) }}'.replace('__ID__', id),
+                type: 'DELETE',
+                data: { _token: '{{ csrf_token() }}' },
+            }).done(function(r) {
+                if (r.success) odLoadTable();
+                else alert(r.message || 'Unable to delete record.');
+            }).fail(function() {
+                alert('Network error. Try again.');
+            });
+        };
+
+        // ── Save (create / update) ──
+        $(document).on('click', '#odBtnSaveForm', function() {
+            var officeId    = $('#odInputOffice').val();
+            var status      = $('#odInputStatus').val();
+            var original    = $('#odInputOriginal').val();
+            var outstanding = $('#odInputOutstanding').val();
+            var notes       = $('#odInputNotes').val();
+
+            if (!officeId || !original || outstanding === '') {
+                alert('Please fill in Branch, Original Amount and Outstanding Amount.');
+                return;
+            }
+
+            var id      = editId();
+            var url     = id
+                ? '{{ route("risk.office-debts.update", ["id" => "__ID__"]) }}'.replace('__ID__', id)
+                : '{{ route("risk.office-debts.store") }}';
+            var type    = id ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                type: type,
+                data: {
+                    _token:            '{{ csrf_token() }}',
+                    office_id:         officeId,
+                    debt_status:       status,
+                    original_amount:   original,
+                    outstanding_amount:outstanding,
+                    notes:             notes,
+                },
+            }).done(function(r) {
+                if (r.success) {
+                    odResetForm();
+                    odLoadTable();
+                } else {
+                    alert(r.message || 'Save failed.');
+                }
+            }).fail(function(xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Save failed.';
+                alert(msg);
+            });
+        });
+
+    })();
+
 })();
 </script>
+
+<!-- ── Office Debt Management Modal ─────────────────────────────────────────── -->
+<div class="modal fade" id="odModal" tabindex="-1" role="dialog" aria-labelledby="odModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog od-dialog modal-fullscreen" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title" id="odModalLabel">
+                    <i class="fa fa-balance-scale"></i> Office Debt Management
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" style="overflow-y:auto;padding:20px 24px;">
+
+                <!-- Shimmer loading state -->
+                <div id="odShimmer">
+                    <div style="animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;height:14px;margin-bottom:14px;border-radius:4px;"></div>
+                    @php $shimmer = 8; @endphp
+                    @for($i = 0; $i < $shimmer; $i++)
+                    <div style="display:flex;gap:10px;margin-bottom:8px;">
+                        <div style="width:22%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:18%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:14%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:16%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                    </div>
+                    @endfor
+                </div>
+
+                <!-- Add / Edit form bar -->
+                <div id="odFormBar" style="display:none;margin-bottom:16px;">
+                    <div class="od-form-row">
+                        <div class="od-form-group">
+                            <label>Branch</label>
+                            <select id="odInputOffice">
+                                <option value="">Select a branch…</option>
+                                <?php
+                                    $offices = \App\Models\Office::orderBy('name')->get();
+                                    foreach ($offices as $o) {
+                                        echo '<option value="' . $o->id . '">' . htmlspecialchars($o->name) . '</option>';
+                                    }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="od-form-group">
+                            <label>Status</label>
+                            <select id="odInputStatus">
+                                <option value="owing">Owing</option>
+                                <option value="partial">Partially Paid</option>
+                                <option value="paid">Cleared</option>
+                            </select>
+                        </div>
+                        <div class="od-form-group">
+                            <label>Original Debt</label>
+                            <input type="number" id="odInputOriginal" min="0" step="0.01">
+                        </div>
+                        <div class="od-form-group">
+                            <label>Outstanding</label>
+                            <input type="number" id="odInputOutstanding" min="0" step="0.01">
+                        </div>
+                        <div class="od-form-group" style="flex:1 1 100%;">
+                            <label>Notes</label>
+                            <input type="text" id="odInputNotes" placeholder="Optional notes…">
+                        </div>
+                        <div class="od-form-group" style="justify-content:flex-end;flex-direction:row;gap:6px;">
+                            <button class="od-btn od-btn-save"       id="odBtnSaveForm"    >Save</button>
+                            <button class="od-btn od-btn-cancel"     id="odBtnCancelForm"  >Cancel</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="odEditId" value="">
+                </div>
+
+                <!-- Header row -->
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                    <h4 style="margin:0;font-size:14px;font-weight:700;color:#333;">Branch Debt Records</h4>
+                    <button class="od-btn od-btn-save" id="odBtnNewRow" style="padding:6px 14px;font-size:13px;font-weight:600;">
+                        <i class="fa fa-plus"></i> New Record
+                    </button>
+                </div>
+
+                <!-- Data table -->
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" id="odTable">
+                        <thead>
+                            <tr>
+                                <th>Branch</th>
+                                <th>Status</th>
+                                <th>Original (ZMW)</th>
+                                <th>Outstanding (ZMW)</th>
+                                <th>Notes</th>
+                                <th style="width:140px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="odTableBody"></tbody>
+                    </table>
+                </div>
+
+                <p id="odEmpty" style="display:none;text-align:center;padding:30px;color:#bbb;">
+                    <i class="fa fa-check-circle" style="font-size:28px;color:#27ae60;margin-bottom:10px;"></i><br>
+                    No branches currently carry an outstanding debt.
+                </p>
+
+            </div><!-- /.modal-body -->
+
+        </div>
+    </div>
+</div>
 
 @endsection

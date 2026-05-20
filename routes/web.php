@@ -467,7 +467,14 @@ Route::group(['prefix' => 'risk'], function () {
     Route::delete('audit-submission/{submissionId}', [RiskController::class, 'deleteAuditSubmission'])->name('risk.delete-audit-submission');
     Route::get('fraud-feed',                    [RiskController::class, 'fraudFeed'])->name('risk.fraud-feed');
     Route::get('fraud-alerts',                  [RiskController::class, 'getFraudAlerts'])->name('risk.fraud-alerts');
-    Route::delete('fraud-alert/{id}',           [RiskController::class, 'destroyAlert'])->name('risk.fraud-alert.destroy');
+    Route::delete('fraud-alert/{id}', [RiskController::class, 'destroyAlert'])->name('risk.fraud-alert.destroy');
+
+    // ── OfficeDebt management ──────────────────────────────────────────────────
+    Route::post('office-debts',          [RiskController::class, 'storeOfficeDebt'])->name('risk.office-debts.store');
+    Route::put('office-debts/{id}',      [RiskController::class, 'updateOfficeDebt'])->name('risk.office-debts.update');
+    Route::delete('office-debts/{id}',   [RiskController::class, 'deleteOfficeDebt'])->name('risk.office-debts.destroy');
+    Route::get('office-debts',           [RiskController::class, 'listOfficeDebts'])->name('risk.office-debts.list');
+
     // ── Supervisor: run all fraud rules (called client-side by monitor.js)
     Route::post('monitor/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
          ->name('risk.alert-service');

@@ -1058,6 +1058,110 @@ class RiskController extends Controller
         return \App\Services\AlertService::runAll();
     }
 
+    // ── OfficeDebt management ──────────────────────────────────────────────────
+
+    /**
+     * GET /risk/office-debts
+     * Return all office debt records as JSON.
+     */
+    public function listOfficeDebts()
+    {
+        $rows = \App\Models\OfficeDebt::with('office')->orderByDesc('id')->get();
+
+        return response()->json($rows->map(function ($row) {
+            return [
+                'id'                => $row->id,
+                'office_id'         => $row->office_id,
+                'office_name'       => $row->office->name ?? '—',
+                'debt_status'       => $row->debt_status,
+                'original_amount'   => (int) $row->original_amount,
+                'outstanding_amount'=> (int) $row->outstanding_amount,
+                'notes'             => (string) ($row->notes ?? ''),
+            ];
+        })->all());
+    }
+
+    /**
+     * POST /risk/office-debts
+     * Create or update an OfficeDebt record.
+     * Expects: office_id, debt_status (optional), original_amount, outstanding_amount, notes (optional).
+     */
+    public function storeOfficeDebt(Request $request)
+    {
+        $data = $request->validate([
+            'office_id'          => 'required|integer|exists:offices,id',
+            'debt_status'        => 'sometimes|string|max:30',
+            'original_amount'    => 'required|integer|min:0',
+            'outstanding_amount' => 'required|integer|min:0',
+            'notes'              => 'sometimes|nullable|string',
+        ]);
+
+        // Enforce: a branch may only ever have one active debt record
+        $existing = \App\Models\OfficeDebt::where('office_id', $data['office_id'])->first();
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This branch already has an outstanding debt record. Edit it instead of creating a new one.',
+            ], 409);
+        }
+
+        $debt = \App\Models\OfficeDebt::create($data);
+
+        return response()->json([
+            'success' => true,
+            'id'      => $debt->id,
+            'message' => 'Debt record created successfully.',
+        ]);
+    }
+
+    /**
+     * PUT /risk/office-debts/{id}
+     * Update an existing OfficeDebt record.
+     * Partial update — only supplied fields are changed.
+     */
+    public function updateOfficeDebt(Request $request, int $id)
+    {
+        $debt = \App\Models\OfficeDebt::findOrFail($id);
+
+        $data = $request->validate([
+            'debt_status'        => 'sometimes|string|max:30',
+            'original_amount'    => 'sometimes|integer|min:0',
+            'outstanding_amount' => 'sometimes|integer|min:0',
+            'notes'              => 'sometimes|nullable|string',
+        ]);
+
+        $debt->update($data);
+
+        return response()->json([
+            'success' => true,
+            'id'      => $debt->id,
+            'message' => 'Debt record updated successfully.',
+        ]);
+    }
+
+    /**
+     * DELETE /risk/office-debts/{id}
+     * Permanently remove an OfficeDebt record (branch has cleared its obligation).
+     * Sets outstanding_amount / original_amount to 0 first so a race-condition
+     * re-fetch never reads stale state.
+     */
+    public function deleteOfficeDebt(int $id)
+    {
+        $debt = \App\Models\OfficeDebt::findOrFail($id);
+
+        $debt->update([
+            'outstanding_amount' => 0,
+            'original_amount'    => 0,
+        ]);
+        $debt->delete();
+
+        return response()->json([
+            'success' => true,
+            'id'      => $id,
+            'message' => 'Debt record has been cleared and removed.',
+        ]);
+    }
+
     /**
      * -- Branch Deposit Audit --
      * List deposit_types as collapsible cards; on expand show every office with a
