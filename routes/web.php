@@ -448,6 +448,8 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
+    Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
+    Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
     Route::get('policy-breach', [RiskController::class, 'policyBreach']);
     Route::get('cost-value', [RiskController::class, 'costValue']);

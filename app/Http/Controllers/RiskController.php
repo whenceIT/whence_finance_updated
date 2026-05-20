@@ -1057,4 +1057,111 @@ class RiskController extends Controller
     {
         return \App\Services\AlertService::runAll();
     }
+
+    /**
+     * -- Branch Deposit Audit --
+     * List deposit_types as collapsible cards; on expand show every office with a
+     * full (outer) join so offices with no deposits appear as "Not Deposited".
+     */
+    public function branchDepositAudit()
+    {
+        // 1. All offices (sorted)
+        $offices = \App\Models\Office::orderBy('name')->get();
+
+        // 2. All deposit types (sorted)
+        $depositTypes = \App\Models\DepositType::orderBy('name')->get();
+
+        // 3. All deposits that belong to a known office, grouped by deposit type
+        $officeIds    = [];
+        foreach ($offices as $office) {
+            $officeIds[] = $office->id;
+        }
+
+        $validDeposits  = \App\Models\Deposit::whereIn('office', $officeIds)->get();
+        $depositsByType = [];
+        foreach ($validDeposits as $dep) {
+            $typeId = $dep->deposit_type;
+            if (!isset($depositsByType[$typeId])) {
+                $depositsByType[$typeId] = [];
+            }
+            $depositsByType[$typeId][] = $dep;
+        }
+
+        // 4. Compute stats for every deposit type (plain foreach, no map/fn)
+        $types = [];
+        foreach ($depositTypes as $type) {
+            $depositsForType  = $depositsByType[$type->id] ?? [];
+            $totalAmount      = 0;
+            $depositCount     = 0;
+            $officesWithDep   = [];
+            $officesWithTot   = [];
+
+            foreach ($depositsForType as $dep) {
+                $totalAmount  += (float) $dep->amount;
+                $depositCount += 1;
+                $officesWithDep[$dep->office] = true;
+
+                // Track offices where sum of deposits > 0
+                if (!isset($officesWithTot[$dep->office])) {
+                    $officesWithTot[$dep->office] = 0;
+                }
+                $officesWithTot[$dep->office] += (float) $dep->amount;
+            }
+
+            $officesWithTotalCount = 0;
+            foreach ($officesWithTot as $sum) {
+                if ($sum > 0) {
+                    $officesWithTotalCount += 1;
+                }
+            }
+
+            $types[] = [
+                'id'                   => $type->id,
+                'name'                 => $type->name,
+                'bank'                 => $type->bank ?? '–',
+                'gl_account'           => $type->gl_account ?? '–',
+                'total_amount'         => $totalAmount,
+                'deposit_count'        => $depositCount,
+                'office_count'         => $offices->count(),
+                'offices_with_deposits'=> count($officesWithDep),
+                'offices_with_total'   => $officesWithTotalCount,
+            ];
+        }
+
+        return view('risk.branch-deposit-audit', compact('types', 'offices'));
+    }
+
+    /**
+     * JSON: all offices for a single deposit type (full outer-join effect).
+     * Each row: { office_id, office_name, total, deposit_count }
+     */
+    public function branchDepositAuditByType(int $depositTypeId)
+    {
+        $offices = \App\Models\Office::orderBy('name')->get();
+
+        $rows = $offices->map(function ($office) use ($depositTypeId) {
+            $total = \App\Models\Deposit::where('deposit_type', $depositTypeId)
+                ->where('office', $office->id)
+                ->sum('amount');
+
+            $count = \App\Models\Deposit::where('deposit_type', $depositTypeId)
+                ->where('office', $office->id)
+                ->count();
+
+            return [
+                'office_id'     => $office->id,
+                'office_name'   => $office->name,
+                'total'         => (float) $total,
+                'deposit_count' => (int)   $count,
+            ];
+        });
+
+        $stats = [
+            'offices_with_deposits' => $rows->where('deposit_count', '>', 0)->count(),
+            'offices_with_total'    => $rows->where('total', '>', 0)->count(),
+            'total_offices'         => $rows->count(),
+        ];
+
+        return response()->json(['rows' => $rows, 'stats' => $stats]);
+    }
 }

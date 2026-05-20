@@ -203,7 +203,7 @@
 
     </div>
 </div>
-
+<!-- 
 <script>
 (function () {
     'use strict';
@@ -271,7 +271,7 @@
         if (! document.hidden) tick();
     });
 })();
-</script>
+</script> -->
 
 
 
