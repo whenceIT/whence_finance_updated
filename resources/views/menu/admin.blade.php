@@ -132,7 +132,6 @@
                 <ul class="treeview-menu">
                     <li @if(Request::is('audits*')) class="active" @endif><a href="{{ url('risk/overview') }}"><i class="fa fa-circle-o"></i> Overview</a></li>
                     <li @if(Request::is('audits*')) class="active" @endif><a href="{{ route('audits.index') }}"><i class="fa fa-circle-o"></i> Audit Trail</a></li>
-                    <li @if(Request::is('risk/deposits-audit*')) class="active" @endif><a href="{{ url('risk/deposits-audit') }}"><i class="fa fa-circle-o"></i> Deposits Audit</a></li>
                     <li @if(Request::is('risk/branch-deposit-audit*')) class="active" @endif><a href="{{ url('risk/branch-deposit-audit') }}"><i class="fa fa-circle-o"></i> Branch Deposit Audit</a></li>
                     <li @if(Request::is('risk/heat-map*')) class="active" @endif><a href="{{ url('risk/heat-map') }}"><i class="fa fa-circle-o"></i> Risk Heat Map</a></li>
                     <li @if(Request::is('risk/branch-ranking*')) class="active" @endif><a href="{{ url('risk/branch-ranking') }}"><i class="fa fa-circle-o"></i> Branch Risk Ranking</a></li>
