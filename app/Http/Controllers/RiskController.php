@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\Province;
 use Carbon\Carbon;
+use App\Services\AlertService;
 
 class RiskController extends Controller
 {
@@ -399,9 +400,92 @@ class RiskController extends Controller
         ]);
     }
 
-    public function fraudFeed()
+    public function fraudFeed(Request $request)
     {
+        // Run fraud rules once per page view so fresh alerts are always populated
+        AlertService::runAll();
+        
+        if ($request->wantsJson() || $request->format === 'json') {
+            $severity = (string) ($request->input('severity') ?? '');
+            $unread   = (bool) $request->boolean('unread');
+            $hours    = (int) ($request->input('hours') ?? 168);
+
+            return $this->buildFeedQuery($severity, $unread, $hours);
+        }
+
         return view('risk.fraud-feed');
+    }
+
+    /**
+     * JSON API for the fraud-feed JS supervisor.
+     * Accepts: severity (critical|warning|info), unread (0/1), hours (integer)
+     */
+    public function getFraudAlerts(Request $request)
+    {
+        $severity = (string) ($request->input('severity') ?? '');
+        $unread   = (bool) $request->boolean('unread');
+        $hours    = (int) ($request->input('hours') ?? 168);
+
+        return $this->buildFeedQuery($severity, $unread, $hours);
+    }
+
+    /**
+     * DELETE risk/fraud-alert/{id}
+     * Soft-dismiss an alert (is_read = true so it stays for audit trail)
+     */
+    public function destroyAlert($id)
+    {
+        $alert = \App\Models\Alert::findOrFail($id);
+        $alert->delete();   // hard delete — plain "completed/dismissed" action
+        return response()->json(['success' => true]);
+    }
+
+    protected function buildFeedQuery(string $severity, bool $unread, int $hours)
+    {
+        $base = \App\Models\Alert::query()
+            ->when($severity, fn($q) => $q->where('severity', $severity))
+            ->when($unread,  fn($q) => $q->where('is_read', false))
+            ->where('created_at', '>=', now()->subHours($hours));
+
+        $alerts = (clone $base)
+            ->with('creator')
+            ->orderByDesc('created_at')
+            ->take(200)
+            ->get();
+
+        $stats = (clone $base)
+            ->selectRaw('severity, is_read, COUNT(*) as cnt')
+            ->groupBy('severity', 'is_read')
+            ->get()
+            ->reduce(function ($acc, $row) {
+                $sev = $row->severity;
+                $acc[$sev] = ($acc[$sev] ?? 0) + (int) $row->cnt;
+                if ($row->is_read) {
+                    $acc['read'] = ($acc['read'] ?? 0) + (int) $row->cnt;
+                }
+                return $acc;
+            }, []);
+
+        $total = $alerts->count();
+
+        return response()->json([
+            'total'   => $total,
+            'stats'   => $stats,
+            'alerts'  => $alerts->map(function ($a) {
+                return [
+                    'id'          => $a->id,
+                    'rule'        => $a->rule,
+                    'severity'    => $a->severity,
+                    'title'       => $a->title,
+                    'description' => $a->description,
+                    'reference_id'=> $a->reference_id,
+                    'meta'        => $a->meta,
+                    'is_read'     => (bool) $a->is_read,
+                    'created_at'  => $a->created_at ? $a->created_at->format('d M Y H:i') : '',
+                    'created_by'  => $a->creator ? $a->creator->full_name ?? ($a->creator->first_name . ' ' . $a->creator->last_name) : null,
+                ];
+            })->all(),
+        ]);
     }
 
     public function recoveryEfficiency()
@@ -963,5 +1047,361 @@ class RiskController extends Controller
             'total'     => count($list),
             'audits'    => $list,
         ]);
+    }
+
+    /**
+     * Run all fraud-detection rules via AlertService and return the count.
+     * Thin relay so the risk UI can call /risk/run-all directly.
+     */
+    public function runAll(): int
+    {
+        return \App\Services\AlertService::runAll();
+    }
+
+    // ── OfficeDebt management ──────────────────────────────────────────────────
+
+    /**
+     * GET /risk/office-debts
+     * Return all office debt records as JSON.
+     */
+    public function listOfficeDebts()
+    {
+        $rows = \App\Models\OfficeDebt::with('office')->orderByDesc('id')->get();
+
+        return response()->json($rows->map(function ($row) {
+            return [
+                'id'                => $row->id,
+                'office_id'         => $row->office_id,
+                'office_name'       => $row->office->name ?? '—',
+                'debt_status'       => $row->debt_status,
+                'original_amount'   => (int) $row->original_amount,
+                'outstanding_amount'=> (int) $row->outstanding_amount,
+                'notes'             => (string) ($row->notes ?? ''),
+            ];
+        })->all());
+    }
+
+    /**
+     * POST /risk/office-debts
+     * Create or update an OfficeDebt record.
+     * Expects: office_id, debt_status (optional), original_amount, outstanding_amount, notes (optional).
+     */
+    public function storeOfficeDebt(Request $request)
+    {
+        $data = $request->validate([
+            'office_id'          => 'required|integer|exists:offices,id',
+            'debt_status'        => 'sometimes|string|max:30',
+            'original_amount'    => 'required|integer|min:0',
+            'outstanding_amount' => 'required|integer|min:0',
+            'notes'              => 'sometimes|nullable|string',
+        ]);
+
+        // Enforce: a branch may only ever have one active debt record
+        $existing = \App\Models\OfficeDebt::where('office_id', $data['office_id'])->first();
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This branch already has an outstanding debt record. Edit it instead of creating a new one.',
+            ], 409);
+        }
+
+        $debt = \App\Models\OfficeDebt::create($data);
+
+        return response()->json([
+            'success' => true,
+            'id'      => $debt->id,
+            'message' => 'Debt record created successfully.',
+        ]);
+    }
+
+    /**
+     * PUT /risk/office-debts/{id}
+     * Update an existing OfficeDebt record.
+     * Partial update — only supplied fields are changed.
+     */
+    public function updateOfficeDebt(Request $request, int $id)
+    {
+        $debt = \App\Models\OfficeDebt::findOrFail($id);
+
+        $data = $request->validate([
+            'debt_status'        => 'sometimes|string|max:30',
+            'original_amount'    => 'sometimes|integer|min:0',
+            'outstanding_amount' => 'sometimes|integer|min:0',
+            'notes'              => 'sometimes|nullable|string',
+        ]);
+
+        $debt->update($data);
+
+        return response()->json([
+            'success' => true,
+            'id'      => $debt->id,
+            'message' => 'Debt record updated successfully.',
+        ]);
+    }
+
+    /**
+     * DELETE /risk/office-debts/{id}
+     * Permanently remove an OfficeDebt record (branch has cleared its obligation).
+     * Sets outstanding_amount / original_amount to 0 first so a race-condition
+     * re-fetch never reads stale state.
+     */
+    public function deleteOfficeDebt(int $id)
+    {
+        $debt = \App\Models\OfficeDebt::findOrFail($id);
+
+        $debt->update([
+            'outstanding_amount' => 0,
+            'original_amount'    => 0,
+        ]);
+        $debt->delete();
+
+        return response()->json([
+            'success' => true,
+            'id'      => $id,
+            'message' => 'Debt record has been cleared and removed.',
+        ]);
+    }
+
+    /**
+     * -- Branch Deposit Audit --
+     * List deposit_types as collapsible cards; on expand show every office with a
+     * full (outer) join so offices with no deposits appear as "Not Deposited".
+     * Supports date-period filtering via ?period= query param:
+     *   overall | month | quarter | year | this_circle | last_circle |
+     *   last_quarter | last_month | last_year | custom
+     * Custom also requires custom_month (1-12) and custom_year.
+     */
+    public function branchDepositAudit(Request $request)
+    {
+        $period       = $request->query('period', 'month');
+        $customMonth  = (int) $request->query('custom_month', date('n'));
+        $customYear   = (int) $request->query('custom_year', date('Y'));
+
+        [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
+
+        // 1. All offices (sorted)
+        $offices = \App\Models\Office::orderBy('name')->get();
+
+        // 2. All deposit types (sorted)
+        $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get();
+
+        // 3. Offices whose ids appear in the deposits table
+        $officeIds = [];
+        foreach ($offices as $office) {
+            $officeIds[] = $office->id;
+        }
+
+        // 4. Pull deposits — apply date filter only when a specific period is chosen
+        $depositQuery = \App\Models\Deposit::query()
+            ->whereIn('office', $officeIds);
+
+        if ($dateFrom !== null && $dateTo !== null) {
+            $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
+        }
+
+        $validDeposits  = $depositQuery->get();
+        $depositsByType = [];
+        foreach ($validDeposits as $dep) {
+            $typeId = $dep->deposit_type;
+            if (!isset($depositsByType[$typeId])) {
+                $depositsByType[$typeId] = [];
+            }
+            $depositsByType[$typeId][] = $dep;
+        }
+
+        // 5. Compute stats for every deposit type (plain foreach, no map/fn)
+        $types = [];
+        foreach ($depositTypes as $type) {
+            $depositsForType  = $depositsByType[$type->id] ?? [];
+            $totalAmount      = 0;
+            $depositCount     = 0;
+            $officesWithDep   = [];
+            $officesWithTot   = [];
+
+            foreach ($depositsForType as $dep) {
+                $totalAmount  += (float) $dep->amount;
+                $depositCount += 1;
+                $officesWithDep[$dep->office] = true;
+
+                if (!isset($officesWithTot[$dep->office])) {
+                    $officesWithTot[$dep->office] = 0;
+                }
+                $officesWithTot[$dep->office] += (float) $dep->amount;
+            }
+
+            $officesWithTotalCount = 0;
+            foreach ($officesWithTot as $sum) {
+                if ($sum > 0) {
+                    $officesWithTotalCount += 1;
+                }
+            }
+
+            $types[] = [
+                'id'                   => $type->id,
+                'name'                 => $type->name,
+                'bank'                 => $type->bank ?? '–',
+                'gl_account'           => $type->gl_account ?? '–',
+                'total_amount'         => $totalAmount,
+                'deposit_count'        => $depositCount,
+                'office_count'         => $offices->count(),
+                'offices_with_deposits'=> count($officesWithDep),
+                'offices_with_total'   => $officesWithTotalCount,
+            ];
+        }
+
+        return view('risk.branch-deposit-audit', compact('types', 'offices'))
+            ->with('period', $period)
+            ->with('customMonth', $customMonth)
+            ->with('customYear', $customYear);
+    }
+
+    /**
+     * Compute the [startDate, endDate] string pair for a given period label.
+     * Returns [null, null] when no date filtering should be applied ("overall").
+     *
+     * Periods
+     * - overall         : no filter
+     * - month           : this calendar month
+     * - quarter         : this quarter
+     * - year            : this calendar year
+     * - this_circle     : 24 Nov → 24 Dec (for Dec); 24 last month → 24 this month
+     * - last_circle     : 24 Oct → 24 Nov (for Dec); 24 two months ago → 24 last month
+     * - last_quarter    : previous quarter
+     * - last_month      : previous calendar month
+     * - last_year       : previous calendar year
+     * - custom          : specific year + month (customMonth/customYear params)
+     */
+    private function getDepositDateRange(string $period, int $customMonth, int $customYear): array
+    {
+        if ($period === 'overall') {
+            return [null, null];
+        }
+
+        if ($period === 'custom') {
+            return [
+                Carbon::create($customYear, $customMonth, 1)->startOfMonth()->toDateString(),
+                Carbon::create($customYear, $customMonth, 1)->endOfMonth()->toDateString(),
+            ];
+        }
+
+        // start-of-today / end-of-today anchored helpers
+        $now   = Carbon::now();
+
+        return match ($period) {
+            'month' => [
+                $now->copy()->startOfMonth()->toDateString(),
+                $now->copy()->endOfMonth()->toDateString(),
+            ],
+            'quarter' => [
+                $now->copy()->startOfQuarter()->toDateString(),
+                $now->copy()->endOfQuarter()->toDateString(),
+            ],
+            'year' => [
+                $now->copy()->startOfYear()->toDateString(),
+                $now->copy()->endOfYear()->toDateString(),
+            ],
+            'last_month' => [
+                $now->copy()->subMonth()->startOfMonth()->toDateString(),
+                $now->copy()->subMonth()->endOfMonth()->toDateString(),
+            ],
+            'last_quarter' => [
+                $now->copy()->subQuarter()->startOfQuarter()->toDateString(),
+                $now->copy()->subQuarter()->endOfQuarter()->toDateString(),
+            ],
+            'last_year' => [
+                $now->copy()->subYear()->startOfYear()->toDateString(),
+                $now->copy()->subYear()->endOfYear()->toDateString(),
+            ],
+            // This Circle  = 24th of last month → 24th of this month
+            'this_circle' => [
+                $now->copy()->subMonth()->day(24)->toDateString(),
+                $now->copy()->day(24)->toDateString(),
+            ],
+            // Last Circle  = 24th of two months ago → 24th of last month
+            'last_circle' => [
+                $now->copy()->subMonths(2)->day(24)->toDateString(),
+                $now->copy()->subMonth()->day(24)->toDateString(),
+            ],
+            default => [
+                $now->copy()->startOfMonth()->toDateString(),
+                $now->copy()->endOfMonth()->toDateString(),
+            ],
+
+        };
+    }
+    /**
+     * JSON: all offices for a single deposit type (full outer-join effect).
+     * Each row: { office_id, office_name, total, deposit_count, months }
+     * months = [jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec]
+     * Accepts the same ?period= filter as branchDepositAudit().
+     */
+    public function branchDepositAuditByType(int $depositTypeId, Request $request)
+    {
+        $period       = $request->query('period', 'month');
+        $customMonth  = (int) $request->query('custom_month', date('n'));
+        $customYear   = (int) $request->query('custom_year', date('Y'));
+
+        [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
+
+        $offices  = \App\Models\Office::orderBy('name')->get();
+
+        $depositQuery = \App\Models\Deposit::where('deposit_type', $depositTypeId);
+
+        if ($dateFrom !== null && $dateTo !== null) {
+            $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
+        }
+
+        $deposits = $depositQuery->get();
+
+        // Group deposits by office id
+        $depsByOffice = [];
+        foreach ($deposits as $dep) {
+            $oid = $dep->office;
+            if (!isset($depsByOffice[$oid])) {
+                $depsByOffice[$oid] = [];
+            }
+            $depsByOffice[$oid][] = $dep;
+        }
+
+        // Build one row per office
+        $rows = [];
+        foreach ($offices as $office) {
+            $officeDeps = $depsByOffice[$office->id] ?? [];
+
+            $total      = 0;
+            $count      = 0;
+            $monthCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            foreach ($officeDeps as $dep) {
+                $total      += (float) $dep->amount;
+                $count       += 1;
+                $monthNum    = (int) date('n', strtotime((string) $dep->date));
+                $monthCount[$monthNum - 1] += 1;
+            }
+
+            $rows[] = [
+                'office_id'     => $office->id,
+                'office_name'   => $office->name,
+                'total'         => $total,
+                'deposit_count' => $count,
+                'months'        => $monthCount,
+            ];
+        }
+
+        $stats = [
+            'offices_with_deposits' => 0,
+            'offices_with_total'    => 0,
+            'total_offices'         => count($rows),
+        ];
+        foreach ($rows as $row) {
+            if ($row['deposit_count'] > 0) {
+                $stats['offices_with_deposits'] += 1;
+            }
+            if ($row['total'] > 0) {
+                $stats['offices_with_total'] += 1;
+            }
+        }
+
+        return response()->json(['rows' => $rows, 'stats' => $stats]);
     }
 }

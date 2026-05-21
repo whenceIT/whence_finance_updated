@@ -653,6 +653,16 @@ class PolicyController extends Controller
     }
 
     /**
+     * Show single policy details for preview
+     */
+    public function view($id)
+    {
+        $policy = Policy::with(['category', 'createdBy'])->findOrFail($id);
+        
+        return view('policies.single-view', compact('policy'));
+    }
+
+    /**
      * Get branches for violations filter
      */
     public function getViolationBranches()
@@ -759,6 +769,16 @@ class PolicyController extends Controller
         $policyOfTheDay->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Show single policy details for preview
+     */
+    public function view($id)
+    {
+        $policy = Policy::with(['category', 'createdBy'])->findOrFail($id);
+        
+        return view('policies.single-view', compact('policy'));
     }
 
     /**

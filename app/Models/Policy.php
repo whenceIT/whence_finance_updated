@@ -87,6 +87,33 @@ class Policy extends Model
     }
 
     /**
+     * Check if the current user can access this policy
+     * 
+     * @return bool
+     */
+    public function accessibleByUser()
+    {
+        $user = \App\Models\User::find(\Cartalyst\Sentinel\Laravel\Facades\Sentinel::getUser()->id ?? 0);
+        if (!$user) {
+            return false;
+        }
+        
+        $userRole = $user->roles->first();
+        if (!$userRole) {
+            return $this->access_level === self::ACCESS_ALL;
+        }
+        
+        // Admin (1), Branch Manager (4), Provincial Manager (6) can see all policies
+        $managerialRoleIds = [1, 4, 6];
+        if (in_array($userRole->id, $managerialRoleIds)) {
+            return true;
+        }
+        
+        // Loan Officer (3) and others can only see 'all' access policies
+        return $this->access_level === self::ACCESS_ALL;
+    }
+
+    /**
      * Scope to filter by category.
      */
     public function scopeByCategory($query, $categoryId)

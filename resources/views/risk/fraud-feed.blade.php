@@ -4,123 +4,531 @@
     Real-Time Fraud Alert Feed
 @endsection
 
+@push('styles')
+<style>
+    .ff-severity-critical { border-left: 4px solid #c0392b; }
+    .ff-severity-warning  { border-left: 4px solid #f39c12; }
+    .ff-severity-info     { border-left: 4px solid #3498db; }
+    .ff-badge-critical { background:#c0392b; }
+    .ff-badge-warning  { background:#f39c12; }
+    .ff-badge-info     { background:#3498db; }
+
+    .ff-alert-card {
+        border-radius:6px;
+        margin-bottom:10px;
+        background:#fff;
+        box-shadow:0 1px 3px rgba(0,0,0,.10);
+        transition:background .2s, box-shadow .2s, opacity .25s;
+        animation: ffSlideIn .3s ease-out;
+        overflow:hidden;
+    }
+    .ff-alert-card.is-read { opacity:.65; }
+    .ff-alert-card:hover { box-shadow:0 3px 10px rgba(0,0,0,.16); }
+    .ff-alert-card.unread { background:#fffdfd; }
+
+    .ff-accent {
+        transition: filter .15s;
+    }
+    .ff-alert-card:hover .ff-accent { filter: brightness(1.08); }
+
+    /* Complete / dismiss button */
+    .ff-complete-btn {
+        cursor:pointer;
+        font-size:10px;
+        font-weight:600;
+        letter-spacing:.03em;
+        padding:3px 10px;
+        border:1px solid #27ae60;
+        color:#27ae60;
+        background:transparent;
+        border-radius:4px;
+        transition:background .15s, color .15s;
+        white-space:nowrap;
+    }
+    .ff-complete-btn:hover  { background:#27ae60; color:#fff; }
+    .ff-complete-btn:active { background:#1e8449; color:#fff; }
+
+    /* tiny meta badge */
+    .ff-rule-badge {
+        font-size:9px;
+        font-weight:600;
+        letter-spacing:.04em;
+        text-transform:uppercase;
+        padding:2px 7px;
+        border-radius:3px;
+        background:#ecf0f1;
+        color:#555;
+    }
+    .ff-sev-chip {
+        font-size:9px;
+        font-weight:700;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        padding:2px 7px;
+        border-radius:3px;
+        color:#fff;
+    }
+
+    @keyframes ffSlideIn {
+        from { opacity:0; transform:translateY(-8px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+
+    @keyframes ffFadeOut {
+        from { opacity:1; max-height:200px; transform:scale(1); margin-bottom:10px; }
+        to   { opacity:0; max-height:0;   transform:scale(.96); margin-bottom:0; overflow:hidden; }
+    }
+    .ff-dismissing { animation: ffFadeOut .25s ease-in forwards; }
+
+    .ff-pulse {
+        display:inline-block;
+        width:8px;height:8px;
+        border-radius:50%;
+        margin-right:6px;
+        animation: ffPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes ffPulse {
+        0%,100% { opacity:1; }
+        50%      { opacity:.3; }
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="row">
     <div class="col-md-12">
+
+        <!-- Header card -->
         <div class="box box-primary">
             <div class="box-header with-border">
-                <h3 class="box-title">Real-Time Fraud Alert Feed</h3>
+                <h3 class="box-title"><i class="fa fa-shield"></i>&nbsp; Real-Time Fraud Alert Feed</h3>
                 <div class="box-tools pull-right">
-                    <button class="btn btn-success">Refresh Feed</button>
+                    <button id="ff-refresh-btn" class="btn btn-success btn-sm" onclick="ffRefreshNow()">
+                        <i class="fa fa-refresh"></i> Refresh
+                    </button>
                 </div>
             </div>
             <div class="box-body">
-                <p>A live fraud monitoring section displaying real-time alerts such as after-hours LMS logins, duplicate NRC usage, suspicious overrides, repeated reversals, unusual transaction patterns, payments linked to staff numbers, dormant account activations, and high-risk approval patterns.</p>
 
-                <!-- Alert Filters -->
-                <div class="row">
-                    <div class="col-md-3">
-                        <select class="form-control">
-                            <option>All Alert Types</option>
-                            <option>After-hours Logins</option>
-                            <option>Duplicate NRC</option>
-                            <option>Suspicious Overrides</option>
-                            <option>Repeated Reversals</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-control">
-                            <option>All Branches</option>
-                            <option>Branch A</option>
-                            <option>Branch B</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <input type="datetime-local" class="form-control" placeholder="From Date">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="datetime-local" class="form-control" placeholder="To Date">
-                    </div>
-                </div>
-
-                <!-- Live Alerts Feed -->
-                <div class="row" style="margin-top: 20px;">
+                <!-- Toolbar -->
+                <div class="row" style="margin-bottom:16px;">
                     <div class="col-md-12">
-                        <div class="box box-solid">
-                            <div class="box-header">
-                                <h4>Live Alerts</h4>
-                            </div>
-                            <div class="box-body" style="max-height: 400px; overflow-y: auto;">
-                                <div class="alert alert-danger">
-                                    <strong>Critical:</strong> After-hours LMS login detected for User ID 123 at Branch A - 2023-10-01 22:30
-                                    <button class="btn btn-xs btn-warning pull-right">Investigate</button>
-                                </div>
-                                <div class="alert alert-warning">
-                                    <strong>Warning:</strong> Duplicate NRC usage detected - NRC: 123456789 at Branch B - 2023-10-01 14:15
-                                    <button class="btn btn-xs btn-warning pull-right">Investigate</button>
-                                </div>
-                                <div class="alert alert-info">
-                                    <strong>Info:</strong> Suspicious override on transaction #45678 at Branch C - 2023-10-01 11:45
-                                    <button class="btn btn-xs btn-warning pull-right">Investigate</button>
-                                </div>
-                                <!-- Add more alerts as needed -->
-                            </div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+
+                            <!-- Severity filter -->
+                            <select id="ff-severity" class="form-control input-sm" style="width:auto;min-width:140px;"
+                                    onchange="ffApplyFilters()">
+                                <option value="">All Severities</option>
+                                <option value="critical">🔴 Critical</option>
+                                <option value="warning">🟡 Warning</option>
+                                <option value="info">🔵 Info</option>
+                            </select>
+
+                            <!-- Unread toggle -->
+                            <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;">
+                                <input type="checkbox" id="ff-unread-only" onchange="ffApplyFilters()"> Unread only
+                            </label>
+
+                            <!-- Hours window -->
+                            <select id="ff-hours" class="form-control input-sm" style="width:auto;min-width:130px;"
+                                    onchange="ffApplyFilters()">
+                                <option value="24">Last 24 hours</option>
+                                <option value="48">Last 48 hours</option>
+                                <option value="168" selected>Last 7 days</option>
+                                <option value="720">Last 30 days</option>
+                            </select>
+
+                            <span class="text-muted" style="font-size:12px;margin-left:auto;">
+                                <span id="ff-tick-lbl">● Live</span>
+                                &nbsp;|&nbsp;
+                                <span id="ff-count">—</span> alerts
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Statistics -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="box box-solid">
-                            <div class="box-header">
-                                <h4>Alert Statistics (Last 24 Hours)</h4>
-                            </div>
-                            <div class="box-body">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <div class="info-box">
-                                            <span class="info-box-icon bg-red"><i class="fa fa-exclamation-triangle"></i></span>
-                                            <div class="info-box-content">
-                                                <span class="info-box-text">Critical Alerts</span>
-                                                <span class="info-box-number">3</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="info-box">
-                                            <span class="info-box-icon bg-yellow"><i class="fa fa-warning"></i></span>
-                                            <div class="info-box-content">
-                                                <span class="info-box-text">Warning Alerts</span>
-                                                <span class="info-box-number">12</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="info-box">
-                                            <span class="info-box-icon bg-blue"><i class="fa fa-info-circle"></i></span>
-                                            <div class="info-box-content">
-                                                <span class="info-box-text">Info Alerts</span>
-                                                <span class="info-box-number">25</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="info-box">
-                                            <span class="info-box-icon bg-green"><i class="fa fa-check-circle"></i></span>
-                                            <div class="info-box-content">
-                                                <span class="info-box-text">Resolved</span>
-                                                <span class="info-box-number">18</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                 <!-- Stats bar / meta row (refresh with each poll) -->
+                <div class="ff-stats-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+                     padding:8px 0 10px;border-bottom:1px solid #eee;margin-bottom:12px;font-size:12px;">
+                    <span class="ff-stat-item" id="ff-stat-total" title="Total alerts in window">
+                        <i class="fa fa-list" style="color:#555;"></i>&nbsp;
+                        <strong style="color:#222;">0</strong>&nbsp;total
+                    </span>
+                    <span class="ff-stat-item" id="ff-stat-critical" title="Critical alerts">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c0392b;margin-right:3px;"></span>
+                        <strong style="color:#c0392b;">0</strong>&nbsp;critical
+                    </span>
+                    <span class="ff-stat-item" id="ff-stat-warning" title="Warning alerts">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f39c12;margin-right:3px;"></span>
+                        <strong style="color:#f39c12;">0</strong>&nbsp;warning
+                    </span>
+                    <span class="ff-stat-item" id="ff-stat-info" title="Info alerts">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3498db;margin-right:3px;"></span>
+                        <strong style="color:#3498db;">0</strong>&nbsp;info
+                    </span>
+                    <span class="ff-stat-item" id="ff-stat-unread" title="Unread alerts"
+                          style="margin-left:auto;color:#888;">
+                        <i class="fa fa-envelope-o"></i>&nbsp;
+                        <strong>0</strong>&nbsp;unread
+                    </span>
+                </div>
+
+                <!-- Alert list container -->
+                <div id="ff-alert-list" style="max-height:520px;overflow-y:auto;">
+                    <div style="text-align:center;padding:40px;color:#aaa;">
+                        <i class="fa fa-spinner fa-spin fa-2x"></i>
+                        <p style="margin-top:10px;">Loading alerts…</p>
                     </div>
                 </div>
+
+                <!-- Empty state -->
+                <div id="ff-empty" style="text-align:center;padding:30px;color:#999;display:none;">
+                    <i class="fa fa-check-circle fa-2x" style="color:#27ae60;"></i>
+                    <p style="margin-top:10px;">No alerts match the current filters.</p>
+                </div>
+
+            </div>
+
+            <!-- Live footer -->
+            <div class="box-footer" style="background:#f9f9f9;font-size:11px;color:#999;display:flex;justify-content:space-between;align-items:center;">
+                <span>
+                    <span class="ff-pulse" style="background:#27ae60;"></span>
+                    Supervisor polling every 15 s · Automated rule engine · Last scan: <span id="ff-last-scan">—</span>
+                </span>
+                <span>
+                    <i class="fa fa-info-circle"></i> Critical &amp; Warning alerts require supervisor review
+                </span>
             </div>
         </div>
+
     </div>
 </div>
+<!-- 
+<script>
+(function () {
+    'use strict';
+
+    const WINDOWS = [
+        { start: '06:00', end: '10:30' },
+        { start: '13:00', end: '16:50' },
+    ];
+
+    const POLL_MS = 60_000;
+    let   timer   = null;
+    let   busy    = false;
+
+    const url = '{{ route("risk.alert-service") }}';
+
+    function inSupervisedWindow() {
+        const now  = new Date();
+        const mins = now.getHours() * 60 + now.getMinutes();
+
+        return WINDOWS.some(w => {
+            const [sh, sm] = w.start.split(':').map(Number);
+            const [eh, em] = w.end.split(':').map(Number);
+            return mins >= sh * 60 + sm && mins <= eh * 60 + em;
+        });
+    }
+
+    function tick() {
+        if (! inSupervisedWindow()) return;
+        if (busy) return;
+        busy = true;
+
+        const now = new Date();
+        console.info(
+            `[monitor] → fetch  url=${url}  method=POST  hour=${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+        );
+
+        fetch(url, {
+            method : 'POST',
+            headers: {
+                'Content-Type'     : 'application/json',
+                'X-Requested-With' : 'XMLHttpRequest',
+                'X-CSRF-TOKEN'     : '{{ csrf_token() }}',
+            },
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    console.info(
+                        `[monitor] ← ${data.created} alert(s) created  window=${data.inWindow}  serverHour=${data.serverHour}  ts=${data.timestamp}`
+                    );
+                } else {
+                    console.warn(
+                        `[monitor] ← blocked: ${data.message || 'unknown'}  serverHour=${data.serverHour}`
+                    );
+                }
+            })
+            .catch(err => console.error('[monitor] fetch error:', err))
+            .finally(() => { busy = false; });
+    }
+
+    tick();
+    timer = setInterval(tick, POLL_MS);
+
+    document.addEventListener('visibilitychange', () => {
+        if (! document.hidden) tick();
+    });
+})();
+</script> -->
+
+
+
+<script>
+(function () {
+    'use strict';
+
+    var POLL_MS   = 15_000;   // 15-second supervisor cycle
+    var lastHash  = '';
+    var timer     = null;
+    var busy      = false;
+
+     // ── Render alert HTML ───────────────────────────────────────────────────
+    function renderCard(a) {
+        var sev = a.severity || 'info';
+        var colors = {critical:'#c0392b',warning:'#f39c12',info:'#3498db'};
+        var bg     = colors[sev] || '#3498db';
+        var timeStr = escHtml(a.created_at);
+        var readCls = a.is_read ? ' is-read' : ' unread';
+
+        return '<div class="ff-alert-card ff-severity-' + sev + readCls + '"' +
+               ' data-id="' + a.id + '">' +
+
+               /* top accent strip */
+               '<div class="ff-accent" style="' +
+               'background:' + bg + ';padding:3px 14px;border-radius:6px 6px 0 0;' +
+               'display:flex;align-items:center;justify-content:space-between;">' +
+               '  <span style="font-size:9px;font-weight:700;letter-spacing:.06em;color:#fff;text-transform:uppercase;">' +
+                   ffIcon(sev) + ' ' + sev.toUpperCase() + '</span>' +
+               '  <span style="font-size:9px;color:rgba(255,255,255,.75);">' + timeStr + '</span>' +
+               '</div>' +
+
+               /* body row */
+               '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px 6px;">' +
+
+               /* severity icon (large) */
+               '<div style="flex-shrink:0;font-size:20pt;line-height:1;padding-top:2px;">' +
+                   ffIcon(sev) + '</div>' +
+
+               /* text content */
+               '<div style="flex:1;min-width:0;">' +
+               '  <div style="font-weight:700;color:#222;font-size:13.5px;margin-bottom:4px;line-height:1.3;">' +
+                       escHtml(a.title) + '</div>' +
+
+               /* description */
+               '  <div style="font-size:12px;color:#555;line-height:1.6;margin-bottom:8px;">' +
+                       escHtml(a.description) + '</div>' +
+
+               /* meta footer inside card */
+               '  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+               '    ' + severityBadge(sev) +
+                       ruleBadge(a.rule) +
+               '  </div>' +
+               '</div>' +
+
+               /* right column: creator + complete button */
+               '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-top:4px;">' +
+               (a.created_by
+                ? '<div style="font-size:10px;color:#999;white-space:nowrap;" title="Created by">' +
+                       '<i class="fa fa-user"></i> ' + escHtml(a.created_by) +
+                  '</div>'
+                : '') +
+               '  <button class="ff-complete-btn" data-id="' + a.id + '" ' +
+               '          title="Mark complete and dismiss">' +
+               '    <i class="fa fa-check-circle"></i> Complete</button>' +
+               '</div>' +
+
+               '</div>' +      /* end body row */
+               '</div>';
+    }
+
+    function ffIcon(sev) {
+        if (sev === 'critical') return '<span style="color:#c0392b;">🚨</span>';
+        if (sev === 'warning')  return '<span style="color:#f39c12;">⚠️</span>';
+        return '<span style="color:#3498db;">ℹ️</span>';
+    }
+
+    function escHtml(s) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(s || ''));
+        return d.innerHTML;
+    }
+
+    /* ── Quick badge helpers ─────────────────────────────────────────────── */
+    function severityBadge(sev) {
+        var colors = {critical:'#c0392b', warning:'#f39c12', info:'#3498db'};
+        var c = colors[sev] || '#777';
+        var lbl = (sev || 'info').toUpperCase();
+        return '<span class="ff-sev-chip" style="background:' + c + ';">' + lbl + '</span>';
+    }
+
+    function ruleBadge(rule) {
+        return '<span class="ff-rule-badge" title="Rule: ' + escHtml(rule) + '">' +
+               '<i class="fa fa-tag"></i> ' + escHtml((rule || '').replace(/_/g,' ')) +
+               '</span>';
+    }
+
+    /* ── Mark-complete → delete alert ────────────────────────────────────── */
+    function ffCompleteAlert(id) {
+        var card = document.querySelector('.ff-alert-card[data-id="' + id + '"]');
+        if (!card) return;
+
+        /* optimistic dismiss animation */
+        card.classList.add('ff-dismissing');
+
+        fetch('{{ route("risk.fraud-alert.destroy", 0) }}'.replace('/0', '/' + id), {
+            method : 'DELETE',
+            headers: {
+                'Content-Type'     : 'application/json',
+                'X-Requested-With' : 'XMLHttpRequest',
+                'X-CSRF-TOKEN'     : '{{ csrf_token() }}',
+            },
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    card.addEventListener('animationend', function () { card.remove(); });
+                    /* refresh count */
+                    return supervisorTick();
+                } else {
+                    card.classList.remove('ff-dismissing');
+                    console.warn('Complete failed:', data.message);
+                }
+            })
+            .catch(function (err) {
+                card.classList.remove('ff-dismissing');
+                console.error('Complete error:', err);
+            });
+    }
+
+    // ── Fetch alerts from backend ───────────────────────────────────────────
+    function fetchAlerts(cb) {
+        var sevEl    = document.getElementById('ff-severity');
+        var unreadEl = document.getElementById('ff-unread-only');
+        var hoursEl  = document.getElementById('ff-hours');
+        if (!sevEl || !unreadEl || !hoursEl) { cb(new Error('DOM not ready')); return; }
+
+        var sev    = sevEl.value || '';
+        var unread = !!unreadEl.checked;
+        var hours  = hoursEl.value || '168';
+
+        var url = '{{ route("risk.fraud-alerts") }}' +
+                  '?severity='  + encodeURIComponent(sev) +
+                  '&unread='    + (unread ? 1 : 0) +
+                  '&hours='     + encodeURIComponent(hours);
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { cb(null, data); })
+            .catch(function (e) { cb(e); });
+    }
+
+    // ── Build alert list ─────────────────────────────────────────────────────
+    function buildList(data) {
+        if (!data.alerts || data.alerts.length === 0) {
+            return '<div style="text-align:center;padding:30px;color:#999;">' +
+                   '<i class="fa fa-check-circle" style="color:#27ae60;font-size:24px;"></i>' +
+                   '<p style="margin-top:8px;">No alerts found.</p></div>';
+        }
+
+        var html = '';
+        for (var i = 0; i < data.alerts.length; i++) {
+            html += renderCard(data.alerts[i]);
+        }
+        return html;
+    }
+
+    // ── Complete-button click delegation ─────────────────────────────────────
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.ff-complete-btn');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            ffCompleteAlert(btn.getAttribute('data-id'));
+        }
+    });
+
+    // ── Update the stats bar ───────────────────────────────────────────────────
+    function updateStatsBar(stats, total) {
+        stats = stats || {};
+        total = total || 0;
+        setStat('ff-stat-critical', stats.critical || 0);
+        setStat('ff-stat-warning',  stats.warning  || 0);
+        setStat('ff-stat-info',     stats.info     || 0);
+        /* unread = total − read */
+        var unread = total - (stats.read || 0);
+        unread = Math.max(0, unread);
+        var el = document.getElementById('ff-stat-unread');
+        if (el) el.querySelector('strong').textContent = unread;
+    }
+
+    function setStat(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.querySelector('strong').textContent = value;
+    }
+
+    // ── Supervisor tick ────────────────────────────────────────────────────────
+    function supervisorTick() {
+        // Guard: stop if any filter element is missing (e.g. before DOM ready)
+        var sevEl    = document.getElementById('ff-severity');
+        var unreadEl = document.getElementById('ff-unread-only');
+        var hoursEl  = document.getElementById('ff-hours');
+        if (!sevEl || !unreadEl || !hoursEl) return;
+
+        if (busy) return;
+        busy = true;
+
+        var sev    = sevEl.value || '';
+        var unread = !!unreadEl.checked;
+        var hours  = hoursEl.value || '168';
+        var url   = '{{ route("risk.fraud-alerts") }}' +
+                    '?severity=' + encodeURIComponent(sev) +
+                    '&unread='   + (unread ? 1 : 0) +
+                    '&hours='    + encodeURIComponent(hours);
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var hash = JSON.stringify(data.alerts);
+                if (hash !== lastHash) {
+                    lastHash = hash;
+                    var listEl = document.getElementById('ff-alert-list');
+                    listEl.innerHTML = buildList(data);
+                }
+                updateStatsBar(data.stats, data.total);
+                document.getElementById('ff-count').textContent    = data.total || 0;
+                document.getElementById('ff-last-scan').textContent = new Date().toLocaleTimeString();
+                document.getElementById('ff-empty').style.display   = (!data.total) ? '' : 'none';
+                document.getElementById('ff-alert-list').style.display = data.total ? '' : 'none';
+            })
+            .catch(function (e) { console.error('Fraud feed error:', e); })
+            .finally(function () { busy = false; });
+    }
+
+    // ── Manual refresh ───────────────────────────────────────────────────────
+    window.ffRefreshNow = function () {
+        var btn = document.getElementById('ff-refresh-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Refreshing…';
+
+        supervisorTick();
+
+        setTimeout(function () {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa fa-refresh"></i> Refresh';
+        }, 1_200);
+    };
+
+    // ── Apply filters and reset hash ─────────────────────────────────────────
+    window.ffApplyFilters = function () {
+        lastHash = '';
+        supervisorTick();
+    };
+
+    // ── Start supervisor on DOM ready ───────────────────────────────────────
+    supervisorTick();
+    timer = setInterval(supervisorTick, POLL_MS);
+})();
+</script>
 @endsection

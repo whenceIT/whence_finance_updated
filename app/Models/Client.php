@@ -48,6 +48,11 @@ class Client extends Model
         return $this->hasOne(Borrower::class, 'id', 'borrower_id');
     }
 
+    public function loans()
+    {
+        return $this->hasMany(Loan::class, 'client_id', 'id');
+    }
+
     public function loan_product()
     {
         return $this->hasOne(LoanProduct::class, 'id', 'loan_product_id');

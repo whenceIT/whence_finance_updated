@@ -40,6 +40,7 @@ use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\FleetController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\RiskController;
 use App\Http\Controllers\PlatformController;
 use Firebase\JWT\Key;
@@ -447,7 +448,8 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
-    Route::get('fraud-feed', [RiskController::class, 'fraudFeed']);
+    Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
+    Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
     Route::get('policy-breach', [RiskController::class, 'policyBreach']);
     Route::get('cost-value', [RiskController::class, 'costValue']);
@@ -463,6 +465,27 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('audit-report-print/{submissionId}', [RiskController::class, 'printAuditReport'])->name('risk.audit-report-print');
     Route::post('store-audit-submission', [RiskController::class, 'storeAuditSubmission'])->name('risk.store-audit-submission');
     Route::delete('audit-submission/{submissionId}', [RiskController::class, 'deleteAuditSubmission'])->name('risk.delete-audit-submission');
+    Route::get('fraud-feed',                    [RiskController::class, 'fraudFeed'])->name('risk.fraud-feed');
+    Route::get('fraud-alerts',                  [RiskController::class, 'getFraudAlerts'])->name('risk.fraud-alerts');
+    Route::delete('fraud-alert/{id}', [RiskController::class, 'destroyAlert'])->name('risk.fraud-alert.destroy');
+
+    // ── OfficeDebt management ──────────────────────────────────────────────────
+    Route::post('office-debts',          [RiskController::class, 'storeOfficeDebt'])->name('risk.office-debts.store');
+    Route::put('office-debts/{id}',      [RiskController::class, 'updateOfficeDebt'])->name('risk.office-debts.update');
+    Route::delete('office-debts/{id}',   [RiskController::class, 'deleteOfficeDebt'])->name('risk.office-debts.destroy');
+    Route::get('office-debts',           [RiskController::class, 'listOfficeDebts'])->name('risk.office-debts.list');
+
+    // ── Supervisor: run all fraud rules (called client-side by monitor.js)
+    Route::post('monitor/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
+         ->name('risk.alert-service');
+
+     // ── RiskController relay: thin pass-through to AlertService::runAll()
+     Route::get('run-all-alerts', [RiskController::class, 'runAll'])
+          ->name('risk.run-all-alerts');
+
+     // ── Daily cron: single entry point for AlertService::runAll()
+     Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
+          ->name('risk.cron.run-all-alerts');
 });
 //route for clients
 Route::group(['prefix' => 'client'], function () {
@@ -1346,6 +1369,7 @@ Route::group(['prefix' => 'resignation'], function () {
 Route::group(['prefix' => 'policies'], function () {
     Route::get('dashboard', 'PolicyController@dashboard')->name('policies.dashboard');
     Route::get('view_policies', 'PolicyController@viewPolicies')->name('policies.view_policies');
+    Route::get('view/{id}', 'PolicyController@view')->name('policies.view');
     Route::get('user_responses', 'PolicyController@userResponses')->name('policies.user_responses');
     Route::get('add_policies', 'PolicyController@addPolicies')->name('policies.add_policies');
     Route::post('store_policies', 'PolicyController@storePolicies')->name('policies.store_policies');

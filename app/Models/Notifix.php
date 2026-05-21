@@ -553,6 +553,41 @@ class Notifix extends Model
     }
 
     /**
+     * Notify Risk Manager that a new client has been registered.
+     *
+     * @param mixed $client  The client model
+     * @param mixed $user    The user that created the client
+     * @param mixed $office  The office (branch) the client belongs to
+     * @return void
+     */
+    public static function notifyRkNewClientCreated($client, $user, $office)
+    {
+        $manager = GeneralHelper::get_my_manager();
+        $notifixService = app(NotifixService::class);
+
+        if ($manager['rk']) {
+            $notifixService->create($manager['rk'], [$office->id], [
+                'id' => uniqid(),
+                'client_id' => $client->id,
+                'from_id' => $user->id,
+                'link_from' => null,
+                'link_to' => url('/client/' . $client->id . '/show'),
+                'type' => 'new_client_created',
+                'message' => 'New client registered: ' .
+                             htmlspecialchars($client->first_name) . ' ' .
+                             htmlspecialchars($client->last_name) .
+                             ' — branch: ' . htmlspecialchars($office->name),
+                'positions' => [$user->position_id],
+                'office_id' => $office->id,
+                'district_id' => $office->district_id,
+                'province_id' => $office->province_id,
+                'to_id' => $manager['rk'],
+                'created_date' => now()->toIso8601String(),
+            ]);
+        }
+    }
+
+    /**
      * Notify Branch Manager and Risk Manager about new charge.
      *
      * @param mixed $loan The loan model

@@ -11,7 +11,7 @@
         <h3 class="box-title">My Advances</h3>
     </div>    
     <div class="box-body table-responsive">
-        @if ($advances->isEmpty())=
+        <!-- @if ($advances->isEmpty())=
             @if (!$pending_advances->isEmpty())
                 <div class="alert alert-warning" style="cursor: pointer;" data-toggle="modal" data-target="#pendingAdvancesModal">
                     You have {{$pending_advances->count()}} pending advances that are awaiting approval. <strong>Click here to view and manage.</strong>
@@ -20,7 +20,7 @@
                 <p>No advances found.</p>
                 <p><a href="{{ route('advances.apply') }}" class="btn btn-primary">Apply for Advance</a></p>
             @endif
-        @else
+        @else -->
             <table class="table table-bordered table-hover table-striped" id="data-table">     
                 <thead>
                     <tr>
@@ -80,7 +80,7 @@
                                 </form>
                             </td>
                         </tr>
-                    @endforeach
+                    <!-- @endforeach -->
                     @if(session('error'))
                         <div class="alert alert-danger">
                             {{ session('error') }}
