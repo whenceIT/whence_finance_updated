@@ -493,6 +493,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::post('{id}/transfer', 'ClientController@transfer');
     Route::get('{id}/active', 'ClientController@active');
     Route::get('{id}/account', 'ClientController@account');
+    Route::get('verify_client_number','ClientController@verifyClientNumber');
     Route::any('{id}/location/store','ClientController@store_client_location');
     //identification
     Route::post('{id}/identification/store', 'ClientController@store_client_identification');

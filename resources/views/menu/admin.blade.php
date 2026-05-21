@@ -160,6 +160,12 @@
                 </a>
             </li>
 
+            <li class="@if(Request::is('dashboard')) active @endif">
+                <a href="{{ url('client/verify_client_number') }}">
+                    <i class="fa fa-check-circle"></i> <span>Verify Client Number</span>
+                </a>
+            </li>
+
             <!-- ============================================
                  OPERATIONS SECTION
             ============================================ -->

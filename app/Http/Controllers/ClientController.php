@@ -150,6 +150,11 @@ class ClientController extends Controller
     }
 
 
+    public function verifyClientNumber(){
+        return view('client.verify_client_number');
+    }
+
+
 
     public function pending_approval()
     {
@@ -770,6 +775,10 @@ class ClientController extends Controller
 
     return redirect()->back();
 }
+
+
+
+
      
 
 
