@@ -764,6 +764,9 @@
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/transaction_approvals') }}"><i class="fa fa-circle-o"></i> Transaction Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionUnapproved::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
+                     @if(Sentinel::hasAccess('expenses'))
+                        <li><a href="{{ url('client/transfer_approvals') }}"><i class="fa fa-circle-o"></i> Client Transfer Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\ClientTransferRequest::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\ClientTransferRequest::where('new_office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
                     @if($role != 3 || $role != 2 || $role != 11)
                         @if(Sentinel::hasAccess('expenses'))
                             <li>

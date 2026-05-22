@@ -1344,6 +1344,8 @@
         </div>
         <!-- /.modal-dialog -->
     </div>
+
+
     <div class="modal fade" id="transfer_client_modal">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1361,13 +1363,15 @@
                             <label for="office_id"
                                    class="control-label col-md-3">{{trans_choice('general.branch',1)}}</label>
                             <div class="col-md-9">
-				<select name="office_id" class="form-control select2" id="office_id" >
-				<option></option>
-                                   
-                                    @foreach(\App\Models\Office::all()  as $key)
-                                        <option value="{{$key->id}}">{{$key->name}}</option>
-                                    @endforeach
-                                </select>
+				<select name="office_id" class="form-control select2" id="office_id">
+    <option></option>
+
+    @foreach(\App\Models\Office::all() as $key)
+        <option value="{{$key->id}}" {{$client->office_id == $key->id ? 'selected' : ''}}>
+            {{$key->name}}
+        </option>
+    @endforeach
+</select>
                             </div>
 			</div>
 			<!-- prev staff selection 

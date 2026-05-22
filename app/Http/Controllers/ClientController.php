@@ -17,6 +17,7 @@ use App\Models\CustomFieldMeta;
 use App\Models\Document;
 use App\Models\Loan;
 use App\Models\Note;
+use App\Models\ClientTransferRequest;
 use App\Models\Office;
 use App\Models\Notifix;
 use Aws\S3\S3Client;
@@ -864,6 +865,63 @@ class ClientController extends Controller
         return redirect()->back();
     }
 
+    public function client_transfer_approvals()
+    {
+
+      $province_transactions = [];
+       $offices = Office::get();
+            $role = Sentinel::getUser()->roles->first();
+                $province_id = Sentinel::getUser()->province_id;
+                $office_id = Sentinel::getUser()->office_id;
+
+         if ($role->role_id == "6") {
+
+            foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $transactions = ClientTransferRequest::where('new_office_id', $office->id)->get();
+                    foreach ($transactions as $transaction) {
+                        array_push($province_transactions, $transaction);
+                    }
+                }
+            }
+            $data = $province_transactions;
+
+        } else {
+            if (Sentinel::hasAccess('settings')) {
+                $data = ClientTransferRequest::get();
+            } else {
+                $data = ClientTransferRequest::where('new_office_id', $office_id)->get();
+            }
+        }
+        
+
+        return view('client.transfer_approvals',compact('data'));
+    }
+
+
+    public function approve_transfer($id)
+    {
+        $client_transfer_request = ClientTransferRequest::where('id', $id)->first();
+        $client = Client::find($client_transfer_request->client_id);
+        $client->office_id = $client_transfer_request->new_office_id;
+        $client->save();
+        $client_transfer_request->delete();
+        Flash::success(trans('general.successfully_saved'));
+        return redirect()->back();
+    }
+
+public function delete_transfer($id)
+{
+    $client_transfer_request = ClientTransferRequest::findOrFail($id);
+
+    $client_transfer_request->delete();
+
+    Flash::success(trans('general.successfully_saved'));
+
+    return redirect()->back();
+}
+
+
     public function transfer(Request $request, $id)
     {
         if (!Sentinel::hasAccess('clients.transfer.client')) {
@@ -873,7 +931,16 @@ class ClientController extends Controller
         $done_by = Sentinel::getUser();
         $client = Client::find($id);
           $oldOfficeName = Office::where('id',$client->office_id)->first();
-	$client->office_id = $request->office_id;
+          if($client->office_id != $request->office_id){
+            $client_transfer_request = new ClientTransferRequest();
+            $client_transfer_request->new_office_id = $request->office_id;
+            $client_transfer_request->done_by = $done_by->id;
+            $client_transfer_request->client_id = $id;
+            $client_transfer_request->old_office_id = $client->office_id;
+            $client_transfer_request->save();
+
+          }
+//	$client->office_id = $request->office_id;
    
 	$client->staff_id = $request->staff_id;
     $oldOfficerName = User::where('id',$client->staff_id)->first();
@@ -909,6 +976,8 @@ class ClientController extends Controller
         Flash::success(trans('general.successfully_saved'));
         return redirect()->back();
     }
+
+
 
     //client identification
     public function store_client_identification(Request $request, $id)
