@@ -19,66 +19,48 @@
                     <th>Status</th>
                     <th>Date</th>
                     <th>Action</th>
-                  
                 </tr>
                 </thead>
                 <tbody>
-                @foreach($data as $key)
-                
-                <?php
-if (isset($key->loan) && $key->loan !== null) {
-    $client_identification = $key->loan->client_id;
-    $client = \App\Models\Client::find($client_identification);
-} else {
-    $client_identification = null;
-    $client = null;
-}
-
-$loan_officer = \App\Models\User::find($key->created_by);
-?>
-
+                @forelse($data as $key)
                     <tr>
-                            @if($key->status == 'pending')
-                        <td><a href="{{ url('loan/'.$key->loan_id.'/show') }}" data-toggle="tooltip" title="Click to view">{{ $key->loan_id }}</a></td>
                         <td>
-                        @if(!empty($key->office))
-                                {{$key->office->name}}
+                            @if($key->loan_id)
+                            <a href="{{ url('loan/'.$key->loan_id.'/show') }}" data-toggle="tooltip" title="Click to view">{{ $key->loan_id }}</a>
                             @endif
                         </td>
                         <td>
-                        @if(!empty($loan_officer->first_name))
-                                {{$loan_officer->first_name}}
-                            @endif
-
-                               @if(!empty($loan_officer->last_name))
-                                {{$loan_officer->last_name}} 
+                            @if($key->office)
+                                {{ $key->office->name }}
                             @endif
                         </td>
-                        @if(!empty($client->first_name))
-                        <td>{{$client->first_name}} {{$client->middle_name}} {{$client->last_name}}</td>
-                        @endif
-                        <td>{{number_format($key->amount,2)}}</td>
-                        <td>{{$key->status}}</td>
-                        <td>{{$key->date}}</td>
-                        <?php
-                           $todaysDate = date('Y-m-d');
-                        ?>
-
-<td>
-<a href="{{ url('loan/'.$key->loan_id.'/'.$key->id.'/approve_top_up') }}" onclick="return confirm('Are you sure?')" >
-                            <span class="label label-success" >Approve</span>
-                                                </a>
-                            <a href="{{ url('loan/'.$key->id.'/decline_top_up')}}"  onclick="return confirm('Are you sure?')">
-                            <span class="label label-danger style="color:red" >Decline</span>
+                        <td>
+                            {{ $key->createdBy ? $key->createdBy->first_name.' '.$key->createdBy->last_name : '' }}
+                        </td>
+                        <td>
+                            @if($key->loan && $key->loan->client)
+                                {{ $key->loan->client->first_name.' '.$key->loan->client->middle_name.' '.$key->loan->client->last_name }}
+                            @endif
+                        </td>
+                        <td>{{ number_format($key->amount, 2) }}</td>
+                        <td>{{ $key->status }}</td>
+                        <td>{{ $key->date }}</td>
+                        <td>
+                            @if($key->loan_id)
+                            <a href="{{ url('loan/'.$key->loan_id.'/'.$key->id.'/approve_top_up') }}" onclick="return confirm('Are you sure you want to approve this top-up?')">
+                                <span class="label label-success">Approve</span>
                             </a>
-</td>
-                    
-
-
-
-@endif
+                            @endif
+                            <a href="{{ url('loan/'.$key->id.'/decline_top_up')}}" onclick="return confirm('Are you sure you want to decline this top-up?')">
+                                <span class="label label-danger" style="color:red">Decline</span>
+                            </a>
+                        </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center">No pending top-up approvals found.</td>
+                    </tr>
+                @endforelse
                 </tbody>
             </table>
         </div>
@@ -86,7 +68,6 @@ $loan_officer = \App\Models\User::find($key->created_by);
 @endsection
 @section('footer-scripts')
     <script>
-
         $('#data-table').DataTable({
             dom: 'frtip',
             "paging": true,
@@ -116,6 +97,5 @@ $loan_officer = \App\Models\User::find($key->created_by);
             },
             responsive: false
         });
-
     </script>
 @endsection
