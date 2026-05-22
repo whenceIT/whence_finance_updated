@@ -7,24 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class LoanTopUp extends Model
 {
     protected $table = "loan_topup";
-
+    protected $fillable = [];
 
     public function office()
     {
-        return $this->hasOne(Office::class, 'id', 'office_id');
+        return $this->belongsTo(Office::class, 'office_id');
     }
 
-    public function created_by()
+    public function createdBy()
     {
-        return $this->hasOne(User::class, 'id', 'created_by');
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
     }
-
 
     public function loan()
     {
-        return $this->hasOne(Loan::class, 'id', 'loan_id');
+        return $this->belongsTo(Loan::class, 'loan_id');
     }
-
-    public $timestamps = false;
-
 }

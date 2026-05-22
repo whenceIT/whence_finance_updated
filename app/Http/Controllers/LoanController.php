@@ -810,7 +810,6 @@ class LoanController extends Controller
             return redirect()->back();
         }
 
-
         $province_transactions = [];
         $userId = Sentinel::getUser()->id;
         $province_id = Sentinel::getUser()->province_id;
@@ -818,28 +817,36 @@ class LoanController extends Controller
         $offices = Office::get();
         $role = UserRole::where('user_id', $userId)->first();
 
+        if (!$role) {
+            Flash::warning('No role assigned.');
+            return redirect()->back();
+        }
+
         if ($role->role_id == "6") {
 
             foreach ($offices as $office) {
                 if ($office->province_id == $province_id) {
-                    $transactions = LoanTopUp::where('office_id', $office->id)->get();
+                    $transactions = LoanTopUp::where('office_id', $office->id)->where('status', '')->get();
                     foreach ($transactions as $transaction) {
                         array_push($province_transactions, $transaction);
                     }
                 }
             }
             $data = $province_transactions;
+        } else if ($role->role_id == "4") {
+            $data = LoanTopUp::where('office_id', $office_id)->where('status', '')->get();
         } else {
             if (Sentinel::hasAccess('settings')) {
-                $data = LoanTopUp::get();
+                $data = LoanTopUp::where('status', '')->get();
             } else {
-                $data = LoanTopUp::where('office_id', $office_id)->get();
+                $data = LoanTopUp::where('office_id', $office_id)->where('status', '')->get();
             }
         }
         
+
         // Log audit for accessing loan transactions top up approvals page
 
-        return view('loan.top_up_approvals', compact('data'));
+        return view('advances.top_up_approvals', compact('data'));
     }
 
     public function pending_approval()

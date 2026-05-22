@@ -90,7 +90,6 @@ class AdvanceController extends Controller
         $user = Sentinel::getUser();
 
         $advances = Advance::where('user_id', $user->id)
-            ->where('status', 'approved')
             ->get();
         $pending_advances = Advance::where('user_id', $user->id)
             ->whereNot('status', 'approved')
@@ -175,7 +174,6 @@ class AdvanceController extends Controller
 
         return redirect()->back()->with('success', 'Advance has been declined.');
     }
-
 
     public function topupPendingApprovals()
     {
