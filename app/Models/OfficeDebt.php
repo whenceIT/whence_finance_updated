@@ -13,7 +13,10 @@ class OfficeDebt extends Model
 
     protected $fillable = [
         'office_id',
+        'deposit_type_id',
         'debt_status',
+        'debt_month',
+        'debt_year',
         'original_amount',
         'outstanding_amount',
         'notes',
@@ -22,6 +25,8 @@ class OfficeDebt extends Model
     protected $casts = [
         'original_amount'     => 'integer',
         'outstanding_amount'  => 'integer',
+        'debt_month'          => 'integer',
+        'debt_year'           => 'integer',
     ];
 
     /**
@@ -30,5 +35,13 @@ class OfficeDebt extends Model
     public function office()
     {
         return $this->belongsTo(Office::class);
+    }
+
+    /**
+     * The deposit type this debt record is linked to.
+     */
+    public function depositType()
+    {
+        return $this->belongsTo(DepositType::class);
     }
 }

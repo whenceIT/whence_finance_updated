@@ -57,7 +57,15 @@
         padding: 7px 12px; font-size: 13px; border-bottom: 1px solid #eef0f7; color: #444; vertical-align: middle;
     }
     .da-office-table tbody tr:last-child td { border-bottom: none; }
-    .da-office-table tbody tr:hover td { background: #f0f4ff; }
+     .da-office-table tbody tr.da-alert td {
+         background: #fff0f0 !important;
+         color: #c0392b;
+     }
+     .da-office-table tbody tr.da-alert td.da-debt-out { color: #e61700; }
+     .da-office-table tbody tr:hover td { background: #f0f4ff; }
+     .da-office-table tbody tr.da-alert:hover td  { background: #ffe0e0 !important; }
+     .da-office-table tbody tr.da-row-warn:hover td { background: #fff0c0 !important; }
+     .da-office-table tbody tr.da-row-zero:hover td { background: #ffdad4 !important; }
     .da-office-table tbody td.da-amt { font-weight: 700; color: #333; }
     .da-office-table tbody tr.da-row-zero td {
         background: #fff5f5 !important;
@@ -65,19 +73,33 @@
     }
     .da-office-table tbody tr.da-row-zero td.da-amt { color: #e61700; }
     .da-office-table tbody tr.da-row-zero { animation: daPulse 2.5s ease-in-out infinite; }
-    @keyframes daPulse {
-        0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
-        50%       { box-shadow: inset 3px 0 0 0 #cf1a05; }
-    }
     .da-office-table tbody tr.da-row-warn td {
         background: #fffbe6 !important;
         color: #b7950b;
     }
-    .da-office-table tbody tr.da-row-warn { animation: daWarnPulse 2.5s ease-in-out infinite; }
-    @keyframes daWarnPulse {
-        0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
-        50%       { box-shadow: inset 3px 0 0 0 #f39c12; }
-    }
+     .da-office-table tbody tr.da-row-warn td.da-amt { color: #e61700; }
+     .da-office-table tbody tr.da-row-warn { animation: daWarnPulse 2.5s ease-in-out infinite; }
+     @keyframes daPulse {
+         0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
+         50%       { box-shadow: inset 3px 0 0 0 #cf1a05; }
+     }
+     @keyframes daWarnPulse {
+         0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
+         50%       { box-shadow: inset 3px 0 0 0 #f39c12; }
+     }
+
+     /* Debt per-office expandable detail row */
+     .da-debt-detail-row td {
+         cursor: default;
+         border-top: 2px solid #f0c0b8;
+     }
+     .da-debt-detail-row {
+         background: #fdf3f2 !important;
+     }
+     /* Rows with inline onclick are fully clickable */
+     .da-office-table tbody tr[onclick] { cursor: pointer; }
+     .da-office-table tbody tr[onclick] td { cursor: pointer; }
+     .da-office-table tbody tr[onclick]:hover td { background: #fdf3f2 !important; }
     .da-month-grid { display: flex; gap: 3px; flex-wrap: nowrap; }
     .da-month-box {
         width: 22px; height: 22px; border-radius: 3px;
@@ -85,9 +107,27 @@
         text-align: center; display: inline-block;
         background: #f0f0f0; color: #bbb;
     }
-    .da-month-box.has {
-        background: #667eea; color: #fff;
+     .da-month-box.has {
+         background: #667eea; color: #fff;
+     }
+     .da-month-box.has-debt {
+         background: #c0392b; color: #fff;
+     }
+
+    /* Debt repayment card row states */
+    .da-debt-out { color: #c0392b; }
+    .da-alert {
+        background: #fff0f0 !important;
+        font-weight: 600;
+        animation: daWarnPulse 2.5s ease-in-out infinite;
     }
+    .da-status-pill {
+        display: inline-block; padding: 2px 10px; border-radius: 12px;
+        font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .da-status-owing    { background: #fdecea; color: #c0392b; }
+    .da-status-partial  { background: #fff8e1; color: #f39c12; }
+    .da-status-paid     { background: #eafaf1; color: #27ae60; }
     .da-search-row {
         display: flex; align-items: center; gap: 6px;
         padding: 6px 8px; margin: 0 0 6px 0;
@@ -112,12 +152,32 @@
     }
     .da-filter-bar select:focus { border-color: #667eea; }
     .da-custom-row { display: flex; align-items: center; gap: 6px; }
-    .page-chrome { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #667eea; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-    .page-chrome h1  { margin: 0; font-size: 20px; font-weight: 700; }
-    .page-chrome p   { margin: 4px 0 0; font-size: 13px; color: #666; }
-    .page-chrome #openOfficeDebtModal { margin-top: 10px; }
+     .page-chrome { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #667eea; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+     .page-chrome h1  { margin: 0; font-size: 20px; font-weight: 700; }
+     .page-chrome p   { margin: 4px 0 0; font-size: 13px; color: #666; }
+     .page-chrome #openOfficeDebtModal { margin-top: 10px; }
+     .sc-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 24px; }
+     .sc-card { border-radius: 10px; padding: 18px 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+     .sc-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; opacity: .7; margin-bottom: 10px; }
+     .sc-row { font-size: 13px; margin-bottom: 3px; }
+     .sc-row strong { font-weight: 600; }
+     .sc-balance { font-size: 14px; font-weight: 700; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.25); }
+     .sc-card-debt { background: linear-gradient(135deg,#c0392b,#8e44ad); color: #fff; }
+     .sc-card-dep  { background: linear-gradient(135deg,#667eea,#2c3e50); color: #fff; }
+     .sc-card-debt .sc-row { opacity: .9; }
+     .sc-card-debt .sc-card-title { opacity: .85; }
 
-    /* Modal-fullscreen override */
+     /* Require-months info hint */
+     .req-hint {
+         display: inline-flex; align-items: center; justify-content: center;
+         width: 18px; height: 18px; border-radius: 50%;
+         background: #e8eaf6; color: #3949ab;
+         font-size: 12px; font-weight: 700; font-style: normal;
+         cursor: help; line-height: 1;
+         font-family: serif;
+     }
+
+     /* Modal-fullscreen override */
     .od-dialog {
         width: 96vw;
         height: 92vh;
@@ -177,7 +237,7 @@
     <div class="page-chrome">
         <h1><i class="fa fa-history"></i> Branch Deposit Audit</h1>
         <p>Click a deposit type to expand and view all offices, including those with no deposits, for that type.</p>
-        <a href="#odModal" class="btn btn-primary btn-sm" style="border-radius:6px;text-decoration:none;color:#fff;">
+        <a href="#odModal" id="openOfficeDebtModal" class="btn btn-primary btn-sm" style="border-radius:6px;text-decoration:none;color:#fff;">
             <i class="fa fa-balance-scale"></i> Office Debt Management
         </a>
     </div>
@@ -226,7 +286,85 @@
         </div>
     </div>
 
-    <div id="daContainer">
+     <!-- Display stats cards here -->
+
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <span style="font-size:13px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;">Deposit Compliance</span>
+        <span class="req-hint" title="
+            Required = monthly_amount × offices × months_span
+
+            Period → months counted in Required:
+            overall    Jan 1 → 28th of last month
+            month          1 month
+            quarter        3 months
+            year          12 months
+            last_month     1 month
+            last_quarter   3 months
+            last_year     12 months
+            this_circle    ~1 month
+            last_circle    ~1 month
+
+            Received = actual deposits matching the period filter
+            ">&#9432;
+        </span>
+      </div>
+
+      <div class="sc-stats-grid">
+          <!-- Outstanding Branch Debt -->
+          <div class="sc-card sc-card-debt">
+              <div class="sc-card-title">Outstanding Branch Debt</div>
+              <div class="sc-row">Debt Accumulated&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['accumulated'], 0) }}</strong></div>
+              <div class="sc-row">Debt Amount Repaid&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['paid'], 0) }}</strong></div>
+              <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 0) }}</strong></div>
+          </div>
+
+          <?php foreach ($depositCardStats as $s): ?>
+               
+            <?php $req = (int) $s['required']; $rec = (int) $s['received']; $bal = (int) $s['balance']; ?>
+               <div class="sc-card sc-card-dep">
+                   <div class="sc-card-title">{{ $s['label'] }}</div>
+                   <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($req, 0) }}</strong></div>
+                   <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($rec, 0) }}</strong></div>
+                   <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $bal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($bal, 0) }}</strong></div>
+               </div>
+           <?php endforeach; ?>
+           <!-- Totals card -->
+           <?php $tR = (int) $depositCardTotals['required']; $tC = (int) $depositCardTotals['received']; $tB = (int) $depositCardTotals['balance']; ?>
+           <div class="sc-card sc-card-dep" style="border: 2px solid rgba(255,255,255,0.45);">
+               <div class="sc-card-title">{{ $depositCardTotals['label'] }}</div>
+               <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($tR, 0) }}</strong></div>
+               <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($tC, 0) }}</strong></div>
+               <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $tB > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tB, 0) }}</strong></div>
+           </div>
+      </div>
+
+     <div id="daContainer">
+        <div class="da-type-card bg-danger" data-type-id="debt">
+             <div class="da-type-header">
+                 <div class="left">
+                     <span class="toggle-icon"><i class="fa fa-caret-right"></i></span>
+                     <span class="type-name">Debt Repayment (For Branches in Debt)</span>
+                     <span class="type-meta">Bank</span>
+                 </div>
+                 <div class="right-group">
+                     <div class="da-stats">
+                         <span class="da-stat" title="Total debt records">
+                             <i class="fa fa-building"></i> <strong>{{ \App\Models\OfficeDebt::count() }}</strong> records
+                         </span>
+                         <span class="da-stat" title="Offices with outstanding debt">
+                             <i class="fa fa-exclamation-circle" style="color:#c0392b"></i> <strong>{{ \App\Models\OfficeDebt::where('outstanding_amount', '>', 0)->count() }}</strong> with outstanding
+                         </span>
+                         <span class="da-stat" title="Total outstanding debt across all branches">
+                             <i class="fa fa-line-chart" style="color:#c0392b"></i> <strong>K{{ number_format((int)\App\Models\OfficeDebt::sum('outstanding_amount'), 0) }}</strong> outstanding
+                         </span>
+                     </div>
+                 </div>
+             </div>
+             <div class="da-body" id="da-body-debt">
+                 <p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading debt records&hellip;</p>
+             </div>
+        </div>
+
         @foreach($types as $t)
         <div class="da-type-card" data-type-id="{{ $t['id'] }}">
             <div class="da-type-header">
@@ -271,63 +409,218 @@
         return parseFloat(val).toLocaleString('en-US', { style:'currency', currency:'ZMW' });
     }
 
-    function fetchOffices(typeId, bodyEl) {
-        bodyEl.innerHTML = '<p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading offices&hellip;</p>';
+     // Exposed on window so inline onclick handlers in the table can reach it
+     window.toggleDebtDetail = function(rowIdx, detailId, toggleIconId) {
+         var $detailRows = $('#daDebtDetail_' + rowIdx);
+         if ($detailRows.length) {
+             var expanded = $detailRows[0].dataset.expanded === 'true';
+             var $icon = $('#' + toggleIconId);
+             if ($icon.length) {
+                 $icon.text(expanded ? '&#9658;' : '&#9660;');  // ▶ / ▼
+             }
+             $detailRows[0].dataset.expanded = (!expanded).toString();
+             $detailRows.toggle(!expanded);
+         }
+     }
+
+     function fetchOffices(typeId, bodyEl) {
+        bodyEl.innerHTML = '<p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading&hellip;</p>';
 
         // Build query string from the URL (set by the da-period filter on every change)
-        var qs = window.location.search;                   // e.g. "?period=custom&custom_month=2&custom_year=2026"
-        var query = qs ? qs : '';
+        var qs     = window.location.search;
+        var isDebt = typeId === 'debt';
+        var url;
 
-        // When period=overall the key is already in the URL; controller handles null=false
-        fetch('/risk/branch-deposit-audit/type/' + typeId + query, {
+        if (isDebt) {
+            url = '/risk/office-debts/debt' + qs;
+        } else {
+            url = '/risk/branch-deposit-audit/type/' + typeId + qs;
+        }
+
+        fetch(url, {
             headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }
         }).then(function(r) { return r.json(); }).then(function(resp) {
             if (!resp.rows || resp.rows.length === 0) {
-                bodyEl.innerHTML = '<p class="da-empty">No offices found.</p>';
+                bodyEl.innerHTML = '<p class="da-empty">No records found.</p>';
                 return;
             }
 
-            resp.rows.sort(function(a, b) {
-                var aNoDep  = a.deposit_count === 0;
-                var bNoDep  = b.deposit_count === 0;
-                if (aNoDep !== bNoDep) return aNoDep ? 1 : -1;
-                var aZeroT = !a.total || a.total === 0;
-                var bZeroT = !b.total || b.total === 0;
-                if (aZeroT !== bZeroT) return aZeroT ? 1 : -1;
-                return (b.total || 0) - (a.total || 0);
-            });
+             // ── Sort ───────────────────────────────────────────────────────────────
+             if (isDebt) {
+                 resp.rows.sort(function(a, b) {
+                     var d = (b.outstanding_amount || 0) - (a.outstanding_amount || 0);
+                     return d !== 0 ? d : (b.original_amount || 0) - (a.original_amount || 0);
+                 });
+             } else {
+                 resp.rows.sort(function(a, b) {
+                     var aNoDep  = a.deposit_count === 0;
+                     var bNoDep  = b.deposit_count === 0;
+                     if (aNoDep !== bNoDep) return aNoDep ? 1 : -1;
+                     var aZeroT  = !a.total     || a.total     === 0;
+                     var bZeroT  = !b.total     || b.total     === 0;
+                     if (aZeroT !== bZeroT) return aZeroT ? 1 : -1;
+                     return (b.total || 0) - (a.total || 0);
+                 });
+             }
 
-            var html = '<div class="da-search-row"><i class="fa fa-search"></i><input type="text" class="da-office-search" placeholder="Filter offices&hellip;" autocomplete="off" spellcheck="false"></div>'
-                     + '<table class="da-office-table"><thead>'
-                     + '<tr><th>#</th><th>Office</th><th>Deposits</th><th class="da-amt">Total Amount</th><th>Months</th></tr>'
-                     + '</thead><tbody>';
+             // ── Row class helper (grouped: per-office) ─────────────────────────────
+             function debtGroupCls(row) {
+                 if (row.outstanding_amount <= 0)  return ' da-row-zero';
+                 if (row.outstanding_amount < row.original_amount) return ' da-row-warn';
+                 return ' da-alert';
+             }
 
-            resp.rows.forEach(function(row) {
-                var cls = '';
-                if (row.deposit_count === 0) {
-                    cls = ' da-row-zero';
-                } else if (!row.total || row.total === 0) {
-                    cls = ' da-row-warn';
-                }
+             // ── Per-office status pill text ────────────────────────────────────────
+             function debtStatusText(row) {
+                 if (row.outstanding_amount <= 0)  return 'Cleared';
+                 if (row.outstanding_amount < row.original_amount) return 'Partial';
+                 return 'Owing';
+             }
 
-                // Build 12 month boxes: Jan..Dec
-                var mNames = ['J','F','M','A','M','J','J','A','S','O','N','D'];
-                var mBoxes = '';
-                for (var i = 0; i < 12; i++) {
-                    var cnt = (row.months && row.months[i]) || 0;
-                    mBoxes += '<span class="da-month-box' + (cnt > 0 ? ' has' : '') + '" title="' + mNames[i] + ': ' + cnt + ' deposit(s)">' + mNames[i] + '</span>';
-                }
+             // ── Per-office status pill HTML ────────────────────────────────────────
+             function debtStatusPill(row) {
+                 var cls = row.outstanding_amount <= 0 ? 'da-status-paid'
+                        : row.outstanding_amount <  row.original_amount ? 'da-status-partial'
+                        : 'da-status-owing';
+                 return '<span class="da-status-pill ' + cls + '">' + debtStatusText(row) + '</span>';
+              }
 
-                html += '<tr class="' + cls + '">'
-                      + '<td>' + (row.deposit_count > 0 ? '<span class="da-badge da-badge-success">' + row.deposit_count + '</span>' : '—') + '</td>'
-                      + '<td>' + row.office_name + '</td>'
-                      + '<td>' + (row.deposit_count > 0 ? row.deposit_count + ' deposit(s)' : '<em>No deposits</em>') + '</td>'
-                      + '<td class="da-amt">' + (row.deposit_count > 0 ? toCurrency(row.total) : '—') + '</td>'
-                      + '<td><div class="da-month-grid">' + mBoxes + '</div></td>'
-                      + '</tr>';
-            });
+              // ── Build per-office month grid from month_boxes[12] ──────────────────
+             function monthGridHtml(row) {
+                 var mNames  = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+                 var boxes   = '';
+                 for (var i = 0; i < 12; i++) {
+                     var active = row.month_boxes && row.month_boxes[i];
+                     boxes += '<span class="da-month-box' + (active ? ' has-debt' : '') + '"'
+                          +   'title="' + mNames[i] + '">'
+                          +   mNames[i]
+                          +   '</span>';
+                 }
+                 return '<div class="da-month-grid">' + boxes + '</div>';
+             }
+
+             // ── Detail sub-row HTML (one per debt month) ──────────────────────────
+             function debtDetailHtml(idx, row) {
+                 var tips = {};
+                 (row.months_detail || []).forEach(function(md) {
+                     var m = (md.month || 1) - 1;
+                     tips[m] = (tips[m] || '') + 'K' + (md.outstanding || 0).toLocaleString();
+                 });
+
+                 var html = '<tr id="daDebtDetail_' + idx + '" class="da-debt-detail-row" data-expanded="false" style="display:none;">'
+                          + '<td colspan="6" style="padding:4px 12px 10px 48px;">';
+
+                 (row.months_detail || []).forEach(function(md, di) {
+                     var mNames   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                     var label    = mNames[(md.month || 1) - 1] + ' ' + (md.year || '');
+                     var statusCls= md.outstanding <= 0 ? 'da-status-paid'
+                                  : md.outstanding < md.original ? 'da-status-partial'
+                                  : 'da-status-owing';
+                     var statusLbl= md.outstanding <= 0 ? 'Cleared'
+                                  : md.outstanding < md.original ? 'Partial'
+                                  : 'Owing';
+                     if (di > 0) html += '<div style="border-top:1px solid #f0e8e8;margin:3px 0;"></div>';
+                     html += '<div style="display:flex;gap:16px;align-items:center;font-size:12px;">'
+                          +   '<span style="font-weight:700;color:#555;min-width:80px;">' + label + '</span>'
+                          +   '<span>Original: <strong>K' + md.original.toLocaleString() + '</strong></span>'
+                          +   '<span>Balance: <strong style="color:#c0392b;">K' + md.outstanding.toLocaleString() + '</strong></span>'
+                          +   '<span class="da-status-pill ' + statusCls + '">' + statusLbl + '</span>'
+                          +   '<span style="color:#777;">' + md.deposit_type + '</span>'
+                          +   (md.notes ? '<span style="color:#999;">' + md.notes + '</span>' : '')
+                          +   '</div>';
+                 });
+
+                 html += '</td></tr>';
+                 return html;
+             }
+
+             // ── Build table ──────────────────────────────────────────────────────
+             var html = '<div class="da-search-row"><i class="fa fa-search"></i>'
+                      + '<input type="text" class="da-office-search"'
+                      +   'placeholder="Filter by branch name, status, original or outstanding amount&hellip;"'
+                      + 'autocomplete="off" spellcheck="false"></div>'
+                      + '<table class="da-office-table"><thead>'
+
+              if (isDebt) {
+                  html += '<tr>'
+                        +   '<th>#</th>'
+                        +   '<th>Office</th>'
+                        +   '<th style="width:130px;">Original</th>'
+                        +   '<th style="width:140px;">Outstanding</th>'
+                        +   '<th>Months in Debt</th>'
+                        +   '<th style="width:90px;">Status</th>'
+                        +   '</tr>';
+              } else {
+                 html += '<tr><th>#</th><th>Office</th><th>Deposits</th><th class="da-amt">Total Amount</th><th>Months</th></tr>';
+             }
+
+             html += '</thead><tbody>';
+
+             var rows = resp.rows;
+             rows.forEach(function(row, idx) {
+                 var cls = isDebt ? debtGroupCls(row) : (function() {
+                     if (row.deposit_count === 0)           return ' da-row-zero';
+                     if (!row.total || row.total === 0)     return ' da-row-warn';
+                     return '';
+                 })();
+
+                    if (isDebt) {
+
+                        // Toggle: expand/collapse per-office debt breakdown
+                        var debtToggleId = 'debtToggle_' + idx;
+
+                        html += '<tr class="' + cls + '"'
+                            +   ' data-idx="' + idx + '"'
+                            +   ' onclick="toggleDebtDetail(' + idx + ', ' + idx + ', \'' + debtToggleId + '\')">'
+                            +   '<td style="cursor:pointer;">'
+                            +   '<span id="' + debtToggleId + '" style="display:inline-block;width:14px;text-align:center;margin-right:4px;color:#667eea;font-size:11px;">&#9658;</span>'
+                            +   row.id
+                            +   '</td>'
+                            +   '<td style="cursor:pointer;font-weight:700;color:#333;">' + row.office_name + '</td>'
+                            +   '<td class="da-amt"  style="cursor:pointer;">K' + row.original_amount.toLocaleString() + '</td>'
+                            +   '<td class="da-amt da-debt-out" style="cursor:pointer;">K' + row.outstanding_amount.toLocaleString() + '</td>'
+                            +   '<td style="cursor:pointer;">' + monthGridHtml(row) + '</td>'
+                            +   '<td style="cursor:pointer;">' + debtStatusPill(row) + '</td>'
+                            +   '</tr>';
+
+                      // Sub-row: per-month particulars
+                      html += debtDetailHtml(idx, row);
+                  } else {
+                     var mNames = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+                     var mBoxes = '';
+                     for (var i = 0; i < 12; i++) {
+                         var cnt = (row.months && row.months[i]) || 0;
+                         mBoxes += '<span class="da-month-box' + (cnt > 0 ? ' has' : '') + '" title="' + mNames[i] + ': ' + cnt + ' deposit(s)">' + mNames[i] + '</span>';
+                     }
+
+                     html += '<tr class="' + cls + '">'
+                           + '<td>' + (row.deposit_count > 0 ? '<span class="da-badge da-badge-success">' + row.deposit_count + '</span>' : '—') + '</td>'
+                           + '<td>' + row.office_name + '</td>'
+                           + '<td>' + (row.deposit_count > 0 ? row.deposit_count + ' deposit(s)' : '<em>No deposits</em>') + '</td>'
+                           + '<td class="da-amt">' + (row.deposit_count > 0 ? toCurrency(row.total) : '—') + '</td>'
+                           + '<td><div class="da-month-grid">' + mBoxes + '</div></td>'
+                           + '</tr>';
+                 }
+             });
 
             html += '</tbody></table>';
+
+             // ── Footer summary (debt only) ───────────────────────────────────────
+             if (isDebt && resp.rows) {
+                 var sumOrig = 0;
+                 var sumOut  = 0;
+                 resp.rows.forEach(function(r) {
+                     sumOrig += (r.original_amount          || 0);
+                     sumOut  += (r.outstanding_amount       || 0);
+                 });
+                 html += '<div style="padding:8px 2px;font-size:12px;color:#888;border-top:1px solid #eef0f7;margin-top:6px;">'
+                       +   '<strong style="color:#333">Total Original: </strong>'
+                       +   'K' + Math.round(sumOrig).toLocaleString()
+                       +   '&nbsp;&nbsp;&nbsp;<strong style="color:#c0392b">Total Outstanding: </strong>'
+                       +   'K' + Math.round(sumOut).toLocaleString()
+                       +   '</div>';
+             }
+
             bodyEl.innerHTML = html;
             bodyEl.dataset.loaded = 'true';
         }).catch(function() {
@@ -398,38 +691,48 @@
 
     // ── OfficeDebt Management ──────────────────────────────────────────────────
     (function() {
-        // Markers
-        var $modal    = $('#odModal');
-        var $shimmer  = $('#odShimmer');
-        var $tableBody= $('#odTableBody');
-        var $formBar  = $('#odFormBar');
-        var $empty    = $('#odEmpty');
+        // Markers (dynamically resolved at call time, not at IIFE init, to avoid stale empty jQuery sets)
         var editId    = function() { return $('#odEditId').val(); };
 
         // Open modal → load data (delegated: survives second jQuery load in master layout)
-        $(document).on('click', '#openOfficeDebtModal', function() {
-            odResetForm();
-            odLoadTable();
-            $modal.modal('show');
+        $(document).on('click', '#openOfficeDebtModal', function(e) {
+            e.preventDefault();
+            try {
+                // Re-resolve $modal at click time so the element is in the DOM
+                var $liveModal = $('#odModal');
+                if (!$liveModal.length) { console.error('odModal not found in DOM'); return; }
+                odResetForm();
+                odLoadTable();
+                $liveModal.modal('show');
+                console.log('odModal shown, length:', $liveModal.length);
+            } catch(e) { console.error('Modal open error:', e.message, e.stack); }
         });
 
         function odResetForm() {
             $('#odInputOffice').val('');
+            $('#odInputDepositType').val('');
+            $('#odInputMonth').val('');
+            $('#odInputYear').val('');
             $('#odInputStatus').val('owing');
             $('#odInputOriginal').val('');
             $('#odInputOutstanding').val('');
             $('#odInputNotes').val('');
             $('#odEditId').val('');
-            $formBar.hide();
+            $('#odFormBar').hide();
         }
 
         function odShowForm() {
-            $formBar[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            $formBar.show();
+            var $fb = $('#odFormBar');
+            $fb[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            $fb.show();
         }
 
         // ── Load table ──
         function odLoadTable() {
+            var $tableBody = $('#odTableBody');
+            var $empty     = $('#odEmpty');
+            var $shimmer   = $('#odShimmer');
+
             $tableBody.empty();
             $empty.hide();
             $shimmer.show();
@@ -470,8 +773,17 @@
                 catch(e) { return row.original_amount; }
             })();
 
+            var monthLabel = row.debt_month && row.debt_year
+                ? (function() {
+                      var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                      return (m[row.debt_month - 1] || row.debt_month) + ' ' + row.debt_year;
+                  })()
+                : '—';
+
             return '<tr class="od-debt-row" data-id="' + row.id + '">'
                  + '<td>' + (row.office_name || '—') + '</td>'
+                 + '<td>' + (row.deposit_type_name || '—') + '</td>'
+                 + '<td>' + monthLabel + '</td>'
                  + '<td><span class="od-status-pill ' + cls + '">' + row.debt_status + '</span></td>'
                  + '<td>' + original + '</td>'
                  + '<td style="font-weight:700;color:' + (cls === 'owing' ? '#c0392b' : (cls === 'partial' ? '#f39c12' : '#27ae60')) + ';">' + balance + '</td>'
@@ -500,6 +812,9 @@
 
                 $('#odEditId').val(id);
                 $('#odInputOffice').val(row.office_id);
+                $('#odInputDepositType').val(row.deposit_type_id || '');
+                $('#odInputMonth').val(row.debt_month ?? '');
+                $('#odInputYear').val(row.debt_year  ?? '');
                 $('#odInputStatus').val(row.debt_status);
                 $('#odInputOriginal').val(row.original_amount);
                 $('#odInputOutstanding').val(row.outstanding_amount);
@@ -507,7 +822,8 @@
                 odShowForm();
 
                 // Scroll form into view
-                $tableBody.find('tr[data-id="' + id + '"]')[0] && $tableBody.find('tr[data-id="' + id + '"]')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                var $tBody = $('#odTableBody');
+                $tBody.find('tr[data-id="' + id + '"]')[0] && $tBody.find('tr[data-id="' + id + '"]')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
             });
         };
 
@@ -528,11 +844,14 @@
 
         // ── Save (create / update) ──
         $(document).on('click', '#odBtnSaveForm', function() {
-            var officeId    = $('#odInputOffice').val();
-            var status      = $('#odInputStatus').val();
-            var original    = $('#odInputOriginal').val();
-            var outstanding = $('#odInputOutstanding').val();
-            var notes       = $('#odInputNotes').val();
+            var officeId      = $('#odInputOffice').val();
+            var depositTypeId = $('#odInputDepositType').val();
+            var month         = $('#odInputMonth').val();
+            var year          = $('#odInputYear').val();
+            var status        = $('#odInputStatus').val();
+            var original      = $('#odInputOriginal').val();
+            var outstanding   = $('#odInputOutstanding').val();
+            var notes         = $('#odInputNotes').val();
 
             if (!officeId || !original || outstanding === '') {
                 alert('Please fill in Branch, Original Amount and Outstanding Amount.');
@@ -549,12 +868,15 @@
                 url: url,
                 type: type,
                 data: {
-                    _token:            '{{ csrf_token() }}',
-                    office_id:         officeId,
-                    debt_status:       status,
-                    original_amount:   original,
-                    outstanding_amount:outstanding,
-                    notes:             notes,
+                    _token:              '{{ csrf_token() }}',
+                    office_id:           officeId,
+                    deposit_type_id:     depositTypeId || null,
+                    debt_month:          month ? parseInt(month) : null,
+                    debt_year:           year  ? parseInt(year)  : null,
+                    debt_status:         status,
+                    original_amount:     original,
+                    outstanding_amount:  outstanding,
+                    notes:               notes,
                 },
             }).done(function(r) {
                 if (r.success) {
@@ -622,6 +944,43 @@
                             </select>
                         </div>
                         <div class="od-form-group">
+                            <label>Deposit Type</label>
+                            <select id="odInputDepositType">
+                                <option value="">Optional — select a deposit type…</option>
+                                <?php
+                                    $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get();
+                                    foreach ($depositTypes as $dt) {
+                                        echo '<option value="' . $dt->id . '">' . htmlspecialchars($dt->name) . '</option>';
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="od-form-group">
+                                <label>Month</label>
+                                <select id="odInputMonth">
+                                    <option value="">—</option>
+                                    <?php
+                                        $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                                        foreach ($months as $i => $m) {
+                                            echo '<option value="' . ($i + 1) . '">' . $m . '</option>';
+                                        }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="od-form-group">
+                                <label>Year</label>
+                                <select id="odInputYear">
+                                    <option value="">—</option>
+                                    <?php
+                                        $thisYear = (int) date('Y');
+                                        for ($y = $thisYear; $y >= $thisYear - 5; $y--) {
+                                            echo '<option value="' . $y . '">' . $y . '</option>';
+                                        }
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="od-form-group">
                             <label>Status</label>
                             <select id="odInputStatus">
                                 <option value="owing">Owing</option>
@@ -663,6 +1022,8 @@
                         <thead>
                             <tr>
                                 <th>Branch</th>
+                                <th>Deposit Type</th>
+                                <th>Month / Year</th>
                                 <th>Status</th>
                                 <th>Original (ZMW)</th>
                                 <th>Outstanding (ZMW)</th>
