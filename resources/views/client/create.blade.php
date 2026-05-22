@@ -3,9 +3,65 @@
     {{ trans_choice('general.add',1) }} {{ trans_choice('general.client',1) }}
 @endsection
 @section('content')
-    <div class="box box-primary">
-        <div class="box-header with-border">
-            <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.client',1) }}</h3>
+  <div
+class="box"
+
+style="
+border:none;
+border-radius:20px;
+overflow:hidden;
+background:white;
+box-shadow:
+0 20px 40px rgba(
+0,
+0,
+0,
+.08
+);
+">
+        <div
+
+class="box-header"
+
+style="
+
+background:
+
+linear-gradient(
+
+135deg,
+
+#3c8dbc,
+
+#00c0ef
+
+);
+
+padding:
+
+25px;
+
+border:none;
+
+color:white;
+
+">
+            <h3
+
+class="box-title"
+
+style="
+
+font-size:
+
+24px;
+
+font-weight:
+
+700;
+
+">
+{{ trans_choice('general.add',1) }} {{ trans_choice('general.client',1) }}</h3>
 
             <div class="box-tools pull-right">
                 <button onclick="window.history.back()" class="btn btn-info btn-sm">
@@ -15,7 +71,22 @@
         </div>
         <form method="post" action="{{url('client/store')}}" class="form-horizontal" enctype="multipart/form-data">
             {{csrf_field()}}
-            <div class="box-body">
+            <div
+
+class="box-body"
+
+style="
+
+padding:
+
+35px;
+
+background:
+
+#fafafa;
+
+">
+
                 <div class="form-group">
                     <label for="office_id"
                            class="control-label col-md-2">{{trans_choice('general.branch',1)}}</label>
@@ -107,6 +178,37 @@
                         <input type="text" name="mobile" class="form-control"
                                value="{{old('mobile')}}"
                                required id="mobile">
+                               <small
+
+style="
+
+display:
+
+block;
+
+margin-top:
+
+8px;
+
+font-size:
+
+12px;
+
+color:
+
+#888;
+
+">
+
+🔒 Identity verification powered by
+
+<b>
+
+Withinhere
+
+</b>
+
+</small>
                     </div>
                     <label for="phone"
                            class="control-label col-md-2">{{trans_choice('general.phone',1)}}</label>
@@ -308,10 +410,251 @@
             <!-- /.box-body -->
             <div class="box-footer">
                 <div class="heading-elements">
-                    <button type="submit" class="btn btn-primary pull-right">{{trans_choice('general.save',1)}}</button>
+                    <button
+
+type="submit"
+
+class="btn btn-primary pull-right"
+
+style="
+
+padding:
+
+14px 35px;
+
+border-radius:
+
+12px;
+
+font-weight:
+
+700;
+
+font-size:
+
+15px;
+
+box-shadow:
+
+0 10px 20px rgba(
+
+60,
+141,
+188,
+
+.2
+
+);
+
+">
+{{trans_choice('general.save',1)}}</button>
                 </div>
             </div>
         </form>
+<div
+class="modal fade"
+
+id="verificationModal"
+
+tabindex="-1">
+
+<div
+
+class="modal-dialog modal-sm"
+
+style="
+
+margin-top:
+
+8%;
+
+">
+
+<div
+
+class="modal-content"
+
+style="
+
+border:none;
+
+border-radius:
+
+20px;
+
+overflow:
+
+hidden;
+
+box-shadow:
+
+0 20px 50px rgba(
+
+0,
+0,
+0,
+
+.15
+
+);
+
+">
+
+<div
+
+class="modal-header"
+
+style="
+
+background:
+
+linear-gradient(
+
+135deg,
+
+#3c8dbc,
+
+#00c0ef
+
+);
+
+padding:
+
+22px;
+
+border:none;
+
+color:white;
+
+">
+
+<button
+
+type="button"
+
+class="close"
+
+data-dismiss="modal"
+
+style="
+
+color:
+
+white;
+
+opacity:
+
+1;
+
+">
+
+×
+
+</button>
+
+
+<h4
+
+class="modal-title"
+
+style="
+
+font-weight:
+
+700;
+
+">
+
+Identity Verification
+
+</h4>
+
+</div>
+
+
+
+<div
+
+id="verificationBody"
+
+class="modal-body"
+
+style="
+
+padding:
+
+35px;
+
+text-align:
+
+center;
+
+font-size:
+
+16px;
+
+">
+
+</div>
+
+
+
+<div
+
+class="modal-footer"
+
+style="
+
+border:none;
+
+padding:
+
+20px;
+
+">
+
+<button
+
+type="button"
+
+class="btn btn-primary"
+
+data-dismiss="modal"
+
+style="
+
+width:
+
+100%;
+
+padding:
+
+14px;
+
+border-radius:
+
+12px;
+
+font-weight:
+
+700;
+
+">
+
+Continue
+
+</button>
+
+</div>
+
+
+
+</div>
+
+</div>
+
+</div>
+
     </div>
 @endsection
 @section('footer-scripts')
@@ -416,6 +759,808 @@
         });
 
         var date = $('#dob').datepicker({ dateFormat: 'yy-mm-dd' }).val();
+// =========================
+// PHONE FRAUD VERIFICATION
+// =========================
+
+function normalizeName(name) {
+
+    return name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g,' ');
+
+}
+
+
+// Determine operator
+function getOperator(phoneNumber){
+
+    let thirdDigit =
+        phoneNumber.charAt(2);
+
+
+    switch(thirdDigit){
+
+        case "7":
+            return "airtel";
+
+        case "6":
+            return "mtn";
+
+        case "5":
+            return "zamtel";
+
+        default:
+            return null;
+
+    }
+
+}
+
+
+
+
+function verifyPhone(phoneNumber){
+
+
+    let firstName =
+
+        $("#first_name")
+        .val()
+
+        ||
+
+        "";
+
+
+
+    let lastName =
+
+        $("#last_name")
+        .val()
+
+        ||
+
+        "";
+
+
+
+    let enteredName =
+
+        normalizeName(
+
+            firstName +
+
+            " " +
+
+            lastName
+
+        );
+
+
+
+
+    let operator =
+
+        getOperator(
+
+            phoneNumber
+
+        );
+
+
+
+
+    if(
+
+        !firstName ||
+
+        !lastName ||
+
+        !operator
+
+    ){
+
+        return;
+
+    }
+
+
+
+    // prettier loading state
+
+    $("#verificationBody")
+    .html(`
+
+        <div
+        style="
+        font-size:
+        55px;
+        margin-bottom:
+        20px;
+        ">
+
+        ⏳
+
+        </div>
+
+
+        <h3>
+
+        Verifying Identity
+
+        </h3>
+
+
+        <p>
+
+        Checking registered mobile owner...
+
+        </p>
+
+    `);
+
+
+
+    $("#verificationModal")
+    .modal(
+        "show"
+    );
+
+
+
+
+    $.ajax({
+
+
+        url:
+
+        "https://withinheremobileapi.com/api/v1/payment/resolve/mobile",
+
+
+
+        type:
+
+        "POST",
+
+
+
+        contentType:
+
+        "application/json",
+
+
+
+        data:
+
+        JSON.stringify({
+
+            phone:
+
+            phoneNumber,
+
+            operator:
+
+            operator
+
+        }),
+
+
+
+
+        success:function(response){
+
+
+
+            let apiName =
+
+
+                normalizeName(
+
+                    response.data.accountName
+
+                    ||
+
+                    ""
+
+                );
+
+
+
+
+            let match =
+
+
+                apiName.includes(
+
+                    enteredName
+
+                )
+
+                ||
+
+                enteredName.includes(
+
+                    apiName
+
+                );
+
+
+
+
+
+            if(match){
+
+
+                $("#verificationBody")
+
+                .html(`
+
+
+                    <div
+
+                    style="
+
+                    font-size:
+
+                    65px;
+
+                    margin-bottom:
+
+                    20px;
+
+                    ">
+
+                    ✅
+
+                    </div>
+
+
+
+
+                    <h3>
+
+                    Identity Verified
+
+                    </h3>
+
+
+
+
+                    <p>
+
+                    Registered Name:
+
+                    <br>
+
+                    <b>
+
+                    ${response.data.accountName}
+
+                    </b>
+
+                    </p>
+
+
+
+
+                    <p>
+
+                    Network:
+
+                    <b>
+
+                    ${response.data.operator.toUpperCase()}
+
+                    </b>
+
+                    </p>
+
+
+
+
+                    <div
+
+                    style="
+
+                    background:
+
+                    #eaf8ee;
+
+                    padding:
+
+                    12px;
+
+                    border-radius:
+
+                    10px;
+
+                    color:
+
+                    #1e7e34;
+
+                    font-weight:
+
+                    600;
+
+                    margin-top:
+
+                    20px;
+
+                    ">
+
+                    ✓ Names Match
+
+                    </div>
+
+                    <div
+
+style="
+
+margin-top:
+
+18px;
+
+font-size:
+
+12px;
+
+color:
+
+#888;
+
+">
+
+Powered by
+
+<b>
+
+Withinhere
+
+</b>
+
+</div>
+
+                `);
+
+
+
+            }else{
+
+
+
+                $("#verificationBody")
+
+                .html(`
+
+
+                    <div
+
+                    style="
+
+                    font-size:
+
+                    65px;
+
+                    margin-bottom:
+
+                    20px;
+
+                    ">
+
+                    ⚠️
+
+                    </div>
+
+
+
+
+                    <h3>
+
+                    Verification Warning
+
+                    </h3>
+
+
+
+
+                    <p>
+
+                    Name Entered:
+
+                    <br>
+
+                    <b>
+
+                    ${firstName}
+
+                    ${lastName}
+
+                    </b>
+
+                    </p>
+
+
+
+
+                    <p>
+
+                    Registered Name:
+
+                    <br>
+
+                    <b>
+
+                    ${response.data.accountName}
+
+                    </b>
+
+                    </p>
+
+
+
+
+                    <p>
+
+                    Network:
+
+                    <b>
+
+                    ${response.data.operator.toUpperCase()}
+
+                    </b>
+
+                    </p>
+
+
+
+
+                    <div
+
+                    style="
+
+                    background:
+
+                    #fff4e5;
+
+                    padding:
+
+                    12px;
+
+                    border-radius:
+
+                    10px;
+
+                    color:
+
+                    #b76e00;
+
+                    font-weight:
+
+                    600;
+
+                    margin-top:
+
+                    20px;
+
+                    ">
+
+                    ⚠ Names Do Not Match
+
+                    </div>
+
+                    <div
+
+style="
+
+margin-top:
+
+18px;
+
+font-size:
+
+12px;
+
+color:
+
+#888;
+
+">
+
+Powered by
+
+<b>
+
+Withinhere
+
+</b>
+
+</div>
+
+                `);
+
+
+            }
+
+
+
+        },
+
+
+
+
+        error:function(){
+
+
+
+            $("#verificationBody")
+
+            .html(`
+
+
+                <div
+
+                style="
+
+                font-size:
+
+                65px;
+
+                margin-bottom:
+
+                20px;
+
+                ">
+
+                ❌
+
+                </div>
+
+
+
+
+                <h3>
+
+                Verification Failed
+
+                </h3>
+
+
+
+
+                <div
+
+                style="
+
+                background:
+
+                #fdecec;
+
+                padding:
+
+                12px;
+
+                border-radius:
+
+                10px;
+
+                color:
+
+                #c53030;
+
+                font-weight:
+
+                600;
+
+                ">
+
+                Unable to verify this number
+
+                </div>
+
+                <div
+
+style="
+
+margin-top:
+
+18px;
+
+font-size:
+
+12px;
+
+color:
+
+#888;
+
+">
+
+Powered by
+
+<b>
+
+Withinhere
+
+</b>
+
+</div>
+
+            `);
+
+
+
+        }
+
+
+
+    });
+
+
+
+}
+
+
+
+
+
+// ======================================
+// Trigger verification
+// ======================================
+
+
+let verificationTimeout;
+
+
+
+function triggerVerification(){
+
+
+    clearTimeout(
+
+        verificationTimeout
+
+    );
+
+
+
+
+    verificationTimeout =
+
+
+    setTimeout(()=>{
+
+
+
+        let phone =
+
+
+            $("#mobile")
+
+            .val()
+
+            ||
+
+            $("#phone")
+
+            .val()
+
+            ||
+
+            "";
+
+
+
+        phone =
+
+
+            phone.replace(
+
+                /\D/g,
+
+                ""
+
+            );
+
+
+
+
+
+        let firstName =
+
+
+            $("#first_name")
+
+            .val()
+
+            ?.trim()
+
+            ||
+
+            "";
+
+
+
+
+        let lastName =
+
+
+            $("#last_name")
+
+            .val()
+
+            ?.trim()
+
+            ||
+
+            "";
+
+
+
+
+        if(
+
+            phone.length !== 10
+
+            ||
+
+            !firstName
+
+            ||
+
+            !lastName
+
+        ){
+
+            return;
+
+        }
+
+
+
+
+        verifyPhone(
+
+            phone
+
+        );
+
+
+
+    },300);
+
+
+
+}
+
+
+
+
+// Verify when anything changes
+
+
+$("#mobile")
+
+.on(
+
+    "input",
+
+    triggerVerification
+
+);
+
+
+
+$("#first_name,#last_name")
+
+.on(
+
+    "input",
+
+    triggerVerification
+
+);
     </script>
 @endsection
 

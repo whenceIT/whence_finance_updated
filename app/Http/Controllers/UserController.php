@@ -301,6 +301,24 @@ public function bmdashboard(Request $request){
 
     public function poadashboard(Request $request)
     {
+
+
+       try {
+
+                $endpoint = "https://lms2backend.whencefinancesystem.com/all-target-data";
+
+                $ch = curl_init($endpoint);
+
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 3); // don’t slow system
+                curl_exec($ch);
+                curl_close($ch);
+
+            } catch (\Exception $e) {
+                // Fail silently – system must continue
+            }
+            
         // ✅ DEFAULT CYCLE (25 → 24)
         $today = Carbon::today();
 

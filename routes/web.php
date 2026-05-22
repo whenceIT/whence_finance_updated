@@ -518,6 +518,10 @@ Route::group(['prefix' => 'client'], function () {
     Route::post('{id}/transfer', 'ClientController@transfer');
     Route::get('{id}/active', 'ClientController@active');
     Route::get('{id}/account', 'ClientController@account');
+    Route::get('verify_client_number','ClientController@verifyClientNumber');
+    Route::get('transfer_approvals','ClientController@client_transfer_approvals');
+    Route::get('{id}/approve_transfer','ClientController@approve_transfer');
+    Route::get('{id}/delete_transfer','ClientController@delete_transfer');
     Route::any('{id}/location/store','ClientController@store_client_location');
     //identification
     Route::post('{id}/identification/store', 'ClientController@store_client_identification');
@@ -740,7 +744,6 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('recovery_case_approvals', 'Recoveries\RecoveryCaseController@recoveryCaseApprovals');
     Route::get('recovery_case_approve/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseApprove');
     Route::get('recovery_case_decline/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseDecline');
-    Route::get('top_up_approvals', 'LoanController@top_up_approvals');
     Route::get('pending_client_app_applications','LoanController@pending_client_app_applications');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
@@ -1287,6 +1290,7 @@ Route::group(['prefix' => 'other_income'], function () {
 
 Route::group(['prefix' => 'advance'], function () {
     Route::get('apply', 'AdvanceController@showApplyForm')->name('advances.apply');
+    Route::get('top_up_approvals', 'LoanController@top_up_approvals');
     Route::post('submit', 'AdvanceController@submitAdvance')->name('advances.submit');
     Route::get('my_advances', 'AdvanceController@showMyAdvances')->name('advances.my_advances');
     Route::post('{id}/approve', 'AdvanceController@approve')->name('advances.approve');

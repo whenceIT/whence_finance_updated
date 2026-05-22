@@ -140,7 +140,7 @@
 
 			          @if(Sentinel::hasAccess('expenses'))
                             <li>
-                                <a href="{{ url('loan/top_up_approvals') }}"><i
+                                <a href="{{ url('advance/top_up_approvals') }}"><i
                                             class="fa fa-circle-o"></i> Top Ups Pending Approval
                                     <span class="pull-right-container">
                                     <?php
