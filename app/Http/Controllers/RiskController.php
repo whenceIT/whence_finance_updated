@@ -1069,6 +1069,7 @@ class RiskController extends Controller
                 'office_id'         => $row->office_id,
                 'office_name'       => $row->office->name ?? '—',
                 'deposit_type_id'   => $row->deposit_type_id,
+                'deposit_type_name' => $row->depositType ? $row->depositType->name : '—',
                 'debt_status'       => $row->debt_status,
                 'debt_month'        => $row->debt_month,
                 'debt_year'         => $row->debt_year,

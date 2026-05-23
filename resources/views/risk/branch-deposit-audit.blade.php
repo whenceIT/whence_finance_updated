@@ -199,6 +199,24 @@
     #odTable tbody td { vertical-align: middle; }
     .od-debt-row td { border-top: 1px solid #eee; }
 
+    /* Make the debt table vertically scrollable with sticky header */
+    #odModal .table-responsive {
+        max-height: 480px;
+        overflow-y: auto;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+    }
+
+    #odModal #odTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #667eea;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
     /* Status pill badge styling */
     .od-status-pill {
         display: inline-block; padding: 2px 10px; border-radius: 12px;
@@ -238,7 +256,7 @@
         <h1><i class="fa fa-history"></i> Branch Deposit Audit</h1>
         <p>Click a deposit type to expand and view all offices, including those with no deposits, for that type.</p>
         <a href="#odModal" id="openOfficeDebtModal" class="btn btn-primary btn-sm" style="border-radius:6px;text-decoration:none;color:#fff;">
-            <i class="fa fa-balance-scale"></i> Office Debt Management
+            <i class="fa fa-balance-scale"></i>Edit Office Debt
         </a>
     </div>
 
@@ -911,11 +929,11 @@
             var balance = row.outstanding_amount <= 0
                 ? '—'
                 : (function() {
-                    try { return parseFloat(row.outstanding_amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' }); }
+                    try { return parseFloat(row.outstanding_amount).toLocaleString('en-US', { style: 'currency', currency: 'ZMW' }); }
                     catch(e) { return row.outstanding_amount; }
                   })();
             var original = (function() {
-                try { return parseFloat(row.original_amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' }); }
+                try { return parseFloat(row.original_amount).toLocaleString('en-US', { style: 'currency', currency: 'ZMW' }); }
                 catch(e) { return row.original_amount; }
             })();
 
@@ -936,7 +954,7 @@
                  + '<td style="color:#777;font-size:12px;">' + (row.notes || '') + '</td>'
                  + '<td class="od-actions">'
                  + '<button class="od-btn od-btn-edit"  title="Edit"   onclick="odEdit(' + row.id + ')"><i class="fa fa-pencil"></i></button> '
-                 + '<button class="od-btn od-btn-del"   title="Delete" onclick="odDel(' + row.id + ')"><i class="fa fa-trash"></i></button>'
+                //  + '<button class="od-btn od-btn-del"   title="Delete" onclick="odDel(' + row.id + ')"><i class="fa fa-trash"></i></button>'
                  + '</td>'
                  + '</tr>';
         }
@@ -1069,7 +1087,7 @@
 
             <div class="modal-header">
                 <h4 class="modal-title" id="odModalLabel">
-                    <i class="fa fa-balance-scale"></i> Office Debt Management
+                    <i class="fa fa-balance-scale"></i> Edit Office Debt
                 </h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -1078,21 +1096,6 @@
 
             <div class="modal-body" style="overflow-y:auto;padding:20px 24px;">
 
-                <!-- Shimmer loading state -->
-                <div id="odShimmer">
-                    <div style="animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;height:14px;margin-bottom:14px;border-radius:4px;"></div>
-                    @php $shimmer = 8; @endphp
-                    @for($i = 0; $i < $shimmer; $i++)
-                    <div style="display:flex;gap:10px;margin-bottom:8px;">
-                        <div style="width:22%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:18%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:14%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:16%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                    </div>
-                    @endfor
-                </div>
 
                 <!-- Add / Edit form bar (toggles with list view) -->
                 <div id="odFormBar" style="display:none;margin-bottom:16px;">
@@ -1215,6 +1218,21 @@
 
             </div><!-- /.modal-body -->
 
+                <!-- Shimmer loading state -->
+                <div id="odShimmer">
+                    <div style="animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;height:14px;margin-bottom:14px;border-radius:4px;"></div>
+                    @php $shimmer = 4; @endphp
+                    @for($i = 0; $i < $shimmer; $i++)
+                    <div style="display:flex;gap:10px;margin-bottom:8px;">
+                        <div style="width:22%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:18%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:14%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                        <div style="width:16%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
+                    </div>
+                    @endfor
+                </div>
         </div>
     </div>
 </div>
