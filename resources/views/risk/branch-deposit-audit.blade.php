@@ -822,6 +822,9 @@
         // Markers (dynamically resolved at call time, not at IIFE init, to avoid stale empty jQuery sets)
         var editId    = function() { return $('#odEditId').val(); };
 
+        // In-memory data for search + export
+        var odAllRows = [];
+
         // Open modal → load data (delegated: survives second jQuery load in master layout)
         $(document).on('click', '#openOfficeDebtModal', function(e) {
             e.preventDefault();
@@ -903,18 +906,20 @@
 
             $.get('{{ route("risk.office-debts.list") }}', function(resp) {
                 $shimmer.hide();
+                odAllRows = resp || [];
 
-                if (!resp || resp.length === 0) {
+                // Clear any previous search
+                $('#odSearchInput').val('');
+
+                if (odAllRows.length === 0) {
                     $empty.show();
                     return;
                 }
 
-                resp.forEach(function(row) {
-                    $tableBody.append(odRowHtml(row));
-                });
+                odRenderDebtTable(odAllRows);
             }).fail(function() {
                 $shimmer.hide();
-                $tableBody.html('<tr><td colspan="6" style="padding:20px;text-align:center;color:#c0392b;">Error loading debt records. Try again.</td></tr>');
+                $tableBody.html('<tr><td colspan="8" style="padding:20px;text-align:center;color:#c0392b;">Error loading debt records. Try again.</td></tr>');
             });
         }
 
@@ -956,16 +961,109 @@
                  + '<button class="od-btn od-btn-edit"  title="Edit"   onclick="odEdit(' + row.id + ')"><i class="fa fa-pencil"></i></button> '
                 //  + '<button class="od-btn od-btn-del"   title="Delete" onclick="odDel(' + row.id + ')"><i class="fa fa-trash"></i></button>'
                  + '</td>'
-                 + '</tr>';
-        }
+                  + '</tr>';
+         }
 
-        // ── New Record ──
-        $(document).on('click', '#odBtnNewRow', function() {
-            odResetForm();
-            odShowForm(false);
-        });
+         // ── Render (with optional filter) ──
+         function odRenderDebtTable(rows) {
+             var $tableBody = $('#odTableBody');
+             $tableBody.empty();
 
-        // ── Cancel new/edit ──
+             if (!rows || rows.length === 0) {
+                 $tableBody.html('<tr><td colspan="8" style="padding:20px;text-align:center;color:#888;">No matching records</td></tr>');
+                 return;
+             }
+
+             rows.forEach(function(row) {
+                 $tableBody.append(odRowHtml(row));
+             });
+         }
+
+         // ── Export Helper (CSV, opens as Excel) ──
+         function odExportToCSV(rows) {
+             if (!rows || rows.length === 0) return;
+
+             var headers = ['Branch', 'Deposit Type', 'Month/Year', 'Status', 'Original', 'Outstanding', 'Notes'];
+             var csvRows = [];
+
+             // Header row
+             csvRows.push(headers.join(','));
+
+             rows.forEach(function(row) {
+                 var monthLabel = row.debt_month && row.debt_year
+                     ? (['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][row.debt_month - 1] || row.debt_month) + ' ' + row.debt_year
+                     : '';
+
+                 var line = [
+                     '"' + (row.office_name || '').replace(/"/g, '""') + '"',
+                     '"' + (row.deposit_type_name || '').replace(/"/g, '""') + '"',
+                     '"' + monthLabel + '"',
+                     '"' + (row.debt_status || '') + '"',
+                     row.original_amount || 0,
+                     row.outstanding_amount || 0,
+                     '"' + (row.notes || '').replace(/"/g, '""') + '"'
+                 ];
+                 csvRows.push(line.join(','));
+             });
+
+             var csvContent = csvRows.join('\n');
+             var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+             var link = document.createElement('a');
+             var url = URL.createObjectURL(blob);
+             link.href = url;
+             link.download = 'office_debts_' + new Date().toISOString().slice(0,10) + '.csv';
+             link.style.visibility = 'hidden';
+             document.body.appendChild(link);
+             link.click();
+             document.body.removeChild(link);
+         }
+
+         // ── New Record ──
+         $(document).on('click', '#odBtnNewRow', function() {
+             odResetForm();
+             odShowForm(false);
+         });
+
+         // ── Live Search Filter ──
+         $(document).on('input', '#odSearchInput', function() {
+             var term = $(this).val().toLowerCase().trim();
+
+             if (!odAllRows || odAllRows.length === 0) return;
+
+             var filtered = odAllRows.filter(function(row) {
+                 return (row.office_name || '').toLowerCase().includes(term) ||
+                        (row.deposit_type_name || '').toLowerCase().includes(term) ||
+                        (row.debt_status || '').toLowerCase().includes(term) ||
+                        (row.notes || '').toLowerCase().includes(term);
+             });
+
+             odRenderDebtTable(filtered);
+         });
+
+         // ── Export to Excel (CSV) ──
+         $(document).on('click', '#odBtnExport', function() {
+             if (!odAllRows || odAllRows.length === 0) {
+                 alert('No data to export.');
+                 return;
+             }
+
+             // Use currently visible rows if search is active, otherwise all
+             var searchTerm = ($('#odSearchInput').val() || '').toLowerCase().trim();
+             var dataToExport = odAllRows;
+
+             if (searchTerm) {
+                 dataToExport = odAllRows.filter(function(row) {
+                     return (row.office_name || '').toLowerCase().includes(searchTerm) ||
+                            (row.deposit_type_name || '').toLowerCase().includes(searchTerm) ||
+                            (row.debt_status || '').toLowerCase().includes(searchTerm) ||
+                            (row.notes || '').toLowerCase().includes(searchTerm);
+                 });
+             }
+
+             odExportToCSV(dataToExport);
+         });
+
+         // ── Cancel new/edit ──
         $(document).on('click', '#odBtnCancelForm', function() {
             odResetForm();
             odShowList();
@@ -1184,13 +1282,22 @@
                      <input type="hidden" id="odEditId" value="">
                  </div>
 
-                 <!-- List header (visible in list view, hidden in form view) -->
-                 <!-- <div id="odListHeader" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                     <h4 style="margin:0;font-size:14px;font-weight:700;color:#333;">Branch Debt Records</h4>
-                     <button class="od-btn od-btn-save" id="odBtnNewRow" style="padding:6px 14px;font-size:13px;font-weight:600;">
-                         <i class="fa fa-plus"></i> New Record
-                     </button>
-                 </div> -->
+                  <!-- List header with search + export -->
+                  <div id="odListHeader" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:12px; flex-wrap:wrap;">
+                      <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:240px;">
+                          <h4 style="margin:0; font-size:14px; font-weight:700; color:#333;">Branch Debt Records</h4>
+                          <input type="text" id="odSearchInput" placeholder="Search office, type or notes..." 
+                                 style="padding:5px 10px; border:1px solid #ccc; border-radius:4px; font-size:12px; width:240px; max-width:100%;">
+                      </div>
+                      <div style="display:flex; gap:8px; align-items:center;">
+                          <button type="button" id="odBtnExport" class="od-btn od-btn-save" style="padding:6px 12px; font-size:12px; font-weight:600;">
+                              <i class="fa fa-file-excel-o"></i> Export Excel
+                          </button>
+                          <button type="button" id="odBtnNewRow" class="od-btn od-btn-save" style="padding:6px 14px; font-size:13px; font-weight:600;">
+                              <i class="fa fa-plus"></i> New Record
+                          </button>
+                      </div>
+                  </div>
 
                 <!-- Data table -->
                 <div class="table-responsive">
