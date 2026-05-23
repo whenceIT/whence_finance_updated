@@ -1173,8 +1173,16 @@ class RiskController extends Controller
         $customYear   = (int) $request->query('custom_year', date('Y'));
         $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
         $selectedOfficeName = $officeId ? optional(\App\Models\Office::find($officeId))->name : null;
+        $startDate    = $request->query('start_date');
+        $endDate      = $request->query('end_date');
 
         [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
+
+        // Support direct start/end date for custom period (new date picker UI)
+        if ($period === 'custom' && $startDate && $endDate) {
+            $dateFrom = $startDate;
+            $dateTo   = $endDate;
+        }
 
         // 1. All offices (sorted) — full list for the dropdown
         $offices = \App\Models\Office::orderBy('name')->get();
@@ -1290,10 +1298,11 @@ class RiskController extends Controller
                 $totRecv += $received;
 
                 $depositCardStats[] = [
-                    'label'     => $type->name,
-                    'required'  => $required,
-                    'received'  => (int) $received,
-                    'balance'   => $balance,
+                    'label'      => $type->name,
+                    'sort_order' => $type->sort_order ?? 0,
+                    'required'   => $required,
+                    'received'   => (int) $received,
+                    'balance'    => $balance,
                 ];
             }
         } else {
@@ -1314,13 +1323,21 @@ class RiskController extends Controller
                 $totRecv += $received;
 
                 $depositCardStats[] = [
-                    'label'     => $type->name,
-                    'required'  => $required,
-                    'received'  => (int) $received,
-                    'balance'   => $balance,
+                    'label'      => $type->name,
+                    'sort_order' => $type->sort_order ?? 0,
+                    'required'   => $required,
+                    'received'   => (int) $received,
+                    'balance'    => $balance,
                 ];
             }
         }
+
+        // Grand total card should only count "compliance" types.
+        // The last 3 special deposit types (no monthly requirement) are excluded
+        // from Required and from the overall Balance calculation.
+        $complianceStats = array_slice($depositCardStats, 0, -3);
+        $totReq  = array_sum(array_column($complianceStats, 'required'));
+        $totRecv = array_sum(array_column($complianceStats, 'received'));
 
         $depositCardTotals = [
             'label'     => 'All Types (Total)',
@@ -1333,7 +1350,9 @@ class RiskController extends Controller
             ->with('period', $period)
             ->with('customMonth', $customMonth)
             ->with('customYear', $customYear)
-            ->with('selectedOfficeName', $selectedOfficeName);
+            ->with('selectedOfficeName', $selectedOfficeName)
+            ->with('startDate', $startDate)
+            ->with('endDate', $endDate);
     }
 
     /**
@@ -1438,8 +1457,15 @@ class RiskController extends Controller
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
         $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
+        $startDate    = $request->query('start_date');
+        $endDate      = $request->query('end_date');
 
         [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
+
+        if ($period === 'custom' && $startDate && $endDate) {
+            $dateFrom = $startDate;
+            $dateTo   = $endDate;
+        }
 
         $offices  = \App\Models\Office::orderBy('name')->get();
         if ($officeId !== null) {
@@ -1536,8 +1562,15 @@ class RiskController extends Controller
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
         $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
+        $startDate    = $request->query('start_date');
+        $endDate      = $request->query('end_date');
 
         [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
+
+        if ($period === 'custom' && $startDate && $endDate) {
+            $dateFrom = $startDate;
+            $dateTo   = $endDate;
+        }
 
         $query = \App\Models\OfficeDebt::with(['office', 'depositType'])
             ->where('outstanding_amount', '>', 0);

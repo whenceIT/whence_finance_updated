@@ -271,26 +271,11 @@
         </select>
 
         <div id="da-custom-row" class="da-custom-row" style="display:<?= $currentPeriod === 'custom' ? 'flex' : 'none' ?>">
-            <select id="da-month">
-                <?php
-                    $curMonth = $customMonth ?? date('n');
-                    $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    foreach ($months as $i => $m) {
-                        $v = $i + 1;
-                        echo '<option value="' . $v . '"' . ($curMonth === $v ? ' selected' : '') . '>' . $m . '</option>';
-                    }
-                ?>
-            </select>
+            <label style="font-size:11px;white-space:nowrap;margin-right:2px;">From</label>
+            <input type="date" id="da-start-date" value="<?= e($startDate ?? '') ?>" style="font-size:12px;padding:2px 6px;border:1px solid #c7cfdf;border-radius:3px;">
 
-            <select id="da-year">
-                <?php
-                    $curYear  = $customYear ?? date('Y');
-                    $thisYear = date('Y');
-                    for ($y = $thisYear + 1; $y >= $thisYear - 3; $y--) {
-                        echo '<option value="' . $y . '"' . ($curYear === $y ? ' selected' : '') . '>' . $y . '</option>';
-                    }
-                ?>
-            </select>
+            <label style="font-size:11px;white-space:nowrap;margin:0 2px 0 8px;">To</label>
+            <input type="date" id="da-end-date" value="<?= e($endDate ?? '') ?>" style="font-size:12px;padding:2px 6px;border:1px solid #c7cfdf;border-radius:3px;">
         </div>
     </div>
 
@@ -352,16 +337,37 @@
               <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 0) }}</strong></div>
           </div>
 
-          <?php foreach ($depositCardStats as $s): ?>
-               
-            <?php $req = (int) $s['required']; $rec = (int) $s['received']; $bal = (int) $s['balance']; ?>
-               <div class="sc-card sc-card-dep">
-                   <div class="sc-card-title">{{ $s['label'] }}</div>
-                   <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($req, 0) }}</strong></div>
-                   <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($rec, 0) }}</strong></div>
-                   <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $bal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($bal, 0) }}</strong></div>
-               </div>
-           <?php endforeach; ?>
+           <?php
+               // Ensure cards appear in the order defined by DepositType.sort_order
+               usort($depositCardStats, function ($a, $b) {
+                   return ($a['sort_order'] ?? 0) <=> ($b['sort_order'] ?? 0);
+               });
+
+               $statsCount = count($depositCardStats);
+           ?>
+           <?php $idx = 0; ?>
+           <?php foreach ($depositCardStats as $s): ?>
+                <?php
+                    $isSpecial = ($statsCount > 3) && ($idx >= ($statsCount - 3));
+                    $req = (int) $s['required'];
+                    $rec = (int) $s['received'];
+                    $bal = (int) $s['balance'];
+                ?>
+                <div class="sc-card sc-card-dep">
+                    <div class="sc-card-title">{{ $s['label'] }}</div>
+
+                    <?php if (!$isSpecial): ?>
+                        <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($req, 0) }}</strong></div>
+                    <?php endif; ?>
+
+                    <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($rec, 0) }}</strong></div>
+
+                    <?php if (!$isSpecial): ?>
+                        <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $bal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($bal, 0) }}</strong></div>
+                    <?php endif; ?>
+                </div>
+                <?php $idx++; ?>
+            <?php endforeach; ?>
            <!-- Totals card -->
            <?php $tR = (int) $depositCardTotals['required']; $tC = (int) $depositCardTotals['received']; $tB = (int) $depositCardTotals['balance']; ?>
            <div class="sc-card sc-card-dep" style="border: 2px solid rgba(255,255,255,0.45);">
@@ -713,10 +719,10 @@
             });
 
             if (value === 'custom') {
-                var month = document.getElementById('da-month').value;
-                var year  = document.getElementById('da-year').value;
-                params.set('custom_month', month);
-                params.set('custom_year',  year);
+                var startEl = document.getElementById('da-start-date');
+                var endEl   = document.getElementById('da-end-date');
+                if (startEl && startEl.value) params.set('start_date', startEl.value);
+                if (endEl && endEl.value)     params.set('end_date', endEl.value);
                 customR.style.display = 'flex';
             } else {
                 customR.style.display = 'none';
@@ -730,6 +736,40 @@
         if (customR) {
             customR.style.display = period.value === 'custom' ? 'flex' : 'none';
         }
+    })();
+
+    // ── Custom date range (start/end) — live reload when changed while on "custom" ──
+    (function() {
+        var start = document.getElementById('da-start-date');
+        var end   = document.getElementById('da-end-date');
+        if (!start || !end) return;
+
+        function applyCustomRange() {
+            var params = new URLSearchParams(window.location.search);
+            params.set('period', 'custom');
+
+            if (start.value) params.set('start_date', start.value);
+            else             params.delete('start_date');
+
+            if (end.value) params.set('end_date', end.value);
+            else           params.delete('end_date');
+
+            // Carry current office filter
+            var officeEl = document.getElementById('da-office-select');
+            if (officeEl && officeEl.value) {
+                params.set('office_id', officeEl.value);
+            }
+
+            // Invalidate cached expanded cards
+            document.querySelectorAll('.da-body[data-loaded]').forEach(function(body) {
+                body.dataset.loaded = '';
+            });
+
+            window.location.href = '?' + params.toString();
+        }
+
+        start.addEventListener('change', applyCustomRange);
+        end.addEventListener('change', applyCustomRange);
     })();
 
     // ── Office filter ───────────────────────────────────────────────────────────
