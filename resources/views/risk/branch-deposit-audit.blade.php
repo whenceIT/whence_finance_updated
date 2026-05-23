@@ -281,7 +281,7 @@
 
     @php
         $periodLabels = [
-            'overall'      => 'Overall (Jan → 28th of last month)',
+            'overall'      => 'Overall (Jan → last day of last month)',
             'month'        => 'This Month',
             'quarter'      => 'This Quarter',
             'year'         => 'This Year',
@@ -313,7 +313,7 @@
             Required = monthly_amount × offices × months_span
 
             Period → months counted in Required:
-            overall    Jan 1 → 28th of last month
+            overall    Jan 1 → last day of last month
             month          1 month
             quarter        3 months
             year          12 months

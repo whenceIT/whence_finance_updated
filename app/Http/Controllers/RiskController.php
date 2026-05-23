@@ -1168,7 +1168,7 @@ class RiskController extends Controller
      */
     public function branchDepositAudit(Request $request)
     {
-        $period       = $request->query('period', 'month');
+        $period       = $request->query('period', 'overall');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
         $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
@@ -1269,7 +1269,7 @@ class RiskController extends Controller
 
         // 7. Per-type deposit requirement vs received summary cards
         // Required = monthly_amount x offices x months-spanned-by-period.
-        // "overall" is bounded: Jan 1 of the current year through 28th of the
+        // "overall" is bounded: Jan 1 of the current year through the last day of the
         // previous month — the current (incomplete) month is excluded.
         $officeCount     = $effectiveOfficeCount;
         $depositCardStats  = [];
@@ -1278,7 +1278,7 @@ class RiskController extends Controller
         $totRecv  = 0;
 
         if ($dateFrom === null) {
-            // overall: full months from Jan 1 this year through 28th of prev month
+            // overall: full months from Jan 1 this year through last day of prev month
             $overallPeriodMonths = (int) \Carbon\Carbon::now()
                 ->startOfYear()
                 ->diffInMonths(\Carbon\Carbon::parse($dateTo))
@@ -1357,11 +1357,11 @@ class RiskController extends Controller
 
     /**
      * Compute the [startDate, endDate] string pair for a given period label.
-     * "overall" is bounded at the 28th of the previous month — the current month
+     * "overall" is bounded at the last day of the previous month — the current month
      * is excluded because it is always incomplete.
      *
      * Periods
-     * - overall         : all deposits recorded up to 28th of last month
+     * - overall         : all deposits recorded up to last day of last month
      * - month           : this calendar month
      * - quarter         : this quarter
      * - year            : this calendar year
@@ -1375,10 +1375,10 @@ class RiskController extends Controller
     private function getDepositDateRange(string $period, int $customMonth, int $customYear): array
     {
         if ($period === 'overall') {
-            // Cap at the 28th of the previous month (current month always incomplete)
+            // Overall = Jan 1 this year → last day of previous month (current month always incomplete)
             return [
                 null,
-                Carbon::now()->subMonth()->endOfMonth()->day(28)->toDateString(),
+                Carbon::now()->subMonth()->endOfMonth()->toDateString(),
             ];
         }
 
@@ -1392,13 +1392,13 @@ class RiskController extends Controller
         // start-of-today / end-of-today anchored helpers
         $now   = Carbon::now();
 
-        // Hard ceiling: never go past the 28th of the final month that has debt in the table.
+        // Hard ceiling: never go past the last day of the final month that has debt in the table.
         // When today's date is ≥ 28 the current month has been processed by the service,
-        // so ceiling can extend to the 28th of the *current* month. Otherwise it stays
-        // at the 28th of last month.
+        // so ceiling can extend to the last day of the *current* month. Otherwise it stays
+        // at the last day of last month.
         $ceiling = Carbon::now()->day >= 28
-            ? Carbon::now()->endOfMonth()->day(28)
-            : Carbon::now()->subMonth()->endOfMonth()->day(28);
+            ? Carbon::now()->endOfMonth()
+            : Carbon::now()->subMonth()->endOfMonth();
 
         // Debt-base-query: never ask for beyond the current/processed month
         $fromCeil = $ceiling->copy()->startOfMonth();

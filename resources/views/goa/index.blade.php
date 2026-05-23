@@ -676,68 +676,165 @@
                 </div>
                 <div class="sidebar-content">
                     <div id="sidebar-alerts">
+                        {{-- INSURANCE PAST DUE --}}
                         @if($insurancePastDue->count() > 0)
                             <div class="alert-section alert-critical">
                                 <h3>Insurance Past Due ({{ $insurancePastDue->count() }})</h3>
-                                <ul class="alert-list">
+                                <div class="alert-list">
                                     @foreach($insurancePastDue as $fleet)
-                                        <li class="alert-item">
-                                            <strong>{{ $fleet->vehicle_id }}</strong> - Expired {{ $fleet->insurance_expire_date->diffForHumans() }}
-                                        </li>
+                                        <a href="{{ route('fleets.show', $fleet->id) }}" class="alert-card critical">
+                                            <div class="alert-card-header">
+                                                <div>
+                                                    <span class="vehicle-id">{{ $fleet->vehicle_id }}</span>
+                                                    <span class="vehicle-meta">{{ $fleet->vehicle_type }} {{ $fleet->vehicle_model }}</span>
+                                                </div>
+                                                <span class="alert-badge badge-danger">Expired</span>
+                                            </div>
+                                            <div class="alert-card-body">
+                                                <div class="alert-meta">
+                                                    @if($fleet->user)<span><i class="fa fa-user"></i> {{ $fleet->user->name }}</span>@endif
+                                                    @if($fleet->office)<span><i class="fa fa-map-marker"></i> {{ $fleet->office->name }}</span>@endif
+                                                </div>
+                                                <div class="alert-message">
+                                                    Insurance expired <strong>{{ $fleet->insurance_expire_date->diffForHumans() }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="alert-card-footer">
+                                                <span class="view-link">View Vehicle <i class="fa fa-arrow-right"></i></span>
+                                            </div>
+                                        </a>
                                     @endforeach
-                                </ul>
+                                </div>
                             </div>
                         @endif
 
+                        {{-- INSURANCE RECENTLY EXPIRED --}}
                         @if($insuranceExpiredRecent->count() > 0)
                             <div class="alert-section alert-critical">
-                                <h3>Insurance Expired ({{ $insuranceExpiredRecent->count() }})</h3>
-                                <ul class="alert-list">
+                                <h3>Insurance Recently Expired ({{ $insuranceExpiredRecent->count() }})</h3>
+                                <div class="alert-list">
                                     @foreach($insuranceExpiredRecent as $fleet)
-                                        <li class="alert-item">
-                                            <strong>{{ $fleet->vehicle_id }}</strong> - Expired {{ $fleet->insurance_expire_date->diffForHumans() }}
-                                        </li>
+                                        <a href="{{ route('fleets.show', $fleet->id) }}" class="alert-card critical">
+                                            <div class="alert-card-header">
+                                                <div>
+                                                    <span class="vehicle-id">{{ $fleet->vehicle_id }}</span>
+                                                    <span class="vehicle-meta">{{ $fleet->vehicle_type }} {{ $fleet->vehicle_model }}</span>
+                                                </div>
+                                                <span class="alert-badge badge-danger">Expired</span>
+                                            </div>
+                                            <div class="alert-card-body">
+                                                <div class="alert-meta">
+                                                    @if($fleet->user)<span><i class="fa fa-user"></i> {{ $fleet->user->name }}</span>@endif
+                                                    @if($fleet->office)<span><i class="fa fa-map-marker"></i> {{ $fleet->office->name }}</span>@endif
+                                                </div>
+                                                <div class="alert-message">
+                                                    Expired on <strong>{{ $fleet->insurance_expire_date->format('d M Y') }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="alert-card-footer">
+                                                <span class="view-link">View Vehicle <i class="fa fa-arrow-right"></i></span>
+                                            </div>
+                                        </a>
                                     @endforeach
-                                </ul>
+                                </div>
                             </div>
                         @endif
 
+                        {{-- MAINTENANCE PAST DUE --}}
                         @if($maintenancePastDue->count() > 0)
                             <div class="alert-section alert-critical">
-                                <h3>Maintenance Past Due ({{ $maintenancePastDue->count() }})</h3>
-                                <ul class="alert-list">
+                                <h3>Maintenance Overdue ({{ $maintenancePastDue->count() }})</h3>
+                                <div class="alert-list">
                                     @foreach($maintenancePastDue as $schedule)
-                                        <li class="alert-item">
-                                            <strong>{{ $schedule->fleet->vehicle_id }}</strong> - {{ $schedule->maintenance_type }} due {{ $schedule->due_date->diffForHumans() }}
-                                        </li>
+                                        @php $fleet = $schedule->fleet; @endphp
+                                        <a href="{{ route('fleets.show', $fleet->id ?? null) }}" class="alert-card critical">
+                                            <div class="alert-card-header">
+                                                <div>
+                                                    <span class="vehicle-id">{{ $fleet->vehicle_id ?? 'N/A' }}</span>
+                                                    <span class="vehicle-meta">{{ $fleet->vehicle_type ?? '' }} {{ $fleet->vehicle_model ?? '' }}</span>
+                                                </div>
+                                                <span class="alert-badge badge-danger">Overdue</span>
+                                            </div>
+                                            <div class="alert-card-body">
+                                                <div class="alert-meta">
+                                                    @if($fleet && $fleet->user)<span><i class="fa fa-user"></i> {{ $fleet->user->name }}</span>@endif
+                                                    @if($fleet && $fleet->office)<span><i class="fa fa-map-marker"></i> {{ $fleet->office->name }}</span>@endif
+                                                </div>
+                                                <div class="alert-message">
+                                                    <strong>{{ $schedule->maintenance_type }}</strong> was due <strong>{{ $schedule->due_date->diffForHumans() }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="alert-card-footer">
+                                                <span class="view-link">View Vehicle <i class="fa fa-arrow-right"></i></span>
+                                            </div>
+                                        </a>
                                     @endforeach
-                                </ul>
+                                </div>
                             </div>
                         @endif
 
+                        {{-- INSURANCE EXPIRING SOON --}}
                         @if($insuranceExpiringSoon->count() > 0)
                             <div class="alert-section alert-warning">
                                 <h3>Insurance Expiring Soon ({{ $insuranceExpiringSoon->count() }})</h3>
-                                <ul class="alert-list">
+                                <div class="alert-list">
                                     @foreach($insuranceExpiringSoon as $fleet)
-                                        <li class="alert-item">
-                                            <strong>{{ $fleet->vehicle_id }}</strong> - Expires {{ $fleet->insurance_expire_date->format('M d, Y') }}
-                                        </li>
+                                        <a href="{{ route('fleets.show', $fleet->id) }}" class="alert-card warning">
+                                            <div class="alert-card-header">
+                                                <div>
+                                                    <span class="vehicle-id">{{ $fleet->vehicle_id }}</span>
+                                                    <span class="vehicle-meta">{{ $fleet->vehicle_type }} {{ $fleet->vehicle_model }}</span>
+                                                </div>
+                                                <span class="alert-badge badge-warning">Expiring</span>
+                                            </div>
+                                            <div class="alert-card-body">
+                                                <div class="alert-meta">
+                                                    @if($fleet->user)<span><i class="fa fa-user"></i> {{ $fleet->user->name }}</span>@endif
+                                                    @if($fleet->office)<span><i class="fa fa-map-marker"></i> {{ $fleet->office->name }}</span>@endif
+                                                </div>
+                                                <div class="alert-message">
+                                                    Expires <strong>{{ $fleet->insurance_expire_date->format('d M Y') }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="alert-card-footer">
+                                                <span class="view-link">View Vehicle <i class="fa fa-arrow-right"></i></span>
+                                            </div>
+                                        </a>
                                     @endforeach
-                                </ul>
+                                </div>
                             </div>
                         @endif
 
+                        {{-- MAINTENANCE DUE SOON --}}
                         @if($maintenanceSoon->count() > 0)
                             <div class="alert-section alert-warning">
                                 <h3>Maintenance Due Soon ({{ $maintenanceSoon->count() }})</h3>
-                                <ul class="alert-list">
+                                <div class="alert-list">
                                     @foreach($maintenanceSoon as $schedule)
-                                        <li class="alert-item">
-                                            <strong>{{ $schedule->fleet->vehicle_id }}</strong> - {{ $schedule->maintenance_type }} due {{ $schedule->due_date->format('M d, Y') }}
-                                        </li>
+                                        @php $fleet = $schedule->fleet; @endphp
+                                        <a href="{{ route('fleets.show', $fleet->id ?? null) }}" class="alert-card warning">
+                                            <div class="alert-card-header">
+                                                <div>
+                                                    <span class="vehicle-id">{{ $fleet->vehicle_id ?? 'N/A' }}</span>
+                                                    <span class="vehicle-meta">{{ $fleet->vehicle_type ?? '' }} {{ $fleet->vehicle_model ?? '' }}</span>
+                                                </div>
+                                                <span class="alert-badge badge-warning">Due Soon</span>
+                                            </div>
+                                            <div class="alert-card-body">
+                                                <div class="alert-meta">
+                                                    @if($fleet && $fleet->user)<span><i class="fa fa-user"></i> {{ $fleet->user->name }}</span>@endif
+                                                    @if($fleet && $fleet->office)<span><i class="fa fa-map-marker"></i> {{ $fleet->office->name }}</span>@endif
+                                                </div>
+                                                <div class="alert-message">
+                                                    <strong>{{ $schedule->maintenance_type }}</strong> due <strong>{{ $schedule->due_date->format('d M Y') }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="alert-card-footer">
+                                                <span class="view-link">View Vehicle <i class="fa fa-arrow-right"></i></span>
+                                            </div>
+                                        </a>
                                     @endforeach
-                                </ul>
+                                </div>
                             </div>
                         @endif
 
