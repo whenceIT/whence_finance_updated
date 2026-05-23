@@ -243,6 +243,14 @@
     </div>
 
     <div class="da-filter-bar">
+        <label><i class="fa fa-building"></i> Office</label>
+        <select id="da-office-select">
+            <option value="">All Offices</option>
+            <?php foreach ($offices as $office): ?>
+                <option value="<?= $office->id ?>"><?= e($office->name) ?></option>
+            <?php endforeach; ?>
+        </select>
+
         <label><i class="fa fa-filter"></i> Period</label>
 
         <?php
@@ -284,6 +292,32 @@
                 ?>
             </select>
         </div>
+    </div>
+
+    @php
+        $periodLabels = [
+            'overall'      => 'Overall (Jan → 28th of last month)',
+            'month'        => 'This Month',
+            'quarter'      => 'This Quarter',
+            'year'         => 'This Year',
+            'last_month'   => 'Last Month',
+            'last_quarter' => 'Last Quarter',
+            'last_year'    => 'Last Year',
+            'this_circle'  => 'This Circle',
+            'last_circle'  => 'Last Circle',
+            'custom'       => 'Custom',
+        ];
+        $p = $period ?? 'month';
+        $periodText = $periodLabels[$p] ?? ucfirst(str_replace('_', ' ', $p));
+        if ($p === 'custom') {
+            $mNames = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            $periodText = 'Custom: ' . ($mNames[$customMonth ?? 0] ?? '') . ' ' . ($customYear ?? '');
+        }
+    @endphp
+
+    <div style="margin: 0 0 14px 0; font-size:12px; color:#334155; background:#e0e7ff; padding:6px 10px; border-radius:4px; display:flex; gap:16px; flex-wrap:wrap;">
+        <span><strong>Office:</strong> {{ $selectedOfficeName ?? 'All Offices' }}</span>
+        <span><strong>Period:</strong> {{ $periodText }}</span>
     </div>
 
      <!-- Display stats cards here -->
@@ -416,7 +450,7 @@
              var expanded = $detailRows[0].dataset.expanded === 'true';
              var $icon = $('#' + toggleIconId);
              if ($icon.length) {
-                 $icon.text(expanded ? '&#9658;' : '&#9660;');  // ▶ / ▼
+                 $icon.html(expanded ? '<i class="fa fa-caret-right"></i>' : '<i class="fa fa-caret-down"></i>');
              }
              $detailRows[0].dataset.expanded = (!expanded).toString();
              $detailRows.toggle(!expanded);
@@ -572,8 +606,8 @@
                         html += '<tr class="' + cls + '"'
                             +   ' data-idx="' + idx + '"'
                             +   ' onclick="toggleDebtDetail(' + idx + ', ' + idx + ', \'' + debtToggleId + '\')">'
-                            +   '<td style="cursor:pointer;">'
-                            +   '<span id="' + debtToggleId + '" style="display:inline-block;width:14px;text-align:center;margin-right:4px;color:#667eea;font-size:11px;">&#9658;</span>'
+                         +   '<td style="cursor:pointer;">'
+                         +   '<span id="' + debtToggleId + '" style="display:inline-block;width:14px;text-align:center;margin-right:4px;color:#667eea;font-size:11px;"><i class="fa fa-caret-right"></i></span>'
                             +   row.id
                             +   '</td>'
                             +   '<td style="cursor:pointer;font-weight:700;color:#333;">' + row.office_name + '</td>'
@@ -663,8 +697,15 @@
         if (!period) return;
 
         period.addEventListener('change', function() {
-            var value   = period.value;
-            var customR = document.getElementById('da-custom-row');
+            var value    = period.value;
+            var customR  = document.getElementById('da-custom-row');
+            var officeEl = document.getElementById('da-office-select');
+            var params   = new URLSearchParams({'period': value});
+
+            // Carry office_id across period changes
+            if (officeEl && officeEl.value) {
+                params.set('office_id', officeEl.value);
+            }
 
             // Invalidate every expanded card so they re-fetch for the new period
             document.querySelectorAll('.da-body[data-loaded]').forEach(function(body) {
@@ -674,12 +715,14 @@
             if (value === 'custom') {
                 var month = document.getElementById('da-month').value;
                 var year  = document.getElementById('da-year').value;
+                params.set('custom_month', month);
+                params.set('custom_year',  year);
                 customR.style.display = 'flex';
-                window.location.href = '?period=custom&custom_month=' + month + '&custom_year=' + year;
             } else {
                 customR.style.display = 'none';
-                window.location.href = '?period=' + value;
             }
+
+            window.location.href = '?' + params.toString();
         });
 
         // Init on page load — show/hide custom row based on current selection
@@ -687,6 +730,33 @@
         if (customR) {
             customR.style.display = period.value === 'custom' ? 'flex' : 'none';
         }
+    })();
+
+    // ── Office filter ───────────────────────────────────────────────────────────
+    (function() {
+        var officeSel = document.getElementById('da-office-select');
+        if (!officeSel) return;
+
+        // Pre-select from URL params
+        var params  = new URLSearchParams(window.location.search);
+        var urlOffice = params.get('office_id');
+        if (urlOffice) {
+            officeSel.value = urlOffice;
+        }
+
+        officeSel.addEventListener('change', function() {
+            var params = new URLSearchParams(window.location.search);
+            var office = officeSel.value;
+
+            if (office) {
+                params.set('office_id', office);
+            } else {
+                params.delete('office_id');
+            }
+
+            // Always reload — debts always need fresh API data for any filter change
+            window.location.href = window.location.pathname + '?' + params.toString();
+        });
     })();
 
     // ── OfficeDebt Management ──────────────────────────────────────────────────

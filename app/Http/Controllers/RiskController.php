@@ -1171,20 +1171,23 @@ class RiskController extends Controller
         $period       = $request->query('period', 'month');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
+        $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
+        $selectedOfficeName = $officeId ? optional(\App\Models\Office::find($officeId))->name : null;
 
         [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
 
-        // 1. All offices (sorted)
+        // 1. All offices (sorted) — full list for the dropdown
         $offices = \App\Models\Office::orderBy('name')->get();
 
         // 2. All deposit types (sorted)
         $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get();
 
-        // 3. Offices whose ids appear in the deposits table
-        $officeIds = [];
-        foreach ($offices as $office) {
-            $officeIds[] = $office->id;
-        }
+        // Determine scope for data queries and required calculations
+        $officeIdsForData     = $officeId ? [$officeId] : $offices->pluck('id')->all();
+        $effectiveOfficeCount = $officeId ? 1 : $offices->count();
+
+        // 3. Offices whose ids appear in the deposits table (scoped to filter if any)
+        $officeIds = $officeIdsForData;
 
         // 4. Pull deposits — apply date filter only when a specific period is chosen
         $depositQuery = \App\Models\Deposit::query()
@@ -1238,14 +1241,18 @@ class RiskController extends Controller
                 'gl_account'           => $type->gl_account ?? '–',
                 'total_amount'         => $totalAmount,
                 'deposit_count'        => $depositCount,
-                'office_count'         => $offices->count(),
+                'office_count'         => $effectiveOfficeCount,
                 'offices_with_deposits'=> count($officesWithDep),
                 'offices_with_total'   => $officesWithTotalCount,
             ];
         }
 
-        // 6. Aggregate Outstanding Branch Debt card
-        $debtRecords = \App\Models\OfficeDebt::all();
+        // 6. Aggregate Outstanding Branch Debt card (scoped if office filter active)
+        $debtQuery = \App\Models\OfficeDebt::query();
+        if ($officeId !== null) {
+            $debtQuery->where('office_id', $officeId);
+        }
+        $debtRecords = $debtQuery->get();
         $debtCards = [
             'accumulated' => (int) $debtRecords->sum('original_amount'),
             'paid'        => (int) $debtRecords->sum(fn($d) => (int) $d->original_amount - (int) $d->outstanding_amount),
@@ -1256,7 +1263,7 @@ class RiskController extends Controller
         // Required = monthly_amount x offices x months-spanned-by-period.
         // "overall" is bounded: Jan 1 of the current year through 28th of the
         // previous month — the current (incomplete) month is excluded.
-        $officeCount     = $offices->count();
+        $officeCount     = $effectiveOfficeCount;
         $depositCardStats  = [];
         $depositCardTotals = null;
         $totReq   = 0;
@@ -1325,7 +1332,8 @@ class RiskController extends Controller
         return view('risk.branch-deposit-audit', compact('types', 'offices', 'debtCards', 'depositCardStats', 'depositCardTotals'))
             ->with('period', $period)
             ->with('customMonth', $customMonth)
-            ->with('customYear', $customYear);
+            ->with('customYear', $customYear)
+            ->with('selectedOfficeName', $selectedOfficeName);
     }
 
     /**
@@ -1429,12 +1437,20 @@ class RiskController extends Controller
         $period       = $request->query('period', 'month');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
+        $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
 
         [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
 
         $offices  = \App\Models\Office::orderBy('name')->get();
+        if ($officeId !== null) {
+            $offices = $offices->filter(fn($o) => $o->id == $officeId)->values();
+        }
 
         $depositQuery = \App\Models\Deposit::where('deposit_type', $depositTypeId);
+
+        if ($officeId !== null) {
+            $depositQuery->where('office', $officeId);
+        }
 
         if ($dateFrom !== null && $dateTo !== null) {
             $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
@@ -1519,11 +1535,16 @@ class RiskController extends Controller
         $period       = $request->query('period', 'month');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
+        $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
 
         [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
 
         $query = \App\Models\OfficeDebt::with(['office', 'depositType'])
             ->where('outstanding_amount', '>', 0);
+
+        if ($officeId !== null) {
+            $query->where('office_id', $officeId);
+        }
 
         // Apply period filter on debt_year / debt_month when a specific period is chosen
         if ($dateFrom !== null && $dateTo !== null) {
