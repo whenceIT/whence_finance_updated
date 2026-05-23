@@ -1061,17 +1061,21 @@ class RiskController extends Controller
      */
     public function listOfficeDebts()
     {
-        $rows = \App\Models\OfficeDebt::with('office')->orderByDesc('id')->get();
+        $rows = \App\Models\OfficeDebt::with(['office', 'depositType'])->orderByDesc('id')->get();
 
         return response()->json($rows->map(function ($row) {
             return [
                 'id'                => $row->id,
                 'office_id'         => $row->office_id,
                 'office_name'       => $row->office->name ?? '—',
+                'deposit_type_id'   => $row->deposit_type_id,
                 'debt_status'       => $row->debt_status,
+                'debt_month'        => $row->debt_month,
+                'debt_year'         => $row->debt_year,
                 'original_amount'   => (int) $row->original_amount,
                 'outstanding_amount'=> (int) $row->outstanding_amount,
                 'notes'             => (string) ($row->notes ?? ''),
+                'created_at'        => $row->created_at ? $row->created_at->toDateTimeString() : null,
             ];
         })->all());
     }

@@ -829,12 +829,48 @@
             $('#odInputNotes').val('');
             $('#odEditId').val('');
             $('#odFormBar').hide();
+
+            // Re-enable the identifier fields (Branch, Deposit Type, Month, Year) for new records
+            $('#odInputOffice, #odInputDepositType, #odInputMonth, #odInputYear').prop('disabled', false);
+
+            odShowList();
+            // empty visibility managed by odLoadTable when needed
         }
 
-        function odShowForm() {
+        function odShowList() {
+            $('#odFormBar').hide();
+            $('#odListHeader').show();
+            $('.table-responsive').show();
+        }
+
+        function odShowForm(isEdit) {
+            $('#odListHeader').hide();
+            $('.table-responsive').hide();
+            $('#odEmpty').hide();
+
             var $fb = $('#odFormBar');
-            $fb[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            $('#odFormTitle').text(isEdit ? 'Edit Debt Record' : 'Add New Debt Record');
+
+            if (!isEdit) {
+                // Prefill with current debt period values for better UX
+                var now = new Date();
+                var currentMonth = now.getMonth() + 1;
+                var currentYear = now.getFullYear();
+                $('#odInputMonth').val(currentMonth);
+                $('#odInputYear').val(currentYear);
+                if (!$('#odInputStatus').val()) {
+                    $('#odInputStatus').val('owing');
+                }
+            }
+
+            // Disable the core identifiers (Branch, Deposit Type, Month, Year) in edit mode
+            // so users cannot change which debt record this is
+            const disableIdentifiers = !!isEdit;
+            $('#odInputOffice, #odInputDepositType, #odInputMonth, #odInputYear')
+                .prop('disabled', disableIdentifiers);
+
             $fb.show();
+            $fb[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         // ── Load table ──
@@ -908,11 +944,21 @@
         // ── New Record ──
         $(document).on('click', '#odBtnNewRow', function() {
             odResetForm();
-            odShowForm();
+            odShowForm(false);
         });
 
         // ── Cancel new/edit ──
-        $(document).on('click', '#odBtnCancelForm', odResetForm);
+        $(document).on('click', '#odBtnCancelForm', function() {
+            odResetForm();
+            odShowList();
+        });
+
+        // ── Back to list link in form bar ──
+        $(document).on('click', '#odBackToList', function(e) {
+            e.preventDefault();
+            odResetForm();
+            odShowList();
+        });
 
         // ── Edit row ──
         window.odEdit = function(id) {
@@ -923,13 +969,22 @@
                 $('#odEditId').val(id);
                 $('#odInputOffice').val(row.office_id);
                 $('#odInputDepositType').val(row.deposit_type_id || '');
-                $('#odInputMonth').val(row.debt_month ?? '');
-                $('#odInputYear').val(row.debt_year  ?? '');
+
+                // Prefill month/year from created_at of the Office Debt record (as requested)
+                if (row.created_at) {
+                    var created = new Date(row.created_at);
+                    $('#odInputMonth').val(created.getMonth() + 1);
+                    $('#odInputYear').val(created.getFullYear());
+                } else {
+                    $('#odInputMonth').val(row.debt_month ?? '');
+                    $('#odInputYear').val(row.debt_year  ?? '');
+                }
+
                 $('#odInputStatus').val(row.debt_status);
                 $('#odInputOriginal').val(row.original_amount);
                 $('#odInputOutstanding').val(row.outstanding_amount);
                 $('#odInputNotes').val(row.notes);
-                odShowForm();
+                odShowForm(true);
 
                 // Scroll form into view
                 var $tBody = $('#odTableBody');
@@ -991,6 +1046,7 @@
             }).done(function(r) {
                 if (r.success) {
                     odResetForm();
+                    odShowList();
                     odLoadTable();
                 } else {
                     alert(r.message || 'Save failed.');
@@ -1007,7 +1063,7 @@
 </script>
 
 <!-- ── Office Debt Management Modal ─────────────────────────────────────────── -->
-<div class="modal fade" id="odModal" tabindex="-1" role="dialog" aria-labelledby="odModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+<div class="modal fade p-3" id="odModal" tabindex="-1" role="dialog" aria-labelledby="odModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog od-dialog modal-fullscreen" role="document">
         <div class="modal-content">
 
@@ -1038,8 +1094,14 @@
                     @endfor
                 </div>
 
-                <!-- Add / Edit form bar -->
+                <!-- Add / Edit form bar (toggles with list view) -->
                 <div id="odFormBar" style="display:none;margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:0 4px;">
+                        <span id="odFormTitle" style="font-weight:700; color:#2c3e50; font-size:14px;">Add / Edit Debt Record</span>
+                        <a href="#" id="odBackToList" style="font-size:12px; color:#667eea; text-decoration:none; display:flex; align-items:center; gap:4px; font-weight:600;">
+                            <i class="fa fa-arrow-left"></i> Back to list
+                        </a>
+                    </div>
                     <div class="od-form-row">
                         <div class="od-form-group">
                             <label>Branch</label>
@@ -1063,35 +1125,36 @@
                                         echo '<option value="' . $dt->id . '">' . htmlspecialchars($dt->name) . '</option>';
                                     }
                                     ?>
-                                </select>
-                            </div>
-                            <div class="od-form-group">
-                                <label>Month</label>
-                                <select id="odInputMonth">
-                                    <option value="">—</option>
-                                    <?php
-                                        $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                                        foreach ($months as $i => $m) {
-                                            echo '<option value="' . ($i + 1) . '">' . $m . '</option>';
-                                        }
-                                    ?>
-                                </select>
-                            </div>
-                            <div class="od-form-group">
-                                <label>Year</label>
-                                <select id="odInputYear">
-                                    <option value="">—</option>
-                                    <?php
-                                        $thisYear = (int) date('Y');
-                                        for ($y = $thisYear; $y >= $thisYear - 5; $y--) {
-                                            echo '<option value="' . $y . '">' . $y . '</option>';
-                                        }
-                                    ?>
-                                </select>
-                            </div>
+                            </select>
                         </div>
                         <div class="od-form-group">
-                            <label>Status</label>
+                            <label>Month</label>
+                            <select id="odInputMonth">
+                                <option value="">—</option>
+                                <?php
+                                    $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                                    foreach ($months as $i => $m) {
+                                        echo '<option value="' . ($i + 1) . '">' . $m . '</option>';
+                                    }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="od-form-group">
+                            <label>Year</label>
+                            <select id="odInputYear">
+                                <option value="">—</option>
+                                <?php
+                                    $thisYear = (int) date('Y');
+                                    for ($y = $thisYear; $y >= $thisYear - 5; $y--) {
+                                        echo '<option value="' . $y . '">' . $y . '</option>';
+                                    }
+                                ?>
+                            </select>
+                            </div>
+                         </div>
+                         <div class="od-form-row">
+                         <div class="od-form-group">
+                             <label>Status</label>
                             <select id="odInputStatus">
                                 <option value="owing">Owing</option>
                                 <option value="partial">Partially Paid</option>
@@ -1113,18 +1176,18 @@
                         <div class="od-form-group" style="justify-content:flex-end;flex-direction:row;gap:6px;">
                             <button class="od-btn od-btn-save"       id="odBtnSaveForm"    >Save</button>
                             <button class="od-btn od-btn-cancel"     id="odBtnCancelForm"  >Cancel</button>
-                        </div>
-                    </div>
-                    <input type="hidden" id="odEditId" value="">
-                </div>
+                         </div>
+                         </div>
+                     <input type="hidden" id="odEditId" value="">
+                 </div>
 
-                <!-- Header row -->
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                    <h4 style="margin:0;font-size:14px;font-weight:700;color:#333;">Branch Debt Records</h4>
-                    <button class="od-btn od-btn-save" id="odBtnNewRow" style="padding:6px 14px;font-size:13px;font-weight:600;">
-                        <i class="fa fa-plus"></i> New Record
-                    </button>
-                </div>
+                 <!-- List header (visible in list view, hidden in form view) -->
+                 <!-- <div id="odListHeader" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                     <h4 style="margin:0;font-size:14px;font-weight:700;color:#333;">Branch Debt Records</h4>
+                     <button class="od-btn od-btn-save" id="odBtnNewRow" style="padding:6px 14px;font-size:13px;font-weight:600;">
+                         <i class="fa fa-plus"></i> New Record
+                     </button>
+                 </div> -->
 
                 <!-- Data table -->
                 <div class="table-responsive">
