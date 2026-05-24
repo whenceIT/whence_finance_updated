@@ -440,76 +440,188 @@
     }
 }
 
-/* Alerts */
+/* === Alerts Sidebar - Neat, Compact, Real-world UI === */
 #sidebar-alerts {
-    max-height: 400px;
+    max-height: 420px;
     overflow-y: auto;
+    padding-right: 4px;
 }
 
+/* Section container */
 .alert-section {
-    margin-bottom: 16px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.alert-section:last-child {
-    margin-bottom: 0;
+.alert-section.alert-critical {
+    border-left: 3px solid #ef4444;
 }
 
-.alert-section h5 {
-    font-size: 1rem;
-    font-weight: 600;
+.alert-section.alert-warning {
+    border-left: 3px solid #f59e0b;
+}
+
+/* Compact section header (h3) */
+.alert-section h3 {
+    font-size: 12px !important;
+    font-weight: 700;
     color: #1e293b;
-    margin: 0 0 8px 0;
-    padding: 8px 0;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.alert-critical {
-    background: #fef2f2;
-    padding: 12px;
-    border-radius: 6px;
-}
-
-.alert-critical h5 {
-    color: #dc2626;
-}
-
-.alert-warning {
-    background: #fef3c7;
-    padding: 12px;
-    border-radius: 6px;
-}
-
-.alert-warning h5 {
-    color: #d97706;
-}
-
-.alert-list {
-    list-style: none;
-    padding: 0;
     margin: 0;
+    padding: 7px 10px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.2px;
 }
 
-.alert-item {
-    padding: 4px 0;
-    font-size: 12px;
-    color: #ff0000;
-    border-bottom: 1px solid #f8fafc;
-    line-height: 1.3;
+.alert-section.alert-critical h3 {
+    color: #b91c1c;
 }
 
-.alert-item:last-child {
+.alert-section.alert-warning h3 {
+    color: #b45309;
+}
+
+/* Alert cards list */
+.alert-list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Individual alert card - clean and aligned */
+.alert-card {
+    display: block;
+    padding: 7px 10px;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.1s ease;
+}
+
+.alert-card:hover {
+    background: #f8fafc;
+}
+
+.alert-card:last-child {
     border-bottom: none;
 }
 
-.alert-item strong {
+/* Top row: Vehicle info + badge (perfect alignment) */
+.alert-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.alert-card-header > div {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.vehicle-id {
+    font-weight: 700;
+    font-size: 12.5px;
+    color: #0f172a;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vehicle-meta {
+    font-size: 10.5px;
+    color: #64748b;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Badge */
+.alert-badge {
+    font-size: 9.5px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 1px;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+/* Meta row (driver + office) - straight alignment */
+.alert-card-body .alert-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 10.5px;
+    color: #64748b;
+    margin-bottom: 2px;
+    flex-wrap: wrap;
+}
+
+.alert-card-body .alert-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+}
+
+/* Message line */
+.alert-card-body .alert-message {
+    font-size: 11px;
+    color: #334155;
+    line-height: 1.35;
+}
+
+.alert-card-body .alert-message strong {
+    font-weight: 600;
     color: #1e293b;
 }
 
+/* Footer link */
+.alert-card-footer {
+    margin-top: 3px;
+}
+
+.view-link {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.alert-card:hover .view-link {
+    color: #2563eb;
+}
+
+/* No alerts message */
 .no-alerts {
     text-align: center;
     color: #64748b;
+    font-size: 12px;
     font-style: italic;
-    padding: 20px 0;
+    padding: 14px 0;
+    margin: 0;
 }
 </style>
 
