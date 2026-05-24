@@ -903,11 +903,6 @@ class RiskController extends Controller
         try {
             $submission = \App\Models\AuditSubmission::findOrFail($submissionId);
             
-            // Optional: Add permission check here
-            // if (!Sentinel::hasAccess('audits.delete')) {
-            //     return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-            // }
-            
             $submission->delete();
             
             return response()->json([
@@ -1066,17 +1061,22 @@ class RiskController extends Controller
      */
     public function listOfficeDebts()
     {
-        $rows = \App\Models\OfficeDebt::with('office')->orderByDesc('id')->get();
+        $rows = \App\Models\OfficeDebt::with(['office', 'depositType'])->orderByDesc('id')->get();
 
         return response()->json($rows->map(function ($row) {
             return [
                 'id'                => $row->id,
                 'office_id'         => $row->office_id,
                 'office_name'       => $row->office->name ?? '—',
+                'deposit_type_id'   => $row->deposit_type_id,
+                'deposit_type_name' => $row->depositType ? $row->depositType->name : '—',
                 'debt_status'       => $row->debt_status,
+                'debt_month'        => $row->debt_month,
+                'debt_year'         => $row->debt_year,
                 'original_amount'   => (int) $row->original_amount,
                 'outstanding_amount'=> (int) $row->outstanding_amount,
                 'notes'             => (string) ($row->notes ?? ''),
+                'created_at'        => $row->created_at ? $row->created_at->toDateTimeString() : null,
             ];
         })->all());
     }
@@ -1173,23 +1173,34 @@ class RiskController extends Controller
      */
     public function branchDepositAudit(Request $request)
     {
-        $period       = $request->query('period', 'month');
+        $period       = $request->query('period', 'year');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
+        $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
+        $selectedOfficeName = $officeId ? optional(\App\Models\Office::find($officeId))->name : null;
+        $startDate    = $request->query('start_date');
+        $endDate      = $request->query('end_date');
 
         [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
 
-        // 1. All offices (sorted)
+        // Support direct start/end date for custom period (new date picker UI)
+        if ($period === 'custom' && $startDate && $endDate) {
+            $dateFrom = $startDate;
+            $dateTo   = $endDate;
+        }
+
+        // 1. All offices (sorted) — full list for the dropdown
         $offices = \App\Models\Office::orderBy('name')->get();
 
         // 2. All deposit types (sorted)
         $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get();
 
-        // 3. Offices whose ids appear in the deposits table
-        $officeIds = [];
-        foreach ($offices as $office) {
-            $officeIds[] = $office->id;
-        }
+        // Determine scope for data queries and required calculations
+        $officeIdsForData     = $officeId ? [$officeId] : $offices->pluck('id')->all();
+        $effectiveOfficeCount = $officeId ? 1 : $offices->count();
+
+        // 3. Offices whose ids appear in the deposits table (scoped to filter if any)
+        $officeIds = $officeIdsForData;
 
         // 4. Pull deposits — apply date filter only when a specific period is chosen
         $depositQuery = \App\Models\Deposit::query()
@@ -1243,24 +1254,119 @@ class RiskController extends Controller
                 'gl_account'           => $type->gl_account ?? '–',
                 'total_amount'         => $totalAmount,
                 'deposit_count'        => $depositCount,
-                'office_count'         => $offices->count(),
+                'office_count'         => $effectiveOfficeCount,
                 'offices_with_deposits'=> count($officesWithDep),
                 'offices_with_total'   => $officesWithTotalCount,
             ];
         }
 
-        return view('risk.branch-deposit-audit', compact('types', 'offices'))
+        // 6. Aggregate Outstanding Branch Debt card (scoped if office filter active)
+        $debtQuery = \App\Models\OfficeDebt::query();
+        if ($officeId !== null) {
+            $debtQuery->where('office_id', $officeId);
+        }
+        $debtRecords = $debtQuery->get();
+        $debtCards = [
+            'accumulated' => (int) $debtRecords->sum('original_amount'),
+            'paid'        => (int) $debtRecords->sum(fn($d) => (int) $d->original_amount - (int) $d->outstanding_amount),
+            'balance'     => (int) $debtRecords->sum('outstanding_amount'),
+        ];
+
+        // 7. Per-type deposit requirement vs received summary cards
+        // Required = monthly_amount x offices x months-spanned-by-period.
+        // "overall" is bounded: Jan 1 of the current year through the last day of the
+        // previous month — the current (incomplete) month is excluded.
+        $officeCount     = $effectiveOfficeCount;
+        $depositCardStats  = [];
+        $depositCardTotals = null;
+        $totReq   = 0;
+        $totRecv  = 0;
+
+        if ($dateFrom === null) {
+            // overall: full months from Jan 1 this year through last day of prev month
+            $overallPeriodMonths = (int) \Carbon\Carbon::now()
+                ->startOfYear()
+                ->diffInMonths(\Carbon\Carbon::parse($dateTo))
+                + 1;
+            foreach ($depositTypes as $type) {
+                $monthlyRequired = (int) ($type->monthly_amount ?? 0);
+                $required = $monthlyRequired * $officeCount * $overallPeriodMonths;
+                $received = 0;
+                foreach ($validDeposits as $dep) {
+                    if ((int) $dep->deposit_type === (int) $type->id) {
+                        $received += (float) $dep->amount;
+                    }
+                }
+                $balance = $required - $received;
+
+                $totReq  += $required;
+                $totRecv += $received;
+
+                $depositCardStats[] = [
+                    'label'      => $type->name,
+                    'sort_order' => $type->sort_order ?? 0,
+                    'required'   => $required,
+                    'received'   => (int) $received,
+                    'balance'    => $balance,
+                ];
+            }
+        } else {
+            // specific period: months spanned by the date range
+            $periodMonths = (int) \Carbon\Carbon::parse($dateFrom)->diffInMonths(\Carbon\Carbon::parse($dateTo)) + 1;
+            foreach ($depositTypes as $type) {
+                $monthlyRequired = (int) ($type->monthly_amount ?? 0);
+                $required = $monthlyRequired * $officeCount * $periodMonths;
+                $received = 0;
+                foreach ($validDeposits as $dep) {
+                    if ((int) $dep->deposit_type === (int) $type->id) {
+                        $received += (float) $dep->amount;
+                    }
+                }
+                $balance = $required - $received;
+
+                $totReq  += $required;
+                $totRecv += $received;
+
+                $depositCardStats[] = [
+                    'label'      => $type->name,
+                    'sort_order' => $type->sort_order ?? 0,
+                    'required'   => $required,
+                    'received'   => (int) $received,
+                    'balance'    => $balance,
+                ];
+            }
+        }
+
+        // Grand total card should only count "compliance" types.
+        // The last 3 special deposit types (no monthly requirement) are excluded
+        // from Required and from the overall Balance calculation.
+        $complianceStats = array_slice($depositCardStats, 0, -3);
+        $totReq  = array_sum(array_column($complianceStats, 'required'));
+        $totRecv = array_sum(array_column($complianceStats, 'received'));
+
+        $depositCardTotals = [
+            'label'     => 'All Types (Total)',
+            'required'  => $totReq,
+            'received'  => (int) $totRecv,
+            'balance'   => $totReq - $totRecv,
+        ];
+
+        return view('risk.branch-deposit-audit', compact('types', 'offices', 'debtCards', 'depositCardStats', 'depositCardTotals'))
             ->with('period', $period)
             ->with('customMonth', $customMonth)
-            ->with('customYear', $customYear);
+            ->with('customYear', $customYear)
+            ->with('selectedOfficeName', $selectedOfficeName)
+            ->with('startDate', $startDate)
+            ->with('endDate', $endDate);
     }
 
     /**
      * Compute the [startDate, endDate] string pair for a given period label.
-     * Returns [null, null] when no date filtering should be applied ("overall").
+     * "overall" is bounded at the last day of the previous month — the current month
+     * is excluded because it is always incomplete.
      *
      * Periods
-     * - overall         : no filter
+     * - overall         : all deposits recorded up to last day of last month
      * - month           : this calendar month
      * - quarter         : this quarter
      * - year            : this calendar year
@@ -1274,7 +1380,11 @@ class RiskController extends Controller
     private function getDepositDateRange(string $period, int $customMonth, int $customYear): array
     {
         if ($period === 'overall') {
-            return [null, null];
+            // Overall = Jan 1 this year → last day of previous month (current month always incomplete)
+            return [
+                null,
+                Carbon::now()->subMonth()->endOfMonth()->toDateString(),
+            ];
         }
 
         if ($period === 'custom') {
@@ -1287,18 +1397,29 @@ class RiskController extends Controller
         // start-of-today / end-of-today anchored helpers
         $now   = Carbon::now();
 
+        // Hard ceiling: never go past the last day of the final month that has debt in the table.
+        // When today's date is ≥ 28 the current month has been processed by the service,
+        // so ceiling can extend to the last day of the *current* month. Otherwise it stays
+        // at the last day of last month.
+        $ceiling = Carbon::now()->day >= 28
+            ? Carbon::now()->endOfMonth()
+            : Carbon::now()->subMonth()->endOfMonth();
+
+        // Debt-base-query: never ask for beyond the current/processed month
+        $fromCeil = $ceiling->copy()->startOfMonth();
+
         return match ($period) {
             'month' => [
-                $now->copy()->startOfMonth()->toDateString(),
-                $now->copy()->endOfMonth()->toDateString(),
+                $fromCeil->toDateString(),
+                $ceiling->toDateString(),
             ],
             'quarter' => [
                 $now->copy()->startOfQuarter()->toDateString(),
-                $now->copy()->endOfQuarter()->toDateString(),
+                ($now->copy()->endOfQuarter()->lte($ceiling) ? $now->copy()->endOfQuarter() : $ceiling)->toDateString(),
             ],
             'year' => [
                 $now->copy()->startOfYear()->toDateString(),
-                $now->copy()->endOfYear()->toDateString(),
+                ($now->copy()->endOfYear()->lte($ceiling) ? $now->copy()->endOfYear() : $ceiling)->toDateString(),
             ],
             'last_month' => [
                 $now->copy()->subMonth()->startOfMonth()->toDateString(),
@@ -1312,10 +1433,10 @@ class RiskController extends Controller
                 $now->copy()->subYear()->startOfYear()->toDateString(),
                 $now->copy()->subYear()->endOfYear()->toDateString(),
             ],
-            // This Circle  = 24th of last month → 24th of this month
+            // This Circle  = 24th of last month → min(24th this month, ceiling)
             'this_circle' => [
                 $now->copy()->subMonth()->day(24)->toDateString(),
-                $now->copy()->day(24)->toDateString(),
+                min($now->copy()->day(24), $ceiling)->toDateString(),
             ],
             // Last Circle  = 24th of two months ago → 24th of last month
             'last_circle' => [
@@ -1323,8 +1444,8 @@ class RiskController extends Controller
                 $now->copy()->subMonth()->day(24)->toDateString(),
             ],
             default => [
-                $now->copy()->startOfMonth()->toDateString(),
-                $now->copy()->endOfMonth()->toDateString(),
+                $fromCeil->toDateString(),
+                $ceiling->toDateString(),
             ],
 
         };
@@ -1340,12 +1461,27 @@ class RiskController extends Controller
         $period       = $request->query('period', 'month');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
+        $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
+        $startDate    = $request->query('start_date');
+        $endDate      = $request->query('end_date');
 
         [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
 
+        if ($period === 'custom' && $startDate && $endDate) {
+            $dateFrom = $startDate;
+            $dateTo   = $endDate;
+        }
+
         $offices  = \App\Models\Office::orderBy('name')->get();
+        if ($officeId !== null) {
+            $offices = $offices->filter(fn($o) => $o->id == $officeId)->values();
+        }
 
         $depositQuery = \App\Models\Deposit::where('deposit_type', $depositTypeId);
+
+        if ($officeId !== null) {
+            $depositQuery->where('office', $officeId);
+        }
 
         if ($dateFrom !== null && $dateTo !== null) {
             $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
@@ -1400,8 +1536,139 @@ class RiskController extends Controller
             if ($row['total'] > 0) {
                 $stats['offices_with_total'] += 1;
             }
-        }
+         }
 
         return response()->json(['rows' => $rows, 'stats' => $stats]);
+    }
+
+    /**
+     * Map a row's overall standing to a CSS class so callers can style it.
+     */
+    private function debtRowClass(array $row): string
+    {
+        if ($row['outstanding_amount'] <= 0)  return ' da-row-zero';
+        if ($row['outstanding_amount'] < $row['original_amount']) return ' da-row-warn';
+        return ' da-alert';
+    }
+
+    /**
+     * GET /risk/office-debts/debt
+     * Return debt records **grouped by office** so every office that has
+     * outstanding debt appears as one consolidated row.
+     * Supports the same ?period= filter for debt_month/debt_year matching.
+     *
+     * Grouped row shape:
+     * { id, office_id, office_name, month_count, original_amount, outstanding_amount,
+     *   debt_status, month_boxes: [10-bool-array Jan..Oct], months_detail: [...], notes }
+     */
+    public function officeDebtsByDebtType(Request $request)
+    {
+        $period       = $request->query('period', 'month');
+        $customMonth  = (int) $request->query('custom_month', date('n'));
+        $customYear   = (int) $request->query('custom_year', date('Y'));
+        $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
+        $startDate    = $request->query('start_date');
+        $endDate      = $request->query('end_date');
+
+        [$dateFrom, $dateTo] = $this->getDepositDateRange($period, $customMonth, $customYear);
+
+        if ($period === 'custom' && $startDate && $endDate) {
+            $dateFrom = $startDate;
+            $dateTo   = $endDate;
+        }
+
+        $query = \App\Models\OfficeDebt::with(['office', 'depositType'])
+            ->where('outstanding_amount', '>', 0);
+
+        if ($officeId !== null) {
+            $query->where('office_id', $officeId);
+        }
+
+        // Apply period filter on debt_year / debt_month when a specific period is chosen
+        if ($dateFrom !== null && $dateTo !== null) {
+            $fromYear  = (int) \Carbon\Carbon::parse($dateFrom)->format('Y');
+            $fromMonth = (int) \Carbon\Carbon::parse($dateFrom)->format('n');
+            $toYear    = (int) \Carbon\Carbon::parse($dateTo)->format('Y');
+            $toMonth   = (int) \Carbon\Carbon::parse($dateTo)->format('n');
+
+            // Build a composite year*100 + month range for filtering
+            $fromVal = $fromYear * 100 + $fromMonth;
+            $toVal   = $toYear   * 100 + $toMonth;
+
+            $query->whereRaw('(debt_year * 100 + debt_month) BETWEEN ? AND ?', [$fromVal, $toVal]);
+        }
+
+        $records = $query->orderByDesc('id')->get();
+
+        // ── Group by office so every branch appears in a single row ──────────────
+        $grouped = [];
+        foreach ($records as $rec) {
+            $oid = (int) $rec->office_id;
+            if (!isset($grouped[$oid])) {
+                $grouped[$oid] = [
+                    'office_id'          => $oid,
+                    'office_name'        => $rec->office->name ?? '—',
+                    'original_amount'    => 0,
+                    'outstanding_amount' => 0,
+                    'months_detail'      => [],
+                ];
+            }
+            $grouped[$oid]['original_amount']    += (int) $rec->original_amount;
+            $grouped[$oid]['outstanding_amount'] += (int) $rec->outstanding_amount;
+            $grouped[$oid]['months_detail'][] = [
+                'month'          => (int) $rec->debt_month,
+                'year'           => (int) $rec->debt_year,
+                'original'       => (int) $rec->original_amount,
+                'outstanding'    => (int) $rec->outstanding_amount,
+                'status'         => (string) ($rec->debt_status ?? 'owing'),
+                'deposit_type'   => optional($rec->depositType)->name ?? '—',
+                'notes'          => (string) ($rec->notes ?? ''),
+            ];
+        }
+
+        // ── Build month-box array (Jan..Dec) and determine per-office status ──────
+        $mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        $rows = [];
+        $sortIdx = 0;
+        foreach ($grouped as $g) {
+            $monthBoxes = array_fill(0, 12, false);
+            $monthHeads = array_fill(0, 12, null);  // accumulate per-month detail for tooltip
+            foreach ($g['months_detail'] as $md) {
+                $idx = $md['month'] - 1;
+                if ($idx >= 0 && $idx < 12) {
+                    $monthBoxes[$idx] = true;
+                    if (!isset($monthHeads[$idx]) || $monthHeads[$idx] === null) {
+                        $monthHeads[$idx] = [];
+                    }
+                    $monthHeads[$idx][] = $md;
+                }
+            }
+
+            $status = $this->debtRowClass([
+                'original_amount'    => $g['original_amount'],
+                'outstanding_amount' => $g['outstanding_amount'],
+            ]);
+
+            $rows[] = [
+                'id'                  => ++$sortIdx,
+                'office_id'           => $g['office_id'],
+                'office_name'         => $g['office_name'],
+                'month_count'         => count($g['months_detail']),
+                'original_amount'     => $g['original_amount'],
+                'outstanding_amount'  => $g['outstanding_amount'],
+                'debt_status'         => $status === ' da-row-zero' ? 'Cleared'
+                                   : ($status === ' da-row-warn' ? 'Partial' : 'Owing'),
+                'month_boxes'         => $monthBoxes,
+                'months_detail'       => $g['months_detail'],
+            ];
+        }
+
+        // Sort: highest outstanding first, then highest original
+        usort($rows, function ($a, $b) {
+            $diff = ($b['outstanding_amount'] ?? 0) - ($a['outstanding_amount'] ?? 0);
+            return $diff !== 0 ? $diff : ($b['original_amount'] ?? 0) - ($a['original_amount'] ?? 0);
+        });
+
+        return response()->json(['rows' => $rows]);
     }
 }

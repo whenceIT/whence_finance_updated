@@ -35,9 +35,9 @@ class GOAController extends Controller
         // Alerts
         $insuranceExpiredRecent = Fleet::with('user', 'office')->where('insurance_expire_date', '<', Carbon::now())->where('insurance_expire_date', '>=', Carbon::now()->subWeek())->orderBy('insurance_expire_date')->get();
         $insuranceExpiringSoon = Fleet::with('user', 'office')->whereBetween('insurance_expire_date', [Carbon::now(), Carbon::now()->addWeek()])->orderBy('insurance_expire_date')->get();
-        $maintenanceSoon = FleetMaintenanceSchedule::with('fleet')->whereBetween('due_date', [Carbon::now(), Carbon::now()->addDays(5)])->where('status', 'pending')->orderBy('due_date')->get();
+        $maintenanceSoon = FleetMaintenanceSchedule::with('fleet.user', 'fleet.office')->whereBetween('due_date', [Carbon::now(), Carbon::now()->addDays(5)])->where('status', 'pending')->orderBy('due_date')->get();
         $insurancePastDue = Fleet::with('user', 'office')->where('insurance_expire_date', '<', Carbon::now()->subWeek())->orderBy('insurance_expire_date')->get();
-        $maintenancePastDue = FleetMaintenanceSchedule::with('fleet')->where('due_date', '<', Carbon::now())->where('status', 'pending')->orderBy('due_date')->get();
+        $maintenancePastDue = FleetMaintenanceSchedule::with('fleet.user', 'fleet.office')->where('due_date', '<', Carbon::now())->where('status', 'pending')->orderBy('due_date')->get();
 
         // Average vehicle age
         $avgVehicleAge = Fleet::whereNotNull('date_purchased')

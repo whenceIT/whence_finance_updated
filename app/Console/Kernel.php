@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\ResetTrainerFlagCommand::class,
+        \App\Console\Commands\GenerateMonthlyOfficeDebts::class,
     ];
 
     /**
@@ -50,6 +51,12 @@ class Kernel extends ConsoleKernel
 
         // $schedule->command('inspire')
         //          ->hourly();
+
+        // Generate OfficeDebt records for any month whose 28th deadline has passed
+        $schedule->command('debts:generate-monthly')
+                 ->dailyAt('23:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**
