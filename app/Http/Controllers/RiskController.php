@@ -1173,7 +1173,7 @@ class RiskController extends Controller
      */
     public function branchDepositAudit(Request $request)
     {
-        $period       = $request->query('period', 'overall');
+        $period       = $request->query('period', 'year');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
         $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
