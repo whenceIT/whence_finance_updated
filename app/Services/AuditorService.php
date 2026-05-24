@@ -629,13 +629,21 @@ class AuditorService
      */
     public function logChangedLoanOfficer($user, $request, $loan = null)
     {
+        $new_officer_id = $request->loan_officer_id ?? $request->officer_id ?? $request->user_id ?? null;
         $newValues = [
             'action'           => 'changed_loan_officer',
             'user_name'        => $user->first_name . ' ' . $user->last_name,
             'office_id'        => $user->office_id ?? null,
-            'new_officer_id'   => $request->loan_officer_id ?? $request->officer_id ?? $request->user_id ?? null,
+            'new_officer_id'   => $new_officer_id,
             'changed_at'       => now()->toDateTimeString(),
         ];
+
+        if ($new_officer_id) {
+            $newOfficer = \App\Models\User::find($new_officer_id);
+            if ($newOfficer) {
+                $newValues['new_officer_name'] = trim($newOfficer->first_name . ' ' . $newOfficer->last_name);
+            }
+        }
 
         // Add loan information if available
         if ($loan) {
@@ -649,8 +657,9 @@ class AuditorService
             $newValues['loan_id'] = $request->route('id') ?? $request->route('loan');
         }
 
-        $message = 'Changed loan officer for loan #' . $loan->id;
-        if ($newValues['new_officer_name']) {
+        $loanId = $loan ? $loan->id : ($newValues['loan_id'] ?? 'unknown');
+        $message = 'Changed loan officer for loan #' . $loanId;
+        if (!empty($newValues['new_officer_name'])) {
             $message .= ' to ' . $newValues['new_officer_name'];
         }
         if ($loan && $loan->client) {
