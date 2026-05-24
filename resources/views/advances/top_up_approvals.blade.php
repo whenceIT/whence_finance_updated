@@ -65,8 +65,6 @@
             </table>
         </div>
     </div>
-@endsection
-@section('footer-scripts')
     <script>
         $('#data-table').DataTable({
             dom: 'frtip',
