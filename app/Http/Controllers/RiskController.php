@@ -7,6 +7,7 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\Province;
 use Carbon\Carbon;
 use App\Services\AlertService;
+use Illuminate\Support\Facades\DB;
 
 class RiskController extends Controller
 {
@@ -1129,6 +1130,36 @@ class RiskController extends Controller
             'outstanding_amount' => 'sometimes|integer|min:0',
             'notes'              => 'sometimes|nullable|string',
         ]);
+
+        // Handle adjustment of debt principal or partial payment via deposit
+        if (array_key_exists('outstanding_amount', $data)) {
+            $newOut       = (int) $data['outstanding_amount'];
+            $currOriginal = (int) $debt->original_amount;
+
+            if ($newOut > $currOriginal) {
+                // Debt increased: bump both original and outstanding to the new higher value
+                $data['original_amount']    = $newOut;
+                $data['outstanding_amount'] = $newOut;
+            } elseif ($newOut < $currOriginal) {
+                // Debt reduced: record the difference as a new deposit entry (raw insert)
+                $debtAmount = $currOriginal - $newOut;
+
+                $year  = $debt->debt_year  ?? Carbon::now()->year;
+                $month = $debt->debt_month ?? Carbon::now()->month;
+                $date  = Carbon::create($year, $month, 1)->toDateString();
+
+                DB::table('deposits')->insert([
+                    'deposit_type' => $debt->deposit_type_id,
+                    'office'       => $debt->office_id,
+                    'amount'       => $debtAmount,
+                    'debt'         => true,
+                    'date'         => $date,
+                ]);
+
+                // outstanding_amount in $data will be applied by update(); original stays
+            }
+            // equal: no special action
+        }
 
         $debt->update($data);
 

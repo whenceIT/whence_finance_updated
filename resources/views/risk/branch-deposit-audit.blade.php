@@ -232,6 +232,7 @@
     .od-form-group label { font-size: 12px; font-weight: 600; color: #555; }
     .od-form-group input, .od-form-group select, .od-form-group textarea { padding: 7px 10px; border: 1px solid #c7cfdf; border-radius: 4px; font-size: 13px; outline: none; }
     .od-form-group input:focus, .od-form-group select:focus, .od-form-group textarea:focus { border-color: #667eea; }
+    .od-editable-highlight { border: 3px solid #2196f3 !important; box-shadow: 0 0 0 3px rgba(33,150,243,0.25); }
 
     /* Action cell */
     .od-actions { display: flex; gap: 4px; }
@@ -851,8 +852,10 @@
             $('#odEditId').val('');
             $('#odFormBar').hide();
 
-            // Re-enable the identifier fields (Branch, Deposit Type, Month, Year) for new records
-            $('#odInputOffice, #odInputDepositType, #odInputMonth, #odInputYear').prop('disabled', false);
+            // Re-enable all fields for new records
+            $('#odInputOffice, #odInputDepositType, #odInputMonth, #odInputYear, #odInputStatus, #odInputOriginal, #odInputOutstanding, #odInputNotes')
+                .prop('disabled', false);
+            $('#odInputOutstanding').removeClass('od-editable-highlight');
 
             odShowList();
             // empty visibility managed by odLoadTable when needed
@@ -884,11 +887,16 @@
                 }
             }
 
-            // Disable the core identifiers (Branch, Deposit Type, Month, Year) in edit mode
-            // so users cannot change which debt record this is
-            const disableIdentifiers = !!isEdit;
-            $('#odInputOffice, #odInputDepositType, #odInputMonth, #odInputYear')
-                .prop('disabled', disableIdentifiers);
+            // In EDIT mode: Outstanding (thick blue highlight) + Notes are editable.
+            // All other fields (incl. Original Debt) are locked.
+            // Server-side: if outstanding > original then original is bumped to match;
+            // if lower then the delta is recorded as a deposit.
+            const editing = !!isEdit;
+            $('#odInputOffice, #odInputDepositType, #odInputMonth, #odInputYear, #odInputStatus, #odInputOriginal')
+                .prop('disabled', editing);
+            $('#odInputOutstanding')
+                .prop('disabled', false)
+                .toggleClass('od-editable-highlight', editing);
 
             $fb.show();
             $fb[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1019,12 +1027,12 @@
          }
 
          // ── New Record ──
-         $(document).on('click', '#odBtnNewRow', function() {
-             odResetForm();
-             odShowForm(false);
-         });
+          $(document).on('click', '#odBtnNewRow', function() {
+              odResetForm();
+              odShowForm(false);
+           });
 
-         // ── Live Search Filter ──
+           // ── Live Search Filter ──
          $(document).on('input', '#odSearchInput', function() {
              var term = $(this).val().toLowerCase().trim();
 
@@ -1086,14 +1094,23 @@
                 $('#odInputOffice').val(row.office_id);
                 $('#odInputDepositType').val(row.deposit_type_id || '');
 
-                // Prefill month/year from created_at of the Office Debt record (as requested)
-                if (row.created_at) {
+                // Prefill Month and Year from the OfficeDebt model's debt_month / debt_year
+                if (row.debt_month) {
+                    $('#odInputMonth').val(row.debt_month);
+                } else if (row.created_at) {
                     var created = new Date(row.created_at);
                     $('#odInputMonth').val(created.getMonth() + 1);
+                } else {
+                    $('#odInputMonth').val('');
+                }
+
+                if (row.debt_year) {
+                    $('#odInputYear').val(row.debt_year);
+                } else if (row.created_at) {
+                    var created = new Date(row.created_at);
                     $('#odInputYear').val(created.getFullYear());
                 } else {
-                    $('#odInputMonth').val(row.debt_month ?? '');
-                    $('#odInputYear').val(row.debt_year  ?? '');
+                    $('#odInputYear').val('');
                 }
 
                 $('#odInputStatus').val(row.debt_status);
@@ -1201,9 +1218,16 @@
                         <span id="odFormTitle" style="font-weight:700; color:#2c3e50; font-size:14px;">Add / Edit Debt Record</span>
                         <a href="#" id="odBackToList" style="font-size:12px; color:#667eea; text-decoration:none; display:flex; align-items:center; gap:4px; font-weight:600;">
                             <i class="fa fa-arrow-left"></i> Back to list
-                        </a>
-                    </div>
-                    <div class="od-form-row">
+                         </a>
+                     </div>
+                     <!-- Update behavior hint (visible when editing) -->
+                     <div style="background:#f0f4ff;border:1px solid #c5d4f5;color:#2c5282;font-size:12px;padding:6px 10px;border-radius:4px;margin-bottom:12px;">
+                         <i class="fa fa-info-circle"></i>
+                         <strong>Editing rules:</strong> Only <strong>Outstanding</strong> (blue border) and Notes can be changed.
+                         Higher Outstanding → Original Debt is increased to match.
+                         Lower Outstanding → the difference is automatically recorded as a Deposit for this branch/type/period.
+                     </div>
+                     <div class="od-form-row">
                         <div class="od-form-group">
                             <label>Branch</label>
                             <select id="odInputOffice">
