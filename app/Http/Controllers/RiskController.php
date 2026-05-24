@@ -1297,9 +1297,17 @@ class RiskController extends Controller
             $debtQuery->where('office_id', $officeId);
         }
         $debtRecords = $debtQuery->get();
+
+        // 'paid' now comes from actual Deposit records flagged as debt-related (inserted when Outstanding is manually reduced)
+        $paidDebtDeposits = \App\Models\Deposit::query()->where('debt', true);
+        if ($officeId !== null) {
+            $paidDebtDeposits->where('office', $officeId);
+        }
+        $paid = (int) $paidDebtDeposits->sum('amount');
+
         $debtCards = [
             'accumulated' => (int) $debtRecords->sum('original_amount'),
-            'paid'        => (int) $debtRecords->sum(fn($d) => (int) $d->original_amount - (int) $d->outstanding_amount),
+            'paid'        => $paid,
             'balance'     => (int) $debtRecords->sum('outstanding_amount'),
         ];
 
