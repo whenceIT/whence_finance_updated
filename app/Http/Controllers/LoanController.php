@@ -1666,7 +1666,7 @@ class LoanController extends Controller
             ]
         ]);
         Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
-        Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup);
+        Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup, $client);
 
         
         // Log audit for accessing and viewing top up approval requests page
