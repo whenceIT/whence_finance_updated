@@ -4,7 +4,7 @@
 @endsection
 @section('content')
 
-<x-debt-blocker />
+<!-- <x-debt-blocker /> -->
 
     <div class="row">
         <div class="col-md-12">
