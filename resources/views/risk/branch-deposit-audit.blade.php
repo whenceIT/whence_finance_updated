@@ -1253,7 +1253,7 @@
                                         echo '<option value="' . $dt->id . '">' . htmlspecialchars($dt->name) . '</option>';
                                     }
                                 ?>
-                                <option value="setup_debt">Setup Debt</option>
+                                <option value="0">Setup Debt</option>
                             </select>
                         </div>
                         <div class="od-form-group">
