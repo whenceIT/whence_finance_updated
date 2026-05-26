@@ -1117,6 +1117,7 @@
                 $('#odInputOriginal').val(row.original_amount);
                 $('#odInputOutstanding').val(row.outstanding_amount);
                 $('#odInputNotes').val(row.notes);
+                window.currentOdIsSetupDebt = row.is_setup_debt || 'false';
                 odShowForm(true);
 
                 // Scroll form into view
@@ -1150,6 +1151,7 @@
             var original      = $('#odInputOriginal').val();
             var outstanding   = $('#odInputOutstanding').val();
             var notes         = $('#odInputNotes').val();
+            var isSetupDebt   = window.currentOdIsSetupDebt || 'false';
 
             if (!officeId || !original || outstanding === '') {
                 alert('Please fill in Branch, Original Amount and Outstanding Amount.');
@@ -1175,6 +1177,7 @@
                     original_amount:     original,
                     outstanding_amount:  outstanding,
                     notes:               notes,
+                    is_setup_debt:       isSetupDebt,
                 },
             }).done(function(r) {
                 if (r.success) {
@@ -1249,7 +1252,8 @@
                                     foreach ($depositTypes as $dt) {
                                         echo '<option value="' . $dt->id . '">' . htmlspecialchars($dt->name) . '</option>';
                                     }
-                                    ?>
+                                ?>
+                                <option value="setup_debt">Setup Debt</option>
                             </select>
                         </div>
                         <div class="od-form-group">

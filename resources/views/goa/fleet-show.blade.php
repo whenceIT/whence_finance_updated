@@ -80,8 +80,13 @@
                         <i class="fa fa-calendar" style="font-size:18px;"></i>
                     </div>
                     <div style="flex:1;">
-                        <div style="font-size:11px; color:#888; text-transform:uppercase;">Insurance Expiry</div>
-                        <div style="font-weight:600; color:#222; font-size:14.5px; line-height:1.2;">
+                        <div style="font-size:11px; color:#888; text-transform:uppercase; display:flex; align-items:center; justify-content:space-between;">
+                            <span>Insurance Expiry</span>
+                            <a href="#" id="editInsuranceBtn" style="color:#007bff; font-size:12px; margin-left:6px;" title="Update insurance expiry date">
+                                <i class="fa fa-pencil"></i>
+                            </a>
+                        </div>
+                        <div style="font-weight:600; color:#222; font-size:14.5px; line-height:1.2;" id="insuranceExpiryValue">
                             {{ $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('d M Y') : 'N/A' }}
                         </div>
                     </div>
@@ -201,7 +206,7 @@
                     <div style="margin-bottom:10px;">
                         <div style="font-size:12px; color:#888;"><i class="fa fa-file-text"></i> Insurance Expires</div>
                         <div style="font-weight:600; font-size:14.5px;">
-                            {{ $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('d M Y') : 'N/A' }}
+                            <span id="insuranceExpiryDetail">{{ $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('d M Y') : 'N/A' }}</span>
                             @if($fleet->insurance_expire_date && $fleet->insurance_expire_date->isPast())
                                 <span class="label label-danger" style="margin-left:6px; padding:2px 7px;">Expired</span>
                             @elseif($fleet->insurance_expire_date && $fleet->insurance_expire_date->diffInDays() < 30)
@@ -224,5 +229,89 @@
         </a>
     </div>
 </div>
+
+<!-- Insurance Expiry Update Modal -->
+<div class="modal fade" id="insuranceModal" tabindex="-1" role="dialog" aria-labelledby="insuranceModalLabel">
+    <div class="modal-dialog" role="document" style="max-width:420px;">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#f8f9fa; padding:12px 18px;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="insuranceModalLabel" style="font-size:16px; font-weight:600;">
+                    <i class="fa fa-calendar text-warning"></i> Update Insurance Expiry
+                </h4>
+            </div>
+            <div class="modal-body" style="padding:18px 20px;">
+                <div style="margin-bottom:14px;">
+                    <div style="font-size:12px; color:#666; margin-bottom:3px;">Current Expiry</div>
+                    <div id="modalCurrentDate" style="font-weight:600; font-size:15px; color:#333;">
+                        {{ $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('d M Y') : 'N/A' }}
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label for="newInsuranceDate" style="font-size:12px; color:#666; margin-bottom:4px;">New Expiry Date (must be today or later)</label>
+                    <input type="date" id="newInsuranceDate" class="form-control" style="height:36px; font-size:14px;"
+                           value="{{ $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('Y-m-d') : '' }}">
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:10px 16px;">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveInsuranceBtn">
+                    <i class="fa fa-save"></i> Save New Date
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        // Open modal
+        $('#editInsuranceBtn').on('click', function (e) {
+            e.preventDefault();
+            $('#modalCurrentDate').text($('#insuranceExpiryValue').text().trim());
+            var currentIso = '{{ $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format("Y-m-d") : "" }}';
+            $('#newInsuranceDate').val(currentIso);
+            $('#insuranceModal').modal('show');
+        });
+
+        // Save via AJAX
+        $('#saveInsuranceBtn').on('click', function () {
+            var newDate = $('#newInsuranceDate').val();
+            if (!newDate) {
+                alert('Please select a valid future date.');
+                return;
+            }
+
+            var $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+            $.ajax({
+                url: '{{ route("fleets.update-insurance", $fleet->id) }}',
+                type: 'PUT',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    insurance_expire_date: newDate
+                },
+                success: function (res) {
+                    if (res.success) {
+                        $('#insuranceModal').modal('hide');
+                        // Reload to refresh date + any expiry warning labels
+                        location.reload();
+                    } else {
+                        alert(res.message || 'Update failed.');
+                    }
+                },
+                error: function (xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Failed to update date. Please try again.';
+                    alert(msg);
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).html('<i class="fa fa-save"></i> Save New Date');
+                }
+            });
+        });
+    });
+</script>
 
 @endsection

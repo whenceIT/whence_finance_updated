@@ -326,6 +326,7 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('fleet-management', 'GOAController@fleetManagement')->name('goa.fleet-management');
     Route::get('vacancies-and-staffing', 'GOAController@vacanciesAndStaffing')->name('goa.vacancies-and-staffing');
     Route::resource('fleets', FleetController::class);
+    Route::put('fleets/{fleet}/insurance', 'FleetController@updateInsurance')->name('fleets.update-insurance');
     Route::post('maintenance/store', 'FleetController@storeMaintenance')->name('maintenance.store');
     Route::post('maintenance/{id}/complete', 'FleetController@completeMaintenance')->name('maintenance.complete');
     Route::post('staff/update-position', 'StaffController@updatePosition')->name('staff.update-position');

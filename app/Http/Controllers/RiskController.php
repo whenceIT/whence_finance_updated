@@ -1077,6 +1077,7 @@ class RiskController extends Controller
                 'original_amount'   => (int) $row->original_amount,
                 'outstanding_amount'=> (int) $row->outstanding_amount,
                 'notes'             => (string) ($row->notes ?? ''),
+                'is_setup_debt'     => $row->is_setup_debt,
                 'created_at'        => $row->created_at ? $row->created_at->toDateTimeString() : null,
             ];
         })->all());
@@ -1084,27 +1085,38 @@ class RiskController extends Controller
 
     /**
      * POST /risk/office-debts
-     * Create or update an OfficeDebt record.
-     * Expects: office_id, debt_status (optional), original_amount, outstanding_amount, notes (optional).
+     * Create an OfficeDebt record.
+     *
+     * Special case: if deposit_type_id === "setup_debt" (from the UI),
+     * we store with deposit_type_id = null and is_setup_debt = 'true'.
      */
     public function storeOfficeDebt(Request $request)
     {
         $data = $request->validate([
             'office_id'          => 'required|integer|exists:offices,id',
+            'deposit_type_id'    => 'sometimes|nullable',
+            'debt_month'         => 'sometimes|nullable|integer|min:1|max:12',
+            'debt_year'          => 'sometimes|nullable|integer|min:2020|max:2100',
             'debt_status'        => 'sometimes|string|max:30',
             'original_amount'    => 'required|integer|min:0',
             'outstanding_amount' => 'required|integer|min:0',
             'notes'              => 'sometimes|nullable|string',
+            'is_setup_debt'      => 'sometimes|in:true,false',
         ]);
 
-        // Enforce: a branch may only ever have one active debt record
-        $existing = \App\Models\OfficeDebt::where('office_id', $data['office_id'])->first();
-        if ($existing) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This branch already has an outstanding debt record. Edit it instead of creating a new one.',
-            ], 409);
+        // Handle the special "Setup Debt" option from the UI
+        if (($data['deposit_type_id'] ?? null) === 'setup_debt') {
+            $data['deposit_type_id'] = null;
+            $data['is_setup_debt']   = 'true';
+        } else {
+            if (!array_key_exists('is_setup_debt', $data)) {
+                $data['is_setup_debt'] = 'false';
+            }
         }
+
+        // Uniqueness is enforced by the database unique index on
+        // (office_id, deposit_type_id, debt_month, debt_year).
+        // The previous "only one debt per branch" check has been removed.
 
         $debt = \App\Models\OfficeDebt::create($data);
 
@@ -1129,6 +1141,7 @@ class RiskController extends Controller
             'original_amount'    => 'sometimes|integer|min:0',
             'outstanding_amount' => 'sometimes|integer|min:0',
             'notes'              => 'sometimes|nullable|string',
+            'is_setup_debt'      => 'sometimes|in:true,false',
         ]);
 
         // Handle adjustment of debt principal or partial payment via deposit
