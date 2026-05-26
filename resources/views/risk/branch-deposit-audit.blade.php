@@ -1188,7 +1188,12 @@
                     alert(r.message || 'Save failed.');
                 }
             }).fail(function(xhr) {
-                var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Save failed.';
+                var msg = 'Save failed.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else if (xhr.status === 409) {
+                    msg = 'This monthly debt record already exists for the selected office and deposit type.';
+                }
                 alert(msg);
             });
         });
@@ -1307,8 +1312,11 @@
                             <button class="od-btn od-btn-cancel"     id="odBtnCancelForm"  >Cancel</button>
                          </div>
                          </div>
-                     <input type="hidden" id="odEditId" value="">
-                 </div>
+                      <input type="hidden" id="odEditId" value="">
+
+                      <!-- Duplicate prevention: handled server-side via unique DB constraint.
+                           storeOfficeDebt / updateOfficeDebt return clean JSON (409) on conflict. -->
+                  </div>
 
                   <!-- List header with search + export -->
                   <div id="odListHeader" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:12px; flex-wrap:wrap;">

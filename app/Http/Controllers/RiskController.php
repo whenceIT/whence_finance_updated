@@ -1106,7 +1106,7 @@ class RiskController extends Controller
 
         // Handle the special "Setup Debt" option from the UI
         if (($data['deposit_type_id'] ?? null) === 'setup_debt') {
-            $data['deposit_type_id'] = null;
+            $data['deposit_type_id'] = 0;
             $data['is_setup_debt']   = 'true';
         } else {
             if (!array_key_exists('is_setup_debt', $data)) {
@@ -1118,13 +1118,26 @@ class RiskController extends Controller
         // (office_id, deposit_type_id, debt_month, debt_year).
         // The previous "only one debt per branch" check has been removed.
 
-        $debt = \App\Models\OfficeDebt::create($data);
+        try {
+            $debt = \App\Models\OfficeDebt::create($data);
 
-        return response()->json([
-            'success' => true,
-            'id'      => $debt->id,
-            'message' => 'Debt record created successfully.',
-        ]);
+            return response()->json([
+                'success' => true,
+                'id'      => $debt->id,
+                'message' => 'Debt record created successfully.',
+            ]);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate monthly debt (unique constraint violation)
+            if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate entry')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'A debt record for this office, deposit type, month, and year already exists. Duplicates are not allowed.',
+                ], 409); // 409 Conflict
+            }
+
+            throw $e; // re-throw other database errors
+        }
     }
 
     /**
@@ -1174,13 +1187,25 @@ class RiskController extends Controller
             // equal: no special action
         }
 
-        $debt->update($data);
+        try {
+            $debt->update($data);
 
-        return response()->json([
-            'success' => true,
-            'id'      => $debt->id,
-            'message' => 'Debt record updated successfully.',
-        ]);
+            return response()->json([
+                'success' => true,
+                'id'      => $debt->id,
+                'message' => 'Debt record updated successfully.',
+            ]);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate entry')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Update would create a duplicate. A debt record for this office, deposit type, month, and year already exists.',
+                ], 409);
+            }
+
+            throw $e;
+        }
     }
 
     /**

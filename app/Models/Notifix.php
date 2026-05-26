@@ -61,36 +61,41 @@ class Notifix extends Model
         $manager = GeneralHelper::get_my_manager();
         $notifixService = app(NotifixService::class);
 
-        $notifixService->create($manager['bm'], [Sentinel::getUser()->office->id], [
-            'id' => uniqid(),
-            'loan_id' => $loan->id,
-            'from_id' => Sentinel::getUser()->id,
-            'link_from' => null,
-            'link_to' => url('/loan/managers_pending_approval'),
-            'type' => 'loan_created',
-            'message' => 'Pending approval: ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' has requested a loan in the amount of ' . htmlspecialchars($amount),
-            'positions' => [Sentinel::getUser()->position_id],
-            'office_id' => Sentinel::getUser()->office->id,
-            'district_id' => Sentinel::getUser()->office->district_id,
-            'province_id' => Sentinel::getUser()->office->province_id,
-            'to_id' => null, // This can be set if there's a specific target user
-            'created_date' => now()->toIso8601String()
-        ]);
-        $notifixService->create($manager['rk'], [Sentinel::getUser()->office->id], [
-            'id' => uniqid(),
-            'loan_id' => $loan->id,
-            'from_id' => Sentinel::getUser()->id,
-            'link_from' => null,
-            'link_to' => url('/loan/managers_pending_approval'),
-            'type' => 'loan_created',
-            'message' => 'Pending approval: ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' has requested a loan in the amount of ' . htmlspecialchars($amount),
-            'positions' => [Sentinel::getUser()->position_id],
-            'office_id' => Sentinel::getUser()->office->id,
-            'district_id' => Sentinel::getUser()->office->district_id,
-            'province_id' => Sentinel::getUser()->office->province_id,
-            'to_id' => null, // This can be set if there's a specific target user
-            'created_date' => now()->toIso8601String()
-        ]);
+        if ($manager['bm']) {
+            $notifixService->create($manager['bm'], [Sentinel::getUser()->office->id], [
+                'id' => uniqid(),
+                'loan_id' => $loan->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/loan/managers_pending_approval'),
+                'type' => 'loan_created',
+                'message' => 'Pending approval: ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' has requested a loan in the amount of ' . htmlspecialchars($amount),
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => Sentinel::getUser()->office->id,
+                'district_id' => Sentinel::getUser()->office->district_id,
+                'province_id' => Sentinel::getUser()->office->province_id,
+                'to_id' => null,
+                'created_date' => now()->toIso8601String()
+            ]);
+        }
+
+        if ($manager['rk']) {
+            $notifixService->create($manager['rk'], [Sentinel::getUser()->office->id], [
+                'id' => uniqid(),
+                'loan_id' => $loan->id,
+                'from_id' => Sentinel::getUser()->id,
+                'link_from' => null,
+                'link_to' => url('/loan/managers_pending_approval'),
+                'type' => 'loan_created',
+                'message' => 'Pending approval: ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ' has requested a loan in the amount of ' . htmlspecialchars($amount),
+                'positions' => [Sentinel::getUser()->position_id],
+                'office_id' => Sentinel::getUser()->office->id,
+                'district_id' => Sentinel::getUser()->office->district_id,
+                'province_id' => Sentinel::getUser()->office->province_id,
+                'to_id' => null,
+                'created_date' => now()->toIso8601String()
+            ]);
+        }
     }
 
     /**
