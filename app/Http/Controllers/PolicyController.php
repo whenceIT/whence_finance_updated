@@ -772,16 +772,6 @@ class PolicyController extends Controller
     }
 
     /**
-     * Show single policy details for preview
-     */
-    public function view($id)
-    {
-        $policy = Policy::with(['category', 'createdBy'])->findOrFail($id);
-        
-        return view('policies.single-view', compact('policy'));
-    }
-
-    /**
      * Get all policies of the day for management
      */
     public function getAllPoliciesOfTheDay()
