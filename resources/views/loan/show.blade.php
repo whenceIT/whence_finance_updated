@@ -4,6 +4,7 @@
 @endsection
 @section('content')
 
+<x-debt-blocker/>
 
 
     <div class="row">

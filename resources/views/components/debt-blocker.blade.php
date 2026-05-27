@@ -5,7 +5,7 @@
         : ['status' => true, 'balance' => 0];
 @endphp
 
-@if(!$blocker['status'])
+@if(!$blocker['status'] && $blocker['balance'] > 0)
     {{-- Debt Blocker Overlay (reusable component) --}}
     <div id="debt-blocker-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999999; display: flex; align-items: center; justify-content: center;">
         <div id="debt-blocker-card" style="background: #ffffff; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.35); max-width: 480px; width: 94%; padding: 28px 24px; text-align: center; border: 2px solid #e74c3c;">
