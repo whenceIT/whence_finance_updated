@@ -191,7 +191,7 @@ class UserController extends Controller
 $url = "https://lms2backend.whencefinancesystem.com/province-ledger-summary?province_id=$province_id";
 
 $json = @file_get_contents($url);
-$province_data = $json ? json_decode($json, true) : null;
+$province_data = $json ? json_decode($json, true) : [];
 
 
             $user = Sentinel::getUser();
@@ -1214,9 +1214,27 @@ public function bmdashboard(Request $request){
         return redirect($nodeUrl);
     }
 
+    public function getUsersByOffice($officeId)
+    {
+        $users = User::where('office_id', $officeId)
+            ->select('id', 'first_name', 'last_name', 'phone')
+            ->get()
+            ->map(function($u) {
+                $u->name = trim($u->first_name . ' ' . $u->last_name);
+                return $u;
+            });
+        return response()->json($users);
+    }
 
-
-
+    public function getClientCountByLoanConsultant($userId)
+    {
+        $count = Loan::where('loan_officer_id', $userId)
+            ->where('status', 'disbursed')
+            ->distinct('client_id')
+            ->count('client_id');
+        
+        return response()->json(['count' => $count]);
+    }
 
     public function detailed_dashboard()
     {

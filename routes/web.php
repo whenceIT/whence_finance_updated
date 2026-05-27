@@ -1887,3 +1887,7 @@ Route::group(['prefix' => 'recovery'], function () {
 });
 
 Route::get('/offices', [OfficeController::class, 'getOffices']);
+Route::get('/api/offices', [OfficeController::class, 'getOffices']);
+Route::get('/api/users-by-office/{officeId}', [UserController::class, 'getUsersByOffice']);
+Route::get('/api/client-count-by-loan-consultant/{userId}', [UserController::class, 'getClientCountByLoanConsultant']);
+Route::post('/api/send-remainder', [SmsController::class, 'sendToOfficersClients']);
