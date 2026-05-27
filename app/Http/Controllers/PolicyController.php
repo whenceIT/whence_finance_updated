@@ -7,6 +7,7 @@ use App\Models\Policy;
 use App\Models\PolicyCategory;
 use App\Models\PolicyOfTheDay;
 use App\Models\PolicyViolation;
+use App\Models\UserPolicyView;
 use App\Models\UserPolicyResponse;
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -783,5 +784,35 @@ class PolicyController extends Controller
         return response()->json($policies);
     }
 
+    /**
+     * Show full policy of the day details page
+     */
+    public function viewPolicyOfTheDayFull($id)
+    {
+        $policyOfTheDay = PolicyOfTheDay::with(['policy', 'creator'])->findOrFail($id);
 
+        return view('policies.policy-of-the-day-full', compact('policyOfTheDay'));
+    }
+
+    /**
+     * Track policy engagement (view time)
+     */
+    public function trackPolicyEngagement(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'policy_of_the_day_id' => 'nullable|integer|exists:policy_of_the_day,id',
+            'policy_id' => 'nullable|integer|exists:policies,id',
+            'engagement_time' => 'required|integer|min:0',
+        ]);
+
+        UserPolicyView::create([
+            'user_id' => $request->user_id,
+            'policy_of_the_day_id' => $request->policy_of_the_day_id,
+            'policy_id' => $request->policy_id,
+            'engagement_time' => $request->engagement_time,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
 }
