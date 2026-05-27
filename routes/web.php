@@ -1399,10 +1399,12 @@ Route::group(['prefix' => 'policies'], function () {
 
     // Policy of the Day
     Route::get('policy-of-the-day', 'PolicyController@getPolicyOfTheDay')->name('policies.policy-of-the-day');
+    Route::get('policy-of-the-day/full/{id}', 'PolicyController@viewPolicyOfTheDayFull')->name('policies.policy-of-the-day.full');
     Route::post('policy-of-the-day/store', 'PolicyController@storePolicyOfTheDay')->name('policies.policy-of-the-day.store');
     Route::put('policy-of-the-day/{id}', 'PolicyController@updatePolicyOfTheDay')->name('policies.policy-of-the-day.update');
     Route::delete('policy-of-the-day/{id}', 'PolicyController@deletePolicyOfTheDay')->name('policies.policy-of-the-day.delete');
     Route::get('policy-of-the-day/all', 'PolicyController@getAllPoliciesOfTheDay')->name('policies.policy-of-the-day.all');
+    Route::post('api/track-policy-engagement', 'PolicyController@trackPolicyEngagement')->name('policies.track-engagement');
 });
 
 //staff survey routes

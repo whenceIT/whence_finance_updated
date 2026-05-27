@@ -339,53 +339,7 @@ Policy Management | System
     </div>
 </div>
 
-<!-- Policy Violations Modal -->
-<div class="bottom-sheet-overlay" id="violationsOverlay">
-    <div class="bottom-sheet" id="violationsSheet">
-        <button class="bottom-sheet-close" id="closeViolationsSheet">&times;</button>
-        <div class="bottom-sheet-handle"></div>
-        <div class="bottom-sheet-content">
-            <h3 class="bottom-sheet-title">Policy Violation Reports</h3>
-            <div class="violations-container">
-                <!-- Filters -->
-                <div class="violations-filters">
-                    <div class="filter-row">
-                        <select id="violationStatus" class="form-control">
-                            <option value="">All Statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="investigating">Investigating</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="escalated">Escalated</option>
-                        </select>
-                        <select id="violationBranch" class="form-control">
-                            <option value="">All Branches</option>
-                        </select>
-                        <select id="violationPolicyType" class="form-control">
-                            <option value="">All Policy Types</option>
-                        </select>
-                        <input type="date" id="violationDateFrom" class="form-control">
-                        <input type="date" id="violationDateTo" class="form-control">
-                        <button class="btn btn-primary" onclick="filterViolations()">Filter</button>
-                        <button class="btn btn-secondary" onclick="clearFilters()">Clear</button>
-                    </div>
-                </div>
-
-                <!-- Violations List -->
-                <div class="violations-list" id="violationsList">
-                    <div class="empty-state" id="noViolations">
-                        <i class="fa fa-clipboard-list"></i>
-                        <p>No violations found matching the filters.</p>
-                    </div>
-                </div>
-
-                <!-- Add New Violation -->
-                <div class="add-violation-section">
-                    <button class="btn btn-primary" onclick="showAddViolationForm()">Report New Violation</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@include('policies.violations-modal')
 
 <!-- Add Violation Modal -->
 <div class="modal fade" id="addViolationModal" tabindex="-1" role="dialog">
@@ -516,22 +470,30 @@ Policy Management | System
     });
 
     function loadViolations() {
-        // AJAX call to load violations
+        // Show shimmer loading
+        $('#violationsShimmer').show();
+        $('#noViolations').hide();
+        // Clear existing violations
+        $('#violationsList').find('.violation-item').remove();
+
         $.get('{{ route("policies.violations.list") }}')
             .done(function(data) {
+                $('#violationsShimmer').hide();
                 renderViolations(data);
             })
             .fail(function() {
+                $('#violationsShimmer').hide();
                 $('#violationsList').html('<p>Error loading violations.</p>');
             });
     }
 
     function renderViolations(violations) {
         if (violations.length === 0) {
-            $('#violationsList').html('<div class="empty-state"><i class="fa fa-clipboard-list"></i><p>No violations found matching the filters.</p></div>');
+            $('#noViolations').show();
             return;
         }
 
+        $('#noViolations').hide();
         let html = '';
         violations.forEach(function(violation) {
             html += `
@@ -591,9 +553,18 @@ Policy Management | System
             date_to: $('#violationDateTo').val()
         };
 
+        // Show shimmer while filtering
+        $('#violationsShimmer').show();
+        $('#noViolations').hide();
+        $('#violationsList').find('.violation-item').remove();
+
         $.get('{{ route("policies.violations.list") }}', filters)
             .done(function(data) {
+                $('#violationsShimmer').hide();
                 renderViolations(data);
+            })
+            .fail(function() {
+                $('#violationsShimmer').hide();
             });
     }
 
