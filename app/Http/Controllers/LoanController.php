@@ -804,47 +804,30 @@ class LoanController extends Controller
 
     public function top_up_approvals()
     {
-
-        if (!Sentinel::hasAccess('expenses')) {
+        if (!Sentinel::hasAccess('loans.approve')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
 
-        $province_transactions = [];
-        $userId = Sentinel::getUser()->id;
-        $province_id = Sentinel::getUser()->province_id;
-        $office_id = Sentinel::getUser()->office_id;
-        $offices = Office::get();
-        $role = UserRole::where('user_id', $userId)->first();
+        $user = Sentinel::getUser();
+        $role = UserRole::where('user_id', $user->id)->first();
 
         if (!$role) {
             Flash::warning('No role assigned.');
             return redirect()->back();
         }
 
+        $query = LoanTopUp::with(['loan.client', 'office', 'createdBy'])
+            ->where('status', 'pending');
+
         if ($role->role_id == "6") {
-
-            foreach ($offices as $office) {
-                if ($office->province_id == $province_id) {
-                    $transactions = LoanTopUp::where('office_id', $office->id)->where('status', '')->get();
-                    foreach ($transactions as $transaction) {
-                        array_push($province_transactions, $transaction);
-                    }
-                }
-            }
-            $data = $province_transactions;
-        } else if ($role->role_id == "4") {
-            $data = LoanTopUp::where('office_id', $office_id)->where('status', '')->get();
-        } else {
-            if (Sentinel::hasAccess('settings')) {
-                $data = LoanTopUp::where('status', '')->get();
-            } else {
-                $data = LoanTopUp::where('office_id', $office_id)->where('status', '')->get();
-            }
+            $officeIds = Office::where('province_id', $user->province_id)->pluck('id');
+            $data = $query->whereIn('office_id', $officeIds)->get();
+        } else if($role->role_id == '4') {
+            $data = $query->where('office_id', $user->office_id)->get();
+        }else{
+            $data = $query->get();
         }
-        
-
-        // Log audit for accessing loan transactions top up approvals page
 
         return view('advances.top_up_approvals', compact('data'));
     }
@@ -868,9 +851,9 @@ class LoanController extends Controller
             return redirect()->back();
         }
 
-         $userId = Sentinel::getUser()->id;
+        $userId = Sentinel::getUser()->id;
         $role = UserRole::where('user_id', $userId)->first();
-         $office_id = Sentinel::getUser()->office_id;
+        $office_id = Sentinel::getUser()->office_id;
 
         $data = [];
         $offices = Office::get();
@@ -1666,7 +1649,7 @@ class LoanController extends Controller
             ]
         ]);
         Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
-        Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup);
+        Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup, $client);
 
         
         // Log audit for accessing and viewing top up approval requests page

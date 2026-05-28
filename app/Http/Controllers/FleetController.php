@@ -146,4 +146,25 @@ class FleetController extends Controller
 
         return redirect()->back()->with('success', 'Fleet record deleted successfully.');
     }
+
+    /**
+     * Quick update for insurance expiry date only (used from fleet-show page modal).
+     */
+    public function updateInsurance(Request $request, Fleet $fleet)
+    {
+        $data = $request->validate([
+            'insurance_expire_date' => 'required|date|after_or_equal:today',
+        ]);
+
+        $fleet->update([
+            'insurance_expire_date' => $data['insurance_expire_date'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Insurance expiry date updated successfully.',
+            'new_date'     => $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('d M Y') : 'N/A',
+            'new_date_iso' => $fleet->insurance_expire_date ? $fleet->insurance_expire_date->format('Y-m-d') : null,
+        ]);
+    }
 }

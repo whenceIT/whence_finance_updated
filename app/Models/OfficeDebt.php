@@ -20,6 +20,7 @@ class OfficeDebt extends Model
         'original_amount',
         'outstanding_amount',
         'notes',
+        'is_setup_debt',
     ];
 
     protected $casts = [
@@ -27,6 +28,7 @@ class OfficeDebt extends Model
         'outstanding_amount'  => 'integer',
         'debt_month'          => 'integer',
         'debt_year'           => 'integer',
+        'is_setup_debt'       => 'string',
     ];
 
     /**

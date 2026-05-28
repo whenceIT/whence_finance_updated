@@ -274,16 +274,18 @@
                 <h4>{{ $policyOfTheDay->title }}</h4>
                 <p>{{ $policyOfTheDay->content }}</p>
 
-                @if($policyOfTheDay->full_content)
-                    <details class="policy-details">
-                        <summary>
-                            <i class="fa fa-chevron-down"></i>
-                            Read Full Content
-                        </summary>
-                        <p>{{ $policyOfTheDay->full_content }}</p>
-                    </details>
-                @endif
-            </div>
+                <div class="policy-actions">
+                    <a href="{{ route('policies.policy-of-the-day.full', ['id' => $policyOfTheDay->id]) }}" target="_blank" class="policy-action-btn">
+                        <i class="fa fa-book"></i>
+                        Read Full Policy
+                    </a>
+                    @if($policyOfTheDay->policy)
+                        <a href="{{ route('policies.view', ['id' => $policyOfTheDay->policy->id]) }}" target="_blank" class="policy-action-btn">
+                            <i class="fa fa-external-link"></i>
+                            View Policy Document
+                        </a>
+                    @endif
+                </div>
 
              <div class="policy-actions">
                  @if($policyOfTheDay->policy)

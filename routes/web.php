@@ -326,6 +326,7 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('fleet-management', 'GOAController@fleetManagement')->name('goa.fleet-management');
     Route::get('vacancies-and-staffing', 'GOAController@vacanciesAndStaffing')->name('goa.vacancies-and-staffing');
     Route::resource('fleets', FleetController::class);
+    Route::put('fleets/{fleet}/insurance', 'FleetController@updateInsurance')->name('fleets.update-insurance');
     Route::post('maintenance/store', 'FleetController@storeMaintenance')->name('maintenance.store');
     Route::post('maintenance/{id}/complete', 'FleetController@completeMaintenance')->name('maintenance.complete');
     Route::post('staff/update-position', 'StaffController@updatePosition')->name('staff.update-position');
@@ -1401,10 +1402,13 @@ Route::group(['prefix' => 'policies'], function () {
 
     // Policy of the Day
     Route::get('policy-of-the-day', 'PolicyController@getPolicyOfTheDay')->name('policies.policy-of-the-day');
+    Route::get('policy-of-the-day/full/{id}', 'PolicyController@viewPolicyOfTheDayFull')->name('policies.policy-of-the-day.full');
     Route::post('policy-of-the-day/store', 'PolicyController@storePolicyOfTheDay')->name('policies.policy-of-the-day.store');
     Route::put('policy-of-the-day/{id}', 'PolicyController@updatePolicyOfTheDay')->name('policies.policy-of-the-day.update');
     Route::delete('policy-of-the-day/{id}', 'PolicyController@deletePolicyOfTheDay')->name('policies.policy-of-the-day.delete');
     Route::get('policy-of-the-day/all', 'PolicyController@getAllPoliciesOfTheDay')->name('policies.policy-of-the-day.all');
+    Route::post('api/track-policy-engagement', 'PolicyController@trackPolicyEngagement')->name('policies.track-engagement');
+    Route::get('policy-engagements', 'PolicyController@policyEngagements')->name('policies.engagements');
 });
 
 //staff survey routes
@@ -1889,3 +1893,7 @@ Route::group(['prefix' => 'recovery'], function () {
 });
 
 Route::get('/offices', [OfficeController::class, 'getOffices']);
+Route::get('/api/offices', [OfficeController::class, 'getOffices']);
+Route::get('/api/users-by-office/{officeId}', [UserController::class, 'getUsersByOffice']);
+Route::get('/api/client-count-by-loan-consultant/{userId}', [UserController::class, 'getClientCountByLoanConsultant']);
+Route::post('/api/send-remainder', [SmsController::class, 'sendToOfficersClients']);

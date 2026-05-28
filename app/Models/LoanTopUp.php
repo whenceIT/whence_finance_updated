@@ -8,6 +8,7 @@ class LoanTopUp extends Model
 {
     protected $table = "loan_topup";
     protected $fillable = [];
+    public $timestamps = false;
 
     public function office()
     {

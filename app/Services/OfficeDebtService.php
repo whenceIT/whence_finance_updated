@@ -79,6 +79,7 @@ class OfficeDebtService
                             'original_amount'    => (int) round($shortfall),
                             'outstanding_amount' => (int) round($shortfall),
                             'notes'              => null,
+                            'is_setup_debt'      => 'false',
                         ]
                     );
 

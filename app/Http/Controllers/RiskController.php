@@ -7,6 +7,7 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\Province;
 use Carbon\Carbon;
 use App\Services\AlertService;
+use Illuminate\Support\Facades\DB;
 
 class RiskController extends Controller
 {
@@ -1076,6 +1077,7 @@ class RiskController extends Controller
                 'original_amount'   => (int) $row->original_amount,
                 'outstanding_amount'=> (int) $row->outstanding_amount,
                 'notes'             => (string) ($row->notes ?? ''),
+                'is_setup_debt'     => $row->is_setup_debt,
                 'created_at'        => $row->created_at ? $row->created_at->toDateTimeString() : null,
             ];
         })->all());
@@ -1083,35 +1085,59 @@ class RiskController extends Controller
 
     /**
      * POST /risk/office-debts
-     * Create or update an OfficeDebt record.
-     * Expects: office_id, debt_status (optional), original_amount, outstanding_amount, notes (optional).
+     * Create an OfficeDebt record.
+     *
+     * Special case: if deposit_type_id === "setup_debt" (from the UI),
+     * we store with deposit_type_id = null and is_setup_debt = 'true'.
      */
     public function storeOfficeDebt(Request $request)
     {
         $data = $request->validate([
             'office_id'          => 'required|integer|exists:offices,id',
+            'deposit_type_id'    => 'sometimes|nullable',
+            'debt_month'         => 'sometimes|nullable|integer|min:1|max:12',
+            'debt_year'          => 'sometimes|nullable|integer|min:2020|max:2100',
             'debt_status'        => 'sometimes|string|max:30',
             'original_amount'    => 'required|integer|min:0',
             'outstanding_amount' => 'required|integer|min:0',
             'notes'              => 'sometimes|nullable|string',
+            'is_setup_debt'      => 'sometimes|in:true,false',
         ]);
 
-        // Enforce: a branch may only ever have one active debt record
-        $existing = \App\Models\OfficeDebt::where('office_id', $data['office_id'])->first();
-        if ($existing) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This branch already has an outstanding debt record. Edit it instead of creating a new one.',
-            ], 409);
+        // Handle the special "Setup Debt" option from the UI
+        if (($data['deposit_type_id'] ?? null) === 'setup_debt') {
+            $data['deposit_type_id'] = 0;
+            $data['is_setup_debt']   = 'true';
+        } else {
+            if (!array_key_exists('is_setup_debt', $data)) {
+                $data['is_setup_debt'] = 'false';
+            }
         }
 
-        $debt = \App\Models\OfficeDebt::create($data);
+        // Uniqueness is enforced by the database unique index on
+        // (office_id, deposit_type_id, debt_month, debt_year).
+        // The previous "only one debt per branch" check has been removed.
 
-        return response()->json([
-            'success' => true,
-            'id'      => $debt->id,
-            'message' => 'Debt record created successfully.',
-        ]);
+        try {
+            $debt = \App\Models\OfficeDebt::create($data);
+
+            return response()->json([
+                'success' => true,
+                'id'      => $debt->id,
+                'message' => 'Debt record created successfully.',
+            ]);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate monthly debt (unique constraint violation)
+            if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate entry')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'A debt record for this office, deposit type, month, and year already exists. Duplicates are not allowed.',
+                ], 409); // 409 Conflict
+            }
+
+            throw $e; // re-throw other database errors
+        }
     }
 
     /**
@@ -1128,15 +1154,58 @@ class RiskController extends Controller
             'original_amount'    => 'sometimes|integer|min:0',
             'outstanding_amount' => 'sometimes|integer|min:0',
             'notes'              => 'sometimes|nullable|string',
+            'is_setup_debt'      => 'sometimes|in:true,false',
         ]);
 
-        $debt->update($data);
+        // Handle adjustment of debt principal or partial payment via deposit
+        if (array_key_exists('outstanding_amount', $data)) {
+            $newOut       = (int) $data['outstanding_amount'];
+            $currOriginal = (int) $debt->original_amount;
 
-        return response()->json([
-            'success' => true,
-            'id'      => $debt->id,
-            'message' => 'Debt record updated successfully.',
-        ]);
+            if ($newOut > $currOriginal) {
+                // Debt increased: bump both original and outstanding to the new higher value
+                $data['original_amount']    = $newOut;
+                $data['outstanding_amount'] = $newOut;
+            } elseif ($newOut < $currOriginal) {
+                // Debt reduced: record the difference as a new deposit entry (raw insert)
+                $debtAmount = $currOriginal - $newOut;
+
+                $year  = $debt->debt_year  ?? Carbon::now()->year;
+                $month = $debt->debt_month ?? Carbon::now()->month;
+                $date  = Carbon::create($year, $month, 1)->toDateString();
+
+                DB::table('deposits')->insert([
+                    'deposit_type' => $debt->deposit_type_id,
+                    'office'       => $debt->office_id,
+                    'amount'       => $debtAmount,
+                    'debt'         => true,
+                    'date'         => $date,
+                ]);
+
+                // outstanding_amount in $data will be applied by update(); original stays
+            }
+            // equal: no special action
+        }
+
+        try {
+            $debt->update($data);
+
+            return response()->json([
+                'success' => true,
+                'id'      => $debt->id,
+                'message' => 'Debt record updated successfully.',
+            ]);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate entry')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Update would create a duplicate. A debt record for this office, deposit type, month, and year already exists.',
+                ], 409);
+            }
+
+            throw $e;
+        }
     }
 
     /**
@@ -1266,9 +1335,17 @@ class RiskController extends Controller
             $debtQuery->where('office_id', $officeId);
         }
         $debtRecords = $debtQuery->get();
+
+        // 'paid' now comes from actual Deposit records flagged as debt-related (inserted when Outstanding is manually reduced)
+        $paidDebtDeposits = \App\Models\Deposit::query()->where('debt', true);
+        if ($officeId !== null) {
+            $paidDebtDeposits->where('office', $officeId);
+        }
+        $paid = (int) $paidDebtDeposits->sum('amount');
+
         $debtCards = [
             'accumulated' => (int) $debtRecords->sum('original_amount'),
-            'paid'        => (int) $debtRecords->sum(fn($d) => (int) $d->original_amount - (int) $d->outstanding_amount),
+            'paid'        => $paid,
             'balance'     => (int) $debtRecords->sum('outstanding_amount'),
         ];
 
