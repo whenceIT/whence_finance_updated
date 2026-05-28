@@ -2726,7 +2726,7 @@ if($branchUser->role){
 
     @endif
 
-    @if($role->role_id == '1')
+    @hasRole('role.risk')
      @include('components.client-search-bottom-sheet')
     @endif
 
