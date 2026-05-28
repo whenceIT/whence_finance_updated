@@ -1581,6 +1581,10 @@ $office = $userInfo->office;
         <script>
             var offices = @json($offices);
         </script>
+    @else
+        <script>
+            var offices = [];
+        </script>
     @endif
 
     <!-- SMS Modal -->
