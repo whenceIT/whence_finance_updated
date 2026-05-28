@@ -96,6 +96,23 @@
         border-bottom: 1px solid var(--pe-gray-200);
     }
 
+    .pe-section-header {
+        background: linear-gradient(135deg, var(--pe-primary) 0%, var(--pe-primary-dark) 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.25rem;
+    }
+
+    .pe-section-header .pe-section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
     .pe-role-group {
         margin-bottom: 2.5rem;
     }
@@ -110,6 +127,11 @@
         align-items: center;
         flex-wrap: wrap;
         gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .pe-role-header:hover {
+        background: var(--pe-gray-200);
     }
 
     .pe-role-name {
@@ -208,6 +230,10 @@
         opacity: 0.5;
     }
 
+    .pe-pagination {
+        margin-top: 1.5rem;
+    }
+
     @media (max-width: 768px) {
         .pe-header {
             flex-direction: column;
@@ -245,11 +271,11 @@
         </div>
         <div class="pe-card">
             <div class="pe-card-title">Total Engagement Time</div>
-            <div class="pe-card-value">{{ number_format($summary['total_engagement_time']) }}s</div>
+            <div class="pe-card-value">{{ formatTime($summary['total_engagement_time']) }}</div>
         </div>
         <div class="pe-card">
             <div class="pe-card-title">Avg Engagement Time</div>
-            <div class="pe-card-value">{{ number_format($summary['avg_engagement_time'], 1) }}s</div>
+            <div class="pe-card-value">{{ formatTime($summary['avg_engagement_time']) }}</div>
         </div>
         <div class="pe-card">
             <div class="pe-card-title">Today's POTD Views</div>
@@ -258,7 +284,9 @@
     </div>
 
     <div class="pe-section">
-        <h2 class="pe-section-title" style="font-size: 1.75rem;">Today's Policy of the Day Engagements</h2>
+        <div class="pe-section-header">
+            <h2 class="pe-section-title" style="font-size: 1.75rem;">Today's Policy of the Day Engagements</h2>
+        </div>
         
         @if($todayPotdEngagements->isEmpty())
             <div class="pe-empty-state">
@@ -290,7 +318,7 @@
                             <td style="font-size: 1.125rem;">{{ $engagement->user->office->name ?? 'N/A' }}</td>
                             <td style="font-size: 1.125rem;">{{ $engagement->policyOfTheDay->title ?? 'N/A' }}</td>
                             <td>
-                                <span class="pe-badge time" style="font-size: 1rem;">{{ number_format($engagement->engagement_time) }}s</span>
+                                <span class="pe-badge time" style="font-size: 1rem;">{{ formatTime($engagement->engagement_time) }}</span>
                             </td>
                             <td style="font-size: 1.125rem;">{{ $engagement->created_at->format('H:i:s') }}</td>
                         </tr>
@@ -301,7 +329,9 @@
     </div>
 
     <div class="pe-section">
-        <h2 class="pe-section-title">Engagements by Role</h2>
+        <div class="pe-section-header">
+            <h2 class="pe-section-title">Engagements by Role</h2>
+        </div>
         
         @if($groupedEngagements->isEmpty())
             <div class="pe-empty-state">
@@ -320,11 +350,11 @@
                             </span>
                             <span class="pe-stat">
                                 <div>Total Time</div>
-                                <div class="pe-stat-value">{{ number_format($engagements->sum('engagement_time')) }}s</div>
+                                <div class="pe-stat-value">{{ formatTime($engagements->sum('engagement_time')) }}</div>
                             </span>
                             <span class="pe-stat">
                                 <div>Avg Time</div>
-                                <div class="pe-stat-value">{{ number_format($engagements->avg('engagement_time'), 1) }}s</div>
+                                <div class="pe-stat-value">{{ formatTime($engagements->avg('engagement_time')) }}</div>
                             </span>
                         </div>
                     </div>
@@ -367,7 +397,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="pe-badge time" style="font-size: 1rem;">{{ number_format($engagement->engagement_time) }}s</span>
+                                        <span class="pe-badge time" style="font-size: 1rem;">{{ formatTime($engagement->engagement_time) }}</span>
                                     </td>
                                     <td style="font-size: 1.125rem;">{{ $engagement->created_at->format('M d, Y H:i') }}</td>
                                 </tr>
@@ -380,7 +410,9 @@
     </div>
 
     <div class="pe-section">
-        <h2 class="pe-section-title">Users Ignoring POTD (Viewed < 50%)</h2>
+        <div class="pe-section-header">
+            <h2 class="pe-section-title">Users Ignoring POTD (Viewed < 50%)</h2>
+        </div>
         
         @if($ignoringPotdUsers->isEmpty())
             <div class="pe-empty-state">
@@ -388,44 +420,91 @@
                 <p>All users have viewed at least 50% of Policy of the Day records.</p>
             </div>
         @else
-            <div class="table-responsive">
-                <table class="pe-engagement-table">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Role</th>
-                            <th>Office</th>
-                            <th style="text-align: center;">POTD Views</th>
-                            <th style="text-align: center;">Total POTD</th>
-                            <th style="text-align: center;">Percentage</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($ignoringPotdUsers as $item)
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                        <div class="pe-user-avatar">
-                                            {{ substr($item['user']->first_name ?? 'U', 0, 1) }}{{ substr($item['user']->last_name ?? '', 0, 1) }}
-                                        </div>
-                                        <span style="font-size: 1.125rem;">{{ $item['user']->first_name ?? 'Unknown' }} {{ $item['user']->last_name ?? '' }}</span>
-                                    </div>
-                                </td>
-                                <td style="font-size: 1.125rem;">{{ $item['role_name'] }}</td>
-                                <td style="font-size: 1.125rem;">{{ $item['user']->office->name ?? 'N/A' }}</td>
-                                <td style="text-align: center; font-size: 1.125rem;">{{ $item['viewed_count'] }}</td>
-                                <td style="text-align: center; font-size: 1.125rem;">{{ $item['total_potd'] }}</td>
-                                <td style="text-align: center;">
-                                    <span class="pe-badge" style="background: #fee2e2; color: #dc2626; font-size: 1rem;">
-                                        {{ $item['percentage'] }}%
-                                    </span>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            @php
+                $ignoringByRole = $ignoringPotdUsers->groupBy('role_name');
+            @endphp
+            @foreach($ignoringByRole as $roleName => $users)
+                <div class="pe-role-group">
+                    <div class="pe-role-header" style="cursor: pointer;" onclick="toggleAccordion(this)">
+                        <span class="pe-role-name">{{ $roleName }}</span>
+                        <div class="pe-role-stats">
+                            <span class="pe-stat">
+                                <div>Users</div>
+                                <div class="pe-stat-value">{{ $users->count() }}</div>
+                            </span>
+                        </div>
+                        <i class="fa fa-chevron-down" style="margin-left: auto;"></i>
+                    </div>
+                    <div class="pe-accordion-content" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="pe-engagement-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Office</th>
+                                        <th style="text-align: center;">POTD Views</th>
+                                        <th style="text-align: center;">Total POTD</th>
+                                        <th style="text-align: center;">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($users as $item)
+                                        <tr>
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                                    <div class="pe-user-avatar">
+                                                        {{ substr($item['user']->first_name ?? 'U', 0, 1) }}{{ substr($item['user']->last_name ?? '', 0, 1) }}
+                                                    </div>
+                                                    <span style="font-size: 1.125rem;">{{ $item['user']->first_name ?? 'Unknown' }} {{ $item['user']->last_name ?? '' }}</span>
+                                                </div>
+                                            </td>
+                                            <td style="font-size: 1.125rem;">{{ $item['user']->office->name ?? 'N/A' }}</td>
+                                            <td style="text-align: center; font-size: 1.125rem;">{{ $item['viewed_count'] }}</td>
+                                            <td style="text-align: center; font-size: 1.125rem;">{{ $item['total_potd'] }}</td>
+                                            <td style="text-align: center;">
+                                                <span class="pe-badge" style="background: #fee2e2; color: #dc2626; font-size: 1rem;">
+                                                    {{ $item['percentage'] }}%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
         @endif
     </div>
+    <script>
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('i');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                content.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+    </script>
 </div>
 @endsection
+
+@php
+    function formatTime($seconds) {
+        if ($seconds >= 3600) {
+            $hours = floor($seconds / 3600);
+            $mins = floor(($seconds % 3600) / 60);
+            return $hours . 'h ' . $mins . 'm';
+        } elseif ($seconds >= 60) {
+            $mins = floor($seconds / 60);
+            $secs = $seconds % 60;
+            return $mins . 'm ' . $secs . 's';
+        }
+        return $seconds . 's';
+    }
+@endphp
