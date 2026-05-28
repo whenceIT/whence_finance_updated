@@ -57,7 +57,7 @@
     /* Floating Action Button */
     .client-search-fab {
         position: fixed;
-        bottom: 70px;
+        bottom: 90px;
         right: 30px;
         width: 40px;
         height: 40px;
