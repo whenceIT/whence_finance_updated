@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\SearchEngineController;
 use App\Http\Controllers\SmsController;
 
 Route::prefix('districts')->group(function () {
@@ -26,3 +27,6 @@ Route::prefix('district-regionals')->group(function () {
 
 Route::post('/send-sms', [SmsController::class, 'sendSms']);
 Route::post('/send-bulk-sms', [SmsController::class, 'sendBulkSms']);
+
+
+Route::post('/search/clients', [SearchEngineController::class, 'clientSearch']);
