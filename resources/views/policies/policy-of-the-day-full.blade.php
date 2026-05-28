@@ -73,13 +73,13 @@
             clearInterval(engagementInterval);
             
             const policyOfTheDayId = {{ $policyOfTheDay->id }};
-            const userId = {{ json_encode(\Cartalyst\Sentinel\Laravel\Facades\Sentinel::getUser()->id ?? 0) }};
+            const userId = @json(\Cartalyst\Sentinel\Laravel\Facades\Sentinel::getUser()->id ?? 0);
             
             if (userId && userId !== 0) {
-                $.post('{{ url("/api/track-policy-engagement") }}', {
+                $.post('{{ route('policies.track-engagement') }}', {
                     user_id: userId,
                     policy_of_the_day_id: policyOfTheDayId,
-                    policy_id: {{ json_encode($policyOfTheDay->policy_id ?? null) }},
+                    policy_id: @json($policyOfTheDay->policy_id ?? null),
                     engagement_time: elapsed,
                     _token: '{{ csrf_token() }}'
                 });
@@ -94,13 +94,13 @@
         
         if (elapsed >= 180) {
             const policyOfTheDayId = {{ $policyOfTheDay->id }};
-            const userId = {{ json_encode(\Cartalyst\Sentinel\Laravel\Facades\Sentinel::getUser()->id ?? 0) }};
+            const userId = @json(\Cartalyst\Sentinel\Laravel\Facades\Sentinel::getUser()->id ?? 0);
             
             if (userId && userId !== 0) {
-                $.post('{{ url("/api/track-policy-engagement") }}', {
+                $.post('{{ route('policies.track-engagement') }}', {
                     user_id: userId,
                     policy_of_the_day_id: policyOfTheDayId,
-                    policy_id: {{ json_encode($policyOfTheDay->policy_id ?? null) }},
+                    policy_id: @json($policyOfTheDay->policy_id ?? null),
                     engagement_time: elapsed,
                     _token: '{{ csrf_token() }}'
                 });

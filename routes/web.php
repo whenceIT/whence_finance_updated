@@ -1405,6 +1405,7 @@ Route::group(['prefix' => 'policies'], function () {
     Route::delete('policy-of-the-day/{id}', 'PolicyController@deletePolicyOfTheDay')->name('policies.policy-of-the-day.delete');
     Route::get('policy-of-the-day/all', 'PolicyController@getAllPoliciesOfTheDay')->name('policies.policy-of-the-day.all');
     Route::post('api/track-policy-engagement', 'PolicyController@trackPolicyEngagement')->name('policies.track-engagement');
+    Route::get('policy-engagements', 'PolicyController@policyEngagements')->name('policies.engagements');
 });
 
 //staff survey routes

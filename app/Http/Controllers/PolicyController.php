@@ -7,12 +7,12 @@ use App\Models\Policy;
 use App\Models\PolicyCategory;
 use App\Models\PolicyOfTheDay;
 use App\Models\PolicyViolation;
+use App\Models\User;
 use App\Models\UserPolicyView;
 use App\Models\UserPolicyResponse;
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Support\Facades\Storage;
-//use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
@@ -814,5 +814,117 @@ class PolicyController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+/**
+     * Display policy engagements page grouped by user role
+     */
+    public function policyEngagements(Request $request)
+    {
+        $user = Sentinel::getUser();
+        $isAdmin = $this->isAdmin($user);
+        $isManagerial = $this->isManagerialUser($user);
+
+        if (!$isAdmin && !$isManagerial) {
+            Flash::error('You do not have permission to view policy engagements.');
+            return redirect()->route('dashboard');
+        }
+
+        $roleConfig = [
+            1 => 'Admin/Executive',
+            3 => 'Loan Officer',
+            4 => 'Branch Manager',
+            6 => 'Provincial Manager',
+            12 => 'DM Manager',
+        ];
+
+        $todayPotdEngagements = UserPolicyView::with([
+            'user' => function ($query) {
+                $query->with('office');
+            },
+            'policyOfTheDay'
+        ])
+        ->whereNotNull('policy_of_the_day_id')
+        ->whereDate('created_at', today())
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        $engagements = UserPolicyView::with([
+            'user' => function ($query) {
+                $query->with(['roles', 'office']);
+            },
+            'policy',
+            'policyOfTheDay'
+        ])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        $groupedEngagements = $engagements->groupBy(function ($engagement) {
+            $user = $engagement->user;
+            if (!$user) {
+                return 'Unknown';
+            }
+            $role = $user->roles->first();
+            return $role ? ($role->id == 1 ? 'Admin/Executive' : ($role->id == 3 ? 'Loan Officer' : ($role->id == 4 ? 'Branch Manager' : ($role->id == 6 ? 'Provincial Manager' : ($role->id == 12 ? 'DM Manager' : 'Other'))))) : 'No Role';
+        });
+
+        $summary = [
+            'total_views' => UserPolicyView::count(),
+            'total_engagement_time' => UserPolicyView::sum('engagement_time'),
+            'avg_engagement_time' => UserPolicyView::avg('engagement_time'),
+            'today_potd_views' => $todayPotdEngagements->count(),
+            'by_role' => UserPolicyView::with(['user' => function ($q) { $q->with('roles'); }])->get()->groupBy(function ($engagement) {
+                $user = $engagement->user;
+                if (!$user) return 'Unknown';
+                $role = $user->roles->first();
+                return $role ? $role->id : 'No Role';
+            })->map(function ($items) {
+                return [
+                    'count' => $items->count(),
+                    'total_time' => $items->sum('engagement_time'),
+                    'avg_time' => $items->avg('engagement_time'),
+                ];
+            }),
+        ];
+
+        $totalPotdRecords = PolicyOfTheDay::active()->count();
+        
+        $usersWithPotdViews = UserPolicyView::whereNotNull('policy_of_the_day_id')
+            ->selectRaw('user_id, COUNT(*) as potd_views')
+            ->groupBy('user_id')
+            ->pluck('potd_views', 'user_id');
+
+        $allUsers = User::where('status', 'Active')->with(['roles', 'office'])->get();
+        
+        $ignoringPotdUsers = $allUsers->filter(function ($user) use ($totalPotdRecords, $usersWithPotdViews) {
+            $role = $user->roles->first();
+            if (!$role || $role->slug === 'client' || !$user->office) {
+                return false;
+            }
+            $viewedCount = $usersWithPotdViews->get($user->id, 0);
+            $percentage = $totalPotdRecords > 0 ? ($viewedCount / $totalPotdRecords) * 100 : 0;
+            return $percentage < 50;
+        })->map(function ($user) use ($totalPotdRecords, $usersWithPotdViews) {
+            $viewedCount = $usersWithPotdViews->get($user->id, 0);
+            $percentage = $totalPotdRecords > 0 ? round(($viewedCount / $totalPotdRecords) * 100, 1) : 0;
+            $role = $user->roles->first();
+            return [
+                'user' => $user,
+                'viewed_count' => $viewedCount,
+                'total_potd' => $totalPotdRecords,
+                'percentage' => $percentage,
+                'role_name' => $role ? $role->name : 'No Role',
+            ];
+        })->sortBy('percentage')->values();
+
+        return view('policies.policy-engagements', compact(
+            'groupedEngagements',
+            'summary',
+            'roleConfig',
+            'isAdmin',
+            'isManagerial',
+            'todayPotdEngagements',
+            'ignoringPotdUsers'
+        ))->with('sidebar', 'policies');
     }
 }

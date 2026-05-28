@@ -907,6 +907,9 @@
                             @hasRole('role.exec','role.policy_manager')
                                 <li><a href="{{ route('policies.add_policies') }}"><i class="fa fa-circle-o"></i> Add Policies</a></li>
                             @endif
+                            @hasRole('role.exec','role.policy_manager')
+                                <li><a href="{{ route('policies.engagements') }}"><i class="fa fa-circle-o"></i> Policy Engagements</a></li>
+                            @endif
                         </ul>
                     </li>
                     @endif
