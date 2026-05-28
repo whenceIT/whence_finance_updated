@@ -438,6 +438,95 @@ public function bmdashboard(Request $request){
         return redirect()->back();
     }
 
+public function verify_wallet()
+{
+
+    $office_id = Sentinel::getUser()->office_id;
+    $office = Office::find($office_id);
+
+    return view('user.verify_wallet', compact('office'));
+}
+
+
+   public function wallet_verification(Request $request)
+{
+    $request->validate([
+        'wallet_id' => 'required|string'
+    ]);
+
+    $office_id = Sentinel::getUser()->office_id;
+    $office = Office::find($office_id);
+
+    // Prevent verifying again if already saved
+    if (!empty($office->withinhere_wallet_id)) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'A wallet has already been linked to this office.'
+        ], 403);
+    }
+
+    $walletId = $request->wallet_id;
+
+    try {
+
+        $response = Http::get("https://withinheremobileapi.com/api/v1/transfer/wallet/{$walletId}");
+
+        if ($response->successful()) {
+
+            $data = $response->json();
+
+            if (isset($data['fullName'])) {
+
+                return response()->json([
+                    'success' => true,
+                    'wallet_id' => $walletId,
+                    'fullName' => $data['fullName'],
+                    'userId' => $data['userId'],
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Wallet not found'
+        ], 404);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Unable to verify wallet'
+        ], 500);
+    }
+}
+
+
+public function save_wallet(Request $request)
+{
+    $request->validate([
+        'wallet_id' => 'required|string'
+    ]);
+
+    $office_id = Sentinel::getUser()->office_id;
+    $office = Office::find($office_id);
+
+    // Prevent overwriting existing wallet
+    if (!empty($office->withinhere_wallet_id)) {
+
+        Flash::warning('A wallet has already been linked.');
+
+        return redirect()->back();
+    }
+
+    $office->withinhere_wallet_id = $request->wallet_id;
+    $office->save();
+
+    Flash::success(trans('general.successfully_saved'));
+
+    return redirect()->back();
+}
+
     // Renders on dashboard
     public function dashboard(Request $request)
     {
