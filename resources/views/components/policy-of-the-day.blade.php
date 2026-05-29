@@ -4,261 +4,162 @@
 
 @if($policyOfTheDay)
 <style>
-    .policy-of-the-day-container {
+    .potd-container {
         position: fixed;
-        top: 400px;
+        top: 20px;
         right: 20px;
         width: 380px;
         z-index: 1050;
         opacity: 1;
         transform: translateX(0);
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        filter: drop-shadow(0 10px 25px rgba(0,0,0,0.15));
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .policy-of-the-day-container.hidden {
+    .potd-container.hidden {
         opacity: 0;
         transform: translateX(420px);
         pointer-events: none;
     }
 
-    .policy-of-the-day-container:hover {
-        transform: translateX(-10px);
-    }
-
-    .policy-of-the-day-card {
+    .potd-card {
         background: white;
-        border-radius: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         overflow: hidden;
-        position: relative;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(0,0,0,0.1);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
 
-    .policy-of-the-day-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .potd-header {
+        background: #1a1a1a;
+        color: white;
         padding: 16px 20px;
         display: flex;
         align-items: center;
         gap: 12px;
-        position: relative;
-        overflow: hidden;
     }
 
-    .policy-of-the-day-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.6)"/><circle cx="80" cy="60" r="0.8" fill="rgba(255,255,255,0.4)"/><circle cx="60" cy="90" r="0.6" fill="rgba(255,255,255,0.5)"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>');
-        opacity: 0.4;
-    }
-
-    .policy-icon {
+    .potd-icon {
         width: 40px;
         height: 40px;
-        background: rgba(255,255,255,0.9);
-        border-radius: 12px;
+        background: #00a04a;
+        border-radius: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 18px;
-        color: #667eea;
-        backdrop-filter: blur(10px);
-        position: relative;
-        z-index: 1;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .policy-title-section {
+    .potd-title-section {
         flex: 1;
-        position: relative;
-        z-index: 1;
     }
 
-    .policy-title-section h5 {
+    .potd-title-section h5 {
         margin: 0;
-        color: white;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 600;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        letter-spacing: 1px;
+        color: #fff;
     }
 
-    .policy-subtitle {
-        margin: 2px 0 0 0;
-        color: rgba(255,255,255,0.9);
-        font-size: 12px;
+    .potd-subtitle {
+        margin: 4px 0 0 0;
+        font-size: 11px;
+        color: #aaa;
         font-weight: 400;
     }
 
-    .policy-of-the-day-body {
+    .potd-body {
         padding: 20px;
-        color: #333;
     }
 
-    .policy-content h4 {
-        margin: 0 0 12px 0;
-        font-size: 18px;
+    .potd-content h4 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
         font-weight: 700;
-        line-height: 1.3;
-        color: #2c3e50;
+        color: #1a1a1a;
     }
 
-    .policy-content p {
+    .potd-content p {
         margin: 0 0 16px 0;
-        font-size: 14px;
+        font-size: 13px;
         line-height: 1.5;
         color: #555;
     }
 
-    .policy-details {
-        margin-top: 16px;
-        border-top: 1px solid rgba(255,255,255,0.2);
-        padding-top: 16px;
-    }
-
-    .policy-details summary {
-        cursor: pointer;
-        color: #667eea;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: color 0.3s ease;
-    }
-
-    .policy-details summary:hover {
-        color: #5a67d8;
-    }
-
-    .policy-details summary::marker {
-        color: #667eea;
-    }
-
-    .policy-details p {
-        margin: 12px 0 0 0;
-        padding: 12px 16px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        font-size: 13px;
-        line-height: 1.5;
-        border-left: 3px solid #667eea;
-        color: #333;
-    }
-
-    .policy-actions {
-        margin-top: 16px;
+    .potd-actions {
         display: flex;
         gap: 8px;
         align-items: center;
     }
 
-    .policy-actions a {
-        color: #667eea;
+    .potd-actions a {
+        color: #1a1a1a;
         text-decoration: none;
         font-size: 12px;
-        font-weight: 500;
-        padding: 6px 12px;
-        border-radius: 6px;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        transition: all 0.3s ease;
+        font-weight: 600;
+        padding: 8px 16px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
-    .policy-actions a:hover {
-        color: #5a67d8;
-        background: #e9ecef;
-        border-color: #667eea;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    .potd-actions a:hover {
+        background: #f5f5f5;
+        border-color: #1a1a1a;
     }
 
-    .policy-close {
+    .potd-close {
         position: absolute;
-        top: 12px;
-        right: 12px;
-        background: rgba(255,255,255,0.9);
-        border: 1px solid #e9ecef;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        color: #6c757d;
+        top: 8px;
+        right: 8px;
+        background: white;
+        border: none;
+        border-radius: 0;
+        width: 28px;
+        height: 28px;
+        color: #1a1a1a;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-size: 14px;
+        transition: all 0.2s ease;
     }
 
-    .policy-close:hover {
-        background: #f8f9fa;
-        color: #dc3545;
-        border-color: #dc3545;
-        transform: scale(1.1);
-    }
-
-    @keyframes policyPulse {
-        0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
-    }
-
-    .policy-new-pulse {
-        animation: policyPulse 2s infinite;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-5px); }
-    }
-
-    .policy-floating {
-        animation: float 3s ease-in-out infinite;
+    .potd-close:hover {
+        background: #f5f5f5;
     }
 
     @media (max-width: 768px) {
-        .policy-of-the-day-container {
+        .potd-container {
             width: 320px;
             right: 10px;
             top: 80px;
         }
 
-        .policy-of-the-day-container:hover {
-            transform: translateX(-5px);
-        }
-
-        .policy-of-the-day-container.hidden {
-            transform: translateX(340px);
+        .potd-container.hidden {
+            transform: translateX(280px);
         }
     }
 </style>
 
-<div class="policy-of-the-day-container" id="policyOfTheDay">
-    <div class="policy-of-the-day-card">
-        <button class="policy-close" onclick="hidePolicyOfTheDay()" title="Close">
+<div class="potd-container" id="potdContainer">
+    <div class="potd-card">
+        <button class="potd-close" onclick="hidePotd()" title="Close">
             <i class="fa fa-times"></i>
         </button>
 
-        <div class="policy-of-the-day-header">
-            <div class="policy-icon">
+        <div class="potd-header">
+            <div class="potd-icon">
                 <i class="fa fa-star"></i>
             </div>
-            <div class="policy-title-section">
-                <h5>Policy of the Day</h5>
-                <div class="policy-subtitle">
-                    <i class="fa fa-calendar-o"></i>
+            <div class="potd-title-section">
+                <h5>POLICY OF THE DAY</h5>
+                <div class="potd-subtitle">
+                    <i class="fa fa-calendar"></i>
                     {{ now()->format('M d, Y') }}
                     @if($policyOfTheDay->scheduled_date)
                         • Scheduled
@@ -269,116 +170,68 @@
             </div>
         </div>
 
-        <div class="policy-of-the-day-body">
-            <div class="policy-content">
+        <div class="potd-body">
+            <div class="potd-content">
                 <h4>{{ $policyOfTheDay->title }}</h4>
-                <p>{{ $policyOfTheDay->content }}</p>
+                <p>{{ \Illuminate\Support\Str::limit($policyOfTheDay->content, 200) }}...</p>
+            </div>
 
-                <div class="policy-actions">
-                    <a href="{{ route('policies.policy-of-the-day.full', ['id' => $policyOfTheDay->id]) }}" target="_blank" class="policy-action-btn">
-                        <i class="fa fa-book"></i>
-                        Read Full Policy
-                    </a>
-                    @if($policyOfTheDay->policy)
-                        <a href="{{ route('policies.view', ['id' => $policyOfTheDay->policy->id]) }}" target="_blank" class="policy-action-btn">
-                            <i class="fa fa-external-link"></i>
-                            View Policy Document
-                        </a>
-                    @endif
-                </div>
-
-             <div class="policy-actions">
-                 @if($policyOfTheDay->policy)
-                     <a href="{{ route('policies.view', ['id' => $policyOfTheDay->policy->id]) }}" target="_blank">
-                         <i class="fa fa-external-link"></i>
-                         View Full Policy
-                     </a>
-                 @endif
-             </div>
+            <div class="potd-actions">
+                <a href="{{ route('policies.policy-of-the-day.full', ['id' => $policyOfTheDay->id]) }}" target="_blank">
+                    <i class="fa fa-book"></i>
+                    View
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    let policyHideTimeout;
+    let potdHideTimeout;
 
-    function hidePolicyOfTheDay() {
-        const container = document.getElementById('policyOfTheDay');
+    function hidePotd() {
+        const container = document.getElementById('potdContainer');
         container.classList.add('hidden');
-
-        if (policyHideTimeout) {
-            clearTimeout(policyHideTimeout);
-        }
+        if (potdHideTimeout) clearTimeout(potdHideTimeout);
     }
 
-    function showPolicyOfTheDay() {
-        const container = document.getElementById('policyOfTheDay');
+    function showPotd() {
+        const container = document.getElementById('potdContainer');
         container.classList.remove('hidden');
         resetAutoHide();
     }
 
     function resetAutoHide() {
-        if (policyHideTimeout) {
-            clearTimeout(policyHideTimeout);
-        }
-
-        policyHideTimeout = setTimeout(() => {
-            hidePolicyOfTheDay();
-        }, 10000);
+        if (potdHideTimeout) clearTimeout(potdHideTimeout);
+        potdHideTimeout = setTimeout(() => hidePotd(), 10000);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const container = document.getElementById('policyOfTheDay');
+        const container = document.getElementById('potdContainer');
         if (container) {
-            container.classList.add('policy-new-pulse');
-
-            setTimeout(() => {
-                container.classList.remove('policy-new-pulse');
-            }, 4000);
-
             resetAutoHide();
-
-            container.addEventListener('mouseenter', function() {
-                if (policyHideTimeout) {
-                    clearTimeout(policyHideTimeout);
-                }
-            });
-
-            container.addEventListener('mouseleave', function() {
-                resetAutoHide();
-            });
+            container.addEventListener('mouseenter', () => clearTimeout(potdHideTimeout));
+            container.addEventListener('mouseleave', resetAutoHide);
         }
     });
 
-    let edgeHoverTimeout;
     document.addEventListener('mousemove', function(e) {
-        const container = document.getElementById('policyOfTheDay');
-
+        const container = document.getElementById('potdContainer');
         if (container && container.classList.contains('hidden') && e.clientX > window.innerWidth - 50) {
-            if (edgeHoverTimeout) {
-                clearTimeout(edgeHoverTimeout);
-            }
-
-            edgeHoverTimeout = setTimeout(() => {
-                showPolicyOfTheDay();
-            }, 300);
+            if (potdHideTimeout) clearTimeout(potdHideTimeout);
+            potdHideTimeout = setTimeout(showPotd, 300);
         }
     });
 
     document.addEventListener('keydown', function(e) {
-        const container = document.getElementById('policyOfTheDay');
-        if (e.key === 'Escape' && container && !container.classList.contains('hidden')) {
-            hidePolicyOfTheDay();
-        }
+        const container = document.getElementById('potdContainer');
+        if (e.key === 'Escape' && container && !container.classList.contains('hidden')) hidePotd();
     });
 
     document.addEventListener('click', function(e) {
-        const container = document.getElementById('policyOfTheDay');
-        const card = container ? container.querySelector('.policy-of-the-day-card') : null;
-
-        if (container && !container.classList.contains('hidden') && card && !card.contains(e.target) && e.target !== card) {
-            hidePolicyOfTheDay();
-        }
+        const container = document.getElementById('potdContainer');
+        const card = container ? container.querySelector('.potd-card') : null;
+        if (container && !container.classList.contains('hidden') && card && !card.contains(e.target) && e.target !== card) hidePotd();
     });
 </script>
 @endif
