@@ -360,6 +360,9 @@ Route::group(['prefix' => 'user'], function () {
     Route::any('verify_numbers','UserController@verify_numbers');
     Route::any('transfers','UserController@transfers');
     Route::any('transfer_clients','UserController@transfer_clients');
+    Route::any('verify_wallet','UserController@verify_wallet');
+    Route::any('wallet_verification','UserController@wallet_verification');
+    Route::any('save_wallet','UserController@save_wallet');
     // Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
@@ -1890,3 +1893,7 @@ Route::group(['prefix' => 'recovery'], function () {
 });
 
 Route::get('/offices', [OfficeController::class, 'getOffices']);
+Route::get('/api/offices', [OfficeController::class, 'getOffices']);
+Route::get('/api/users-by-office/{officeId}', [UserController::class, 'getUsersByOffice']);
+Route::get('/api/client-count-by-loan-consultant/{userId}', [UserController::class, 'getClientCountByLoanConsultant']);
+Route::post('/api/send-remainder', [SmsController::class, 'sendToOfficersClients']);

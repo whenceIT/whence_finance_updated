@@ -91,6 +91,15 @@
 	        </li>
              @endif
 
+         @if($role == 4 || $role == 6)
+            <li class="@if(Request::is('dashboard')) active @endif">
+                <a href="{{ url('user/verify_wallet') }}">
+                    <i class="fa fa-check-circle"></i> <span>WithinHere Wallet</span>
+                </a>
+	        </li>
+
+               @endif
+
              
             @hasRole('role.exec', 'role.goa')
             <!-- ============================================

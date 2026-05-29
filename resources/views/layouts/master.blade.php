@@ -224,6 +224,224 @@
                 console.log('Failed to mark notifications as read');
             });
         }
+
+        function openSettingsBottomSheet(event) {
+            event.preventDefault();
+            $('#settingsBottomSheetOverlay').addClass('active');
+            $('#settingsBottomSheet').addClass('active');
+            showSettingsSection('general');
+            loadOfficesForSmsDropdown();
+        }
+
+        function closeSettingsBottomSheet() {
+            $('#settingsBottomSheetOverlay').removeClass('active');
+            $('#settingsBottomSheet').removeClass('active');
+        }
+
+        function showSettingsSection(section) {
+            $('.settings-section').hide();
+            $('#settings-' + section).show();
+            $('.settings-menu-item').css('border-left-color', 'transparent');
+            $('.settings-menu-item[data-section="' + section + '"]').css('border-left-color', '#00a65a');
+        }
+
+        function switchSmsTab(tab) {
+            $('.sms-tab-content').hide();
+            $('#sms-' + tab).show();
+            $('.sms-tab-item').css('border-bottom-color', 'transparent');
+            $('.sms-tab-item[onclick*="' + tab + '"]').css('border-bottom-color', '#00a65a');
+        }
+
+        function loadOfficesForSmsDropdown() {
+            if ($('#smsClientOffice').find('option').length > 1) return;
+            $.ajax({
+                url: '/api/offices',
+                method: 'GET',
+                success: function(data) {
+                    $.each(data, function(i, office) {
+                        var officeId = office.id || office.OfficeId || office.office_id;
+                        var officeName = office.name || office.OfficeName || office.office_name;
+                        if (officeId && officeName) {
+                            $('#smsClientOffice').append($('<option>', { value: officeId, text: officeName }));
+                            $('#smsBranchOffice').append($('<option>', { value: officeId, text: officeName }));
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to load offices:', error);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            $('#settingsBottomSheetOverlay').on('click', function(e) {
+                if (e.target === this) {
+                    closeSettingsBottomSheet();
+                }
+            });
+
+            $('#closeSettingsBottomSheet').on('click', function() {
+                closeSettingsBottomSheet();
+            });
+
+            function loadOfficesForRemainder() {
+                if ($('#remainder_office_id').find('option').length > 1) return;
+                $.ajax({
+                    url: '/api/offices',
+                    method: 'GET',
+                    success: function(data) {
+                        $.each(data, function(i, office) {
+                            $('#remainder_office_id').append($('<option>', { value: office.id, text: office.name }));
+                        });
+                    }
+                });
+            }
+
+            $('#remainder_office_id').on('change', function() {
+                var officeId = $(this).val();
+                var $officerSelect = $('#remainder_officer_id');
+                if (!officeId) {
+                    $officerSelect.prop('disabled', true).html('<option value="">Select Office First</option>');
+                    return;
+                }
+                $officerSelect.prop('disabled', true).html('<option>Loading...</option>');
+                $.ajax({
+                    url: '/api/users-by-office/' + officeId,
+                    method: 'GET',
+                    success: function(data) {
+                        $officerSelect.prop('disabled', false).html('<option value="">Select Officer</option>');
+                        $.each(data, function(i, user) {
+                            $officerSelect.append($('<option>', { value: user.id, text: user.name + ' (' + user.phone + ')' }));
+                        });
+                    },
+                    error: function() {
+                        $officerSelect.html('<option value="">Error loading officers</option>');
+                    }
+                });
+            });
+
+            $('#sendRemainderForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $('#remainderSmsResponse').html('<span style="color: #007bff;">Sending...</span>');
+                $.ajax({
+                    url: '/api/send-remainder',
+                    method: 'POST',
+                    data: formData,
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#remainderSmsResponse').html('<span style="color: #28a745;">SMS sent to ' + response.data.delivered_count + ' out of ' + response.data.total_clients + ' clients successfully!</span>');
+                        } else {
+                            $('#remainderSmsResponse').html('<span style="color: #dc3545;">Error: ' + (response.error || 'Unknown error') + '</span>');
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#remainderSmsResponse').html('<span style="color: #dc3545;">Error: ' + (xhr.responseJSON?.message || 'Failed to send SMS') + '</span>');
+                    }
+                });
+            });
+
+            $('#smsClientOffice').on('change', function() {
+                var officeId = $(this).val();
+                var $userSelect = $('#smsClientUser');
+                var $countDisplay = $('#smsClientCountDisplay');
+                if (!officeId) {
+                    $userSelect.prop('disabled', true).html('<option value="">Select Office First</option>');
+                    $countDisplay.hide();
+                    return;
+                }
+                $userSelect.prop('disabled', true).html('<option>Loading...</option>');
+                $.ajax({
+                    url: '/api/users-by-office/' + officeId,
+                    method: 'GET',
+                    success: function(data) {
+                        $userSelect.prop('disabled', false).html('<option value="">Select User</option>');
+                        $.each(data, function(i, user) {
+                            var userId = user.id || user.UserId || user.user_id;
+                            var userName = user.name || (user.first_name + ' ' + user.last_name) || '';
+                            var userPhone = user.phone || user.Phone || '';
+                            if (userId && userName) {
+                                $userSelect.append($('<option>', { value: userId, text: userName + ' (' + userPhone + ')' }));
+                            }
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Failed to load users:', error);
+                        $userSelect.html('<option value="">Error loading users</option>');
+                    }
+                });
+            });
+
+            $('#smsClientUser').on('change', function() {
+                var userId = $(this).val();
+                var $countDisplay = $('#smsClientCountDisplay');
+                var $countValue = $('#smsClientCountValue');
+                if (!userId) {
+                    $countDisplay.hide();
+                    return;
+                }
+                $countValue.text('...');
+                $countDisplay.show();
+                $.ajax({
+                    url: '/api/client-count-by-loan-consultant/' + userId,
+                    method: 'GET',
+                    success: function(data) {
+                        $countValue.text(data.count);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Failed to get client count:', error);
+                        $countValue.text('Error');
+                    }
+                });
+            });
+
+            $('#sendClientSmsForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                var $response = $('#smsClientSmsResponse');
+                $response.html('<span style="color: #007bff;">Sending...</span>');
+                $.ajax({
+                    url: '/api/send-sms',
+                    method: 'POST',
+                    data: formData,
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    success: function(response) {
+                        if (response.success) {
+                            $response.html('<span style="color: #28a745;">SMS sent successfully!</span>');
+                        } else {
+                            $response.html('<span style="color: #dc3545;">Error: ' + (response.error || 'Unknown error') + '</span>');
+                        }
+                    },
+                    error: function(xhr) {
+                        $response.html('<span style="color: #dc3545;">Error: ' + (xhr.responseJSON?.message || 'Failed to send SMS') + '</span>');
+                    }
+                });
+            });
+
+            $('#sendBranchSmsForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                var $response = $('#smsBranchSmsResponse');
+                $response.html('<span style="color: #007bff;">Sending...</span>');
+                $.ajax({
+                    url: '/api/send-bulk-sms',
+                    method: 'POST',
+                    data: formData,
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    success: function(response) {
+                        if (response.success) {
+                            $response.html('<span style="color: #28a745;">SMS sent to branch successfully!</span>');
+                        } else {
+                            $response.html('<span style="color: #dc3545;">Error: ' + (response.error || 'Unknown error') + '</span>');
+                        }
+                    },
+                    error: function(xhr) {
+                        $response.html('<span style="color: #dc3545;">Error: ' + (xhr.responseJSON?.message || 'Failed to send SMS') + '</span>');
+                    }
+                });
+            });
+        });
     </script>
     <link rel="stylesheet" href="dist/css/adminlte.min.css">
     </link>
@@ -505,7 +723,8 @@
     {{--Start Page header level scripts--}}
     @yield('page-header-scripts')
     {{--End Page level scripts--}}
-</head>
+   </script>
+ </head>
 <?php
 $userInfo = \App\Helpers\GeneralHelper::get_user_info();
 $user = $userInfo->user;
@@ -591,15 +810,22 @@ $office = $userInfo->office;
                     <span style="font-size: 12px;">Gmail</span>
                 </a>
 
-                <a href="{{ url('logout') }}"
-                    style="text-decoration: none; color: #fff; text-align: center; padding: 10px; border-radius: 8px; background: #dc3545; transition: background 0.3s;">
-                    <i class="fa fa-sign-out" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
-                    <span style="font-size: 12px;">Logout</span>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+                 <a href="#" onclick="openSettingsBottomSheet(event); return false;" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                    <i class="fa fa-cog" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                     <span style="font-size: 12px;">Settings</span>
+                 </a>
+
+                 <a href="{{ url('logout') }}"
+                     style="text-decoration: none; color: #fff; text-align: center; padding: 10px; border-radius: 8px; background: #dc3545; transition: background 0.3s;">
+                     <i class="fa fa-sign-out" style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                      <span style="font-size: 12px;">Logout</span>
+                  </a>
+              </div>
+          </div>
+      </div>
+   </div><!-- Tools Menu Bottom Sheet -->
+
+
 
 
 <body class="hold-transition sidebar-mini" style="background-color:#000041; color: #000000;">
@@ -807,6 +1033,11 @@ $office = $userInfo->office;
                                             </a>
 
 
+                                            <a href="#" onclick="openSettingsBottomSheet(event); return false;" style="text-decoration: none; color: #333; text-align: center; padding: 10px; border-radius: 8px; background: #f8f9fa; transition: background 0.3s;">
+                                                <i class="fa fa-cog"
+                                                    style="font-size: 24px; display: block; margin-bottom: 5px;"></i>
+                                                <span style="font-size: 12px;">Settings</span>
+                                            </a>
                                         </div>
                                     </li>
 
@@ -1627,6 +1858,7 @@ $office = $userInfo->office;
 
 
 
+    @include('components.x-settings-modal')
     @include('components.performance_pusher')
     @include('components.notification')
 
