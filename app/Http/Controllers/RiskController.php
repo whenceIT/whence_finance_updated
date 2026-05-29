@@ -579,6 +579,42 @@ class RiskController extends Controller
         ]);
     }
 
+    public function queryDeposits(Request $request)
+    {
+        $officeId = $request->query('office_id');
+        $depositType = $request->query('deposit_type');
+        $year = $request->query('year');
+
+        $query = \App\Models\Deposit::query();
+
+        if ($officeId) {
+            $query->where('office', (int) $officeId);
+        }
+        if ($depositType) {
+            $query->where('deposit_type', (int) $depositType);
+        }
+        if ($year) {
+            $query->whereYear('date', (int) $year);
+        }
+
+        $deposits = $query->orderBy('date', 'desc')
+            ->limit(500)
+            ->get()
+            ->map(function ($d) {
+                return [
+                    'date' => $d->date,
+                    'amount' => (float) $d->amount,
+                    'office_name' => optional(\App\Models\Office::find($d->office))->name ?? 'Unknown',
+                    'type_name' => optional(\App\Models\DepositType::find($d->deposit_type))->name ?? 'Unknown',
+                ];
+            });
+
+        return response()->json([
+            'deposits' => $deposits,
+            'total' => $deposits->sum('amount'),
+        ]);
+    }
+
     public function storeAuditSubmission(Request $request)
     {
         $step = (int) $request->input('save_step', 0);
@@ -1351,8 +1387,8 @@ class RiskController extends Controller
 
         // 7. Per-type deposit requirement vs received summary cards
         // Required = monthly_amount x offices x months-spanned-by-period.
-        // "overall" is bounded: Jan 1 of the current year through the last day of the
-        // previous month — the current (incomplete) month is excluded.
+        // "overall" is bounded: Jan 1 of the current year through the 28th of the
+        // current month — the current month is excluded because it's incomplete.
         $officeCount     = $effectiveOfficeCount;
         $depositCardStats  = [];
         $depositCardTotals = null;
@@ -1360,7 +1396,7 @@ class RiskController extends Controller
         $totRecv  = 0;
 
         if ($dateFrom === null) {
-            // overall: full months from Jan 1 this year through last day of prev month
+            // overall: full months from Jan 1 this year through 28th of current month
             $overallPeriodMonths = (int) \Carbon\Carbon::now()
                 ->startOfYear()
                 ->diffInMonths(\Carbon\Carbon::parse($dateTo))
@@ -1439,11 +1475,11 @@ class RiskController extends Controller
 
     /**
      * Compute the [startDate, endDate] string pair for a given period label.
-     * "overall" is bounded at the last day of the previous month — the current month
+     * "overall" is bounded at the 28th of the current month — the current month
      * is excluded because it is always incomplete.
      *
      * Periods
-     * - overall         : all deposits recorded up to last day of last month
+     * - overall         : all deposits recorded up to 28th of current month
      * - month           : this calendar month
      * - quarter         : this quarter
      * - year            : this calendar year
@@ -1457,10 +1493,10 @@ class RiskController extends Controller
     private function getDepositDateRange(string $period, int $customMonth, int $customYear): array
     {
         if ($period === 'overall') {
-            // Overall = Jan 1 this year → last day of previous month (current month always incomplete)
+            // Overall = Jan 1 this year → 28th of current month
             return [
                 null,
-                Carbon::now()->subMonth()->endOfMonth()->toDateString(),
+                Carbon::now()->day(28)->toDateString(),
             ];
         }
 

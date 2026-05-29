@@ -1,16 +1,21 @@
 --Deposits table
 id
+date
 deposit_type
 office
 amount
-date
+debt
+
 
 
 --deposit_types table
 id
 name
+sort_order
+monthly_amount
 bank
 gl_account
+
 
 SELECT * FROM `deposit_types` ORDER BY `deposit_types`.`sort_order` ASC
  Profiling [ Edit inline ] [ Edit ] [ Explain SQL ] [ Create PHP code ] [ Refresh ]
@@ -26,7 +31,7 @@ name
 sort_order Ascending 1
 monthly_amount
 bank
-gl_account
+gl_accounth
 
 Edit Edit
 Copy Copy

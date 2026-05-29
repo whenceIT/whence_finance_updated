@@ -259,15 +259,73 @@
         <a href="#odModal" id="openOfficeDebtModal" class="btn btn-primary btn-sm" style="border-radius:6px;text-decoration:none;color:#fff;">
             <i class="fa fa-balance-scale"></i>Edit Office Debt
         </a>
+        <button type="button" id="openDepositQueryModal" class="btn btn-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-search"></i> Deposits Statements
+        </button>
     </div>
+
+    <div id="depositQueryModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Query Deposits</h3>
+                <button type="button" id="closeDepositQueryModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="depositQueryForm">
+                    <div class="form-group">
+                        <label>Office</label>
+                        <select name="office_id" class="form-control">
+                            <option value="">All Offices</option>
+                            <?php if (isset($offices) && $offices): ?>
+                                <?php foreach ($offices as $o): ?>
+                                    <?php $oid = $o->id; $oname = $o->name; ?>
+                                    <option value="<?= $oid ?>"><?= e($oname) ?></option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Deposit Type</label>
+                        <select name="deposit_type" class="form-control">
+                            <option value="">All Types</option>
+                            <?php if (isset($types) && $types): ?>
+                                <?php foreach ($types as $t): ?>
+                                    <option value="<?= $t['id'] ?>"><?= e($t['name']) ?></option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Year</label>
+                        <select name="year" class="form-control">
+                            <?php for ($y = 2020; $y <= date('Y'); $y++): ?>
+                                <option value="<?= $y ?>" <?= $y == date('Y') ? 'selected' : '' ?>><?= $y ?></option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Query</button>
+                </form>
+                <div id="depositQueryResult" style="margin-top:15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; }
+    .modal-content { background:#fff; margin:10% auto; padding:20px; border-radius:8px; max-width:500px; }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+    .modal-header h3 { margin:0; }
+    .form-group { margin-bottom:15px; }
+    .form-control { width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; }
+    </style>
 
     <div class="da-filter-bar">
         <label><i class="fa fa-building"></i> Office</label>
         <select id="da-office-select">
             <option value="">All Offices</option>
-            <?php foreach ($offices as $office): ?>
+            <?php if (isset($offices) && $offices): foreach ($offices as $office): ?>
                 <option value="<?= $office->id ?>"><?= e($office->name) ?></option>
-            <?php endforeach; ?>
+            <?php endforeach; endif; ?>
         </select>
 
         <label><i class="fa fa-filter"></i> Period</label>
@@ -300,7 +358,7 @@
 
     @php
         $periodLabels = [
-            'overall'      => 'Overall (Jan → last day of last month)',
+            'overall'      => 'Overall (Jan → 28th of current month)',
             'month'        => 'This Month',
             'quarter'      => 'This Quarter',
             'year'         => 'This Year',
@@ -424,29 +482,38 @@
              </div>
         </div>
 
-        @foreach($types as $t)
-        <div class="da-type-card" data-type-id="{{ $t['id'] }}">
+@foreach($types as $t)
+        @php
+            $tid = $t['id'];
+            $tname = $t['name'];
+            $tbank = $t['bank'] ?? '–';
+            $tgl = $t['gl_account'] ?? '–';
+            $tcount = $t['office_count'];
+            $withDep = $t['offices_with_deposits'];
+            $ttotal = $t['total_amount'];
+        @endphp
+        <div class="da-type-card" data-type-id="{{ $tid }}">
             <div class="da-type-header">
                 <div class="left">
                     <span class="toggle-icon"><i class="fa fa-caret-right"></i></span>
-                    <span class="type-name">{{ $t['name'] }}</span>
-                    <span class="type-meta">{{ $t['bank'] ?? '–' }} &nbsp;|&nbsp; GL: {{ $t['gl_account'] ?? '–' }}</span>
+                    <span class="type-name">{{ $tname }}</span>
+                    <span class="type-meta">{{ $tbank }} &nbsp;|&nbsp; GL: {{ $tgl }}</span>
                 </div>
                 <div class="right-group">
                     <div class="da-stats">
                         <span class="da-stat" title="Total offices">
-                            <i class="fa fa-building"></i> <strong>{{ $t['office_count'] }}</strong> offices
+                            <i class="fa fa-building"></i> <strong>{{ $tcount }}</strong> offices
                         </span>
                         <span class="da-stat" title="Offices with deposits">
-                            <i class="fa fa-check-circle" style="color:#27ae60"></i> <strong>{{ $t['offices_with_deposits'] }}</strong> with deposits
+                            <i class="fa fa-check-circle" style="color:#27ae60"></i> <strong>{{ $withDep }}</strong> with deposits
                         </span>
                         <span class="da-stat" title="Overall total amount across all offices">
-                            <i class="fa fa-line-chart" style="color:#667eea"></i> <strong>${{ number_format((float)$t['total_amount'], 2) }}</strong> total
+                            <i class="fa fa-line-chart" style="color:#667eea"></i> <strong>${{ number_format((float)$ttotal, 2) }}</strong> total
                         </span>
                     </div>
                 </div>
             </div>
-            <div class="da-body" id="da-body-{{ $t['id'] }}">
+            <div class="da-body" id="da-body-{{ $tid }}">
                 <p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading offices&hellip;</p>
             </div>
         </div>
@@ -1379,5 +1446,44 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('openDepositQueryModal').addEventListener('click', function() {
+    document.getElementById('depositQueryModal').style.display = 'block';
+});
+
+document.getElementById('closeDepositQueryModal').addEventListener('click', function() {
+    document.getElementById('depositQueryModal').style.display = 'none';
+});
+
+document.getElementById('depositQueryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const params = new URLSearchParams();
+    for (let [key, value] of formData.entries()) {
+        if (value) params.append(key, value);
+    }
+    
+    fetch('/risk/deposits/query?' + params.toString())
+        .then(r => r.json())
+        .then(data => {
+            const resultDiv = document.getElementById('depositQueryResult');
+            if (data.deposits && data.deposits.length > 0) {
+                let html = '<table class="table table-sm"><thead><tr><th>Date</th><th>Amount</th><th>Office</th></tr></thead><tbody>';
+                data.deposits.forEach(d => {
+                    html += '<tr><td>' + d.date + '</td><td>' + d.amount + '</td><td>' + d.office_name + '</td></tr>';
+                });
+                html += '</tbody></table>';
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.innerHTML = '<p>No deposits found.</p>';
+            }
+        })
+        .catch(err => {
+            document.getElementById('depositQueryResult').innerHTML = '<p class="text-danger">Error fetching data.</p>';
+        });
+});
+</script>
 
 @endsection

@@ -11,123 +11,90 @@ use Carbon\Carbon;
 class OfficeDebtService
 {
     /**
-     * Run the monthly shortfall check for all offices, or a single office when $officeId is given.
+     * For the year, and office_id:
+     *   1. Group deposits by (office_id, deposit_type) for that year. Then:
+     *      a. Count/cap the total number of months to process based on the current date.
+     *      b. total_expected = DepositType.monthly_amount x total months passed in the year (up to current month).
+     *      c. total_deposits = SUM(amount) for that office + deposit type + year (up to current month).
+     *      d. If debt > 0 then create or update an OfficeDebt record for the office + deposit type + month.
+     *         - If creating new: set original_amount to the debt.
+     *         - If updating: add the debt to original_amount.
      *
-     * For every month whose 28th has already passed:
-     *   1. Group deposits by (office_id, deposit_type) for that month.
-     *   2. Compare the received total against DepositType.monthly_amount.
-     *   3. If received < monthly_amount → upsert an OfficeDebt record that
-     *      accumulates the shortfall into original_amount / outstanding_amount.
-     *
-     * @param  Carbon|null  $asOfDate  anchor date; defaults to today
-     * @param  int|null     $officeId  when set, only process this office
+     * @param  int|null     $officeId  
+     * @param  string|null  $month     Format: MM-YYYY (e.g., 04-2026)
      * @return array  ['months_processed'=>int, 'debt_records_created'=>int, 'debt_records_updated'=>int, 'total_shortfall'=>float]
      */
-    public function runMonthlyCheck(?Carbon $asOfDate = null, ?int $officeId = null): array
+    public function runMonthlyCheck(?int $officeId = null, ?string $month = null): array
     {
-        $today   = $asOfDate ?? Carbon::now();
-        $months  = $this->pastMonthsWithDeadlinePassed($today);
+        $today = Carbon::now();
+        $currentYear = $today->year;
+        $currentMonth = $today->month;
 
-        $types         = DepositType::orderBy('sort_order')->get();
-        $officesQuery  = Office::where('active', 1)->orderBy('name');
+        $monthsToProcess = $currentMonth;
+
+        $types = DepositType::orderBy('sort_order')->get();
+        $officesQuery = Office::where('active', 1)->orderBy('name');
         if ($officeId !== null) {
             $officesQuery->where('id', $officeId);
         }
-        $offices     = $officesQuery->get();
-        $allDeposits = Deposit::all();   // small table; filter in PHP
+        $offices = $officesQuery->get();
 
-        // Index deposits by month+office+deposit_type
+        $validDeposits = Deposit::query()
+            ->whereYear('date', $currentYear)
+            ->whereMonth('date', '<=', $currentMonth)
+            ->get();
+
         $depsIdx = [];
-        foreach ($allDeposits as $dep) {
-            $dt   = Carbon::parse((string) $dep->date);
-            $key  = $dt->format('Y-m') . '|' . $dep->office . '|' . $dep->deposit_type;
+        foreach ($validDeposits as $dep) {
+            $key = $dep->office . '|' . $dep->deposit_type;
             $depsIdx[$key] = (float) ($depsIdx[$key] ?? 0) + (float) $dep->amount;
         }
 
-        $created  = 0;
-        $updated  = 0;
-        $totalSf  = 0.0;
+        $created = 0;
+        $updated = 0;
+        $totalSf = 0.0;
 
-        foreach ($months as $monthYear) {
-            [$year, $month] = explode('-', $monthYear);
+        foreach ($types as $type) {
+            $monthlyRequired = (float) ($type->monthly_amount ?? 0);
+            $totalExpected = $monthlyRequired * $monthsToProcess;
 
-            foreach ($types as $type) {
-                $required = (float) $type->monthly_amount;
+            foreach ($offices as $office) {
+                $key = $office->id . '|' . $type->id;
+                $received = $depsIdx[$key] ?? 0.0;
 
-                foreach ($offices as $office) {
-                    $key    = $monthYear . '|' . $office->id . '|' . $type->id;
-                    $recv   = $depsIdx[$key] ?? 0.0;
-
-                    if ($recv >= $required) {
-                        // Sufficient — no debt
-                        continue;
-                    }
-
-                    $shortfall  = $required - $recv;
-
-                    // firstOrCreate on the unique business key ensures no duplicates
-                    // on re-runs; when the row already exists we accumulate shortfall.
-                    $record = OfficeDebt::firstOrCreate(
-                        [
-                            'office_id'       => $office->id,
-                            'deposit_type_id' => $type->id,
-                            'debt_month'      => (int) $month,
-                            'debt_year'       => (int) $year,
-                        ],
-                        [
-                            'debt_status'        => 'owing',
-                            'original_amount'    => (int) round($shortfall),
-                            'outstanding_amount' => (int) round($shortfall),
-                            'notes'              => null,
-                            'is_setup_debt'      => 'false',
-                        ]
-                    );
-
-                    if ($record->wasRecentlyCreated) {
-                        $created++;
-                    } else {
-                        // Accumulate shortfall into existing record
-                        $record->original_amount    += (int) round($shortfall);
-                        $record->outstanding_amount += (int) round($shortfall);
-                        $record->debt_status         = 'owing';
-                        $record->save();
-                        $updated++;
-                    }
-
-                    $totalSf += $shortfall;
+                $debt = $totalExpected - $received;
+                if ($debt <= 0) {
+                    continue;
                 }
+
+                OfficeDebt::where('office_id', $office->id)
+                    ->where('deposit_type_id', $type->id)
+                    ->where('debt_month', $currentMonth)
+                    ->where('debt_year', $currentYear)
+                    ->delete();
+
+                OfficeDebt::create([
+                    'office_id' => $office->id,
+                    'deposit_type_id' => $type->id,
+                    'debt_month' => $currentMonth,
+                    'debt_year' => $currentYear,
+                    'debt_status' => 'owing',
+                    'original_amount' => (int) round($debt),
+                    'outstanding_amount' => (int) round($debt),
+                    'notes' => null,
+                    'is_setup_debt' => 'false',
+                ]);
+                $created++;
+
+                $totalSf += $debt;
             }
         }
 
         return [
-            'months_processed'       => count($months),
-            'debt_records_created'   => $created,
-            'debt_records_updated'   => $updated,
-            'total_shortfall'        => $totalSf,
+            'months_processed' => $monthsToProcess,
+            'debt_records_created' => $created,
+            'debt_records_updated' => $updated,
+            'total_shortfall' => $totalSf,
         ];
-    }
-
-    /**
-     * Return formatted month strings (Y-m) for every past month whose
-     * 28th has already passed, newest first.
-     * Caps at January of the current year — no prior years are touched.
-     */
-    private function pastMonthsWithDeadlinePassed(Carbon $today): array
-    {
-        $months = [];
-
-        // This month — only include if the 28th has passed
-        if ($today->day >= 28) {
-            $months[] = $today->format('Y-m');
-        }
-
-        // Previous months — stop at Jan of the current year (no prior years)
-        $cursor = $today->copy()->subMonth();
-        while ($cursor->year === $today->year && $cursor->month >= 1) {
-            $months[] = $cursor->format('Y-m');
-            $cursor->subMonth();
-        }
-
-        return $months;
     }
 }

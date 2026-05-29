@@ -481,6 +481,9 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('office-debts/type/{type}', [RiskController::class, 'branchDepositAuditByDebtType'])->name('risk.office-debts.by-type');
     Route::get('office-debts/debt',     [RiskController::class, 'officeDebtsByDebtType'])->name('risk.office-debts.debt');
 
+    // ── Deposit query endpoint ───────────────────────────────────────────────
+    Route::get('deposits/query',          [RiskController::class, 'queryDeposits'])->name('risk.deposits.query');
+
     // ── Supervisor: run all fraud rules (called client-side by monitor.js)
     Route::post('monitor/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
          ->name('risk.alert-service');
