@@ -49,11 +49,19 @@
                     {{ $policyOfTheDay->policy->title }}
                 </h3>
                 @if($policyOfTheDay->policy->file_url)
-                    <div style="border: 1px solid #ddd; background: white;">
-                        <iframe src="{{ $policyOfTheDay->policy->file_url }}" 
-                                style="width: 100%; height: 600px; border: none;"
-                                allowfullscreen></iframe>
+                    <div style="border: 1px solid #ddd; background: white; padding: 2rem; text-align: center;">
+                        <i class="fa fa-file-pdf-o" style="font-size: 4rem; color: #e53e3e; margin-bottom: 1rem;"></i>
+                        <h4 style="margin: 0 0 1rem 0;">{{ $policyOfTheDay->policy->file_name ?? 'Policy Document' }}</h4>
+                        <p style="color: #666; margin-bottom: 1.5rem;">Unable to preview document directly. Please download to view.</p>
+                        <a href="{{ $policyOfTheDay->policy->file_url }}" 
+                           target="_blank" 
+                           class="btn btn-primary"
+                           style="background: #00a04a; border-color: #00a04a; color: white; padding: 0.75rem 2rem; border-radius: 6px; text-decoration: none; display: inline-block;">
+                            <i class="fa fa-download"></i> Download Policy Document
+                        </a>
                     </div>
+                @else
+                    <p style="color: #666; font-style: italic;">No document file available.</p>
                 @endif
             </div>
         </div>
