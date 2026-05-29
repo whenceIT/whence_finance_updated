@@ -280,19 +280,19 @@
                         Read Full Policy
                     </a>
                     @if($policyOfTheDay->policy)
-                        <a href="{{ route('policies.view', ['id' => $policyOfTheDay->policy->id]) }}" target="_blank" class="policy-action-btn">
+                        <!-- <a href="{{ route('policies.view', ['id' => $policyOfTheDay->policy->id]) }}" target="_blank" class="policy-action-btn">
                             <i class="fa fa-external-link"></i>
                             View Policy Document
-                        </a>
+                        </a> -->
                     @endif
                 </div>
 
              <div class="policy-actions">
                  @if($policyOfTheDay->policy)
-                     <a href="{{ route('policies.view', ['id' => $policyOfTheDay->policy->id]) }}" target="_blank">
+                     <!-- <a href="{{ route('policies.view', ['id' => $policyOfTheDay->policy->id]) }}" target="_blank">
                          <i class="fa fa-external-link"></i>
                          View Full Policy
-                     </a>
+                     </a> -->
                  @endif
              </div>
         </div>
