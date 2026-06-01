@@ -253,46 +253,6 @@
         100% { background-position:  400px 0; }
     }
 
-    .switch-btn {
-        position: relative;
-        display: inline-block;
-        width: 50px;
-        height: 24px;
-    }
-    .switch-btn input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-    .switch-label {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: .3s;
-        border-radius: 24px;
-    }
-    .switch-label:before {
-        position: absolute;
-        content: "";
-        height: 16px;
-        width: 16px;
-        left: 4px;
-        bottom: 4px;
-        background-color: white;
-        transition: .3s;
-        border-radius: 50%;
-    }
-    input:checked + .switch-label {
-        background-color: #667eea;
-    }
-    input:checked + .switch-label:before {
-        transform: translateX(26px);
-    }
-
 </style>
 
 <div class="content-wrapper" style="margin: 20px;">
@@ -307,7 +267,13 @@
             <i class="fa fa-search"></i> Deposits Statements
         </button>
         <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
-            <i class="fa fa-cog"></i> Settings
+            <i class="fa fa-stop"></i> Exemption Offices
+        </button>
+        <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-check-circle"></i> Activate Blocking for All Offices
+        </button>
+        <button type="button" id="deactivateAllOfficesBtn" class="btn btn-warning btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-ban"></i> Remove Blocking All Offices
         </button>
     </div>
 
@@ -1625,6 +1591,28 @@ $('#settingsForm').on('submit', function(e) {
         $('#settingsModal').modal('hide');
     }).fail(function() {
         alert('Save failed.');
+    });
+});
+
+$('#activateAllOfficesBtn').on('click', function() {
+    if (!confirm('Initialize branch deposit settings for all offices with default values (enabled)?')) return;
+    $.post('/settings/platform/initialize-all', {
+        _token: '{{ csrf_token() }}'
+    }, function(res) {
+        alert(res.message || 'Initialized');
+    }).fail(function() {
+        alert('Failed to initialize.');
+    });
+});
+
+$('#deactivateAllOfficesBtn').on('click', function() {
+    if (!confirm('Deactivate branch deposit settings for all offices? This will remove all custom settings.')) return;
+    $.post('/settings/platform/deactivate-all', {
+        _token: '{{ csrf_token() }}'
+    }, function(res) {
+        alert(res.message || 'Deactivated');
+    }).fail(function() {
+        alert('Failed to deactivate.');
     });
 });
 </script>

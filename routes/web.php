@@ -231,6 +231,8 @@ Route::post('/settings/set-content-push-mode', [PlatformController::class, 'setC
 Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
     Route::get('/platform/get', [PlatformController::class, 'getSettings']);
     Route::post('/platform/save', [PlatformController::class, 'saveSettings']);
+    Route::post('/platform/initialize-all', [PlatformController::class, 'initializeAllOffices']);
+    Route::post('/platform/deactivate-all', [PlatformController::class, 'deactivateAllOffices']);
 });
 
 // Course Categories Management Routes

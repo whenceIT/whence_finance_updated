@@ -15,13 +15,12 @@ class PlatformSetting extends Model
         'value' => 'json',
     ];
 
-    public static function getBranchDepositSettings($officeId = null)
+public static function getBranchDepositSettings($officeId = null)
     {
         if ($officeId) {
-            $setting = self::where('key', 'branch_deposit_setting')
-                ->where('value->office_id', $officeId)
-                ->first();
-                
+            $key = 'branch_deposit_setting_' . $officeId;
+            $setting = self::where('key', $key)->first();
+            
             if ($setting) {
                 return [
                     'id' => $setting->id,

@@ -37,7 +37,6 @@ class PlatformController extends Controller
             'statutory' => 'sometimes|integer|min:0|max:1',
             'set_up_debt' => 'sometimes|integer|min:0|max:1',
         ]);
-        
 
         $value = [
             'office_id' => $data['office_id'],
@@ -47,27 +46,76 @@ class PlatformController extends Controller
             'set_up_debt' => (int) ($data['set_up_debt'] ?? 0) === 0,
         ];
 
+        $key = 'branch_deposit_setting_' . $data['office_id'];
+
         if (!empty($data['id'])) {
             $setting = PlatformSetting::find($data['id']);
             if ($setting) {
-                $setting->update(['value' => $value]);
+                $setting->update(['key' => $key, 'value' => $value]);
                 return response()->json(['success' => true, 'message' => 'Settings updated.']);
             }
         }
 
-        $existing = PlatformSetting::where('key', 'branch_deposit_setting')
-            ->where('value->office_id', $data['office_id'])
-            ->first();
+        $existing = PlatformSetting::where('key', $key)->first();
 
         if ($existing) {
             $existing->update(['value' => $value]);
         } else {
             PlatformSetting::create([
-                'key' => 'branch_deposit_setting',
+                'key' => $key,
                 'value' => $value,
             ]);
         }
 
         return response()->json(['success' => true, 'message' => 'Settings saved.']);
+    }
+
+    public function initializeAllOffices()
+    {
+        PlatformSetting::where('key','like', 'branch_deposit_setting_%')->delete();
+        
+        $offices = \App\Models\Office::all();
+        
+        foreach ($offices as $office) {
+            $key = 'branch_deposit_setting_' . $office->id;
+
+                PlatformSetting::create([
+                    'key' => $key,
+                    'value' => [
+                        'office_id' => $office->id,
+                        'admin' => true,
+                        'building' => true,
+                        'statutory' => true,
+                        'set_up_debt' => true,
+                    ],
+                ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Activated deposits blocking and restrictions for all offices.']);
+    }
+
+    public function deactivateAllOffices()
+    {
+        PlatformSetting::where('key','like', 'branch_deposit_setting_%')->delete();
+        
+        $offices = \App\Models\Office::all();
+        
+        foreach ($offices as $office) {
+            $key = 'branch_deposit_setting_' . $office->id;
+
+                PlatformSetting::create([
+                    'key' => $key,
+                    'value' => [
+                        'office_id' => $office->id,
+                        'admin' => false,
+                        'building' => false,
+                        'statutory' => false,
+                        'set_up_debt' => false,
+                    ],
+                ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Exempted deposits restrictions for all offices.']);
+      
     }
 }
