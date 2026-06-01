@@ -225,15 +225,12 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/courses', [LearningSettingController::class, 'courses'])->name('learning.settings.courses');
     Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
     Route::get('/settings/courses/resource-preview', [LearningSettingController::class, 'resourcePreview'])->name('learning.settings.courses.resource-preview');
-    Route::post('/settings/set-content-push-mode', [PlatformController::class, 'setContentPushMode'])->name('learning.settings.set-content-push-mode');
+Route::post('/settings/set-content-push-mode', [PlatformController::class, 'setContentPushMode'])->name('learning.settings.set-content-push-mode');
+});
 
-    // Trainer Management Routes
-    Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
-    Route::get('/api/users-by-role/{roleId}', [LearningSettingController::class, 'getUsersByRole']);
-    Route::get('/api/roles-by-office/{officeId}', [LearningSettingController::class, 'getRolesByOffice']);
-    Route::get('/api/users-by-office-role/{officeId}/{roleId}', [LearningSettingController::class, 'getUsersByOfficeRole']);
-    Route::post('/settings/teachers/update-trainer', [LearningSettingController::class, 'updateTrainerStatus'])->name('learning.settings.teachers.update-trainer');
-    Route::delete('/settings/teachers/remove-trainer/{userId}', [LearningSettingController::class, 'removeTrainerStatus'])->name('learning.settings.teachers.remove-trainer');
+Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
+    Route::get('/platform/get', [PlatformController::class, 'getSettings']);
+    Route::post('/platform/save', [PlatformController::class, 'saveSettings']);
 });
 
 // Course Categories Management Routes

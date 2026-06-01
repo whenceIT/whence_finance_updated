@@ -24,6 +24,15 @@ class BlockerHelper
     {
         $officeId = $user->office_id ?? null;
 
+        $settings = \App\Models\PlatformSetting::getBranchDepositSettings($officeId);
+        
+
+        if (isset($user->role->role_id) && $user->role->role_id != 4) {
+            return [
+                'status'  => true,
+                'balance' => 0,
+            ];
+        }
         if (!$officeId) {
             return ['status' => true, 'balance' => 0]; // Can't determine office → do not block
         }
@@ -42,10 +51,18 @@ class BlockerHelper
             ->where('deposit_type_id', 0) // Set up debt has deposit_type_id = 0 in office_debts table
             ->value('outstanding_amount') ?? 0;
 
+        if (isset($settings['set_up_debt']) && $settings['set_up_debt'] == false) {
+            return [
+                'status'  => true,
+                'balance' => 0,
+            ];
+        }
+        
         return [
             'status'  => $outstandingDebtPaidThisMonth,
             'balance' => $outstandingBalance,
         ];
+
     }
 
     public static function deposit_blocker(): string
@@ -53,4 +70,40 @@ class BlockerHelper
         return "Your office has not made the required monthly deposit of K5,000. Please contact your branch manager to resolve this issue and regain access to loan operations.";   
 
     }
+
+    public static function monthlyDepositExists($user): bool
+    {
+        $officeId = $user->office_id ?? null;
+
+        $settings = \App\Models\PlatformSetting::getBranchDepositSettings($officeId);
+
+          
+        if (isset($user->role->role_id) && $user->role->role_id != 4) {
+            return true;
+        }
+
+        if (!$officeId) {
+            return false;
+        }
+
+        $now = Carbon::now();
+
+        if (isset($settings['admin']) && $settings['admin'] == false) {
+            return true; // Admin override → do not block
+        }else{
+            $types = DB::table('deposits')
+                ->whereIn('deposit_type', [1])
+                ->where('office', $officeId)
+                ->where('date', '>=', $now->format('Y-m') . '-01')
+                ->where('date', '<=', $now->format('Y-m') . '-' . $now->format('t'))
+                ->pluck('deposit_type')
+                ->unique()
+                ->values()
+                ->toArray();
+            
+            return count($types) === 1 && in_array(1, $types);
+        }
+        
+    }
+    
 }

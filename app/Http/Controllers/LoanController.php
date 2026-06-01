@@ -982,15 +982,15 @@ class LoanController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+public function create()
     {
         if (!Sentinel::hasAccess('loans.create')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
 
-          $pendingApproval = false;
-          $launchNewCarryOver = false;
+           $pendingApproval = false;
+           $launchNewCarryOver = false;
         $province_clients = [];
         $user = Sentinel::getUser();
         $userBranch = $user->office_id;
@@ -1367,6 +1367,7 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+
         $rules = array(
             'loan_officer_id' => 'required',
             'principal' => 'required',

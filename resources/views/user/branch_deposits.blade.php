@@ -52,6 +52,7 @@
 }
 </style>
 
+<x-debt-blocker/>
 <div class="content-wrapper">
     <section class="content-header">
 
@@ -352,7 +353,7 @@ case 'withinhere':
         $('#depositConfirmModal').modal('hide');
 
         $.ajax({
-            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+            url: 'http://localhost:5000/create-deposit',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
@@ -364,7 +365,7 @@ case 'withinhere':
             success: function () {
 
                 $.ajax({
-                    url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
+                    url: 'http://localhost:5000/create-deposit-log',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -395,7 +396,7 @@ case 'withinhere':
         let depositId = $(this).closest('.deposit-item').data('deposit-id');
 
         $.ajax({
-            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+            url: 'http:localhost:5000/create-deposit',
             type: 'POST',
             data: {
                 deposit_type: depositId,

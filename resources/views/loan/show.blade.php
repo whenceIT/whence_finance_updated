@@ -4,9 +4,20 @@
 @endsection
 @section('content')
 
-<x-debt-blocker/>
-
-
+@php
+    $block = Sentinel::getUser();
+    $debtBlocker = $block
+        ? \App\Helpers\BlockerHelper::debt_blocker($block)
+        : ['status' => true, 'balance' => 0];
+    $monthlyDepositDone = $block
+        ? \App\Helpers\BlockerHelper::monthlyDepositExists($block)
+        : true;
+@endphp
+    @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
+        <script>window.location.href = '/user/branch_deposits';</script>
+    @else
+        <x-debt-blocker/>
+    @endif
     <div class="row">
         <div class="col-md-12">
             <div class="panel ">

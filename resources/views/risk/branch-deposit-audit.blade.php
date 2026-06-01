@@ -248,6 +248,50 @@
         0%   { background-position: -400px 0; }
         100% { background-position:  400px 0; }
     }
+@keyframes shimmer {
+        0%   { background-position: -400px 0; }
+        100% { background-position:  400px 0; }
+    }
+
+    .switch-btn {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+    .switch-btn input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .switch-label {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .3s;
+        border-radius: 24px;
+    }
+    .switch-label:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+    }
+    input:checked + .switch-label {
+        background-color: #667eea;
+    }
+    input:checked + .switch-label:before {
+        transform: translateX(26px);
+    }
 
 </style>
 
@@ -261,6 +305,9 @@
         </a>
         <button type="button" id="openDepositQueryModal" class="btn btn-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-search"></i> Deposits Statements
+        </button>
+        <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-cog"></i> Settings
         </button>
     </div>
 
@@ -310,14 +357,6 @@
         </div>
     </div>
 
-    <style>
-    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; }
-    .modal-content { background:#fff; margin:10% auto; padding:20px; border-radius:8px; max-width:500px; }
-    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
-    .modal-header h3 { margin:0; }
-    .form-group { margin-bottom:15px; }
-    .form-control { width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; }
-    </style>
 
     <div class="da-filter-bar">
         <label><i class="fa fa-building"></i> Office</label>
@@ -1483,6 +1522,110 @@ document.getElementById('depositQueryForm').addEventListener('submit', function(
         .catch(err => {
             document.getElementById('depositQueryResult').innerHTML = '<p class="text-danger">Error fetching data.</p>';
         });
+});
+</script>
+
+<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="settingsModalLabel">
+                    <i class="fa fa-cog"></i> Platform Settings
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="settingsForm">
+                    <input type="hidden" id="settingsId" value="">
+                    <div class="form-group">
+                        <label>Office</label>
+                        <select id="settingsOffice" class="form-control">
+                            <option value="">Select an office…</option>
+                            <?php
+                                $offices = \App\Models\Office::orderBy('name')->get();
+                                foreach ($offices as $o) {
+                                    echo '<option value="' . $o->id . '">' . htmlspecialchars($o->name) . '</option>';
+                                }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Admin</label>
+                        <div>
+                            <label class="radio-inline"><input type="radio" name="admin" value="1" id="admin_1"> Disable</label>
+                            <label class="radio-inline"><input type="radio" name="admin" value="0" id="admin_0"> Enable</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Building</label>
+                        <div>
+                            <label class="radio-inline"><input type="radio" name="building" value="1" id="building_1"> Disable</label>
+                            <label class="radio-inline"><input type="radio" name="building" value="0" id="building_0"> Enable</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Statutory</label>
+                        <div>
+                            <label class="radio-inline"><input type="radio" name="statutory" value="1" id="statutory_1"> Disable</label>
+                            <label class="radio-inline"><input type="radio" name="statutory" value="0" id="statutory_0"> Enable</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Set up debt</label>
+                        <div>
+                            <label class="radio-inline"><input type="radio" name="set_up_debt" value="1" id="set_up_debt_1"> Disable</label>
+                            <label class="radio-inline"><input type="radio" name="set_up_debt" value="0" id="set_up_debt_0"> Enable</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).on('click', '#openSettingsModal', function() {
+    $('#settingsModal').modal('show');
+    loadSettings();
+});
+
+function loadSettings(officeId) {
+    var url = '/settings/platform/get';
+    if (officeId) url += '?office_id=' + officeId;
+    $.get(url, function(data) {
+        $('#settingsId').val(data.id || '');
+        $('#settingsOffice').val(data.office_id || '');
+        $('input[name="admin"][value="' + (data.admin ? '0' : '1') + '"]').prop('checked', true);
+        $('input[name="building"][value="' + (data.building ? '0' : '1') + '"]').prop('checked', true);
+        $('input[name="statutory"][value="' + (data.statutory ? '0' : '1') + '"]').prop('checked', true);
+        $('input[name="set_up_debt"][value="' + (data.set_up_debt ? '0' : '1') + '"]').prop('checked', true);
+    });
+}
+
+$('#settingsOffice').on('change', function() {
+    loadSettings($(this).val());
+});
+
+$('#settingsForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = {
+        _token: '{{ csrf_token() }}',
+        id: $('#settingsId').val(),
+        office_id: $('#settingsOffice').val(),
+        admin: $('input[name="admin"]:checked').val() || 0,
+        building: $('input[name="building"]:checked').val() || 0,
+        statutory: $('input[name="statutory"]:checked').val() || 0,
+        set_up_debt: $('input[name="set_up_debt"]:checked').val() || 0,
+    };
+    $.post('/settings/platform/save', data, function(res) {
+        alert(res.message || 'Saved');
+        $('#settingsModal').modal('hide');
+    }).fail(function() {
+        alert('Save failed.');
+    });
 });
 </script>
 
