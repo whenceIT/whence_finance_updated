@@ -27,6 +27,24 @@ class PlatformController extends Controller
         return response()->json(PlatformSetting::getBranchDepositSettings($officeId));
     }
 
+    public function getOfficesSettings()
+    {
+        $officeId = request('office_id');
+        
+        if ($officeId) {
+            $settings = PlatformSetting::getBranchDepositSettings($officeId);
+            return response()->json([
+                'office_id' => $officeId,
+                'admin' => $settings['admin'],
+                'building' => $settings['building'],
+                'statutory' => $settings['statutory'],
+                'set_up_debt' => $settings['set_up_debt'],
+            ]);
+        }
+        
+        return response()->json(PlatformSetting::getAllOfficesWithSettings());
+    }
+
     public function saveSettings(Request $request)
     {
         $data = $request->validate([

@@ -233,6 +233,7 @@ Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
     Route::post('/platform/save', [PlatformController::class, 'saveSettings']);
     Route::post('/platform/initialize-all', [PlatformController::class, 'initializeAllOffices']);
     Route::post('/platform/deactivate-all', [PlatformController::class, 'deactivateAllOffices']);
+    Route::get('/platform/offices-settings', [PlatformController::class, 'getOfficesSettings']);
 });
 
 // Course Categories Management Routes

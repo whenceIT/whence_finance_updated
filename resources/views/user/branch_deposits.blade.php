@@ -353,7 +353,7 @@ case 'withinhere':
         $('#depositConfirmModal').modal('hide');
 
         $.ajax({
-            url: 'http://localhost:5000/create-deposit',
+            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
@@ -365,7 +365,7 @@ case 'withinhere':
             success: function () {
 
                 $.ajax({
-                    url: 'http://localhost:5000/create-deposit-log',
+                    url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({

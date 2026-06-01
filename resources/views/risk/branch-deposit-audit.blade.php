@@ -253,6 +253,36 @@
         100% { background-position:  400px 0; }
     }
 
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .card-header {
+        background: #f8f9ff;
+        padding: 12px 16px;
+        border-bottom: 1px solid #ddd;
+        font-weight: 600;
+    }
+    .card-body {
+        padding: 16px;
+    }
+    .label.label-success {
+        background: #27ae60;
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    .label.label-danger {
+        background: #e74c3c;
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
 </style>
 
 <div class="content-wrapper" style="margin: 20px;">
@@ -275,7 +305,38 @@
         <button type="button" id="deactivateAllOfficesBtn" class="btn btn-warning btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-ban"></i> Remove Blocking All Offices
         </button>
+</div>
+
+    @php
+        $officeIdParam = request('office_id');
+    @endphp
+
+    @if(!$officeIdParam)
+    <div style="margin-top: 20px;">
+        <button type="button" id="openExemptionListModal" class="btn btn-info btn-sm" style="border-radius:6px;">
+            <i class="fa fa-list"></i> Exemption List
+        </button>
     </div>
+    @else
+    <div class="card" style="margin: 20px 0;">
+        <div class="card-header" style="cursor: pointer;" onclick="$(this).next().slideToggle(); $(this).find('i').toggleClass('fa-chevron-down fa-chevron-up');">
+            <i class="fa fa-building"></i> Office Exemptions
+            <i class="fa fa-chevron-down" style="float: right;"></i>
+        </div>
+        <div class="card-body" id="office-exemptions-body">
+            <div id="office-detail-card">
+                <div class="col-md-12" style="text-align:center;padding:20px;"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    var officeIdParam = new URLSearchParams(window.location.search).get('office_id');
+    if (officeIdParam) {
+        loadOfficesSettings();
+    }
+    </script>
+    @endif
 
     <div id="depositQueryModal" class="modal" style="display:none;">
         <div class="modal-content">
@@ -1615,6 +1676,53 @@ $('#deactivateAllOfficesBtn').on('click', function() {
         alert('Failed to deactivate.');
     });
 });
+
+function loadOfficesSettings() {
+    var officeId = new URLSearchParams(window.location.search).get('office_id');
+    var url = '/settings/platform/offices-settings';
+    if (officeId) url += '?office_id=' + officeId;
+    
+    $.get(url, function(data) {
+        if (officeId) {
+            var html = '<p style="margin:8px 0;"><strong>Office ID:</strong> ' + data.office_id + '</p>' +
+                '<p style="margin:8px 0;"><strong>Admin:</strong> <span style="background:' + (data.admin ? '#27ae60' : '#e74c3c') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;"> ' + (data.admin ? 'Enabled' : 'Disabled') + ' </span></p>' +
+                '<p style="margin:8px 0;"><strong>Building:</strong> <span style="background:' + (data.building ? '#27ae60' : '#e74c3c') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;"> ' + (data.building ? 'Enabled' : 'Disabled') + ' </span></p>' +
+                '<p style="margin:8px 0;"><strong>Statutory:</strong> <span style="background:' + (data.statutory ? '#27ae60' : '#e74c3c') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;"> ' + (data.statutory ? 'Enabled' : 'Disabled') + ' </span></p>' +
+                '<p style="margin:8px 0;"><strong>Set up Debt:</strong> <span style="background:' + (data.set_up_debt ? '#27ae60' : '#e74c3c') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;"> ' + (data.set_up_debt ? 'Enabled' : 'Disabled') + ' </span></p>';
+            $('#office-detail-card').html(html);
+            return;
+        }
+        
+        var tableHtml = '';
+        data.forEach(function(o) {
+            tableHtml += '<tr>' +
+                '<td>' + o.name + '</td>' +
+                '<td>' + o.code + '</td>' +
+                '<td>' + (o.admin ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.building ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.statutory ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.set_up_debt ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '</tr>';
+        });
+        $('#offices-settings-table').html(tableHtml);
+    }).fail(function() {
+        if (officeId) {
+            $('#office-detail-card').html('<div class="col-md-12" style="text-align:center;color:#c0392b;">Failed to load settings.</div>');
+        } else {
+            $('#offices-settings-table').html('<tr><td colspan="6" style="text-align:center;color:#c0392b;">Failed to load settings.</td></tr>');
+        }
+    });
+}
+
+$(document).on('click', '#openExemptionListModal', function() {
+    $('#exemptionListModal').modal('show');
+    loadOfficesSettings();
+});
+
+var officeIdParam = new URLSearchParams(window.location.search).get('office_id');
+if (officeIdParam) {
+    loadOfficesSettings();
+}
 </script>
 
 @endsection
