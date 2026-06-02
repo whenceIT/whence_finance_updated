@@ -2,6 +2,8 @@
 
 @section('title', 'Monthly Deposits')
 
+@include('components.kilo-alert')
+
 @section('content')
 <style>
 .deposit-card {
@@ -53,14 +55,44 @@
 </style>
 
 <x-debt-blocker/>
+
+@php
+    $requiredTypes = \App\Helpers\StatsHelper::getRequiredDepositTypes($office_id ?? null);
+    $depositTypeNames = [
+        0 => 'Setup Cost Debt (K5,000 min)',
+        1 => 'Administration Department Fee',
+        3 => 'Building & Infrastructure Fee',
+        5 => 'Statutory Payments',
+    ];
+@endphp
+
 <div class="content-wrapper">
     <section class="content-header">
-
         <div class="deposit-header-box">
             <h2 style="margin-top:0;">Monthly Deposits</h2>
-
+            
             <p class="text-muted" style="margin-bottom:15px;">
                 <i class="fa fa-info-circle"></i>
+                The following deposit types are <strong>required</strong> for this office:
+            </p>
+            
+            @if(count($requiredTypes) > 0)
+                <div style="background:#e8f4f8; padding:15px; border-radius:6px; border-left:4px solid #3c8dbc; margin-bottom:15px;">
+                    <ul style="margin:0; padding-left:20px;">
+                        @foreach($requiredTypes as $typeId)
+                            <li><strong>{{ $depositTypeNames[$typeId] ?? 'Unknown Type' }}</strong> - Required</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @else
+                <div style="background:#d4edda; padding:15px; border-radius:6px; border-left:4px solid #28a745; margin-bottom:15px;">
+                    <p style="margin:0; color:#155724;">
+                        <i class="fa fa-check-circle"></i> <strong>All deposit types are exempted</strong> - No deposits required for this office.
+                    </p>
+                </div>
+            @endif
+            
+            <p class="text-muted" style="margin-bottom:15px;">
                 Deposits must be completed in order. 
                 Only the currently active deposit section can be opened.
                 The next deposit unlocks automatically after completion.
@@ -71,7 +103,6 @@
                 <input type="month" id="monthFilter" class="form-control">
             </div>
         </div>
-
     </section>
 
     <section class="content">
@@ -302,17 +333,17 @@ function checkCompletedDeposits() {
         currentPaymentMethod = paymentMethod;
 
         if (!paymentMethod) {
-            alert('Please select a payment method.');
+            KiloAlert.warning('Please select a payment method.');
             return;
         }
 
         if (!currentReferenceNumber) {
-            alert('Please enter a payment reference number.');
+            KiloAlert.warning('Please enter a payment reference number.');
             return;
         }
 
         if (isNaN(currentDepositAmount) || currentDepositAmount <= 0) {
-            alert('Enter a valid amount to add');
+            KiloAlert.warning('Enter a valid amount to add');
             return;
         }
 
@@ -341,7 +372,7 @@ case 'withinhere':
         }
 
         if (!valid) {
-            alert('Invalid reference format for selected payment method.');
+            KiloAlert.error('Invalid reference format for selected payment method.');
             return;
         }
 
@@ -390,10 +421,8 @@ case 'withinhere':
 
     /* ---------- SKIP OPTIONAL ---------- */
     $(document).on('click', '.skip-btn', function () {
-
-        if (!confirm('Skip Managers Housing deposit? This will be recorded as 0.')) return;
-
-        let depositId = $(this).closest('.deposit-item').data('deposit-id');
+        var depositId = $(this).closest('.deposit-item').data('deposit-id');
+        if (!confirm('Skip deposit? This will be recorded as 0.')) return;
 
         $.ajax({
             url: 'http:localhost:5000/create-deposit',
@@ -405,10 +434,10 @@ case 'withinhere':
                 date: today()
             },
             success: function () {
+                KiloAlert.success('Deposit skipped successfully.');
                 location.reload();
             }
         });
-
     });
 
 });

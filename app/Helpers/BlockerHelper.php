@@ -51,9 +51,9 @@ class BlockerHelper
             ->where('deposit_type_id', 0) // Set up debt has deposit_type_id = 0 in office_debts table
             ->value('outstanding_amount') ?? 0;
 
-        if (isset($settings['set_up_debt']) && $settings['set_up_debt'] == false) {
+        if (isset($settings['set_up_debt']) && $settings['set_up_debt'] == true) {
             return [
-                'status'  => true,
+                'status'  => false,
                 'balance' => 0,
             ];
         }
