@@ -1369,17 +1369,21 @@ class RiskController extends Controller
         }
 
         // 6. Aggregate Outstanding Branch Debt card (scoped if office filter active)
+        // Also filter by required deposit types based on office-specific exemption settings
         $debtQuery = \App\Models\OfficeDebt::query();
         if ($officeId !== null) {
             $debtQuery->where('office_id', $officeId);
         }
+        $debtQuery->whereIn('deposit_type_id', $requiredDepositTypeIds);
         $debtRecords = $debtQuery->get();
 
         // 'paid' now comes from actual Deposit records flagged as debt-related (inserted when Outstanding is manually reduced)
+        // Also filter by required deposit types
         $paidDebtDeposits = \App\Models\Deposit::query()->where('debt', true);
         if ($officeId !== null) {
             $paidDebtDeposits->where('office', $officeId);
         }
+        $paidDebtDeposits->whereIn('deposit_type', $requiredDepositTypeIds);
         $paid = (int) $paidDebtDeposits->sum('amount');
 
         $debtCards = [
@@ -1453,12 +1457,10 @@ class RiskController extends Controller
             }
         }
 
-        // Grand total card should only count "compliance" types.
-        // The last 3 special deposit types (no monthly requirement) are excluded
-        // from Required and from the overall Balance calculation.
-        $complianceStats = array_slice($depositCardStats, 0, -3);
-        $totReq  = array_sum(array_column($complianceStats, 'required'));
-        $totRecv = array_sum(array_column($complianceStats, 'received'));
+        // Grand total card should only count deposit types that are in the required list
+        // (filtered by office-specific exemption settings)
+        $totReq  = array_sum(array_column($depositCardStats, 'required'));
+        $totRecv = array_sum(array_column($depositCardStats, 'received'));
 
         $depositCardTotals = [
             'label'     => 'All Types (Total)',

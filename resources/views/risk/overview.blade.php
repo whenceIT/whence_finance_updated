@@ -4,6 +4,8 @@
     Risk Management Overview
 @endsection
 
+@include('components.kilo-alert')
+
 @push('styles')
     <style>
         /* ── Audit checklist pass/fail toggle icons ─────────────────── */
@@ -245,15 +247,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Audit deleted successfully.');
+                    KiloAlert.success('Audit deleted successfully.');
                     location.reload();
                 } else {
-                    alert('Error deleting audit: ' + (data.message || 'Unknown error'));
+                    KiloAlert.error('Error deleting audit: ' + (data.message || 'Unknown error'));
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error deleting audit. Please try again.');
+                KiloAlert.error('Error deleting audit. Please try again.');
             });
         }
 

@@ -3,8 +3,11 @@
 @section('title')
     Branch Deposit Audit
 @endsection
-
+@php
+    $officeIdParam = request('office_id');
+@endphp
 @section('content')
+@include('components.kilo-alert')
 <style>
     .da-type-card {
         background: #fff;
@@ -305,37 +308,14 @@
         <button type="button" id="deactivateAllOfficesBtn" class="btn btn-warning btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-ban"></i> Remove Blocking All Offices
         </button>
-</div>
+    </div>
 
-    @php
-        $officeIdParam = request('office_id');
-    @endphp
+
 
     @if(!$officeIdParam)
-    <div style="margin-top: 20px;">
-        <button type="button" id="openExemptionListModal" class="btn btn-info btn-sm" style="border-radius:6px;">
-            <i class="fa fa-list"></i> Exemption List
-        </button>
-    </div>
+        @include('risk.partials.exemption-list-modal')
     @else
-    <div class="card" style="margin: 20px 0;">
-        <div class="card-header" style="cursor: pointer;" onclick="$(this).next().slideToggle(); $(this).find('i').toggleClass('fa-chevron-down fa-chevron-up');">
-            <i class="fa fa-building"></i> Office Exemptions
-            <i class="fa fa-chevron-down" style="float: right;"></i>
-        </div>
-        <div class="card-body" id="office-exemptions-body">
-            <div id="office-detail-card">
-                <div class="col-md-12" style="text-align:center;padding:20px;"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    var officeIdParam = new URLSearchParams(window.location.search).get('office_id');
-    if (officeIdParam) {
-        loadOfficesSettings();
-    }
-    </script>
+        @include('risk.partials.office-exemptions-card')
     @endif
 
     <div id="depositQueryModal" class="modal" style="display:none;">
@@ -1181,12 +1161,12 @@
              odRenderDebtTable(filtered);
          });
 
-         // ── Export to Excel (CSV) ──
-         $(document).on('click', '#odBtnExport', function() {
-             if (!odAllRows || odAllRows.length === 0) {
-                 alert('No data to export.');
-                 return;
-             }
+// ── Export to Excel (CSV) ──
+          $(document).on('click', '#odBtnExport', function() {
+              if (!odAllRows || odAllRows.length === 0) {
+                  KiloAlert.info('No data to export.');
+                  return;
+              }
 
              // Use currently visible rows if search is active, otherwise all
              var searchTerm = ($('#odSearchInput').val() || '').toLowerCase().trim();
@@ -1268,9 +1248,9 @@
                 data: { _token: '{{ csrf_token() }}' },
             }).done(function(r) {
                 if (r.success) odLoadTable();
-                else alert(r.message || 'Unable to delete record.');
+                else KiloAlert.error(r.message || 'Unable to delete record.');
             }).fail(function() {
-                alert('Network error. Try again.');
+                KiloAlert.error('Network error. Try again.');
             });
         };
 
@@ -1287,7 +1267,7 @@
             var isSetupDebt   = window.currentOdIsSetupDebt || 'false';
 
             if (!officeId || !original || outstanding === '') {
-                alert('Please fill in Branch, Original Amount and Outstanding Amount.');
+                KiloAlert.warning('Please fill in Branch, Original Amount and Outstanding Amount.');
                 return;
             }
 
@@ -1318,7 +1298,7 @@
                     odShowList();
                     odLoadTable();
                 } else {
-                    alert(r.message || 'Save failed.');
+                    KiloAlert.error(r.message || 'Save failed.');
                 }
             }).fail(function(xhr) {
                 var msg = 'Save failed.';
@@ -1327,7 +1307,7 @@
                 } else if (xhr.status === 409) {
                     msg = 'This monthly debt record already exists for the selected office and deposit type.';
                 }
-                alert(msg);
+                KiloAlert.error(msg);
             });
         });
 
@@ -1648,10 +1628,10 @@ $('#settingsForm').on('submit', function(e) {
         set_up_debt: $('input[name="set_up_debt"]:checked').val() || 0,
     };
     $.post('/settings/platform/save', data, function(res) {
-        alert(res.message || 'Saved');
+        KiloAlert.success(res.message || 'Saved');
         $('#settingsModal').modal('hide');
     }).fail(function() {
-        alert('Save failed.');
+        KiloAlert.error('Save failed.');
     });
 });
 
@@ -1660,9 +1640,9 @@ $('#activateAllOfficesBtn').on('click', function() {
     $.post('/settings/platform/initialize-all', {
         _token: '{{ csrf_token() }}'
     }, function(res) {
-        alert(res.message || 'Initialized');
+        KiloAlert.success(res.message || 'Initialized');
     }).fail(function() {
-        alert('Failed to initialize.');
+        KiloAlert.error('Failed to initialize.');
     });
 });
 
@@ -1671,9 +1651,9 @@ $('#deactivateAllOfficesBtn').on('click', function() {
     $.post('/settings/platform/deactivate-all', {
         _token: '{{ csrf_token() }}'
     }, function(res) {
-        alert(res.message || 'Deactivated');
+        KiloAlert.success(res.message || 'Deactivated');
     }).fail(function() {
-        alert('Failed to deactivate.');
+        KiloAlert.error('Failed to deactivate.');
     });
 });
 
@@ -1683,13 +1663,8 @@ function loadOfficesSettings() {
     if (officeId) url += '?office_id=' + officeId;
     
     $.get(url, function(data) {
-        if (officeId) {
-            var html = '<p style="margin:8px 0;"><strong>Office ID:</strong> ' + data.office_id + '</p>' +
-                '<p style="margin:8px 0;"><strong>Admin:</strong> <span style="background:' + (data.admin ? '#27ae60' : '#e74c3c') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;"> ' + (data.admin ? 'Enabled' : 'Disabled') + ' </span></p>' +
-                '<p style="margin:8px 0;"><strong>Building:</strong> <span style="background:' + (data.building ? '#27ae60' : '#e74c3c') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;"> ' + (data.building ? 'Enabled' : 'Disabled') + ' </span></p>' +
-                '<p style="margin:8px 0;"><strong>Statutory:</strong> <span style="background:' + (data.statutory ? '#27ae60' : '#e74c3c') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;"> ' + (data.statutory ? 'Enabled' : 'Disabled') + ' </span></p>' +
-                '<p style="margin:8px 0;"><strong>Set up Debt:</strong> <span style="background:' + (data.set_up_debt ? '#27ae60' : '#e74c3c') + ';color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;"> ' + (data.set_up_debt ? 'Enabled' : 'Disabled') + ' </span></p>';
-            $('#office-detail-card').html(html);
+        if (officeId && typeof renderExemptions === 'function') {
+            renderExemptions(data);
             return;
         }
         
