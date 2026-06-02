@@ -88,21 +88,27 @@ class BlockerHelper
 
         $now = Carbon::now();
 
-        if (isset($settings['admin']) && $settings['admin'] == false) {
-            return true; // Admin override → do not block
-        }else{
-            $types = DB::table('deposits')
-                ->whereIn('deposit_type', [1])
-                ->where('office', $officeId)
-                ->where('date', '>=', $now->format('Y-m') . '-01')
-                ->where('date', '<=', $now->format('Y-m') . '-' . $now->format('t'))
-                ->pluck('deposit_type')
-                ->unique()
-                ->values()
-                ->toArray();
-            
-            return count($types) === 1 && in_array(1, $types);
+        $enabledTypes = [];
+        if (isset($settings['admin']) && $settings['admin'] == true) $enabledTypes[] = 1;
+        if (isset($settings['building']) && $settings['building'] == true) $enabledTypes[] = 3;
+        if (isset($settings['statutory']) && $settings['statutory'] == true) $enabledTypes[] = 5;
+        if (isset($settings['set_up_debt']) && $settings['set_up_debt'] == true) $enabledTypes[] = 0;
+
+        if (empty($enabledTypes)) {
+            return true;
         }
+
+        $types = DB::table('deposits')
+            ->whereIn('deposit_type', $enabledTypes)
+            ->where('office', $officeId)
+            ->where('date', '>=', $now->format('Y-m') . '-01')
+            ->where('date', '<=', $now->format('Y-m') . '-' . $now->format('t'))
+            ->pluck('deposit_type')
+            ->unique()
+            ->values()
+            ->toArray();
+        
+        return count(array_intersect($enabledTypes, $types)) === count($enabledTypes);
         
     }
     
