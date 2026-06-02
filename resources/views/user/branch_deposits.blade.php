@@ -2,8 +2,6 @@
 
 @section('title', 'Monthly Deposits')
 
-@include('components.kilo-alert')
-
 @section('content')
 <style>
 .deposit-card {
@@ -56,69 +54,14 @@
 
 <x-debt-blocker/>
 
-@php
-    $requiredTypes = \App\Helpers\StatsHelper::getRequiredDepositTypes($office_id ?? null);
-    $depositTypeNames = [
-        0 => 'Setup Cost Debt (K5,000 min)',
-        1 => 'Administration Department Fee',
-        3 => 'Building & Infrastructure Fee',
-        5 => 'Statutory Payments',
-    ];
-    $depositTypeDescriptions = [
-        0 => 'Obligated to make payment towards K5,000 minimum debt for setup cost',
-        1 => 'Obligated to make payment to Administration Department fee deposit',
-        3 => 'Obligated to make payment to Building & Infrastructure fee deposits',
-        5 => 'Obligated to make payment to Statutory payments deposits',
-    ];
-    
-    // Build exemptions array for the component
-    $exemptions = [];
-    foreach ($requiredTypes as $typeId) {
-        $exemptions[] = [
-            'title' => $depositTypeNames[$typeId] ?? 'Unknown Type',
-            'description' => $depositTypeDescriptions[$typeId] ?? '',
-            'enabled' => true,
-            'color' => '#28a745'
-        ];
-    }
-    $settings = $exemptions;
-@endphp
-
-@include('components.office-exemptions', ['title' => 'Required Deposits', 'settings' => $settings])
-
 <div class="content-wrapper">
     <section class="content-header">
+
         <div class="deposit-header-box">
             <h2 style="margin-top:0;">Monthly Deposits</h2>
-            
+
             <p class="text-muted" style="margin-bottom:15px;">
                 <i class="fa fa-info-circle"></i>
-                The following deposit types are <strong>required</strong> for this office:
-            </p>
-            
-            @if(count($requiredTypes) > 0)
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
-                    @foreach($requiredTypes as $typeId)
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: #d4edda; border-left: 4px solid #28a745;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: #155724; font-size: 14px; margin-bottom: 4px;">{{ $depositTypeNames[$typeId] ?? 'Unknown Type' }}</div>
-                                <div style="color: #6c757d; font-size: 13px;">{{ $depositTypeDescriptions[$typeId] ?? '' }}</div>
-                            </div>
-                            <div style="text-align: center; min-width: 100px;">
-                                <span style="background: #28a745; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">REQUIRED</span>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div style="background: #d4edda; padding:15px; border-radius:6px; border-left:4px solid #28a745; margin-bottom:15px;">
-                    <p style="margin:0; color:#155724;">
-                        <i class="fa fa-check-circle"></i> <strong>All deposit types are exempted</strong> - No deposits required for this office.
-                    </p>
-                </div>
-            @endif
-            
-            <p class="text-muted" style="margin-bottom:15px;">
                 Deposits must be completed in order. 
                 Only the currently active deposit section can be opened.
                 The next deposit unlocks automatically after completion.
@@ -129,6 +72,7 @@
                 <input type="month" id="monthFilter" class="form-control">
             </div>
         </div>
+
     </section>
 
     <section class="content">
@@ -359,17 +303,17 @@ function checkCompletedDeposits() {
         currentPaymentMethod = paymentMethod;
 
         if (!paymentMethod) {
-            KiloAlert.warning('Please select a payment method.');
+            alert('Please select a payment method.');
             return;
         }
 
         if (!currentReferenceNumber) {
-            KiloAlert.warning('Please enter a payment reference number.');
+            alert('Please enter a payment reference number.');
             return;
         }
 
         if (isNaN(currentDepositAmount) || currentDepositAmount <= 0) {
-            KiloAlert.warning('Enter a valid amount to add');
+            alert('Enter a valid amount to add');
             return;
         }
 
@@ -398,7 +342,7 @@ case 'withinhere':
         }
 
         if (!valid) {
-            KiloAlert.error('Invalid reference format for selected payment method.');
+            alert('Invalid reference format for selected payment method.');
             return;
         }
 
@@ -447,8 +391,10 @@ case 'withinhere':
 
     /* ---------- SKIP OPTIONAL ---------- */
     $(document).on('click', '.skip-btn', function () {
-        var depositId = $(this).closest('.deposit-item').data('deposit-id');
-        if (!confirm('Skip deposit? This will be recorded as 0.')) return;
+
+        if (!confirm('Skip Managers Housing deposit? This will be recorded as 0.')) return;
+
+        let depositId = $(this).closest('.deposit-item').data('deposit-id');
 
         $.ajax({
             url: 'http:localhost:5000/create-deposit',
@@ -460,10 +406,10 @@ case 'withinhere':
                 date: today()
             },
             success: function () {
-                KiloAlert.success('Deposit skipped successfully.');
                 location.reload();
             }
         });
+
     });
 
 });

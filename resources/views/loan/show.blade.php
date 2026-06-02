@@ -14,7 +14,7 @@
         : true;
 @endphp
     @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
-        <script>window.location.href = '/user/branch_deposits';</script>
+        <!-- <script>window.location.href = '/user/branch_deposits';</script> -->
     @else
         <!-- <x-debt-blocker/> -->
     @endif
