@@ -14,6 +14,16 @@
         : true;
 @endphp
 
+
+@if($block->role->role_id== 4) 
+
+    @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
+        <script>window.location.href = '/user/branch_deposits';</script>
+    @else
+        <x-debt-blocker/>
+    @endif
+@endif
+
     <div class="row">
         <div class="col-md-12">
             <div class="panel ">

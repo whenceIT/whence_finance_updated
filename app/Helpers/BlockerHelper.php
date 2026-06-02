@@ -71,13 +71,10 @@ class BlockerHelper
 
     }
 
-    public static function monthlyDepositExists($user): bool
+public static function monthlyDepositExists($user): bool
     {
         $officeId = $user->office_id ?? null;
 
-        $settings = \App\Models\PlatformSetting::getBranchDepositSettings($officeId);
-
-          
         if (isset($user->role->role_id) && $user->role->role_id != 4) {
             return true;
         }
@@ -88,12 +85,11 @@ class BlockerHelper
 
         $now = Carbon::now();
 
-        $enabledTypes = [];
-        if (isset($settings['admin']) && $settings['admin'] == true) $enabledTypes[] = 1;
-        if (isset($settings['building']) && $settings['building'] == true) $enabledTypes[] = 3;
-        if (isset($settings['statutory']) && $settings['statutory'] == true) $enabledTypes[] = 5;
-        if (isset($settings['set_up_debt']) && $settings['set_up_debt'] == true) $enabledTypes[] = 0;
+        $enabledTypes = \App\Helpers\StatsHelper::getRequiredDepositTypes($officeId);
 
+        
+        $enabledTypes = array_diff($enabledTypes, [4, 6, 2]);
+  
         if (empty($enabledTypes)) {
             return true;
         }

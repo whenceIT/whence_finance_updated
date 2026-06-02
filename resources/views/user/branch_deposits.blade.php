@@ -52,8 +52,9 @@
 }
 </style>
 
-<x-debt-blocker/>
-
+@if( Sentinel::getUser()->role->role_id == 4) 
+    <x-debt-blocker/>
+@endif
 <div class="content-wrapper">
     <section class="content-header">
 

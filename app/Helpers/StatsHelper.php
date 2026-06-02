@@ -97,7 +97,7 @@ class StatsHelper
                 $requiredTypes[] = $depositTypeId;
             }
         }
-        // add [4,6,2]
+        
         $requiredTypes = array_merge($requiredTypes, [4, 6, 2]);
         return $requiredTypes;
     }
