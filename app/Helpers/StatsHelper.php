@@ -75,7 +75,57 @@ class StatsHelper
         return Office::where('active', 1)
             ->orderBy('name')
             ->select('id', 'name', 'external_id')
-            ->where('id', '!=', 67 /* Exclude HQ */)
+            ->where('id', '!=', 67)
             ->get();
+    }
+    
+    public static function getRequiredDepositTypes($officeId = null)
+    {
+        $settings = self::getBranchDepositSettings($officeId);
+        
+        $typeMapping = [
+            'admin' => 1,
+            'building' => 3,
+            'statutory' => 5,
+            'set_up_debt' => 0,
+        ];
+        
+        $requiredTypes = [];
+        
+        foreach ($typeMapping as $settingKey => $depositTypeId) {
+            if ($settings[$settingKey] === true) {
+                $requiredTypes[] = $depositTypeId;
+            }
+        }
+        
+        return $requiredTypes;
+    }
+    
+    public static function getBranchDepositSettings($officeId = null)
+    {
+        if ($officeId) {
+            $key = 'branch_deposit_setting_' . $officeId;
+            $setting = \App\Models\PlatformSetting::where('key', $key)->first();
+            
+            if ($setting) {
+                return [
+                    'id' => $setting->id,
+                    'office_id' => $officeId,
+                    'admin' => $setting->value['admin'] ?? true,
+                    'building' => $setting->value['building'] ?? true,
+                    'statutory' => $setting->value['statutory'] ?? true,
+                    'set_up_debt' => $setting->value['set_up_debt'] ?? true,
+                ];
+            }
+        }
+        
+        return [
+            'id' => null,
+            'office_id' => $officeId,
+            'admin' => true,
+            'building' => true,
+            'statutory' => true,
+            'set_up_debt' => true,
+        ];
     }
 }
