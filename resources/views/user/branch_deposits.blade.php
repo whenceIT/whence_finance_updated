@@ -64,7 +64,27 @@
         3 => 'Building & Infrastructure Fee',
         5 => 'Statutory Payments',
     ];
+    $depositTypeDescriptions = [
+        0 => 'Obligated to make payment towards K5,000 minimum debt for setup cost',
+        1 => 'Obligated to make payment to Administration Department fee deposit',
+        3 => 'Obligated to make payment to Building & Infrastructure fee deposits',
+        5 => 'Obligated to make payment to Statutory payments deposits',
+    ];
+    
+    // Build exemptions array for the component
+    $exemptions = [];
+    foreach ($requiredTypes as $typeId) {
+        $exemptions[] = [
+            'title' => $depositTypeNames[$typeId] ?? 'Unknown Type',
+            'description' => $depositTypeDescriptions[$typeId] ?? '',
+            'enabled' => true,
+            'color' => '#28a745'
+        ];
+    }
+    $settings = $exemptions;
 @endphp
+
+@include('components.office-exemptions', ['title' => 'Required Deposits', 'settings' => $settings])
 
 <div class="content-wrapper">
     <section class="content-header">
@@ -77,15 +97,21 @@
             </p>
             
             @if(count($requiredTypes) > 0)
-                <div style="background:#e8f4f8; padding:15px; border-radius:6px; border-left:4px solid #3c8dbc; margin-bottom:15px;">
-                    <ul style="margin:0; padding-left:20px;">
-                        @foreach($requiredTypes as $typeId)
-                            <li><strong>{{ $depositTypeNames[$typeId] ?? 'Unknown Type' }}</strong> - Required</li>
-                        @endforeach
-                    </ul>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
+                    @foreach($requiredTypes as $typeId)
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: #d4edda; border-left: 4px solid #28a745;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #155724; font-size: 14px; margin-bottom: 4px;">{{ $depositTypeNames[$typeId] ?? 'Unknown Type' }}</div>
+                                <div style="color: #6c757d; font-size: 13px;">{{ $depositTypeDescriptions[$typeId] ?? '' }}</div>
+                            </div>
+                            <div style="text-align: center; min-width: 100px;">
+                                <span style="background: #28a745; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">REQUIRED</span>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             @else
-                <div style="background:#d4edda; padding:15px; border-radius:6px; border-left:4px solid #28a745; margin-bottom:15px;">
+                <div style="background: #d4edda; padding:15px; border-radius:6px; border-left:4px solid #28a745; margin-bottom:15px;">
                     <p style="margin:0; color:#155724;">
                         <i class="fa fa-check-circle"></i> <strong>All deposit types are exempted</strong> - No deposits required for this office.
                     </p>

@@ -16,7 +16,7 @@
     @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
         <script>window.location.href = '/user/branch_deposits';</script>
     @else
-        <x-debt-blocker/>
+        <!-- <x-debt-blocker/> -->
     @endif
     <div class="row">
         <div class="col-md-12">
