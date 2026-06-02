@@ -75,6 +75,7 @@ class StatsHelper
         return Office::where('active', 1)
             ->orderBy('name')
             ->select('id', 'name', 'external_id')
+            ->where('id', '!=', 67 /* Exclude HQ */)
             ->get();
     }
 }

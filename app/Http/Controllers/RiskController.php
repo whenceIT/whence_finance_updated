@@ -1295,7 +1295,7 @@ class RiskController extends Controller
         }
 
         // 1. All offices (sorted) — full list for the dropdown
-        $offices = \App\Models\Office::orderBy('name')->get();
+        $offices = \App\Helpers\StatsHelper::getActiveOffices();
 
         // 2. All deposit types (sorted)
         $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get();
