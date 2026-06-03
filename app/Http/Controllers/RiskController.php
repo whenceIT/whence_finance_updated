@@ -585,34 +585,53 @@ class RiskController extends Controller
         $depositType = $request->query('deposit_type');
         $year = $request->query('year');
 
-        $query = \App\Models\BankDepositLog::query()
-            ->with(['depositType', 'office', 'user']);
+        $query = \App\Models\Deposit::query();
 
         if ($officeId) {
-            $query->where('office_id', (int) $officeId);
+            $query->where('office', (int) $officeId);
         }
         if ($depositType) {
             $query->where('deposit_type', (int) $depositType);
         }
         if ($year) {
-            $query->whereYear('created_date', (int) $year);
+            $query->whereYear('date', (int) $year);
         }
 
-        $logs = $query->orderBy('created_date', 'desc')
+        $deposits = $query->orderBy('date', 'desc')
             ->limit(500)
+            ->get();
+
+        $officeIds = $deposits->pluck('office')->unique()->values()->all();
+        $depositTypeIds = $deposits->pluck('deposit_type')->unique()->values()->all();
+
+        $offices = \App\Models\Office::whereIn('id', $officeIds)->pluck('name', 'id');
+        $depositTypes = \App\Models\DepositType::whereIn('id', $depositTypeIds)->pluck('name', 'id');
+
+        $bankLogs = \App\Models\BankDepositLog::query()
+            ->with(['user'])
+            ->whereIn('deposit_type', $depositTypeIds)
+            ->whereIn('office_id', $officeIds)
             ->get()
-            ->map(function ($log) {
-                return [
-                    'id' => $log->id,
-                    'deposit_type_name' => $log->depositType ? $log->depositType->name : 'Unknown',
-                    'user_name' => $log->user ? ($log->user->first_name . ' ' . $log->user->last_name) : 'Unknown',
-                    'office_name' => $log->office ? $log->office->name : 'Unknown',
-                    'amount' => (float) $log->amount,
-                    'deposit_method' => $log->deposit_method,
-                    'reference_number' => $log->reference_number,
-                    'created_date' => $log->created_date,
-                ];
-            });
+            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . $log->user_id . '_' . substr($log->created_date, 0, 7));
+
+        $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
+            $monthYear = substr($dep->date, 0, 7);
+            $key = $dep->deposit_type . '_' . $dep->office . '_' . ($dep->user_id ?? 0) . '_' . $monthYear;
+            $log = $bankLogs->get($key);
+
+            return [
+                'id' => $log->id ?? $dep->id,
+                'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
+                'user_name' => $log && isset($log->user) && is_object($log->user) && isset($log->user->first_name)
+                    ? ($log->user->first_name . ' ' . $log->user->last_name)
+                    : 'Unknown',
+                'office_name' => $offices->get($dep->office, 'Unknown'),
+                'amount' => (float) $dep->amount,
+                'deposit_method' => $log->deposit_method ?? null,
+                'reference_number' => $log->reference_number ?? null,
+                'created_date' => $log->created_date ?? $dep->date,
+            ];
+        });
 
         return response()->json([
             'deposits' => $logs,
@@ -622,25 +641,43 @@ class RiskController extends Controller
 
     public function queryFailedDeposits(Request $request)
     {
-        
-        $logs = \App\Models\BankDepositLog::query()
-            ->with(['depositType', 'office', 'user'])
+        $deposits = \App\Models\Deposit::query()
             ->where('amount', '<', 1)
-            ->orderBy('created_date', 'desc')
+            ->orderBy('date', 'desc')
             ->limit(500)
+            ->get();
+
+        $officeIds = $deposits->pluck('office')->unique()->values()->all();
+        $depositTypeIds = $deposits->pluck('deposit_type')->unique()->values()->all();
+
+        $offices = \App\Models\Office::whereIn('id', $officeIds)->pluck('name', 'id');
+        $depositTypes = \App\Models\DepositType::whereIn('id', $depositTypeIds)->pluck('name', 'id');
+
+        $bankLogs = \App\Models\BankDepositLog::query()
+            ->with(['user'])
+            ->whereIn('deposit_type', $depositTypeIds)
+            ->whereIn('office_id', $officeIds)
             ->get()
-            ->map(function ($log) {
-                return [
-                    'id' => $log->id,
-                    'deposit_type_name' => $log->depositType ? $log->depositType->name : 'Unknown',
-                    'user_name' => $log->user ? ($log->user->first_name . ' ' . $log->user->last_name) : 'Unknown',
-                    'office_name' => $log->office ? $log->office->name : 'Unknown',
-                    'amount' => (float) $log->amount,
-                    'deposit_method' => $log->deposit_method,
-                    'reference_number' => $log->reference_number,
-                    'created_date' => $log->created_date,
-                ];
-            });
+            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . $log->user_id . '_' . substr($log->created_date, 0, 7));
+
+        $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
+            $monthYear = substr($dep->date, 0, 7);
+            $key = $dep->deposit_type . '_' . $dep->office . '_' . ($dep->user_id ?? 0) . '_' . $monthYear;
+            $log = $bankLogs->get($key);
+
+            return [
+                'id' => $log->id ?? $dep->id,
+                'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
+                'user_name' => $log && isset($log->user) && is_object($log->user) && isset($log->user->first_name)
+                    ? ($log->user->first_name . ' ' . $log->user->last_name)
+                    : 'Unknown',
+                'office_name' => $offices->get($dep->office, 'Unknown'),
+                'amount' => (float) $dep->amount,
+                'deposit_method' => $log->deposit_method ?? null,
+                'reference_number' => $log->reference_number ?? null,
+                'created_date' => $log->created_date ?? $dep->date,
+            ];
+        });
 
         return response()->json([
             'deposits' => $logs,

@@ -1,12 +1,12 @@
 <div id="failedDepositsModal" class="modal" style="display:none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Failed Deposits (< Amount)</h3>
+            <h3>Failed Deposits with Amount Less Than 0</h3>
             <button type="button" id="closeFailedDepositsModal">&times;</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label>Threshold Amount</label>
+                <label>Threshold Amount (less than)</label>
                 <input type="number" id="failedDepositThreshold" class="form-control" value="1" step="0.01" min="0">
             </div>
             <button type="button" id="queryFailedDepositsBtn" class="btn btn-primary">Query</button>

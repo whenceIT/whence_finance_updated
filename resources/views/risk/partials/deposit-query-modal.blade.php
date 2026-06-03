@@ -1,7 +1,7 @@
 <div id="depositQueryModal" class="modal" style="display:none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Query Deposits</h3>
+            <h3>Query Deposit Statements</h3>
             <button type="button" id="closeDepositQueryModal">&times;</button>
         </div>
         <div class="modal-body">
@@ -9,7 +9,7 @@
                 <div class="form-group">
                     <label>Office</label>
                     <select name="office_id" class="form-control">
-                        <option value="">All Offices</option>
+                        <!-- <option value="">All Offices</option> -->
                         <?php if (isset($offices) && $offices): ?>
                             <?php foreach ($offices as $o): ?>
                                 <?php $oid = $o->id; $oname = $o->name; ?>

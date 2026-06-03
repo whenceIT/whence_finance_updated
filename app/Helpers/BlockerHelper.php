@@ -88,7 +88,7 @@ public static function monthlyDepositExists($user): bool
         $enabledTypes = \App\Helpers\StatsHelper::getRequiredDepositTypes($officeId);
 
         
-        $enabledTypes = array_diff($enabledTypes, [4, 6, 2]);
+        $enabledTypes = array_diff($enabledTypes, [4, 6, 2, 0]);
   
         if (empty($enabledTypes)) {
             return true;
