@@ -495,9 +495,9 @@
                          <span class="da-stat" title="Offices with outstanding debt">
                              <i class="fa fa-exclamation-circle" style="color:#c0392b"></i> <strong>{{ \App\Models\OfficeDebt::where('outstanding_amount', '>', 0)->count() }}</strong> with outstanding
                          </span>
-                         <span class="da-stat" title="Total outstanding debt across all branches">
+                         <!-- <span class="da-stat" title="Total outstanding debt across all branches">
                              <i class="fa fa-line-chart" style="color:#c0392b"></i> <strong>K{{ number_format((int)\App\Models\OfficeDebt::sum('outstanding_amount'), 0) }}</strong> outstanding
-                         </span>
+                         </span> -->
                      </div>
                  </div>
              </div>
@@ -531,9 +531,9 @@
                         <span class="da-stat" title="Offices with deposits">
                             <i class="fa fa-check-circle" style="color:#000"></i> <strong>{{ $withDep }}</strong> with deposits
                         </span>
-                        <span class="da-stat" title="Overall total amount across all offices">
+                        <!-- <span class="da-stat" title="Overall total amount across all offices">
                             <i class="fa fa-line-chart" style="color:#000"></i> <strong>K{{ number_format((float)$ttotal, 2) }}</strong> total
-                        </span>
+                        </span> -->
                     </div>
                 </div>
             </div>
