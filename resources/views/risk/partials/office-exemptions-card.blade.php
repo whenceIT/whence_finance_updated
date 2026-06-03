@@ -1,4 +1,6 @@
 @php
+$officeIdParam = $officeIdParam ?? request('office_id');
+$title = $cardtitle ?? 'Office Exemptions';
 $officeSettings = \App\Models\PlatformSetting::getBranchDepositSettings($officeIdParam ?? null);
 $exemptions = [
     [
@@ -36,11 +38,4 @@ $exemptions = [
 ];
 @endphp
 
-@include('components.office-exemptions', ['title' => 'Office Exemptions', 'settings' => $exemptions])
-
-<script>
-var officeIdParam = new URLSearchParams(window.location.search).get('office_id');
-if (officeIdParam) {
-    loadOfficesSettings();
-}
-</script>
+@include('components.office-exemptions', ['title' => $title, 'settings' => $exemptions])

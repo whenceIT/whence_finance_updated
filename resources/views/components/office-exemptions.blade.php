@@ -8,7 +8,7 @@
     <div class="card-body" id="office-exemptions-body" style="padding: 16px; display: none;">
         <div id="office-detail-card">
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                @foreach($exemptions as $exemption)
+                @foreach($settings as $exemption)
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: {{ $exemption['color'] }}15; border-left: 4px solid {{ $exemption['color'] }};">
                         <div style="flex: 1;">
                             <div style="font-weight: 600; color: #343a40; font-size: 14px; margin-bottom: 4px;">{{ $exemption['title'] }}</div>

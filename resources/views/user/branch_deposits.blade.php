@@ -53,10 +53,16 @@
 </style>
 
 <!-- Test with Anchor House First -->
-@if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [6,8])) 
+@if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [2,3,6,8])) 
     <x-debt-blocker/>
 @endif
+
 <div class="content-wrapper">
+    @php
+        $currentMonthYear = date('F Y', strtotime('now'));
+    @endphp
+    @include('risk.partials.office-exemptions-card', ['officeIdParam' => Sentinel::getUser()->office_id, 'cardtitle' => 'Please make sure you have made the following ENABLED deposits for ' . $currentMonthYear])
+
     <section class="content-header">
 
         <div class="deposit-header-box">
@@ -413,8 +419,80 @@ case 'withinhere':
         });
 
     });
-
 });
+
+function loadOfficesSettings() {
+    $.get('/settings/platform/offices-settings', function(data) {
+        var officeId = new URLSearchParams(window.location.search).get('office_id');
+        if (officeId && data && data.OfficeName) {
+            renderExemptions(data);
+            return;
+        }
+        var tableHtml = '';
+        data.forEach(function(o) {
+            tableHtml += '<tr>' +
+                '<td>' + o.name + '</td>' +
+                '<td>' + o.code + '</td>' +
+                '<td>' + (o.admin ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.building ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.statutory ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.set_up_debt ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '</tr>';
+        });
+        $('#offices-settings-table').html(tableHtml);
+    });
+}
+
+function renderExemptions(data) {
+    var exemptions = [
+        {
+            title: 'Administration Department Fee Deposit',
+            description: data.admin ? 'Obligated to make payment to Administration Department fee deposit' : 'Excluded from making payment to Administration Department fee deposit',
+            enabled: data.admin,
+            color: data.admin ? '#28a745' : '#dc3545'
+        },
+        {
+            title: 'Building & Infrastructure Fee Deposit',
+            description: data.building ? 'Obligated to make payment to Building & Infrastructure fee deposits' : 'Excluded from making payment to Building & Infrastructure fee deposits',
+            enabled: data.building,
+            color: data.building ? '#28a745' : '#dc3545'
+        },
+        {
+            title: 'Statutory Payments Deposit',
+            description: data.statutory ? 'Obligated to make payment to Statutory payments deposits' : 'Excluded from making payment to Statutory payments deposits',
+            enabled: data.statutory,
+            color: data.statutory ? '#28a745' : '#dc3545'
+        },
+        {
+            title: 'Setup Cost Debt Payment',
+            description: data.set_up_debt ? 'Obligated to make payment towards K5,000 minimum debt for setup cost' : 'Excluded from making payment towards setup cost debt',
+            enabled: data.set_up_debt,
+            color: data.set_up_debt ? '#28a745' : '#dc3545'
+        }
+    ];
+    
+    var html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    exemptions.forEach(function(e) {
+        html += '<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: ' + e.color + '15; border-left: 4px solid ' + e.color + ';">' +
+            '<div style="flex: 1;">' +
+            '<div style="font-weight: 600; color: #343a40; font-size: 14px; margin-bottom: 4px;">' + e.title + '</div>' +
+            '<div style="color: #6c757d; font-size: 13px;">' + e.description + '</div>' +
+            '</div>' +
+            '<div style="text-align: center; min-width: 100px;">' +
+            '<span style="background: ' + e.color + '; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">' +
+            (e.enabled ? 'ENABLED' : 'DISABLED') +
+            '</span>' +
+            '</div>' +
+            '</div>';
+    });
+    html += '</div>';
+    $('#office-exemptions-body').html(html).show();
+}
+
+var officeIdParam = new URLSearchParams(window.location.search).get('office_id');
+if (officeIdParam) {
+    loadOfficesSettings();
+}
 </script>
 @endsection
 
