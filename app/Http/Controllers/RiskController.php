@@ -8,6 +8,7 @@ use App\Models\Province;
 use Carbon\Carbon;
 use App\Services\AlertService;
 use Illuminate\Support\Facades\DB;
+use App\Models\Deposit;
 
 class RiskController extends Controller
 {
@@ -1459,7 +1460,7 @@ class RiskController extends Controller
         $debtCards = [
             'accumulated' => (int) $debtRecords->sum('original_amount'),
             'paid'        => $paid,
-            'balance'     => (int) $debtRecords->sum('outstanding_amount'),
+            'balance'     => (int) $debtRecords->sum('outstanding_amount') - $paid,
         ];
 
         // 7. Per-type deposit requirement vs received summary cards
@@ -1492,14 +1493,18 @@ class RiskController extends Controller
                 $totReq  += $required;
                 $totRecv += $received;
 
+                $isMandatory = in_array((int) $type->id, [3, 1, 5]);
                 $depositCardStats[] = [
-                    'label'      => $type->name,
-                    'sort_order' => $type->sort_order ?? 0,
-                    'required'   => $required,
-                    'received'   => (int) $received,
-                    'balance'    => $balance,
+                    'label'       => $type->name,
+                    'sort_order'  => $type->sort_order ?? 0,
+                    'required'    => $required,
+                    'received'    => $isMandatory ? (int) $received : 0,
+                    'other'       => !$isMandatory ? (int) $received : 0,
+                    'balance'     => $balance,
+                    'grand_total' => (int) $received,
                 ];
             }
+
         } else {
             // specific period: months spanned by the date range
             $periodMonths = (int) \Carbon\Carbon::parse($dateFrom)->diffInMonths(\Carbon\Carbon::parse($dateTo)) + 1;
@@ -1512,17 +1517,21 @@ class RiskController extends Controller
                         $received += (float) $dep->amount;
                     }
                 }
+
                 $balance = $required - $received;
 
                 $totReq  += $required;
                 $totRecv += $received;
 
+                $isMandatory = in_array((int) $type->id, [3, 1, 5]);
                 $depositCardStats[] = [
-                    'label'      => $type->name,
-                    'sort_order' => $type->sort_order ?? 0,
-                    'required'   => $required,
-                    'received'   => (int) $received,
-                    'balance'    => $balance,
+                    'label'       => $type->name,
+                    'sort_order'  => $type->sort_order ?? 0,
+                    'required'    => $required,
+                    'received'    => $isMandatory ? (int) $received : 0,
+                    'other'       => !$isMandatory ? (int) $received : 0,
+                    'balance'     => $balance,
+                    'grand_total' => (int) $received,
                 ];
             }
         }
@@ -1533,10 +1542,12 @@ class RiskController extends Controller
         $totRecv = array_sum(array_column($depositCardStats, 'received'));
 
         $depositCardTotals = [
-            'label'     => 'All Types (Total)',
-            'required'  => $totReq,
-            'received'  => (int) $totRecv,
-            'balance'   => $totReq - $totRecv,
+            'label'       => 'All Types (Total)',
+            'required'    => $totReq,
+            'received'    => (int) Deposit::mandatoryReceived([3, 1, 5], $officeId ? [$officeId] : null, $dateFrom, $dateTo),
+            'other'       => (int) Deposit::otherReceived([4, 6, 2], $officeId ? [$officeId] : null, $dateFrom, $dateTo),
+            'balance'     => $totReq - $totRecv,
+            'grand_total' => (int) Deposit::mandatoryReceived([3, 1, 5], $officeId ? [$officeId] : null, $dateFrom, $dateTo) + (int) Deposit::otherReceived([4, 6, 2], $officeId ? [$officeId] : null, $dateFrom, $dateTo),
         ];
 
         return view('risk.branch-deposit-audit', compact('types', 'offices', 'debtCards', 'depositCardStats', 'depositCardTotals'))
