@@ -489,15 +489,17 @@
                  </div>
                  <div class="right-group">
                      <div class="da-stats">
-                         <span class="da-stat" title="Total debt records">
+                         <!-- <span class="da-stat" title="Total debt records">
                              <i class="fa fa-building"></i> <strong>{{ \App\Models\OfficeDebt::count() }}</strong> records
                          </span>
                          <span class="da-stat" title="Offices with outstanding debt">
                              <i class="fa fa-exclamation-circle" style="color:#c0392b"></i> <strong>{{ \App\Models\OfficeDebt::where('outstanding_amount', '>', 0)->count() }}</strong> with outstanding
-                         </span>
+                         </span> -->
                          <!-- <span class="da-stat" title="Total outstanding debt across all branches">
                              <i class="fa fa-line-chart" style="color:#c0392b"></i> <strong>K{{ number_format((int)\App\Models\OfficeDebt::sum('outstanding_amount'), 0) }}</strong> outstanding
                          </span> -->
+                         <i class="fa fa-exclamation-circle" style="color:#c0392b"></i>
+
                      </div>
                  </div>
              </div>
@@ -525,15 +527,16 @@
                 </div>
                 <div class="right-group">
                     <div class="da-stats">
-                        <span class="da-stat" title="Total offices">
+                        <!-- <span class="da-stat" title="Total offices">
                             <i class="fa fa-building"></i> <strong>{{ $tcount }}</strong> offices
-                        </span>
-                        <span class="da-stat" title="Offices with deposits">
+                        </span> -->
+                        <!-- <span class="da-stat" title="Offices with deposits">
                             <i class="fa fa-check-circle" style="color:#000"></i> <strong>{{ $withDep }}</strong> with deposits
-                        </span>
+                        </span> -->
                         <!-- <span class="da-stat" title="Overall total amount across all offices">
                             <i class="fa fa-line-chart" style="color:#000"></i> <strong>K{{ number_format((float)$ttotal, 2) }}</strong> total
                         </span> -->
+                        <i class="fa fa-check-circle" style="color:#000"></i> 
                     </div>
                 </div>
             </div>
