@@ -53,7 +53,7 @@
 </style>
 
 <!-- Test with Anchor House First -->
-@if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [2,3,6,8])) 
+@if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [6,8])) 
     <x-debt-blocker/>
 @endif
 
@@ -344,9 +344,9 @@ function checkCompletedDeposits() {
             case 'access':
                 valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
                 break;
-case 'withinhere':
-    valid = /^\d+$/.test(currentReferenceNumber);
-    break;
+            case 'withinhere':
+                valid = /^\d+$/.test(currentReferenceNumber);
+                break;
         }
 
         if (!valid) {
