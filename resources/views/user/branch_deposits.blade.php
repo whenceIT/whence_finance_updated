@@ -52,7 +52,8 @@
 }
 </style>
 
-@if( Sentinel::getUser()->role->role_id == 4) 
+<!-- Test with Anchor House First -->
+@if( Sentinel::getUser()->role->role_id == 4 && $block->office_id == 2) 
     <x-debt-blocker/>
 @endif
 <div class="content-wrapper">
