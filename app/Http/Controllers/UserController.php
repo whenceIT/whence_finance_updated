@@ -2660,7 +2660,7 @@ public function save_wallet(Request $request)
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
-        $inactiveUsers = User::where('status', 'Inactive')->get();
+        $inactiveUsers = User::withoutGlobalScopes()->with(['office', 'province', 'roles'])->where('status', 'Inactive')->get();
 
         return view('user.inactive', compact('inactiveUsers'));
     }

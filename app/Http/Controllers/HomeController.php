@@ -245,6 +245,7 @@ class HomeController extends Controller
 
     public function process_login(Request $request)
     {
+                   
         if (Sentinel::check()) {
             return redirect('dashboard');
         }
@@ -269,13 +270,18 @@ class HomeController extends Controller
             try {
                 if (Sentinel::authenticate($credentials, $remember)) {
                     //GeneralHelper::audit_trail("Logged in to system");
-
+                    
+                    
                     // Log login audit
                     $this->auditorService->logLogin(Sentinel::getUser()->id, $request);
 
-                    if (Sentinel::getUser()->blocked == 1 && Sentinel::getUser()->status != 'Active') {
+                    if (Sentinel::getUser()->blocked == 1 || Sentinel::getUser()->status == 'Inactive') {
                         //prevent login
-                        Flash::warning(trans('general.user_blocked'));
+                        if (Sentinel::getUser()->blocked == 1) {
+                            Flash::warning(trans('general.user_blocked'));
+                        }else{
+                            Flash::warning(trans('general.user_inactive'));
+                        }
                         Sentinel::logout(null, true);
                         return redirect('login');
                     }

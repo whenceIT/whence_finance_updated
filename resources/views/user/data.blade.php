@@ -29,6 +29,7 @@
                     <th>NRC ID</th>
                     <th>Role</th>
                     <th>Position</th>
+                    <th>Status</th>
                     <th>{{ trans_choice('general.action',1) }}</th>
                 </tr>
                 </thead>
@@ -60,6 +61,7 @@
                         <td>{{ $key->nrc_id }}</td>
                         <td>{{ $key->role->role->name ?? '' }}</td>
                         <td>{{ $key->position_name }}</td>
+                        <td>{{ $key->status }}</td>
 
                         <td>
                             <div class="btn-group">
