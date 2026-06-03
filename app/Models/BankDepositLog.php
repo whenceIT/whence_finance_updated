@@ -5,10 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Deposit extends Model
+class BankDepositLog extends Model
 {
-    protected $table = 'deposits';
+    use HasFactory;
+
+    protected $table = 'bank_deposit_log';
     public $timestamps = false;
+
+    protected $fillable = [
+        'deposit_type',
+        'office_id',
+        'user_id',
+        'amount',
+        'deposit_method',
+        'reference_number',
+        'created_date',
+    ];
 
     public function depositType()
     {
@@ -17,7 +29,7 @@ class Deposit extends Model
 
     public function office()
     {
-        return $this->belongsTo(Office::class, 'office', 'id');
+        return $this->belongsTo(Office::class, 'office_id', 'id');
     }
 
     public function user()

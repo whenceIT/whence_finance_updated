@@ -3336,11 +3336,11 @@ public function create()
                 }
                 //Create a message based on the payment type
                 if ($paymentType == 'full_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount} successfully received on {$date} Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount} successfully paid on {$date} Thank you. Call 0773425477 for queries.";
                 } elseif ($paymentType == 'part_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully received on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully paid on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
                 } else {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully received on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully paid on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
                 }
 
                 // Send SMS to client about the transaction (only for enabled offices)
