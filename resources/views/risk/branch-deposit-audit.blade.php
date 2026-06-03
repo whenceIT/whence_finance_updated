@@ -299,6 +299,9 @@
         <button type="button" id="openDepositQueryModal" class="btn btn-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-search"></i> Deposits Statements
         </button>
+        <button type="button" id="openFailedDepositsModal" class="btn btn-danger btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-exclamation-triangle"></i> Failed Deposits
+        </button>
         <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-stop"></i> Exemption Offices
         </button>
@@ -318,51 +321,8 @@
         @include('risk.partials.office-exemptions-card')
     @endif
 
-    <div id="depositQueryModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Query Deposits</h3>
-                <button type="button" id="closeDepositQueryModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="depositQueryForm">
-                    <div class="form-group">
-                        <label>Office</label>
-                        <select name="office_id" class="form-control">
-                            <option value="">All Offices</option>
-                            <?php if (isset($offices) && $offices): ?>
-                                <?php foreach ($offices as $o): ?>
-                                    <?php $oid = $o->id; $oname = $o->name; ?>
-                                    <option value="<?= $oid ?>"><?= e($oname) ?></option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Deposit Type</label>
-                        <select name="deposit_type" class="form-control">
-                            <option value="">All Types</option>
-                            <?php if (isset($types) && $types): ?>
-                                <?php foreach ($types as $t): ?>
-                                    <option value="<?= $t['id'] ?>"><?= e($t['name']) ?></option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Year</label>
-                        <select name="year" class="form-control">
-                            <?php for ($y = 2020; $y <= date('Y'); $y++): ?>
-                                <option value="<?= $y ?>" <?= $y == date('Y') ? 'selected' : '' ?>><?= $y ?></option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Query</button>
-                </form>
-                <div id="depositQueryResult" style="margin-top:15px;"></div>
-            </div>
-        </div>
-    </div>
+    @include('risk.partials.deposit-query-modal', ['offices' => $offices ?? []])
+    @include('risk.partials.failed-deposits-modal')
 
 
     <div class="da-filter-bar">
@@ -1502,33 +1462,12 @@ document.getElementById('closeDepositQueryModal').addEventListener('click', func
     document.getElementById('depositQueryModal').style.display = 'none';
 });
 
-document.getElementById('depositQueryForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const params = new URLSearchParams();
-    for (let [key, value] of formData.entries()) {
-        if (value) params.append(key, value);
-    }
-    
-    fetch('/risk/deposits/query?' + params.toString())
-        .then(r => r.json())
-        .then(data => {
-            const resultDiv = document.getElementById('depositQueryResult');
-            if (data.deposits && data.deposits.length > 0) {
-                let html = '<table class="table table-sm"><thead><tr><th>Date</th><th>Amount</th><th>Office</th></tr></thead><tbody>';
-                data.deposits.forEach(d => {
-                    html += '<tr><td>' + d.date + '</td><td>' + d.amount + '</td><td>' + d.office_name + '</td></tr>';
-                });
-                html += '</tbody></table>';
-                resultDiv.innerHTML = html;
-            } else {
-                resultDiv.innerHTML = '<p>No deposits found.</p>';
-            }
-        })
-        .catch(err => {
-            document.getElementById('depositQueryResult').innerHTML = '<p class="text-danger">Error fetching data.</p>';
-        });
+document.getElementById('openFailedDepositsModal').addEventListener('click', function() {
+    document.getElementById('failedDepositsModal').style.display = 'block';
+});
+
+document.getElementById('closeFailedDepositsModal').addEventListener('click', function() {
+    document.getElementById('failedDepositsModal').style.display = 'none';
 });
 </script>
 

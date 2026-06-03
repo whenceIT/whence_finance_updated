@@ -585,33 +585,66 @@ class RiskController extends Controller
         $depositType = $request->query('deposit_type');
         $year = $request->query('year');
 
-        $query = \App\Models\Deposit::query();
+        $query = \App\Models\BankDepositLog::query()
+            ->with(['depositType', 'office', 'user']);
 
         if ($officeId) {
-            $query->where('office', (int) $officeId);
+            $query->where('office_id', (int) $officeId);
         }
         if ($depositType) {
             $query->where('deposit_type', (int) $depositType);
         }
         if ($year) {
-            $query->whereYear('date', (int) $year);
+            $query->whereYear('created_date', (int) $year);
         }
 
-        $deposits = $query->orderBy('date', 'desc')
+        $logs = $query->orderBy('created_date', 'desc')
             ->limit(500)
             ->get()
-            ->map(function ($d) {
+            ->map(function ($log) {
                 return [
-                    'date' => $d->date,
-                    'amount' => (float) $d->amount,
-                    'office_name' => optional(\App\Models\Office::find($d->office))->name ?? 'Unknown',
-                    'type_name' => optional(\App\Models\DepositType::find($d->deposit_type))->name ?? 'Unknown',
+                    'id' => $log->id,
+                    'deposit_type_name' => $log->depositType ? $log->depositType->name : 'Unknown',
+                    'user_name' => $log->user ? ($log->user->first_name . ' ' . $log->user->last_name) : 'Unknown',
+                    'office_name' => $log->office ? $log->office->name : 'Unknown',
+                    'amount' => (float) $log->amount,
+                    'deposit_method' => $log->deposit_method,
+                    'reference_number' => $log->reference_number,
+                    'created_date' => $log->created_date,
                 ];
             });
 
         return response()->json([
-            'deposits' => $deposits,
-            'total' => $deposits->sum('amount'),
+            'deposits' => $logs,
+            'total' => $logs->sum('amount'),
+        ]);
+    }
+
+    public function queryFailedDeposits(Request $request)
+    {
+        
+        $logs = \App\Models\BankDepositLog::query()
+            ->with(['depositType', 'office', 'user'])
+            ->where('amount', '<', 1)
+            ->orderBy('created_date', 'desc')
+            ->limit(500)
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id' => $log->id,
+                    'deposit_type_name' => $log->depositType ? $log->depositType->name : 'Unknown',
+                    'user_name' => $log->user ? ($log->user->first_name . ' ' . $log->user->last_name) : 'Unknown',
+                    'office_name' => $log->office ? $log->office->name : 'Unknown',
+                    'amount' => (float) $log->amount,
+                    'deposit_method' => $log->deposit_method,
+                    'reference_number' => $log->reference_number,
+                    'created_date' => $log->created_date,
+                ];
+            });
+
+        return response()->json([
+            'deposits' => $logs,
+            'total' => $logs->sum('amount'),
         ]);
     }
 
