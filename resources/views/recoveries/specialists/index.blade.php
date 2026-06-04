@@ -74,7 +74,7 @@
                             <option value="">Search and select a user...</option>
                             @foreach(App\User::orderBy('first_name')->orderBy('last_name')->get() as $user)
                                 <option value="{{ $user->id }}">
-                                    {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: $user->email }}
+                                    {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) }} - {{ $user->office->name ?? '' }}
                                 </option>
                             @endforeach
                         </select>
