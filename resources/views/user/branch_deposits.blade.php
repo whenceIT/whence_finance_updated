@@ -155,6 +155,13 @@ $(document).ready(function () {
             .closest('.deposit-item').css('opacity', 1);
     }
 
+    function unlockAll() {
+        $('.deposit-item').each(function () {
+            $(this).find('input,button,select').prop('disabled', false);
+            $(this).css('opacity', 1);
+        });
+    }
+
     function markCompleted(id) {
         let box = $('.deposit-item[data-deposit-id="'+id+'"]');
 
@@ -213,45 +220,23 @@ $(document).ready(function () {
     });
 
     /* ---------- CHECK COMPLETED ---------- */
-function checkCompletedDeposits() {
+    function checkCompletedDeposits() {
 
-    var selectedMonth = $('#monthFilter').val();
+        var selectedMonth = $('#monthFilter').val();
 
-    $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
-        branch: branchId,
-        date: selectedMonth
-    }, function (response) {
+        $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
+            branch: branchId,
+            date: selectedMonth
+        }, function (response) {
 
-        lockAll();
-        $('.existing-amount').text('Current Amount: 0');
-        $('.deposit-item').removeClass('completed');
-        $('.deposit-item input').val('');
-        $('.deposit-item select').val('');
-
-        // ✅ ALWAYS UNLOCK DEPOSIT TYPE 5
-        unlock(6);
-
-        if (!response || !response.length) {
-            unlock(depositOrder[0]);
-            return;
-        }
-
-        var completedIds = response.map(r => r.deposit_type);
-        completedIds.forEach(markCompleted);
-
-        response.forEach(r => {
-            let box = $('.deposit-item[data-deposit-id="'+r.deposit_type+'"]');
-            box.find('.existing-amount').text(`Current Amount: ${r.amount}`);
+            // lockAll();
+            unlockAll();
+            $('.existing-amount').text('Current Amount: 0');
+            $('.deposit-item').removeClass('completed');
+            $('.deposit-item input').val('');
+            $('.deposit-item select').val('');
         });
-
-        for (let id of depositOrder) {
-            if (!completedIds.includes(id)) {
-                unlock(id);
-                break;
-            }
-        }
-    });
-}
+    }
 
     $('#monthFilter').change(function(){
         checkCompletedDeposits();
@@ -292,9 +277,9 @@ function checkCompletedDeposits() {
                 referenceInput.attr('placeholder', 'FJB2606341708208');
                 break;
             case 'withinhere':
-    hint.text('Format: 1777356230718931');
-    referenceInput.attr('placeholder', '1777356230718931');
-    break;
+                hint.text('Format: 1777356230718931');
+                referenceInput.attr('placeholder', '1777356230718931');
+                break;
 
             default:
                 hint.text('Enter Payment Reference Number');

@@ -95,7 +95,7 @@
                     '<thead style="background:#3c8dbc; color:#fff;">' +
                     '<tr>' +
                     '<th style="padding:8px;">Deposit Type</th>' +
-                    '<th style="padding:8px;">User</th>' +
+           
                     '<th style="padding:8px;">Office</th>' +
                     '<th style="padding:8px; text-align:right;">Amount</th>' +
                     '<th style="padding:8px;">Method</th>' +
@@ -113,7 +113,6 @@
                     
                     table += '<tr>' +
                         '<td style="padding:6px;">' + typeVal + '</td>' +
-                        '<td style="padding:6px;">' + userVal + '</td>' +
                         '<td style="padding:6px;">' + d.office_name + '</td>' +
                         '<td style="padding:6px; text-align:right;">' + amountVal.toLocaleString() + '</td>' +
                         '<td style="padding:6px;">' + methodVal + '</td>' +

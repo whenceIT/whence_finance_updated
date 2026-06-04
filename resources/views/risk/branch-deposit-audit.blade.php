@@ -415,9 +415,9 @@
           <!-- Outstanding Branch Debt -->
           <div class="sc-card sc-card-debt">
               <div class="sc-card-title">Outstanding Branch Debt</div>
-              <div class="sc-row">Debt Accumulated&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['accumulated'], 0) }}</strong></div>
-              <div class="sc-row">Debt Amount Repaid&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['paid'], 0) }}</strong></div>
-              <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 0) }}</strong></div>
+              <div class="sc-row">Debt Accumulated&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['accumulated'], 2) }}</strong></div>
+              <div class="sc-row">Debt Amount Repaid&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['paid'], 2) }}</strong></div>
+              <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 2) }}</strong></div>
           </div>
 
            <?php
@@ -434,31 +434,49 @@
                     $isSpecial = ($statsCount > 3) && ($idx >= ($statsCount - 3));
                     $req = (int) $s['required'];
                     $rec = (int) $s['received'];
+                    $other = (int) $s['other'];
                     $bal = (int) $s['balance'];
                 ?>
+
                 <div class="sc-card sc-card-dep">
                     <div class="sc-card-title">{{ $s['label'] }}</div>
 
                     <?php if (!$isSpecial): ?>
-                        <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($req, 0) }}</strong></div>
+                        <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($req, 2) }}</strong></div>
                     <?php endif; ?>
 
-                    <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($rec, 0) }}</strong></div>
+                    <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ $rec == 0 ? number_format($other, 2) : number_format($rec, 2) }}</strong></div>
 
                     <?php if (!$isSpecial): ?>
-                        <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $bal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($bal, 0) }}</strong></div>
+                        <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $bal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($bal, 2) }}</strong></div>
                     <?php endif; ?>
                 </div>
                 <?php $idx++; ?>
             <?php endforeach; ?>
-           <!-- Totals card -->
-           <?php $tR = (int) $depositCardTotals['required']; $tC = (int) $depositCardTotals['received']; $tB = (int) $depositCardTotals['balance']; ?>
-           <div class="sc-card sc-card-dep" style="border: 2px solid rgba(255,255,255,0.45);">
-               <div class="sc-card-title">{{ $depositCardTotals['label'] }}</div>
-               <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($tR, 0) }}</strong></div>
-               <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($tC, 0) }}</strong></div>
-               <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $tB > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tB, 0) }}</strong></div>
-           </div>
+<!-- Totals card -->
+            <?php
+                $tR = (int) $depositCardTotals['required'];
+                $tC = (int) $depositCardTotals['received'];
+                $tOther = (int) $depositCardTotals['other'];
+                $tGT = (int) $depositCardTotals['grand_total'];
+                $tB = (int) $depositCardTotals['balance'];
+            ?>
+            <div class="sc-card sc-card-dep" style="border: 2px solid rgba(255,255,255,0.45);">
+                <div class="sc-card-title">{{ $depositCardTotals['label'] }}</div>
+                <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($tR, 2) }}</strong></div>
+                <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($tC, 2) }}</strong></div>
+                <div class="sc-row">Other Received&nbsp;&nbsp;<strong>K{{ number_format($tOther, 2) }}</strong></div>
+                <div class="sc-balance">
+                    Balance&nbsp;&nbsp;<strong{{ $tB > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tB, 2) }}</strong>
+                    <br>
+                    <small> <i>(Required - Received)</i> </small>
+                </div>
+                <div class="sc-balance">
+                    Grand Total&nbsp;&nbsp;<strong{{ $tGT > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tGT, 2) }}</strong>
+                    <br>
+                    <small> <i>(Received + Other Received)</i> </small>
+                </div>
+            </div>
       </div>
 
      <div id="daContainer">
@@ -471,15 +489,17 @@
                  </div>
                  <div class="right-group">
                      <div class="da-stats">
-                         <span class="da-stat" title="Total debt records">
+                         <!-- <span class="da-stat" title="Total debt records">
                              <i class="fa fa-building"></i> <strong>{{ \App\Models\OfficeDebt::count() }}</strong> records
                          </span>
                          <span class="da-stat" title="Offices with outstanding debt">
                              <i class="fa fa-exclamation-circle" style="color:#c0392b"></i> <strong>{{ \App\Models\OfficeDebt::where('outstanding_amount', '>', 0)->count() }}</strong> with outstanding
-                         </span>
-                         <span class="da-stat" title="Total outstanding debt across all branches">
+                         </span> -->
+                         <!-- <span class="da-stat" title="Total outstanding debt across all branches">
                              <i class="fa fa-line-chart" style="color:#c0392b"></i> <strong>K{{ number_format((int)\App\Models\OfficeDebt::sum('outstanding_amount'), 0) }}</strong> outstanding
-                         </span>
+                         </span> -->
+                         <i class="fa fa-exclamation-circle" style="color:#c0392b"></i>
+
                      </div>
                  </div>
              </div>
@@ -507,15 +527,16 @@
                 </div>
                 <div class="right-group">
                     <div class="da-stats">
-                        <span class="da-stat" title="Total offices">
+                        <!-- <span class="da-stat" title="Total offices">
                             <i class="fa fa-building"></i> <strong>{{ $tcount }}</strong> offices
-                        </span>
-                        <span class="da-stat" title="Offices with deposits">
-                            <i class="fa fa-check-circle" style="color:#27ae60"></i> <strong>{{ $withDep }}</strong> with deposits
-                        </span>
-                        <span class="da-stat" title="Overall total amount across all offices">
-                            <i class="fa fa-line-chart" style="color:#667eea"></i> <strong>${{ number_format((float)$ttotal, 2) }}</strong> total
-                        </span>
+                        </span> -->
+                        <!-- <span class="da-stat" title="Offices with deposits">
+                            <i class="fa fa-check-circle" style="color:#000"></i> <strong>{{ $withDep }}</strong> with deposits
+                        </span> -->
+                        <!-- <span class="da-stat" title="Overall total amount across all offices">
+                            <i class="fa fa-line-chart" style="color:#000"></i> <strong>K{{ number_format((float)$ttotal, 2) }}</strong> total
+                        </span> -->
+                        <i class="fa fa-check-circle" style="color:#000"></i> 
                     </div>
                 </div>
             </div>
