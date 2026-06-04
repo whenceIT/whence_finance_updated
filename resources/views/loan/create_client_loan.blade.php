@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-    {{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}
+    {{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }} @if($loan_product->id == 0) (Motor Vehicle Loan) @endif
 @endsection
 
 @section('content')
@@ -9,13 +9,14 @@ $todaysDate = date('Y-m-d');
 ?>
 <div class="box box-primary">
     <div class="box-header with-border">
-        <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}</h3>
+        <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }} @if($loan_product->id == 0) (Motor Vehicle Loan) @endif</h3>
         <div class="box-tools pull-right">
             <button onclick="window.history.back()" class="btn btn-info btn-sm">
                 {{ trans_choice('general.cancel',1) }}
             </button>
         </div>
     </div>
+    
 
     <form method="post" action="{{url('loan/create_client_loan/'.$client->id.'/'.$loan_product->id.'/store')}}" class="form-horizontal" enctype="multipart/form-data">
         {{csrf_field()}}
@@ -188,6 +189,65 @@ $todaysDate = date('Y-m-d');
                     </div>
                 </div>
             </div>
+
+            
+@if($loan_product->id == 0)
+
+<div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
+    <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">
+        Vehicle Details
+    </h4>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Make</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="make"
+                   class="form-control">
+        </div>
+
+        <label class="control-label col-md-2">Model</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="model"
+                   class="form-control">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Year</label>
+        <div class="col-md-3">
+            <input type="number"
+                   name="year"
+                   class="form-control">
+        </div>
+
+        <label class="control-label col-md-2">Registration Number</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="registration_number"
+                   class="form-control">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Market Value</label>
+        <div class="col-md-3">
+            <input type="number"
+                   name="market_value"
+                   class="form-control">
+        </div>
+
+        <label class="control-label col-md-2">Forced Sale Value</label>
+        <div class="col-md-3">
+            <input type="number"
+                   name="forced_sale_value"
+                   class="form-control">
+        </div>
+    </div>
+</div>
+
+@endif
            
                {{-- Cycle --}}
                <!-- <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">

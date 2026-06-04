@@ -337,6 +337,24 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('position/{id}', 'GOAController@showPosition')->name('goa.position.show');
 });
 
+Route::group(['prefix' => 'vehicles'], function () {
+    Route::get('/', 'VehicleController@index');
+    Route::get('dashboard', 'VehicleController@dashboard');
+    Route::get('create', 'VehicleController@create');
+    Route::any('store', 'VehicleController@store');
+    Route::any('{id}', 'VehicleController@show');
+    Route::any('{id}/edit', 'VehicleController@edit');
+    Route::any('{id}/update', 'VehicleController@update');
+    Route::get('search-clients', 'VehicleController@searchbClients');
+    Route::get('{vehicle}/insurance/create','VehicleController@createInsurance');
+    Route::any('{vehicle}/insurance/store','VehicleController@storeInsurance');
+    Route::get('{vehicle}/documents/create','VehicleController@createDocuments');
+    Route::any('{vehicle}/documents/store','VehicleController@storeDocuments');
+    Route::get('{vehicle}/photos/create','VehicleController@createPhotos');
+    Route::any('{vehicle}/photos/store','VehicleController@storePhotos');
+    Route::get('{vehicle}/inspections/create','VehicleController@createInspections');
+    Route::any('{vehicle}/inspections/store','VehicleController@storeInspections');
+});
 //route for users
 Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');
