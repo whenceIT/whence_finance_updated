@@ -87,8 +87,8 @@
 @endif
 
 <div class="content">
-    
-    @if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [6,8])) 
+    <!-- && in_array(Sentinel::getUser()->office_id, [6,8]) -->
+    @if( Sentinel::getUser()->role->role_id == 4 ) 
         @php
             $currentMonthYear = date('F Y', strtotime('now'));
         @endphp

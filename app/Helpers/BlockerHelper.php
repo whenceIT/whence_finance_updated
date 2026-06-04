@@ -103,6 +103,7 @@ public static function monthlyDepositExists($user): bool
             ->unique()
             ->values()
             ->toArray();
+
         
         return count(array_intersect($enabledTypes, $types)) === count($enabledTypes);
         
