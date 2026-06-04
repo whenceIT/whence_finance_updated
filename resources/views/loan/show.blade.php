@@ -11,7 +11,7 @@
     @endphp
 
     <!-- Test with Anchor House First -->
-    @if(false) 
+    @if(Sentinel::getUser()->role->role_id == 4) 
         @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
             <script>window.location.href = '/user/branch_deposits';</script>
         @else

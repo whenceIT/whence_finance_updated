@@ -85,10 +85,7 @@ public static function monthlyDepositExists($user): bool
 
         $now = Carbon::now();
 
-        $enabledTypes = \App\Helpers\StatsHelper::getRequiredDepositTypes($officeId);
-
-        
-        $enabledTypes = array_diff($enabledTypes, [4, 6, 2, 0]);
+        $enabledTypes = \App\Helpers\StatsHelper::getRequiredSkippedTypes($officeId);
   
         if (empty($enabledTypes)) {
             return true;

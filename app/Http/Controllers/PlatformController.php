@@ -136,4 +136,114 @@ class PlatformController extends Controller
         return response()->json(['success' => true, 'message' => 'Exempted deposits restrictions for all offices.']);
       
     }
+
+    public function getBlockSkipSettings()
+    {
+        $officeId = request('office_id');
+        
+        if ($officeId) {
+            $settings = PlatformSetting::getBranchBlockSkipSettings($officeId);
+            return response()->json([
+                'office_id' => $officeId,
+                'admin' => $settings['admin'],
+                'building' => $settings['building'],
+                'statutory' => $settings['statutory'],
+                'set_up_debt' => $settings['set_up_debt'],
+            ]);
+        }
+        
+        return response()->json(PlatformSetting::getAllOfficesWithBlockSkipSettings());
+    }
+
+    public function saveBlockSkipSettings(Request $request)
+    {
+        $data = $request->validate([
+            'id' => 'nullable|exists:platform_settings,id',
+            'office_id' => 'required|exists:offices,id',
+            'admin' => 'sometimes|integer|min:0|max:1',
+            'building' => 'sometimes|integer|min:0|max:1',
+            'statutory' => 'sometimes|integer|min:0|max:1',
+            'set_up_debt' => 'sometimes|integer|min:0|max:1',
+        ]);
+
+        $value = [
+            'office_id' => $data['office_id'],
+            'admin' => (int) ($data['admin'] ?? 0) === 0,
+            'building' => (int) ($data['building'] ?? 0) === 0,
+            'statutory' => (int) ($data['statutory'] ?? 0) === 0,
+            'set_up_debt' => (int) ($data['set_up_debt'] ?? 0) === 0,
+        ];
+
+        $key = 'branch_block_skiping_' . $data['office_id'];
+
+        if (!empty($data['id'])) {
+            $setting = PlatformSetting::find($data['id']);
+            if ($setting) {
+                $setting->update(['key' => $key, 'value' => $value]);
+                return response()->json(['success' => true, 'message' => 'Settings updated.']);
+            }
+        }
+
+        $existing = PlatformSetting::where('key', $key)->first();
+
+        if ($existing) {
+            $existing->update(['value' => $value]);
+        } else {
+            PlatformSetting::create([
+                'key' => $key,
+                'value' => $value,
+            ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Settings saved.']);
+    }
+
+    public function initializeBlockSkipAllOffices()
+    {
+        PlatformSetting::where('key','like', 'branch_block_skiping_%')->delete();
+        
+        $offices = \App\Models\Office::all();
+        
+        foreach ($offices as $office) {
+            $key = 'branch_block_skiping_' . $office->id;
+
+                PlatformSetting::create([
+                    'key' => $key,
+                    'value' => [
+                        'office_id' => $office->id,
+                        'admin' => true,
+                        'building' => true,
+                        'statutory' => true,
+                        'set_up_debt' => true,
+                    ],
+                ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Activated blocking for all offices.']);
+    }
+
+    public function deactivateBlockSkipAllOffices()
+    {
+        PlatformSetting::where('key','like', 'branch_block_skiping_%')->delete();
+        
+        $offices = \App\Models\Office::all();
+        
+        foreach ($offices as $office) {
+            $key = 'branch_block_skiping_' . $office->id;
+
+                PlatformSetting::create([
+                    'key' => $key,
+                    'value' => [
+                        'office_id' => $office->id,
+                        'admin' => false,
+                        'building' => false,
+                        'statutory' => false,
+                        'set_up_debt' => false,
+                    ],
+                ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Removed blocking for all offices.']);
+      
+    }
 }

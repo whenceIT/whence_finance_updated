@@ -191,13 +191,14 @@
                     amount: currentDepositAmount,
                     date: today()
                 }),
-                success: function () {
+                success: function (res) {
                     $.ajax({
                         url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
                             deposit_type: currentDepositType,
+                            deposit_id: res.deposit_id,
                             office_id: branchId,
                             user_id: userId,
                             amount: currentDepositAmount,

@@ -88,11 +88,12 @@
 
 <div class="content">
     <!-- Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [6,8]) -->
-    @if(false) 
+    @if(Sentinel::getUser()->role->role_id == 4) 
         @php
             $currentMonthYear = date('F Y', strtotime('now'));
         @endphp
-        @include('risk.partials.office-exemptions-card', ['officeIdParam' => Sentinel::getUser()->office_id, 'cardtitle' => 'Please make sure you have made the following ENABLED deposits for ' . $currentMonthYear])
+
+        @include('components.office-block-skip-card', ['officeIdParam' => Sentinel::getUser()->office_id])
 
     @endif
     <section class="content-header">
@@ -102,11 +103,9 @@
 
             <p class="text-muted" style="margin-bottom:15px;">
                 <i class="fa fa-info-circle"></i>
-                Deposits must be completed in order. 
-                Only the currently active deposit section can be opened.
-                The next deposit unlocks automatically after completion.
+                Enter deposit for the allowed monthly deposits required for your branch. Please ensure the total amount covers the full or atleast K5,000 partial minimum required deposit for the month. Once you click "Save Deposit", it will be recorded and cannot be reversed. If you are unsure about the required amount, click "This Month Deposit" to view your current month's deposit status.
             </p>
-
+            <hr style="border-top:1px solid #eee; margin:20px 0;">
             <div style="max-width:300px;">
                 <label class="deposit-label">Select Month</label>
                 <input type="month" id="monthFilter" class="form-control">
@@ -548,24 +547,28 @@ $(document).ready(function () {
 
         $('#depositConfirmModal').modal('hide');
 
-        $.ajax({
-            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                deposit_type: currentDepositType,
-                office: branchId,
-                amount: currentDepositAmount,
-                date: today()
+            $.ajax({
+                url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    deposit_type: currentDepositType,
+                    office: branchId,
+                    amount: currentDepositAmount,
+                    date: today()
             }),
-            success: function () {
 
+
+            success: function (res) {
+
+                console.log(res.deposit_id);
                 $.ajax({
                     url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         deposit_type: currentDepositType,
+                        deposit_id: res.deposit_id,
                         office_id: branchId,
                         user_id: userId,
                         amount: currentDepositAmount,
@@ -574,12 +577,11 @@ $(document).ready(function () {
                     })
                 })
                 .done(function () {
-                    location.reload();
+                    // location.reload();
                 })
                 .fail(function () {
-                    location.reload();
+                    // location.reload();
                 });
-
             }
         });
     });
@@ -592,7 +594,7 @@ $(document).ready(function () {
         let depositId = $(this).closest('.deposit-item').data('deposit-id');
 
         $.ajax({
-            url: 'http:localhost:5000/create-deposit',
+            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
             type: 'POST',
             data: {
                 deposit_type: depositId,
