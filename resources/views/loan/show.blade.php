@@ -4,8 +4,20 @@
 @endsection
 @section('content')
 
-<x-debt-blocker/>
+    @php
+        $block = Sentinel::getUser();
+        $debtBlocker = $block ? \App\Helpers\BlockerHelper::debt_blocker($block) : ['status' => true, 'balance' => 0];
+        $monthlyDepositDone = $block ? \App\Helpers\BlockerHelper::monthlyDepositExists($block) : true;
+    @endphp
 
+    <!-- Test with Anchor House First -->
+    @if($block->role->role_id== 4 && in_array($block->office_id, [1,6,8])) 
+        @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
+            <script>window.location.href = '/user/branch_deposits';</script>
+        @else
+            <x-debt-blocker/>
+        @endif
+    @endif
 
     <div class="row">
         <div class="col-md-12">
@@ -23,7 +35,6 @@
                 </div>
 		
                 <div class="panel-body">
-
                     @if($loan->status=="closed")
                         <div class="row">
                                 <div class="col-md-12">
@@ -96,8 +107,6 @@
                                 </div>
                             </div>
                         </div>
-
-
 
 
                         <div class="row m-t-20" style="">

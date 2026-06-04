@@ -3,8 +3,11 @@
 @section('title')
     Branch Deposit Audit
 @endsection
-
+@php
+    $officeIdParam = request('office_id');
+@endphp
 @section('content')
+@include('components.kilo-alert')
 <style>
     .da-type-card {
         background: #fff;
@@ -248,6 +251,40 @@
         0%   { background-position: -400px 0; }
         100% { background-position:  400px 0; }
     }
+@keyframes shimmer {
+        0%   { background-position: -400px 0; }
+        100% { background-position:  400px 0; }
+    }
+
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .card-header {
+        background: #f8f9ff;
+        padding: 12px 16px;
+        border-bottom: 1px solid #ddd;
+        font-weight: 600;
+    }
+    .card-body {
+        padding: 16px;
+    }
+    .label.label-success {
+        background: #27ae60;
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    .label.label-danger {
+        background: #e74c3c;
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
 
 </style>
 
@@ -259,15 +296,42 @@
         <a href="#odModal" id="openOfficeDebtModal" class="btn btn-primary btn-sm" style="border-radius:6px;text-decoration:none;color:#fff;">
             <i class="fa fa-balance-scale"></i>Edit Office Debt
         </a>
+        <button type="button" id="openDepositQueryModal" class="btn btn-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-search"></i> Deposits Statements
+        </button>
+        <button type="button" id="openFailedDepositsModal" class="btn btn-danger btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-exclamation-triangle"></i> Failed Deposits
+        </button>
+        <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-stop"></i> Exemption Offices
+        </button>
+        <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-check-circle"></i> Activate Blocking for All Offices
+        </button>
+        <button type="button" id="deactivateAllOfficesBtn" class="btn btn-warning btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-ban"></i> Remove Blocking All Offices
+        </button>
     </div>
+
+
+
+    @if(!$officeIdParam)
+        @include('risk.partials.exemption-list-modal')
+    @else
+        @include('risk.partials.office-exemptions-card')
+    @endif
+
+    @include('risk.partials.deposit-query-modal', ['offices' => $offices ?? []])
+    @include('risk.partials.failed-deposits-modal')
+
 
     <div class="da-filter-bar">
         <label><i class="fa fa-building"></i> Office</label>
         <select id="da-office-select">
             <option value="">All Offices</option>
-            <?php foreach ($offices as $office): ?>
+            <?php if (isset($offices) && $offices): foreach ($offices as $office): ?>
                 <option value="<?= $office->id ?>"><?= e($office->name) ?></option>
-            <?php endforeach; ?>
+            <?php endforeach; endif; ?>
         </select>
 
         <label><i class="fa fa-filter"></i> Period</label>
@@ -300,7 +364,7 @@
 
     @php
         $periodLabels = [
-            'overall'      => 'Overall (Jan → last day of last month)',
+            'overall'      => 'Overall (Jan → 28th of current month)',
             'month'        => 'This Month',
             'quarter'      => 'This Quarter',
             'year'         => 'This Year',
@@ -351,9 +415,9 @@
           <!-- Outstanding Branch Debt -->
           <div class="sc-card sc-card-debt">
               <div class="sc-card-title">Outstanding Branch Debt</div>
-              <div class="sc-row">Debt Accumulated&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['accumulated'], 0) }}</strong></div>
-              <div class="sc-row">Debt Amount Repaid&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['paid'], 0) }}</strong></div>
-              <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 0) }}</strong></div>
+              <div class="sc-row">Debt Accumulated&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['accumulated'], 2) }}</strong></div>
+              <div class="sc-row">Debt Amount Repaid&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['paid'], 2) }}</strong></div>
+              <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 2) }}</strong></div>
           </div>
 
            <?php
@@ -370,31 +434,49 @@
                     $isSpecial = ($statsCount > 3) && ($idx >= ($statsCount - 3));
                     $req = (int) $s['required'];
                     $rec = (int) $s['received'];
+                    $other = (int) $s['other'];
                     $bal = (int) $s['balance'];
                 ?>
+
                 <div class="sc-card sc-card-dep">
                     <div class="sc-card-title">{{ $s['label'] }}</div>
 
                     <?php if (!$isSpecial): ?>
-                        <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($req, 0) }}</strong></div>
+                        <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($req, 2) }}</strong></div>
                     <?php endif; ?>
 
-                    <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($rec, 0) }}</strong></div>
+                    <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ $rec == 0 ? number_format($other, 2) : number_format($rec, 2) }}</strong></div>
 
                     <?php if (!$isSpecial): ?>
-                        <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $bal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($bal, 0) }}</strong></div>
+                        <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $bal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($bal, 2) }}</strong></div>
                     <?php endif; ?>
                 </div>
                 <?php $idx++; ?>
             <?php endforeach; ?>
-           <!-- Totals card -->
-           <?php $tR = (int) $depositCardTotals['required']; $tC = (int) $depositCardTotals['received']; $tB = (int) $depositCardTotals['balance']; ?>
-           <div class="sc-card sc-card-dep" style="border: 2px solid rgba(255,255,255,0.45);">
-               <div class="sc-card-title">{{ $depositCardTotals['label'] }}</div>
-               <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($tR, 0) }}</strong></div>
-               <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($tC, 0) }}</strong></div>
-               <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $tB > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tB, 0) }}</strong></div>
-           </div>
+<!-- Totals card -->
+            <?php
+                $tR = (int) $depositCardTotals['required'];
+                $tC = (int) $depositCardTotals['received'];
+                $tOther = (int) $depositCardTotals['other'];
+                $tGT = (int) $depositCardTotals['grand_total'];
+                $tB = (int) $depositCardTotals['balance'];
+            ?>
+            <div class="sc-card sc-card-dep" style="border: 2px solid rgba(255,255,255,0.45);">
+                <div class="sc-card-title">{{ $depositCardTotals['label'] }}</div>
+                <div class="sc-row">Required&nbsp;&nbsp;<strong>K{{ number_format($tR, 2) }}</strong></div>
+                <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($tC, 2) }}</strong></div>
+                <div class="sc-row">Other Received&nbsp;&nbsp;<strong>K{{ number_format($tOther, 2) }}</strong></div>
+                <div class="sc-balance">
+                    Balance&nbsp;&nbsp;<strong{{ $tB > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tB, 2) }}</strong>
+                    <br>
+                    <small> <i>(Required - Received)</i> </small>
+                </div>
+                <div class="sc-balance">
+                    Grand Total&nbsp;&nbsp;<strong{{ $tGT > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tGT, 2) }}</strong>
+                    <br>
+                    <small> <i>(Received + Other Received)</i> </small>
+                </div>
+            </div>
       </div>
 
      <div id="daContainer">
@@ -407,15 +489,17 @@
                  </div>
                  <div class="right-group">
                      <div class="da-stats">
-                         <span class="da-stat" title="Total debt records">
+                         <!-- <span class="da-stat" title="Total debt records">
                              <i class="fa fa-building"></i> <strong>{{ \App\Models\OfficeDebt::count() }}</strong> records
                          </span>
                          <span class="da-stat" title="Offices with outstanding debt">
                              <i class="fa fa-exclamation-circle" style="color:#c0392b"></i> <strong>{{ \App\Models\OfficeDebt::where('outstanding_amount', '>', 0)->count() }}</strong> with outstanding
-                         </span>
-                         <span class="da-stat" title="Total outstanding debt across all branches">
+                         </span> -->
+                         <!-- <span class="da-stat" title="Total outstanding debt across all branches">
                              <i class="fa fa-line-chart" style="color:#c0392b"></i> <strong>K{{ number_format((int)\App\Models\OfficeDebt::sum('outstanding_amount'), 0) }}</strong> outstanding
-                         </span>
+                         </span> -->
+                         <i class="fa fa-exclamation-circle" style="color:#c0392b"></i>
+
                      </div>
                  </div>
              </div>
@@ -424,29 +508,39 @@
              </div>
         </div>
 
-        @foreach($types as $t)
-        <div class="da-type-card" data-type-id="{{ $t['id'] }}">
+@foreach($types as $t)
+        @php
+            $tid = $t['id'];
+            $tname = $t['name'];
+            $tbank = $t['bank'] ?? '–';
+            $tgl = $t['gl_account'] ?? '–';
+            $tcount = $t['office_count'];
+            $withDep = $t['offices_with_deposits'];
+            $ttotal = $t['total_amount'];
+        @endphp
+        <div class="da-type-card" data-type-id="{{ $tid }}">
             <div class="da-type-header">
                 <div class="left">
                     <span class="toggle-icon"><i class="fa fa-caret-right"></i></span>
-                    <span class="type-name">{{ $t['name'] }}</span>
-                    <span class="type-meta">{{ $t['bank'] ?? '–' }} &nbsp;|&nbsp; GL: {{ $t['gl_account'] ?? '–' }}</span>
+                    <span class="type-name">{{ $tname }}</span>
+                    <span class="type-meta">{{ $tbank }} &nbsp;|&nbsp; GL: {{ $tgl }}</span>
                 </div>
                 <div class="right-group">
                     <div class="da-stats">
-                        <span class="da-stat" title="Total offices">
-                            <i class="fa fa-building"></i> <strong>{{ $t['office_count'] }}</strong> offices
-                        </span>
-                        <span class="da-stat" title="Offices with deposits">
-                            <i class="fa fa-check-circle" style="color:#27ae60"></i> <strong>{{ $t['offices_with_deposits'] }}</strong> with deposits
-                        </span>
-                        <span class="da-stat" title="Overall total amount across all offices">
-                            <i class="fa fa-line-chart" style="color:#667eea"></i> <strong>${{ number_format((float)$t['total_amount'], 2) }}</strong> total
-                        </span>
+                        <!-- <span class="da-stat" title="Total offices">
+                            <i class="fa fa-building"></i> <strong>{{ $tcount }}</strong> offices
+                        </span> -->
+                        <!-- <span class="da-stat" title="Offices with deposits">
+                            <i class="fa fa-check-circle" style="color:#000"></i> <strong>{{ $withDep }}</strong> with deposits
+                        </span> -->
+                        <!-- <span class="da-stat" title="Overall total amount across all offices">
+                            <i class="fa fa-line-chart" style="color:#000"></i> <strong>K{{ number_format((float)$ttotal, 2) }}</strong> total
+                        </span> -->
+                        <i class="fa fa-check-circle" style="color:#000"></i> 
                     </div>
                 </div>
             </div>
-            <div class="da-body" id="da-body-{{ $t['id'] }}">
+            <div class="da-body" id="da-body-{{ $tid }}">
                 <p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading offices&hellip;</p>
             </div>
         </div>
@@ -1048,12 +1142,12 @@
              odRenderDebtTable(filtered);
          });
 
-         // ── Export to Excel (CSV) ──
-         $(document).on('click', '#odBtnExport', function() {
-             if (!odAllRows || odAllRows.length === 0) {
-                 alert('No data to export.');
-                 return;
-             }
+// ── Export to Excel (CSV) ──
+          $(document).on('click', '#odBtnExport', function() {
+              if (!odAllRows || odAllRows.length === 0) {
+                  KiloAlert.info('No data to export.');
+                  return;
+              }
 
              // Use currently visible rows if search is active, otherwise all
              var searchTerm = ($('#odSearchInput').val() || '').toLowerCase().trim();
@@ -1135,9 +1229,9 @@
                 data: { _token: '{{ csrf_token() }}' },
             }).done(function(r) {
                 if (r.success) odLoadTable();
-                else alert(r.message || 'Unable to delete record.');
+                else KiloAlert.error(r.message || 'Unable to delete record.');
             }).fail(function() {
-                alert('Network error. Try again.');
+                KiloAlert.error('Network error. Try again.');
             });
         };
 
@@ -1154,7 +1248,7 @@
             var isSetupDebt   = window.currentOdIsSetupDebt || 'false';
 
             if (!officeId || !original || outstanding === '') {
-                alert('Please fill in Branch, Original Amount and Outstanding Amount.');
+                KiloAlert.warning('Please fill in Branch, Original Amount and Outstanding Amount.');
                 return;
             }
 
@@ -1185,7 +1279,7 @@
                     odShowList();
                     odLoadTable();
                 } else {
-                    alert(r.message || 'Save failed.');
+                    KiloAlert.error(r.message || 'Save failed.');
                 }
             }).fail(function(xhr) {
                 var msg = 'Save failed.';
@@ -1194,7 +1288,7 @@
                 } else if (xhr.status === 409) {
                     msg = 'This monthly debt record already exists for the selected office and deposit type.';
                 }
-                alert(msg);
+                KiloAlert.error(msg);
             });
         });
 
@@ -1379,5 +1473,191 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('openDepositQueryModal').addEventListener('click', function() {
+    document.getElementById('depositQueryModal').style.display = 'block';
+});
+
+document.getElementById('closeDepositQueryModal').addEventListener('click', function() {
+    document.getElementById('depositQueryModal').style.display = 'none';
+});
+
+document.getElementById('openFailedDepositsModal').addEventListener('click', function() {
+    document.getElementById('failedDepositsModal').style.display = 'block';
+});
+
+document.getElementById('closeFailedDepositsModal').addEventListener('click', function() {
+    document.getElementById('failedDepositsModal').style.display = 'none';
+});
+</script>
+
+<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="settingsModalLabel">
+                    <i class="fa fa-cog"></i> Platform Settings
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="settingsForm">
+                    <input type="hidden" id="settingsId" value="">
+                    <div class="form-group">
+                        <label>Office</label>
+                        <select id="settingsOffice" class="form-control">
+                            <option value="">Select an office…</option>
+                            <?php
+                                $offices = \App\Models\Office::orderBy('name')->get();
+                                foreach ($offices as $o) {
+                                    echo '<option value="' . $o->id . '">' . htmlspecialchars($o->name) . '</option>';
+                                }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Admin</label>
+                        <div>
+                            <label class="radio-inline"><input type="radio" name="admin" value="1" id="admin_1"> Disable</label>
+                            <label class="radio-inline"><input type="radio" name="admin" value="0" id="admin_0"> Enable</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Building</label>
+                        <div>
+                            <label class="radio-inline"><input type="radio" name="building" value="1" id="building_1"> Disable</label>
+                            <label class="radio-inline"><input type="radio" name="building" value="0" id="building_0"> Enable</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Statutory</label>
+                        <div>
+                            <label class="radio-inline"><input type="radio" name="statutory" value="1" id="statutory_1"> Disable</label>
+                            <label class="radio-inline"><input type="radio" name="statutory" value="0" id="statutory_0"> Enable</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Set up debt</label>
+                        <div>
+                            <label class="radio-inline"><input type="radio" name="set_up_debt" value="1" id="set_up_debt_1"> Disable</label>
+                            <label class="radio-inline"><input type="radio" name="set_up_debt" value="0" id="set_up_debt_0"> Enable</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).on('click', '#openSettingsModal', function() {
+    $('#settingsModal').modal('show');
+    loadSettings();
+});
+
+function loadSettings(officeId) {
+    var url = '/settings/platform/get';
+    if (officeId) url += '?office_id=' + officeId;
+    $.get(url, function(data) {
+        $('#settingsId').val(data.id || '');
+        $('#settingsOffice').val(data.office_id || '');
+        $('input[name="admin"][value="' + (data.admin ? '0' : '1') + '"]').prop('checked', true);
+        $('input[name="building"][value="' + (data.building ? '0' : '1') + '"]').prop('checked', true);
+        $('input[name="statutory"][value="' + (data.statutory ? '0' : '1') + '"]').prop('checked', true);
+        $('input[name="set_up_debt"][value="' + (data.set_up_debt ? '0' : '1') + '"]').prop('checked', true);
+    });
+}
+
+$('#settingsOffice').on('change', function() {
+    loadSettings($(this).val());
+});
+
+$('#settingsForm').on('submit', function(e) {
+    e.preventDefault();
+    var data = {
+        _token: '{{ csrf_token() }}',
+        id: $('#settingsId').val(),
+        office_id: $('#settingsOffice').val(),
+        admin: $('input[name="admin"]:checked').val() || 0,
+        building: $('input[name="building"]:checked').val() || 0,
+        statutory: $('input[name="statutory"]:checked').val() || 0,
+        set_up_debt: $('input[name="set_up_debt"]:checked').val() || 0,
+    };
+    $.post('/settings/platform/save', data, function(res) {
+        KiloAlert.success(res.message || 'Saved');
+        $('#settingsModal').modal('hide');
+    }).fail(function() {
+        KiloAlert.error('Save failed.');
+    });
+});
+
+$('#activateAllOfficesBtn').on('click', function() {
+    if (!confirm('Initialize branch deposit settings for all offices with default values (enabled)?')) return;
+    $.post('/settings/platform/initialize-all', {
+        _token: '{{ csrf_token() }}'
+    }, function(res) {
+        KiloAlert.success(res.message || 'Initialized');
+    }).fail(function() {
+        KiloAlert.error('Failed to initialize.');
+    });
+});
+
+$('#deactivateAllOfficesBtn').on('click', function() {
+    if (!confirm('Deactivate branch deposit settings for all offices? This will remove all custom settings.')) return;
+    $.post('/settings/platform/deactivate-all', {
+        _token: '{{ csrf_token() }}'
+    }, function(res) {
+        KiloAlert.success(res.message || 'Deactivated');
+    }).fail(function() {
+        KiloAlert.error('Failed to deactivate.');
+    });
+});
+
+function loadOfficesSettings() {
+    var officeId = new URLSearchParams(window.location.search).get('office_id');
+    var url = '/settings/platform/offices-settings';
+    if (officeId) url += '?office_id=' + officeId;
+    
+    $.get(url, function(data) {
+        if (officeId && typeof renderExemptions === 'function') {
+            renderExemptions(data);
+            return;
+        }
+        
+        var tableHtml = '';
+        data.forEach(function(o) {
+            tableHtml += '<tr>' +
+                '<td>' + o.name + '</td>' +
+                '<td>' + o.code + '</td>' +
+                '<td>' + (o.admin ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.building ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.statutory ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.set_up_debt ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '</tr>';
+        });
+        $('#offices-settings-table').html(tableHtml);
+    }).fail(function() {
+        if (officeId) {
+            $('#office-detail-card').html('<div class="col-md-12" style="text-align:center;color:#c0392b;">Failed to load settings.</div>');
+        } else {
+            $('#offices-settings-table').html('<tr><td colspan="6" style="text-align:center;color:#c0392b;">Failed to load settings.</td></tr>');
+        }
+    });
+}
+
+$(document).on('click', '#openExemptionListModal', function() {
+    $('#exemptionListModal').modal('show');
+    loadOfficesSettings();
+});
+
+var officeIdParam = new URLSearchParams(window.location.search).get('office_id');
+if (officeIdParam) {
+    loadOfficesSettings();
+}
+</script>
 
 @endsection

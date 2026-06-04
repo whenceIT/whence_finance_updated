@@ -983,15 +983,15 @@ class LoanController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+public function create()
     {
         if (!Sentinel::hasAccess('loans.create')) {
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
 
-          $pendingApproval = false;
-          $launchNewCarryOver = false;
+           $pendingApproval = false;
+           $launchNewCarryOver = false;
         $province_clients = [];
         $user = Sentinel::getUser();
         $userBranch = $user->office_id;
@@ -1384,6 +1384,7 @@ class LoanController extends Controller
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+
         $rules = array(
             'loan_officer_id' => 'required',
             'principal' => 'required',
@@ -3349,11 +3350,11 @@ class LoanController extends Controller
                 }
                 //Create a message based on the payment type
                 if ($paymentType == 'full_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount} successfully received on {$date} Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount} successfully paid on {$date} Thank you. Call 0773425477 for queries.";
                 } elseif ($paymentType == 'part_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully received on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully paid on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
                 } else {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully received on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully paid on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
                 }
 
                 // Send SMS to client about the transaction (only for enabled offices)

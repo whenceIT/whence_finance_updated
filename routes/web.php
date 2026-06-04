@@ -225,15 +225,15 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/courses', [LearningSettingController::class, 'courses'])->name('learning.settings.courses');
     Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
     Route::get('/settings/courses/resource-preview', [LearningSettingController::class, 'resourcePreview'])->name('learning.settings.courses.resource-preview');
-    Route::post('/settings/set-content-push-mode', [PlatformController::class, 'setContentPushMode'])->name('learning.settings.set-content-push-mode');
+Route::post('/settings/set-content-push-mode', [PlatformController::class, 'setContentPushMode'])->name('learning.settings.set-content-push-mode');
+});
 
-    // Trainer Management Routes
-    Route::get('/api/all-roles', [LearningSettingController::class, 'getAllRoles']);
-    Route::get('/api/users-by-role/{roleId}', [LearningSettingController::class, 'getUsersByRole']);
-    Route::get('/api/roles-by-office/{officeId}', [LearningSettingController::class, 'getRolesByOffice']);
-    Route::get('/api/users-by-office-role/{officeId}/{roleId}', [LearningSettingController::class, 'getUsersByOfficeRole']);
-    Route::post('/settings/teachers/update-trainer', [LearningSettingController::class, 'updateTrainerStatus'])->name('learning.settings.teachers.update-trainer');
-    Route::delete('/settings/teachers/remove-trainer/{userId}', [LearningSettingController::class, 'removeTrainerStatus'])->name('learning.settings.teachers.remove-trainer');
+Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
+    Route::get('/platform/get', [PlatformController::class, 'getSettings']);
+    Route::post('/platform/save', [PlatformController::class, 'saveSettings']);
+    Route::post('/platform/initialize-all', [PlatformController::class, 'initializeAllOffices']);
+    Route::post('/platform/deactivate-all', [PlatformController::class, 'deactivateAllOffices']);
+    Route::get('/platform/offices-settings', [PlatformController::class, 'getOfficesSettings']);
 });
 
 // Course Categories Management Routes
@@ -443,7 +443,6 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('get_districts_by_province/{id}', 'UserController@get_districts_by_province');
     Route::get('get_district_regionals_by_district/{id}', 'UserController@get_district_regionals_by_district');
 
-
      Route::get('branch_deposits','UserController@branch_deposits');
      Route::get('deposit_logs','UserController@deposit_logs');
 });
@@ -498,6 +497,10 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('office-debts',             [RiskController::class, 'listOfficeDebts'])->name('risk.office-debts.list');
     Route::get('office-debts/type/{type}', [RiskController::class, 'branchDepositAuditByDebtType'])->name('risk.office-debts.by-type');
     Route::get('office-debts/debt',     [RiskController::class, 'officeDebtsByDebtType'])->name('risk.office-debts.debt');
+
+    // ── Deposit query endpoint ───────────────────────────────────────────────
+    Route::get('deposits/query',          [RiskController::class, 'queryDeposits'])->name('risk.deposits.query');
+    Route::get('failed-deposits',         [RiskController::class, 'queryFailedDeposits'])->name('risk.failed-deposits');
 
     // ── Supervisor: run all fraud rules (called client-side by monitor.js)
     Route::post('monitor/run-all-alerts', [MonitorController::class, 'runAllAlerts'])

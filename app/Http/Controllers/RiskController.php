@@ -8,6 +8,7 @@ use App\Models\Province;
 use Carbon\Carbon;
 use App\Services\AlertService;
 use Illuminate\Support\Facades\DB;
+use App\Models\Deposit;
 
 class RiskController extends Controller
 {
@@ -576,6 +577,112 @@ class RiskController extends Controller
             's4_system_collections' => $systemCollections,
             's4_wallet_collections' => $walletCollections,
             's6_total_staff' => $totalStaff,
+        ]);
+    }
+
+    public function queryDeposits(Request $request)
+    {
+        $officeId = $request->query('office_id');
+        $depositType = $request->query('deposit_type');
+        $year = $request->query('year');
+
+        $query = \App\Models\Deposit::query();
+
+        if ($officeId) {
+            $query->where('office', (int) $officeId);
+        }
+        if ($depositType) {
+            $query->where('deposit_type', (int) $depositType);
+        }
+        if ($year) {
+            $query->whereYear('date', (int) $year);
+        }
+
+        $deposits = $query->orderBy('date', 'desc')
+            ->limit(500)
+            ->get();
+
+        $officeIds = $deposits->pluck('office')->unique()->values()->all();
+        $depositTypeIds = $deposits->pluck('deposit_type')->unique()->values()->all();
+
+        $offices = \App\Models\Office::whereIn('id', $officeIds)->pluck('name', 'id');
+        $depositTypes = \App\Models\DepositType::whereIn('id', $depositTypeIds)->pluck('name', 'id');
+
+        $bankLogs = \App\Models\BankDepositLog::query()
+            ->with(['user'])
+            ->whereIn('deposit_type', $depositTypeIds)
+            ->whereIn('office_id', $officeIds)
+            ->get()
+            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . $log->user_id . '_' . substr($log->created_date, 0, 7));
+
+        $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
+            $monthYear = substr($dep->date, 0, 7);
+            $key = $dep->deposit_type . '_' . $dep->office . '_' . ($dep->user_id ?? 0) . '_' . $monthYear;
+            $log = $bankLogs->get($key);
+
+            return [
+                'id' => $log->id ?? $dep->id,
+                'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
+                'user_name' => $log && isset($log->user) && is_object($log->user) && isset($log->user->first_name)
+                    ? ($log->user->first_name . ' ' . $log->user->last_name)
+                    : 'Unknown',
+                'office_name' => $offices->get($dep->office, 'Unknown'),
+                'amount' => (float) $dep->amount,
+                'deposit_method' => $log->deposit_method ?? null,
+                'reference_number' => $log->reference_number ?? null,
+                'created_date' => $log->created_date ?? $dep->date,
+            ];
+        });
+
+        return response()->json([
+            'deposits' => $logs,
+            'total' => $logs->sum('amount'),
+        ]);
+    }
+
+    public function queryFailedDeposits(Request $request)
+    {
+        $deposits = \App\Models\Deposit::query()
+            ->where('amount', '<', 1)
+            ->orderBy('date', 'desc')
+            ->limit(500)
+            ->get();
+
+        $officeIds = $deposits->pluck('office')->unique()->values()->all();
+        $depositTypeIds = $deposits->pluck('deposit_type')->unique()->values()->all();
+
+        $offices = \App\Models\Office::whereIn('id', $officeIds)->pluck('name', 'id');
+        $depositTypes = \App\Models\DepositType::whereIn('id', $depositTypeIds)->pluck('name', 'id');
+
+        $bankLogs = \App\Models\BankDepositLog::query()
+            ->with(['user'])
+            ->whereIn('deposit_type', $depositTypeIds)
+            ->whereIn('office_id', $officeIds)
+            ->get()
+            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . $log->user_id . '_' . substr($log->created_date, 0, 7));
+
+        $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
+            $monthYear = substr($dep->date, 0, 7);
+            $key = $dep->deposit_type . '_' . $dep->office . '_' . ($dep->user_id ?? 0) . '_' . $monthYear;
+            $log = $bankLogs->get($key);
+
+            return [
+                'id' => $log->id ?? $dep->id,
+                'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
+                'user_name' => $log && isset($log->user) && is_object($log->user) && isset($log->user->first_name)
+                    ? ($log->user->first_name . ' ' . $log->user->last_name)
+                    : 'Unknown',
+                'office_name' => $offices->get($dep->office, 'Unknown'),
+                'amount' => (float) $dep->amount,
+                'deposit_method' => $log->deposit_method ?? null,
+                'reference_number' => $log->reference_number ?? null,
+                'created_date' => $log->created_date ?? $dep->date,
+            ];
+        });
+
+        return response()->json([
+            'deposits' => $logs,
+            'total' => $logs->sum('amount'),
         ]);
     }
 
@@ -1259,10 +1366,13 @@ class RiskController extends Controller
         }
 
         // 1. All offices (sorted) — full list for the dropdown
-        $offices = \App\Models\Office::orderBy('name')->get();
+        $offices = \App\Helpers\StatsHelper::getActiveOffices();
 
-        // 2. All deposit types (sorted)
-        $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get();
+        // 2. Filter deposit types based on office-specific exemption settings
+        $requiredDepositTypeIds = \App\Helpers\StatsHelper::getRequiredDepositTypes($officeId);
+        $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')
+            ->whereIn('id', $requiredDepositTypeIds)
+            ->get();
 
         // Determine scope for data queries and required calculations
         $officeIdsForData     = $officeId ? [$officeId] : $offices->pluck('id')->all();
@@ -1330,29 +1440,33 @@ class RiskController extends Controller
         }
 
         // 6. Aggregate Outstanding Branch Debt card (scoped if office filter active)
+        // Also filter by required deposit types based on office-specific exemption settings
         $debtQuery = \App\Models\OfficeDebt::query();
         if ($officeId !== null) {
             $debtQuery->where('office_id', $officeId);
         }
+        $debtQuery->whereIn('deposit_type_id', $requiredDepositTypeIds);
         $debtRecords = $debtQuery->get();
 
         // 'paid' now comes from actual Deposit records flagged as debt-related (inserted when Outstanding is manually reduced)
+        // Also filter by required deposit types
         $paidDebtDeposits = \App\Models\Deposit::query()->where('debt', true);
         if ($officeId !== null) {
             $paidDebtDeposits->where('office', $officeId);
         }
+        $paidDebtDeposits->whereIn('deposit_type', $requiredDepositTypeIds);
         $paid = (int) $paidDebtDeposits->sum('amount');
 
         $debtCards = [
             'accumulated' => (int) $debtRecords->sum('original_amount'),
             'paid'        => $paid,
-            'balance'     => (int) $debtRecords->sum('outstanding_amount'),
+            'balance'     => (int) $debtRecords->sum('outstanding_amount') - $paid,
         ];
 
         // 7. Per-type deposit requirement vs received summary cards
         // Required = monthly_amount x offices x months-spanned-by-period.
-        // "overall" is bounded: Jan 1 of the current year through the last day of the
-        // previous month — the current (incomplete) month is excluded.
+        // "overall" is bounded: Jan 1 of the current year through the 28th of the
+        // current month — the current month is excluded because it's incomplete.
         $officeCount     = $effectiveOfficeCount;
         $depositCardStats  = [];
         $depositCardTotals = null;
@@ -1360,7 +1474,7 @@ class RiskController extends Controller
         $totRecv  = 0;
 
         if ($dateFrom === null) {
-            // overall: full months from Jan 1 this year through last day of prev month
+            // overall: full months from Jan 1 this year through 28th of current month
             $overallPeriodMonths = (int) \Carbon\Carbon::now()
                 ->startOfYear()
                 ->diffInMonths(\Carbon\Carbon::parse($dateTo))
@@ -1379,14 +1493,18 @@ class RiskController extends Controller
                 $totReq  += $required;
                 $totRecv += $received;
 
+                $isMandatory = in_array((int) $type->id, [3, 1, 5]);
                 $depositCardStats[] = [
-                    'label'      => $type->name,
-                    'sort_order' => $type->sort_order ?? 0,
-                    'required'   => $required,
-                    'received'   => (int) $received,
-                    'balance'    => $balance,
+                    'label'       => $type->name,
+                    'sort_order'  => $type->sort_order ?? 0,
+                    'required'    => $required,
+                    'received'    => $isMandatory ? (int) $received : 0,
+                    'other'       => !$isMandatory ? (int) $received : 0,
+                    'balance'     => $balance,
+                    'grand_total' => (int) $received,
                 ];
             }
+
         } else {
             // specific period: months spanned by the date range
             $periodMonths = (int) \Carbon\Carbon::parse($dateFrom)->diffInMonths(\Carbon\Carbon::parse($dateTo)) + 1;
@@ -1399,33 +1517,37 @@ class RiskController extends Controller
                         $received += (float) $dep->amount;
                     }
                 }
+
                 $balance = $required - $received;
 
                 $totReq  += $required;
                 $totRecv += $received;
 
+                $isMandatory = in_array((int) $type->id, [3, 1, 5]);
                 $depositCardStats[] = [
-                    'label'      => $type->name,
-                    'sort_order' => $type->sort_order ?? 0,
-                    'required'   => $required,
-                    'received'   => (int) $received,
-                    'balance'    => $balance,
+                    'label'       => $type->name,
+                    'sort_order'  => $type->sort_order ?? 0,
+                    'required'    => $required,
+                    'received'    => $isMandatory ? (int) $received : 0,
+                    'other'       => !$isMandatory ? (int) $received : 0,
+                    'balance'     => $balance,
+                    'grand_total' => (int) $received,
                 ];
             }
         }
 
-        // Grand total card should only count "compliance" types.
-        // The last 3 special deposit types (no monthly requirement) are excluded
-        // from Required and from the overall Balance calculation.
-        $complianceStats = array_slice($depositCardStats, 0, -3);
-        $totReq  = array_sum(array_column($complianceStats, 'required'));
-        $totRecv = array_sum(array_column($complianceStats, 'received'));
+        // Grand total card should only count deposit types that are in the required list
+        // (filtered by office-specific exemption settings)
+        $totReq  = array_sum(array_column($depositCardStats, 'required'));
+        $totRecv = array_sum(array_column($depositCardStats, 'received'));
 
         $depositCardTotals = [
-            'label'     => 'All Types (Total)',
-            'required'  => $totReq,
-            'received'  => (int) $totRecv,
-            'balance'   => $totReq - $totRecv,
+            'label'       => 'All Types (Total)',
+            'required'    => $totReq,
+            'received'    => (int) Deposit::mandatoryReceived([3, 1, 5], $officeId ? [$officeId] : null, $dateFrom, $dateTo),
+            'other'       => (int) Deposit::otherReceived([4, 6, 2], $officeId ? [$officeId] : null, $dateFrom, $dateTo),
+            'balance'     => $totReq - $totRecv,
+            'grand_total' => (int) Deposit::mandatoryReceived([3, 1, 5], $officeId ? [$officeId] : null, $dateFrom, $dateTo) + (int) Deposit::otherReceived([4, 6, 2], $officeId ? [$officeId] : null, $dateFrom, $dateTo),
         ];
 
         return view('risk.branch-deposit-audit', compact('types', 'offices', 'debtCards', 'depositCardStats', 'depositCardTotals'))
@@ -1439,11 +1561,11 @@ class RiskController extends Controller
 
     /**
      * Compute the [startDate, endDate] string pair for a given period label.
-     * "overall" is bounded at the last day of the previous month — the current month
+     * "overall" is bounded at the 28th of the current month — the current month
      * is excluded because it is always incomplete.
      *
      * Periods
-     * - overall         : all deposits recorded up to last day of last month
+     * - overall         : all deposits recorded up to 28th of current month
      * - month           : this calendar month
      * - quarter         : this quarter
      * - year            : this calendar year
@@ -1457,10 +1579,10 @@ class RiskController extends Controller
     private function getDepositDateRange(string $period, int $customMonth, int $customYear): array
     {
         if ($period === 'overall') {
-            // Overall = Jan 1 this year → last day of previous month (current month always incomplete)
+            // Overall = Jan 1 this year → 28th of current month
             return [
                 null,
-                Carbon::now()->subMonth()->endOfMonth()->toDateString(),
+                Carbon::now()->day(28)->toDateString(),
             ];
         }
 

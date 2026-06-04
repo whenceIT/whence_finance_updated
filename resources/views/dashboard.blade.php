@@ -17,7 +17,6 @@
         </div>
     @endif
 
-    
 
     <!-- What Clients see -->
 
@@ -2484,6 +2483,7 @@ if($branchUser->role){
      @include('components.client-search-bottom-sheet')
     @endif
 
+    @include('components.policy-of-the-day')
 @endsection
 @section('footer-scripts')
     <script src="{{ asset('assets/plugins/amcharts/amcharts.js') }}" type="text/javascript"></script>

@@ -10,39 +10,43 @@
                     <h3 class="box-title">Inactive Users</h3>
                 </div>
                 <div class="box-body">
-                    <table class="table table-responsive table-hover">
-                        <thead>
-                            <tr>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Status</th>
-                                <th>Created At</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($inactiveUsers as $user)
+                        <table class="table table-responsive table-hover data-table">
+                            <thead>
                                 <tr>
-                                    <td>{{ $user->first_name }}</td>
-                                    <td>{{ $user->last_name }}</td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>{{ $user->phone }}</td>
-                                    <td>{{ $user->status }}</td>
-                                    <td>{{ $user->created_at }}</td>
-                                    <td>
-                                        <form action="{{ route('user.toggleStatus', $user->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary">
-                                                {{ $user->status == 'Active' ? 'Set as Inactive' : 'Activate' }}
-                                            </button>
-                                        </form>
-                                    </td>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Office</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach($inactiveUsers as $user)
+                                    <tr>
+                                        <td>{{ $user->first_name }}</td>
+                                        <td>{{ $user->last_name }}</td>
+                                        <td>{{ $user->email }}</td>
+                                        <td>{{ $user->phone }}</td>
+                                        <td>{{ optional($user->office)->name }}</td>
+                                        <td>{{ optional($user->roles->first())->name }}</td>
+                                        <td>{{ $user->status }}</td>
+                                        <td>{{ $user->created_at }}</td>
+                                        <td>
+                                            <form action="{{ route('user.toggleStatus', $user->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-primary">
+                                                    {{ $user->status == 'Active' ? 'Set as Inactive' : 'Activate' }}
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                 </div>
             </div>
         </div>
@@ -51,6 +55,7 @@
 
 @section('footer-scripts')
     <script>
+    $(function () {
         $('.data-table').DataTable({
             "paging": true,
             "lengthChange": true,
@@ -74,6 +79,7 @@
             },
             responsive: true,
         });
+    });
     </script>
 @endsection
 

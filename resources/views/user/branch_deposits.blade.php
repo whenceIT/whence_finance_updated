@@ -50,9 +50,51 @@
     background-color: #f39c12;
     border-color: #e08e0b;
 }
+
+.btn-info {
+    background-color: #3c8dbc;
+    border-color: #367fa9;
+}
+
+.deposit-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.deposit-btns .btn {
+    margin: 0;
+}
+
+.modal-header {
+    background: #3c8dbc;
+    color: #fff;
+}
+
+.modal-header h4 {
+    color: #fff;
+}
+
+.modal-header .close {
+    color: #fff;
+}
 </style>
 
-<div class="content-wrapper">
+<!-- Test with Anchor House First -->
+@if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [1,6,8])) 
+    <x-debt-blocker/>
+@endif
+
+<div class="content">
+    
+    @if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [1,6,8])) 
+        @php
+            $currentMonthYear = date('F Y', strtotime('now'));
+        @endphp
+        @include('risk.partials.office-exemptions-card', ['officeIdParam' => Sentinel::getUser()->office_id, 'cardtitle' => 'Please make sure you have made the following ENABLED deposits for ' . $currentMonthYear])
+
+    @endif
     <section class="content-header">
 
         <div class="deposit-header-box">
@@ -103,6 +145,100 @@
     </div>
   </div>
 </div>
+
+<!-- This Month Deposit Modal -->
+<div class="modal fade" id="thisMonthDepositModal" tabindex="-1" role="dialog" aria-labelledby="thisMonthDepositLabel">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <h4 class="modal-title" id="thisMonthDepositLabel">This Month Deposits</h4>
+      </div>
+      <div class="modal-body">
+        <div id="thisMonthDepositContent" style="max-height:400px; overflow-y:auto;">
+          <table class="table table-striped table-bordered" style="font-size:12px; margin:0;">
+            <thead style="background:#3c8dbc; color:#fff;">
+              <tr>
+                <th style="padding:8px;">Date</th>
+                <th style="padding:8px;">Amount</th>
+                <th style="padding:8px;">Method</th>
+                <th style="padding:8px;">Reference</th>
+              </tr>
+            </thead>
+            <tbody id="thisMonthDepositTable"></tbody>
+            <tfoot>
+              <tr style="font-weight:bold; font-size:16px; color:#003366; background:#f8f9fa;">
+                <td style="padding:8px; text-align:right;" colspan="2">Received:</td>
+                <td style="padding:8px; text-align:right;" id="thisMonthDepositReceived">K0</td>
+                <td style="padding:8px;"></td>
+              </tr>
+              <tr style="font-weight:bold; font-size:14px; color:#003366; background:#e8f4fc;">
+                <td style="padding:8px; text-align:right;" colspan="2">Required:</td>
+                <td style="padding:8px; text-align:right;" id="thisMonthDepositRequired">K0</td>
+                <td style="padding:8px;"></td>
+              </tr>
+              <tr style="font-weight:bold; font-size:14px; color:#003366; background:#fff3cd;">
+                <td style="padding:8px; text-align:right;" colspan="2">Balance:</td>
+                <td style="padding:8px; text-align:right;" id="thisMonthDepositBalance">K0</td>
+                <td style="padding:8px;"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deposit History Modal -->
+<div class="modal fade" id="depositHistoryModal" tabindex="-1" role="dialog" aria-labelledby="depositHistoryLabel">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <h4 class="modal-title" id="depositHistoryLabel">Deposit History</h4>
+      </div>
+      <div class="modal-body">
+        <div id="depositHistoryContent" style="max-height:400px; overflow-y:auto;">
+          <table class="table table-striped table-bordered" style="font-size:12px; margin:0;">
+            <thead style="background:#3c8dbc; color:#fff;">
+              <tr>
+                <th style="padding:8px;">Date</th>
+                <th style="padding:8px;">Amount</th>
+                <th style="padding:8px;">Method</th>
+                <th style="padding:8px;">Reference</th>
+              </tr>
+            </thead>
+            <tbody id="depositHistoryTable"></tbody>
+            <tfoot>
+              <tr style="font-weight:bold; font-size:16px; color:#003366; background:#f8f9fa;">
+                <td style="padding:8px; text-align:right;" colspan="2">Received:</td>
+                <td style="padding:8px; text-align:right;" id="depositHistoryReceived">K0</td>
+                <td style="padding:8px;"></td>
+              </tr>
+              <tr style="font-weight:bold; font-size:14px; color:#003366; background:#e8f4fc;">
+                <td style="padding:8px; text-align:right;" colspan="2">Required:</td>
+                <td style="padding:8px; text-align:right;" id="depositHistoryRequired">K0</td>
+                <td style="padding:8px;"></td>
+              </tr>
+              <tr style="font-weight:bold; font-size:14px; color:#003366; background:#fff3cd;">
+                <td style="padding:8px; text-align:right;" colspan="2">Balance:</td>
+                <td style="padding:8px; text-align:right;" id="depositHistoryBalance">K0</td>
+                <td style="padding:8px;"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('footer-scripts')
@@ -142,6 +278,13 @@ $(document).ready(function () {
             .closest('.deposit-item').css('opacity', 1);
     }
 
+    function unlockAll() {
+        $('.deposit-item').each(function () {
+            $(this).find('input,button,select').prop('disabled', false);
+            $(this).css('opacity', 1);
+        });
+    }
+
     function markCompleted(id) {
         let box = $('.deposit-item[data-deposit-id="'+id+'"]');
 
@@ -153,25 +296,25 @@ $(document).ready(function () {
            .prop('disabled', false);
     }
 
+
+        
     /* ---------- LOAD DEPOSIT TYPES ---------- */
     $.get('https://lms2backend.whencefinancesystem.com/deposit-types', function (res) {
-
         var deposits = res.data || res;
         var container = $('#depositSteps').empty();
+        var officeId = window.currentOfficeId || 1; // Set your office ID
 
         deposits.forEach(function (d) {
-
             depositOrder.push(d.id);
 
-            var skipBtn = (d.id == 2 || d.id == 3 || d.id == 1)
-                ? `<button class="btn btn-warning skip-btn">Skip Deposit</button>`
-                : '';
-
             container.append(`
-                <div class="deposit-item deposit-card" data-deposit-id="${d.id}">
+                <div class="deposit-item deposit-card" data-deposit-id="${d.id}" data-office-id="${officeId}">
                     <h4 class="deposit-title">${d.name}</h4>
                     <p class="existing-amount text-muted">Current Amount: 0</p>
-
+                    <div class="deposit-btns">
+                      <button class="this-month-btn btn btn-primary btn-sm">This Month Deposit</button>
+                      <button class="deposit-history-btn btn btn-info btn-sm">Deposit History</button>
+                    </div>
                     <label class="deposit-label">Payment Method</label>
                     <select class="form-control payment-method">
                         <option value="">Select Method</option>
@@ -183,62 +326,112 @@ $(document).ready(function () {
                         <option value="withinhere">WithinHere</option>
                     </select>
                     <br>
-
                     <small class="text-muted format-hint">Enter Payment Reference Number</small>
                     <input type="text" class="form-control reference" placeholder="Enter reference number" required>
                     <br>
-
                     <input type="number" class="form-control amount" placeholder="Enter amount to add">
                     <br>
                     <button class="btn btn-primary complete-btn">Save Deposit</button>
-                    ${skipBtn}
                 </div>
             `);
         });
 
-        checkCompletedDeposits();
+
+        
     });
+
+    // This Month button handler
+    $(document).on('click', '.this-month-btn', function() {
+        var $card = $(this).closest('.deposit-card');
+        var depositId = $card.data('deposit-id');
+        var officeId = $card.data('office-id');
+        
+        $.get(`https://lms2backend.whencefinancesystem.com/deposit-types/${depositId}/this-month?office_id=${officeId}`, function(res) {
+            var deposits = res.data || [];
+            var monthlyRequired = res.monthly_required || (deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0);
+            var $tbody = $('#thisMonthDepositTable').empty();
+            var total = 0;
+            deposits.forEach(function(d) {
+                var amount = parseFloat(d.amount) || 0;
+                total += amount;
+                var dateVal = formatDate(d.date || d.created_at);
+                $tbody.append('<tr>' +
+                    '<td style="padding:6px;">' + dateVal + '</td>' +
+                    '<td style="padding:6px; text-align:right;">' + amount.toLocaleString() + '</td>' +
+                    '<td style="padding:6px;">' + (d.payment_method || d.method || '-') + '</td>' +
+                    '<td style="padding:6px; font-family:monospace; font-size:11px;">' + (d.reference_number || d.reference || '-') + '</td>' +
+                    '</tr>');
+            });
+            var required = monthlyRequired * 1; //this month
+            var balance = required - total;
+            $('#thisMonthDepositReceived').text('K' + total.toLocaleString());
+            $('#thisMonthDepositRequired').text('K' + required.toLocaleString());
+            $('#thisMonthDepositBalance').text('K' + balance.toLocaleString());
+            $card.find('.existing-amount').text('Current Amount: ' + total.toLocaleString());
+            $('#thisMonthDepositModal .modal-title').text('This Month Deposits: ' + ($card.find('.deposit-title').text() || '-'));
+            $('#thisMonthDepositModal').modal('show');
+        });
+    });
+
+    // Deposit History button handler
+    $(document).on('click', '.deposit-history-btn', function() {
+        var $card = $(this).closest('.deposit-card');
+        var depositId = $card.data('deposit-id');
+        var officeId = $card.data('office-id');
+        
+        $.get(`https://lms2backend.whencefinancesystem.com/deposit-types/${depositId}/history?office_id=${officeId}`, function(res) {
+            var deposits = res.data || [];
+            var monthlyRequired = deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0;
+            var $tbody = $('#depositHistoryTable').empty();
+            var total = 0;
+            deposits.forEach(function(d) {
+                var amount = parseFloat(d.amount) || 0;
+                total += amount;
+                var dateVal = formatDate(d.date || d.created_at);
+                $tbody.append('<tr>' +
+                    '<td style="padding:6px;">' + dateVal + '</td>' +
+                    '<td style="padding:6px; text-align:right;">' + amount.toLocaleString() + '</td>' +
+                    '<td style="padding:6px;">' + (d.payment_method || d.method || '-') + '</td>' +
+                    '<td style="padding:6px; font-family:monospace; font-size:11px;">' + (d.reference_number || d.reference || '-') + '</td>' +
+                    '</tr>');
+            });
+            var required = monthlyRequired * 12;//for current year
+            var balance = required - total;
+            $('#depositHistoryReceived').text('K' + total.toLocaleString());
+            $('#depositHistoryRequired').text('K' + required.toLocaleString());
+            $('#depositHistoryBalance').text('K' + balance.toLocaleString());
+            $('#depositHistoryModal .modal-title').text('Deposit History: ' + (deposits.length > 0 ? deposits[0].deposit_type_name || '-' : '-'));
+            $('#depositHistoryModal').modal('show');
+        });
+    });
+
+    function formatDate(dateStr) {
+        if (!dateStr || dateStr === '-') return '-';
+        var date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        var options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    }
+
 
     /* ---------- CHECK COMPLETED ---------- */
-function checkCompletedDeposits() {
+    function checkCompletedDeposits() {
 
-    var selectedMonth = $('#monthFilter').val();
+        var selectedMonth = $('#monthFilter').val();
+        $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
+            branch: branchId,
+            date: selectedMonth
+        }, function (response) {
 
-    $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
-        branch: branchId,
-        date: selectedMonth
-    }, function (response) {
-
-        lockAll();
-        $('.existing-amount').text('Current Amount: 0');
-        $('.deposit-item').removeClass('completed');
-        $('.deposit-item input').val('');
-        $('.deposit-item select').val('');
-
-        // ✅ ALWAYS UNLOCK DEPOSIT TYPE 5
-        unlock(6);
-
-        if (!response || !response.length) {
-            unlock(depositOrder[0]);
-            return;
-        }
-
-        var completedIds = response.map(r => r.deposit_type);
-        completedIds.forEach(markCompleted);
-
-        response.forEach(r => {
-            let box = $('.deposit-item[data-deposit-id="'+r.deposit_type+'"]');
-            box.find('.existing-amount').text(`Current Amount: ${r.amount}`);
+            console.log('Deposit Check Response:', response);
+            // lockAll();
+            unlockAll();
+            $('.existing-amount').text('Current Amount: 0');
+            $('.deposit-item').removeClass('completed');
+            $('.deposit-item input').val('');
+            $('.deposit-item select').val('');
         });
-
-        for (let id of depositOrder) {
-            if (!completedIds.includes(id)) {
-                unlock(id);
-                break;
-            }
-        }
-    });
-}
+    }
 
     $('#monthFilter').change(function(){
         checkCompletedDeposits();
@@ -279,9 +472,9 @@ function checkCompletedDeposits() {
                 referenceInput.attr('placeholder', 'FJB2606341708208');
                 break;
             case 'withinhere':
-    hint.text('Format: 1777356230718931');
-    referenceInput.attr('placeholder', '1777356230718931');
-    break;
+                hint.text('Format: 1777356230718931');
+                referenceInput.attr('placeholder', '1777356230718931');
+                break;
 
             default:
                 hint.text('Enter Payment Reference Number');
@@ -334,9 +527,9 @@ function checkCompletedDeposits() {
             case 'access':
                 valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
                 break;
-case 'withinhere':
-    valid = /^\d+$/.test(currentReferenceNumber);
-    break;
+            case 'withinhere':
+                valid = /^\d+$/.test(currentReferenceNumber);
+                break;
         }
 
         if (!valid) {
@@ -395,7 +588,7 @@ case 'withinhere':
         let depositId = $(this).closest('.deposit-item').data('deposit-id');
 
         $.ajax({
-            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+            url: 'http:localhost:5000/create-deposit',
             type: 'POST',
             data: {
                 deposit_type: depositId,
@@ -409,8 +602,80 @@ case 'withinhere':
         });
 
     });
-
 });
+
+function loadOfficesSettings() {
+    $.get('/settings/platform/offices-settings', function(data) {
+        var officeId = new URLSearchParams(window.location.search).get('office_id');
+        if (officeId && data && data.OfficeName) {
+            renderExemptions(data);
+            return;
+        }
+        var tableHtml = '';
+        data.forEach(function(o) {
+            tableHtml += '<tr>' +
+                '<td>' + o.name + '</td>' +
+                '<td>' + o.code + '</td>' +
+                '<td>' + (o.admin ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.building ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.statutory ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '<td>' + (o.set_up_debt ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
+                '</tr>';
+        });
+        $('#offices-settings-table').html(tableHtml);
+    });
+}
+
+function renderExemptions(data) {
+    var exemptions = [
+        {
+            title: 'Administration Department Fee Deposit',
+            description: data.admin ? 'Obligated to make payment to Administration Department fee deposit' : 'Excluded from making payment to Administration Department fee deposit',
+            enabled: data.admin,
+            color: data.admin ? '#28a745' : '#dc3545'
+        },
+        {
+            title: 'Building & Infrastructure Fee Deposit',
+            description: data.building ? 'Obligated to make payment to Building & Infrastructure fee deposits' : 'Excluded from making payment to Building & Infrastructure fee deposits',
+            enabled: data.building,
+            color: data.building ? '#28a745' : '#dc3545'
+        },
+        {
+            title: 'Statutory Payments Deposit',
+            description: data.statutory ? 'Obligated to make payment to Statutory payments deposits' : 'Excluded from making payment to Statutory payments deposits',
+            enabled: data.statutory,
+            color: data.statutory ? '#28a745' : '#dc3545'
+        },
+        {
+            title: 'Setup Cost Debt Payment',
+            description: data.set_up_debt ? 'Obligated to make payment towards K5,000 minimum debt for setup cost' : 'Excluded from making payment towards setup cost debt',
+            enabled: data.set_up_debt,
+            color: data.set_up_debt ? '#28a745' : '#dc3545'
+        }
+    ];
+    
+    var html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    exemptions.forEach(function(e) {
+        html += '<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: ' + e.color + '15; border-left: 4px solid ' + e.color + ';">' +
+            '<div style="flex: 1;">' +
+            '<div style="font-weight: 600; color: #343a40; font-size: 14px; margin-bottom: 4px;">' + e.title + '</div>' +
+            '<div style="color: #6c757d; font-size: 13px;">' + e.description + '</div>' +
+            '</div>' +
+            '<div style="text-align: center; min-width: 100px;">' +
+            '<span style="background: ' + e.color + '; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">' +
+            (e.enabled ? 'ENABLED' : 'DISABLED') +
+            '</span>' +
+            '</div>' +
+            '</div>';
+    });
+    html += '</div>';
+    $('#office-exemptions-body').html(html).show();
+}
+
+var officeIdParam = new URLSearchParams(window.location.search).get('office_id');
+if (officeIdParam) {
+    loadOfficesSettings();
+}
 </script>
 @endsection
 

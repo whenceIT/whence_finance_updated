@@ -1,4 +1,5 @@
-﻿<script>
+﻿<script src="/components/kilo-alert"></script>
+<script>
 // Global stub to avoid ReferenceError if inline onclick runs before full script loads
 window.auditWizardNav = function(direction) { console.warn('auditWizardNav called before initialization:', direction); };
 (function () {
@@ -70,7 +71,7 @@ window.auditWizardNav = function(direction) { console.warn('auditWizardNav calle
         });
 
         if (missing.length) {
-            alert('Please complete the required fields for Step 2 before continuing:\n\n' + missing.join('\n'));
+            KiloAlert.warning('Please complete the required fields for Step 2 before continuing:\n\n' + missing.join('\n'));
             return false;
         }
 
@@ -146,7 +147,7 @@ window.auditWizardNav = function(direction) { console.warn('auditWizardNav calle
         })
         .catch(function (error) {
             console.error('Step save failed:', error);
-            alert('Unable to save Step 2 data. Please check your entries and try again.');
+            KiloAlert.error('Unable to save Step 2 data. Please check your entries and try again.');
             if (onSuccess) onSuccess(false);
         });
     }
@@ -498,7 +499,7 @@ window.auditWizardNav = function(direction) { console.warn('auditWizardNav calle
         var form = document.getElementById('auditForm');
         
         if (!form) {
-            alert('Form not found');
+            KiloAlert.error('Form not found');
             return;
         }
 
@@ -522,7 +523,7 @@ window.auditWizardNav = function(direction) { console.warn('auditWizardNav calle
         });
 
         if (missing.length > 0) {
-            alert('Please complete the following required fields:\n\n' + missing.join('\n'));
+            KiloAlert.warning('Please complete the following required fields:\n\n' + missing.join('\n'));
             return;
         }
 
@@ -564,7 +565,7 @@ window.auditWizardNav = function(direction) { console.warn('auditWizardNav calle
                     location.reload();
                 });
             } else {
-                alert('Audit submitted successfully!');
+                KiloAlert.success('Audit submitted successfully!');
                 $('#auditChecklistModal').modal('hide');
                 location.reload();
             }
@@ -586,6 +587,9 @@ window.auditWizardNav = function(direction) { console.warn('auditWizardNav calle
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#e74c3c'
                 });
+            } else {
+                KiloAlert.error(error.message || 'Unable to submit audit. Please check your entries and try again.');
+            }
             } else {
                 alert('Unable to submit audit. Please check your entries and try again.\n\n' + (error.message || ''));
             }
