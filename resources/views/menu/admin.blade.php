@@ -1065,6 +1065,8 @@
                 </ul>
             </li>
 
+
+
             <!-- ============================================
                  PERFORMANCE SECTION
             ============================================ -->
@@ -1418,6 +1420,31 @@
             @endif
 
 
+                                 <!-- ============================================
+                 MOTOR VECHICLE SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/dormant_loans') ) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-car"></i> <span>Motor Vehicle Loans</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Vehicles Dashboard</a></li>
+                    @endif
+                  
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicle Loans</a></li>
+                    @endif
+                </ul>
+            </li>
+
+
+
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
             {{-- ====================================================== --}}
@@ -1491,6 +1518,9 @@
                 </li>
             </ul>
             @endif
+
+
+            
 
 
           

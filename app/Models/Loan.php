@@ -135,6 +135,16 @@ class Loan extends Model
         return $this->hasOne(User::class, 'id', 'disbursed_by_id');
     }
 
+    public function motorVehicleLoan()
+{
+    return $this->hasOne(MotorVehicleLoan::class);
+}
+
+public function repossessions()
+{
+    return $this->hasMany(VehicleRepossession::class);
+}
+
     /**
      * Calculate the current balance for this loan based on transactions.
      * Returns an array with balance and days_in_arrears status.
