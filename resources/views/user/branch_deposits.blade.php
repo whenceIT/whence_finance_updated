@@ -299,7 +299,7 @@ $(document).ready(function () {
 
         
     /* ---------- LOAD DEPOSIT TYPES ---------- */
-    $.get('http://localhost:5000/deposit-types', function (res) {
+    $.get('https://lms2backend.whencefinancesystem.com/deposit-types', function (res) {
         var deposits = res.data || res;
         var container = $('#depositSteps').empty();
         var officeId = window.currentOfficeId || 1; // Set your office ID
@@ -346,7 +346,7 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
-        $.get(`http://localhost:5000/deposit-types/${depositId}/this-month?office_id=${officeId}`, function(res) {
+        $.get(`https://lms2backend.whencefinancesystem.com/deposit-types/${depositId}/this-month?office_id=${officeId}`, function(res) {
             var deposits = res.data || [];
             var monthlyRequired = res.monthly_required || (deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0);
             var $tbody = $('#thisMonthDepositTable').empty();
@@ -379,7 +379,7 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
-        $.get(`http://localhost:5000/deposit-types/${depositId}/history?office_id=${officeId}`, function(res) {
+        $.get(`https://lms2backend.whencefinancesystem.com/deposit-types/${depositId}/history?office_id=${officeId}`, function(res) {
             var deposits = res.data || [];
             var monthlyRequired = deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0;
             var $tbody = $('#depositHistoryTable').empty();
@@ -418,7 +418,7 @@ $(document).ready(function () {
     function checkCompletedDeposits() {
 
         var selectedMonth = $('#monthFilter').val();
-        $.get('http://localhost:5000/check-deposits-report', {
+        $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
             branch: branchId,
             date: selectedMonth
         }, function (response) {
@@ -545,7 +545,7 @@ $(document).ready(function () {
         $('#depositConfirmModal').modal('hide');
 
         $.ajax({
-            url: 'http://localhost:5000/create-deposit',
+            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
@@ -557,7 +557,7 @@ $(document).ready(function () {
             success: function () {
 
                 $.ajax({
-                    url: 'http://localhost:5000/create-deposit-log',
+                    url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
