@@ -82,13 +82,13 @@
 </style>
 
 <!-- Test with Anchor House First -->
-@if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [1,6,8])) 
+@if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [6,8])) 
     <x-debt-blocker/>
 @endif
 
 <div class="content">
     
-    @if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [1,6,8])) 
+    @if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [6,8])) 
         @php
             $currentMonthYear = date('F Y', strtotime('now'));
         @endphp
@@ -299,7 +299,7 @@ $(document).ready(function () {
 
         
     /* ---------- LOAD DEPOSIT TYPES ---------- */
-    $.get('https://lms2backend.whencefinancesystem.com/deposit-types', function (res) {
+    $.get('http://localhost:5000/deposit-types', function (res) {
         var deposits = res.data || res;
         var container = $('#depositSteps').empty();
         var officeId = window.currentOfficeId || 1; // Set your office ID
@@ -311,6 +311,8 @@ $(document).ready(function () {
                 <div class="deposit-item deposit-card" data-deposit-id="${d.id}" data-office-id="${officeId}">
                     <h4 class="deposit-title">${d.name}</h4>
                     <p class="existing-amount text-muted">Current Amount: 0</p>
+                    <p class="monthly-required text-muted" style="display:none;">Monthly Required: 0</p>
+                    <p class="current-balance text-muted">Current Month Balance: 0</p>
                     <div class="deposit-btns">
                       <button class="this-month-btn btn btn-primary btn-sm">This Month Deposit</button>
                       <button class="deposit-history-btn btn btn-info btn-sm">Deposit History</button>
@@ -346,7 +348,7 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
-        $.get(`https://lms2backend.whencefinancesystem.com/deposit-types/${depositId}/this-month?office_id=${officeId}`, function(res) {
+        $.get(`http://localhost:5000/deposit-types/${depositId}/this-month?office_id=${officeId}`, function(res) {
             var deposits = res.data || [];
             var monthlyRequired = res.monthly_required || (deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0);
             var $tbody = $('#thisMonthDepositTable').empty();
@@ -362,12 +364,14 @@ $(document).ready(function () {
                     '<td style="padding:6px; font-family:monospace; font-size:11px;">' + (d.reference_number || d.reference || '-') + '</td>' +
                     '</tr>');
             });
-            var required = monthlyRequired * 1; //this month
+            var required = monthlyRequired * 1;
             var balance = required - total;
             $('#thisMonthDepositReceived').text('K' + total.toLocaleString());
             $('#thisMonthDepositRequired').text('K' + required.toLocaleString());
             $('#thisMonthDepositBalance').text('K' + balance.toLocaleString());
-            $card.find('.existing-amount').text('Current Amount: ' + total.toLocaleString());
+            $card.find('.existing-amount').text('Current Amount: K' + total.toLocaleString());
+            $card.find('.monthly-required').text('Monthly Required: K' + required.toLocaleString()).show();
+            $card.find('.current-balance').text('Current Month Balance: K' + balance.toLocaleString());
             $('#thisMonthDepositModal .modal-title').text('This Month Deposits: ' + ($card.find('.deposit-title').text() || '-'));
             $('#thisMonthDepositModal').modal('show');
         });
@@ -379,7 +383,7 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
-        $.get(`https://lms2backend.whencefinancesystem.com/deposit-types/${depositId}/history?office_id=${officeId}`, function(res) {
+        $.get(`http://localhost:5000/deposit-types/${depositId}/history?office_id=${officeId}`, function(res) {
             var deposits = res.data || [];
             var monthlyRequired = deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0;
             var $tbody = $('#depositHistoryTable').empty();
@@ -418,7 +422,7 @@ $(document).ready(function () {
     function checkCompletedDeposits() {
 
         var selectedMonth = $('#monthFilter').val();
-        $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
+        $.get('http://localhost:5000/check-deposits-report', {
             branch: branchId,
             date: selectedMonth
         }, function (response) {
@@ -545,7 +549,7 @@ $(document).ready(function () {
         $('#depositConfirmModal').modal('hide');
 
         $.ajax({
-            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+            url: 'http://localhost:5000/create-deposit',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
@@ -557,7 +561,7 @@ $(document).ready(function () {
             success: function () {
 
                 $.ajax({
-                    url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
+                    url: 'http://localhost:5000/create-deposit-log',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
