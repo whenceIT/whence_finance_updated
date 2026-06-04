@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('bank_deposit_log', function (Blueprint $table) {
-            $table->unsignedBigInteger('deposit_id')->nullable();
+            $table->unsignedBigInteger('deposit_id')->nullable()->after('deposit_method');
         });
     }
 
