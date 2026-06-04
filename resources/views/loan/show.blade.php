@@ -10,8 +10,8 @@
         $monthlyDepositDone = $block ? \App\Helpers\BlockerHelper::monthlyDepositExists($block) : true;
     @endphp
 
-    <!-- Test with Anchor House First -->
-    @if($block->role->role_id== 4 && in_array($block->office_id, [0])) 
+    <!-- Test with Anchor House First $block->role->role_id== 4 && in_array($block->office_id, [0]) -->
+    @if(false) 
         @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
             <script>window.location.href = '/user/branch_deposits';</script>
         @else
