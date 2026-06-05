@@ -302,9 +302,9 @@
         <button type="button" id="openFailedDepositsModal" class="btn btn-danger btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-exclamation-triangle"></i> Failed Deposits
         </button>
-        <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
-            <i class="fa fa-stop"></i> Exemption Offices
-        </button>
+        <!-- <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-stop"></i> Exempt Offices
+        </button> -->
         <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-check-circle"></i> Activate Blocking for All Offices
         </button>
