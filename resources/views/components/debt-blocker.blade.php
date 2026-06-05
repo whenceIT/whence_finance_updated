@@ -1,14 +1,16 @@
 @php
     $blockerUser = Sentinel::getUser();
-    $debtBlocker = $blockerUser
-        ? \App\Helpers\BlockerHelper::debt_blocker($blockerUser)
-        : ['status' => true, 'balance' => 0];
+    if ($blockerUser) {
+        $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+    } else {
+        $debtBlocker = ['status' => true, 'balance' => 0];
+    }
     $userRole = $blockerUser ? $blockerUser->roles->first() : null;
-    $monthlyDepositOk = ($blockerUser && $userRole && $userRole->id == 4)
-        ? \App\Helpers\BlockerHelper::monthlyDepositExists($blockerUser)
-        : true;
-
-        
+    if ($blockerUser && $userRole && $userRole->id == 4) {
+        $monthlyDepositOk = \App\Helpers\BlockerHelper::monthlyDepositExists($blockerUser);
+    } else {
+        $monthlyDepositOk = true;
+    }
 @endphp
 @if($debtBlocker['status'] && $debtBlocker['balance'] > 0)
     {{-- Debt Blocker Overlay (reusable component) --}}
@@ -191,13 +193,14 @@
                     amount: currentDepositAmount,
                     date: today()
                 }),
-                success: function () {
+                success: function (res) {
                     $.ajax({
                         url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
                             deposit_type: currentDepositType,
+                            deposit_id: res.deposit_id,
                             office_id: branchId,
                             user_id: userId,
                             amount: currentDepositAmount,

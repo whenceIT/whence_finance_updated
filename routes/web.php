@@ -234,6 +234,10 @@ Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
     Route::post('/platform/initialize-all', [PlatformController::class, 'initializeAllOffices']);
     Route::post('/platform/deactivate-all', [PlatformController::class, 'deactivateAllOffices']);
     Route::get('/platform/offices-settings', [PlatformController::class, 'getOfficesSettings']);
+    Route::get('/platform/block-skip/get', [PlatformController::class, 'getBlockSkipSettings']);
+    Route::post('/platform/block-skip/save', [PlatformController::class, 'saveBlockSkipSettings']);
+    Route::post('/platform/block-skip/initialize-all', [PlatformController::class, 'initializeBlockSkipAllOffices']);
+    Route::post('/platform/block-skip/deactivate-all', [PlatformController::class, 'deactivateBlockSkipAllOffices']);
 });
 
 // Course Categories Management Routes

@@ -20,6 +20,7 @@ class BankDepositLog extends Model
         'deposit_method',
         'reference_number',
         'created_date',
+        'deposit_id',
     ];
 
     public function depositType()
@@ -35,5 +36,10 @@ class BankDepositLog extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function deposit()
+    {
+        return $this->belongsTo(Deposit::class, 'deposit_id', 'id');
     }
 }

@@ -136,4 +136,113 @@ class PlatformController extends Controller
         return response()->json(['success' => true, 'message' => 'Exempted deposits restrictions for all offices.']);
       
     }
+
+    public function getBlockSkipSettings()
+    {
+        $officeIds = request('office_id');
+        
+        if ($officeIds) {
+            $officeIds = is_array($officeIds) ? $officeIds : [$officeIds];
+            $settings = [];
+            foreach ($officeIds as $officeId) {
+                $setting = PlatformSetting::getBranchBlockSkipSettings($officeId);
+                $settings[] = array_merge($setting, ['office_id' => $officeId]);
+            }
+            return response()->json($settings);
+        }
+        
+        $offices = \App\Models\Office::orderBy('name')->get();
+        $settings = [];
+        foreach ($offices as $office) {
+            $setting = PlatformSetting::getBranchBlockSkipSettings($office->id);
+            $settings[] = array_merge($setting, ['office_id' => $office->id, 'name' => $office->name, 'code' => $office->external_id ?? '#'.$office->id]);
+        }
+        return response()->json($settings);
+    }
+
+    public function saveBlockSkipSettings(Request $request)
+    {
+        $data = $request->validate([
+            'id' => 'nullable|exists:platform_settings,id',
+            'office_id' => 'required|array|min:1',
+            'office_id.*' => 'exists:offices,id',
+            'admin' => 'sometimes|integer|min:0|max:1',
+            'building' => 'sometimes|integer|min:0|max:1',
+            'statutory' => 'sometimes|integer|min:0|max:1',
+            'set_up_debt' => 'sometimes|integer|min:0|max:1',
+        ]);
+
+        $value = [
+            'admin' => (int) ($data['admin'] ?? 0) === 0,
+            'building' => (int) ($data['building'] ?? 0) === 0,
+            'statutory' => (int) ($data['statutory'] ?? 0) === 0,
+            'set_up_debt' => (int) ($data['set_up_debt'] ?? 0) === 0,
+        ];
+
+        foreach ($data['office_id'] as $officeId) {
+            $key = 'branch_block_skiping_' . $officeId;
+
+            $existing = PlatformSetting::where('key', $key)->first();
+
+            if ($existing) {
+                $existing->update(['value' => $value]);
+            } else {
+                PlatformSetting::create([
+                    'key' => $key,
+                    'value' => $value,
+                ]);
+            }
+        }
+
+        return response()->json(['success' => true, 'message' => 'Settings saved.']);
+    }
+
+    public function initializeBlockSkipAllOffices()
+    {
+        PlatformSetting::where('key','like', 'branch_block_skiping_%')->delete();
+        
+        $offices = \App\Models\Office::all();
+        
+        foreach ($offices as $office) {
+            $key = 'branch_block_skiping_' . $office->id;
+
+                PlatformSetting::create([
+                    'key' => $key,
+                    'value' => [
+                        'office_id' => $office->id,
+                        'admin' => true,
+                        'building' => true,
+                        'statutory' => true,
+                        'set_up_debt' => true,
+                    ],
+                ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Activated blocking for all offices.']);
+    }
+
+    public function deactivateBlockSkipAllOffices()
+    {
+        PlatformSetting::where('key','like', 'branch_block_skiping_%')->delete();
+        
+        $offices = \App\Models\Office::all();
+        
+        foreach ($offices as $office) {
+            $key = 'branch_block_skiping_' . $office->id;
+
+                PlatformSetting::create([
+                    'key' => $key,
+                    'value' => [
+                        'office_id' => $office->id,
+                        'admin' => false,
+                        'building' => false,
+                        'statutory' => false,
+                        'set_up_debt' => false,
+                    ],
+                ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Removed blocking for all offices.']);
+      
+    }
 }
