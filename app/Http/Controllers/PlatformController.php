@@ -139,14 +139,14 @@ class PlatformController extends Controller
 
     public function getBlockSkipSettings()
     {
-        $officeIds = request('office_id');
+        $officeId = request('office_id');
         
-        if ($officeIds) {
-            $officeIds = is_array($officeIds) ? $officeIds : [$officeIds];
+        if ($officeId) {
+            $officeIds = is_array($officeId) ? $officeId : [$officeId];
             $settings = [];
-            foreach ($officeIds as $officeId) {
-                $setting = PlatformSetting::getBranchBlockSkipSettings($officeId);
-                $settings[] = array_merge($setting, ['office_id' => $officeId]);
+            foreach ($officeIds as $oid) {
+                $setting = PlatformSetting::getBranchBlockSkipSettings($oid);
+                $settings[] = array_merge($setting, ['office_id' => $oid]);
             }
             return response()->json($settings);
         }
@@ -164,13 +164,14 @@ class PlatformController extends Controller
     {
         $data = $request->validate([
             'id' => 'nullable|exists:platform_settings,id',
-            'office_id' => 'required|array|min:1',
-            'office_id.*' => 'exists:offices,id',
+            'office_id' => 'required',
             'admin' => 'sometimes|integer|min:0|max:1',
             'building' => 'sometimes|integer|min:0|max:1',
             'statutory' => 'sometimes|integer|min:0|max:1',
             'set_up_debt' => 'sometimes|integer|min:0|max:1',
         ]);
+
+        $officeIds = is_array($data['office_id']) ? $data['office_id'] : [$data['office_id']];
 
         $value = [
             'admin' => (int) ($data['admin'] ?? 0) === 0,
@@ -179,7 +180,7 @@ class PlatformController extends Controller
             'set_up_debt' => (int) ($data['set_up_debt'] ?? 0) === 0,
         ];
 
-        foreach ($data['office_id'] as $officeId) {
+        foreach ($officeIds as $officeId) {
             $key = 'branch_block_skiping_' . $officeId;
 
             $existing = PlatformSetting::where('key', $key)->first();
