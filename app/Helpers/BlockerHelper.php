@@ -20,7 +20,7 @@ class BlockerHelper
      *         status  = false → no deposit found this month (show blocker)
      *         balance = outstanding_amount from office_debts table for this office/month
      */
-    public static function debt_blocker($user): array
+    public static function debt_blocker($user)
     {
         $officeId = $user->office_id ?? null;
 
@@ -71,7 +71,7 @@ class BlockerHelper
 
     }
 
-public static function monthlyDepositExists($user): bool
+public static function monthlyDepositExists($user)
     {
         $officeId = $user->office_id ?? null;
 

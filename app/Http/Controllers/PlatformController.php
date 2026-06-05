@@ -139,27 +139,33 @@ class PlatformController extends Controller
 
     public function getBlockSkipSettings()
     {
-        $officeId = request('office_id');
+        $officeIds = request('office_id');
         
-        if ($officeId) {
-            $settings = PlatformSetting::getBranchBlockSkipSettings($officeId);
-            return response()->json([
-                'office_id' => $officeId,
-                'admin' => $settings['admin'],
-                'building' => $settings['building'],
-                'statutory' => $settings['statutory'],
-                'set_up_debt' => $settings['set_up_debt'],
-            ]);
+        if ($officeIds) {
+            $officeIds = is_array($officeIds) ? $officeIds : [$officeIds];
+            $settings = [];
+            foreach ($officeIds as $officeId) {
+                $setting = PlatformSetting::getBranchBlockSkipSettings($officeId);
+                $settings[] = array_merge($setting, ['office_id' => $officeId]);
+            }
+            return response()->json($settings);
         }
         
-        return response()->json(PlatformSetting::getAllOfficesWithBlockSkipSettings());
+        $offices = \App\Models\Office::orderBy('name')->get();
+        $settings = [];
+        foreach ($offices as $office) {
+            $setting = PlatformSetting::getBranchBlockSkipSettings($office->id);
+            $settings[] = array_merge($setting, ['office_id' => $office->id, 'name' => $office->name, 'code' => $office->external_id ?? '#'.$office->id]);
+        }
+        return response()->json($settings);
     }
 
     public function saveBlockSkipSettings(Request $request)
     {
         $data = $request->validate([
             'id' => 'nullable|exists:platform_settings,id',
-            'office_id' => 'required|exists:offices,id',
+            'office_id' => 'required|array|min:1',
+            'office_id.*' => 'exists:offices,id',
             'admin' => 'sometimes|integer|min:0|max:1',
             'building' => 'sometimes|integer|min:0|max:1',
             'statutory' => 'sometimes|integer|min:0|max:1',
@@ -167,32 +173,25 @@ class PlatformController extends Controller
         ]);
 
         $value = [
-            'office_id' => $data['office_id'],
             'admin' => (int) ($data['admin'] ?? 0) === 0,
             'building' => (int) ($data['building'] ?? 0) === 0,
             'statutory' => (int) ($data['statutory'] ?? 0) === 0,
             'set_up_debt' => (int) ($data['set_up_debt'] ?? 0) === 0,
         ];
 
-        $key = 'branch_block_skiping_' . $data['office_id'];
+        foreach ($data['office_id'] as $officeId) {
+            $key = 'branch_block_skiping_' . $officeId;
 
-        if (!empty($data['id'])) {
-            $setting = PlatformSetting::find($data['id']);
-            if ($setting) {
-                $setting->update(['key' => $key, 'value' => $value]);
-                return response()->json(['success' => true, 'message' => 'Settings updated.']);
+            $existing = PlatformSetting::where('key', $key)->first();
+
+            if ($existing) {
+                $existing->update(['value' => $value]);
+            } else {
+                PlatformSetting::create([
+                    'key' => $key,
+                    'value' => $value,
+                ]);
             }
-        }
-
-        $existing = PlatformSetting::where('key', $key)->first();
-
-        if ($existing) {
-            $existing->update(['value' => $value]);
-        } else {
-            PlatformSetting::create([
-                'key' => $key,
-                'value' => $value,
-            ]);
         }
 
         return response()->json(['success' => true, 'message' => 'Settings saved.']);

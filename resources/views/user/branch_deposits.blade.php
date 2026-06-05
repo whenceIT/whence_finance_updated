@@ -309,12 +309,10 @@ $(document).ready(function () {
             container.append(`
                 <div class="deposit-item deposit-card" data-deposit-id="${d.id}" data-office-id="${officeId}">
                     <h4 class="deposit-title">${d.name}</h4>
-                    <p class="existing-amount text-muted">Current Amount: 0</p>
-                    <p class="monthly-required text-muted" style="display:none;">Monthly Required: 0</p>
-                    <p class="current-balance text-muted">Current Month Balance: 0</p>
+                   
                     <div class="deposit-btns">
                       <button class="this-month-btn btn btn-primary btn-sm">This Month Deposit</button>
-                      <button class="deposit-history-btn btn btn-info btn-sm">Deposit History</button>
+                      <button class="deposit-history-btn btn btn-info btn-sm">Check Deposit History</button>
                     </div>
                     <label class="deposit-label">Payment Method</label>
                     <select class="form-control payment-method">
@@ -577,10 +575,10 @@ $(document).ready(function () {
                     })
                 })
                 .done(function () {
-                    // location.reload();
+                    location.reload();
                 })
                 .fail(function () {
-                    // location.reload();
+                    location.reload();
                 });
             }
         });

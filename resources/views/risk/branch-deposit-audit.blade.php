@@ -1388,8 +1388,8 @@
                     <input type="hidden" id="blockSkipId" value="">
                     <div class="form-group">
                         <label>Office</label>
-                        <select id="blockSkipOffice" class="form-control">
-                            <option value="">Select an office…</option>
+                        <select id="blockSkipOffice" class="form-control select2" multiple>
+                            <option value="">Select offices…</option>
                             <?php
                                 $offices = \App\Models\Office::orderBy('name')->get();
                                 foreach ($offices as $o) {
@@ -1587,24 +1587,78 @@ if (officeIdParam) {
 
 $(document).on('click', '#openBlockSkipModal', function() {
     $('#blockSkipModal').modal('show');
-    loadBlockSkipSettings();
+    $('#blockSkipOffice').val(null).trigger('change');
+    $('input[name="admin"]').prop('checked', false);
+    $('input[name="building"]').prop('checked', false);
+    $('input[name="statutory"]').prop('checked', false);
+    $('input[name="set_up_debt"]').prop('checked', false);
+    $('#blockSkipId').val('');
+});
+
+function initBlockSkipSelect2() {
+    if (typeof $.fn.select2 !== 'undefined') {
+        if (!$('#blockSkipOffice').data('select2')) {
+            $('#blockSkipOffice').select2({
+                placeholder: 'Select offices…',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#blockSkipModal')
+            });
+        }
+    }
+}
+
+$('#blockSkipModal').on('shown.bs.modal', function() {
+    initBlockSkipSelect2();
 });
 
 function loadBlockSkipSettings(officeId) {
     var url = '/settings/platform/block-skip/get';
     if (officeId) url += '?office_id=' + officeId;
     $.get(url, function(data) {
-        $('#blockSkipId').val(data.id || '');
-        $('#blockSkipOffice').val(data.office_id || '');
-        $('input[name="admin"][value="' + (data.admin ? '0' : '1') + '"]').prop('checked', true);
-        $('input[name="building"][value="' + (data.building ? '0' : '1') + '"]').prop('checked', true);
-        $('input[name="statutory"][value="' + (data.statutory ? '0' : '1') + '"]').prop('checked', true);
-        $('input[name="set_up_debt"][value="' + (data.set_up_debt ? '0' : '1') + '"]').prop('checked', true);
+        if (Array.isArray(data)) {
+            var first = data[0] || {};
+            $('#blockSkipId').val(first.id || '');
+            var officeIds = data.map(function(d) { return d.office_id; });
+            $('#blockSkipOffice').val(officeIds).trigger('change');
+            var allSame = data.every(function(d) { return d.admin === first.admin; });
+            if (allSame) {
+                $('input[name="admin"][value="' + (first.admin ? '0' : '1') + '"]').prop('checked', true);
+            }
+            allSame = data.every(function(d) { return d.building === first.building; });
+            if (allSame) {
+                $('input[name="building"][value="' + (first.building ? '0' : '1') + '"]').prop('checked', true);
+            }
+            allSame = data.every(function(d) { return d.statutory === first.statutory; });
+            if (allSame) {
+                $('input[name="statutory"][value="' + (first.statutory ? '0' : '1') + '"]').prop('checked', true);
+            }
+            allSame = data.every(function(d) { return d.set_up_debt === first.set_up_debt; });
+            if (allSame) {
+                $('input[name="set_up_debt"][value="' + (first.set_up_debt ? '0' : '1') + '"]').prop('checked', true);
+            }
+        } else {
+            $('#blockSkipId').val(data.id || '');
+            if (Array.isArray(data.office_id)) {
+                $('#blockSkipOffice').val(data.office_id).trigger('change');
+            } else {
+                $('#blockSkipOffice').val(data.office_id || '').trigger('change');
+            }
+            $('input[name="admin"][value="' + (data.admin ? '0' : '1') + '"]').prop('checked', true);
+            $('input[name="building"][value="' + (data.building ? '0' : '1') + '"]').prop('checked', true);
+            $('input[name="statutory"][value="' + (data.statutory ? '0' : '1') + '"]').prop('checked', true);
+            $('input[name="set_up_debt"][value="' + (data.set_up_debt ? '0' : '1') + '"]').prop('checked', true);
+        }
     });
 }
 
 $('#blockSkipOffice').on('change', function() {
-    loadBlockSkipSettings($(this).val());
+    var selected = $(this).val();
+    if (selected && selected.length === 1) {
+        loadBlockSkipSettings(selected[0]);
+    } else if (selected && selected.length > 1) {
+        loadBlockSkipSettings(selected);
+    }
 });
 
 $('#blockSkipForm').on('submit', function(e) {
