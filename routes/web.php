@@ -1447,6 +1447,7 @@ Route::group(['prefix' => 'survey'], function () {
 
 //route for expenses
 Route::group(['prefix' => 'expense'], function () {
+    Route::get('dashboard','ExpenseController@dashboard');
     Route::get('data', 'ExpenseController@index');
     Route::get('create', 'ExpenseController@create');
     Route::post('store', 'ExpenseController@store');
