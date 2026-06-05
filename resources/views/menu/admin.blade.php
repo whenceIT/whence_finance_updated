@@ -1298,6 +1298,10 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
+
+                            @if(Sentinel::hasAccess('settings'))
+                    <li><a href="{{ url('expense/dashboard') }}"><i class="fa fa-circle-o"></i>Expenses Dashboard</a></li>
+                    @endif
                             @if(Sentinel::hasAccess('expenses.view'))
                                 <li><a href="{{ url('expense/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.expense',2)}}</a></li>
                             @endif

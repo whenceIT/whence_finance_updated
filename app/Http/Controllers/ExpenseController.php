@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\Notifix;
+use Illuminate\Support\Facades\Http;
+
 
 use Laracasts\Flash\Flash;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +77,46 @@ class ExpenseController extends Controller
 
         return view('expense.data', compact('data', 'start_date', 'end_date', 'office_id', 'offices'));
     }
+
+
+        public function dashboard(Request $request)
+    {
+     $start_date = $request->start_date ?? date('Y-m-01');
+$end_date = $request->end_date ?? date('Y-m-t');
+
+        $response = Http::get(
+            'https://lms2backend.whencefinancesystem.com/expense-dashboard',
+            [
+                'start_date' => $start_date,
+                'end_date' => $end_date
+            ]
+        );
+
+        $data = $response->json();
+
+      
+        return view('expense.dashboard', [
+
+    'institution' => $data['institution'],
+
+    'provinces' => $data['provinces'],
+    'branches' => $data['branches'],
+    'categories' => $data['categories'],
+    'expenses' => $data['expenses'],
+
+    'topProvince' => $data['topProvince'],
+    'topBranch' => $data['topBranch'],
+
+    'monthlyTrend' => $data['monthlyTrend'],
+    'categoryBreakdown' => $data['categoryBreakdown'],
+
+    'monthlyComparison' => $data['monthlyComparison'],
+
+    'start_date' => $start_date,
+    'end_date' => $end_date
+]);
+    }
+
 
     /**
      * Show the form for creating a new resource.
