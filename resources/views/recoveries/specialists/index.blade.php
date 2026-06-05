@@ -70,7 +70,7 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="user_id">Select User</label>
-                        <select name="user_id" id="user_id" class="form-control select2" style="width: 100%;" required>
+                        <select name="user_id" id="user_id" class="form-control select2-search" style="width: 100%;" required>
                             <option value="">Search and select a user...</option>
                             @foreach(App\User::orderBy('first_name')->orderBy('last_name')->get() as $user)
                                 <option value="{{ $user->id }}">
@@ -93,4 +93,35 @@
     </div>
 </div>
 
+@endsection
+
+@section('footer-scripts')
+<script>
+$(document).ready(function() {
+    var $select = $('#user_id');
+    
+    $('#addSpecialistModal').on('shown.bs.modal', function() {
+        if (typeof $.fn.select2 !== 'undefined' && !$select.hasClass('select2-hidden-accessible')) {
+            $select.select2({
+                placeholder: 'Search and select a user...',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#addSpecialistModal .modal-body')
+            });
+        }
+    });
+    
+    $('#addSpecialistModal').on('hidden.bs.modal', function() {
+        if ($select.hasClass('select2-hidden-accessible')) {
+            $select.select2('destroy');
+        }
+    });
+    
+    $('.select2-search').select2({
+        placeholder: 'Search...',
+        allowClear: true,
+        width: '100%'
+    });
+});
+</script>
 @endsection

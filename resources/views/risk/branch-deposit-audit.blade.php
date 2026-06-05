@@ -1388,7 +1388,7 @@
                     <input type="hidden" id="blockSkipId" value="">
                     <div class="form-group">
                         <label>Office</label>
-                        <select id="blockSkipOffice" class="form-control select2" multiple>
+                        <select id="blockSkipOffice" class="form-control" multiple style="width: 100%;">
                             <option value="">Select offices…</option>
                             <?php
                                 $offices = \App\Models\Office::orderBy('name')->get();
@@ -1595,21 +1595,15 @@ $(document).on('click', '#openBlockSkipModal', function() {
     $('#blockSkipId').val('');
 });
 
-function initBlockSkipSelect2() {
-    if (typeof $.fn.select2 !== 'undefined') {
-        if (!$('#blockSkipOffice').data('select2')) {
-            $('#blockSkipOffice').select2({
-                placeholder: 'Select offices…',
-                allowClear: true,
-                width: '100%',
-                dropdownParent: $('#blockSkipModal')
-            });
-        }
-    }
-}
-
 $('#blockSkipModal').on('shown.bs.modal', function() {
-    initBlockSkipSelect2();
+    if (typeof $.fn.select2 !== 'undefined' && !$('#blockSkipOffice').data('select2')) {
+        $('#blockSkipOffice').select2({
+            placeholder: 'Select offices…',
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#blockSkipModal .modal-body')
+        });
+    }
 });
 
 function loadBlockSkipSettings(officeId) {
@@ -1621,6 +1615,9 @@ function loadBlockSkipSettings(officeId) {
             $('#blockSkipId').val(first.id || '');
             var officeIds = data.map(function(d) { return d.office_id; });
             $('#blockSkipOffice').val(officeIds).trigger('change');
+            if ($('#blockSkipOffice').hasClass('select2-hidden-accessible')) {
+                $('#blockSkipOffice').trigger('change.select2');
+            }
             var allSame = data.every(function(d) { return d.admin === first.admin; });
             if (allSame) {
                 $('input[name="admin"][value="' + (first.admin ? '0' : '1') + '"]').prop('checked', true);

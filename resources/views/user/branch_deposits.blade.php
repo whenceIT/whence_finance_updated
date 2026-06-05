@@ -3,6 +3,7 @@
 @section('title', 'Monthly Deposits')
 
 @section('content')
+<x-kilo-alert/>
 <style>
 .deposit-card {
     border-radius: 8px;
@@ -247,6 +248,7 @@ $(document).ready(function () {
     var branchId = {{ $office_id }};
     var userId = {{$userId}};
     var depositOrder = [];
+    var depositApiUrl = window.APP_URL || 'http://localhost:8000';
 
     var currentDepositType = null;
     var currentDepositAmount = null;
@@ -297,21 +299,40 @@ $(document).ready(function () {
 
 
         
-    /* ---------- LOAD DEPOSIT TYPES ---------- */
-    $.get('https://lms2backend.whencefinancesystem.com/deposit-types', function (res) {
-        var deposits = res.data || res;
-        var container = $('#depositSteps').empty();
-        var officeId = window.currentOfficeId || 1; // Set your office ID
-
-        deposits.forEach(function (d) {
-            depositOrder.push(d.id);
-
-            container.append(`
-                <div class="deposit-item deposit-card" data-deposit-id="${d.id}" data-office-id="${officeId}">
-                    <h4 class="deposit-title">${d.name}</h4>
-                   
+    function loadDepositCardData(depositId, depositName, officeId, container) {
+    $.ajax({
+        url: `${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}`,
+        method: 'GET',
+        success: function(res) {
+            var deposits = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+            var monthlyRequired = parseFloat(res.monthly_required || res.total_required || (deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0));
+            var total = 0;
+            deposits.forEach(function(d) {
+                total += parseFloat(d.amount) || 0;
+            });
+            var balance = monthlyRequired - total;
+            
+            var statusText = 'Not Paid';
+            var statusColor = '#e74c3c';
+            if (total > 0 && monthlyRequired > total) {
+                statusText = 'Partially Paid';
+                statusColor = '#f39c12';
+            } else if (total > 0 && monthlyRequired <= total) {
+                statusText = 'Fully Paid';
+                statusColor = '#27ae60';
+            }
+            
+            var $card = $(`
+                <div class="deposit-item deposit-card" data-deposit-id="${depositId}" data-office-id="${officeId}">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                        <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
+                        <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
+                    </div>
+                    <p class="monthly-required text-muted">Monthly Required: K${monthlyRequired.toLocaleString() || 0}</p>
+                    <p class="existing-amount text-muted">Current Amount: K${total.toLocaleString() || 0}</p>
+                    <p class="current-balance text-muted">Current Month Balance: K${balance.toLocaleString() || 0}</p>
                     <div class="deposit-btns">
-                      <button class="this-month-btn btn btn-primary btn-sm">This Month Deposit</button>
+                      <button class="this-month-btn btn btn-success btn-sm">This Month Deposit</button>
                       <button class="deposit-history-btn btn btn-info btn-sm">Check Deposit History</button>
                     </div>
                     <label class="deposit-label">Payment Method</label>
@@ -328,15 +349,44 @@ $(document).ready(function () {
                     <small class="text-muted format-hint">Enter Payment Reference Number</small>
                     <input type="text" class="form-control reference" placeholder="Enter reference number" required>
                     <br>
-                    <input type="number" class="form-control amount" placeholder="Enter amount to add">
+                    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="0.01" step="0.01" required>
                     <br>
-                    <button class="btn btn-primary complete-btn">Save Deposit</button>
+                    <button class="btn btn-primary complete-btn" style="min-width: 100px;">
+                        <span class="btn-text">Save Deposit</span>
+                        <span class="btn-loader" style="display: none; margin-left: 8px;">
+                            <i class="fa fa-spinner fa-spin"></i>
+                        </span>
+                    </button>
                 </div>
             `);
+            container.append($card);
+        },
+        error: function(xhr, status, error) {
+            container.append(`
+                <div class="deposit-item deposit-card" data-deposit-id="${depositId}" data-office-id="${officeId}">
+                    <h4 class="deposit-title">${depositName}</h4>
+                    <p class="monthly-required text-muted">Monthly Required: K0</p>
+                    <p class="existing-amount text-muted">Current Amount: K0</p>
+                    <p class="current-balance text-muted">Current Month Balance: K0</p>
+                    <div class="deposit-btns">
+                      <button class="this-month-btn btn btn-primary btn-sm">This Month Deposit</button>
+                      <button class="deposit-history-btn btn btn-info btn-sm">Check Deposit History</button>
+                    </div>
+                </div>
+            `);
+        }
+    });
+}
+
+/* ---------- LOAD DEPOSIT TYPES ---------- */
+    $.get(`${depositApiUrl}/deposit-types`, function (res) {
+        var deposits = res.data || res;
+        var container = $('#depositSteps').empty();
+
+        deposits.forEach(function (d) {
+            depositOrder.push(d.id);
+            loadDepositCardData(d.id, d.name, branchId, container);
         });
-
-
-        
     });
 
     // This Month button handler
@@ -345,7 +395,7 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
-        $.get(`https://lms2backend.whencefinancesystem.com/deposit-types/${depositId}/this-month?office_id=${officeId}`, function(res) {
+        $.get(`${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}`, function(res) {
             var deposits = res.data || [];
             var monthlyRequired = res.monthly_required || (deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0);
             var $tbody = $('#thisMonthDepositTable').empty();
@@ -367,10 +417,12 @@ $(document).ready(function () {
             $('#thisMonthDepositRequired').text('K' + required.toLocaleString());
             $('#thisMonthDepositBalance').text('K' + balance.toLocaleString());
             $card.find('.existing-amount').text('Current Amount: K' + total.toLocaleString());
-            $card.find('.monthly-required').text('Monthly Required: K' + required.toLocaleString()).show();
+            $card.find('.monthly-required').text('Monthly Required: K' + required.toLocaleString());
             $card.find('.current-balance').text('Current Month Balance: K' + balance.toLocaleString());
             $('#thisMonthDepositModal .modal-title').text('This Month Deposits: ' + ($card.find('.deposit-title').text() || '-'));
             $('#thisMonthDepositModal').modal('show');
+        }).fail(function(xhr, status, error) {
+            console.error('Failed to fetch this month deposits:', error);
         });
     });
 
@@ -380,7 +432,7 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
-        $.get(`https://lms2backend.whencefinancesystem.com/deposit-types/${depositId}/history?office_id=${officeId}`, function(res) {
+        $.get(`${depositApiUrl}/deposit-types/${depositId}/history?office_id=${officeId}`, function(res) {
             var deposits = res.data || [];
             var monthlyRequired = deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0;
             var $tbody = $('#depositHistoryTable').empty();
@@ -419,18 +471,22 @@ $(document).ready(function () {
     function checkCompletedDeposits() {
 
         var selectedMonth = $('#monthFilter').val();
-        $.get('https://lms2backend.whencefinancesystem.com/check-deposits-report', {
+        $.get(`${depositApiUrl}/check-deposits-report`, {
             branch: branchId,
             date: selectedMonth
         }, function (response) {
 
             console.log('Deposit Check Response:', response);
-            // lockAll();
             unlockAll();
-            $('.existing-amount').text('Current Amount: 0');
-            $('.deposit-item').removeClass('completed');
-            $('.deposit-item input').val('');
-            $('.deposit-item select').val('');
+            $('#depositSteps').empty();
+            depositOrder = [];
+            $.get(`${depositApiUrl}/deposit-types`, function (res) {
+                var deposits = res.data || res;
+                deposits.forEach(function (d) {
+                    depositOrder.push(d.id);
+                    loadDepositCardData(d.id, d.name, branchId, $('#depositSteps'));
+                });
+            });
         });
     }
 
@@ -482,10 +538,10 @@ $(document).ready(function () {
         }
     });
 
-    /* ---------- SAVE DEPOSIT ---------- */
+/* ---------- SAVE DEPOSIT ---------- */
     $(document).on('click', '.complete-btn', function () {
-
-        let box = $(this).closest('.deposit-item');
+        let $btn = $(this);
+        let box = $btn.closest('.deposit-item');
         currentDepositType = box.data('deposit-id');
 
         let raw = box.find('.amount').val();
@@ -495,21 +551,20 @@ $(document).ready(function () {
         currentPaymentMethod = paymentMethod;
 
         if (!paymentMethod) {
-            alert('Please select a payment method.');
+            KiloAlert.warning('Please select a payment method.');
             return;
         }
 
         if (!currentReferenceNumber) {
-            alert('Please enter a payment reference number.');
+            KiloAlert.warning('Please enter a payment reference number.');
             return;
         }
 
         if (isNaN(currentDepositAmount) || currentDepositAmount <= 0) {
-            alert('Enter a valid amount to add');
+            KiloAlert.warning('Enter a valid amount to add');
             return;
         }
 
-        // Format Validation
         let valid = false;
 
         switch (paymentMethod) {
@@ -534,53 +589,67 @@ $(document).ready(function () {
         }
 
         if (!valid) {
-            alert('Invalid reference format for selected payment method.');
+            KiloAlert.warning('Invalid reference format for selected payment method.');
             return;
         }
 
+        $btn.prop('disabled', true);
+        $btn.find('.btn-text').hide();
+        $btn.find('.btn-loader').show();
         $('#depositConfirmModal').modal('show');
-    });
-
-    $('#modalConfirmBtn').click(function () {
-
-        $('#depositConfirmModal').modal('hide');
-
+        
+        $('#modalConfirmBtn').off('click').on('click', function() {
+            $(this).prop('disabled', true);
+            
             $.ajax({
-                url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+                url: `${depositApiUrl}/create-deposit`,
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
                     deposit_type: currentDepositType,
                     office: branchId,
                     amount: currentDepositAmount,
+                    reference_number: currentReferenceNumber,
+                    deposit_method: currentPaymentMethod,
                     date: today()
-            }),
-
-
-            success: function (res) {
-
-                console.log(res.deposit_id);
-                $.ajax({
-                    url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        deposit_type: currentDepositType,
-                        deposit_id: res.deposit_id,
-                        office_id: branchId,
-                        user_id: userId,
-                        amount: currentDepositAmount,
-                        reference_number: currentReferenceNumber,
-                        deposit_method: currentPaymentMethod 
+                }),
+                success: function (res) {
+                    $.ajax({
+                        url: `${depositApiUrl}/create-deposit-log`,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            deposit_type: currentDepositType,
+                            deposit_id: res.deposit_id,
+                            office_id: branchId,
+                            user_id: userId,
+                            amount: currentDepositAmount,
+                            reference_number: currentReferenceNumber,
+                            deposit_method: currentPaymentMethod 
+                        })
                     })
-                })
-                .done(function () {
-                    location.reload();
-                })
-                .fail(function () {
-                    location.reload();
-                });
-            }
+                    .done(function () {
+                        KiloAlert.success(res.message || 'Deposit saved successfully');
+                        setTimeout(function() { location.reload(); }, 1500);
+                    })
+                    .fail(function (res) {
+                        KiloAlert.error('Failed to save deposit log. Please try again.'.res.error || '');
+                        $btn.prop('disabled', false);
+                        $btn.find('.btn-text').show();
+                        $btn.find('.btn-loader').hide();
+                    });
+                },
+                error: function() {
+                    KiloAlert.error('Failed to save deposit. Please try again.');
+                    $btn.prop('disabled', false);
+                    $btn.find('.btn-text').show();
+                    $btn.find('.btn-loader').hide();
+                }
+            });
+            $('#depositConfirmModal').modal('hide');
+
+            // wait 4 second to reload page
+            setTimeout(function() { location.reload(); }, 4000);
         });
     });
 
@@ -592,7 +661,7 @@ $(document).ready(function () {
         let depositId = $(this).closest('.deposit-item').data('deposit-id');
 
         $.ajax({
-            url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+            url: `${depositApiUrl}/create-deposit`,
             type: 'POST',
             data: {
                 deposit_type: depositId,
@@ -600,8 +669,12 @@ $(document).ready(function () {
                 amount: 0,
                 date: today()
             },
-            success: function () {
-                location.reload();
+            success: function (res) {
+                KiloAlert.success(res.message || 'Skipped successfully');
+                setTimeout(function() { location.reload(); }, 1500);
+            },
+            error: function() {
+                KiloAlert.error('Failed to skip. Please try again.');
             }
         });
 

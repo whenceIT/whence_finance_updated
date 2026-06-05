@@ -16,6 +16,9 @@
     <script src='https://cdn.plot.ly/plotly-2.24.1.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        window.APP_URL = '{{ config('app.url') }}';
+    </script>
+    <script>
         function toggleNotificationDropdown(event) {
             event.preventDefault();
             var isActive = $('#notificationPanel').hasClass('active');
