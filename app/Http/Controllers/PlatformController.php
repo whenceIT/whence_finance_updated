@@ -222,7 +222,7 @@ class PlatformController extends Controller
         return response()->json(['success' => true, 'message' => 'Activated blocking for all offices.']);
     }
 
-    public function deactivateBlockSkipAllOffices()
+public function deactivateBlockSkipAllOffices()
     {
         PlatformSetting::where('key','like', 'branch_block_skiping_%')->delete();
         
@@ -244,6 +244,28 @@ class PlatformController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'Removed blocking for all offices.']);
-      
+       
+    }
+
+    public function blockSkipSettings()
+    {
+        $offices = \App\Models\Office::orderBy('name')->get();
+        $officeSettings = [];
+        
+        foreach ($offices as $office) {
+            $setting = PlatformSetting::getBranchBlockSkipSettings($office->id);
+            $officeSettings[] = [
+                'id' => $setting['id'],
+                'office_id' => $office->id,
+                'office_name' => $office->name,
+                'office_code' => $office->external_id ?? '#' . $office->id,
+                'admin' => $setting['admin'],
+                'building' => $setting['building'],
+                'statutory' => $setting['statutory'],
+                'set_up_debt' => $setting['set_up_debt'],
+            ];
+        }
+        
+        return view('settings.block-skip-settings', compact('officeSettings'));
     }
 }

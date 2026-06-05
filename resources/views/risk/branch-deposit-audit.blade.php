@@ -311,9 +311,9 @@
         <button type="button" id="deactivateAllOfficesBtn" class="btn btn-warning btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-ban"></i> Remove Blocking All Offices
         </button>
-        <button type="button" id="openBlockSkipModal" class="btn btn-outline-info btn-sm" style="border-radius:6px; margin-top:4px;">
+        <a href="{{ route('platform.block-skip-settings') }}" class="btn btn-outline-info btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-unlock"></i> Block Skip Settings
-        </button>
+        </a>
     </div>
 
 
@@ -1363,67 +1363,6 @@
                         <div>
                             <label class="radio-inline"><input type="radio" name="set_up_debt" value="1" id="set_up_debt_1"> Disable</label>
                             <label class="radio-inline"><input type="radio" name="set_up_debt" value="0" id="set_up_debt_0"> Enable</label>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="blockSkipModal" tabindex="-1" role="dialog" aria-labelledby="blockSkipModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="blockSkipModalLabel">
-                    <i class="fa fa-unlock"></i> Block Skip Settings
-                </h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="blockSkipForm">
-                    <input type="hidden" id="blockSkipId" value="">
-                    <div class="form-group">
-                        <label>Office</label>
-                        <select id="blockSkipOffice" class="form-control" style="width: 100%;">
-                            <option value="">Select office…</option>
-                            <?php
-                                $offices = \App\Models\Office::orderBy('name')->get();
-                                foreach ($offices as $o) {
-                                    echo '<option value="' . $o->id . '">' . htmlspecialchars($o->name) . '</option>';
-                                }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Admin</label>
-                        <div>
-                            <label class="radio-inline"><input type="radio" name="admin" value="1" id="bs_admin_1"> Disable</label>
-                            <label class="radio-inline"><input type="radio" name="admin" value="0" id="bs_admin_0"> Enable</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Building</label>
-                        <div>
-                            <label class="radio-inline"><input type="radio" name="building" value="1" id="bs_building_1"> Disable</label>
-                            <label class="radio-inline"><input type="radio" name="building" value="0" id="bs_building_0"> Enable</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Statutory</label>
-                        <div>
-                            <label class="radio-inline"><input type="radio" name="statutory" value="1" id="bs_statutory_1"> Disable</label>
-                            <label class="radio-inline"><input type="radio" name="statutory" value="0" id="bs_statutory_0"> Enable</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Set up debt</label>
-                        <div>
-                            <label class="radio-inline"><input type="radio" name="set_up_debt" value="1" id="bs_set_up_debt_1"> Disable</label>
-                            <label class="radio-inline"><input type="radio" name="set_up_debt" value="0" id="bs_set_up_debt_0"> Enable</label>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary">Save</button>
