@@ -474,6 +474,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
     Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
+    Route::get('block-skip-settings', [PlatformController::class, 'blockSkipSettings'])->name('platform.block-skip-settings');
     Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
     Route::get('policy-breach', [RiskController::class, 'policyBreach']);
