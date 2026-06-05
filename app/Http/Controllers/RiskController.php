@@ -613,11 +613,11 @@ class RiskController extends Controller
             ->whereIn('deposit_type', $depositTypeIds)
             ->whereIn('office_id', $officeIds)
             ->get()
-            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . $log->user_id . '_' . substr($log->created_date, 0, 7));
+            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . substr($log->created_date, 0, 7));
 
         $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
             $monthYear = substr($dep->date, 0, 7);
-            $key = $dep->deposit_type . '_' . $dep->office . '_' . ($dep->user_id ?? 0) . '_' . $monthYear;
+            $key = $dep->deposit_type . '_' . $dep->office . '_' . $monthYear;
             $log = $bankLogs->get($key);
 
             return [
@@ -625,11 +625,11 @@ class RiskController extends Controller
                 'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
                 'user_name' => $log && isset($log->user) && is_object($log->user) && isset($log->user->first_name)
                     ? ($log->user->first_name . ' ' . $log->user->last_name)
-                    : 'Unknown',
+                    : ($dep->user_id ? 'Unknown' : 'Unknown'),
                 'office_name' => $offices->get($dep->office, 'Unknown'),
                 'amount' => (float) $dep->amount,
-                'deposit_method' => $log->deposit_method ?? null,
-                'reference_number' => $log->reference_number ?? null,
+                'deposit_method' => $log->deposit_method ?? 'Cash',
+                'reference_number' => $log->reference_number ?? 'N/A',
                 'created_date' => $log->created_date ?? $dep->date,
             ];
         });
@@ -659,11 +659,11 @@ class RiskController extends Controller
             ->whereIn('deposit_type', $depositTypeIds)
             ->whereIn('office_id', $officeIds)
             ->get()
-            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . $log->user_id . '_' . substr($log->created_date, 0, 7));
+            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . substr($log->created_date, 0, 7));
 
         $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
             $monthYear = substr($dep->date, 0, 7);
-            $key = $dep->deposit_type . '_' . $dep->office . '_' . ($dep->user_id ?? 0) . '_' . $monthYear;
+            $key = $dep->deposit_type . '_' . $dep->office . '_' . $monthYear;
             $log = $bankLogs->get($key);
 
             return [
@@ -674,8 +674,8 @@ class RiskController extends Controller
                     : 'Unknown',
                 'office_name' => $offices->get($dep->office, 'Unknown'),
                 'amount' => (float) $dep->amount,
-                'deposit_method' => $log->deposit_method ?? null,
-                'reference_number' => $log->reference_number ?? null,
+                'deposit_method' => $log->deposit_method ?? 'Cash',
+                'reference_number' => $log->reference_number ?? 'N/A',
                 'created_date' => $log->created_date ?? $dep->date,
             ];
         });
