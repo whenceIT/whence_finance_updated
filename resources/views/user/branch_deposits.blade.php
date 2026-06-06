@@ -676,7 +676,7 @@ $(document).ready(function () {
                     })
                     .done(function () {
                         KiloAlert.success(res.message || 'Deposit saved successfully');
-                        // setTimeout(function() { location.reload(); }, 1500);
+                        setTimeout(function() { location.reload(); }, 1500);
                     })
                     .fail(function (res) {
                         KiloAlert.error('Failed to save deposit log. Please try again.'.res.error || '');
@@ -695,7 +695,7 @@ $(document).ready(function () {
             $('#depositConfirmModal').modal('hide');
 
             // wait 4 second to reload page
-            // setTimeout(function() { location.reload(); }, 4000);
+            setTimeout(function() { location.reload(); }, 4000);
         });
     });
 
