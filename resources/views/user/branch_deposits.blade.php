@@ -5,13 +5,24 @@
 @section('content')
 <x-kilo-alert/>
 <style>
+.content {
+    min-height: 250px;
+}
+@media (max-width: 768px) {
+    .content {
+        min-height: 250px;
+        padding: 0px;
+        margin-right: 0;
+        margin-left: 0;
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+}
 .deposit-card {
-    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     padding: 20px;
     margin-bottom: 20px;
     background: #fff;
-    border-left: 5px solid #3c8dbc;
     transition: 0.2s ease-in-out;
 }
 
@@ -98,9 +109,8 @@
 
     @endif
     <section class="content-header">
-
         <div class="deposit-header-box">
-            <h2 style="margin-top:0;" id="monthlyDepositsTitle">Monthly Deposits</h2>
+            <h2 style="margin-top:0; font-weight: 700; font-size: 28px;" id="monthlyDepositsTitle">Monthly Deposits</h2>
 
             <p class="text-muted" style="margin-bottom:15px;">
                 <i class="fa fa-info-circle"></i>
@@ -112,8 +122,11 @@
                 <input type="month" id="monthFilter" class="form-control">
             </div>
         </div>
-
     </section>
+
+    <!-- Display a width length ads div here, to look like a realistic ad -->
+    <!-- <div style="width: 98%; height: 90px; background: url('https://media.giphy.com/media/3oEjI6SIIHBdRxz40KG/200w.gif') center/cover no-repeat; border-radius: 6px; margin: 15px auto; cursor: pointer;" onclick="window.open('https://www.w3schools.com', '_blank');"></div> -->
+
 
     <section class="content">
         <div id="depositSteps">
