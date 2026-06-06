@@ -1153,7 +1153,7 @@
              odRenderDebtTable(filtered);
          });
 
-// ── Export to Excel (CSV) ──
+        // ── Export to Excel (CSV) ──
           $(document).on('click', '#odBtnExport', function() {
               if (!odAllRows || odAllRows.length === 0) {
                   KiloAlert.info('No data to export.');
@@ -1372,36 +1372,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="blockSkipListModal" tabindex="-1" role="dialog" aria-labelledby="blockSkipListModalLabel" aria-hidden="true">
-    <div class="modal-dialog od-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="blockSkipListModalLabel">
-                    <i class="fa fa-list"></i> Block Skip Exemptions List
-                </h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <table class="table table-bordered" id="blockSkipOfficesTable">
-                    <thead>
-                        <tr>
-                            <th>Office</th>
-                            <th>Code</th>
-                            <th>Admin</th>
-                            <th>Building</th>
-                            <th>Statutory</th>
-                            <th>Set up debt</th>
-                        </tr>
-                    </thead>
-                    <tbody id="blockSkipOfficesBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 $(document).on('click', '#openSettingsModal', function() {
     $('#settingsModal').modal('show');
@@ -1523,114 +1493,6 @@ var officeIdParam = new URLSearchParams(window.location.search).get('office_id')
 if (officeIdParam) {
     loadOfficesSettings();
 }
-
-$(document).on('click', '#openBlockSkipModal', function() {
-    $('#blockSkipModal').modal('show');
-    $('#blockSkipOffice').val('').trigger('change');
-    $('input[name="admin"]').prop('checked', false);
-    $('input[name="building"]').prop('checked', false);
-    $('input[name="statutory"]').prop('checked', false);
-    $('input[name="set_up_debt"]').prop('checked', false);
-    $('#blockSkipId').val('');
-});
-
-$('#blockSkipModal').on('shown.bs.modal', function() {
-    if (typeof $.fn.select2 !== 'undefined' && !$('#blockSkipOffice').data('select2')) {
-        $('#blockSkipOffice').select2({
-            placeholder: 'Select office…',
-            width: '100%',
-            dropdownParent: $('#blockSkipModal .modal-body')
-        });
-    }
-});
-
-function loadBlockSkipSettings(officeId) {
-    var url = '/settings/platform/block-skip/get';
-    if (officeId) url += '?office_id=' + officeId;
-    $.get(url, function(data) {
-        var response = Array.isArray(data) ? data[0] : data;
-        $('#blockSkipId').val(response.id || '');
-        $('#blockSkipOffice').val(response.office_id || '').trigger('change');
-        $('input[name="admin"][value="' + (response.admin ? '0' : '1') + '"]').prop('checked', true);
-        $('input[name="building"][value="' + (response.building ? '0' : '1') + '"]').prop('checked', true);
-        $('input[name="statutory"][value="' + (response.statutory ? '0' : '1') + '"]').prop('checked', true);
-        $('input[name="set_up_debt"][value="' + (response.set_up_debt ? '0' : '1') + '"]').prop('checked', true);
-    });
-}
-
-$('#blockSkipOffice').on('change', function() {
-    var selected = $(this).val();
-    if (selected) {
-        loadBlockSkipSettings(selected);
-    }
-});
-
-$('#blockSkipForm').on('submit', function(e) {
-    e.preventDefault();
-    var data = {
-        _token: '{{ csrf_token() }}',
-        id: $('#blockSkipId').val(),
-        office_id: $('#blockSkipOffice').val(),
-        admin: $('input[name="admin"]:checked').val() || 0,
-        building: $('input[name="building"]:checked').val() || 0,
-        statutory: $('input[name="statutory"]:checked').val() || 0,
-        set_up_debt: $('input[name="set_up_debt"]:checked').val() || 0,
-    };
-    $.post('/settings/platform/block-skip/save', data, function(res) {
-        KiloAlert.success(res.message || 'Saved');
-        $('#blockSkipModal').modal('hide');
-    }).fail(function() {
-        KiloAlert.error('Save failed.');
-    });
-});
-
-$('#openBlockSkipListModal').on('click', function() {
-    $('#blockSkipListModal').modal('show');
-    loadBlockSkipOfficesSettings();
-});
-
-function loadBlockSkipOfficesSettings() {
-    $.get('/settings/platform/block-skip/get', function(data) {
-        var tableHtml = '';
-        if (Array.isArray(data)) {
-            data.forEach(function(o) {
-                tableHtml += '<tr>' +
-                    '<td>' + o.name + '</td>' +
-                    '<td>' + o.code + '</td>' +
-                    '<td>' + (o.admin ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
-                    '<td>' + (o.building ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
-                    '<td>' + (o.statutory ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
-                    '<td>' + (o.set_up_debt ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
-                    '</tr>';
-            });
-        }
-        $('#blockSkipOfficesBody').html(tableHtml);
-    }).fail(function() {
-        $('#blockSkipOfficesBody').html('<tr><td colspan="6" style="text-align:center;color:#c0392b;">Failed to load settings.</td></tr>');
-    });
-}
-
-$('#activateBlockSkipAllOfficesBtn').on('click', function() {
-    if (!confirm('Initialize block skip settings for all offices with default values (enabled)?')) return;
-    $.post('/settings/platform/block-skip/initialize-all', {
-        _token: '{{ csrf_token() }}'
-    }, function(res) {
-        KiloAlert.success(res.message || 'Initialized');
-    }).fail(function() {
-        KiloAlert.error('Failed to initialize.');
-    });
-});
-
-$('#deactivateBlockSkipAllOfficesBtn').on('click', function() {
-    if (!confirm('Deactivate block skip settings for all offices? This will remove all custom settings.')) return;
-    $.post('/settings/platform/block-skip/deactivate-all', {
-        _token: '{{ csrf_token() }}'
-    }, function(res) {
-        KiloAlert.success(res.message || 'Deactivated');
-    }).fail(function() {
-        KiloAlert.error('Failed to deactivate.');
-    });
-});
 
 // ── OfficeDebt Management ──────────────────────────────────────────────────
 (function() {

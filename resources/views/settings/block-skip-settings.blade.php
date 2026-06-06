@@ -8,14 +8,19 @@
 <div class="container-fluid" style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
     <div style="max-width: 1200px; margin: 0 auto;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <div>
-                <h2 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a2e;">
-                    <i class="fa fa-unlock" style="margin-right: 8px; color: #007bff;"></i>
-                    Block Skip Settings
-                </h2>
-                <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">
-                    Configure which deposit types are exempt from mandatory payment requirements for each office
-                </p>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <a href="{{ route('risk.branch-deposit-audit') }}" class="btn btn-secondary btn-sm" style="border-radius: 6px;">
+                    <i class="fa fa-arrow-left"></i> Back
+                </a>
+                <div>
+                    <h2 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a2e;">
+                        <i class="fa fa-unlock" style="margin-right: 8px; color: #007bff;"></i>
+                        Block Skip Settings
+                    </h2>
+                    <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">
+                        Configure which deposit types are exempt from mandatory payment requirements for each office
+                    </p>
+                </div>
             </div>
             <div style="display: flex; gap: 12px;">
                 <button type="button" id="initializeAllBtn" class="btn btn-success btn-sm" style="border-radius: 6px;">
@@ -174,7 +179,6 @@ $(document).ready(function() {
         };
         $.post('/settings/platform/block-skip/save', data, function(res) {
             alert(res.message || 'Saved');
-            $('#editSettingsModal').modal('hide');
             location.reload();
         }).fail(function() {
             alert('Save failed.');

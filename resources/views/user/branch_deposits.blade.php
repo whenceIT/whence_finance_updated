@@ -100,7 +100,7 @@
     <section class="content-header">
 
         <div class="deposit-header-box">
-            <h2 style="margin-top:0;">Monthly Deposits</h2>
+            <h2 style="margin-top:0;" id="monthlyDepositsTitle">Monthly Deposits</h2>
 
             <p class="text-muted" style="margin-bottom:15px;">
                 <i class="fa fa-info-circle"></i>
@@ -248,7 +248,7 @@ $(document).ready(function () {
     var branchId = {{ $office_id }};
     var userId = {{$userId}};
     var depositOrder = [];
-    var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
+    var depositApiUrl = 'http://localhost:5000';
 
     var currentDepositType = null;
     var currentDepositAmount = null;
@@ -260,6 +260,17 @@ $(document).ready(function () {
     var currentMonth = now.getFullYear() + '-' + 
         String(now.getMonth()+1).padStart(2,'0');
     $('#monthFilter').val(currentMonth);
+    updateMonthTitle();
+
+    function updateMonthTitle() {
+        var selectedMonth = $('#monthFilter').val();
+        if (selectedMonth) {
+            var date = new Date(selectedMonth + '-01');
+            var monthName = date.toLocaleString('default', { month: 'long' });
+            var year = date.getFullYear();
+            $('#monthlyDepositsTitle').text(monthName + ' ' + year + ' Deposits');
+        }
+    }
 
     function today() {
         var selectedMonth = $('#monthFilter').val();
@@ -300,8 +311,9 @@ $(document).ready(function () {
 
         
     function loadDepositCardData(depositId, depositName, officeId, container) {
+    var selectedMonth = $('#monthFilter').val();
     $.ajax({
-        url: `${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}`,
+        url: `${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}&month=${selectedMonth}`,
         method: 'GET',
         success: function(res) {
             var deposits = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
@@ -395,7 +407,8 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
-        $.get(`${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}`, function(res) {
+        var selectedMonth = $('#monthFilter').val();
+        $.get(`${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}&month=${selectedMonth}`, function(res) {
             var deposits = res.data || [];
             var monthlyRequired = res.monthly_required || (deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0);
             var $tbody = $('#thisMonthDepositTable').empty();
@@ -432,7 +445,8 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
-        $.get(`${depositApiUrl}/deposit-types/${depositId}/history?office_id=${officeId}`, function(res) {
+        var selectedMonth = $('#monthFilter').val();
+        $.get(`${depositApiUrl}/deposit-types/${depositId}/history?office_id=${officeId}&month=${selectedMonth}`, function(res) {
             var deposits = res.data || [];
             var monthlyRequired = deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0;
             var $tbody = $('#depositHistoryTable').empty();
@@ -491,6 +505,7 @@ $(document).ready(function () {
     }
 
     $('#monthFilter').change(function(){
+        updateMonthTitle();
         checkCompletedDeposits();
     });
 
@@ -630,7 +645,7 @@ $(document).ready(function () {
                     })
                     .done(function () {
                         KiloAlert.success(res.message || 'Deposit saved successfully');
-                        setTimeout(function() { location.reload(); }, 1500);
+                        // setTimeout(function() { location.reload(); }, 1500);
                     })
                     .fail(function (res) {
                         KiloAlert.error('Failed to save deposit log. Please try again.'.res.error || '');
@@ -649,7 +664,7 @@ $(document).ready(function () {
             $('#depositConfirmModal').modal('hide');
 
             // wait 4 second to reload page
-            setTimeout(function() { location.reload(); }, 4000);
+            // setTimeout(function() { location.reload(); }, 4000);
         });
     });
 
