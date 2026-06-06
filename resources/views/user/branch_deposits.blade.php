@@ -257,7 +257,7 @@ $(document).ready(function () {
     var branchId = {{ $office_id }};
     var userId = {{$userId}};
     var depositOrder = [];
-    var depositApiUrl = 'http://localhost:5000';
+    var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
 
     var currentDepositType = null;
     var currentDepositAmount = null;
