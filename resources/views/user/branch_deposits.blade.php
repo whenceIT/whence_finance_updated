@@ -349,9 +349,20 @@ $(document).ready(function () {
                         <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
                         <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
                     </div>
-                    <p class="monthly-required text-muted">Monthly Required: K${monthlyRequired.toLocaleString() || 0}</p>
-                    <p class="existing-amount text-muted">Current Amount: K${total.toLocaleString() || 0}</p>
-                    <p class="current-balance text-muted">Current Month Balance: K${balance.toLocaleString() || 0}</p>
+                    <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
+                        <div style="flex: 1; background: #e8f4fc; border-left: 4px solid #3c8dbc; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Required</small>
+                            <div style="color: #003366; font-weight: 700; font-size: 16px; margin-top: 4px;">K${monthlyRequired.toLocaleString() || 0}</div>
+                        </div>
+                        <div style="flex: 1; background: #f0f7f0; border-left: 4px solid #27ae60; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Amount</small>
+                            <div style="color: #006600; font-weight: 700; font-size: 16px; margin-top: 4px;">K${total.toLocaleString() || 0}</div>
+                        </div>
+                        <div style="flex: 1; background: #fff3cd; border-left: 4px solid #f39c12; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Balance</small>
+                            <div style="color: #856404; font-weight: 700; font-size: 16px; margin-top: 4px;">K${monthlyRequired === 0 && balance < 0 ? (-1 * balance).toLocaleString() : balance.toLocaleString() || 0}</div>
+                        </div>
+                    </div>
                     <div class="deposit-btns">
                       <button class="this-month-btn btn btn-success btn-sm">This Month Deposit</button>
                       <button class="deposit-history-btn btn btn-info btn-sm">Check Deposit History</button>
@@ -386,9 +397,20 @@ $(document).ready(function () {
             container.append(`
                 <div class="deposit-item deposit-card" data-deposit-id="${depositId}" data-office-id="${officeId}">
                     <h4 class="deposit-title">${depositName}</h4>
-                    <p class="monthly-required text-muted">Monthly Required: K0</p>
-                    <p class="existing-amount text-muted">Current Amount: K0</p>
-                    <p class="current-balance text-muted">Current Month Balance: K0</p>
+                    <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
+                        <div style="flex: 1; background: #e8f4fc; border-left: 4px solid #3c8dbc; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Required</small>
+                            <div style="color: #003366; font-weight: 700; font-size: 16px; margin-top: 4px;">K0</div>
+                        </div>
+                        <div style="flex: 1; background: #f0f7f0; border-left: 4px solid #27ae60; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Amount</small>
+                            <div style="color: #006600; font-weight: 700; font-size: 16px; margin-top: 4px;">K0</div>
+                        </div>
+                        <div style="flex: 1; background: #fff3cd; border-left: 4px solid #f39c12; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Balance</small>
+                            <div style="color: #856404; font-weight: 700; font-size: 16px; margin-top: 4px;">K0</div>
+                        </div>
+                    </div>
                     <div class="deposit-btns">
                       <button class="this-month-btn btn btn-primary btn-sm">This Month Deposit</button>
                       <button class="deposit-history-btn btn btn-info btn-sm">Check Deposit History</button>
