@@ -668,6 +668,7 @@ Route::group(['prefix' => 'accounting'], function () {
     Route::post('gl_account/{id}/approve', 'GlAccountController@approve');
     Route::post('gl_account/{id}/decline', 'GlAccountController@decline');
     Route::get('gl_account/{id}/delete', 'GlAccountController@delete');
+   
     //manual journal entries
     Route::any('journal', 'JournalController@index');
     Route::any('journal/reconstate', 'JournalController@reconstatement');
@@ -706,6 +707,8 @@ Route::group(['prefix' => 'accounting'], function () {
     Route::any('{id}/approve_fund', 'JournalController@approve_fund');
     Route::any('{id}/reject_fund', 'JournalController@reject_fund');
     Route::any('{id}/show_fund_movements','JournalController@show_fund_movement');
+    Route::any('money_movements','JournalController@money_movements');
+    Route::any('internal_fund_movement','JournalController@internal_fund_movement');
 
 });
 //route for accounting

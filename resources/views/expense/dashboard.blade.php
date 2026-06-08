@@ -223,6 +223,175 @@ Expense Management Dashboard
 
 </div>
 
+
+<div class="box box-success">
+
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            National Expense Summary
+        </h3>
+    </div>
+
+    <div class="box-body table-responsive no-padding">
+
+        <table class="table table-bordered table-hover">
+
+            <thead>
+                <tr>
+                    <th width="50"></th>
+                    <th>Level</th>
+                    <th>Total Expenses</th>
+                    <th>Transactions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr class="national-row"
+                    data-id="national">
+
+                    <td>
+                        <button
+                            class="btn btn-xs btn-success toggle-national">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </td>
+
+                    <td>
+                        <strong>National</strong>
+                    </td>
+
+                    <td>
+                        K{{ number_format($institution['total_expenses'] ?? 0,2) }}
+                    </td>
+
+                    <td>
+                        {{ number_format($institution['transactions'] ?? 0) }}
+                    </td>
+
+                </tr>
+
+                <tr id="national-categories"
+                    style="display:none;">
+
+                    <td colspan="4">
+
+                        <table class="table table-bordered">
+
+                            <thead>
+                                <tr>
+                                    <th width="50"></th>
+                                    <th>Category</th>
+                                    <th>Total</th>
+                                    <th>Transactions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                            @foreach($categoryBreakdown as $category)
+
+                                <tr class="national-category-row"
+                                    data-id="national-{{ $category['expense_type_id'] }}">
+
+                                    <td>
+                                        <button
+                                            class="btn btn-xs btn-primary toggle-national-category">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </td>
+
+                                    <td>
+                                        {{ $category['category'] }}
+                                    </td>
+
+                                    <td>
+                                        K{{ number_format($category['total'],2) }}
+                                    </td>
+
+                                    <td>
+                                        {{ $category['transactions'] }}
+                                    </td>
+
+                                </tr>
+
+                                <tr id="national-expenses-{{ $category['expense_type_id'] }}"
+                                    style="display:none;">
+
+                                    <td colspan="4">
+
+                                        <table class="table table-striped table-bordered">
+
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Province</th>
+                                                    <th>Branch</th>
+                                                    <th>Name</th>
+                                                    <th>Amount</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+
+                                            @foreach($expenses as $expense)
+
+                                                @if($expense['expense_type_id'] == $category['expense_type_id'])
+
+                                                    <tr>
+
+                                                        <td>
+                                                            {{ date('d-M-Y', strtotime($expense['date'])) }}
+                                                        </td>
+
+                                                        <td>
+                                                            {{ $expense['province_name'] }}
+                                                        </td>
+
+                                                        <td>
+                                                            {{ $expense['office_name'] }}
+                                                        </td>
+
+                                                        <td>
+                                                            {{ $expense['name'] }}
+                                                        </td>
+
+                                                        <td>
+                                                            K{{ number_format($expense['amount'],2) }}
+                                                        </td>
+
+                                                    </tr>
+
+                                                @endif
+
+                                            @endforeach
+
+                                            </tbody>
+
+                                        </table>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                            </tbody>
+
+                        </table>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
         <div class="box box-primary">
 
         <div class="box-header with-border">
@@ -769,6 +938,72 @@ document.addEventListener('DOMContentLoaded', function(){
     setupToggle('.toggle-province','branches-');
     setupToggle('.toggle-branch','categories-');
     setupToggle('.toggle-category','expenses-');
+
+});
+
+
+document.querySelectorAll('.toggle-national').forEach(btn => {
+
+    btn.addEventListener('click', function(){
+
+        let target =
+            document.getElementById('national-categories');
+
+        let icon = this.querySelector('i');
+
+        if(target.style.display === 'none'){
+
+            target.style.display = 'table-row';
+
+            icon.classList.remove('fa-plus');
+            icon.classList.add('fa-minus');
+
+        }else{
+
+            target.style.display = 'none';
+
+            icon.classList.remove('fa-minus');
+            icon.classList.add('fa-plus');
+
+        }
+
+    });
+
+});
+
+document.querySelectorAll('.toggle-national-category').forEach(btn => {
+
+    btn.addEventListener('click', function(){
+
+        let row = this.closest('tr');
+
+        let id =
+            row.dataset.id.replace('national-','');
+
+        let target =
+            document.getElementById(
+                'national-expenses-' + id
+            );
+
+        let icon = this.querySelector('i');
+
+        if(target.style.display === 'none'){
+
+            target.style.display = 'table-row';
+
+            icon.classList.remove('fa-plus');
+            icon.classList.add('fa-minus');
+
+        }else{
+
+            target.style.display = 'none';
+
+            icon.classList.remove('fa-minus');
+            icon.classList.add('fa-plus');
+
+        }
+
+    });
 
 });
 
