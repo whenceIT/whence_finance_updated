@@ -57,8 +57,6 @@
         </div>
     </div>
 </div>
-
-<script src="/js/kilo-alert.js"></script>
 <script>
 (function() {
     var editId = function() { return $('#odEditId').val(); };

@@ -30,6 +30,12 @@ class OfficeDebtService
         $currentYear = $today->year;
         $currentMonth = $today->month;
 
+        if ($month) {
+            $parts = explode('-', $month);
+            $currentMonth = (int) $parts[0];
+            $currentYear = (int) $parts[1];
+        }
+
         $monthsToProcess = $currentMonth;
 
         $types = DepositType::orderBy('sort_order')->get();

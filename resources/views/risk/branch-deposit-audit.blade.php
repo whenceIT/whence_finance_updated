@@ -9,6 +9,22 @@
 @section('content')
 @include('components.kilo-alert')
 <style>
+    .da-key-guide {
+        background: #f7f8fc;
+        border-radius: 4px;
+        border: 1px solid #e0e4ed;
+        padding: 6px 10px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+    }
+    .da-key-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
     .da-type-card {
         background: #fff;
         border-radius: 8px;
@@ -698,8 +714,14 @@
                  return html;
              }
 
-             // ── Build table ──────────────────────────────────────────────────────
-             var html = '<div class="da-search-row"><i class="fa fa-search"></i>'
+// ── Build table ──────────────────────────────────────────────────────
+              var html = '<div class="da-key-guide" style="margin-bottom:8px;padding:6px 10px;background:#f7f8fc;border-radius:4px;border:1px solid #e0e4ed;display:flex;align-items:center;gap:8px;">'
+                      + '<span style="font-size:12px;font-weight:700;color:#555;">Key:</span>'
+                      + '<span class="da-key-item"><span class="da-month-box has" style="margin-right:4px;"></span>Deposit made</span>'
+                      + '<span class="da-key-item"><span class="da-month-box" style="margin-right:4px;">M</span>No deposits</span>'
+                      + '<span class="da-key-item"><span class="da-month-box has-debt" style="margin-right:4px;color:#fff;">!</span>Debt</span>'
+                      + '</div>'
+                      + '<div class="da-search-row"><i class="fa fa-search"></i>'
                       + '<input type="text" class="da-office-search"'
                       +   'placeholder="Filter by branch name, status, original or outstanding amount&hellip;"'
                       + 'autocomplete="off" spellcheck="false"></div>'
@@ -1493,8 +1515,8 @@ var officeIdParam = new URLSearchParams(window.location.search).get('office_id')
 if (officeIdParam) {
     loadOfficesSettings();
 }
+</script>
+<script src="/js/kilo-alert.js"></script>
 
 @include('risk.partials.office-debt-modal')
-
-<script src="/js/kilo-alert.js"></script>
 @endsection
