@@ -1854,7 +1854,9 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
 
     // Deposit Approvals
     Route::get('approvals/deposit-approvals', 'ApprovalWorkflowController@depositApprovals')->name('approvals.deposit-approvals');
-    Route::post('approvals/deposit-approvals/{id}/{action}', 'ApprovalWorkflowController@approveDecline')->name('approvals.deposit-approvals.action');
+    Route::post('approvals/deposit-approvals/{id}/{status}', 'ApprovalWorkflowController@approveDecline')->name('approvals.deposit-approvals.action');
+    Route::post('approvals/deposit-approvals/bulk-approve', 'ApprovalWorkflowController@bulkApprove')->name('approvals.deposit-approvals.bulk');
+    Route::post('approvals/deposit-approvals/approve-all', 'ApprovalWorkflowController@approveAll')->name('approvals.deposit-approvals.all');
 Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');

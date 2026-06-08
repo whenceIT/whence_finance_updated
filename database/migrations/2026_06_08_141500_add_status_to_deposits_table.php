@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('deposits', function (Blueprint $table) {
-            $table->tinyInteger('status')->default(0)->comment('0=declined, 1=approved, null=pending');
+            $table->tinyInteger('status')->nullable()->comment('0=declined, 1=approved, null=pending');
         });
     }
 

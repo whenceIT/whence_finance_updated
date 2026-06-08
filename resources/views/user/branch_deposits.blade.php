@@ -304,18 +304,19 @@
     </div>
   </div>
 </div>
-@endsection
 
-@section('footer-scripts')
 <script>
 $(document).ready(function () {
 
     var branchId = {{ $office_id }};
-    var userId = {{$userId}};
+    var branchName = '{{ $office_name }}';
+    var userId = {{ $userId }};
+    var userName = '{{ $user_name }}';
     var depositOrder = [];
     var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
 
     var currentDepositType = null;
+    var currentDepositTypeName = null;
     var currentDepositAmount = null;
     var currentReferenceNumber = null;
     var currentPaymentMethod = null;
@@ -670,6 +671,7 @@ $(document).ready(function () {
         let $btn = $(this);
         let box = $btn.closest('.deposit-item');
         currentDepositType = box.data('deposit-id');
+        currentDepositTypeName = box.find('.deposit-title').text();
 
         let raw = box.find('.amount').val();
         currentDepositAmount = parseFloat(raw);
@@ -757,20 +759,38 @@ $(document).ready(function () {
                     })
                     .done(function () {
                         KiloAlert.success(res.message || 'Deposit saved successfully');
+                         $.ajax({
+                            url: 'https://notifications.whencefinancesystem.com/emit',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                event: 'deposit.created',
+                                data: {
+                                    created_by: userName,
+                                    office_id: branchName,
+                                    date: today(),
+                                    amount: amount,
+                                    type: currentDepositTypeName + ' New Deposit',
+                                    deposit: deposit
+                                }
+                            }),
+                        });
                         setTimeout(function() { location.reload(); }, 1500);
                     })
                     .fail(function (res) {
-                        KiloAlert.error('Failed to save deposit log. Please try again.'.res.error || '');
+                        KiloAlert.error('Failed to save deposit log. Please try again. ' + (res.responseJSON?.error || ''));
                         $btn.prop('disabled', false);
                         $btn.find('.btn-text').show();
                         $btn.find('.btn-loader').hide();
+                        modalConfirmBtn.prop('disabled', false);
                     });
                 },
-                error: function() {
-                    KiloAlert.error('Failed to save deposit. Please try again.');
+                error: function(res) {
+                    KiloAlert.error('Failed to save deposit. Please try again. ' + (res.responseJSON?.error || ''));
                     $btn.prop('disabled', false);
                     $btn.find('.btn-text').show();
                     $btn.find('.btn-loader').hide();
+                    modalConfirmBtn.prop('disabled', false);
                 }
             });
             $('#depositConfirmModal').modal('hide');

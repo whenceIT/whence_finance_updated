@@ -12,6 +12,15 @@ class Deposit extends Model
 
     protected $fillable = ['status'];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope('approved', function ($builder) {
+            $builder->where('status', 1);
+        });
+    }
+
     public function depositType()
     {
         return $this->belongsTo(DepositType::class, 'deposit_type', 'id');

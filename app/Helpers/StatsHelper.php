@@ -13,7 +13,7 @@ class StatsHelper
 {
     public static function getBranchDepositStats($officeId = null, $period = 'month')
     {
-        $query = Deposit::query();
+        $query = Deposit::query()->withoutGlobalScope('approved');
         
         if ($officeId) {
             $query->where('office', $officeId);

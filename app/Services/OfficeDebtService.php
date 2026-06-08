@@ -45,7 +45,7 @@ class OfficeDebtService
         }
         $offices = $officesQuery->get();
 
-        $validDeposits = Deposit::query()
+        $validDeposits = Deposit::query() 
             ->whereYear('date', $currentYear)
             ->whereMonth('date', '<=', $currentMonth)
             ->get();
