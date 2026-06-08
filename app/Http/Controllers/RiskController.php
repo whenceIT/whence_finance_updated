@@ -1169,7 +1169,7 @@ class RiskController extends Controller
      */
     public function listOfficeDebts()
     {
-        $rows = \App\Models\OfficeDebt::with(['office', 'depositType'])->orderByDesc('id')->get();
+        $rows = \App\Models\OfficeDebt::with(['office', 'depositType'])->where('office_id', '!=', 67)->orderByDesc('id')->get();
 
         return response()->json($rows->map(function ($row) {
             return [
@@ -1441,7 +1441,7 @@ class RiskController extends Controller
 
         // 6. Aggregate Outstanding Branch Debt card (scoped if office filter active)
         // Also filter by required deposit types based on office-specific exemption settings
-        $debtQuery = \App\Models\OfficeDebt::query();
+        $debtQuery = \App\Models\OfficeDebt::query()->where('office_id', '!=', 67);
         if ($officeId !== null) {
             $debtQuery->where('office_id', $officeId);
         }
@@ -1777,7 +1777,8 @@ class RiskController extends Controller
         }
 
         $query = \App\Models\OfficeDebt::with(['office', 'depositType'])
-            ->where('outstanding_amount', '>', 0);
+            ->where('outstanding_amount', '>', 0)
+            ->where('office_id', '!=', 67);
 
         if ($officeId !== null) {
             $query->where('office_id', $officeId);

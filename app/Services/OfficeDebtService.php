@@ -39,7 +39,7 @@ class OfficeDebtService
         $monthsToProcess = $currentMonth;
 
         $types = DepositType::orderBy('sort_order')->get();
-        $officesQuery = Office::where('active', 1)->orderBy('name');
+        $officesQuery = Office::where('active', 1)->where('id', '!=', 67)->orderBy('name');
         if ($officeId !== null) {
             $officesQuery->where('id', $officeId);
         }

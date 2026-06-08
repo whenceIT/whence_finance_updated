@@ -45,7 +45,7 @@ class StatsHelper
     
     public static function getTotalDebt()
     {
-        return OfficeDebt::sum('outstanding_amount');
+        return OfficeDebt::where('office_id', '!=', 67)->sum('outstanding_amount');
     }
     
     public static function getDisbursedLoansCount($officeId = null)
