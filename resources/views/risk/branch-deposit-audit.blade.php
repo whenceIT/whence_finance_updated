@@ -702,7 +702,6 @@
                      if (di > 0) html += '<div style="border-top:1px solid #f0e8e8;margin:3px 0;"></div>';
                      html += '<div style="display:flex;gap:16px;align-items:center;font-size:12px;">'
                           +   '<span style="font-weight:700;color:#555;min-width:80px;">' + label + '</span>'
-                          +   '<span>Original: <strong>K' + md.original.toLocaleString() + '</strong></span>'
                           +   '<span>Balance: <strong style="color:#c0392b;">K' + md.outstanding.toLocaleString() + '</strong></span>'
                           +   '<span class="da-status-pill ' + statusCls + '">' + statusLbl + '</span>'
                           +   '<span style="color:#777;">' + md.deposit_type + '</span>'
@@ -760,7 +759,7 @@
                             +   ' onclick="toggleDebtDetail(' + idx + ', ' + idx + ', \'' + debtToggleId + '\')">'
                          +   '<td style="cursor:pointer;">'
                          +   '<span id="' + debtToggleId + '" style="display:inline-block;width:14px;text-align:center;margin-right:4px;color:#667eea;font-size:11px;"><i class="fa fa-caret-right"></i></span>'
-                            +   row.id
+                            +   row.office_id
                             +   '</td>'
                             +   '<td style="cursor:pointer;font-weight:700;color:#333;">' + row.office_name + '</td>'
                             +   '<td class="da-amt"  style="cursor:pointer;">K' + row.original_amount.toLocaleString() + '</td>'
