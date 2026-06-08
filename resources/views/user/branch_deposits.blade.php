@@ -89,9 +89,46 @@
 }
 
 .modal-header .close {
-    color: #fff;
+     color: #fff;
+ }
+
+.shimmer-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
-</style>
+
+.shimmer-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: shimmer 1.5s infinite;
+}
+
+.shimmer-cell {
+    height: 14px;
+    background: linear-gradient(90deg, #e0e0e0 25%, #d0d0d0 50%, #e0e0e0 75%);
+    background-size: 200% 100%;
+    border-radius: 4px;
+}
+
+.shimmer-cell.date { width: 120px; }
+.shimmer-cell.amount { width: 100px; }
+.shimmer-cell.method { width: 130px; }
+.shimmer-cell.reference { width: 160px; }
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes shimmerCard {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+ </style>
 
 <!-- Test with Anchor House First -->
 @if( Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [6,8])) 
@@ -126,7 +163,19 @@
     <!-- <div style="width: 98%; height: 90px; background: url('https://media.giphy.com/media/3oEjI6SIIHBdRxz40KG/200w.gif') center/cover no-repeat; border-radius: 6px; margin: 15px auto; cursor: pointer;" onclick="window.open('https://www.w3schools.com', '_blank');"></div> -->
     <section class="content">
         <div id="depositSteps">
-            {{-- Deposit steps injected here --}}
+            <div id="depositStepsShimmer" style="display: flex; flex-direction: column; gap: 20px; padding: 20px;">
+                <div style="background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); animation: shimmerCard 1.5s infinite;">
+                    <div style="height: 20px; width: 40%; background: linear-gradient(90deg, #e0e0e0 25%, #d0d0d0 50%, #e0e0e0 75%); background-size: 200% 100%; border-radius: 4px; margin-bottom: 15px;"></div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div style="flex: 1; height: 50px; background: linear-gradient(90deg, #e8f4fc 25%, #d0d0d0 50%, #e8f4fc 75%); background-size: 200% 100%; border-radius: 6px;"></div>
+                        <div style="flex: 1; height: 50px; background: linear-gradient(90deg, #f0f7f0 25%, #d0d0d0 50%, #f0f7f0 75%); background-size: 200% 100%; border-radius: 6px;"></div>
+                        <div style="flex: 1; height: 50px; background: linear-gradient(90deg, #fff3cd 25%, #d0d0d0 50%, #fff3cd 75%); background-size: 200% 100%; border-radius: 6px;"></div>
+                    </div>
+                    <div style="height: 12px; width: 60%; background: linear-gradient(90deg, #e0e0e0 25%, #d0d0d0 50%, #e0e0e0 75%); background-size: 200% 100%; border-radius: 4px;"></div>
+                </div>
+                <div style="background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); animation: shimmerCard 1.5s infinite; animation-delay: 0.2s;"></div>
+                <div style="background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); animation: shimmerCard 1.5s infinite; animation-delay: 0.4s;"></div>
+            </div>
         </div>
     </section>
 </div>
@@ -212,6 +261,13 @@
       </div>
       <div class="modal-body">
         <div id="depositHistoryContent" style="max-height:400px; overflow-y:auto;">
+          <div id="depositHistoryShimmer" class="shimmer-container" style="display: none;">
+            <div class="shimmer-row"><div class="shimmer-cell date"></div><div class="shimmer-cell amount"></div><div class="shimmer-cell method"></div><div class="shimmer-cell reference"></div></div>
+            <div class="shimmer-row"><div class="shimmer-cell date"></div><div class="shimmer-cell amount"></div><div class="shimmer-cell method"></div><div class="shimmer-cell reference"></div></div>
+            <div class="shimmer-row"><div class="shimmer-cell date"></div><div class="shimmer-cell amount"></div><div class="shimmer-cell method"></div><div class="shimmer-cell reference"></div></div>
+            <div class="shimmer-row"><div class="shimmer-cell date"></div><div class="shimmer-cell amount"></div><div class="shimmer-cell method"></div><div class="shimmer-cell reference"></div></div>
+            <div class="shimmer-row"><div class="shimmer-cell date"></div><div class="shimmer-cell amount"></div><div class="shimmer-cell method"></div><div class="shimmer-cell reference"></div></div>
+          </div>
           <table class="table table-striped table-bordered" style="font-size:12px; margin:0;">
             <thead style="background:#3c8dbc; color:#fff;">
               <tr>
@@ -350,16 +406,16 @@ $(document).ready(function () {
                         <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
                     </div>
                     <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
-                        <div style="flex: 1; background: #e8f4fc; border-left: 4px solid #3c8dbc; border-radius: 6px; padding: 12px 15px;">
-                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Required</small>
+                        <div style="flex: 1; background: #e8f4fc; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Fee</small>
                             <div style="color: #003366; font-weight: 700; font-size: 16px; margin-top: 4px;">K${monthlyRequired.toLocaleString() || 0}</div>
                         </div>
-                        <div style="flex: 1; background: #f0f7f0; border-left: 4px solid #27ae60; border-radius: 6px; padding: 12px 15px;">
-                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Amount</small>
+                        <div style="flex: 1; background: #f0f7f0; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Paid</small>
                             <div style="color: #006600; font-weight: 700; font-size: 16px; margin-top: 4px;">K${total.toLocaleString() || 0}</div>
                         </div>
-                        <div style="flex: 1; background: #fff3cd; border-left: 4px solid #f39c12; border-radius: 6px; padding: 12px 15px;">
-                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Balance</small>
+                        <div style="flex: 1; background: #fff3cd; border-radius: 6px; padding: 12px 15px;">
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Balance</small>
                             <div style="color: #856404; font-weight: 700; font-size: 16px; margin-top: 4px;">K${monthlyRequired === 0 && balance < 0 ? (-1 * balance).toLocaleString() : balance.toLocaleString() || 0}</div>
                         </div>
                     </div>
@@ -399,15 +455,15 @@ $(document).ready(function () {
                     <h4 class="deposit-title">${depositName}</h4>
                     <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
                         <div style="flex: 1; background: #e8f4fc; border-left: 4px solid #3c8dbc; border-radius: 6px; padding: 12px 15px;">
-                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Required</small>
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Fee</small>
                             <div style="color: #003366; font-weight: 700; font-size: 16px; margin-top: 4px;">K0</div>
                         </div>
                         <div style="flex: 1; background: #f0f7f0; border-left: 4px solid #27ae60; border-radius: 6px; padding: 12px 15px;">
-                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Amount</small>
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Paid</small>
                             <div style="color: #006600; font-weight: 700; font-size: 16px; margin-top: 4px;">K0</div>
                         </div>
                         <div style="flex: 1; background: #fff3cd; border-left: 4px solid #f39c12; border-radius: 6px; padding: 12px 15px;">
-                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Balance</small>
+                            <small style="color: #343a40; font-weight: 600; font-size: 12px;">Balance</small>
                             <div style="color: #856404; font-weight: 700; font-size: 16px; margin-top: 4px;">K0</div>
                         </div>
                     </div>
@@ -422,14 +478,21 @@ $(document).ready(function () {
 }
 
 /* ---------- LOAD DEPOSIT TYPES ---------- */
+    $('#depositStepsShimmer').show();
     $.get(`${depositApiUrl}/deposit-types`, function (res) {
         var deposits = res.data || res;
+        deposits.sort(function(a, b) {
+            return (a.sort_order || 0) - (b.sort_order || 0);
+        });
         var container = $('#depositSteps').empty();
 
         deposits.forEach(function (d) {
-            depositOrder.push(d.id);
+            // depositOrder.push(d.id);
             loadDepositCardData(d.id, d.name, branchId, container);
         });
+        $('#depositStepsShimmer').hide();
+    }).fail(function() {
+        $('#depositStepsShimmer').hide();
     });
 
     // This Month button handler
@@ -451,8 +514,8 @@ $(document).ready(function () {
                 $tbody.append('<tr>' +
                     '<td style="padding:6px;">' + dateVal + '</td>' +
                     '<td style="padding:6px; text-align:right;">' + amount.toLocaleString() + '</td>' +
-                    '<td style="padding:6px;">' + (d.payment_method || d.method || '-') + '</td>' +
-                    '<td style="padding:6px; font-family:monospace; font-size:11px;">' + (d.reference_number || d.reference || '-') + '</td>' +
+                    '<td style="padding:6px;">' + (d.bank_deposit_log_method || '-') + '</td>' +
+                    '<td style="padding:6px; font-family:monospace; font-size:11px;">' + (d.bank_deposit_log_reference_number || '-') + '</td>' +
                     '</tr>');
             });
             var required = monthlyRequired * 1;
@@ -476,6 +539,9 @@ $(document).ready(function () {
         var depositId = $card.data('deposit-id');
         var officeId = $card.data('office-id');
         
+        $('#depositHistoryShimmer').show();
+        $('#depositHistoryTable').closest('table').hide();
+        
         var selectedMonth = $('#monthFilter').val();
         $.get(`${depositApiUrl}/deposit-types/${depositId}/history?office_id=${officeId}&month=${selectedMonth}`, function(res) {
             var deposits = res.data || [];
@@ -489,8 +555,8 @@ $(document).ready(function () {
                 $tbody.append('<tr>' +
                     '<td style="padding:6px;">' + dateVal + '</td>' +
                     '<td style="padding:6px; text-align:right;">' + amount.toLocaleString() + '</td>' +
-                    '<td style="padding:6px;">' + (d.payment_method || d.method || '-') + '</td>' +
-                    '<td style="padding:6px; font-family:monospace; font-size:11px;">' + (d.reference_number || d.reference || '-') + '</td>' +
+                    '<td style="padding:6px;">' + (d.bank_deposit_log_method || '-') + '</td>' +
+                    '<td style="padding:6px; font-family:monospace; font-size:11px;">' + (d.bank_deposit_log_reference_number || '-') + '</td>' +
                     '</tr>');
             });
             var required = monthlyRequired * 12;//for current year
@@ -500,6 +566,11 @@ $(document).ready(function () {
             $('#depositHistoryBalance').text('K' + balance.toLocaleString());
             $('#depositHistoryModal .modal-title').text('Deposit History: ' + (deposits.length > 0 ? deposits[0].deposit_type_name || '-' : '-'));
             $('#depositHistoryModal').modal('show');
+            $('#depositHistoryShimmer').hide();
+            $('#depositHistoryTable').closest('table').show();
+        }).fail(function() {
+            $('#depositHistoryShimmer').hide();
+            $('#depositHistoryTable').closest('table').show();
         });
     });
 
@@ -516,6 +587,7 @@ $(document).ready(function () {
     function checkCompletedDeposits() {
 
         var selectedMonth = $('#monthFilter').val();
+        $('#depositStepsShimmer').show();
         $.get(`${depositApiUrl}/check-deposits-report`, {
             branch: branchId,
             date: selectedMonth
@@ -524,14 +596,22 @@ $(document).ready(function () {
             console.log('Deposit Check Response:', response);
             unlockAll();
             $('#depositSteps').empty();
-            depositOrder = [];
+            // depositOrder = [];
             $.get(`${depositApiUrl}/deposit-types`, function (res) {
                 var deposits = res.data || res;
+                deposits.sort(function(a, b) {
+                    return (a.sort_order || 0) - (b.sort_order || 0);
+                });
                 deposits.forEach(function (d) {
-                    depositOrder.push(d.id);
+                    // depositOrder.push(d.id);
                     loadDepositCardData(d.id, d.name, branchId, $('#depositSteps'));
                 });
+                $('#depositStepsShimmer').hide();
+            }).fail(function() {
+                $('#depositStepsShimmer').hide();
             });
+        }).fail(function() {
+            $('#depositStepsShimmer').hide();
         });
     }
 
