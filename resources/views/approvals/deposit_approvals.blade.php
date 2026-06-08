@@ -20,20 +20,7 @@
                     <input type="text" id="search-input" class="form-control input-sm" placeholder="Search..." style="width: 200px;">
                 </div>
             </div>
-            <form method="GET" class="form-inline" style="margin-bottom: 15px;">
-                <div class="form-group">
-                    <label for="deposit_type" class="control-label">Deposit Type:</label>
-                    <select name="deposit_type" id="deposit_type" class="form-control">
-                        <option value="all">All Types</option>
-                        @foreach($depositTypes as $type)
-                            <option value="{{ $type->id }}" {{ request('deposit_type') == $type->id ? 'selected' : '' }}>
-                                {{ $type->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">Filter</button>
-            </form>
+           
         </div>
         <div class="box-body table-responsive">
             <table class="table table-bordered table-striped">
@@ -47,7 +34,7 @@
                         <th>Method</th>
                         <th>Reference</th>
                         <th>Log ID</th>
-                        <th>User</th>
+                        <th>Branch Manager</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -57,17 +44,17 @@
                         <tr>
                             <td><input type="checkbox" class="row-select" value="{{ $deposit->id }}"></td>
                             <td>{{ $deposit->date }}</td>
-                            <td>{{ $deposit->office_name ?? $deposit->office }}</td>
-                            <td>{{ $deposit->deposit_type_name ?? 'N/A' }}</td>
+                            <td>{{ $deposit->office?->name ?? $deposit->office }}</td>
+                            <td>{{ $deposit->depositTypeInfo?->name ?? 'N/A' }}</td>
                             <td>{{ number_format($deposit->amount, 2) }}</td>
-                            <td>{{ $deposit->bank_deposit_log_method ?? 'N/A' }}</td>
-                            <td>{{ $deposit->bank_deposit_log_reference_number ?? 'N/A' }}</td>
-                            <td>{{ $deposit->bank_deposit_log_id ?? 'N/A' }}</td>
+                            <td>{{ $deposit->bankDepositLog?->deposit_method ?? 'N/A' }}</td>
+                            <td>{{ $deposit->bankDepositLog?->reference_number ?? 'N/A' }}</td>
+                            <td>{{ $deposit->bankDepositLog?->id ?? 'N/A' }}</td>
                             <td>
-                                @if($deposit->bank_deposit_log_user_first_name)
-                                    {{ $deposit->bank_deposit_log_user_first_name }} {{ $deposit->bank_deposit_log_user_last_name }}
-                                @elseif($deposit->bank_deposit_log_user_id)
-                                    {{ $deposit->bank_deposit_log_user_id }}
+                                @if($deposit->bankDepositLog?->user?->first_name)
+                                    {{ $deposit->bankDepositLog->user->first_name }} {{ $deposit->bankDepositLog->user->last_name }}
+                                @elseif($deposit->bankDepositLog?->user_id)
+                                    {{ $deposit->bankDepositLog->user_id }}
                                 @else
                                     N/A
                                 @endif
