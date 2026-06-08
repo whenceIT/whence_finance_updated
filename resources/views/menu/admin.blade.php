@@ -804,6 +804,9 @@
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('client/managers_pending_approval') }}"><i class="fa fa-circle-o"></i>Clients Pending Approval @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->count() }}</span>@else<span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
+                    @hasRole('role.exec', 'role.risk')
+                        <li @if(Request::is('approvals/deposit-approvals*')) class="active" @endif><a href="{{ url('approvals/deposit-approvals') }}"><i class="fa fa-circle-o"></i> Deposit Approvals</a></li>
+                    @endif
                 </ul>
             </li>
             @endif

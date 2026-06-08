@@ -10,6 +10,8 @@ class Deposit extends Model
     protected $table = 'deposits';
     public $timestamps = false;
 
+    protected $fillable = ['status'];
+
     public function depositType()
     {
         return $this->belongsTo(DepositType::class, 'deposit_type', 'id');

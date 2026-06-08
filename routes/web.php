@@ -43,6 +43,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\RiskController;
 use App\Http\Controllers\PlatformController;
+use App\Http\Controllers\ApprovalWorkflowController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -1848,8 +1849,12 @@ Route::get('collateral/analytics/branch', 'CollateralController@analyticsBranch'
 Route::get('collateral/report', 'CollateralController@report')->name('collateral.report');
 Route::post('collateral/report/export', 'CollateralController@exportCsv')->name('collateral.export');
 Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('collateral.approvals.queue');
-Route::post('collateral/approvals/{collateral_status_change_request}/approve', 'CollateralApprovalController@approve')->name('collateral.approvals.approve');
-Route::post('collateral/approvals/{collateral_status_change_request}/reject', 'CollateralApprovalController@reject')->name('collateral.approvals.reject');
+    Route::post('collateral/approvals/{collateral_status_change_request}/approve', 'CollateralApprovalController@approve')->name('collateral.approvals.approve');
+    Route::post('collateral/approvals/{collateral_status_change_request}/reject', 'CollateralApprovalController@reject')->name('collateral.approvals.reject');
+
+    // Deposit Approvals
+    Route::get('approvals/deposit-approvals', 'ApprovalWorkflowController@depositApprovals')->name('approvals.deposit-approvals');
+    Route::post('approvals/deposit-approvals/{id}/{action}', 'ApprovalWorkflowController@approveDecline')->name('approvals.deposit-approvals.action');
 Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
