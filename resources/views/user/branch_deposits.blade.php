@@ -339,7 +339,8 @@ $(document).ready(function () {
 
     function today() {
         var selectedMonth = $('#monthFilter').val();
-        return selectedMonth + '-01';
+        var day = new Date().getDate();
+        return selectedMonth + '-' + String(day).padStart(2, '0');
     }
 
     function lockAll() {

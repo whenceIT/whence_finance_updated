@@ -62,8 +62,9 @@ class OfficeDebtService
 
         foreach ($types as $type) {
             $monthlyRequired = (float) ($type->monthly_amount ?? 0);
-            $totalExpected = $monthlyRequired * $monthsToProcess;
+            $totalExpected = $monthlyRequired;
 
+            // dd($type->name, $monthlyRequired, $monthsToProcess, $totalExpected);
             foreach ($offices as $office) {
                 $key = $office->id . '|' . $type->id;
                 $received = $depsIdx[$key] ?? 0.0;

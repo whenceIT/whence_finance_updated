@@ -713,7 +713,7 @@
                  return html;
              }
 
-// ── Build table ──────────────────────────────────────────────────────
+                // ── Build table ──────────────────────────────────────────────────────
               var html = '<div class="da-key-guide" style="margin-bottom:8px;padding:6px 10px;background:#f7f8fc;border-radius:4px;border:1px solid #e0e4ed;display:flex;align-items:center;gap:8px;">'
                       + '<span style="font-size:12px;font-weight:700;color:#555;">Key:</span>'
                       + '<span class="da-key-item"><span class="da-month-box has" style="margin-right:4px;"></span>Deposit made</span>'
