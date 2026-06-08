@@ -43,6 +43,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\RiskController;
 use App\Http\Controllers\PlatformController;
+use App\Http\Controllers\ApprovalWorkflowController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -474,6 +475,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
     Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
+    Route::get('block-skip-settings', [PlatformController::class, 'blockSkipSettings'])->name('platform.block-skip-settings');
     Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
     Route::get('policy-breach', [RiskController::class, 'policyBreach']);
@@ -1850,8 +1852,14 @@ Route::get('collateral/analytics/branch', 'CollateralController@analyticsBranch'
 Route::get('collateral/report', 'CollateralController@report')->name('collateral.report');
 Route::post('collateral/report/export', 'CollateralController@exportCsv')->name('collateral.export');
 Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('collateral.approvals.queue');
-Route::post('collateral/approvals/{collateral_status_change_request}/approve', 'CollateralApprovalController@approve')->name('collateral.approvals.approve');
-Route::post('collateral/approvals/{collateral_status_change_request}/reject', 'CollateralApprovalController@reject')->name('collateral.approvals.reject');
+    Route::post('collateral/approvals/{collateral_status_change_request}/approve', 'CollateralApprovalController@approve')->name('collateral.approvals.approve');
+    Route::post('collateral/approvals/{collateral_status_change_request}/reject', 'CollateralApprovalController@reject')->name('collateral.approvals.reject');
+
+    // Deposit Approvals
+    Route::get('approvals/deposit-approvals', 'ApprovalWorkflowController@depositApprovals')->name('approvals.deposit-approvals');
+    Route::post('approvals/deposit-approvals/{id}/{status}', 'ApprovalWorkflowController@approveDecline')->name('approvals.deposit-approvals.action');
+    Route::post('approvals/deposit-approvals/bulk-approve', 'ApprovalWorkflowController@bulkApprove')->name('approvals.deposit-approvals.bulk');
+    Route::post('approvals/deposit-approvals/approve-all', 'ApprovalWorkflowController@approveAll')->name('approvals.deposit-approvals.all');
 Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');

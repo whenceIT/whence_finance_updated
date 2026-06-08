@@ -9,6 +9,22 @@
 @section('content')
 @include('components.kilo-alert')
 <style>
+    .da-key-guide {
+        background: #f7f8fc;
+        border-radius: 4px;
+        border: 1px solid #e0e4ed;
+        padding: 6px 10px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+    }
+    .da-key-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
     .da-type-card {
         background: #fff;
         border-radius: 8px;
@@ -311,9 +327,9 @@
         <button type="button" id="deactivateAllOfficesBtn" class="btn btn-warning btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-ban"></i> Remove Blocking All Offices
         </button>
-        <button type="button" id="openBlockSkipModal" class="btn btn-outline-info btn-sm" style="border-radius:6px; margin-top:4px;">
+        <a href="{{ route('platform.block-skip-settings') }}" class="btn btn-outline-info btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-unlock"></i> Block Skip Settings
-        </button>
+        </a>
     </div>
 
 
@@ -686,7 +702,6 @@
                      if (di > 0) html += '<div style="border-top:1px solid #f0e8e8;margin:3px 0;"></div>';
                      html += '<div style="display:flex;gap:16px;align-items:center;font-size:12px;">'
                           +   '<span style="font-weight:700;color:#555;min-width:80px;">' + label + '</span>'
-                          +   '<span>Original: <strong>K' + md.original.toLocaleString() + '</strong></span>'
                           +   '<span>Balance: <strong style="color:#c0392b;">K' + md.outstanding.toLocaleString() + '</strong></span>'
                           +   '<span class="da-status-pill ' + statusCls + '">' + statusLbl + '</span>'
                           +   '<span style="color:#777;">' + md.deposit_type + '</span>'
@@ -698,8 +713,14 @@
                  return html;
              }
 
-             // ── Build table ──────────────────────────────────────────────────────
-             var html = '<div class="da-search-row"><i class="fa fa-search"></i>'
+                // ── Build table ──────────────────────────────────────────────────────
+              var html = '<div class="da-key-guide" style="margin-bottom:8px;padding:6px 10px;background:#f7f8fc;border-radius:4px;border:1px solid #e0e4ed;display:flex;align-items:center;gap:8px;">'
+                      + '<span style="font-size:12px;font-weight:700;color:#555;">Key:</span>'
+                      + '<span class="da-key-item"><span class="da-month-box has" style="margin-right:4px;"></span>Deposit made</span>'
+                      + '<span class="da-key-item"><span class="da-month-box" style="margin-right:4px;">M</span>No deposits</span>'
+                      + '<span class="da-key-item"><span class="da-month-box has-debt" style="margin-right:4px;color:#fff;">!</span>Debt</span>'
+                      + '</div>'
+                      + '<div class="da-search-row"><i class="fa fa-search"></i>'
                       + '<input type="text" class="da-office-search"'
                       +   'placeholder="Filter by branch name, status, original or outstanding amount&hellip;"'
                       + 'autocomplete="off" spellcheck="false"></div>'
@@ -738,7 +759,7 @@
                             +   ' onclick="toggleDebtDetail(' + idx + ', ' + idx + ', \'' + debtToggleId + '\')">'
                          +   '<td style="cursor:pointer;">'
                          +   '<span id="' + debtToggleId + '" style="display:inline-block;width:14px;text-align:center;margin-right:4px;color:#667eea;font-size:11px;"><i class="fa fa-caret-right"></i></span>'
-                            +   row.id
+                            +   row.office_id
                             +   '</td>'
                             +   '<td style="cursor:pointer;font-weight:700;color:#333;">' + row.office_name + '</td>'
                             +   '<td class="da-amt"  style="cursor:pointer;">K' + row.original_amount.toLocaleString() + '</td>'
@@ -1153,7 +1174,7 @@
              odRenderDebtTable(filtered);
          });
 
-// ── Export to Excel (CSV) ──
+        // ── Export to Excel (CSV) ──
           $(document).on('click', '#odBtnExport', function() {
               if (!odAllRows || odAllRows.length === 0) {
                   KiloAlert.info('No data to export.');
@@ -1372,97 +1393,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="blockSkipModal" tabindex="-1" role="dialog" aria-labelledby="blockSkipModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="blockSkipModalLabel">
-                    <i class="fa fa-unlock"></i> Block Skip Settings
-                </h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="blockSkipForm">
-                    <input type="hidden" id="blockSkipId" value="">
-                    <div class="form-group">
-                        <label>Office</label>
-                        <select id="blockSkipOffice" class="form-control select2" multiple>
-                            <option value="">Select offices…</option>
-                            <?php
-                                $offices = \App\Models\Office::orderBy('name')->get();
-                                foreach ($offices as $o) {
-                                    echo '<option value="' . $o->id . '">' . htmlspecialchars($o->name) . '</option>';
-                                }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Admin</label>
-                        <div>
-                            <label class="radio-inline"><input type="radio" name="admin" value="1" id="bs_admin_1"> Disable</label>
-                            <label class="radio-inline"><input type="radio" name="admin" value="0" id="bs_admin_0"> Enable</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Building</label>
-                        <div>
-                            <label class="radio-inline"><input type="radio" name="building" value="1" id="bs_building_1"> Disable</label>
-                            <label class="radio-inline"><input type="radio" name="building" value="0" id="bs_building_0"> Enable</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Statutory</label>
-                        <div>
-                            <label class="radio-inline"><input type="radio" name="statutory" value="1" id="bs_statutory_1"> Disable</label>
-                            <label class="radio-inline"><input type="radio" name="statutory" value="0" id="bs_statutory_0"> Enable</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Set up debt</label>
-                        <div>
-                            <label class="radio-inline"><input type="radio" name="set_up_debt" value="1" id="bs_set_up_debt_1"> Disable</label>
-                            <label class="radio-inline"><input type="radio" name="set_up_debt" value="0" id="bs_set_up_debt_0"> Enable</label>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="blockSkipListModal" tabindex="-1" role="dialog" aria-labelledby="blockSkipListModalLabel" aria-hidden="true">
-    <div class="modal-dialog od-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="blockSkipListModalLabel">
-                    <i class="fa fa-list"></i> Block Skip Exemptions List
-                </h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <table class="table table-bordered" id="blockSkipOfficesTable">
-                    <thead>
-                        <tr>
-                            <th>Office</th>
-                            <th>Code</th>
-                            <th>Admin</th>
-                            <th>Building</th>
-                            <th>Statutory</th>
-                            <th>Set up debt</th>
-                        </tr>
-                    </thead>
-                    <tbody id="blockSkipOfficesBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 $(document).on('click', '#openSettingsModal', function() {
     $('#settingsModal').modal('show');
@@ -1584,369 +1514,8 @@ var officeIdParam = new URLSearchParams(window.location.search).get('office_id')
 if (officeIdParam) {
     loadOfficesSettings();
 }
-
-$(document).on('click', '#openBlockSkipModal', function() {
-    $('#blockSkipModal').modal('show');
-    $('#blockSkipOffice').val(null).trigger('change');
-    $('input[name="admin"]').prop('checked', false);
-    $('input[name="building"]').prop('checked', false);
-    $('input[name="statutory"]').prop('checked', false);
-    $('input[name="set_up_debt"]').prop('checked', false);
-    $('#blockSkipId').val('');
-});
-
-function initBlockSkipSelect2() {
-    if (typeof $.fn.select2 !== 'undefined') {
-        if (!$('#blockSkipOffice').data('select2')) {
-            $('#blockSkipOffice').select2({
-                placeholder: 'Select offices…',
-                allowClear: true,
-                width: '100%',
-                dropdownParent: $('#blockSkipModal')
-            });
-        }
-    }
-}
-
-$('#blockSkipModal').on('shown.bs.modal', function() {
-    initBlockSkipSelect2();
-});
-
-function loadBlockSkipSettings(officeId) {
-    var url = '/settings/platform/block-skip/get';
-    if (officeId) url += '?office_id=' + officeId;
-    $.get(url, function(data) {
-        if (Array.isArray(data)) {
-            var first = data[0] || {};
-            $('#blockSkipId').val(first.id || '');
-            var officeIds = data.map(function(d) { return d.office_id; });
-            $('#blockSkipOffice').val(officeIds).trigger('change');
-            var allSame = data.every(function(d) { return d.admin === first.admin; });
-            if (allSame) {
-                $('input[name="admin"][value="' + (first.admin ? '0' : '1') + '"]').prop('checked', true);
-            }
-            allSame = data.every(function(d) { return d.building === first.building; });
-            if (allSame) {
-                $('input[name="building"][value="' + (first.building ? '0' : '1') + '"]').prop('checked', true);
-            }
-            allSame = data.every(function(d) { return d.statutory === first.statutory; });
-            if (allSame) {
-                $('input[name="statutory"][value="' + (first.statutory ? '0' : '1') + '"]').prop('checked', true);
-            }
-            allSame = data.every(function(d) { return d.set_up_debt === first.set_up_debt; });
-            if (allSame) {
-                $('input[name="set_up_debt"][value="' + (first.set_up_debt ? '0' : '1') + '"]').prop('checked', true);
-            }
-        } else {
-            $('#blockSkipId').val(data.id || '');
-            if (Array.isArray(data.office_id)) {
-                $('#blockSkipOffice').val(data.office_id).trigger('change');
-            } else {
-                $('#blockSkipOffice').val(data.office_id || '').trigger('change');
-            }
-            $('input[name="admin"][value="' + (data.admin ? '0' : '1') + '"]').prop('checked', true);
-            $('input[name="building"][value="' + (data.building ? '0' : '1') + '"]').prop('checked', true);
-            $('input[name="statutory"][value="' + (data.statutory ? '0' : '1') + '"]').prop('checked', true);
-            $('input[name="set_up_debt"][value="' + (data.set_up_debt ? '0' : '1') + '"]').prop('checked', true);
-        }
-    });
-}
-
-$('#blockSkipOffice').on('change', function() {
-    var selected = $(this).val();
-    if (selected && selected.length === 1) {
-        loadBlockSkipSettings(selected[0]);
-    } else if (selected && selected.length > 1) {
-        loadBlockSkipSettings(selected);
-    }
-});
-
-$('#blockSkipForm').on('submit', function(e) {
-    e.preventDefault();
-    var data = {
-        _token: '{{ csrf_token() }}',
-        id: $('#blockSkipId').val(),
-        office_id: $('#blockSkipOffice').val(),
-        admin: $('input[name="admin"]:checked').val() || 0,
-        building: $('input[name="building"]:checked').val() || 0,
-        statutory: $('input[name="statutory"]:checked').val() || 0,
-        set_up_debt: $('input[name="set_up_debt"]:checked').val() || 0,
-    };
-    $.post('/settings/platform/block-skip/save', data, function(res) {
-        KiloAlert.success(res.message || 'Saved');
-        $('#blockSkipModal').modal('hide');
-    }).fail(function() {
-        KiloAlert.error('Save failed.');
-    });
-});
-
-$('#openBlockSkipListModal').on('click', function() {
-    $('#blockSkipListModal').modal('show');
-    loadBlockSkipOfficesSettings();
-});
-
-function loadBlockSkipOfficesSettings() {
-    $.get('/settings/platform/block-skip/get', function(data) {
-        var tableHtml = '';
-        if (Array.isArray(data)) {
-            data.forEach(function(o) {
-                tableHtml += '<tr>' +
-                    '<td>' + o.name + '</td>' +
-                    '<td>' + o.code + '</td>' +
-                    '<td>' + (o.admin ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
-                    '<td>' + (o.building ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
-                    '<td>' + (o.statutory ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
-                    '<td>' + (o.set_up_debt ? '<span class="label label-success">Enabled</span>' : '<span class="label label-danger">Disabled</span>') + '</td>' +
-                    '</tr>';
-            });
-        }
-        $('#blockSkipOfficesBody').html(tableHtml);
-    }).fail(function() {
-        $('#blockSkipOfficesBody').html('<tr><td colspan="6" style="text-align:center;color:#c0392b;">Failed to load settings.</td></tr>');
-    });
-}
-
-$('#activateBlockSkipAllOfficesBtn').on('click', function() {
-    if (!confirm('Initialize block skip settings for all offices with default values (enabled)?')) return;
-    $.post('/settings/platform/block-skip/initialize-all', {
-        _token: '{{ csrf_token() }}'
-    }, function(res) {
-        KiloAlert.success(res.message || 'Initialized');
-    }).fail(function() {
-        KiloAlert.error('Failed to initialize.');
-    });
-});
-
-$('#deactivateBlockSkipAllOfficesBtn').on('click', function() {
-    if (!confirm('Deactivate block skip settings for all offices? This will remove all custom settings.')) return;
-    $.post('/settings/platform/block-skip/deactivate-all', {
-        _token: '{{ csrf_token() }}'
-    }, function(res) {
-        KiloAlert.success(res.message || 'Deactivated');
-    }).fail(function() {
-        KiloAlert.error('Failed to deactivate.');
-    });
-});
-
-// ── OfficeDebt Management ──────────────────────────────────────────────────
-(function() {
-    var editId    = function() { return $('#odEditId').val(); };
-    var odAllRows = [];
-
-    $(document).on('click', '#openOfficeDebtModal', function(e) {
-        e.preventDefault();
-        var $liveModal = $('#odModal');
-        if (!$liveModal.length) { console.error('odModal not found in DOM'); return; }
-        odResetForm();
-        odLoadTable();
-        $liveModal.modal('show');
-    });
-
-    function odResetForm() {
-        $('#odInputOffice').val('');
-        $('#odInputDepositType').val('');
-        $('#odInputMonth').val('');
-        $('#odInputYear').val('');
-        $('#odInputStatus').val('owing');
-        $('#odInputOriginal').val('');
-        $('#odInputOutstanding').val('');
-        $('#odInputNotes').val('');
-        $('#odEditId').val('');
-        $('#odFormBar').hide();
-        $('#odInputOffice, #odInputDepositType, #odInputMonth, #odInputYear, #odInputStatus, #odInputOriginal, #odInputOutstanding, #odInputNotes').prop('disabled', false);
-        odShowList();
-    }
-
-    function odShowList() {
-        $('#odFormBar').hide();
-        $('#odListHeader').show();
-        $('.table-responsive').show();
-    }
-
-    function odShowForm(isEdit) {
-        $('#odListHeader').hide();
-        $('.table-responsive').hide();
-        $('#odEmpty').hide();
-        var $fb = $('#odFormBar');
-        $('#odFormTitle').text(isEdit ? 'Edit Debt Record' : 'Add New Debt Record');
-        if (!isEdit) {
-            var now = new Date();
-            $('#odInputMonth').val(now.getMonth() + 1);
-            $('#odInputYear').val(now.getFullYear());
-            if (!$('#odInputStatus').val()) $('#odInputStatus').val('owing');
-        }
-        var disableIdentifiers = !!isEdit;
-        $('#odInputOffice, #odInputDepositType, #odInputMonth, #odInputYear, #odInputStatus, #odInputOriginal').prop('disabled', disableIdentifiers);
-        $fb.show();
-        $fb[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function odLoadTable() {
-        var $tableBody = $('#odTableBody');
-        var $empty     = $('#odEmpty');
-        var $shimmer   = $('#odShimmer');
-        $tableBody.empty();
-        $empty.hide();
-        $shimmer.show();
-        $.get('{{ route("risk.office-debts.list") }}', function(resp) {
-            $shimmer.hide();
-            odAllRows = resp || [];
-            $('#odSearchInput').val('');
-            if (odAllRows.length === 0) { $empty.show(); return; }
-            odRenderDebtTable(odAllRows);
-        }).fail(function() {
-            $shimmer.hide();
-            $tableBody.html('<tr><td colspan="8" style="padding:20px;text-align:center;color:#c0392b;">Error loading debt records. Try again.</td></tr>');
-        });
-    }
-
-    function odRowHtml(row) {
-        var cls = row.outstanding_amount <= 0 ? 'paid' : row.outstanding_amount < row.original_amount ? 'partial' : 'owing';
-        var balance = row.outstanding_amount <= 0 ? '—' : parseFloat(row.outstanding_amount).toLocaleString('en-US', { style: 'currency', currency: 'ZMW' });
-        var original = parseFloat(row.original_amount).toLocaleString('en-US', { style: 'currency', currency: 'ZMW' });
-        var monthLabel = row.debt_month && row.debt_year ? (['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][row.debt_month - 1] || row.debt_month) + ' ' + row.debt_year : '—';
-        return '<tr class="od-debt-row" data-id="' + row.id + '">'
-             + '<td>' + (row.office_name || '—') + '</td>'
-             + '<td>' + (row.deposit_type_name || '—') + '</td>'
-             + '<td>' + monthLabel + '</td>'
-             + '<td><span class="od-status-pill ' + cls + '">' + row.debt_status + '</span></td>'
-             + '<td>' + original + '</td>'
-             + '<td style="font-weight:700;color:' + (cls === 'owing' ? '#c0392b' : (cls === 'partial' ? '#f39c12' : '#27ae60')) + ';">' + balance + '</td>'
-             + '<td style="color:#777;font-size:12px;">' + (row.notes || '') + '</td>'
-             + '<td class="od-actions"><button class="od-btn od-btn-edit" title="Edit" onclick="odEdit(' + row.id + ')"><i class="fa fa-pencil"></i></button></td>'
-             + '</tr>';
-    }
-
-    function odRenderDebtTable(rows) {
-        var $tableBody = $('#odTableBody');
-        $tableBody.empty();
-        if (!rows || rows.length === 0) { $tableBody.html('<tr><td colspan="8" style="padding:20px;text-align:center;color:#888;">No matching records</td></tr>'); return; }
-        rows.forEach(function(row) { $tableBody.append(odRowHtml(row)); });
-    }
-
-    function odExportToCSV(rows) {
-        if (!rows || rows.length === 0) return;
-        var headers = ['Branch','Deposit Type','Month/Year','Status','Original','Outstanding','Notes'];
-        var csvRows = [headers.join(',')];
-        rows.forEach(function(row) {
-            var monthLabel = row.debt_month && row.debt_year ? (['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][row.debt_month - 1] || row.debt_month) + ' ' + row.debt_year : '';
-            var line = ['"' + (row.office_name || '').replace(/"/g, '""') + '"', '"' + (row.deposit_type_name || '').replace(/"/g, '""') + '"', '"' + monthLabel + '"', '"' + (row.debt_status || '') + '"', row.original_amount || 0, row.outstanding_amount || 0, '"' + (row.notes || '').replace(/"/g, '""') + '"'];
-            csvRows.push(line.join(','));
-        });
-        var csvContent = csvRows.join('\n');
-        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        var link = document.createElement('a');
-        var url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = 'office_debts_' + new Date().toISOString().slice(0,10) + '.csv';
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    $(document).on('click', '#odBtnNewRow', function() { odResetForm(); odShowForm(false); });
-    $(document).on('input', '#odSearchInput', function() {
-        var term = $(this).val().toLowerCase().trim();
-        if (!odAllRows || odAllRows.length === 0) return;
-        var filtered = odAllRows.filter(function(row) {
-            return (row.office_name || '').toLowerCase().includes(term) || (row.deposit_type_name || '').toLowerCase().includes(term) || (row.debt_status || '').toLowerCase().includes(term) || (row.notes || '').toLowerCase().includes(term);
-        });
-        odRenderDebtTable(filtered);
-    });
-    $(document).on('click', '#odBtnExport', function() {
-        if (!odAllRows || odAllRows.length === 0) { KiloAlert.info('No data to export.'); return; }
-        var searchTerm = ($('#odSearchInput').val() || '').toLowerCase().trim();
-        var dataToExport = searchTerm ? odAllRows.filter(function(row) {
-            return (row.office_name || '').toLowerCase().includes(searchTerm) || (row.deposit_type_name || '').toLowerCase().includes(searchTerm) || (row.debt_status || '').toLowerCase().includes(searchTerm) || (row.notes || '').toLowerCase().includes(searchTerm);
-        }) : odAllRows;
-        odExportToCSV(dataToExport);
-    });
-    $(document).on('click', '#odBtnCancelForm', function() { odResetForm(); odShowList(); });
-    $(document).on('click', '#odBackToList', function(e) { e.preventDefault(); odResetForm(); odShowList(); });
-
-    window.odEdit = function(id) {
-        $.get('{{ route("risk.office-debts.list") }}', function(resp) {
-            var row = resp.find(function(r) { return r.id === id; });
-            if (!row) return;
-            $('#odEditId').val(id);
-            $('#odInputOffice').val(row.office_id);
-            $('#odInputDepositType').val(row.deposit_type_id || '');
-            if (row.debt_month) { $('#odInputMonth').val(row.debt_month); } else if (row.created_at) { $('#odInputMonth').val(new Date(row.created_at).getMonth() + 1); }
-            if (row.debt_year) { $('#odInputYear').val(row.debt_year); } else if (row.created_at) { $('#odInputYear').val(new Date(row.created_at).getFullYear()); }
-            $('#odInputStatus').val(row.debt_status);
-            $('#odInputOriginal').val(row.original_amount);
-            $('#odInputOutstanding').val(row.outstanding_amount);
-            $('#odInputNotes').val(row.notes);
-            odShowForm(true);
-            var $tBody = $('#odTableBody'); $tBody.find('tr[data-id="' + id + '"]')[0] && $tBody.find('tr[data-id="' + id + '"]')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-    };
-
-    window.odDel = function(id) {
-        if (!confirm('Remove this debt record? The branch will no longer appear as carrying debt.')) return;
-        $.ajax({ url: '{{ route("risk.office-debts.destroy", ["id" => "__ID__"]) }}'.replace('__ID__', id), type: 'DELETE', data: { _token: '{{ csrf_token() }}' } })
-            .done(function(r) { if (r.success) odLoadTable(); else KiloAlert.error(r.message || 'Unable to delete record.'); })
-            .fail(function() { KiloAlert.error('Network error. Try again.'); });
-    };
-
-    $(document).on('click', '#odBtnSaveForm', function() {
-        var id = editId();
-        var url = id ? '{{ route("risk.office-debts.update", ["id" => "__ID__"]) }}'.replace('__ID__', id) : '{{ route("risk.office-debts.store") }}';
-        var type = id ? 'PUT' : 'POST';
-        $.ajax({ url: url, type: type, data: { _token: '{{ csrf_token() }}', office_id: $('#odInputOffice').val(), deposit_type_id: $('#odInputDepositType').val() || null, debt_month: $('#odInputMonth').val() ? parseInt($('#odInputMonth').val()) : null, debt_year: $('#odInputYear').val() ? parseInt($('#odInputYear').val()) : null, debt_status: $('#odInputStatus').val(), original_amount: $('#odInputOriginal').val(), outstanding_amount: $('#odInputOutstanding').val(), notes: $('#odInputNotes').val() } })
-            .done(function(r) { if (r.success) { odResetForm(); odShowList(); odLoadTable(); } else { KiloAlert.error(r.message || 'Save failed.'); } })
-            .fail(function(xhr) { var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Save failed.'; KiloAlert.error(msg); });
-    });
-})();
-
 </script>
-
-<!-- ── Office Debt Management Modal ─────────────────────────────────────────── -->
-<div class="modal fade p-3" id="odModal" tabindex="-1" role="dialog" aria-labelledby="odModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog od-dialog modal-fullscreen" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="odModalLabel"><i class="fa fa-balance-scale"></i> Edit Office Debt</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            </div>
-            <div class="modal-body" style="overflow-y:auto;padding:20px 24px;">
-                <div id="odFormBar" style="display:none;margin-bottom:16px;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:0 4px;">
-                        <span id="odFormTitle" style="font-weight:700; color:#2c3e50; font-size:14px;">Add / Edit Debt Record</span>
-                        <a href="#" id="odBackToList" style="font-size:12px; color:#667eea; text-decoration:none; display:flex; align-items:center; gap:4px; font-weight:600;"><i class="fa fa-arrow-left"></i> Back to list</a>
-                    </div>
-                    <div class="od-form-row">
-                        <div class="od-form-group"><label>Branch</label><select id="odInputOffice"><option value="">Select a branch…</option><?php $offices = \App\Models\Office::orderBy('name')->get(); foreach ($offices as $o) { echo '<option value="' . $o->id . '">' . htmlspecialchars($o->name) . '</option>'; } ?></select></div>
-                        <div class="od-form-group"><label>Deposit Type</label><select id="odInputDepositType"><option value="">Optional…</option><?php $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get(); foreach ($depositTypes as $dt) { echo '<option value="' . $dt->id . '">' . htmlspecialchars($dt->name) . '</option>'; } ?></select></div>
-                        <div class="od-form-group"><label>Month</label><select id="odInputMonth"><?php $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; foreach ($months as $i => $m) { echo '<option value="' . ($i + 1) . '">' . $m . '</option>'; } ?></select></div>
-                        <div class="od-form-group"><label>Year</label><select id="odInputYear"><?php $thisYear = (int) date('Y'); for ($y = $thisYear; $y >= $thisYear - 5; $y--) { echo '<option value="' . $y . '">' . $y . '</option>'; } ?></select></div>
-                    </div>
-                    <div class="od-form-row">
-                        <div class="od-form-group"><label>Status</label><select id="odInputStatus"><option value="owing">Owing</option><option value="partial">Partially Paid</option><option value="paid">Cleared</option></select></div>
-                        <div class="od-form-group"><label>Original Debt</label><input type="number" id="odInputOriginal" min="0" step="0.01"></div>
-                        <div class="od-form-group"><label>Outstanding</label><input type="number" id="odInputOutstanding" min="0" step="0.01"></div>
-                        <div class="od-form-group" style="flex:1 1 100%;"><label>Notes</label><input type="text" id="odInputNotes" placeholder="Optional notes…"></div>
-                        <div class="od-form-group" style="justify-content:flex-end;flex-direction:row;gap:6px;"><button class="od-btn od-btn-save" id="odBtnSaveForm">Save</button><button class="od-btn od-btn-cancel" id="odBtnCancelForm">Cancel</button></div>
-                    </div>
-                    <input type="hidden" id="odEditId" value="">
-                </div>
-                <div id="odListHeader" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:12px; flex-wrap:wrap;">
-                    <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:240px;"><h4 style="margin:0; font-size:14px; font-weight:700; color:#333;">Branch Debt Records</h4><input type="text" id="odSearchInput" placeholder="Search office, type or notes…" style="padding:5px 10px; border:1px solid #ccc; border-radius:4px; font-size:12px; width:240px; max-width:100%;"></div>
-                    <div style="display:flex; gap:8px; align-items:center;"><button type="button" id="odBtnExport" class="od-btn od-btn-save" style="padding:6px 12px; font-size:12px; font-weight:600;"><i class="fa fa-file-excel-o"></i> Export Excel</button><button type="button" id="odBtnNewRow" class="od-btn od-btn-save" style="padding:6px 14px; font-size:13px; font-weight:600;"><i class="fa fa-plus"></i> New Record</button></div>
-                </div>
-                <div class="table-responsive"><table class="table table-sm table-hover" id="odTable"><thead><tr><th>Branch</th><th>Deposit Type</th><th>Month / Year</th><th>Status</th><th>Original (ZMW)</th><th>Outstanding (ZMW)</th><th>Notes</th><th style="width:140px;">Actions</th></tr></thead><tbody id="odTableBody"></tbody></table></div>
-                <p id="odEmpty" style="display:none;text-align:center;padding:30px;color:#bbb;"><i class="fa fa-check-circle" style="font-size:28px;color:#27ae60;margin-bottom:10px;"></i><br>No branches currently carry an outstanding debt.</p>
-                <div id="odShimmer" style="display:none;padding:20px 24px;">
-                    @php $shimmer = 4; @endphp
-                    @for($i = 0; $i < $shimmer; $i++)
-                    <div style="display:flex;gap:10px;margin-bottom:8px;"><div style="width:22%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div><div style="width:18%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div><div style="width:14%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div><div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div><div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div><div style="width:16%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div></div>
-                    @endfor
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="/js/kilo-alert.js"></script>
+
+@include('risk.partials.office-debt-modal')
 @endsection

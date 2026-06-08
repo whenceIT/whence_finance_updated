@@ -20,27 +20,27 @@
       <div style="flex:1;min-width:140px">
         <select name="status" class="form-control">
           <option value="">All Statuses</option>
-          @foreach(['runaway_pending_confirmation'    => 'Pending Confirmation',
-'runaway_active_recovery'         => 'Active Recovery',
-'recovered_runaway'     => 'Recovered (Runaway)',
-'escalated_handover'    => 'Handover',
-'escalated_in_review'   => 'In Review',
-'escalated_active_recovery'       => 'Active Recovery',
-'recovered_post_escalation'       => 'Recovered (Escalated)',
-'dormant_for_revival'   => 'For Revival',
-'recovery_revived'      => 'Revived',
-'pre_litigation_review' => 'Pre-Litigation Review',
-'legal_filed' => 'Legal Filed',
-'legal_active'=> 'Legal Active',
-'legal_judgment_won'    => 'Judgment Won',
-'recovered_legal'       => 'Recovered (Legal)',
-'skip_trace_required'   => 'Trace Required',
-'skip_trace_digital_review'       => 'Digital Review',
-'skip_trace_contact_reengagement' => 'Re-engagement',
-'skip_trace_field_intel_active'   => 'Field Intel Active',
-'located_for_recovery'  => 'Located',
-'closed'      => 'Closed',
-'written_off' => 'Written Off'] as $stVal => $stName)
+          @foreach(['runaway_pending_confirmation' => 'Pending Confirmation',
+            'runaway_active_recovery'         => 'Active Recovery',
+            'recovered_runaway'     => 'Recovered (Runaway)',
+            'escalated_handover'    => 'Handover',
+            'escalated_in_review'   => 'In Review',
+            'escalated_active_recovery'       => 'Active Recovery',
+            'recovered_post_escalation'       => 'Recovered (Escalated)',
+            'dormant_for_revival'   => 'For Revival',
+            'recovery_revived'      => 'Revived',
+            'pre_litigation_review' => 'Pre-Litigation Review',
+            'legal_filed' => 'Legal Filed',
+            'legal_active'=> 'Legal Active',
+            'legal_judgment_won'    => 'Judgment Won',
+            'recovered_legal'       => 'Recovered (Legal)',
+            'skip_trace_required'   => 'Trace Required',
+            'skip_trace_digital_review'       => 'Digital Review',
+            'skip_trace_contact_reengagement' => 'Re-engagement',
+            'skip_trace_field_intel_active'   => 'Field Intel Active',
+            'located_for_recovery'  => 'Located',
+            'closed'      => 'Closed',
+            'written_off' => 'Written Off'] as $stVal => $stName)
             <option value="{{ $stVal }}" {{ request('status') === $stVal ? 'selected' : '' }}>
               {{ $stName }}
             </option>
@@ -48,15 +48,15 @@
         </select>
       </div>
       <div style="flex:1;min-width:140px">
-        <select name="specialist_id" class="form-control">
-          <option value="">All Specialists</option>
-          @php $specialists = \App\Models\User::orderBy('first_name')->get(); @endphp
-          @foreach($specialists as $sp)
-            <option value="{{ $sp->id }}" {{ request('specialist_id') == $sp->id ? 'selected' : '' }}>
-              {{ trim(($sp->first_name ?? '') . ' ' . ($sp->last_name ?? '')) ?: $sp->email }}
-            </option>
-          @endforeach
-        </select>
+        <select name="specialist_id" class="form-control select2-search" style="width: 100%;">
+        <option value="">All Specialists</option>
+        @php $specialists = \App\Models\User::orderBy('first_name')->get(); @endphp
+        @foreach($specialists as $sp)
+          <option value="{{ $sp->id }}" {{ request('specialist_id') == $sp->id ? 'selected' : '' }}>
+            {{ trim(($sp->first_name ?? '') . ' ' . ($sp->last_name ?? '')) ?: $sp->email }}
+          </option>
+        @endforeach
+      </select>
       </div>
       <button type="submit" class="btn btn-default">Filter</button>
       <a href="{{ url('recovery/case/data') }}" class="btn btn-default">Clear</a>
@@ -187,4 +187,13 @@
   @endif
 </div>
 
+<script>
+  $(document).ready(function() {
+      $('.select2-search').select2({
+          placeholder: 'Search...',
+          allowClear: true,
+          width: '100%'
+      });
+  });
+</script>
 @endsection

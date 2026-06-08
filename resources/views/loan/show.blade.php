@@ -27,7 +27,7 @@
     @endif
 
     <!-- Test with Anchor House First -->
-    @if(Sentinel::getUser()->role->role_id == 4 && in_array(Sentinel::getUser()->office_id, [6,8])) 
+    @if(false) 
         @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
             <script>window.location.href = '/user/branch_deposits';</script>
         @else
