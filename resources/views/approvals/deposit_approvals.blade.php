@@ -62,10 +62,10 @@
                             <td>
                                 @if($deposit->status == 1)
                                     <span class="label label-success">Approved</span>
-                                @elseif($deposit->status == 0)
-                                    <span class="label label-danger">Declined</span>
-                                @else
+                                @elseif($deposit->status == NULL)
                                     <span class="label label-warning">Pending</span>
+                                @else
+                                    <span class="label label-danger">Declined</span>
                                 @endif
                             </td>
                             <td>
