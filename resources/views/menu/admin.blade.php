@@ -1196,7 +1196,13 @@
                 </a>
                 <ul class="treeview-menu">
 
-                
+                 @if(Sentinel::hasAccess('settings'))
+                    <li style="padding-left: 10px;" class="@if(Request::is('hr/employees')) active @endif">
+                        <a href="{{ url('accounting/money_movements') }}">
+                            <i class="fa fa-circle-o"></i> Money Movements
+                        </a>
+                    </li>
+                @endif
 
                        <!-- Deposits -->
                     @if(Sentinel::hasAccess('reports.client_reports'))

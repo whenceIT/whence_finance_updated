@@ -75,6 +75,19 @@ class JournalController extends Controller
         return view('journal.create');
     }
 
+
+    public function money_movements()
+    {
+          return view('journal.money_movements');
+    }
+
+    public function internal_fund_movement()
+    {
+
+         return view('journal.internal_fund_movement');
+
+    }
+
     public function store(Request $request)
     {
         if (!Sentinel::hasAccess('accounting.journals.create')) {
