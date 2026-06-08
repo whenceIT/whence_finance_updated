@@ -1192,7 +1192,7 @@
             @if($role !== 3)
             <li class="treeview @if(Request::is('ledger/*') || Request::is('accounting/*') || Request::is('report/*') || Request::is('expense/*') || Request::is('other_income/*') || Request::is('payroll/*') || Request::is('user/branch_deposits')) active menu-open @endif">
                 <a href="#">
-                    <i class="fa fa-calculator"></i> <span>Accountsgvyvu</span>
+                    <i class="fa fa-calculator"></i> <span>Accounts</span>
                     <span class="pull-right-container">
                         <i class="fa fa-angle-left pull-right"></i>
                     </span>
