@@ -9,6 +9,22 @@
 @section('content')
 @include('components.kilo-alert')
 <style>
+    .da-key-guide {
+        background: #f7f8fc;
+        border-radius: 4px;
+        border: 1px solid #e0e4ed;
+        padding: 6px 10px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+    }
+    .da-key-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
     .da-type-card {
         background: #fff;
         border-radius: 8px;
@@ -302,15 +318,18 @@
         <button type="button" id="openFailedDepositsModal" class="btn btn-danger btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-exclamation-triangle"></i> Failed Deposits
         </button>
-        <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
-            <i class="fa fa-stop"></i> Exemption Offices
-        </button>
+        <!-- <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-stop"></i> Exempt Offices
+        </button> -->
         <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-check-circle"></i> Activate Blocking for All Offices
         </button>
         <button type="button" id="deactivateAllOfficesBtn" class="btn btn-warning btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-ban"></i> Remove Blocking All Offices
         </button>
+        <a href="{{ route('platform.block-skip-settings') }}" class="btn btn-outline-info btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-unlock"></i> Block Skip Settings
+        </a>
     </div>
 
 
@@ -475,11 +494,13 @@
                     Grand Total&nbsp;&nbsp;<strong{{ $tGT > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tGT, 2) }}</strong>
                     <br>
                     <small> <i>(Received + Other Received)</i> </small>
-                </div>
-            </div>
-      </div>
+</div>
+</div>
+</div>
 
-     <div id="daContainer">
+
+
+ <div id="daContainer">
         <div class="da-type-card bg-danger" data-type-id="debt">
              <div class="da-type-header">
                  <div class="left">
@@ -489,11 +510,13 @@
                  </div>
                  <div class="right-group">
                      <div class="da-stats">
+                         <span class="da-stat" title="Total debt records">
                          <!-- <span class="da-stat" title="Total debt records">
                              <i class="fa fa-building"></i> <strong>{{ \App\Models\OfficeDebt::count() }}</strong> records
                          </span>
                          <span class="da-stat" title="Offices with outstanding debt">
                              <i class="fa fa-exclamation-circle" style="color:#c0392b"></i> <strong>{{ \App\Models\OfficeDebt::where('outstanding_amount', '>', 0)->count() }}</strong> with outstanding
+                         </span>
                          </span> -->
                          <!-- <span class="da-stat" title="Total outstanding debt across all branches">
                              <i class="fa fa-line-chart" style="color:#c0392b"></i> <strong>K{{ number_format((int)\App\Models\OfficeDebt::sum('outstanding_amount'), 0) }}</strong> outstanding
@@ -527,11 +550,15 @@
                 </div>
                 <div class="right-group">
                     <div class="da-stats">
+                        <span class="da-stat" title="Total offices">
                         <!-- <span class="da-stat" title="Total offices">
                             <i class="fa fa-building"></i> <strong>{{ $tcount }}</strong> offices
+                        </span>
+                        <span class="da-stat" title="Offices with deposits">
                         </span> -->
                         <!-- <span class="da-stat" title="Offices with deposits">
                             <i class="fa fa-check-circle" style="color:#000"></i> <strong>{{ $withDep }}</strong> with deposits
+                        </span>
                         </span> -->
                         <!-- <span class="da-stat" title="Overall total amount across all offices">
                             <i class="fa fa-line-chart" style="color:#000"></i> <strong>K{{ number_format((float)$ttotal, 2) }}</strong> total
@@ -675,7 +702,6 @@
                      if (di > 0) html += '<div style="border-top:1px solid #f0e8e8;margin:3px 0;"></div>';
                      html += '<div style="display:flex;gap:16px;align-items:center;font-size:12px;">'
                           +   '<span style="font-weight:700;color:#555;min-width:80px;">' + label + '</span>'
-                          +   '<span>Original: <strong>K' + md.original.toLocaleString() + '</strong></span>'
                           +   '<span>Balance: <strong style="color:#c0392b;">K' + md.outstanding.toLocaleString() + '</strong></span>'
                           +   '<span class="da-status-pill ' + statusCls + '">' + statusLbl + '</span>'
                           +   '<span style="color:#777;">' + md.deposit_type + '</span>'
@@ -687,8 +713,14 @@
                  return html;
              }
 
-             // ── Build table ──────────────────────────────────────────────────────
-             var html = '<div class="da-search-row"><i class="fa fa-search"></i>'
+                // ── Build table ──────────────────────────────────────────────────────
+              var html = '<div class="da-key-guide" style="margin-bottom:8px;padding:6px 10px;background:#f7f8fc;border-radius:4px;border:1px solid #e0e4ed;display:flex;align-items:center;gap:8px;">'
+                      + '<span style="font-size:12px;font-weight:700;color:#555;">Key:</span>'
+                      + '<span class="da-key-item"><span class="da-month-box has" style="margin-right:4px;"></span>Deposit made</span>'
+                      + '<span class="da-key-item"><span class="da-month-box" style="margin-right:4px;">M</span>No deposits</span>'
+                      + '<span class="da-key-item"><span class="da-month-box has-debt" style="margin-right:4px;color:#fff;">!</span>Debt</span>'
+                      + '</div>'
+                      + '<div class="da-search-row"><i class="fa fa-search"></i>'
                       + '<input type="text" class="da-office-search"'
                       +   'placeholder="Filter by branch name, status, original or outstanding amount&hellip;"'
                       + 'autocomplete="off" spellcheck="false"></div>'
@@ -727,7 +759,7 @@
                             +   ' onclick="toggleDebtDetail(' + idx + ', ' + idx + ', \'' + debtToggleId + '\')">'
                          +   '<td style="cursor:pointer;">'
                          +   '<span id="' + debtToggleId + '" style="display:inline-block;width:14px;text-align:center;margin-right:4px;color:#667eea;font-size:11px;"><i class="fa fa-caret-right"></i></span>'
-                            +   row.id
+                            +   row.office_id
                             +   '</td>'
                             +   '<td style="cursor:pointer;font-weight:700;color:#333;">' + row.office_name + '</td>'
                             +   '<td class="da-amt"  style="cursor:pointer;">K' + row.original_amount.toLocaleString() + '</td>'
@@ -1142,7 +1174,7 @@
              odRenderDebtTable(filtered);
          });
 
-// ── Export to Excel (CSV) ──
+        // ── Export to Excel (CSV) ──
           $(document).on('click', '#odBtnExport', function() {
               if (!odAllRows || odAllRows.length === 0) {
                   KiloAlert.info('No data to export.');
@@ -1297,200 +1329,8 @@
 })();
 </script>
 
-<!-- ── Office Debt Management Modal ─────────────────────────────────────────── -->
-<div class="modal fade p-3" id="odModal" tabindex="-1" role="dialog" aria-labelledby="odModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog od-dialog modal-fullscreen" role="document">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h4 class="modal-title" id="odModalLabel">
-                    <i class="fa fa-balance-scale"></i> Edit Office Debt
-                </h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-
-            <div class="modal-body" style="overflow-y:auto;padding:20px 24px;">
 
 
-                <!-- Add / Edit form bar (toggles with list view) -->
-                <div id="odFormBar" style="display:none;margin-bottom:16px;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:0 4px;">
-                        <span id="odFormTitle" style="font-weight:700; color:#2c3e50; font-size:14px;">Add / Edit Debt Record</span>
-                        <a href="#" id="odBackToList" style="font-size:12px; color:#667eea; text-decoration:none; display:flex; align-items:center; gap:4px; font-weight:600;">
-                            <i class="fa fa-arrow-left"></i> Back to list
-                         </a>
-                     </div>
-                     <!-- Update behavior hint (visible when editing) -->
-                     <div style="background:#f0f4ff;border:1px solid #c5d4f5;color:#2c5282;font-size:12px;padding:6px 10px;border-radius:4px;margin-bottom:12px;">
-                         <i class="fa fa-info-circle"></i>
-                         <strong>Editing rules:</strong> Only <strong>Outstanding</strong> (blue border) and Notes can be changed.
-                         Higher Outstanding → Original Debt is increased to match.
-                         Lower Outstanding → the difference is automatically recorded as a Deposit for this branch/type/period.
-                     </div>
-                     <div class="od-form-row">
-                        <div class="od-form-group">
-                            <label>Branch</label>
-                            <select id="odInputOffice">
-                                <option value="">Select a branch…</option>
-                                <?php
-                                    $offices = \App\Models\Office::orderBy('name')->get();
-                                    foreach ($offices as $o) {
-                                        echo '<option value="' . $o->id . '">' . htmlspecialchars($o->name) . '</option>';
-                                    }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="od-form-group">
-                            <label>Deposit Type</label>
-                            <select id="odInputDepositType">
-                                <option value="">Optional — select a deposit type…</option>
-                                <?php
-                                    $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')->get();
-                                    foreach ($depositTypes as $dt) {
-                                        echo '<option value="' . $dt->id . '">' . htmlspecialchars($dt->name) . '</option>';
-                                    }
-                                ?>
-                                <option value="0">Setup Debt</option>
-                            </select>
-                        </div>
-                        <div class="od-form-group">
-                            <label>Month</label>
-                            <select id="odInputMonth">
-                                <option value="">—</option>
-                                <?php
-                                    $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                                    foreach ($months as $i => $m) {
-                                        echo '<option value="' . ($i + 1) . '">' . $m . '</option>';
-                                    }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="od-form-group">
-                            <label>Year</label>
-                            <select id="odInputYear">
-                                <option value="">—</option>
-                                <?php
-                                    $thisYear = (int) date('Y');
-                                    for ($y = $thisYear; $y >= $thisYear - 5; $y--) {
-                                        echo '<option value="' . $y . '">' . $y . '</option>';
-                                    }
-                                ?>
-                            </select>
-                            </div>
-                         </div>
-                         <div class="od-form-row">
-                         <div class="od-form-group">
-                             <label>Status</label>
-                            <select id="odInputStatus">
-                                <option value="owing">Owing</option>
-                                <option value="partial">Partially Paid</option>
-                                <option value="paid">Cleared</option>
-                            </select>
-                        </div>
-                        <div class="od-form-group">
-                            <label>Original Debt</label>
-                            <input type="number" id="odInputOriginal" min="0" step="0.01">
-                        </div>
-                        <div class="od-form-group">
-                            <label>Outstanding</label>
-                            <input type="number" id="odInputOutstanding" min="0" step="0.01">
-                        </div>
-                        <div class="od-form-group" style="flex:1 1 100%;">
-                            <label>Notes</label>
-                            <input type="text" id="odInputNotes" placeholder="Optional notes…">
-                        </div>
-                        <div class="od-form-group" style="justify-content:flex-end;flex-direction:row;gap:6px;">
-                            <button class="od-btn od-btn-save"       id="odBtnSaveForm"    >Save</button>
-                            <button class="od-btn od-btn-cancel"     id="odBtnCancelForm"  >Cancel</button>
-                         </div>
-                         </div>
-                      <input type="hidden" id="odEditId" value="">
-
-                      <!-- Duplicate prevention: handled server-side via unique DB constraint.
-                           storeOfficeDebt / updateOfficeDebt return clean JSON (409) on conflict. -->
-                  </div>
-
-                  <!-- List header with search + export -->
-                  <div id="odListHeader" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:12px; flex-wrap:wrap;">
-                      <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:240px;">
-                          <h4 style="margin:0; font-size:14px; font-weight:700; color:#333;">Branch Debt Records</h4>
-                          <input type="text" id="odSearchInput" placeholder="Search office, type or notes..." 
-                                 style="padding:5px 10px; border:1px solid #ccc; border-radius:4px; font-size:12px; width:240px; max-width:100%;">
-                      </div>
-                      <div style="display:flex; gap:8px; align-items:center;">
-                          <button type="button" id="odBtnExport" class="od-btn od-btn-save" style="padding:6px 12px; font-size:12px; font-weight:600;">
-                              <i class="fa fa-file-excel-o"></i> Export Excel
-                          </button>
-                          <button type="button" id="odBtnNewRow" class="od-btn od-btn-save" style="padding:6px 14px; font-size:13px; font-weight:600;">
-                              <i class="fa fa-plus"></i> New Record
-                          </button>
-                      </div>
-                  </div>
-
-                <!-- Data table -->
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover" id="odTable">
-                        <thead>
-                            <tr>
-                                <th>Branch</th>
-                                <th>Deposit Type</th>
-                                <th>Month / Year</th>
-                                <th>Status</th>
-                                <th>Original (ZMW)</th>
-                                <th>Outstanding (ZMW)</th>
-                                <th>Notes</th>
-                                <th style="width:140px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="odTableBody"></tbody>
-                    </table>
-                </div>
-
-                <p id="odEmpty" style="display:none;text-align:center;padding:30px;color:#bbb;">
-                    <i class="fa fa-check-circle" style="font-size:28px;color:#27ae60;margin-bottom:10px;"></i><br>
-                    No branches currently carry an outstanding debt.
-                </p>
-
-            </div><!-- /.modal-body -->
-
-                <!-- Shimmer loading state -->
-                <div id="odShimmer">
-                    <div style="animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;height:14px;margin-bottom:14px;border-radius:4px;"></div>
-                    @php $shimmer = 4; @endphp
-                    @for($i = 0; $i < $shimmer; $i++)
-                    <div style="display:flex;gap:10px;margin-bottom:8px;">
-                        <div style="width:22%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:18%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:14%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:10%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                        <div style="width:16%;height:36px;animation:shimmer 1.5s infinite;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:4px;"></div>
-                    </div>
-                    @endfor
-                </div>
-        </div>
-    </div>
-</div>
-
-<script>
-document.getElementById('openDepositQueryModal').addEventListener('click', function() {
-    document.getElementById('depositQueryModal').style.display = 'block';
-});
-
-document.getElementById('closeDepositQueryModal').addEventListener('click', function() {
-    document.getElementById('depositQueryModal').style.display = 'none';
-});
-
-document.getElementById('openFailedDepositsModal').addEventListener('click', function() {
-    document.getElementById('failedDepositsModal').style.display = 'block';
-});
-
-document.getElementById('closeFailedDepositsModal').addEventListener('click', function() {
-    document.getElementById('failedDepositsModal').style.display = 'none';
-});
-</script>
 
 <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -1654,10 +1494,28 @@ $(document).on('click', '#openExemptionListModal', function() {
     loadOfficesSettings();
 });
 
+document.getElementById('openDepositQueryModal').addEventListener('click', function() {
+    document.getElementById('depositQueryModal').style.display = 'block';
+});
+
+document.getElementById('closeDepositQueryModal').addEventListener('click', function() {
+    document.getElementById('depositQueryModal').style.display = 'none';
+});
+
+document.getElementById('openFailedDepositsModal').addEventListener('click', function() {
+    document.getElementById('failedDepositsModal').style.display = 'block';
+});
+
+document.getElementById('closeFailedDepositsModal').addEventListener('click', function() {
+    document.getElementById('failedDepositsModal').style.display = 'none';
+});
+
 var officeIdParam = new URLSearchParams(window.location.search).get('office_id');
 if (officeIdParam) {
     loadOfficesSettings();
 }
 </script>
+<script src="/js/kilo-alert.js"></script>
 
+@include('risk.partials.office-debt-modal')
 @endsection

@@ -6,12 +6,28 @@
 
     @php
         $block = Sentinel::getUser();
-        $debtBlocker = $block ? \App\Helpers\BlockerHelper::debt_blocker($block) : ['status' => true, 'balance' => 0];
-        $monthlyDepositDone = $block ? \App\Helpers\BlockerHelper::monthlyDepositExists($block) : true;
     @endphp
+    @if($block)
+        @php
+            $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($block);
+        @endphp
+    @else
+        @php
+            $debtBlocker = ['status' => true, 'balance' => 0];
+        @endphp
+    @endif
+    @if($block)
+        @php
+            $monthlyDepositDone = \App\Helpers\BlockerHelper::monthlyDepositExists($block);
+        @endphp
+    @else
+        @php
+            $monthlyDepositDone = true;
+        @endphp
+    @endif
 
     <!-- Test with Anchor House First -->
-    @if($block->role->role_id== 4 && in_array($block->office_id, [6,8])) 
+    @if(false) 
         @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
             <script>window.location.href = '/user/branch_deposits';</script>
         @else
@@ -568,7 +584,6 @@
                         <div class="row">
                             <div class="col-md-12">
 
-                            <!-- Loan Details Modification RiskBlocking::RB1() -->
                                 @if(Sentinel::getUser()->office_id != 0)
                                 <div class="pull-right btn-group">
                                     @if(Sentinel::hasAccess('loans.transactions.create'))
@@ -1019,7 +1034,7 @@
                            class="control-label col-md-3">Outstanding Principal {{trans_choice('general.amount',1)}}</label>
                             <div class="col-md-9">
                                 <input type="text" name="amount" class="form-control"
-                                    value="{{$loan_allocation["principal"]-$loan_allocation["principal_paid"]-$loan_allocation["principal_waived"]-$loan_allocation["principal_written_off"],$decimals}}"
+                                    value="{{number_format($loan_allocation["principal"]-$loan_allocation["principal_paid"]-$loan_allocation["principal_waived"]-$loan_allocation["principal_written_off"],$decimals)}}"
                                     required id="amount">
                             </div><BR><br><br>
                 
@@ -3175,20 +3190,16 @@
             responsive: false
         });
     </script>
-<script>
-
-function sum() {
-    var inputFirstNumberValue = document.getElementById('balance').value;
-    var inputSecondNumberValue = document.getElementById('interest_rate').value;
-    var outputs = parseInt(inputFirstNumberValue) * parseInt(inputSecondNumberValue) / 100;
-    if (!isNaN(outputs)) {
-        document.getElementById('interest').value = outputs;
-    }
-}
-
-
-
-</script>
+    <script>
+        function sum() {
+            var inputFirstNumberValue = document.getElementById('balance').value;
+            var inputSecondNumberValue = document.getElementById('interest_rate').value;
+            var outputs = parseInt(inputFirstNumberValue) * parseInt(inputSecondNumberValue) / 100;
+            if (!isNaN(outputs)) {
+                document.getElementById('interest').value = outputs;
+            }
+        }
+    </script>
 
 @endsection
 

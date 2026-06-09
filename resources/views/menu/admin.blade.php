@@ -804,6 +804,9 @@
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('client/managers_pending_approval') }}"><i class="fa fa-circle-o"></i>Clients Pending Approval @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->count() }}</span>@else<span class="label label-info pull-right">{{\App\Models\Client::where('status','pending')->where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
+                    @hasRole('role.exec', 'role.risk')
+                        <li @if(Request::is('approvals/deposit-approvals*')) class="active" @endif><a href="{{ url('approvals/deposit-approvals') }}"><i class="fa fa-circle-o"></i> Deposit Approvals</a></li>
+                    @endif
                 </ul>
             </li>
             @endif
@@ -1065,6 +1068,8 @@
                 </ul>
             </li>
 
+
+
             <!-- ============================================
                  PERFORMANCE SECTION
             ============================================ -->
@@ -1194,7 +1199,13 @@
                 </a>
                 <ul class="treeview-menu">
 
-                
+                 @if(Sentinel::hasAccess('settings'))
+                    <li style="padding-left: 10px;" class="@if(Request::is('hr/employees')) active @endif">
+                        <a href="{{ url('accounting/money_movements') }}">
+                            <i class="fa fa-circle-o"></i> Money Movements
+                        </a>
+                    </li>
+                @endif
 
                        <!-- Deposits -->
                     @if(Sentinel::hasAccess('reports.client_reports'))
@@ -1296,6 +1307,10 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
+
+                            @if(Sentinel::hasAccess('settings'))
+                    <li><a href="{{ url('expense/dashboard') }}"><i class="fa fa-circle-o"></i>Expenses Dashboard</a></li>
+                    @endif
                             @if(Sentinel::hasAccess('expenses.view'))
                                 <li><a href="{{ url('expense/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.expense',2)}}</a></li>
                             @endif
@@ -1418,6 +1433,31 @@
             @endif
 
 
+                                 <!-- ============================================
+                 MOTOR VECHICLE SECTION
+            ============================================ -->
+            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/dormant_loans') ) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-car"></i> <span>Motor Vehicle Loans</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Vehicles Dashboard</a></li>
+                    @endif
+                  
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicle Loans</a></li>
+                    @endif
+                </ul>
+            </li>
+
+
+
             {{-- ====================================================== --}}
             {{-- RECOVERIES MODULE                                        --}}
             {{-- ====================================================== --}}
@@ -1491,6 +1531,9 @@
                 </li>
             </ul>
             @endif
+
+
+            
 
 
           

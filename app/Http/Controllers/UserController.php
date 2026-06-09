@@ -28,6 +28,10 @@ use App\Models\LoanTransaction;
 use App\Models\Office;
 use App\Models\UserRole;
 use App\Models\Province;
+use App\Models\Deposit;
+use App\Models\DepositType;
+use App\Models\OfficeDebt;
+use App\Models\DepositLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Validator;
@@ -1559,9 +1563,17 @@ public function save_wallet(Request $request)
 
     public function branch_deposits(Request $request)
     {
-        $office_id = Sentinel::getUser()->office->id;
-        $userId = Sentinel::getUser()->id;
-        return view('user.branch_deposits', compact('office_id', 'userId', ));
+        $user = Sentinel::getUser();
+        $office_id = $user->office->id;
+        $office_name = $user->office->name;
+        $userId = $user->id;
+        $user_name = $user->first_name . ' ' . $user->last_name;
+
+        $depositTypes = \App\Models\DepositType::orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('user.branch_deposits', compact('office_id', 'office_name', 'userId', 'user_name', 'depositTypes'));
     }
 
 

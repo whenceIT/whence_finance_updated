@@ -80,4 +80,14 @@ class Client extends Model
         }
         return asset('public/uploads/image.png');
     }
+
+    public function vehicles()
+{
+    return $this->hasMany(Vehicle::class);
+}
+
+public function motorVehicleLoans()
+{
+    return $this->hasMany(MotorVehicleLoan::class);
+}
 }

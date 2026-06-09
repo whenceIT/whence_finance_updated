@@ -30,16 +30,22 @@ class OfficeDebtService
         $currentYear = $today->year;
         $currentMonth = $today->month;
 
+        if ($month) {
+            $parts = explode('-', $month);
+            $currentMonth = (int) $parts[0];
+            $currentYear = (int) $parts[1];
+        }
+
         $monthsToProcess = $currentMonth;
 
         $types = DepositType::orderBy('sort_order')->get();
-        $officesQuery = Office::where('active', 1)->orderBy('name');
+        $officesQuery = Office::where('active', 1)->where('id', '!=', 67)->orderBy('name');
         if ($officeId !== null) {
             $officesQuery->where('id', $officeId);
         }
         $offices = $officesQuery->get();
 
-        $validDeposits = Deposit::query()
+        $validDeposits = Deposit::query() 
             ->whereYear('date', $currentYear)
             ->whereMonth('date', '<=', $currentMonth)
             ->get();
@@ -56,8 +62,9 @@ class OfficeDebtService
 
         foreach ($types as $type) {
             $monthlyRequired = (float) ($type->monthly_amount ?? 0);
-            $totalExpected = $monthlyRequired * $monthsToProcess;
+            $totalExpected = $monthlyRequired;
 
+            // dd($type->name, $monthlyRequired, $monthsToProcess, $totalExpected);
             foreach ($offices as $office) {
                 $key = $office->id . '|' . $type->id;
                 $received = $depsIdx[$key] ?? 0.0;

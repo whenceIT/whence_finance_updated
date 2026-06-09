@@ -13,7 +13,7 @@ class StatsHelper
 {
     public static function getBranchDepositStats($officeId = null, $period = 'month')
     {
-        $query = Deposit::query();
+        $query = Deposit::query()->withoutGlobalScope('approved');
         
         if ($officeId) {
             $query->where('office', $officeId);
@@ -45,7 +45,7 @@ class StatsHelper
     
     public static function getTotalDebt()
     {
-        return OfficeDebt::sum('outstanding_amount');
+        return OfficeDebt::where('office_id', '!=', 67)->sum('outstanding_amount');
     }
     
     public static function getDisbursedLoansCount($officeId = null)
@@ -79,6 +79,7 @@ class StatsHelper
             ->get();
     }
     
+    // for exemptions processing
     public static function getRequiredDepositTypes($officeId = null)
     {
         $settings = self::getBranchDepositSettings($officeId);
@@ -102,10 +103,62 @@ class StatsHelper
         return $requiredTypes;
     }
     
+    // for skiping processing
+    public static function getRequiredSkippedTypes($officeId = null)
+    {
+        $settings = self::getBranchSkipSettings($officeId);
+        
+        $typeMapping = [
+            'admin' => 1,
+            'building' => 3,
+            'statutory' => 5,
+            'set_up_debt' => 0,
+        ];
+        
+        $requiredTypes = [];
+        
+        foreach ($typeMapping as $settingKey => $depositTypeId) {
+            if ($settings[$settingKey] === true) {
+                $requiredTypes[] = $depositTypeId;
+            }
+        }
+        
+        //difference is i dont want to merge the blocker types here, as this is for skipping deposits, not for checking if they are made or not. so only the types that are enabled for skipping will be returned here.
+        return $requiredTypes;
+    }
+    
     public static function getBranchDepositSettings($officeId = null)
     {
         if ($officeId) {
             $key = 'branch_deposit_setting_' . $officeId;
+            $setting = \App\Models\PlatformSetting::where('key', $key)->first();
+            
+            if ($setting) {
+                return [
+                    'id' => $setting->id,
+                    'office_id' => $officeId,
+                    'admin' => $setting->value['admin'] ?? true,
+                    'building' => $setting->value['building'] ?? true,
+                    'statutory' => $setting->value['statutory'] ?? true,
+                    'set_up_debt' => $setting->value['set_up_debt'] ?? true,
+                ];
+            }
+        }
+        
+        return [
+            'id' => null,
+            'office_id' => $officeId,
+            'admin' => true,
+            'building' => true,
+            'statutory' => true,
+            'set_up_debt' => true,
+        ];
+    }
+    
+    public static function getBranchSkipSettings($officeId = null)
+    {
+        if ($officeId) {
+            $key = 'branch_block_skiping_' . $officeId;
             $setting = \App\Models\PlatformSetting::where('key', $key)->first();
             
             if ($setting) {

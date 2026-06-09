@@ -43,6 +43,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\RiskController;
 use App\Http\Controllers\PlatformController;
+use App\Http\Controllers\ApprovalWorkflowController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -234,6 +235,10 @@ Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
     Route::post('/platform/initialize-all', [PlatformController::class, 'initializeAllOffices']);
     Route::post('/platform/deactivate-all', [PlatformController::class, 'deactivateAllOffices']);
     Route::get('/platform/offices-settings', [PlatformController::class, 'getOfficesSettings']);
+    Route::get('/platform/block-skip/get', [PlatformController::class, 'getBlockSkipSettings']);
+    Route::post('/platform/block-skip/save', [PlatformController::class, 'saveBlockSkipSettings']);
+    Route::post('/platform/block-skip/initialize-all', [PlatformController::class, 'initializeBlockSkipAllOffices']);
+    Route::post('/platform/block-skip/deactivate-all', [PlatformController::class, 'deactivateBlockSkipAllOffices']);
 });
 
 // Course Categories Management Routes
@@ -337,6 +342,24 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('position/{id}', 'GOAController@showPosition')->name('goa.position.show');
 });
 
+Route::group(['prefix' => 'vehicles'], function () {
+    Route::get('/', 'VehicleController@index');
+    Route::get('dashboard', 'VehicleController@dashboard');
+    Route::get('create', 'VehicleController@create');
+    Route::any('store', 'VehicleController@store');
+    Route::any('{id}', 'VehicleController@show');
+    Route::any('{id}/edit', 'VehicleController@edit');
+    Route::any('{id}/update', 'VehicleController@update');
+    Route::get('search-clients', 'VehicleController@searchbClients');
+    Route::get('{vehicle}/insurance/create','VehicleController@createInsurance');
+    Route::any('{vehicle}/insurance/store','VehicleController@storeInsurance');
+    Route::get('{vehicle}/documents/create','VehicleController@createDocuments');
+    Route::any('{vehicle}/documents/store','VehicleController@storeDocuments');
+    Route::get('{vehicle}/photos/create','VehicleController@createPhotos');
+    Route::any('{vehicle}/photos/store','VehicleController@storePhotos');
+    Route::get('{vehicle}/inspections/create','VehicleController@createInspections');
+    Route::any('{vehicle}/inspections/store','VehicleController@storeInspections');
+});
 //route for users
 Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');
@@ -425,7 +448,6 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('get_districts_by_province/{id}', 'UserController@get_districts_by_province');
     Route::get('get_district_regionals_by_district/{id}', 'UserController@get_district_regionals_by_district');
 
-
      Route::get('branch_deposits','UserController@branch_deposits');
      Route::get('deposit_logs','UserController@deposit_logs');
 });
@@ -453,6 +475,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
     Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
+    Route::get('block-skip-settings', [PlatformController::class, 'blockSkipSettings'])->name('platform.block-skip-settings');
     Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
     Route::get('policy-breach', [RiskController::class, 'policyBreach']);
@@ -645,6 +668,7 @@ Route::group(['prefix' => 'accounting'], function () {
     Route::post('gl_account/{id}/approve', 'GlAccountController@approve');
     Route::post('gl_account/{id}/decline', 'GlAccountController@decline');
     Route::get('gl_account/{id}/delete', 'GlAccountController@delete');
+   
     //manual journal entries
     Route::any('journal', 'JournalController@index');
     Route::any('journal/reconstate', 'JournalController@reconstatement');
@@ -683,6 +707,8 @@ Route::group(['prefix' => 'accounting'], function () {
     Route::any('{id}/approve_fund', 'JournalController@approve_fund');
     Route::any('{id}/reject_fund', 'JournalController@reject_fund');
     Route::any('{id}/show_fund_movements','JournalController@show_fund_movement');
+    Route::any('money_movements','JournalController@money_movements');
+    Route::any('internal_fund_movement','JournalController@internal_fund_movement');
 
 });
 //route for accounting
@@ -1426,6 +1452,7 @@ Route::group(['prefix' => 'survey'], function () {
 
 //route for expenses
 Route::group(['prefix' => 'expense'], function () {
+    Route::get('dashboard','ExpenseController@dashboard');
     Route::get('data', 'ExpenseController@index');
     Route::get('create', 'ExpenseController@create');
     Route::post('store', 'ExpenseController@store');
@@ -1825,8 +1852,14 @@ Route::get('collateral/analytics/branch', 'CollateralController@analyticsBranch'
 Route::get('collateral/report', 'CollateralController@report')->name('collateral.report');
 Route::post('collateral/report/export', 'CollateralController@exportCsv')->name('collateral.export');
 Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('collateral.approvals.queue');
-Route::post('collateral/approvals/{collateral_status_change_request}/approve', 'CollateralApprovalController@approve')->name('collateral.approvals.approve');
-Route::post('collateral/approvals/{collateral_status_change_request}/reject', 'CollateralApprovalController@reject')->name('collateral.approvals.reject');
+    Route::post('collateral/approvals/{collateral_status_change_request}/approve', 'CollateralApprovalController@approve')->name('collateral.approvals.approve');
+    Route::post('collateral/approvals/{collateral_status_change_request}/reject', 'CollateralApprovalController@reject')->name('collateral.approvals.reject');
+
+    // Deposit Approvals
+    Route::get('approvals/deposit-approvals', 'ApprovalWorkflowController@depositApprovals')->name('approvals.deposit-approvals');
+    Route::post('approvals/deposit-approvals/{id}/{status}', 'ApprovalWorkflowController@approveDecline')->name('approvals.deposit-approvals.action');
+    Route::post('approvals/deposit-approvals/bulk-approve', 'ApprovalWorkflowController@bulkApprove')->name('approvals.deposit-approvals.bulk');
+    Route::post('approvals/deposit-approvals/approve-all', 'ApprovalWorkflowController@approveAll')->name('approvals.deposit-approvals.all');
 Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');

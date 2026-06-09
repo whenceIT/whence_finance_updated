@@ -20,7 +20,7 @@ class BlockerHelper
      *         status  = false → no deposit found this month (show blocker)
      *         balance = outstanding_amount from office_debts table for this office/month
      */
-    public static function debt_blocker($user): array
+    public static function debt_blocker($user)
     {
         $officeId = $user->office_id ?? null;
 
@@ -71,7 +71,7 @@ class BlockerHelper
 
     }
 
-public static function monthlyDepositExists($user): bool
+public static function monthlyDepositExists($user)
     {
         $officeId = $user->office_id ?? null;
 
@@ -85,10 +85,7 @@ public static function monthlyDepositExists($user): bool
 
         $now = Carbon::now();
 
-        $enabledTypes = \App\Helpers\StatsHelper::getRequiredDepositTypes($officeId);
-
-        
-        $enabledTypes = array_diff($enabledTypes, [4, 6, 2, 0]);
+        $enabledTypes = \App\Helpers\StatsHelper::getRequiredSkippedTypes($officeId);
   
         if (empty($enabledTypes)) {
             return true;
@@ -103,6 +100,7 @@ public static function monthlyDepositExists($user): bool
             ->unique()
             ->values()
             ->toArray();
+
         
         return count(array_intersect($enabledTypes, $types)) === count($enabledTypes);
         

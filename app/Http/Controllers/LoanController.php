@@ -61,6 +61,7 @@ use App\Models\Province;
 use App\Models\Notifix;
 use App\Services\NotifixService;
 use App\Models\ClientAppLoanApplications;
+use App\Models\Vehicle;
 
 
 class LoanController extends Controller
@@ -1306,7 +1307,23 @@ public function create()
                 ]
             ]);
             // Notify Branch Manager for new loan approval
-            Notifix::notifyBmToApproveNewLoan($loan, $client, $request->principal);
+            // Notifix::notifyBmToApproveNewLoan($loan, $client, $request->principal);
+
+            if($loan_product->id == 0)
+            {
+
+            Vehicle::create([
+            'vehicle_code' => 'VH'.time(),
+            'client_id' => $client->id,
+            'make' => $request->make,
+            'model' => $request->model,
+            'year' => $request->year,
+            'registration_number' => $request->registration_number,
+            'market_value' => $request->market_value,
+            'forced_sale_value' => $request->forced_sale_value
+        ]);
+
+            }
 
             if (!empty($request->charges)) {
                 //loop through the array
@@ -2763,9 +2780,6 @@ public function create()
             $loan_transaction->debit = $total_interest;
             $loan_transaction->save();
 
-            $target_tracker = TargetTracker::where('status','active')->where('user_id',$loan->loan_officer_id)->first();
-            $target_tracker->given_out = $target_tracker->given_out + $loan->principal;
-            $target_tracker->save();
 
 
             //check for  fees
@@ -3334,13 +3348,13 @@ public function create()
                 }else{
                     $inline = '';
                 }
-                //Create a message based on the payment type
+                // Create a message based on the payment type
                 if ($paymentType == 'full_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, your loan is fully paid. ZMW {$amount} successfully paid on {$date} Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name}, thank you for paying ZMW {$amount}. Your loan is now fully settled. For any queries, call 0773425477.";
                 } elseif ($paymentType == 'part_payment') {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully paid on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name}, thank you for paying ZMW {$amount}. {$inline} For any queries, call 0773425477.";
                 } else {
-                    $message = "Dear {$client->first_name} {$client->last_name}, ZMW {$amount} repayment successfully paid on {$date} ".$inline.". Thank you. Call 0773425477 for queries.";
+                    $message = "Dear {$client->first_name}, thank you for paying ZMW {$amount}. {$inline} For any queries, call 0773425477.";
                 }
 
                 // Send SMS to client about the transaction (only for enabled offices)
