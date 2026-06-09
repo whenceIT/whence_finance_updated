@@ -15,12 +15,12 @@
         <div class="box-header with-border">
             <h3 class="box-title">{{trans_choice('general.expense',2)}}</h3>
             <!---------expense redirect-------------------->
-            <div class="box-tools pull-right">
+            <!-- <div class="box-tools pull-right">
                 @if(Sentinel::hasAccess('expenses.create'))
                     <a href="{{ url('expense/create') }}"
                        class="btn btn-info btn-sm">{{trans_choice('general.add',1)}} {{trans_choice('general.expense',1)}}</a>
                 @endif
-            </div>
+            </div> -->
         </div>
 
         <div class="box-body">

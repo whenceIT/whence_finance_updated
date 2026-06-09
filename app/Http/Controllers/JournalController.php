@@ -88,6 +88,14 @@ class JournalController extends Controller
 
     }
 
+
+public function expenses()
+{
+
+  return view('journal.expenses');
+
+}
+
     public function store(Request $request)
     {
         if (!Sentinel::hasAccess('accounting.journals.create')) {

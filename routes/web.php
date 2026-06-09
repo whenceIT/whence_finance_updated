@@ -709,6 +709,7 @@ Route::group(['prefix' => 'accounting'], function () {
     Route::any('{id}/show_fund_movements','JournalController@show_fund_movement');
     Route::any('money_movements','JournalController@money_movements');
     Route::any('internal_fund_movement','JournalController@internal_fund_movement');
+    Route::any('expenses','JournalController@expenses');
 
 });
 //route for accounting
