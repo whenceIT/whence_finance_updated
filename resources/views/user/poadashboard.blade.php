@@ -369,95 +369,208 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <tbody>
                         `;
 
-                        if (data.data && data.data.length > 0) {
-                            data.data.forEach(c => {
-                                const pdua = ((parseFloat(c.pdua ?? 0)) * 100).toFixed(2);
-                                const totalUncollected = parseFloat(c.total_uncollected ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                const totalCollected = parseFloat(c.total_collected ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                const stillUncollected = parseFloat(c.still_uncollected ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                const givenOut = parseFloat(c.given_out ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                const carryOver = parseFloat(c.carry_over ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                const cycle_end = c.cycle_end_on;
-                                const id = c.user_id;
+                   if (data.data && data.data.length > 0) {
 
-                                const targetMetCurrent = Number(c.target_met_current ?? 0);
+    const bands = [
+        {
+            label: 'Below 10,000',
+            min: 0,
+            max: 9999.99
+        },
+        {
+            label: '10,000',
+            min: 10000,
+            max: 19999.99
+        },
+        {
+            label: '20,000',
+            min: 20000,
+            max: 29999.99
+        },
+        {
+            label: '30,000',
+            min: 30000,
+            max: 39999.99
+        },
+        {
+            label: '40,000+',
+            min: 40000,
+            max: Number.MAX_VALUE
+        }
+    ];
 
-                                const targetMetBadge = targetMetCurrent === 1
-                                    ? `<span class="label label-success">Met</span>`
-                                    : `<span class="label label-default">Not Met</span>`;
+    bands.forEach(band => {
 
-                                const historyArray = Array.isArray(c.target_history) ? c.target_history : [];
+        const consultants = data.data.filter(c => {
+            const givenOut = parseFloat(c.given_out ?? 0);
 
-                                let historyCircles = `<div style="white-space: nowrap;">`;
+            return (
+                givenOut >= band.min &&
+                givenOut <= band.max
+            );
+        });
 
-                                historyArray.forEach(v => {
-                                    let bgColor = '#d2d6de'; // grey default
-                                    if (Number(v) === 1) {
-                                        bgColor = '#00a65a'; // green
-                                    } else if (Number(v) === 0) {
-                                        bgColor = '#dd4b39'; // red
-                                    }
+        if (consultants.length === 0) {
+            return;
+        }
 
-                                    historyCircles += `
-                                        <span style="
-                                            display:inline-block;
-                                            width:12px;
-                                            height:12px;
-                                            border-radius:50%;
-                                            background:${bgColor};
-                                            margin-right:4px;
-                                            vertical-align:middle;
-                                        "></span>
-                                    `;
-                                });
+        html += `
+            <tr style="background:#f4f4f4;">
+                <td colspan="11">
+                    <strong>${band.label}</strong>
+                    <span class="badge bg-blue">
+                        ${consultants.length}
+                    </span>
+                </td>
+            </tr>
+        `;
 
-                                if (historyArray.length < 5) {
-                                    for (let i = historyArray.length; i < 5; i++) {
-                                        historyCircles += `
-                                            <span style="
-                                                display:inline-block;
-                                                width:12px;
-                                                height:12px;
-                                                border-radius:50%;
-                                                background:#d2d6de;
-                                                margin-right:4px;
-                                                vertical-align:middle;
-                                            "></span>
-                                        `;
-                                    }
-                                }
+        consultants.forEach(c => {
 
-                                historyCircles += `</div>`;
+            const pdua = ((parseFloat(c.pdua ?? 0)) * 100).toFixed(2);
 
-                                html += `
-                                    <tr>
-                                        <td><strong>${c.name ?? ''}</strong></td>
-                                        <td>${totalUncollected}</td>
-                                        <td>${totalCollected}</td>
-                                        <td>${stillUncollected}</td>
-                                        <td>${givenOut}</td>
-                                        <td>${carryOver}</td>
-                                        <td><span class="label label-info">${pdua}%</span></td>
-                                        <td>${targetMetBadge}</td>
-                                        <td>${historyCircles}</td>
-                                      
-                                         <td>${cycle_end}</td>
-                                             
-  <td>
-    <a href="{{ url('user/${id}/staff_info') }}" class="text-primary">
-        View
-    </a>
-</td>
-                                    </tr>
-                                `;
-                            });
-                        } else {
-                            html += `
-                                <tr>
-                                    <td colspan="9" class="text-center text-muted">No consultant records found.</td>
-                                </tr>
-                            `;
-                        }
+            const totalUncollected = parseFloat(
+                c.total_uncollected ?? 0
+            ).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            const totalCollected = parseFloat(
+                c.total_collected ?? 0
+            ).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            const stillUncollected = parseFloat(
+                c.still_uncollected ?? 0
+            ).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            const givenOut = parseFloat(
+                c.given_out ?? 0
+            ).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            const carryOver = parseFloat(
+                c.carry_over ?? 0
+            ).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            const cycle_end = c.cycle_end_on;
+            const id = c.user_id;
+
+            const targetMetCurrent = Number(
+                c.target_met_current ?? 0
+            );
+
+            const targetMetBadge =
+                targetMetCurrent === 1
+                    ? `<span class="label label-success">Met</span>`
+                    : `<span class="label label-default">Not Met</span>`;
+
+            const historyArray = Array.isArray(
+                c.target_history
+            )
+                ? c.target_history
+                : [];
+
+            let historyCircles =
+                `<div style="white-space: nowrap;">`;
+
+            historyArray.forEach(v => {
+
+                let bgColor = '#d2d6de';
+
+                if (Number(v) === 1) {
+                    bgColor = '#00a65a';
+                } else if (Number(v) === 0) {
+                    bgColor = '#dd4b39';
+                }
+
+                historyCircles += `
+                    <span style="
+                        display:inline-block;
+                        width:12px;
+                        height:12px;
+                        border-radius:50%;
+                        background:${bgColor};
+                        margin-right:4px;
+                        vertical-align:middle;
+                    "></span>
+                `;
+            });
+
+            if (historyArray.length < 5) {
+                for (
+                    let i = historyArray.length;
+                    i < 5;
+                    i++
+                ) {
+                    historyCircles += `
+                        <span style="
+                            display:inline-block;
+                            width:12px;
+                            height:12px;
+                            border-radius:50%;
+                            background:#d2d6de;
+                            margin-right:4px;
+                            vertical-align:middle;
+                        "></span>
+                    `;
+                }
+            }
+
+            historyCircles += `</div>`;
+
+            html += `
+                <tr>
+                    <td>
+                        <strong>${c.name ?? ''}</strong>
+                    </td>
+                    <td>${totalUncollected}</td>
+                    <td>${totalCollected}</td>
+                    <td>${stillUncollected}</td>
+                    <td>${givenOut}</td>
+                    <td>${carryOver}</td>
+                    <td>
+                        <span class="label label-info">
+                            ${pdua}%
+                        </span>
+                    </td>
+                    <td>${targetMetBadge}</td>
+                    <td>${historyCircles}</td>
+                    <td>${cycle_end}</td>
+                    <td>
+                        <a href="/user/${id}/staff_info"
+                           class="text-primary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+            `;
+        });
+
+    });
+
+} else {
+
+    html += `
+        <tr>
+            <td colspan="11"
+                class="text-center text-muted">
+                No consultant records found.
+            </td>
+        </tr>
+    `;
+}
 
                         html += `
                                         </tbody>
