@@ -1385,6 +1385,7 @@ class RiskController extends Controller
         $depositQuery = \App\Models\Deposit::query()
             ->whereIn('office', $officeIds);
 
+        
         if ($dateFrom !== null && $dateTo !== null) {
             $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
         }
@@ -1498,7 +1499,7 @@ class RiskController extends Controller
                     'label'       => $type->name,
                     'sort_order'  => $type->sort_order ?? 0,
                     'required'    => $required,
-                    'received'    => $isMandatory ? (int) $received : 0,
+                    'received'    => $received,
                     'other'       => !$isMandatory ? (int) $received : 0,
                     'balance'     => $balance,
                     'grand_total' => (int) $received,
