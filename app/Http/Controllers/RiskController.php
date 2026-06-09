@@ -1476,6 +1476,7 @@ class RiskController extends Controller
         $totReq   = 0;
         $totRecv  = 0;
 
+        
         if ($dateFrom === null) {
             // overall: full months from Jan 1 this year through 28th of current month
             $overallPeriodMonths = (int) \Carbon\Carbon::now()
@@ -1491,12 +1492,13 @@ class RiskController extends Controller
                         $received += (float) $dep->amount;
                     }
                 }
-                
+
                 $balance = $required - $received;
 
                 $totReq  += $required;
                 $totRecv += $received;
 
+               
                 $isMandatory = in_array((int) $type->id, [3, 1, 5]);
                 $depositCardStats[] = [
                     'label'       => $type->name,

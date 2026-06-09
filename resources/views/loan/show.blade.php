@@ -26,9 +26,9 @@
         @endphp
     @endif
 
-    @dd($monthlyDepositDone)
+   
     <!-- Test with Anchor House First -->
-    @if($block->role->role_id== 4) 
+    @if(false) 
         @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
             <script>
                 toastr.warning('Some branch deposits for this month have not been recorded', 'Warning');

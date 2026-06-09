@@ -449,6 +449,7 @@
            ?>
            <?php $idx = 0; ?>
            <?php foreach ($depositCardStats as $s): ?>
+                
                 <?php
                     $isSpecial = ($statsCount > 3) && ($idx >= ($statsCount - 3));
                     $req = (int) $s['required'];
