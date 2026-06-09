@@ -1386,6 +1386,7 @@ class RiskController extends Controller
             ->whereIn('office', $officeIds);
 
         
+         
         if ($dateFrom !== null && $dateTo !== null) {
             $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
         }
@@ -1400,6 +1401,7 @@ class RiskController extends Controller
             $depositsByType[$typeId][] = $dep;
         }
 
+        // dd($depositsByType);
         // 5. Compute stats for every deposit type (plain foreach, no map/fn)
         $types = [];
         foreach ($depositTypes as $type) {
@@ -1489,6 +1491,7 @@ class RiskController extends Controller
                         $received += (float) $dep->amount;
                     }
                 }
+                
                 $balance = $required - $received;
 
                 $totReq  += $required;
@@ -1529,7 +1532,7 @@ class RiskController extends Controller
                     'label'       => $type->name,
                     'sort_order'  => $type->sort_order ?? 0,
                     'required'    => $required,
-                    'received'    => $isMandatory ? (int) $received : 0,
+                    'received'    => $received,
                     'other'       => !$isMandatory ? (int) $received : 0,
                     'balance'     => $balance,
                     'grand_total' => (int) $received,
