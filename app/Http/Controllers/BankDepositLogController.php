@@ -12,7 +12,7 @@ class BankDepositLogController extends Controller
         $officeId = request('office_id');
 
         $query = DB::table('bank_deposit_log')
-            ->leftJoin('deposits', 'bank_deposit_log.deposit_id', '=', 'deposits.id')
+            ->join('deposits', 'bank_deposit_log.deposit_id', '=', 'deposits.id')
             ->whereNotNull('bank_deposit_log.deposit_id')
             ->select([
                 'bank_deposit_log.id',

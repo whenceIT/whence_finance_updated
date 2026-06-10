@@ -609,16 +609,18 @@ class RiskController extends Controller
         $depositTypes = \App\Models\DepositType::whereIn('id', $depositTypeIds)->pluck('name', 'id');
 
         $bankLogs = \App\Models\BankDepositLog::query()
-            ->with(['user'])
-            ->whereIn('deposit_type', $depositTypeIds)
-            ->whereIn('office_id', $officeIds)
-            ->get()
-            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . substr($log->created_date, 0, 7));
+            ->with(['user', 'deposit'])
+            ->leftJoin('deposits', 'bank_deposit_log.deposit_id', '=', 'deposits.id')
+            ->whereIn('bank_deposit_log.deposit_type', $depositTypeIds)
+            ->whereIn('bank_deposit_log.office_id', $officeIds)
+            ->get();
 
         $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
             $monthYear = substr($dep->date, 0, 7);
             $key = $dep->deposit_type . '_' . $dep->office . '_' . $monthYear;
-            $log = $bankLogs->get($key);
+            $log = $bankLogs->first(function ($l) use ($key) {
+                return $l->deposit_type . '_' . $l->office_id . '_' . substr($l->created_date, 0, 7) === $key;
+            });
 
             return [
                 'id' => $log->id ?? $dep->id,
@@ -655,16 +657,18 @@ class RiskController extends Controller
         $depositTypes = \App\Models\DepositType::whereIn('id', $depositTypeIds)->pluck('name', 'id');
 
         $bankLogs = \App\Models\BankDepositLog::query()
-            ->with(['user'])
-            ->whereIn('deposit_type', $depositTypeIds)
-            ->whereIn('office_id', $officeIds)
-            ->get()
-            ->keyBy(fn($log) => $log->deposit_type . '_' . $log->office_id . '_' . substr($log->created_date, 0, 7));
+            ->with(['user', 'deposit'])
+            ->leftJoin('deposits', 'bank_deposit_log.deposit_id', '=', 'deposits.id')
+            ->whereIn('bank_deposit_log.deposit_type', $depositTypeIds)
+            ->whereIn('bank_deposit_log.office_id', $officeIds)
+            ->get();
 
         $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
             $monthYear = substr($dep->date, 0, 7);
             $key = $dep->deposit_type . '_' . $dep->office . '_' . $monthYear;
-            $log = $bankLogs->get($key);
+            $log = $bankLogs->first(function ($l) use ($key) {
+                return $l->deposit_type . '_' . $l->office_id . '_' . substr($l->created_date, 0, 7) === $key;
+            });
 
             return [
                 'id' => $log->id ?? $dep->id,
