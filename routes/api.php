@@ -28,3 +28,4 @@ Route::prefix('district-regionals')->group(function () {
 Route::post('/send-sms', [SmsController::class, 'sendSms']);
 Route::post('/send-bulk-sms', [SmsController::class, 'sendBulkSms']);
 Route::post('/search/clients', [SearchEngineController::class, 'clientSearch']);
+Route::get('/bank-deposits-with-records', [\App\Http\Controllers\BankDepositLogController::class, 'getDepositsWithRecords']);
