@@ -39,46 +39,53 @@ class ExpenseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
-    {
-        if (!Sentinel::hasAccess('expenses')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
-        $start_date = $request->start_date;
-        $end_date = $request->end_date;
-        $office_id = $request->office_id;
-
-        $user = Sentinel::getUser();
-        $role_id = $user->roles()->first()->id ?? null;
-
-        $offices = Office::all();
-        $query = Expense::orderBy('id', 'desc');
-
-        if (!empty($start_date) && !empty($end_date)) {
-            $query->whereBetween('date', [$start_date, $end_date]);
-        }
-
-        if ($role_id) {
-            if (empty($office_id) && $office_id !== '0' && $office_id !== 0) {
-                $office_id = $user->office_id;
-            }
-            if (!empty($office_id) && $office_id != 0) {
-                $query->where('office_id', $office_id);
-            }
-        }
-
-        $data = $query->latest()->get();
-
-        
-        
-        if ($request->ajax()) {
-            return response()->json($data);
-        }
-
-        return view('expense.data', compact('data', 'start_date', 'end_date', 'office_id', 'offices'));
+public function index(Request $request)
+{
+    if (!Sentinel::hasAccess('expenses')) {
+        Flash::warning("Permission Denied");
+        return redirect()->back();
     }
 
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+
+    $user = Sentinel::getUser();
+    $role_id = $user->roles()->first()->id ?? null;
+
+    $offices = Office::all();
+
+    $query = Expense::where('status', 'approved')
+        ->orderBy('id', 'desc');
+
+    if (!empty($start_date) && !empty($end_date)) {
+        $query->whereBetween('date', [$start_date, $end_date]);
+    }
+
+    if ($role_id) {
+        if (empty($office_id) && $office_id !== '0' && $office_id !== 0) {
+            $office_id = $user->office_id;
+        }
+
+        if (!empty($office_id) && $office_id != 0) {
+            $query->where('office_id', $office_id);
+        }
+    }
+
+    $data = $query->latest()->get();
+
+    if ($request->ajax()) {
+        return response()->json($data);
+    }
+
+    return view('expense.data', compact(
+        'data',
+        'start_date',
+        'end_date',
+        'office_id',
+        'offices'
+    ));
+}
 
         public function dashboard(Request $request)
     {
