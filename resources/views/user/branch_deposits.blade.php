@@ -338,7 +338,7 @@ $(document).ready(function () {
     var userId = {{ $userId }};
     var userName = '{{ $user_name }}';
     var depositOrder = [];
-    var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
+    var depositApiUrl = 'http://localhost:5000';
 
     var currentDepositType = null;
     var currentDepositTypeName = null;
