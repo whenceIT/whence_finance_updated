@@ -1219,16 +1219,16 @@
                 </a>
                 <ul class="treeview-menu">
 
-                 @if(Sentinel::hasAccess('settings'))
+               
                     <li style="padding-left: 10px;" class="@if(Request::is('hr/employees')) active @endif">
                         <a href="{{ url('accounting/money_movements') }}">
-                            <i class="fa fa-circle-o"></i> Money Movements
+                            <i class="fa fa-money"></i> Money Movements
                         </a>
                     </li>
-                @endif
+          
 
                        <!-- Deposits -->
-                    @if(Sentinel::hasAccess('reports.client_reports'))
+                    @if(Sentinel::hasAccess('settings'))
                     <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
                         <a href="#">
                             <i class="fa fa-university"></i> <span>Branch Deposits</span>
@@ -1249,7 +1249,7 @@
 
 
                          <!-- Deposits -->
-                    @if(Sentinel::hasAccess('reports.client_reports'))
+                    @if(Sentinel::hasAccess('settings'))
                     <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
                         <a href="#">
                             <i class="fa fa-exchange"></i> <span>Fund Transfers and Payments</span>
@@ -1318,7 +1318,7 @@
                     @endif
 
                     <!-- Expenses -->
-                    @if(Sentinel::hasAccess('expenses'))
+                    @if(Sentinel::hasAccess('settings'))
                     <li style="padding-left: 10px;" class="treeview @if(Request::is('expense/*')) active menu-open @endif">
                         <a href="#">
                             <i class="fa fa-share"></i> <span>{{trans_choice('general.expense',2)}}</span>
@@ -1334,9 +1334,9 @@
                             @if(Sentinel::hasAccess('expenses.view'))
                                 <li><a href="{{ url('expense/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.view',1)}} {{trans_choice('general.expense',2)}}</a></li>
                             @endif
-                            @if(Sentinel::hasAccess('expenses.create'))
+                            <!-- @if(Sentinel::hasAccess('expenses.create'))
                                 <li><a href="{{ url('expense/create') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.add',2)}} {{trans_choice('general.expense',1)}}</a></li>
-                            @endif
+                            @endif -->
                             @if(Sentinel::hasAccess('expenses.types.view'))
                                 <li><a href="{{ url('expense/type/data') }}"><i class="fa fa-circle-o"></i> {{trans_choice('general.manage',2)}} {{trans_choice('general.expense',1)}} {{trans_choice('general.type',2)}}</a></li>
                             @endif

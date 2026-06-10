@@ -35,7 +35,7 @@
         {{-- EXPENSE --}}
         <div class="col-md-6">
 
-            <a href="{{ url('expense/create') }}"
+            <a href="{{ url('accounting/expenses') }}"
                style="text-decoration:none;">
 
                 <div style="
