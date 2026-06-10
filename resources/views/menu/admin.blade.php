@@ -807,6 +807,9 @@
                     @hasRole('role.exec', 'role.risk')
                         <li @if(Request::is('approvals/deposit-approvals*')) class="active" @endif><a href="{{ url('approvals/deposit-approvals') }}"><i class="fa fa-circle-o"></i> Deposit Approvals</a></li>
                     @endif
+                      @hasRole('role.exec', 'role.risk')
+                        <li @if(Request::is('expense/approvals/expense-approvals*')) class="active" @endif><a href="{{ url('expense/approvals/expense-approvals') }}"><i class="fa fa-circle-o"></i> Expense Approvals</a></li>
+                    @endif
                 </ul>
             </li>
             @endif

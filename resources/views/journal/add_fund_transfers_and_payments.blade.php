@@ -76,6 +76,7 @@
                             <option value="cheque">Cheque</option>
                             <option value="cash">Cash</option>
                             <option value="mobile_money">Mobile Money</option>
+                            <option value="withinhere">Withinhere</option>
                             <option value="other">Other</option>
                         </select>
                     </div>

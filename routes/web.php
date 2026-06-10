@@ -1466,7 +1466,27 @@ Route::group(['prefix' => 'expense'], function () {
     Route::post('{id}/reverse', 'ExpenseController@reverse_expense');
     Route::get('{id}/delete', 'ExpenseController@delete');
     Route::get('{id}/delete_file', 'ExpenseController@deleteFile');
+    Route::any('check-duplicate', 'ExpenseController@checkDuplicate');
     Route::get('proof_of_payment/{filename}', 'ExpenseController@showProofOfPayment')->name('proof_of_payment.download');
+    Route::get(
+    'approvals/expense-approvals',
+    'ApprovalWorkflowController@expenseApprovals'
+);
+
+Route::post(
+    'approvals/expense-approvals/{id}/{status}',
+    'ApprovalWorkflowController@approveExpense'
+);
+
+Route::post(
+    'approvals/expense-approvals/bulk-approve',
+    'ApprovalWorkflowController@bulkApproveExpenses'
+);
+
+Route::post(
+    'approvals/expense-approvals/approve-all',
+    'ApprovalWorkflowController@approveAllExpenses'
+);
 
     //expense types
     Route::get('type/data', 'ExpenseTypeController@index');
