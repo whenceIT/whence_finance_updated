@@ -26,12 +26,6 @@
             <img src="{{asset('assets/landing_page/img/whence-logo-2.png') }}" style="width: 100%;height: 200px;margin-bottom: 10px;"/>
             <br>
             <br>
-                <!-- @if(!empty(\App\Models\Setting::where('setting_key','company_logo')->first()->setting_value))
-                    <img src="{{asset('uploads/'.\App\Models\Setting::where('setting_key','company_logo')->first()->setting_value) }}"
-                        class="" height="100"/>
-                @else
-                    {{ \App\Models\Setting::where('setting_key','company_name')->first()->setting_value }}0
-                @endif -->
             </div>
             <!-- /.login-logo -->
             <div class="login-box-body">

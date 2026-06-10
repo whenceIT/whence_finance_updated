@@ -27,5 +27,6 @@ class DatabaseSeeder extends Seeder
         // Policy categories
         $this->call(PolicyCategoriesTableSeeder::class);
         $this->call(DistrictSeeder::class);
+        $this->call(ExpenseCategorySeeder::class);
     }
 }

@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\ResetTrainerFlagCommand::class,
         \App\Console\Commands\GenerateMonthlyOfficeDebts::class,
+        \App\Console\Commands\RunDefectedDeposit::class,
     ];
 
     /**

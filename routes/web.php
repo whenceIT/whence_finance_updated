@@ -44,6 +44,9 @@ use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\RiskController;
 use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\ApprovalWorkflowController;
+use App\Http\Controllers\AdministrationExpenseController;
+use App\Http\Controllers\BankAccountExpenseController;
+use App\Http\Controllers\SmsController;
 use Firebase\JWT\Key;
 
 Route::model('client', 'App\Models\Client');
@@ -1934,3 +1937,23 @@ Route::get('/api/offices', [OfficeController::class, 'getOffices']);
 Route::get('/api/users-by-office/{officeId}', [UserController::class, 'getUsersByOffice']);
 Route::get('/api/client-count-by-loan-consultant/{userId}', [UserController::class, 'getClientCountByLoanConsultant']);
 Route::post('/api/send-remainder', [SmsController::class, 'sendToOfficersClients']);
+
+Route::group(['prefix' => 'administration-expenses', 'middleware' => 'sentinel'], function () {
+    Route::get('/', [AdministrationExpenseController::class, 'index'])->name('administration_expenses.index');
+    Route::get('/create', [AdministrationExpenseController::class, 'create'])->name('administration_expenses.create');
+    Route::post('/', [AdministrationExpenseController::class, 'store'])->name('administration_expenses.store');
+    Route::get('/{expense}/edit', [AdministrationExpenseController::class, 'edit'])->name('administration_expenses.edit');
+    Route::put('/{expense}', [AdministrationExpenseController::class, 'update'])->name('administration_expenses.update');
+    Route::delete('/{expense}', [AdministrationExpenseController::class, 'destroy'])->name('administration_expenses.destroy');
+    Route::get('/dashboard', [AdministrationExpenseController::class, 'getDashboard'])->name('administration_expenses.dashboard');
+});
+
+Route::group(['prefix' => 'bank-account-expenses', 'middleware' => 'sentinel'], function () {
+    Route::get('/', [BankAccountExpenseController::class, 'index'])->name('bank_account_expenses.index');
+    Route::get('/create', [BankAccountExpenseController::class, 'create'])->name('bank_account_expenses.create');
+    Route::post('/', [BankAccountExpenseController::class, 'store'])->name('bank_account_expenses.store');
+    Route::get('/{expense}/edit', [BankAccountExpenseController::class, 'edit'])->name('bank_account_expenses.edit');
+    Route::put('/{expense}', [BankAccountExpenseController::class, 'update'])->name('bank_account_expenses.update');
+    Route::delete('/{expense}', [BankAccountExpenseController::class, 'destroy'])->name('bank_account_expenses.destroy');
+    Route::get('/dashboard', [BankAccountExpenseController::class, 'getDashboard'])->name('bank_account_expenses.dashboard');
+});

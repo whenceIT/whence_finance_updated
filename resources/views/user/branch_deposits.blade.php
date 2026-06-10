@@ -155,7 +155,7 @@
             <hr style="border-top:1px solid #eee; margin:20px 0;">
             <div style="max-width:300px;">
                 <label class="deposit-label">Select Month</label>
-                <input type="month" id="monthFilter" class="form-control">
+                <input type="month" id="monthFilter" class="form-control" max="">
             </div>
         </div>
     </section>
@@ -313,7 +313,7 @@ $(document).ready(function () {
     var userId = {{ $userId }};
     var userName = '{{ $user_name }}';
     var depositOrder = [];
-    var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
+    var depositApiUrl = 'http://localhost:5000';
 
     var currentDepositType = null;
     var currentDepositTypeName = null;
@@ -321,10 +321,13 @@ $(document).ready(function () {
     var currentReferenceNumber = null;
     var currentPaymentMethod = null;
 
-    // Default Month = Current Month
     var now = new Date();
     var currentMonth = now.getFullYear() + '-' + 
         String(now.getMonth()+1).padStart(2,'0');
+    var maxMonth = now.getFullYear() + '-' + 
+        String(now.getMonth()+1).padStart(2,'0');
+    
+    $('#monthFilter').attr('max', maxMonth);
     $('#monthFilter').val(currentMonth);
     updateMonthTitle();
 
@@ -377,7 +380,7 @@ $(document).ready(function () {
 
 
         
-    function loadDepositCardData(depositId, depositName, officeId, container) {
+    function loadDepositCardData(depositId, depositName, officeId, container, method) {
     var selectedMonth = $('#monthFilter').val();
     $.ajax({
         url: `${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}&month=${selectedMonth}`,
@@ -402,7 +405,7 @@ $(document).ready(function () {
             }
             
             var $card = $(`
-                <div class="deposit-item deposit-card" data-deposit-id="${depositId}" data-office-id="${officeId}">
+                <div class="deposit-item deposit-card" data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
                         <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
                         <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
@@ -433,6 +436,7 @@ $(document).ready(function () {
                         <option value="mtn">MTN MoMo</option>
                         <option value="zanaco_cash">Zanaco Cash Deposit</option>
                         <option value="access">Access</option>
+                        <option value="absa">Absa</option>
                         <option value="withinhere">WithinHere</option>
                     </select>
                     <br>
@@ -450,6 +454,37 @@ $(document).ready(function () {
                 </div>
             `);
             container.append($card);
+            if (method) {
+                var $methodSelect = $card.find('.payment-method');
+                $methodSelect.val(method);
+                $methodSelect.prop('disabled', true);
+                var $referenceInput = $card.find('.reference');
+                var placeholder = 'Enter reference number';
+                switch (method) {
+                    case 'airtel':
+                        placeholder = 'MP260223.0953.J76581';
+                        break;
+                    case 'zanaco_express':
+                        placeholder = '002504072516';
+                        break;
+                    case 'mtn':
+                        placeholder = '8704564481';
+                        break;
+                    case 'zanaco_cash':
+                        placeholder = '0502605703255600';
+                        break;
+                    case 'access':
+                        placeholder = 'FJB2606341708208';
+                        break;
+                    case 'absa':
+                        placeholder = 'FJB2606341708208';
+                        break;
+                    case 'withinhere':
+                        placeholder = '1777356230718931';
+                        break;
+                }
+                $referenceInput.attr('placeholder', placeholder);
+            }
         },
         error: function(xhr, status, error) {
             container.append(`
@@ -490,7 +525,7 @@ $(document).ready(function () {
 
         deposits.forEach(function (d) {
             // depositOrder.push(d.id);
-            loadDepositCardData(d.id, d.name, branchId, container);
+            loadDepositCardData(d.id, d.name, branchId, container, d.method);
         });
         $('#depositStepsShimmer').hide();
     }).fail(function() {
@@ -606,7 +641,7 @@ $(document).ready(function () {
                 });
                 deposits.forEach(function (d) {
                     // depositOrder.push(d.id);
-                    loadDepositCardData(d.id, d.name, branchId, $('#depositSteps'));
+                    loadDepositCardData(d.id, d.name, branchId, $('#depositSteps'), d.method);
                 });
                 $('#depositStepsShimmer').hide();
             }).fail(function() {
@@ -653,6 +688,11 @@ $(document).ready(function () {
                 break;
 
             case 'access':
+                hint.text('Format: FJB2606341708208');
+                referenceInput.attr('placeholder', 'FJB2606341708208');
+                break;
+
+            case 'absa':
                 hint.text('Format: FJB2606341708208');
                 referenceInput.attr('placeholder', 'FJB2606341708208');
                 break;
@@ -711,6 +751,9 @@ $(document).ready(function () {
                 break;
             case 'access':
                 valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
+                break;
+            case 'absa':
+                valid = /^[A-Za-z]{3}\d{10}$/.test(currentReferenceNumber);
                 break;
             case 'withinhere':
                 valid = /^\d+$/.test(currentReferenceNumber);

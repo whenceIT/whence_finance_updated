@@ -823,6 +823,8 @@
                     </span>
                 </a>
                 <ul class="treeview-menu">
+                    <!-- Links for the Administration section -->
+
                     <!-- Advance Approvals -->
                     @if(Sentinel::hasAccess('reports.client_reports'))
                     <li style="padding-left: 10px;"><a href="{{ route('advances.pending_approvals') }}">
@@ -922,6 +924,24 @@
                             @hasRole('role.exec','role.policy_manager')
                                 <li><a href="{{ route('policies.engagements') }}"><i class="fa fa-circle-o"></i> Policy Engagements</a></li>
                             @endif
+                        </ul>
+                    </li>
+                    @endif
+
+                    <!-- Administration Expenses -->
+                    @if($role==1)
+                    <li class="treeview @if(Request::is('administration-expenses*') || Request::is('bank-account-expenses*')) active menu-open @endif" style="padding-left: 10px;">
+                        <a href="#">
+                            <i class="fa fa-money"></i> <span>Administration Expenses</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('administration_expenses.index') }}"><i class="fa fa-circle-o"></i> Administration Fund Expenses</a></li>
+                            <li><a href="{{ route('administration_expenses.dashboard') }}"><i class="fa fa-circle-o"></i> Administration Dashboard</a></li>
+                            <li><a href="{{ route('bank_account_expenses.index') }}"><i class="fa fa-circle-o"></i> Bank Account Expenses</a></li>
+                            <li><a href="{{ route('bank_account_expenses.dashboard') }}"><i class="fa fa-circle-o"></i> Bank Account Dashboard</a></li>
                         </ul>
                     </li>
                     @endif
