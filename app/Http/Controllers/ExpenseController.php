@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Http;
 
 use Laracasts\Flash\Flash;
 use Illuminate\Support\Facades\DB;
+use Aws\S3\S3Client;
 
 class ExpenseController extends Controller
 {
@@ -118,6 +119,21 @@ $end_date = $request->end_date ?? date('Y-m-t');
     }
 
 
+
+public function checkDuplicate(Request $request)
+{
+    $expenses = Expense::where('office_id', $request->office_id)
+        ->where('expense_type_id', $request->expense_type_id)
+        ->where('amount', $request->amount)
+        ->whereDate('date', $request->date)
+        ->latest()
+        ->take(5)
+        ->get();
+
+    return response()->json($expenses);
+}
+
+
     /**
      * Show the form for creating a new resource.
      *
@@ -138,8 +154,15 @@ $end_date = $request->end_date ?? date('Y-m-t');
             //anyone else can only see their own office, and can not add expenses for other offices
             $offices = Office::where('id', $user->office_id)->get();
         } 
+
+        $recentExpenses = Expense::with('office')
+    ->latest()
+    ->take(10)
+    ->get();
+
+
         
-        return view('expense.create', compact('offices'));
+        return view('expense.create', compact('offices','recentExpenses'));
     }
 
     /**
@@ -154,6 +177,24 @@ $end_date = $request->end_date ?? date('Y-m-t');
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+// $existingExpense = Expense::where('office_id', $request->office_id)
+//     ->where('expense_type_id', $request->expense_type_id)
+//     ->where('amount', $request->amount)
+//     ->whereDate('date', $request->date)
+//     ->where('created_at', '>=', now()->subHours(24))
+//     ->first();
+
+// if ($existingExpense) {
+
+//     Flash::warning(
+//         'Possible duplicate expense detected. Expense #' .
+//         $existingExpense->id .
+//         ' already exists.'
+//     );
+
+//     return redirect()->back()->withInput();
+// }
+
         $expense = new Expense();
         $expense->created_by_id = Sentinel::getUser()->id;
         $expense->office_id = $request->office_id;
@@ -162,6 +203,8 @@ $end_date = $request->end_date ?? date('Y-m-t');
         $expense->name = $request->name;
         $expense->notes = $request->notes;
         $expense->date = $request->date;
+        $expense->deposit_method = $request->reference_type;
+        $expense->reference_number = $request->reference_number;
         $date = explode('-', $request->date);
         $expense->recurring = $request->recurring;
         if ($request->recurring == 1) {
@@ -175,22 +218,51 @@ $end_date = $request->end_date ?? date('Y-m-t');
         }
         $expense->year = $date[0];
         $expense->month = $date[1];
-        $expense->status = "approved";
-        if ($request->hasFile('proof_of_payment')) {
-            $validator = Validator::make($request->all(), [
-                'proof_of_payment' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
+        $expense->status = "pending";
+   $validator = Validator::make($request->all(), [
+    'proof_of_payment' => 'required|mimes:jpeg,png,jpg,gif,pdf|max:5120',
+]);
 
-            if ($validator->fails()) {
-                Flash::warning(trans('general.validation_error'));
-                return redirect()->back()->withInput()->withErrors($validator);
-            }
+if ($validator->fails()) {
+    Flash::warning(trans('general.validation_error'));
+    return redirect()->back()->withInput()->withErrors($validator);
+}
 
-            $image = $request->file('proof_of_payment');
-            $imageName = Str::random(20) . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('proof_of_payment'), $imageName);
-            $expense->proof_of_payment = $imageName;
-        }
+if ($request->hasFile('proof_of_payment')) {
+
+    $file = $request->file('proof_of_payment');
+
+    $fileName =
+        'expense_proofs/' .
+        date('Y') . '/' .
+        date('m') . '/' .
+        time() . '_' .
+        preg_replace(
+            '/[^A-Za-z0-9\.\-_]/',
+            '',
+            $file->getClientOriginalName()
+        );
+
+    $s3Client = new S3Client([
+        'version' => 'latest',
+        'region' => 'nyc3',
+        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+        'credentials' => [
+            'key' => 'DO00RP9FA3QZTA3JV637',
+            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+        ],
+    ]);
+
+    $result = $s3Client->putObject([
+        'Bucket' => 'wfssystem',
+        'Key' => $fileName,
+        'Body' => fopen($file->getPathname(), 'r'),
+        'ACL' => 'public-read',
+        'ContentType' => $file->getMimeType(),
+    ]);
+
+    $expense->proof_of_payment = $result['ObjectURL'];
+}
         $expense->gl_account_id = $request->gl_account_id;
         $expense->save();
 

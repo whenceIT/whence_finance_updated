@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Deposit;
 use App\Models\DepositType;
 use Illuminate\Http\Request;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use App\Models\Expense;
+use Laracasts\Flash\Flash;
 
 class ApprovalWorkflowController extends Controller
 {
@@ -71,4 +74,69 @@ class ApprovalWorkflowController extends Controller
         
         return response()->json(['success' => true, 'message' => $count . ' deposit(s) approved successfully.']);
     }
+
+public function expenseApprovals()
+{
+
+ $expenses = Expense::with([
+    'office',
+    'type',
+    'created_by'
+])
+->orderBy('id', 'desc')
+->paginate(50);
+
+    return view('approvals.expense_approvals', compact('expenses'));
+}
+
+public function approveExpense($id, $status)
+{
+   
+
+    $expense = Expense::findOrFail($id);
+
+    $expense->status = $status;
+    $expense->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Expense updated successfully'
+    ]);
+}
+
+
+public function bulkApproveExpenses(Request $request)
+{
+   
+
+    Expense::whereIn('id', $request->ids)
+        ->update([
+            'status' => 'approved'
+        ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => count($request->ids).' expenses approved successfully.'
+    ]);
+}
+
+
+public function approveAllExpenses(Request $request)
+{
+   
+
+    $count = Expense::where(function ($query) {
+            $query->whereNull('status')
+                  ->orWhere('status', 'pending');
+        })
+        ->update([
+            'status' => 'approved'
+        ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => $count.' expenses approved successfully.'
+    ]);
+}
+
 }

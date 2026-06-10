@@ -9,20 +9,6 @@
             <h3 class="box-title">{{trans_choice('general.add',1)}} {{trans_choice('general.expense',1)}}</h3>
             {{-- Warning for Deposits --}}
 
-{{-- Warning for Deposits --}}
-<div class="alert alert-danger">
-    <strong>Warning:</strong><br>
-    DO NOT ADD THE FOLLOWING DEPOSITS UNDER EXPENSES:<br>
-    - Administration Department fee deposit<br>
-    - Managers Housing deposit<br>
-    - Building & Infrastructure fee deposits<br>
-    - Salaries deposits<br>
-    - Statutory payments deposits<br>
-    - Savings deposits<br><br>
-    <strong>Note:</strong> Instead, add them under 
-    <a  href="{{ url('user/branch_deposits') }}" class="text-white" style="text-decoration: underline;">Deposits</a>.
-</div>
-
         </div>
         <form method="post" action="{{url('expense/store')}}" class="form-horizontal" enctype="multipart/form-data">
             {{csrf_field()}}
@@ -92,6 +78,51 @@
                     </div>
 		</div>
 
+        <div class="form-group">
+    <div class="col-md-offset-2 col-md-8">
+        <div id="duplicate-warning" class="alert alert-danger" style="display:none;">
+        </div>
+    </div>
+</div>
+
+
+<div class="form-group">
+    <label for="reference_type" class="control-label col-md-2">
+        Reference Type
+    </label>
+
+    <div class="col-md-3">
+        <select name="reference_type"
+                id="reference_type"
+                class="form-control">
+            <option value="">Select Reference Type</option>
+            <option value="airtel">Airtel Money</option>
+            <option value="mtn">MTN Money</option>
+            <option value="zanaco_express">Zanaco Xpress</option>
+            <option value="zanaco_cash">Zanaco Cash Deposit</option>
+            <option value="access">Access Bank</option>
+            <option value="withinhere">Within Here</option>
+        </select>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="reference_number" class="control-label col-md-2">
+        Reference Number
+    </label>
+
+    <div class="col-md-3">
+        <input type="text"
+               name="reference_number"
+               id="reference_number"
+               class="form-control">
+
+        <small class="text-info" id="reference-format-hint">
+            Enter Payment Reference Number
+        </small>
+    </div>
+</div>
+
 
 
                 <div class="form-group">
@@ -152,11 +183,17 @@
                     </div>
 		</div>
 <div class="form-group">
-                    <label for="proof_of_payment" class="control-label col-md-2">{{ __('Proof of Payment') }}</label>
-                    <div class="col-md-3">
-                        <input type="file" name="proof_of_payment" class="form-control-file">
-                    </div>
-                </div>
+    <label for="proof_of_payment" class="control-label col-md-2">
+        {{ __('Proof of Payment') }}
+        <span class="text-danger">*</span>
+    </label>
+    <div class="col-md-3">
+        <input type="file"
+               name="proof_of_payment"
+               class="form-control-file"
+               required>
+    </div>
+</div>
                 @if(\App\Models\Setting::where('setting_key','enable_custom_fields')->first()->setting_value==1)
                     @foreach(\App\Models\CustomField::where('category','expenses')->get() as $key)
                         <div class="form-group">
@@ -297,12 +334,168 @@
                 }
             });
 
-            // 🚫 Prevent multiple form submissions
-            $('form').on('submit', function() {
-                const $btn = $(this).find('button[type="submit"]');
-                $btn.prop('disabled', true).text('Saving...');
-            });
+        $('form').on('submit', function(e) {
+
+
+
+        let paymentMethod = $('#reference_type').val();
+let currentReferenceNumber = $('#reference_number').val();
+
+let valid = true;
+
+switch (paymentMethod) {
+
+    case 'airtel':
+        valid = /^[A-Za-z]{2}\d{6}\.\d{4}\.[A-Za-z]\d{5}$/.test(currentReferenceNumber);
+        break;
+
+    case 'zanaco_express':
+        valid = /^\d{12}$/.test(currentReferenceNumber);
+        break;
+
+    case 'mtn':
+        valid = /^\d{10}$/.test(currentReferenceNumber);
+        break;
+
+    case 'zanaco_cash':
+        valid = /^\d{16}$/.test(currentReferenceNumber);
+        break;
+
+    case 'access':
+        valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
+        break;
+
+    case 'withinhere':
+        valid = /^\d+$/.test(currentReferenceNumber);
+        break;
+}
+
+if (paymentMethod && !valid) {
+    alert('Invalid Reference Number format.');
+    e.preventDefault();
+    return false;
+}
+
+    if ($('#duplicate-warning').is(':visible')) {
+
+        let proceed = confirm(
+            'A similar expense already exists. Are you sure you want to save this expense?'
+        );
+
+        if (!proceed) {
+            e.preventDefault();
+            return false;
+        }
+    }
+
+    const $btn = $(this).find('button[type="submit"]');
+
+    $btn.prop('disabled', true)
+        .text('Saving...');
+});
         });
+
+        function checkDuplicateExpense()
+{
+    let office_id = $('#office_id').val();
+    let expense_type_id = $('#expense_type_id').val();
+    let amount = $('#amount').val();
+    let date = $('#date').val();
+
+    if (!office_id || !expense_type_id || !amount || !date) {
+        return;
+    }
+
+    $.ajax({
+        url: "{{ url('expense/check-duplicate') }}",
+        type: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            office_id: office_id,
+            expense_type_id: expense_type_id,
+            amount: amount,
+            date: date
+        },
+        success: function(response) {
+
+            if (response.length > 0) {
+
+                let html =
+                    '<strong>⚠ Possible Duplicate Expense Found</strong><br><br>';
+
+                response.forEach(function(exp) {
+                    html +=
+                        'Expense #' + exp.id +
+                        ' | Amount: ' + exp.amount +
+                        ' | Date: ' + exp.date +
+                        '<br>';
+                });
+
+                $('#duplicate-warning')
+                    .html(html)
+                    .show();
+
+            } else {
+
+                $('#duplicate-warning')
+                    .hide()
+                    .html('');
+            }
+        }
+    });
+}
+
+$('#office_id,#expense_type_id,#amount,#date').on(
+    'change keyup',
+    checkDuplicateExpense
+);
+
+
+$('#reference_type').change(function () {
+
+    let hint = $('#reference-format-hint');
+    let referenceInput = $('#reference_number');
+
+    referenceInput.val('');
+
+    switch ($(this).val()) {
+
+        case 'airtel':
+            hint.text('Format: MP260223.0953.J76581');
+            referenceInput.attr('placeholder', 'MP260223.0953.J76581');
+            break;
+
+        case 'zanaco_express':
+            hint.text('Format: 12 digit number (002504072516)');
+            referenceInput.attr('placeholder', '002504072516');
+            break;
+
+        case 'mtn':
+            hint.text('Format: 10 digit number (8704564481)');
+            referenceInput.attr('placeholder', '8704564481');
+            break;
+
+        case 'zanaco_cash':
+            hint.text('Format: 16 digit number (0502605703255600)');
+            referenceInput.attr('placeholder', '0502605703255600');
+            break;
+
+        case 'access':
+            hint.text('Format: FJB2606341708208');
+            referenceInput.attr('placeholder', 'FJB2606341708208');
+            break;
+
+        case 'withinhere':
+            hint.text('Format: 1777356230718931');
+            referenceInput.attr('placeholder', '1777356230718931');
+            break;
+
+        default:
+            hint.text('Enter Payment Reference Number');
+            referenceInput.attr('placeholder', '');
+    }
+});
+
     </script>
 @endsection
 
