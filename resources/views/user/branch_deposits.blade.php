@@ -153,9 +153,16 @@
                 Enter deposit for the allowed monthly deposits required for your branch. Please ensure the total amount covers the full or atleast K5,000 partial minimum required deposit for the month. Once you click "Save Deposit", it will be recorded and cannot be reversed. If you are unsure about the required amount, click "This Month Deposit" to view your current month's deposit status.
             </p>
             <hr style="border-top:1px solid #eee; margin:20px 0;">
-            <div style="max-width:300px;">
-                <label class="deposit-label">Select Month</label>
-                <input type="month" id="monthFilter" class="form-control">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:10px;">
+                <div style="max-width:300px;">
+                    <label class="deposit-label">Select Month</label>
+                    <input type="month" id="monthFilter" class="form-control" max="">
+                </div>
+
+                <!-- Add a button here  -->
+                <button type="button" id="viewBankDepositsBtn" class="btn btn-primary">
+                    <i class="fa fa-money"></i> View Overal History
+                </button>
             </div>
         </div>
     </section>
@@ -204,7 +211,25 @@
   </div>
 </div>
 
-<!-- This Month Deposit Modal -->
+<div class="modal fade" id="viewBankDepositsModal" tabindex="-1" role="dialog" aria-labelledby="viewBankDepositsLabel">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <h4 class="modal-title" id="viewBankDepositsLabel">Bank Deposits with Records</h4>
+      </div>
+      <div class="modal-body" id="bankDepositsModalBody" style="max-height:400px; overflow-y:auto;">
+        <div id="bankDepositsLoading" style="display:none; text-align:center; padding:20px;">
+          <i class="fa fa-spinner fa-spin fa-2x"></i> Loading...
+        </div>
+        <div id="bankDepositsContent"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal fade" id="thisMonthDepositModal" tabindex="-1" role="dialog" aria-labelledby="thisMonthDepositLabel">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -321,10 +346,13 @@ $(document).ready(function () {
     var currentReferenceNumber = null;
     var currentPaymentMethod = null;
 
-    // Default Month = Current Month
     var now = new Date();
     var currentMonth = now.getFullYear() + '-' + 
         String(now.getMonth()+1).padStart(2,'0');
+    var maxMonth = now.getFullYear() + '-' + 
+        String(now.getMonth()+1).padStart(2,'0');
+    
+    $('#monthFilter').attr('max', maxMonth);
     $('#monthFilter').val(currentMonth);
     updateMonthTitle();
 
@@ -377,7 +405,7 @@ $(document).ready(function () {
 
 
         
-    function loadDepositCardData(depositId, depositName, officeId, container) {
+    function loadDepositCardData(depositId, depositName, officeId, container, method) {
     var selectedMonth = $('#monthFilter').val();
     $.ajax({
         url: `${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}&month=${selectedMonth}`,
@@ -402,7 +430,7 @@ $(document).ready(function () {
             }
             
             var $card = $(`
-                <div class="deposit-item deposit-card" data-deposit-id="${depositId}" data-office-id="${officeId}">
+                <div class="deposit-item deposit-card" data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
                         <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
                         <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
@@ -433,6 +461,7 @@ $(document).ready(function () {
                         <option value="mtn">MTN MoMo</option>
                         <option value="zanaco_cash">Zanaco Cash Deposit</option>
                         <option value="access">Access</option>
+                        <option value="absa">Absa</option>
                         <option value="withinhere">WithinHere</option>
                     </select>
                     <br>
@@ -450,6 +479,37 @@ $(document).ready(function () {
                 </div>
             `);
             container.append($card);
+            if (method) {
+                var $methodSelect = $card.find('.payment-method');
+                $methodSelect.val(method);
+                $methodSelect.prop('disabled', true);
+                var $referenceInput = $card.find('.reference');
+                var placeholder = 'Enter reference number';
+                switch (method) {
+                    case 'airtel':
+                        placeholder = 'MP260223.0953.J76581';
+                        break;
+                    case 'zanaco_express':
+                        placeholder = '002504072516';
+                        break;
+                    case 'mtn':
+                        placeholder = '8704564481';
+                        break;
+                    case 'zanaco_cash':
+                        placeholder = '0502605703255600';
+                        break;
+                    case 'access':
+                        placeholder = 'FJB2606341708208';
+                        break;
+                    case 'absa':
+                        placeholder = 'FJB2606341708208';
+                        break;
+                    case 'withinhere':
+                        placeholder = '1777356230718931';
+                        break;
+                }
+                $referenceInput.attr('placeholder', placeholder);
+            }
         },
         error: function(xhr, status, error) {
             container.append(`
@@ -490,7 +550,7 @@ $(document).ready(function () {
 
         deposits.forEach(function (d) {
             // depositOrder.push(d.id);
-            loadDepositCardData(d.id, d.name, branchId, container);
+            loadDepositCardData(d.id, d.name, branchId, container, d.method);
         });
         $('#depositStepsShimmer').hide();
     }).fail(function() {
@@ -606,7 +666,7 @@ $(document).ready(function () {
                 });
                 deposits.forEach(function (d) {
                     // depositOrder.push(d.id);
-                    loadDepositCardData(d.id, d.name, branchId, $('#depositSteps'));
+                    loadDepositCardData(d.id, d.name, branchId, $('#depositSteps'), d.method);
                 });
                 $('#depositStepsShimmer').hide();
             }).fail(function() {
@@ -653,6 +713,11 @@ $(document).ready(function () {
                 break;
 
             case 'access':
+                hint.text('Format: FJB2606341708208');
+                referenceInput.attr('placeholder', 'FJB2606341708208');
+                break;
+
+            case 'absa':
                 hint.text('Format: FJB2606341708208');
                 referenceInput.attr('placeholder', 'FJB2606341708208');
                 break;
@@ -711,6 +776,9 @@ $(document).ready(function () {
                 break;
             case 'access':
                 valid = /^[A-Za-z]{3}\d{13}$/.test(currentReferenceNumber);
+                break;
+            case 'absa':
+                valid = /^[A-Za-z]{3}\d{10}$/.test(currentReferenceNumber);
                 break;
             case 'withinhere':
                 valid = /^\d+$/.test(currentReferenceNumber);
@@ -900,6 +968,88 @@ var officeIdParam = new URLSearchParams(window.location.search).get('office_id')
 if (officeIdParam) {
     loadOfficesSettings();
 }
+
+$('#viewBankDepositsBtn').on('click', function() {
+    $('#bankDepositsModalBody').html('<div style="text-align:center; padding:20px;">' +
+        '<i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+    $('#viewBankDepositsModal').modal('show');
+
+    var officeId = {{ $office_id }};
+    $.ajax({
+        url: '/api/bank-deposits-with-records',
+        method: 'GET',
+        data: { office_id: officeId },
+        success: function(response) {
+            var deposits = response.data || response;
+            var grouped = {};
+            
+            deposits.forEach(function(d) {
+                var date = d.date;
+                if (!grouped[date]) {
+                    grouped[date] = [];
+                }
+                grouped[date].push(d);
+            });
+
+var html = '<style>' +
+                    '.deposit-month { margin-bottom: 25px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }' +
+                    '.deposit-month-header { background: #3c8dbc; color: white; padding: 12px 15px; font-weight: bold; font-size: 16px; }' +
+                    '.deposit-group-body { padding: 0; }' +
+                    '.deposit-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; }' +
+                    '.deposit-row:last-child { border-bottom: none; }' +
+                    '.deposit-amount { font-weight: 600; color: #27ae60; }' +
+                    '.deposit-method { color: #666; font-size: 13px; }' +
+                    '.deposit-reference { color: #999; font-size: 12px; }' +
+                    '</style>';
+
+            var groupedByMonth = {};
+            Object.keys(grouped).forEach(function(date) {
+                var monthKey = date.substring(0, 7);
+                if (!groupedByMonth[monthKey]) {
+                    groupedByMonth[monthKey] = [];
+                }
+                groupedByMonth[monthKey].push({ date: date, deposits: grouped[date] });
+            });
+
+            Object.keys(groupedByMonth).forEach(function(monthKey) {
+                var monthDate = new Date(monthKey + '-01');
+                var monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                html += '<div class="deposit-month">' +
+                    '<div class="deposit-month-header">' + monthName + '</div>' +
+                    '<div class="deposit-group-body">';
+                
+                groupedByMonth[monthKey].forEach(function(dayGroup) {
+                    var dayName = new Date(dayGroup.date).toLocaleDateString('en-US', { weekday: 'short' });
+                    html += '<div style="border-bottom: 1px solid #f0f0f0; padding: 8px 15px; background: #fafafa;">' +
+                        dayName + ', ' + dayGroup.date + '</div>';
+                    
+                    dayGroup.deposits.forEach(function(d) {
+                        html += '<div class="deposit-row">' +
+                            '<div style="flex: 1;">' +
+                            '<div style="font-weight: 600;">K' + (parseFloat(d.amount).toLocaleString() || 0) + '</div>' +
+                            '<div class="deposit-method">' + (d.deposit_method || '-') + '</div>' +
+                            '<div class="deposit-reference">Ref: ' + (d.reference_number || '-') + '</div>' +
+                            '</div>' +
+                            '<div style="text-align: right; color: #666; font-size: 12px;">' +
+                            'Type: ' + (d.deposit_type_name || d.deposit_type) +
+                            '</div></div>';
+                    });
+                });
+                
+                html += '</div></div>';
+            });
+
+            if (Object.keys(groupedByMonth).length === 0) {
+                html = '<div style="text-align:center; padding:40px; color:#666;">No bank deposits found with records.</div>';
+            }
+
+            $('#bankDepositsModalBody').html(html);
+        },
+        error: function() {
+            $('#bankDepositsModalBody').html('<div style="text-align:center; padding:40px; color:#e74c3c;">Failed to load data.</div>');
+        }
+    });
+});
 </script>
 @endsection
 

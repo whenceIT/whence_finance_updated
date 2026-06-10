@@ -26,7 +26,6 @@
             <img src="{{asset('assets/landing_page/img/whence-logo-2.png') }}" style="width: 100%;height: 200px;margin-bottom: 10px;"/>
             <br>
             <br>
-            
             </div>
             <!-- /.login-logo -->
             <div class="login-box-body">

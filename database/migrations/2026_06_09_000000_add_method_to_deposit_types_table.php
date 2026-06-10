@@ -9,16 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('deposit_types', function (Blueprint $table) {
-            $table->integer('sort_order')->default(0)->after('name');
-            $table->decimal('monthly_amount', 15, 2)->nullable()->after('sort_order');
+            $table->string('method')->nullable()->after('sort_order');
         });
     }
 
     public function down(): void
     {
         Schema::table('deposit_types', function (Blueprint $table) {
-            $table->dropIfExists('sort_order');
-            $table->dropIfExists('monthly_amount');
+            $table->dropIfExists('method');
         });
     }
 };

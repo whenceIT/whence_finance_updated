@@ -16,6 +16,7 @@ class DepositType extends Model
         'bank',
         'gl_account',
         'sort_order',
+        'method',
     ];
 
     public function deposits()

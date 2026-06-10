@@ -6,29 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
-        if (!Schema::hasColumn('policies', 'created_by')) {
+        if (Schema::hasTable('policies') && !Schema::hasColumn('policies', 'created_by')) {
             Schema::table('policies', function (Blueprint $table) {
                 $table->integer('created_by')->nullable()->after('access_level');
             });
         }
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
-        Schema::table('policies', function (Blueprint $table) {
-            $table->dropColumn('created_by');
-        });
+        if (Schema::hasTable('policies') && Schema::hasColumn('policies', 'created_by')) {
+            Schema::table('policies', function (Blueprint $table) {
+                $table->dropColumn('created_by');
+            });
+        }
     }
 };
