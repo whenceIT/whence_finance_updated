@@ -931,6 +931,39 @@
                     </li>
                     @endif
 
+
+                      @if($role == 1 )
+            <li class="treeview @if(Request::is('hr/*')) active @endif">
+                <a href="#">
+                    <i class="fa fa-users"></i> <span>Human Resources</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    
+                    <li class="@if(Request::is('hr/employees')) active @endif">
+                        <a href="{{ url('hr/employees') }}">
+                            <i class="fa fa-circle-o"></i> Employee Records
+                        </a>
+                    </li>
+                    <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
+                        <a href="{{ url('hr/workforce_analytics') }}">
+                            <i class="fa fa-circle-o"></i> Workforce Analytics
+                        </a>
+                    </li>
+
+                    <li class="@if(Request::is('hr/administrative-records*')) active @endif">
+                        <a href="{{ url('hr/administrative-records') }}">
+                            <i class="fa fa-circle-o"></i> Administrative Records
+                        </a>
+                    </li>
+                </ul>
+
+          
+            </li>
+            @endif
+
                     <!-- Administration Expenses -->
                     @if($role==1)
                     <li class="treeview @if(Request::is('administration-expenses*') || Request::is('bank-account-expenses*')) active menu-open @endif" style="padding-left: 10px;">
@@ -1068,29 +1101,7 @@
             </li>
             @endif
 
-            <!-- ============================================
-                 RECOVERIES SECTION
-            ============================================ -->
-            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/dormant_loans') ) active menu-open @endif">
-                <a href="#">
-                    <i class="fa fa-hand-rock-o"></i> <span>Recoveries</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                    <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
-                    @endif
-                  
-                    <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('loan/dormant_loans') }}"><i class="fa fa-frown-o"></i>Dormant Loans</a></li>
-                    @endif
-                </ul>
-            </li>
-
+  
 
 
             <!-- ============================================
@@ -1209,6 +1220,57 @@
                 </ul>
             </li>
 
+
+            @if($role !== 3)
+                        <li class="treeview active menu-open">
+                              <a href="#">
+                    <i class="fa fa-money"></i> <span>Money Movements</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+
+                    <ul class="treeview-menu">
+
+               
+                    <li style="padding-left: 10px;" class="@if(Request::is('hr/employees')) active @endif">
+                        <a href="{{ url('accounting/money_movements') }}">
+                            <i class="fa fa-money"></i> Money Movements
+                        </a>
+                    </li>
+                    </ul>
+</li>   
+            @endif
+
+@if($role == 1)
+<li class="treeview @if(Request::is('user/branch_deposits') || Request::is('user/deposit_logs')) active menu-open @endif">
+    <a href="#">
+        <i class="fa fa-money"></i>
+        <span>Branch Deposits</span>
+        <span class="pull-right-container">
+            <i class="fa fa-angle-left pull-right"></i>
+        </span>
+    </a>
+
+    <ul class="treeview-menu">
+        @if(Sentinel::hasAccess('reports.client_reports'))
+            <li class="@if(Request::is('user/branch_deposits')) active @endif">
+                <a href="{{ url('user/branch_deposits') }}">
+                    <i class="fa fa-circle-o"></i> Branch Deposits
+                </a>
+            </li>
+        @endif
+
+        @if(Sentinel::hasAccess('settings'))
+            <li class="@if(Request::is('user/deposit_logs')) active @endif">
+                <a href="{{ url('user/deposit_logs') }}">
+                    <i class="fa fa-circle-o"></i> Deposit Logs
+                </a>
+            </li>
+        @endif
+    </ul>
+</li>
+@endif
             <!-- ============================================
                  ACCOUNTS SECTION
             ============================================ -->
@@ -1221,34 +1283,10 @@
                     </span>
                 </a>
                 <ul class="treeview-menu">
-
-               
-                    <li style="padding-left: 10px;" class="@if(Request::is('hr/employees')) active @endif">
-                        <a href="{{ url('accounting/money_movements') }}">
-                            <i class="fa fa-money"></i> Money Movements
-                        </a>
-                    </li>
           
 
                        <!-- Deposits -->
-                    @if(Sentinel::hasAccess('settings'))
-                    <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
-                        <a href="#">
-                            <i class="fa fa-university"></i> <span>Branch Deposits</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if(Sentinel::hasAccess('reports.client_reports'))
-                            <li><a href="{{ url('user/branch_deposits') }}"><i class="fa fa-circle-o"></i>Branch Deposits</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('settings'))
-                            <li><a href="{{ url('user/deposit_logs') }}"><i class="fa fa-circle-o"></i>Deposit Logs</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
+                  
 
 
                          <!-- Deposits -->
@@ -1423,37 +1461,7 @@
             {{-- HUMAN RESOURCES MODULE                                 --}}
             {{-- ====================================================== --}}
 
-            @if($role == 1 )
-            <li class="treeview @if(Request::is('hr/*')) active @endif">
-                <a href="#">
-                    <i class="fa fa-users"></i> <span>Human Resources</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                    
-                    <li class="@if(Request::is('hr/employees')) active @endif">
-                        <a href="{{ url('hr/employees') }}">
-                            <i class="fa fa-circle-o"></i> Employee Records
-                        </a>
-                    </li>
-                    <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
-                        <a href="{{ url('hr/workforce_analytics') }}">
-                            <i class="fa fa-circle-o"></i> Workforce Analytics
-                        </a>
-                    </li>
-
-                    <li class="@if(Request::is('hr/administrative-records*')) active @endif">
-                        <a href="{{ url('hr/administrative-records') }}">
-                            <i class="fa fa-circle-o"></i> Administrative Records
-                        </a>
-                    </li>
-                </ul>
-
           
-            </li>
-            @endif
 
 
                                  <!-- ============================================
@@ -1550,6 +1558,17 @@
                             <li class="@if(Request::is('recovery/report/*')) active @endif">
                                 <a href="{{ url('recovery/report/overview') }}"><i class="fa fa-circle-o"></i> Recovery Reports</a>
                             </li>
+                        
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
+                    @endif
+                  
+                    <!-- Branch Uncollected -->
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('loan/dormant_loans') }}"><i class="fa fa-frown-o"></i>Dormant Loans</a></li>
+                    @endif
+              
                     </ul>
                 </li>
             </ul>
