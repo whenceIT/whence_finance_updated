@@ -14,7 +14,7 @@
 
         <div class="row" style="margin-bottom:15px;">
 
-            <div class="col-md-6">
+            <!-- <div class="col-md-6">
 
                 <button type="button"
                         class="btn btn-success btn-sm"
@@ -30,7 +30,7 @@
                     Approve All
                 </button>
 
-            </div>
+            </div> -->
 
             <div class="col-md-6 text-right">
                 <input type="text"
@@ -50,9 +50,9 @@
 
             <thead>
                 <tr>
-                    <th width="40">
+                    <!-- <th width="40">
                         <input type="checkbox" id="select-all">
-                    </th>
+                    </th> -->
                     <th>Date</th>
                     <th>Office</th>
                     <th>Expense Type</th>
@@ -62,6 +62,7 @@
                     <th>Reference No.</th>
                     <th>Created By</th>
                     <th>Proof</th>
+                    <th>Narration</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -73,11 +74,11 @@
 
                     <tr>
 
-                        <td>
+                        <!-- <td>
                             <input type="checkbox"
                                    class="row-select"
                                    value="{{ $expense->id }}">
-                        </td>
+                        </td> -->
 
                         <td>{{ $expense->date }}</td>
 
@@ -121,6 +122,8 @@
                                 N/A
                             @endif
                         </td>
+
+                        <td>{{$expense->note}}</td>
 
                         <td>
 

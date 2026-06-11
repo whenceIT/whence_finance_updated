@@ -73,6 +73,80 @@ public function index(Request $request)
     }
 
     $data = $query->latest()->get();
+    $lmsExpenses = collect();
+    $officesToCheck = Office::whereNotNull('withinhere_wallet_id')
+    ->where('withinhere_wallet_id', '!=', '')
+    ->get();
+
+    foreach ($officesToCheck as $office) {
+
+    try {
+
+        $response = Http::post(
+            'https://withinheremobileapi.com/api/v1/lmsuser/transactions',
+            [
+                'wallet_id' => $office->withinhere_wallet_id,
+                'start_date' => $start_date,
+                'end_date' => $end_date
+            ]
+        );
+
+        $result = $response->json();
+
+        if (empty($result['transactions'])) {
+            continue;
+        }
+
+        foreach ($result['transactions'] as $tx) {
+
+            $charge = (float) ($tx['charge'] ?? 0);
+
+            if ($charge <= 0) {
+                continue;
+            }
+
+            $expense = new \stdClass();
+
+            $expense->amount = $charge;
+
+            $expense->date =
+                \Carbon\Carbon::parse(
+                    $tx['created_at']
+                )->format('Y-m-d');
+
+            $expense->name =
+                'Wallet Charge';
+
+            $expense->recurring = 0;
+
+            $expense->proof_of_payment = null;
+
+            $expense->created_by = null;
+
+            $expense->office = $office;
+
+            $expense->type = (object)[
+                'name' => 'Withinhere Wallet Charges'
+            ];
+
+            $expense->wallet_charge = true;
+
+            $lmsExpenses->push($expense);
+        }
+
+    } catch (\Exception $e) {
+
+        \Log::error($e->getMessage());
+
+    }
+}
+
+$data = $data
+    ->concat($lmsExpenses)
+    ->sortByDesc('date')
+    ->values();
+
+
 
     if ($request->ajax()) {
         return response()->json($data);

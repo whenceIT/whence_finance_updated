@@ -115,13 +115,21 @@
                                 No proof of payment attached
                             @endif
                             </td>
+                          <td>
+    @if(!empty($key->created_by))
+        {{$key->created_by->first_name}}
+        {{$key->created_by->last_name}}
+    @else
+        System
+    @endif
+</td>
+                      <td>
+    @if(!empty($key->office))
+        {{ $key->office->name }}
+    @endif
+</td>
                             <td>
-                                @if(!empty($key->created_by))
-                                    {{$key->created_by->first_name}} {{$key->created_by->last_name}}
-                                @endif
-                            </td>
-                            <td>{{ $key->office->name }} - {{ $key->office->id }}</td> 
-                            <td>
+                                @if(empty($key->wallet_charge))
                                 <div class="btn-group">
                                     <!------------------------choose option----------------------------------------->
                                     <button type="button" class="btn btn-info btn-xs dropdown-toggle"
@@ -148,6 +156,7 @@
                                         @endif
                                     </ul>
                                 </div>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
