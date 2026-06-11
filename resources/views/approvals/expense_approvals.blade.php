@@ -50,9 +50,9 @@
 
             <thead>
                 <tr>
-                    <th width="40">
+                    <!-- <th width="40">
                         <input type="checkbox" id="select-all">
-                    </th>
+                    </th> -->
                     <th>Date</th>
                     <th>Office</th>
                     <th>Expense Type</th>
@@ -74,11 +74,11 @@
 
                     <tr>
 
-                        <td>
+                        <!-- <td>
                             <input type="checkbox"
                                    class="row-select"
                                    value="{{ $expense->id }}">
-                        </td>
+                        </td> -->
 
                         <td>{{ $expense->date }}</td>
 
