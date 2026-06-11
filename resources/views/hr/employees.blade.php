@@ -14,22 +14,40 @@
     <div class="box box-primary">
         <div class="box-header with-border">
             <form method="GET" action="{{ url('hr/employees') }}">
-                <div class="row">
-                    <div class="col-md-10">
-                        <input
-                            type="text"
-                            name="search"
-                            class="form-control"
-                            placeholder="Search by name, office, role, gender, or employment status..."
-                            value="{{ request('search') }}"
-                        >
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary btn-block">
-                            <i class="fa fa-search"></i> Search
-                        </button>
-                    </div>
-                </div>
+       <div class="row">
+
+    <div class="col-md-5">
+        <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Search by name, office, role, gender, or employment status..."
+            value="{{ request('search') }}"
+        >
+    </div>
+
+    <div class="col-md-5">
+        <select name="position" class="form-control">
+            <option value="">All Positions</option>
+
+            @foreach($positions as $pos)
+                <option
+                    value="{{ $pos->id }}"
+                    {{ request('position') == $pos->id ? 'selected' : '' }}
+                >
+                    {{ $pos->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa fa-search"></i> Filter
+        </button>
+    </div>
+
+</div>
             </form>
         </div>
 
@@ -62,6 +80,7 @@
                                         <li><a href="#">Office <span class="pull-right badge bg-blue">{{ optional($employee->office)->name ?? 'N/A' }}</span></a></li>
                                         <li><a href="#">Gender <span class="pull-right badge bg-green">{{ $employee->gender ?? 'N/A' }}</span></a></li>
                                         <li><a href="#">Status <span class="pull-right badge bg-maroon">{{ $employee->status ?? 'N/A' }}</span></a></li>
+                                        <li><a href="#">Date Hired<span class="pull-right badge bg-red">{{ $employee->date_of_joining ?? 'N/A' }}</span></a></li>
                                     </ul>
                                 </div>
 
@@ -76,7 +95,10 @@
                 </div>
 
                 <div class="text-center">
-                    {{ $employees->appends(['search' => request('search')])->links() }}
+{{ $employees->appends([
+    'search' => request('search'),
+    'position' => request('position')
+])->links() }}
                 </div>
             @else
                 <div class="alert alert-warning">

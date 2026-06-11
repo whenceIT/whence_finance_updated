@@ -47,6 +47,7 @@ use Carbon\Carbon;
 use App\Models\AuditLogs;
 use App\Models\PayrollTemplateMeta;
 use App\Models\AdministrativeRecord;
+use App\Models\Position;
 
 
 class HRController extends Controller{
@@ -56,54 +57,56 @@ class HRController extends Controller{
         $this->middleware('sentinel');
     }
 
-    public function employees(Request $request)
-    {
-        $search = trim($request->get('search'));
+public function employees(Request $request)
+{
+    $search = trim($request->get('search'));
+    $position = $request->get('position');
 
-         $employees = User::with(['office', 'role'])
+    $employees = User::with(['office', 'role', 'position'])
+
+        ->when($position, function ($query) use ($position) {
+            $query->whereHas('position', function ($q) use ($position) {
+                $q->where('id', $position);
+            });
+        })
+
         ->when($search, function ($query) use ($search) {
 
             $query->where(function ($q) use ($search) {
 
-                // Search by first name
                 $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                    ->orWhere('gender', 'like', "%{$search}%")
 
-                // Search by last name
-                ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhereHas('office', function ($officeQuery) use ($search) {
+                        $officeQuery->where('name', 'like', "%{$search}%");
+                    })
 
-                // Search full name (first + last)
-                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
-
-                // Other fields
-                ->orWhere('gender', 'like', "%{$search}%")
-                // ->orWhere('employment_status', 'like', "%{$search}%")
-
-                // Office search
-                ->orWhereHas('office', function ($officeQuery) use ($search) {
-                    $officeQuery->where('name', 'like', "%{$search}%");
-                });
-
-                // // Role search
-                // ->orWhereHas('role', function ($roleQuery) use ($search) {
-                //     $roleQuery->where('name', 'like', "%{$search}%");
-                // });
+                    ->orWhereHas('position', function ($positionQuery) use ($search) {
+                        $positionQuery->where('name', 'like', "%{$search}%");
+                    });
 
             });
 
         })
+
         ->orderBy('first_name')
         ->paginate(12)
-        ->appends(['search' => $search]); 
-        
+        ->appends([
+            'search' => $search,
+            'position' => $position
+        ]);
 
-        
-        
-        // keeps search in pagination
+    $positions = Position::orderBy('name')->get();
 
-        $role = Sentinel::getUser()->roles->first();
-            return view('hr.employees',compact('employees','search'));
-        
-    }
+    return view('hr.employees', compact(
+        'employees',
+        'search',
+        'positions',
+        'position'
+    ));
+}
 
 
        public function employee(Request $request,$id)

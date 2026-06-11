@@ -2065,7 +2065,7 @@ function loadWalletCharges() {
                     <td>${item.transaction_id}</td>
                    <td>${parseFloat(item.amount).toFixed(2)}</td>
                     <td>${item.type}</td>
-                    <td>${item.date}</td>
+                    <td>${new Date(item.date).toISOString().split('T')[0]}</td>
                 </tr>
             `);
 
