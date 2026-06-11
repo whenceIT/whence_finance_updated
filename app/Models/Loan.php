@@ -136,14 +136,14 @@ class Loan extends Model
     }
 
     public function motorVehicleLoan()
-{
-    return $this->hasOne(MotorVehicleLoan::class);
-}
+    {
+        return $this->hasOne(MotorVehicleLoan::class);
+    }
 
-public function repossessions()
-{
-    return $this->hasMany(VehicleRepossession::class);
-}
+    public function repossessions()
+    {
+        return $this->hasMany(VehicleRepossession::class);
+    }
 
     /**
      * Calculate the current balance for this loan based on transactions.
