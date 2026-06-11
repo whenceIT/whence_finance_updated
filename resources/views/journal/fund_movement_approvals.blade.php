@@ -68,7 +68,7 @@
                                             View
                                         </a>
 
-                                         @if(Sentinel::hasAccess('settings'))
+                                 
                                         <form action="{{ url('accounting/' . $movement->id . '/approve_fund') }}"
                                               method="POST"
                                               style="display:inline-block;"
@@ -88,7 +88,7 @@
                                                 Reject
                                             </button>
                                         </form>
-                                        @endif
+                                  
 
 
                                     </td>
