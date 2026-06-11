@@ -2900,6 +2900,12 @@ public function save_wallet(Request $request)
         return redirect('dashboard');
     }
 
+    public function showProfileCompletion()
+    {
+        $user = Sentinel::getUser();
+        return view('user.profile_completion', compact('user'));
+    }
+
     public function profile_completion(Request $request)
     {
         $user = Sentinel::getUser();
