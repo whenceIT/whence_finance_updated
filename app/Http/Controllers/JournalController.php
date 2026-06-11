@@ -164,15 +164,15 @@ public function expenses()
     {
 
         $office_id = Sentinel::getUser()->office_id;
-        if(Sentinel::hasAccess('settings')){
-             $fund_movements = FundMovements::where('status', 'submitted')
+      
+             $fund_movements = FundMovements::where('status', 'pending')
             ->orderBy('transaction_date', 'desc')
             ->get();
-        }else{
-             $fund_movements = FundMovements::where('status', 'submitted')->where('office_id',$office_id)
-            ->orderBy('transaction_date', 'desc')
-            ->get();
-        }
+     
+            //  $fund_movements = FundMovements::where('status', 'submitted')->where('office_id',$office_id)
+            // ->orderBy('transaction_date', 'desc')
+            // ->get();
+    
        
         return view('journal.fund_movement_approvals', compact('fund_movements'));
     }
