@@ -79,11 +79,12 @@ class ApprovalWorkflowController extends Controller
 public function expenseApprovals()
 {
 
- $expenses = Expense::with([
+$expenses = Expense::with([
     'office',
     'type',
     'created_by'
 ])
+->where('status', 'pending')
 ->orderBy('id', 'desc')
 ->paginate(50);
 
