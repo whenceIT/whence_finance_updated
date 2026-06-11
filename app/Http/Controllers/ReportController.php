@@ -1465,7 +1465,10 @@ $targets_met = TargetsMet::whereBetween('date', [$start_date, $end_date])
                         $tx['charge'],
 
                     'date' =>
-                        $tx['created_at']
+                        $tx['created_at'],
+
+                    'type' =>
+                        $tx['type'],    
 
                 ];
 

@@ -961,6 +961,10 @@ Route::group(['prefix' => 'report'], function () {
     Route::any('financial_report', 'ReportController@financial_report');
     Route::any('company_report', 'ReportController@company_report');
     Route::any('savings_report', 'ReportController@savings_report');
+            Route::get(
+    'wallet-charges-report',
+    'ReportController@walletChargesReport'
+);
     Route::group(['prefix' => 'report_scheduler'], function () {
         Route::get('data', 'ReportSchedulerController@index');
         Route::get('create', 'ReportSchedulerController@create');
@@ -968,10 +972,6 @@ Route::group(['prefix' => 'report'], function () {
         Route::get('{report_scheduler}/edit', 'ReportSchedulerController@edit');
         Route::post('{id}/update', 'ReportSchedulerController@update');
         Route::get('{id}/delete', 'ReportSchedulerController@delete');
-        Route::get(
-    'wallet-charges-report',
-    'ReportController@walletChargesReport'
-);
     });
 
     Route::group(['prefix' => 'financial_report'], function () {

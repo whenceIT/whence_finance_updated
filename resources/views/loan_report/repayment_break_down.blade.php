@@ -1217,6 +1217,7 @@ $total_loans = 0;
                         <th>Branch</th>
                         <th>Transaction ID</th>
                         <th>Charge</th>
+                        <th>Name</th>
                         <th>Date</th>
                     </tr>
                     </thead>
@@ -2039,7 +2040,7 @@ function loadWalletCharges() {
     `);
 
     $.get(
-        '/wallet-charges-report',
+        '/report/wallet-charges-report',
         {
             start_date: $('#start_date').val(),
             end_date: $('#end_date').val(),
@@ -2062,7 +2063,8 @@ function loadWalletCharges() {
                 <tr>
                     <td>${item.office_name}</td>
                     <td>${item.transaction_id}</td>
-                    <td>${Number(item.amount).toLocaleString()}</td>
+                   <td>${parseFloat(item.amount).toFixed(2)}</td>
+                    <td>${item.type}</td>
                     <td>${item.date}</td>
                 </tr>
             `);
@@ -2074,22 +2076,11 @@ function loadWalletCharges() {
         );
 
     })
-  .fail(function(xhr) {
-
-    console.log(xhr.status);
-    console.log(xhr.responseText);
-
-    $('#wallet-charge-body').html(`
-        <tr>
-            <td colspan="4" class="text-danger">
-                Failed to load wallet charges
-            </td>
-        </tr>
-    `);
-
-});
+    .fail(function(xhr) {
 
     
+ console.log(xhr.status);
+    console.log(xhr.responseText);
 
         $('#wallet-charge-body').html(`
             <tr>
