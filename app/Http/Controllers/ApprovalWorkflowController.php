@@ -39,8 +39,13 @@ class ApprovalWorkflowController extends Controller
 
     public function approveDecline($id, $status)
     {
-        Deposit::withoutGlobalScope('approved')->where('id', $id)->update(['status' => $status]);
-        return response()->json(['success' => true, 'message' => ucfirst($status == 1 ? 'Approved' : 'Declined') . ' successfully.']);
+        if ($status == 1) {
+            Deposit::withoutGlobalScope('approved')->where('id', $id)->update(['status' => 1]);
+            return response()->json(['success' => true, 'message' => 'Approved successfully.']);
+        } else {
+            Deposit::withoutGlobalScope('approved')->where('id', $id)->delete();
+            return response()->json(['success' => true, 'message' => 'Deposit deleted successfully.']);
+        }
     }
 
     public function bulkApprove(Request $request)

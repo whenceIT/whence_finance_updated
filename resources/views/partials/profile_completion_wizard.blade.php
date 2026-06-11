@@ -111,7 +111,7 @@
 
         <!-- Wizard Content -->
         <div id="profileWizardContent" style="padding: 0; background: white; min-height: 350px; max-height: 500px; overflow-y: auto;">
-            <form id="profile-form" action="{{ url('user/profile_completion') }}" method="POST">
+            <form id="profile-form" action="{{ url('profile_completion') }}" method="POST">
                 @csrf
 
                 <!-- Step 1: Basic Information -->
