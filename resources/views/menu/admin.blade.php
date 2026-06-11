@@ -1290,7 +1290,7 @@
 
 
                          <!-- Deposits -->
-                    @if(Sentinel::hasAccess('settings'))
+                    @if(Sentinel::hasAccess('reports.client_reports'))
                     <li style="padding-left: 10px;" class="treeview @if(Request::is('ledger/*')) active menu-open @endif">
                         <a href="#">
                             <i class="fa fa-exchange"></i> <span>Fund Transfers and Payments</span>
