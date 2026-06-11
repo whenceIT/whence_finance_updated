@@ -175,11 +175,11 @@
                 </div>
                 <div class="form-group">
                     <label for="notes"
-                           class="control-label col-md-2">{{trans_choice('general.note',2)}}</label>
+                           class="control-label col-md-2">Narration</label>
                     <div class="col-md-8">
                         <textarea name="notes" class="form-control "
                                   placeholder=""
-                                  id="notes" rows="3">{{old('notes')}}</textarea>
+                                  id="notes" rows="3" required></textarea>
                     </div>
 		</div>
 <div class="form-group">
@@ -388,10 +388,18 @@ if (paymentMethod && !valid) {
         }
     }
 
+   // Only disable button if form is valid
+if ($(this).valid()) {
+
     const $btn = $(this).find('button[type="submit"]');
 
     $btn.prop('disabled', true)
         .text('Saving...');
+
+} else {
+    e.preventDefault();
+    return false;
+}
 });
         });
 

@@ -1191,6 +1191,67 @@ $total_loans = 0;
     </div>
 </div>
 
+
+<div class="panel box box-warning">
+    <div class="box-header with-border">
+        <h4 class="box-title">
+            <a data-toggle="collapse"
+               data-parent="#accordion"
+               href="#collapseWalletCharges">
+                Withinhere Wallet Charges Report
+            </a>
+        </h4>
+    </div>
+
+    <div id="collapseWalletCharges"
+         class="panel-collapse collapse">
+
+        <div class="box-body">
+
+            <div style="overflow-x:auto;">
+
+                <table class="table table-bordered table-hover">
+
+                    <thead>
+                    <tr>
+                        <th>Branch</th>
+                        <th>Transaction ID</th>
+                        <th>Charge</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="wallet-charge-body">
+
+                    <tr>
+                        <td colspan="4">
+                            Loading wallet charges...
+                        </td>
+                    </tr>
+
+                    </tbody>
+
+                    <tfoot>
+                    <tr>
+                        <th colspan="2" class="text-right">
+                            Total Charges
+                        </th>
+                        <th id="wallet-charge-total">
+                            0
+                        </th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var expenseTypeFilter = document.getElementById('expense_type_filter');
@@ -1965,6 +2026,92 @@ function renderDepositCategorySummary() {
         `);
     });
 }
+
+
+function loadWalletCharges() {
+
+    $('#wallet-charge-body').html(`
+        <tr>
+            <td colspan="4">
+                Loading wallet charges...
+            </td>
+        </tr>
+    `);
+
+    $.get(
+        '/wallet-charges-report',
+        {
+            start_date: $('#start_date').val(),
+            end_date: $('#end_date').val(),
+            office_id: $('#office_id').val()
+        }
+    )
+    .done(function(res) {
+
+        var tbody = $('#wallet-charge-body');
+
+        tbody.empty();
+
+        var totalCharges = 0;
+
+        res.forEach(function(item) {
+
+            totalCharges += Number(item.amount);
+
+            tbody.append(`
+                <tr>
+                    <td>${item.office_name}</td>
+                    <td>${item.transaction_id}</td>
+                    <td>${Number(item.amount).toLocaleString()}</td>
+                    <td>${item.date}</td>
+                </tr>
+            `);
+
+        });
+
+        $('#wallet-charge-total').text(
+            totalCharges.toLocaleString()
+        );
+
+    })
+  .fail(function(xhr) {
+
+    console.log(xhr.status);
+    console.log(xhr.responseText);
+
+    $('#wallet-charge-body').html(`
+        <tr>
+            <td colspan="4" class="text-danger">
+                Failed to load wallet charges
+            </td>
+        </tr>
+    `);
+
+});
+
+    
+
+        $('#wallet-charge-body').html(`
+            <tr>
+                <td colspan="4"
+                    class="text-danger">
+                    Failed to load wallet charges
+                </td>
+            </tr>
+        `);
+
+    });
+
+}
+
+$('#collapseWalletCharges').on(
+    'shown.bs.collapse',
+    function () {
+
+        loadWalletCharges();
+
+    }
+);
 
 
 

@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\View;
 use PDF;
 use Excel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -1387,6 +1388,103 @@ $targets_met = TargetsMet::whereBetween('date', [$start_date, $end_date])
 
 
     }
+
+
+    public function walletChargesReport(Request $request)
+{
+    $start_date = $request->start_date;
+    $end_date = $request->end_date;
+    $office_id = $request->office_id;
+
+    $offices = Office::query();
+
+    if (!empty($office_id) && $office_id != 0) {
+
+        $offices->where(
+            'id',
+            $office_id
+        );
+
+    }
+
+    $offices = $offices
+        ->whereNotNull(
+            'withinhere_wallet_id'
+        )
+        ->get();
+
+    $results = [];
+
+    foreach ($offices as $office) {
+
+        try {
+
+            $response = Http::post(
+                'https://withinheremobileapi.com/api/v1/lmsuser/transactions',
+                [
+                    'wallet_id' =>
+                        $office->withinhere_wallet_id,
+
+                    'start_date' =>
+                        $start_date,
+
+                    'end_date' =>
+                        $end_date
+                ]
+            );
+
+            $data = $response->json();
+
+            if (
+                empty($data['transactions'])
+            ) {
+                continue;
+            }
+
+            foreach (
+                $data['transactions']
+                as $tx
+            ) {
+
+                if (
+                    (float)$tx['charge']
+                    <= 0
+                ) {
+                    continue;
+                }
+
+                $results[] = [
+
+                    'office_name' =>
+                        $office->name,
+
+                    'transaction_id' =>
+                        $tx['transaction_id'],
+
+                    'amount' =>
+                        $tx['charge'],
+
+                    'date' =>
+                        $tx['created_at']
+
+                ];
+
+            }
+
+        } catch (\Exception $e) {
+
+            \Log::error(
+                $e->getMessage()
+            );
+
+        }
+
+    }
+
+    return response()->json(
+        $results
+    );
+}
 
 
 

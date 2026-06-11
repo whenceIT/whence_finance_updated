@@ -14,7 +14,7 @@
 
         <div class="row" style="margin-bottom:15px;">
 
-            <div class="col-md-6">
+            <!-- <div class="col-md-6">
 
                 <button type="button"
                         class="btn btn-success btn-sm"
@@ -30,7 +30,7 @@
                     Approve All
                 </button>
 
-            </div>
+            </div> -->
 
             <div class="col-md-6 text-right">
                 <input type="text"
@@ -62,6 +62,7 @@
                     <th>Reference No.</th>
                     <th>Created By</th>
                     <th>Proof</th>
+                    <th>Narration</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>

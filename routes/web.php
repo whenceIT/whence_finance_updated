@@ -968,6 +968,10 @@ Route::group(['prefix' => 'report'], function () {
         Route::get('{report_scheduler}/edit', 'ReportSchedulerController@edit');
         Route::post('{id}/update', 'ReportSchedulerController@update');
         Route::get('{id}/delete', 'ReportSchedulerController@delete');
+        Route::get(
+    'wallet-charges-report',
+    'ReportController@walletChargesReport'
+);
     });
 
     Route::group(['prefix' => 'financial_report'], function () {
