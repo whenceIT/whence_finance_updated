@@ -123,6 +123,8 @@
                             @endif
                         </td>
 
+                        <td>{{$expense->note}}</td>
+
                         <td>
 
                             @if($expense->status == 'approved')
