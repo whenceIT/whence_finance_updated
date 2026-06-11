@@ -188,10 +188,6 @@ public function expenses()
     {
         $movement = FundMovements::findOrFail($id);
 
-        if ($movement->status !== 'submitted') {
-            return redirect()->back()->with('error', 'Only submitted fund movements can be approved.');
-        }
-
         $movement->status = 'approved';
         $movement->save();
 
@@ -204,9 +200,6 @@ public function expenses()
 
         $movement = FundMovements::findOrFail($id);
 
-        if ($movement->status !== 'submitted') {
-            return redirect()->back()->with('error', 'Only submitted fund movements can be rejected.');
-        }
 
         $movement->status = 'rejected';
         $movement->save();
