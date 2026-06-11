@@ -23,6 +23,7 @@ class ApprovalWorkflowController extends Controller
             ->whereNull('status')
             ->get();
 
+            dd($deposits);
         $deposits = new \Illuminate\Pagination\LengthAwarePaginator(
             $deposits,
             $deposits->count(),
