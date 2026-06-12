@@ -52,7 +52,7 @@
                 <tbody>
                     @foreach($expensesByCategory as $item)
                     <tr>
-                        <td>{{ $item->category->name ?? 'Unknown' }}</td>
+                        <td>{{ $item->category ? $item->category->name : 'Unknown' }}</td>
                         <td style="text-align: right;">K{{ number_format($item->total, 2) }}</td>
                     </tr>
                     @endforeach

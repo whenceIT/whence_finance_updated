@@ -109,4 +109,9 @@ class Office extends Model
     {
         return $this->hasOne(User::class, 'id', 'loan_officer_id');
     }
+
+    public static function officeName($id)
+    {
+        return self::where('id', $id)->first(); 
+    }
 }
