@@ -363,6 +363,7 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('{vehicle}/inspections/create','VehicleController@createInspections');
     Route::any('{vehicle}/inspections/store','VehicleController@storeInspections');
 });
+
 //route for users
 Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');

@@ -33,7 +33,6 @@
                         <th>Amount</th>
                         <th>Method</th>
                         <th>Reference</th>
-                        <th>Log ID</th>
                         <th>Branch Manager</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -44,16 +43,15 @@
                         <tr>
                             <td><input type="checkbox" class="row-select" value="{{ $deposit->id }}"></td>
                             <td>{{ $deposit->date }}</td>
-                            <td>{{ $deposit->office?->name ?? $deposit->office }}</td>
-                            <td>{{ $deposit->depositTypeInfo?->name ?? 'N/A' }}</td>
+                            <td>{{ \App\Models\Office::officeName($deposit->office)->name ?? 'Unknown' }}</td>
+                            <td>{{ $deposit->depositTypeInfo ? $deposit->depositTypeInfo->name : 'Invalid Entry' }}</td>
                             <td>{{ number_format($deposit->amount, 2) }}</td>
-                            <td>{{ $deposit->bankDepositLog?->deposit_method ?? 'N/A' }}</td>
-                            <td>{{ $deposit->bankDepositLog?->reference_number ?? 'N/A' }}</td>
-                            <td>{{ $deposit->bankDepositLog?->id ?? 'N/A' }}</td>
+                            <td>{{ $deposit->bankDepositLog ? $deposit->bankDepositLog->deposit_method : 'Invalid Entry' }}</td>
+                            <td>{{ $deposit->bankDepositLog ? $deposit->bankDepositLog->reference_number : 'Invalid Entry' }}</td>
                             <td>
-                                @if($deposit->bankDepositLog?->user?->first_name)
+                                @if($deposit->bankDepositLog && $deposit->bankDepositLog->user && $deposit->bankDepositLog->user->first_name)
                                     {{ $deposit->bankDepositLog->user->first_name }} {{ $deposit->bankDepositLog->user->last_name }}
-                                @elseif($deposit->bankDepositLog?->user_id)
+                                @elseif($deposit->bankDepositLog && $deposit->bankDepositLog->user_id)
                                     {{ $deposit->bankDepositLog->user_id }}
                                 @else
                                     N/A
@@ -69,7 +67,7 @@
                                 @endif
                             </td>
                             <td>
-                                @if($deposit->status !== 1)
+                                @if($deposit->status !== 1 && $deposit->bankDepositLog != null)
                                     <button type="button" class="btn btn-success btn-xs approve-btn" 
                                             data-id="{{ $deposit->id }}" 
                                             data-url="{{ url('approvals/deposit-approvals/'.$deposit->id.'/1') }}"

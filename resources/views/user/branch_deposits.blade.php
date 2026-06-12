@@ -808,50 +808,11 @@ $(document).ready(function () {
                     amount: currentDepositAmount,
                     reference_number: currentReferenceNumber,
                     deposit_method: currentPaymentMethod,
+                    user_id: userId,
                     date: today()
                 }),
                 success: function (res) {
-                    $.ajax({
-                        url: `${depositApiUrl}/create-deposit-log`,
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            deposit_type: currentDepositType,
-                            deposit_id: res.deposit_id,
-                            office_id: branchId,
-                            user_id: userId,
-                            amount: currentDepositAmount,
-                            reference_number: currentReferenceNumber,
-                            deposit_method: currentPaymentMethod 
-                        })
-                    })
-                    .done(function () {
-                        KiloAlert.success(res.message || 'Deposit saved successfully');
-                         $.ajax({
-                            url: 'https://notifications.whencefinancesystem.com/emit',
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify({
-                                event: 'deposit.created',
-                                data: {
-                                    created_by: userName,
-                                    office_id: branchName,
-                                    date: today(),
-                                    amount: amount,
-                                    type: currentDepositTypeName + ' New Deposit',
-                                    deposit: deposit
-                                }
-                            }),
-                        });
-                        setTimeout(function() { location.reload(); }, 1500);
-                    })
-                    .fail(function (res) {
-                        KiloAlert.error('Failed to save deposit log. Please try again. ' + (res.responseJSON?.error || ''));
-                        $btn.prop('disabled', false);
-                        $btn.find('.btn-text').show();
-                        $btn.find('.btn-loader').hide();
-                        modalConfirmBtn.prop('disabled', false);
-                    });
+                    KiloAlert.success(res.message || 'Deposit saved successfully');
                 },
                 error: function(res) {
                     KiloAlert.error('Failed to save deposit. Please try again. ' + (res.responseJSON?.error || ''));
@@ -866,33 +827,6 @@ $(document).ready(function () {
             // wait 4 second to reload page
             setTimeout(function() { location.reload(); }, 4000);
         });
-    });
-
-    /* ---------- SKIP OPTIONAL ---------- */
-    $(document).on('click', '.skip-btn', function () {
-
-        if (!confirm('Skip Managers Housing deposit? This will be recorded as 0.')) return;
-
-        let depositId = $(this).closest('.deposit-item').data('deposit-id');
-
-        $.ajax({
-            url: `${depositApiUrl}/create-deposit`,
-            type: 'POST',
-            data: {
-                deposit_type: depositId,
-                office: branchId,
-                amount: 0,
-                date: today()
-            },
-            success: function (res) {
-                KiloAlert.success(res.message || 'Skipped successfully');
-                setTimeout(function() { location.reload(); }, 1500);
-            },
-            error: function() {
-                KiloAlert.error('Failed to skip. Please try again.');
-            }
-        });
-
     });
 });
 

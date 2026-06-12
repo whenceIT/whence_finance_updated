@@ -25,7 +25,7 @@
                 <tbody>
                     @foreach($expensesByCategory as $item)
                     <tr>
-                        <td>{{ $item->category->name ?? 'Unknown' }}</td>
+                        <td>{{ $item->category ? $item->category->name : 'Unknown' }}</td>
                         <td style="text-align: right;">K{{ number_format($item->total, 2) }}</td>
                     </tr>
                     @endforeach
@@ -45,7 +45,7 @@
                 <tbody>
                     @foreach($expensesByAccount as $item)
                     <tr>
-                        <td>{{ $item->bankAccount->name ?? 'Unknown' }}</td>
+                        <td>{{ $item->bankAccount ? $item->bankAccount->name : 'Unknown' }}</td>
                         <td style="text-align: right;">K{{ number_format($item->total, 2) }}</td>
                     </tr>
                     @endforeach
