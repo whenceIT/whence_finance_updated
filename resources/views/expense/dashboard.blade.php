@@ -328,6 +328,13 @@ Expense Management Dashboard
                                                     <th>Province</th>
                                                     <th>Branch</th>
                                                     <th>Name</th>
+
+                                                       @if($category['expense_type_id'] == -999)
+            <th>Reason</th>
+            <th>Gateway Fee</th>
+            <th>Withinhere Fee</th>
+        @endif
+
                                                     <th>Amount</th>
                                                 </tr>
                                             </thead>
@@ -338,29 +345,20 @@ Expense Management Dashboard
 
                                                 @if($expense['expense_type_id'] == $category['expense_type_id'])
 
-                                                    <tr>
+                                         <tr>
+    <td>{{ date('d-M-Y', strtotime($expense['date'])) }}</td>
+    <td>{{ $expense['province_name'] }}</td>
+    <td>{{ $expense['office_name'] }}</td>
+    <td>{{ $expense['name'] }}</td>
 
-                                                        <td>
-                                                            {{ date('d-M-Y', strtotime($expense['date'])) }}
-                                                        </td>
+    @if($category['expense_type_id'] == -999)
+        <td>{{ $expense['reason'] ?? '-' }}</td>
+        <td>K{{ number_format($expense['gateway_fee'] ?? 0, 2) }}</td>
+        <td>K{{ number_format($expense['withinhere_fee'] ?? 0, 2) }}</td>
+    @endif
 
-                                                        <td>
-                                                            {{ $expense['province_name'] }}
-                                                        </td>
-
-                                                        <td>
-                                                            {{ $expense['office_name'] }}
-                                                        </td>
-
-                                                        <td>
-                                                            {{ $expense['name'] }}
-                                                        </td>
-
-                                                        <td>
-                                                            K{{ number_format($expense['amount'],2) }}
-                                                        </td>
-
-                                                    </tr>
+    <td>K{{ number_format($expense['amount'],2) }}</td>
+</tr>
 
                                                 @endif
 
