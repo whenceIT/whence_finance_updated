@@ -45,11 +45,11 @@
                             <td><input type="checkbox" class="row-select" value="{{ $deposit->id }}"></td>
                             <td>{{ $deposit->date }}</td>
                             <td>{{ $deposit->office?->name ?? $deposit->office }}</td>
-                            <td>{{ $deposit->depositTypeInfo?->name ?? 'N/A' }}</td>
+                            <td>{{ $deposit->depositTypeInfo?->name ?? 'Invalid Entry' }}</td>
                             <td>{{ number_format($deposit->amount, 2) }}</td>
-                            <td>{{ $deposit->bankDepositLog?->deposit_method ?? 'N/A' }}</td>
-                            <td>{{ $deposit->bankDepositLog?->reference_number ?? 'N/A' }}</td>
-                            <td>{{ $deposit->bankDepositLog?->id ?? 'N/A' }}</td>
+                            <td>{{ $deposit->bankDepositLog?->deposit_method ?? 'Invalid Entry' }}</td>
+                            <td>{{ $deposit->bankDepositLog?->reference_number ?? 'Invalid Entry' }}</td>
+                            <td>{{ $deposit->bankDepositLog?->id ?? 'Invalid Entry' }}</td>
                             <td>
                                 @if($deposit->bankDepositLog?->user?->first_name)
                                     {{ $deposit->bankDepositLog->user->first_name }} {{ $deposit->bankDepositLog->user->last_name }}
