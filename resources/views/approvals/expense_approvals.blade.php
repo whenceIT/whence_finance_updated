@@ -12,35 +12,32 @@
 
     <div class="box-body">
 
-        <div class="row" style="margin-bottom:15px;">
+  <div class="row" style="margin-bottom:15px;">
 
-            <!-- <div class="col-md-6">
+    <div class="col-md-6">
+        <button type="button"
+                id="bulk-approve-btn"
+                class="btn btn-success btn-sm">
+            <i class="fa fa-check"></i> Approve Selected
+        </button>
 
-                <button type="button"
-                        class="btn btn-success btn-sm"
-                        id="bulk-approve-btn">
-                    <i class="fa fa-check"></i>
-                    Approve Selected
-                </button>
+        <button type="button"
+                id="approve-all-btn"
+                class="btn btn-primary btn-sm">
+            <i class="fa fa-check-circle"></i> Approve All Pending
+        </button>
+    </div>
 
-                <button type="button"
-                        class="btn btn-success btn-sm"
-                        id="approve-all-btn">
-                    <i class="fa fa-check-circle"></i>
-                    Approve All
-                </button>
+    <div class="col-md-6 text-right">
+        <input type="text"
+               id="search-input"
+               class="form-control input-sm"
+               placeholder="Search..."
+               style="width:220px;display:inline-block;">
+    </div>
 
-            </div> -->
+</div>
 
-            <div class="col-md-6 text-right">
-                <input type="text"
-                       id="search-input"
-                       class="form-control input-sm"
-                       placeholder="Search..."
-                       style="width:220px;display:inline-block;">
-            </div>
-
-        </div>
 
     </div>
 
@@ -50,9 +47,9 @@
 
             <thead>
                 <tr>
-                    <!-- <th width="40">
-                        <input type="checkbox" id="select-all">
-                    </th> -->
+                   <th width="40">
+    <input type="checkbox" id="select-all">
+</th>
                     <th>Date</th>
                     <th>Office</th>
                     <th>Expense Type</th>
@@ -62,7 +59,7 @@
                     <th>Reference No.</th>
                     <th>Created By</th>
                     <th>Proof</th>
-                    <th>Narration</th>
+                    <th width="300">Narration</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -74,12 +71,13 @@
 
                     <tr>
 
-                        <!-- <td>
-                            <input type="checkbox"
-                                   class="row-select"
-                                   value="{{ $expense->id }}">
-                        </td> -->
-
+                      <td>
+    @if($expense->status != 'approved')
+        <input type="checkbox"
+               class="row-select"
+               value="{{ $expense->id }}">
+    @endif
+</td>
                         <td>{{ $expense->date }}</td>
 
                         <td>
@@ -107,8 +105,8 @@
                         </td>
 
                         <td>
-                          {{ $expense->createdBy->first_name ?? '' }}
-{{ $expense->createdBy->last_name ?? '' }}
+                          {{ $expense->created_by->first_name ?? '' }}
+{{ $expense->created_by->last_name ?? '' }}
                         </td>
 
                         <td>
@@ -123,7 +121,9 @@
                             @endif
                         </td>
 
-                        <td>{{$expense->note}}</td>
+                      <td style="min-width:300px;">
+    {{$expense->notes}}
+</td>
 
                         <td>
 
@@ -182,7 +182,7 @@
                 @empty
 
                     <tr>
-                        <td colspan="12" class="text-center">
+                        <td colspan="13" class="text-center">
                             No expenses found.
                         </td>
                     </tr>
@@ -223,7 +223,7 @@ $(document).ready(function(){
         if(confirm('Approve selected expenses?')){
 
             $.post(
-                '{{ url("approvals/expense-approvals/bulk-approve") }}',
+                '{{ url("expense/approvals/expense-approvals/bulk-approve") }}',
                 {
                     _token:'{{ csrf_token() }}',
                     ids:selected
@@ -252,7 +252,7 @@ $(document).ready(function(){
         if(confirm('Approve all pending expenses?')){
 
             $.post(
-                '{{ url("approvals/expense-approvals/approve-all") }}',
+                '{{ url("expense/approvals/expense-approvals/approve-all") }}',
                 {
                     _token:'{{ csrf_token() }}'
                 },
