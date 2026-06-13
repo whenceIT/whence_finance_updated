@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Deposit;
 use App\Models\DepositType;
+use App\Models\BankDepositLog;
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\Expense;
@@ -43,6 +44,7 @@ class ApprovalWorkflowController extends Controller
             Deposit::withoutGlobalScope('approved')->where('id', $id)->update(['status' => 1]);
             return response()->json(['success' => true, 'message' => 'Approved successfully.']);
         } else {
+            BankDepositLog::where('deposit_id', $id)->delete();
             Deposit::withoutGlobalScope('approved')->where('id', $id)->delete();
             return response()->json(['success' => true, 'message' => 'Deposit deleted successfully.']);
         }
