@@ -114,7 +114,7 @@
                     table += '<tr>' +
                         '<td style="padding:6px;">' + typeVal + '</td>' +
                         '<td style="padding:6px;">' + d.office_name + '</td>' +
-                        '<td style="padding:6px; text-align:right;">' + amountVal.toLocaleString() + '</td>' +
+                        '<td style="padding:6px; text-align:right;"><span class="editable-amount" data-id="' + d.id + '" contenteditable="true" style="cursor:text; padding:4px; border:1px solid transparent; border-radius:3px;">' + amountVal.toLocaleString() + '</span></td>' +
                         '<td style="padding:6px;">' + methodVal + '</td>' +
                         '<td style="padding:6px; font-family:monospace; font-size:11px;">' + refVal + '</td>' +
                         '<td style="padding:6px;">' + dateVal + '</td>' +
@@ -123,6 +123,32 @@
                 
                 table += '</tbody></table>';
                 resultDiv.innerHTML = summary + table;
+                
+                resultDiv.querySelectorAll('.editable-amount').forEach(function(el) {
+                    el.addEventListener('blur', function() {
+                        var id = this.getAttribute('data-id');
+                        var newAmount = parseFloat(this.textContent.replace(/[^\d.-]/g, '')) || 0;
+                        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        
+                        fetch('/risk/deposits/update-amount', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify({ id: id, amount: newAmount })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.style.border = '1px solid #d4edda';
+                                setTimeout(() => { this.style.border = '1px solid transparent'; }, 1000);
+                            }
+                        })
+                        .catch(err => console.error('Save error:', err));
+                    });
+                });
             })
             .catch(function(err) {
                 placeholder.style.display = 'none';

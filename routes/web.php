@@ -511,6 +511,7 @@ Route::group(['prefix' => 'risk'], function () {
 
     // ── Deposit query endpoint ───────────────────────────────────────────────
     Route::get('deposits/query',          [RiskController::class, 'queryDeposits'])->name('risk.deposits.query');
+    Route::post('deposits/update-amount', [RiskController::class, 'updateDepositAmount'])->name('risk.deposits.update-amount');
     Route::get('failed-deposits',         [RiskController::class, 'queryFailedDeposits'])->name('risk.failed-deposits');
 
     // ── Supervisor: run all fraud rules (called client-side by monitor.js)

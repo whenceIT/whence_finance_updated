@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Services\AlertService;
 use Illuminate\Support\Facades\DB;
 use App\Models\Deposit;
+use App\Models\BankDepositLog;
 
 class RiskController extends Controller
 {
@@ -598,7 +599,8 @@ class RiskController extends Controller
             $query->whereYear('date', (int) $year);
         }
 
-        $deposits = $query->orderBy('date', 'desc')
+        $deposits = $query->with(['user', 'bankDepositLog'])
+            ->orderBy('date', 'desc')
             ->limit(500)
             ->get();
 
@@ -608,31 +610,20 @@ class RiskController extends Controller
         $offices = \App\Models\Office::whereIn('id', $officeIds)->pluck('name', 'id');
         $depositTypes = \App\Models\DepositType::whereIn('id', $depositTypeIds)->pluck('name', 'id');
 
-        $bankLogs = \App\Models\BankDepositLog::query()
-            ->with(['user', 'deposit'])
-            ->leftJoin('deposits', 'bank_deposit_log.deposit_id', '=', 'deposits.id')
-            ->whereIn('bank_deposit_log.deposit_type', $depositTypeIds)
-            ->whereIn('bank_deposit_log.office_id', $officeIds)
-            ->get();
-
-        $logs = $deposits->map(function ($dep) use ($bankLogs, $offices, $depositTypes) {
-            $monthYear = substr($dep->date, 0, 7);
-            $key = $dep->deposit_type . '_' . $dep->office . '_' . $monthYear;
-            $log = $bankLogs->first(function ($l) use ($key) {
-                return $l->deposit_type . '_' . $l->office_id . '_' . substr($l->created_date, 0, 7) === $key;
-            });
+        $logs = $deposits->map(function ($dep) use ($offices, $depositTypes) {
+            $bankLog = $dep->bankDepositLog;
 
             return [
-                'id' => $log->id ?? $dep->id,
+                'id' => $bankLog->id ?? $dep->id,
                 'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
-                'user_name' => $log && isset($log->user) && is_object($log->user) && isset($log->user->first_name)
-                    ? ($log->user->first_name . ' ' . $log->user->last_name)
+                'user_name' => $bankLog && $bankLog->user
+                    ? ($bankLog->user->first_name . ' ' . $bankLog->user->last_name)
                     : ($dep->user_id ? 'Unknown' : 'Unknown'),
                 'office_name' => $offices->get($dep->office, 'Unknown'),
-                'amount' => (float) $dep->amount,
-                'deposit_method' => $log->deposit_method ?? 'Cash',
-                'reference_number' => $log->reference_number ?? 'N/A',
-                'created_date' => $log->created_date ?? $dep->date,
+                'amount' => (float) ($bankLog->amount ?? $dep->amount),
+                'deposit_method' => $bankLog->deposit_method ?? 'Cash',
+                'reference_number' => $bankLog->reference_number ?? 'N/A',
+                'created_date' => $bankLog->created_date ?? $dep->date,
             ];
         });
 
@@ -640,6 +631,34 @@ class RiskController extends Controller
             'deposits' => $logs,
             'total' => $logs->sum('amount'),
         ]);
+    }
+
+    public function updateDepositAmount(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $id = $request->input('id');
+        $amount = $request->input('amount');
+
+        $bankLog = BankDepositLog::find($id);
+        if ($bankLog) {
+            $bankLog->amount = $amount;
+            $bankLog->save();
+            return response()->json(['success' => true]);
+        }
+
+        $deposit = Deposit::withoutGlobalScope('approved')->find($id);
+        if (!$deposit) {
+            return response()->json(['success' => false, 'message' => 'Record not found'], 404);
+        }
+
+        $deposit->amount = $amount;
+        $deposit->save();
+
+        return response()->json(['success' => true]);
     }
 
     public function queryFailedDeposits(Request $request)
@@ -1387,6 +1406,7 @@ class RiskController extends Controller
 
         // 4. Pull deposits — apply date filter only when a specific period is chosen
         $depositQuery = \App\Models\Deposit::query()
+            ->with(['bankDepositLog'])
             ->whereIn('office', $officeIds);
 
         
@@ -1416,14 +1436,15 @@ class RiskController extends Controller
             $officesWithTot   = [];
 
             foreach ($depositsForType as $dep) {
-                $totalAmount  += (float) $dep->amount;
+                $amount = $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
+                $totalAmount  += $amount;
                 $depositCount += 1;
                 $officesWithDep[$dep->office] = true;
 
                 if (!isset($officesWithTot[$dep->office])) {
                     $officesWithTot[$dep->office] = 0;
                 }
-                $officesWithTot[$dep->office] += (float) $dep->amount;
+                $officesWithTot[$dep->office] += $amount;
             }
 
             $officesWithTotalCount = 0;
@@ -1493,7 +1514,7 @@ class RiskController extends Controller
                 $received = 0;
                 foreach ($validDeposits as $dep) {
                     if ((int) $dep->deposit_type === (int) $type->id) {
-                        $received += (float) $dep->amount;
+                        $received += $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
                     }
                 }
 
@@ -1524,7 +1545,7 @@ class RiskController extends Controller
                 $received = 0;
                 foreach ($validDeposits as $dep) {
                     if ((int) $dep->deposit_type === (int) $type->id) {
-                        $received += (float) $dep->amount;
+                        $received += $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
                     }
                 }
 
