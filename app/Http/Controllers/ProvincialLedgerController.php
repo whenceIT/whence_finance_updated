@@ -6,23 +6,20 @@ use Illuminate\Http\Request;
 use App\Models\ProvincialTransaction;
 use App\Models\Province;
 use Illuminate\Support\Facades\DB;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class ProvincialLedgerController extends Controller
 {
     public function dashboard()
     {
-        $userInfo = \App\Helpers\GeneralHelper::get_user_info();
-        $user = $userInfo->user;
-        $office = $userInfo->office;
-        
-        $provinceId = $office && isset($office->province_id) ? $office->province_id : null;
-        
+        $user = Sentinel::getUser();
+        $province_id = $user && $user->office ? $user->office->province_id : null;
         $query = ProvincialTransaction::query();
-        if ($provinceId) {
-            $query->where('province_id', $provinceId);
+        if ($province_id) {
+            $query->where('province_id', $province_id);
         }
         
-        $provinces = $provinceId ? Province::where('id', $provinceId)->get() : Province::all();
+        $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
         
         $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
         $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
@@ -58,54 +55,45 @@ class ProvincialLedgerController extends Controller
 
     public function income()
     {
-        $userInfo = \App\Helpers\GeneralHelper::get_user_info();
-        $office = $userInfo->office;
-        
-        $provinceId = $office && isset($office->province_id) ? $office->province_id : null;
-        
+        $user = Sentinel::getUser();
+        $province_id = $user && $user->office ? $user->office->province_id : null;
         $query = ProvincialTransaction::where('type', 'income');
-        if ($provinceId) {
-            $query->where('province_id', $provinceId);
+        if ($province_id) {
+            $query->where('province_id', $province_id);
         }
         
         $income = $query->with('province')->orderBy('created_at', 'desc')->get();
         $total = $income->sum('amount');
         
-        $provinces = $provinceId ? Province::where('id', $provinceId)->get() : Province::all();
+        $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
 
         return view('provincial-ledger.income', compact('income', 'total', 'provinces'));
     }
 
     public function expenses()
     {
-        $userInfo = \App\Helpers\GeneralHelper::get_user_info();
-        $office = $userInfo->office;
-        
-        $provinceId = $office && isset($office->province_id) ? $office->province_id : null;
-        
+        $user = Sentinel::getUser();
+        $province_id = $user && $user->office ? $user->office->province_id : null;
         $query = ProvincialTransaction::where('type', 'expense');
-        if ($provinceId) {
-            $query->where('province_id', $provinceId);
+        if ($province_id) {
+            $query->where('province_id', $province_id);
         }
         
         $expenses = $query->with('province')->orderBy('created_at', 'desc')->get();
         $total = $expenses->sum('amount');
         
-        $provinces = $provinceId ? Province::where('id', $provinceId)->get() : Province::all();
+        $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
 
         return view('provincial-ledger.expenses', compact('expenses', 'total', 'provinces'));
     }
 
     public function balance()
     {
-        $userInfo = \App\Helpers\GeneralHelper::get_user_info();
-        $office = $userInfo->office;
-        
-        $provinceId = $office && isset($office->province_id) ? $office->province_id : null;
-        
+        $user = Sentinel::getUser();
+        $province_id = $user && $user->office ? $user->office->province_id : null;
         $query = ProvincialTransaction::query();
-        if ($provinceId) {
-            $query->where('province_id', $provinceId);
+        if ($province_id) {
+            $query->where('province_id', $province_id);
         }
         
         $totalIncome = (clone $query)->where('type', 'income')->sum('amount');

@@ -6,12 +6,25 @@ use Illuminate\Http\Request;
 use App\Models\ProvincialTransaction;
 use Illuminate\Support\Facades\Storage;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use Aws\S3\S3Client;
 
 class ProvincialLedgerApiController extends Controller
 {
     public function index()
     {
-        $transactions = ProvincialTransaction::with('province')->orderBy('created_at', 'desc')->get();
+        $user = Sentinel::getUser();
+        $province_id = $user && $user->office ? $user->office->province_id : null;
+
+        $query = ProvincialTransaction::query();
+        if ($province_id) {
+            $query->where('province_id', $province_id);
+        }
+        
+        $monthsAgo = now()->subMonths(3)->startOfMonth();
+        $query->where('created_at', '>=', $monthsAgo);
+        
+        $transactions = $query->with('province')->orderBy('created_at', 'asc')->get();
+        
         return response()->json([
             'success' => true,
             'data' => $transactions
@@ -39,8 +52,28 @@ class ProvincialLedgerApiController extends Controller
         $data['recorded_at'] = $data['recorded_at'] ?? now();
 
         if ($request->hasFile('file')) {
-            $path = $request->file('file')->store('provincial-transactions', 'public');
-            $data['file_path'] = $path;
+            $file = $request->file('file');
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\./_-]/', '', $file->getClientOriginalName());
+            
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => 'nyc3',
+                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                'credentials' => [
+                    'key' => 'DO00RP9FA3QZTA3JV637',
+                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                ],
+            ]);
+
+            $result = $s3Client->putObject([
+                'Bucket' => 'wfspolicies',
+                'Key' => 'proof-docs/' . $fileName,
+                'Body' => fopen($file->getPathname(), 'r'),
+                'ACL' => 'public-read',
+                'ContentType' => $file->getClientMimeType(),
+            ]);
+
+            $data['file_path'] = $result['ObjectURL'];
         }
 
         $transaction = ProvincialTransaction::create($data);
@@ -82,11 +115,28 @@ class ProvincialLedgerApiController extends Controller
         ]);
 
         if ($request->hasFile('file')) {
-            if ($transaction->file_path) {
-                Storage::disk('public')->delete($transaction->file_path);
-            }
-            $path = $request->file('file')->store('provincial-transactions', 'public');
-            $validated['file_path'] = $path;
+            $file = $request->file('file');
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\./_-]/', '', $file->getClientOriginalName());
+            
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => 'nyc3',
+                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                'credentials' => [
+                    'key' => 'DO00RP9FA3QZTA3JV637',
+                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                ],
+            ]);
+
+            $result = $s3Client->putObject([
+                'Bucket' => 'wfspolicies',
+                'Key' => 'policies/' . $fileName,
+                'Body' => fopen($file->getPathname(), 'r'),
+                'ACL' => 'public-read',
+                'ContentType' => $file->getClientMimeType(),
+            ]);
+
+            $validated['file_path'] = $result['ObjectURL'];
         }
 
         $transaction->update($validated);
@@ -106,7 +156,28 @@ class ProvincialLedgerApiController extends Controller
         }
 
         if ($transaction->file_path) {
-            Storage::disk('public')->delete($transaction->file_path);
+            $oldPath = $transaction->file_path;
+            $pathInfo = parse_url($oldPath, PHP_URL_PATH);
+            $key = basename($pathInfo);
+            
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => 'nyc3',
+                'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                'credentials' => [
+                    'key' => 'DO00RP9FA3QZTA3JV637',
+                    'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                ],
+            ]);
+            
+            try {
+                $s3Client->deleteObject([
+                    'Bucket' => 'wfspolicies',
+                    'Key' => 'policies/' . $key,
+                ]);
+            } catch (\Exception $e) {
+                // Ignore deletion errors
+            }
         }
 
         $transaction->delete();

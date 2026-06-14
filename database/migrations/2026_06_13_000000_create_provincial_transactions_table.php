@@ -17,7 +17,7 @@ class CreateProvincialTransactionsTable extends Migration
             $table->unsignedBigInteger('province_id');
             $table->date('transaction_date');
             $table->string('reference_number')->nullable();
-            $table->string('created_by')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
             $table->string('payment_method')->nullable();
             $table->string('file_path')->nullable();
             $table->timestamp('recorded_at')->nullable();

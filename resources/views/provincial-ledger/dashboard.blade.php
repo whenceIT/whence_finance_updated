@@ -65,6 +65,7 @@
         </div>
     </div>
     
+    @include('provincial-ledger._partials.live-chart')
     @include('provincial-ledger._partials.transaction-modal')
 </div>
 @endsection
