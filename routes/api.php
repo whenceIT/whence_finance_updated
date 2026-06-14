@@ -29,3 +29,25 @@ Route::post('/send-sms', [SmsController::class, 'sendSms']);
 Route::post('/send-bulk-sms', [SmsController::class, 'sendBulkSms']);
 Route::post('/search/clients', [SearchEngineController::class, 'clientSearch']);
 Route::get('/bank-deposits-with-records', [\App\Http\Controllers\BankDepositLogController::class, 'getDepositsWithRecords']);
+
+Route::prefix('provincial-ledger')->group(function () {
+    Route::get('/', [\App\Http\Controllers\ProvincialLedgerController::class, 'dashboard']);
+    Route::get('/income', [\App\Http\Controllers\ProvincialLedgerController::class, 'income']);
+    Route::get('/expenses', [\App\Http\Controllers\ProvincialLedgerController::class, 'expenses']);
+    Route::get('/balance', [\App\Http\Controllers\ProvincialLedgerController::class, 'balance']);
+});
+
+Route::prefix('api/provincial-ledger')->group(function () {
+    Route::post('/', [\App\Http\Controllers\ProvincialLedgerApiController::class, 'store'])->name('api.provincial-ledger.store');
+    Route::get('/', [\App\Http\Controllers\ProvincialLedgerApiController::class, 'index'])->name('api.provincial-ledger.index');
+    Route::get('/{id}', [\App\Http\Controllers\ProvincialLedgerApiController::class, 'show'])->name('api.provincial-ledger.show');
+    Route::put('/{id}', [\App\Http\Controllers\ProvincialLedgerApiController::class, 'update'])->name('api.provincial-ledger.update');
+    Route::delete('/{id}', [\App\Http\Controllers\ProvincialLedgerApiController::class, 'destroy'])->name('api.provincial-ledger.destroy');
+});
+
+Route::get('/provinces', function () {
+    return response()->json([
+        'success' => true,
+        'data' => \App\Models\Province::orderBy('name')->get()
+    ]);
+});

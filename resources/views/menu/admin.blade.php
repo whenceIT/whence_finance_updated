@@ -738,11 +738,10 @@
                         </ul>
                     </li>
                     @endif
-                    <li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
-                   
+<li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
+                    
                 </ul>
             </li>
-            
             <!-- Approvals -->
             @if(Sentinel::hasAccess('expenses'))
             <li class="treeview @if(Request::is('user/carry_over_approvals') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval')) active menu-open @endif">
@@ -1326,6 +1325,26 @@
                             <li><a href="{{ route('ledger.transactions') }}"><i class="fa fa-circle-o"></i> Branch Ledgers</a></li>
                             @endif
                         </ul>
+                        
+
+            <!-- Accounts Section -->
+            @if(Sentinel::hasAccess('expenses'))
+            <li class="treeview @if(Request::is('provincial-ledger*')) active menu-open @endif" style="padding-left: 10px;">
+                <a href="#">
+                    <i class="fa fa-book"></i> <span>Provincial</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li @if(Request::is('provincial-ledger')) class="active" @endif><a href="{{ url('provincial-ledger') }}"><i class="fa fa-circle-o"></i> Provincial Ledger</a></li>
+                    <li @if(Request::is('provincial-ledger/income*')) class="active" @endif><a href="{{ url('provincial-ledger/income') }}"><i class="fa fa-circle-o"></i> Provincial Income</a></li>
+                    <li @if(Request::is('provincial-ledger/expenses*')) class="active" @endif><a href="{{ url('provincial-ledger/expenses') }}"><i class="fa fa-circle-o"></i> Provincial Expenses</a></li>
+                    <li @if(Request::is('provincial-ledger/balance*')) class="active" @endif><a href="{{ url('provincial-ledger/balance') }}"><i class="fa fa-circle-o"></i> Provincial Cash Balance</a></li>
+                </ul>
+            </li>
+            @endif
+
                     </li>
                     @endif
 

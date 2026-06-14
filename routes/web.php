@@ -523,9 +523,18 @@ Route::group(['prefix' => 'risk'], function () {
           ->name('risk.run-all-alerts');
 
      // ── Daily cron: single entry point for AlertService::runAll()
-     Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
-          ->name('risk.cron.run-all-alerts');
+Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
+           ->name('risk.cron.run-all-alerts');
 });
+
+// Provincial Ledger Routes
+Route::group(['prefix' => 'provincial-ledger'], function () {
+    Route::get('/', [\App\Http\Controllers\ProvincialLedgerController::class, 'dashboard'])->name('provincial-ledger.dashboard');
+    Route::get('/income', [\App\Http\Controllers\ProvincialLedgerController::class, 'income'])->name('provincial-ledger.income');
+    Route::get('/expenses', [\App\Http\Controllers\ProvincialLedgerController::class, 'expenses'])->name('provincial-ledger.expenses');
+    Route::get('/balance', [\App\Http\Controllers\ProvincialLedgerController::class, 'balance'])->name('provincial-ledger.balance');
+});
+
 //route for clients
 Route::group(['prefix' => 'client'], function () {
     Route::get('data', 'ClientController@index')->name('client.data');

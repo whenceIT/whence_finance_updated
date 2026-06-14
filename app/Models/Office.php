@@ -114,4 +114,11 @@ class Office extends Model
     {
         return self::where('id', $id)->first(); 
     }
+
+    public static function provinceName($id)
+    {
+        return self::where('id', $id)
+            ->join('province', 'offices.province_id', '=', 'province.id')
+            ->first(['province.name as name', 'province.id as id']);
+    }
 }
