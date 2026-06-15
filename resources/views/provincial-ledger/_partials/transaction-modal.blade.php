@@ -93,10 +93,6 @@ if ($office) {
                         <label for="pltReferenceNumber">Reference Number</label>
                         <input type="text" id="pltReferenceNumber" placeholder="Optional reference">
                     </div>
-                    <div class="plt-form-group">
-                        <label for="pltRecordedAt">Recorded At</label>
-                        <input disabled type="datetime-local" id="pltRecordedAt" value="<?php echo date('Y-m-d'); ?>">
-                    </div>
                 </div>
                 <div class="plt-form-row">
                     <div class="plt-form-group plt-form-full">

@@ -10,16 +10,26 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class ProvincialLedgerController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
         $query = ProvincialTransaction::query();
-        if ($province_id) {
-            $query->where('province_id', $province_id);
+        $isAdmin = $user && $user->role && $user->role->role_id == 1;
+        $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
+
+        if ($isAdmin) {
+            $provinces = Province::all();
+            if ($selectedProvinceId) {
+                $query->where('province_id', $selectedProvinceId);
+            }
+        } else {
+            if ($province_id) {
+                $query->where('province_id', $province_id);
+            }
+            $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
         }
         
-        $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
         
         $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
         $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
@@ -49,42 +59,62 @@ class ProvincialLedgerController extends Controller
             'netBalance',
             'recentTransactions',
             'incomeByProvince',
-            'expenseByProvince'
+            'expenseByProvince',
+            'isAdmin',
+            'selectedProvinceId'
         ));
     }
 
-    public function income()
+    public function income(Request $request)
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
         $query = ProvincialTransaction::where('type', 'income');
-        if ($province_id) {
-            $query->where('province_id', $province_id);
+        $isAdmin = $user && $user->role && $user->role->role_id == 1;
+        $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
+
+        if ($isAdmin) {
+            $provinces = Province::all();
+            if ($selectedProvinceId) {
+                $query->where('province_id', $selectedProvinceId);
+            }
+        } else {
+            if ($province_id) {
+                $query->where('province_id', $province_id);
+            }
+            $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
         }
         
         $income = $query->with('province')->orderBy('created_at', 'desc')->get();
         $total = $income->sum('amount');
-        
-        $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
 
-        return view('provincial-ledger.income', compact('income', 'total', 'provinces'));
+        return view('provincial-ledger.income', compact('income', 'total', 'provinces', 'isAdmin', 'selectedProvinceId'));
     }
 
-    public function expenses()
+    public function expenses(Request $request)
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
         $query = ProvincialTransaction::where('type', 'expense');
-        if ($province_id) {
-            $query->where('province_id', $province_id);
+        $isAdmin = $user && $user->role && $user->role->role_id == 1;
+        $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
+
+        if ($isAdmin) {
+            $provinces = Province::all();
+            if ($selectedProvinceId) {
+                $query->where('province_id', $selectedProvinceId);
+            }
+        } else {
+            if ($province_id) {
+                $query->where('province_id', $province_id);
+            }
+            $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
         }
         
         $expenses = $query->with('province')->orderBy('created_at', 'desc')->get();
         $total = $expenses->sum('amount');
-        
-        $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
 
-        return view('provincial-ledger.expenses', compact('expenses', 'total', 'provinces'));
+        return view('provincial-ledger.expenses', compact('expenses', 'total', 'provinces', 'isAdmin', 'selectedProvinceId'));
     }
 
     public function balance()

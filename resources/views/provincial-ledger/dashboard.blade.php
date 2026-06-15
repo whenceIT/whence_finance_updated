@@ -4,9 +4,22 @@
 <div class="container-fluid">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <h3 style="margin:0;">Provincial Ledger Dashboard</h3>
-        <div style="display:flex; gap:8px;">
-            <button type="button" class="btn btn-primary" onclick="openTransactionModal('income')"><i class="fa fa-plus"></i> Record Income</button>
-            <button type="button" class="btn btn-danger" onclick="openTransactionModal('expense')"><i class="fa fa-plus"></i> Record Expense</button>
+        <div style="display:flex; gap:8px; align-items:center;">
+            @if(!empty($isAdmin))
+                <form method="GET" action="{{ route('provincial-ledger.dashboard') }}" style="display:flex; gap:8px; align-items:center; margin:0;">
+                    <label for="province_id" style="margin:0; font-weight:600;">Province</label>
+                    <select id="province_id" name="province_id" class="form-control" onchange="this.form.submit()" style="min-width:220px;">
+                        <option value="">All provinces</option>
+                        @foreach($provinces as $province)
+                            <option value="{{ $province->id }}" {{ (string)($selectedProvinceId ?? request('province_id')) === (string)$province->id ? 'selected' : '' }}>{{ $province->name }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            @endif
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn btn-primary" onclick="openTransactionModal('income')"><i class="fa fa-plus"></i> Record Income</button>
+                <button type="button" class="btn btn-danger" onclick="openTransactionModal('expense')"><i class="fa fa-plus"></i> Record Expense</button>
+            </div>
         </div>
     </div>
     

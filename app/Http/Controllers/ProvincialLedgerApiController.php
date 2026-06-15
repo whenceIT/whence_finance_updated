@@ -42,14 +42,27 @@ class ProvincialLedgerApiController extends Controller
             'transaction_date' => 'required|date',
             'reference_number' => 'nullable|string',
             'payment_method' => 'nullable|string',
-            'recorded_at' => 'nullable|date',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 
         $data = $validated;
         $user = Sentinel::getUser();
         $data['created_by'] = $user ? $user->id : null;
-        $data['recorded_at'] = $data['recorded_at'] ?? now();
+        $data['recorded_at'] = now();
+
+        if ($data['type'] === 'expense') {
+            $totalIncome = ProvincialTransaction::where('type', 'income')->sum('amount');
+            $totalExpenses = ProvincialTransaction::where('type', 'expense')->sum('amount');
+            $netBalance = $totalIncome - $totalExpenses;
+
+            if ($data['amount'] > $netBalance) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Expense amount exceeds current net balance.',
+                    'net_balance' => $netBalance
+                ], 422);
+            }
+        }
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
@@ -110,7 +123,6 @@ class ProvincialLedgerApiController extends Controller
             'transaction_date' => 'sometimes|date',
             'reference_number' => 'nullable|string',
             'payment_method' => 'nullable|string',
-            'recorded_at' => 'nullable|date',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 
