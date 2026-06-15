@@ -339,9 +339,8 @@
 
 
         let paymentMethod = $('#reference_type').val();
-let currentReferenceNumber = $('#reference_number').val();
-
-let valid = true;
+        let currentReferenceNumber = $('#reference_number').val();
+        let valid = true;
 
 switch (paymentMethod) {
 

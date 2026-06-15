@@ -318,9 +318,12 @@
         <button type="button" id="openFailedDepositsModal" class="btn btn-danger btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-exclamation-triangle"></i> Failed Deposits
         </button>
-        <!-- <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
+        <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-stop"></i> Exempt Offices
-        </button> -->
+        </button>
+        <button type="button" id="openDepositExemptModal" class="btn btn-outline-primary btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-calendar-times-o"></i> Exempt Months
+        </button>
         <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-check-circle"></i> Activate Blocking for All Offices
         </button>
@@ -342,6 +345,7 @@
 
     @include('risk.partials.deposit-query-modal', ['offices' => $offices ?? []])
     @include('risk.partials.failed-deposits-modal')
+    @include('risk.partials.deposit-exempt-modal', ['offices' => $offices ?? [], 'depositTypes' => $depositTypes ?? []])
 
 
     <div class="da-filter-bar">
@@ -1509,6 +1513,12 @@ document.getElementById('openFailedDepositsModal').addEventListener('click', fun
 
 document.getElementById('closeFailedDepositsModal').addEventListener('click', function() {
     document.getElementById('failedDepositsModal').style.display = 'none';
+});
+
+document.getElementById('openDepositExemptModal').addEventListener('click', function() {
+    if (typeof window.openDepositExemptModal === 'function') {
+        window.openDepositExemptModal();
+    }
 });
 
 var officeIdParam = new URLSearchParams(window.location.search).get('office_id');

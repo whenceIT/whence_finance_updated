@@ -25,7 +25,7 @@ class Office extends Model
         'default_office',
         'province_id',
         'district_id',
-        'district_regional_id'
+        'district_regional_id',
     ];
 
     public function parent()
@@ -113,5 +113,12 @@ class Office extends Model
     public static function officeName($id)
     {
         return self::where('id', $id)->first(); 
+    }
+
+    public static function provinceName($id)
+    {
+        return self::where('id', $id)
+            ->join('province', 'offices.province_id', '=', 'province.id')
+            ->first(['province.name as name', 'province.id as id']);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\DepositMonthExemption;
 use App\Models\PlatformSetting;
 
 class PlatformController extends Controller
@@ -267,5 +268,42 @@ public function deactivateBlockSkipAllOffices()
         }
         
         return view('settings.block-skip-settings', compact('officeSettings'));
+    }
+    
+    public function updateDepositExemptMonths(Request $request)
+    {
+        $data = $request->validate([
+            'deposit_months_exempted' => 'required|integer|min:0|max:12',
+            'deposit_type_id' => 'nullable|exists:deposit_types,id',
+            'offices' => 'nullable',
+        ]);
+
+        $months = (int) $data['deposit_months_exempted'];
+        $depositTypeId = $data['deposit_type_id'] ?? null;
+        $officeIds = null;
+
+        if (!empty($data['offices'])) {
+            $officeIds = is_array($data['offices'])
+                ? $data['offices']
+                : array_filter(array_map('trim', explode(',', $data['offices'])));
+        }
+
+        if ($officeIds) {
+            $officeIds = \App\Models\Office::whereIn('id', $officeIds)->pluck('id')->all();
+        } else {
+            $officeIds = \App\Models\Office::query()->pluck('id')->all();
+        }
+
+        foreach ($officeIds as $officeId) {
+            DepositMonthExemption::updateOrCreate(
+                [
+                    'office_id' => $officeId,
+                    'deposit_type_id' => $depositTypeId,
+                ],
+                ['no_months_exclude' => $months]
+            );
+        }
+
+        return response()->json(['success' => true, 'message' => 'Deposit exemption months updated successfully.']);
     }
 }

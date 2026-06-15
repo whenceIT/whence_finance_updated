@@ -242,6 +242,7 @@ Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
     Route::post('/platform/block-skip/save', [PlatformController::class, 'saveBlockSkipSettings']);
     Route::post('/platform/block-skip/initialize-all', [PlatformController::class, 'initializeBlockSkipAllOffices']);
     Route::post('/platform/block-skip/deactivate-all', [PlatformController::class, 'deactivateBlockSkipAllOffices']);
+    Route::post('/platform/block-skip/update-months', [PlatformController::class, 'updateDepositExemptMonths'])->name('settings.platform.block-skip.update-months');
 });
 
 // Course Categories Management Routes
@@ -511,6 +512,7 @@ Route::group(['prefix' => 'risk'], function () {
 
     // ── Deposit query endpoint ───────────────────────────────────────────────
     Route::get('deposits/query',          [RiskController::class, 'queryDeposits'])->name('risk.deposits.query');
+    Route::post('deposits/update-amount', [RiskController::class, 'updateDepositAmount'])->name('risk.deposits.update-amount');
     Route::get('failed-deposits',         [RiskController::class, 'queryFailedDeposits'])->name('risk.failed-deposits');
 
     // ── Supervisor: run all fraud rules (called client-side by monitor.js)
@@ -522,9 +524,18 @@ Route::group(['prefix' => 'risk'], function () {
           ->name('risk.run-all-alerts');
 
      // ── Daily cron: single entry point for AlertService::runAll()
-     Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
-          ->name('risk.cron.run-all-alerts');
+Route::get('cron/run-all-alerts', [MonitorController::class, 'runAllAlerts'])
+           ->name('risk.cron.run-all-alerts');
 });
+
+// Provincial Ledger Routes
+Route::group(['prefix' => 'provincial-ledger'], function () {
+    Route::get('/', [\App\Http\Controllers\ProvincialLedgerController::class, 'dashboard'])->name('provincial-ledger.dashboard');
+    Route::get('/income', [\App\Http\Controllers\ProvincialLedgerController::class, 'income'])->name('provincial-ledger.income');
+    Route::get('/expenses', [\App\Http\Controllers\ProvincialLedgerController::class, 'expenses'])->name('provincial-ledger.expenses');
+    Route::get('/balance', [\App\Http\Controllers\ProvincialLedgerController::class, 'balance'])->name('provincial-ledger.balance');
+});
+
 //route for clients
 Route::group(['prefix' => 'client'], function () {
     Route::get('data', 'ClientController@index')->name('client.data');
