@@ -10,6 +10,8 @@ use App\Services\AlertService;
 use Illuminate\Support\Facades\DB;
 use App\Models\Deposit;
 use App\Models\BankDepositLog;
+use App\Models\DepositMonthExemption;
+
 
 class RiskController extends Controller
 {
@@ -1510,7 +1512,9 @@ class RiskController extends Controller
                 + 1;
             foreach ($depositTypes as $type) {
                 $monthlyRequired = (int) ($type->monthly_amount ?? 0);
-                $required = $monthlyRequired * $officeCount * $overallPeriodMonths;
+                // dd(DepositMonthExemption::get_months_exempted($officeId, $type));
+                $required = $monthlyRequired * $officeCount * ($overallPeriodMonths - DepositMonthExemption::get_months_exempted($officeId, $type));
+                // dd($required,  $officeId, $officeCount, $type, $overallPeriodMonths );
                 $received = 0;
                 foreach ($validDeposits as $dep) {
                     if ((int) $dep->deposit_type === (int) $type->id) {
@@ -1542,6 +1546,7 @@ class RiskController extends Controller
             foreach ($depositTypes as $type) {
                 $monthlyRequired = (int) ($type->monthly_amount ?? 0);
                 $required = $monthlyRequired * $officeCount * $periodMonths;
+                
                 $received = 0;
                 foreach ($validDeposits as $dep) {
                     if ((int) $dep->deposit_type === (int) $type->id) {
@@ -1581,7 +1586,7 @@ class RiskController extends Controller
             'grand_total' => (int) Deposit::mandatoryReceived([3, 1, 5], $officeId ? [$officeId] : null, $dateFrom, $dateTo) + (int) Deposit::otherReceived([4, 6, 2], $officeId ? [$officeId] : null, $dateFrom, $dateTo),
         ];
 
-        return view('risk.branch-deposit-audit', compact('types', 'offices', 'debtCards', 'depositCardStats', 'depositCardTotals'))
+        return view('risk.branch-deposit-audit', compact('types', 'depositTypes', 'offices', 'debtCards', 'depositCardStats', 'depositCardTotals'))
             ->with('period', $period)
             ->with('customMonth', $customMonth)
             ->with('customYear', $customYear)

@@ -25,7 +25,7 @@ class Office extends Model
         'default_office',
         'province_id',
         'district_id',
-        'district_regional_id'
+        'district_regional_id',
     ];
 
     public function parent()

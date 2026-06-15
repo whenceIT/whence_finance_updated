@@ -44,3 +44,10 @@ Route::get('/provinces', function () {
         'data' => \App\Models\Province::orderBy('name')->get()
     ]);
 });
+
+Route::get('/offices', function () {
+    return response()->json([
+        'success' => true,
+        'data' => \App\Models\Office::with('province')->orderBy('name')->get()
+    ]);
+});

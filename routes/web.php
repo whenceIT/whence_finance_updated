@@ -242,6 +242,7 @@ Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
     Route::post('/platform/block-skip/save', [PlatformController::class, 'saveBlockSkipSettings']);
     Route::post('/platform/block-skip/initialize-all', [PlatformController::class, 'initializeBlockSkipAllOffices']);
     Route::post('/platform/block-skip/deactivate-all', [PlatformController::class, 'deactivateBlockSkipAllOffices']);
+    Route::post('/platform/block-skip/update-months', [PlatformController::class, 'updateDepositExemptMonths'])->name('settings.platform.block-skip.update-months');
 });
 
 // Course Categories Management Routes
