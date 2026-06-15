@@ -288,14 +288,17 @@ if ($office->withinhere_wallet_id) {
 
     try {
 
-        $response = Http::timeout(60)->post(
-            'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
-            [
-                'wallet_id' => $office->withinhere_wallet_id,
-                'start_date' => '2026-01-01',
-                'end_date' => now()->format('Y-m-d')
-            ]
-        );
+ $response = Http::timeout(180)
+    ->connectTimeout(30)
+    ->retry(2, 100)
+    ->post(
+        'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+        [
+            'wallet_id' => $office->withinhere_wallet_id,
+            'start_date' => '2026-01-01',
+            'end_date' => now()->format('Y-m-d')
+        ]
+    );
 
         if ($response->successful()) {
             $data = $response->json();
