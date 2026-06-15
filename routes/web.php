@@ -1383,6 +1383,9 @@ Route::group(['prefix' => 'ledger'], function () {
     Route::get('ledger_report_excel', 'GeneralLedgerController@generateExcelReport')->name('ledger.ledger_report_excel');
     Route::get('all_report_excel', 'GeneralLedgerController@allgenerateExcelReport')->name('ledger.all_report_excel');
     Route::post('income_store', 'GeneralLedgerController@income_store')->name('ledger.income_store');
+    Route::get('/new_ledger/{officeName}', 'GeneralLedgerController@show_new')->name('ledger.show_new');
+    Route::post('/branch-ledger/data/{office_id}', 'GeneralLedgerController@getLedger')
+    ->name('branch-ledger.data');
 });
 
 Route::group(['prefix' => 'performance_metrics'], function () {

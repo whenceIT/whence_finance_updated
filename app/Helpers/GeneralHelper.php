@@ -2842,7 +2842,7 @@ public static function new_new_loan_total_balance($id)
         $user = Sentinel::getUser();
         if ($user) {
             return (object) [
-                'user' => $user,
+               'user' => $user ?? '',
                 'role' => $user->role ? $user->role->role_id : null,
                 'office' => $user->office ? $user->office->id : null,
                 'province_id' => $user->province_id ?? null
