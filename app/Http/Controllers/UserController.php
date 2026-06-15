@@ -677,7 +677,7 @@ public function save_wallet(Request $request)
             $has_carry_over = CycleDates::where('loan_officer_id', $loan_officer_id)->first();
 
             if (!$has_carry_over) {
-                return redirect('/user/mandatory_cycle');
+                return redirect('/user/cycle');
             }
 
             $numbers_status = $user->verify_numbers;
