@@ -63,9 +63,9 @@ if ($office) {
 @if($officeProvince)
                 <div class="plt-form-row" style="margin-bottom: 0;">
                     <div class="plt-form-group">
-                        <label>Province</label>
+                        <label>Provincial Office</label>
                         <div style="padding: 8px 10px; background: #f8f9fa; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; color: #555;">
-                            {{ $officeProvince->name }}
+                            {{ $officeProvince->name }} Provincial Headquarter 
                         </div>
                     </div>
                 </div>
@@ -77,6 +77,7 @@ if ($office) {
                             <option value="">Select Payment Method</option>
                             <option value="bank">Bank Transfer/ Deposit</option>
                             <option value="check">Check</option>
+                            <option value="withinhere">Withinhere</option>
                             <option value="artel_money">Artel Money</option>
                             <option value="momo_money">MoMo Money</option>
                             <option value="other">Other</option>
@@ -94,7 +95,7 @@ if ($office) {
                     </div>
                     <div class="plt-form-group">
                         <label for="pltRecordedAt">Recorded At</label>
-                        <input type="datetime-local" id="pltRecordedAt" value="<?php echo date('Y-m-d\TH:i'); ?>">
+                        <input disabled type="datetime-local" id="pltRecordedAt" value="<?php echo date('Y-m-d'); ?>">
                     </div>
                 </div>
                 <div class="plt-form-row">
