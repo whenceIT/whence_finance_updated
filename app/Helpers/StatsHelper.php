@@ -73,9 +73,9 @@ class StatsHelper
     public static function getActiveOffices()
     {
         return Office::where('active', 1)
-            ->orderBy('name')
+            ->orderBy('province_id')
             ->select('id', 'name', 'external_id')
-            ->where('id', '!=', 67)
+            ->whereNotIn('id', config('offices.headquarter'))
             ->get();
     }
     
