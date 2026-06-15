@@ -1396,7 +1396,6 @@ class RiskController extends Controller
         // 1. All offices (sorted) — full list for the dropdown
         $offices = \App\Helpers\StatsHelper::getActiveOffices();
 
-        dd($offices);
         // 2. Filter deposit types based on office-specific exemption settings
         $requiredDepositTypeIds = \App\Helpers\StatsHelper::getRequiredDepositTypes($officeId);
         $depositTypes = \App\Models\DepositType::orderBy('sort_order')->orderBy('name')
