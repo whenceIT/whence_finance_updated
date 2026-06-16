@@ -14,9 +14,6 @@ return new class extends Migration
             $table->unsignedBigInteger('deposit_type_id');
             $table->unsignedBigInteger('balance')->default(0);
             $table->timestamps();
-
-            $table->foreign('office_id')->references('id')->on('offices')->onDelete('cascade');
-            $table->foreign('deposit_type_id')->references('id')->on('deposit_types')->onDelete('cascade');
         });
     }
 
