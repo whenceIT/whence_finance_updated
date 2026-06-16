@@ -74,6 +74,14 @@ class BlockerHelper
         $officeId = $user->office_id ?? null;
         // overall: full months from Jan 1 this year through 28th of current month
         $overallPeriodMonths = 6;   
+
+        if (isset($user->role->role_id) && $user->role->role_id != 4) {
+            return [
+                'status'=>false,
+                'amount' => 0,
+                'deposit_type'=> ''
+            ];
+        }
         if (!$officeId) {
             return null;
         }
