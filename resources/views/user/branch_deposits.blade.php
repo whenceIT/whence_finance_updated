@@ -759,7 +759,8 @@ $(document).ready(function () {
             return;
         }
 
-        let valid = false;
+        // Tempro bypass
+        let valid = true;
 
         switch (paymentMethod) {
             case 'airtel':

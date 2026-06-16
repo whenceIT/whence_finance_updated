@@ -333,6 +333,9 @@
         <a href="{{ route('platform.block-skip-settings') }}" class="btn btn-outline-info btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-unlock"></i> Block Skip Settings
         </a>
+        <button type="button" id="openDebtBalancesModal" class="btn btn-info btn-sm" style="border-radius:6px; margin-top:4px;">
+            <i class="fa fa-plus-circle"></i> Record Debt Balance
+        </button>
     </div>
 
 
@@ -577,6 +580,72 @@
             </div>
         </div>
         @endforeach
+    </div>
+
+    <!-- Debt Balances Modal -->
+    <div class="modal fade" id="debtBalancesModal" tabindex="-1" role="dialog" aria-labelledby="debtBalancesModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background: #667eea; color: #fff;">
+                    <h5 class="modal-title" id="debtBalancesModalLabel">
+                        <i class="fa fa-plus-circle"></i> Record Debt Balance
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <form id="debtBalancesForm">
+                        @csrf
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label for="debtBalanceOffice" style="font-weight: 600; margin-bottom: 6px;">
+                                <i class="fa fa-building"></i> Office <span style="color: #c0392b;">*</span>
+                            </label>
+                            <select id="debtBalanceOffice" name="office_id" class="form-control" required style="border-radius: 4px;">
+                                <option value="">-- Select an Office --</option>
+                                <?php if (isset($offices) && $offices): ?>
+                                    <?php foreach ($offices as $office): ?>
+                                        <option value="<?= $office->id ?>"><?= e($office->name) ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label for="debtBalanceDepositType" style="font-weight: 600; margin-bottom: 6px;">
+                                <i class="fa fa-money"></i> Deposit Type <span style="color: #c0392b;">*</span>
+                            </label>
+                            <select id="debtBalanceDepositType" name="deposit_type_id" class="form-control" required style="border-radius: 4px;">
+                                <option value="">-- Select a Deposit Type --</option>
+                                <?php if (isset($depositTypes) && $depositTypes): ?>
+                                    <?php foreach ($depositTypes as $dt): ?>
+                                        <option value="<?= $dt->id ?>"><?= e($dt->name) ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label for="debtBalanceAmount" style="font-weight: 600; margin-bottom: 6px;">
+                                <i class="fa fa-calculator"></i> Balance Amount <span style="color: #c0392b;">*</span>
+                            </label>
+                            <input type="number" id="debtBalanceAmount" name="balance" class="form-control" required 
+                                   min="0" step="0.01" placeholder="Enter balance amount" style="border-radius: 4px;">
+                            <small style="color: #888; margin-top: 4px;">Amount in currency</small>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; margin-top: 20px;">
+                            <button type="submit" class="btn btn-primary" style="flex: 1; border-radius: 4px;">
+                                <i class="fa fa-save"></i> Save Debt Balance
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" style="flex: 1; border-radius: 4px;">
+                                <i class="fa fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -1525,6 +1594,61 @@ var officeIdParam = new URLSearchParams(window.location.search).get('office_id')
 if (officeIdParam) {
     loadOfficesSettings();
 }
+
+// ── Debt Balances Modal ────────────────────────────────────────────────────────
+document.getElementById('openDebtBalancesModal').addEventListener('click', function() {
+    $('#debtBalancesModal').modal('show');
+    // Reset form
+    document.getElementById('debtBalancesForm').reset();
+});
+
+// ── Handle Debt Balances Form Submission ───────────────────────────────────────
+document.getElementById('debtBalancesForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var officeId = document.getElementById('debtBalanceOffice').value;
+    var depositTypeId = document.getElementById('debtBalanceDepositType').value;
+    var balance = document.getElementById('debtBalanceAmount').value;
+    
+    if (!officeId || !depositTypeId || !balance) {
+        KiloAlert.warning('Please fill in all required fields.');
+        return;
+    }
+    
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    $.ajax({
+        url: '/risk/debt-balances',
+        type: 'POST',
+        data: {
+            _token: csrfToken,
+            office_id: officeId,
+            deposit_type_id: depositTypeId,
+            balance: balance
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                KiloAlert.success(response.message || 'Debt balance recorded successfully!');
+                $('#debtBalancesModal').modal('hide');
+                document.getElementById('debtBalancesForm').reset();
+                // Optionally reload the page or update the stats
+                // location.reload();
+            } else {
+                KiloAlert.error(response.message || 'Failed to record debt balance.');
+            }
+        },
+        error: function(xhr) {
+            var errorMsg = 'Network error. Please try again.';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.status === 422) {
+                errorMsg = 'Validation error. Please check your inputs.';
+            }
+            KiloAlert.error(errorMsg);
+        }
+    });
+});
 </script>
 <script src="/js/kilo-alert.js"></script>
 
