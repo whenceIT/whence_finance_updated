@@ -29,6 +29,7 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\LedgerIncome;
 use App\Models\User;
 use App\Models\Deposit;
+use Illuminate\Support\Facades\Http;
 
 
 class GeneralLedgerController extends Controller
@@ -246,39 +247,88 @@ class GeneralLedgerController extends Controller
 //view of the closing balance alongside the branch
 public function transactions()
 {
-   
     $user = Sentinel::getUser();
-    //$office_id = $user->office_id;
-    
+
     if (Sentinel::hasAccess('groups.create')) {
         $offices = Office::all();
-
     } elseif (Sentinel::hasAccess('offices')) {
-        $branchId = $user->office_id; 
-        $offices = Office::where('id', $branchId)->get(); 
+        $branchId = $user->office_id;
+        $offices = Office::where('id', $branchId)->get();
     } else {
         $userOffice = $user->office;
-    $provinceId = $userOffice->province_id;
-    $offices = Office::where('province_id', $provinceId)->get();
+        $provinceId = $userOffice->province_id;
+        $offices = Office::where('province_id', $provinceId)->get();
     }
-    
+
     $ledgerEntriesByOffice = [];
-    
+
+    $startDate = '2026-01-01';
+    $endDate = Carbon::today()->format('Y-m-d');
+
     foreach ($offices as $office) {
+
         $recentLedgerEntry = GeneralLedger::where('office_id', $office->id)
-             ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'desc')
             ->first();
 
-        $netChange = $this->calculateNetChange($office, $recentLedgerEntry); 
-        $openingBalance = $recentLedgerEntry ? $recentLedgerEntry->cash_balance : 0;
+        $netChange = $this->calculateNetChange($office, $recentLedgerEntry);
+
+        $openingBalance = $recentLedgerEntry
+            ? $recentLedgerEntry->cash_balance
+            : 0;
+
         $closingBalance = $openingBalance + $netChange;
+
+        $branchLedger = null;
+
+$cashBalance = null;
+$walletWarning = null;
+
+if ($office->withinhere_wallet_id) {
+
+    try {
+
+ $response = Http::timeout(180)
+    ->connectTimeout(30)
+    ->retry(2, 100)
+    ->post(
+        'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+        [
+            'wallet_id' => $office->withinhere_wallet_id,
+            'start_date' => '2026-01-01',
+            'end_date' => now()->format('Y-m-d')
+        ]
+    );
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            $cashBalance = $data['user']['cash_balance'] ?? null;
+        }
+
+    } catch (\Exception $e) {
+        $cashBalance = null;
+    }
+
+} else {
+    $walletWarning = 'Please verify withinhere wallet';
+}
+
         $ledgerEntriesByOffice[$office->name] = [
+            'office' => $office,
             'recentEntry' => $recentLedgerEntry,
-            'closingBalance' => $closingBalance
+            'openingBalance' => $openingBalance,
+            'closingBalance' => $closingBalance,
+            'branchLedger' => $branchLedger,
+            'cashBalance' => $cashBalance,
+             'walletWarning' => $walletWarning
         ];
     }
 
-    return view('ledger.transactions', compact('ledgerEntriesByOffice'));
+    return view(
+        'ledger.transactions',
+        compact('ledgerEntriesByOffice')
+    );
 }
 
 //helper function to calculate the net change for the office
@@ -330,6 +380,68 @@ private function calculateNetChange($office, $recentLedgerEntry) {
 
     return $fullPaymentsTotal + $reloanedAmountTotal + $partPaymentTotal+ $advancesTotalPaid  + $totalIncome - ($advancesTotal + $expensesTotal + $newLoansTotal + $depositsTotal);
 }
+
+
+ public function show_new(Request $request, $officeName) {
+
+        $office = Office::where('name', $officeName)->first();
+        $office_id = $office->id;
+
+        return view('ledger.show_new',compact('office_id'));
+    }
+
+     public function getLedger(Request $request,$id)
+    {
+        try {
+
+            $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date'
+            ]);
+
+            $office = Office::where('id', $id)->first();
+
+            $walletId = $office->withinhere_wallet_id;
+
+            if (!$walletId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Wallet not configured for this user.'
+                ], 400);
+            }
+
+            $response = Http::timeout(60)
+                ->post(
+                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                    [
+                        'wallet_id' => $walletId,
+                        'start_date' => $request->start_date,
+                        'end_date' => $request->end_date
+                    ]
+                );
+
+            if (!$response->successful()) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to retrieve ledger data.',
+                    'api_response' => $response->body()
+                ], 500);
+            }
+
+            return response()->json(
+                $response->json()
+            );
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
 
         
 
