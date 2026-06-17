@@ -73,15 +73,13 @@ public function getLedgerSummary()
 
             $building_paid = DB::table('deposits')
                 ->join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
-                ->join('deposit_types', 'deposits.deposit_type', '=', 'deposit_types.id')
-                ->where('deposit_types.id', 3)
+                ->where('deposits.deposit_type', 3)
                 ->where('deposits.office', $office->id)
                 ->sum('deposits.amount');
 
             $statutory_paid = DB::table('deposits')
                 ->join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
-                ->join('deposit_types', 'deposits.deposit_type', '=', 'deposit_types.id')
-                ->where('deposit_types.id', 5)
+                ->where('deposits.deposit_type', 5)
                 ->where('deposits.office', $office->id)
                 ->sum('deposits.amount');
 
