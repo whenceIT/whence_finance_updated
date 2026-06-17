@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Branch Ledger')
+@section('title', 'Executive Ledger')
 
 @section('content')
 
@@ -8,12 +8,8 @@
 
     <!-- Header -->
     <div style="margin-bottom:20px;">
-        <h2 style="font-weight:700;color:#2c3e50;margin:0;">
-            Branch Ledger
-        </h2>
-        <small style="color:#7f8c8d;">
-            Real-time cash movement tracking
-        </small>
+    <h2>Executive Ledger</h2>
+<small>Institution-wide cash movement tracking</small>
     </div>
 
 
@@ -68,9 +64,9 @@
 
         <div class="col-md-8">
 
-            <div style="font-size:14px;opacity:.8;">
-                Branch Wallet
-            </div>
+         <div style="font-size:14px;opacity:.8;">
+    Institution Wallet Balance
+</div>
 
          <h3 id="branchName">
     Loading...
@@ -186,6 +182,7 @@
         <tr style="background:#fafafa;">
 
             <th>Date</th>
+            <th>Branch</th>
             <th>Transaction ID</th>
             <th>Description</th>
             <th>Reason</th>
@@ -201,7 +198,7 @@
     <tbody id="ledgerBody">
 
         <tr>
-            <td colspan="8" class="text-center">
+            <td colspan="9" class="text-center">
                 Click Load Ledger
             </td>
         </tr>
@@ -265,7 +262,7 @@ function renderPage(page) {
             parseFloat(tx.gateway_fee || 0) +
             parseFloat(tx.withinhere_fee || 0);
 
-        let type = tx.type || 'unknown';
+        let type = tx.transfer_type || 'unknown';
         let status = tx.status || 'pending';
 
         let amountColor =
@@ -292,6 +289,7 @@ function renderPage(page) {
             <tr>
 
                 <td>${new Date(tx.created_at).toLocaleString()}</td>
+                <td>${tx.branch_name || ''}</td>
 
                 <td>${cleanTransactionId(tx.transaction_id)}</td>
 
@@ -386,7 +384,7 @@ $('#loadLedger').click(function () {
 
     $('#ledgerBody').html(`
         <tr>
-            <td colspan="8" class="text-center">
+            <td colspan="9" class="text-center">
                 Loading transactions...
             </td>
         </tr>
@@ -394,7 +392,7 @@ $('#loadLedger').click(function () {
 
     $.ajax({
 
-       url: "{{ route('branch-ledger.data', $office_id) }}",
+     url: "{{ route('executive-ledger.data') }}",
 
         type: "POST",
 
@@ -405,70 +403,68 @@ $('#loadLedger').click(function () {
 },
         success: function (response) {
 
-            if (!response.success) {
+         console.log('EXECUTIVE LEDGER RESPONSE:', response);
 
-                $('#ledgerBody').html(`
-                    <tr>
-                        <td colspan="8" class="text-center text-danger">
-                            No data found
-                        </td>
-                    </tr>
-                `);
+    if (!response.success) {
 
-                return;
-            }
+        $('#ledgerBody').html(`
+            <tr>
+                <td colspan="9" class="text-center text-danger">
+                    No data found
+                </td>
+            </tr>
+        `);
 
-            // Branch Details
+        return;
+    }
 
-            $('#branchName').html(
-                response.user.name
-            );
+    $('#branchName').html(
+        response.institution.name
+    );
 
-            $('#cashBalance').html(
-                'ZMW ' + money(response.user.cash_balance)
-            );
+    $('#cashBalance').html(
+        'ZMW ' + money(response.institution.cash_balance)
+    );
 
-            let collections = 0;
-            let transfers = 0;
-            let fees = 0;
+    allTransactions = response.transactions || [];
 
-            let rows = '';
+    let collections = 0;
+    let transfers = 0;
+    let fees = 0;
 
+    allTransactions.forEach(function(tx){
 
-            if (rows === '') {
+        let amount = parseFloat(tx.amount || 0);
 
-                rows = `
-                    <tr>
-                        <td colspan="8" class="text-center">
-                            No transactions found
-                        </td>
-                    </tr>
-                `;
-            }
+        if(tx.transfer_type === 'collection'){
+            collections += amount;
+        } else {
+            transfers += amount;
+        }
 
-         
-allTransactions = response.transactions || [];
+        fees +=
+            parseFloat(tx.gateway_fee || 0) +
+            parseFloat(tx.withinhere_fee || 0);
+    });
 
-renderPage(1);
-            // Summary Cards
+    renderPage(1);
 
-            $('#totalCollections').html(
-                'ZMW ' + money(collections)
-            );
+    $('#totalCollections').html(
+        'ZMW ' + money(collections)
+    );
 
-            $('#totalTransfers').html(
-                'ZMW ' + money(transfers)
-            );
+    $('#totalTransfers').html(
+        'ZMW ' + money(transfers)
+    );
 
-            $('#totalFees').html(
-                'ZMW ' + money(fees)
-            );
+    $('#totalFees').html(
+        'ZMW ' + money(fees)
+    );
 
-            $('#transactionCount').html(
-                response.transactions.length
-            );
-
-        },
+    $('#transactionCount').html(
+        allTransactions.length
+    );
+},
 
         error: function (xhr) {
 
@@ -476,7 +472,7 @@ renderPage(1);
 
             $('#ledgerBody').html(`
                 <tr>
-                    <td colspan="8" class="text-center text-danger">
+                    <td colspan="9" class="text-center text-danger">
                         Failed to load ledger data
                     </td>
                 </tr>

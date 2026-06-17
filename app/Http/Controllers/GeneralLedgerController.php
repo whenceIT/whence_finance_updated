@@ -441,6 +441,92 @@ private function calculateNetChange($office, $recentLedgerEntry) {
             ], 500);
         }
     }
+
+    public function executiveLedger()
+{
+    return view('ledger.executive');
+}
+
+public function getExecutiveLedger(Request $request)
+{
+    try {
+
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date'
+        ]);
+
+        $offices = Office::whereNotNull('withinhere_wallet_id')->get();
+
+        // collect wallet IDs
+        $walletIds = $offices->pluck('withinhere_wallet_id')->toArray();
+
+        // SINGLE API CALL (NEW)
+        $response = Http::post(
+            'https://withinheremobileapi.com/api/v1/lmsuser/executive_ledger',
+            [
+                'wallet_ids' => $walletIds,
+                'start_date' => $request->start_date,
+                'end_date'   => $request->end_date
+            ]
+        );
+
+        if (!$response->successful()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch ledger data'
+            ], 500);
+        }
+
+        $data = $response->json();
+
+        if (!isset($data['data'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid API response'
+            ], 500);
+        }
+
+        $allTransactions = [];
+        $totalBalance = 0;
+
+        foreach ($data['data'] as $wallet) {
+
+            $office = $offices->firstWhere('withinhere_wallet_id', $wallet['wallet_id']);
+
+            $totalBalance += (float) ($wallet['cash_balance'] ?? 0);
+
+            if (!empty($wallet['transactions'])) {
+
+                foreach ($wallet['transactions'] as $tx) {
+                    $tx['branch_name'] = $office->name ?? 'Unknown';
+                    $allTransactions[] = $tx;
+                }
+            }
+        }
+
+        // sort by date
+        usort($allTransactions, function ($a, $b) {
+            return strtotime($b['created_at']) - strtotime($a['created_at']);
+        });
+
+        return response()->json([
+            'success' => true,
+            'institution' => [
+                'name' => 'Executive Ledger',
+                'cash_balance' => $totalBalance
+            ],
+            'transactions' => $allTransactions
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
     
 
         
