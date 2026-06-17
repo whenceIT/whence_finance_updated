@@ -47,6 +47,12 @@ public function getLedgerSummary()
         $officeId = request('office_id');
         
         $query = \App\Models\Office::query();
+        // exclude headquarter offices defined in config/offices.php
+        $hqOffices = config('offices.headquarter', []);
+     
+        if (!empty($hqOffices)) {
+            $query->whereNotIn('id', $hqOffices);
+        }
         if ($officeId) {
             $query->where('id', $officeId);
         }
