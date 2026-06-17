@@ -75,7 +75,7 @@ class BlockerHelper
         // overall: full months from Jan 1 this year through 28th of current month
         $overallPeriodMonths = 6;   
 
-        if (isset($user->role->role_id) && !in_array($user->role->role_id, [4,3])) {
+        if (isset($user->role->role_id) && !in_array($user->role->role_id, [4,3] || $user->office_id == 2)  ) {
             return [
                 'status'=>false,
                 'amount' => 0,
