@@ -43,7 +43,7 @@
                         <tr>
                             <td><input type="checkbox" class="row-select" value="{{ $deposit->id }}"></td>
                             <td>{{ $deposit->date }}</td>
-                            <td>{{ is_object($deposit->office) ? ($deposit->office->name ?? 'Unknown') : ($deposit->office ?? 'Unknown') }}</td>
+                            <td>{{ App\Models\Office::officeName($deposit->office)}}</td>
                             <td>{{ $deposit->depositTypeInfo ? $deposit->depositTypeInfo->name : 'Invalid Entry' }}</td>
                             <td>{{ number_format($deposit->amount, 2) }}</td>
                             <td>{{ $deposit->bankDepositLog ? $deposit->bankDepositLog->deposit_method : 'Invalid Entry' }}</td>
