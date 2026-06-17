@@ -55,7 +55,9 @@ public function getLedgerSummary()
         foreach ($offices as $office) {
             $buildingType = \App\Models\DepositType::find(3);
             $statutoryType = \App\Models\DepositType::find(5);
-            
+             
+            $ledger1 = \App\Models\DebtBalances::where('office_id', $office->id)->where('deposit_type_id', $buildingType->id )->first();
+            $ledger2 = \App\Models\DebtBalances::where('office_id', $office->id)->where('deposit_type_id', $statutoryType->id )->first();
             $buildingExemption = $buildingType 
                 ? \App\Models\DepositMonthExemption::get_months_exempted($office->id, $buildingType) 
                 : 0;
@@ -83,12 +85,15 @@ public function getLedgerSummary()
                 ->where('deposits.office', $office->id)
                 ->sum('deposits.amount');
 
+                // dd($ledger);
             $data[] = [
                 'office_name' => $office->name,
                 'building_paid' => $building_paid,
                 'building_outstanding' => ($building_required * $overallPeriodBuildingMonths) - $building_paid,
                 'statutory_paid' => $statutory_paid,
-                'statutory_outstanding' => ($statutory_required * $overallPeriodStatutoryMonths) - $statutory_paid
+                'statutory_outstanding' => ($statutory_required * $overallPeriodStatutoryMonths) - $statutory_paid,
+                'ledger_balance_building' => $ledger1,
+                'ledger_balance_statutory' =>  $ledger2
             ];
         }
     
