@@ -122,8 +122,8 @@
 .shimmer-cell.reference { width: 160px; }
 
 .locked.deposit-card {
-    opacity: 0.6;
-    pointer-events: none;
+    /* opacity: 0.6;
+    pointer-events: none; */
 }
 
 @keyframes shimmer {
@@ -409,12 +409,12 @@ $(document).ready(function () {
     }
 
 function lockAll() {
-        $('.deposit-item').each(function () {
-            if (!$(this).hasClass('locked')) {
-                $(this).find('input,button,select').prop('disabled', true);
-                $(this).css('opacity', 0.5);
-            }
-        });
+        // $('.deposit-item').each(function () {
+        //     if (!$(this).hasClass('locked')) {
+        //         $(this).find('input,button,select').prop('disabled', true);
+        //         $(this).css('opacity', 0.5);
+        //     }
+        // });
     }
 
     function unlockAll() {
@@ -525,10 +525,10 @@ function lockAll() {
                 </div>
             `);
             container.append($card);
-            if ($card.hasClass('locked')) {
-                $card.find('button, select, input').prop('disabled', true);
-                $card.css('opacity', '0.6');
-            }
+            // if ($card.hasClass('locked')) {
+            //     $card.find('button, select, input').prop('disabled', true);
+            //     $card.css('opacity', '0.6');
+            // }
             if (method) {
                 var $methodSelect = $card.find('.payment-method');
                 $methodSelect.val(method);

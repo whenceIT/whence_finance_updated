@@ -82,6 +82,13 @@ class BlockerHelper
                 'deposit_type'=> ''
             ];
         }
+        if ($user->office_id == 2) {
+            return [
+                'status'=>false,
+                'amount' => 0,
+                'deposit_type'=> ''
+            ];
+        }
         if (!$officeId) {
             return null;
         }
