@@ -27,7 +27,7 @@
                 <thead>
                     <tr>
                         <th style="width: 40px;"><input type="checkbox" id="select-all"></th>
-                        <th>Date</th>
+                        <th>For</th>
                         <th>Office</th>
                         <th>Deposit Type</th>
                         <th>Amount</th>
@@ -42,15 +42,15 @@
                     @forelse($deposits as $deposit)
                         <tr>
                             <td><input type="checkbox" class="row-select" value="{{ $deposit->id }}"></td>
-                            <td>{{ $deposit->date }}</td>
-                            <td>{{ App\Models\Office::officeName($deposit->office)}}</td>
+                            <td>{{ \Carbon\Carbon::parse($deposit->date)->format('F Y') }}</td>
+                            <td>{{ \Illuminate\Support\Str::title(App\Models\Office::officeName($deposit->office)->name) }}</td>
                             <td>{{ $deposit->depositTypeInfo ? $deposit->depositTypeInfo->name : 'Invalid Entry' }}</td>
                             <td>{{ number_format($deposit->amount, 2) }}</td>
                             <td>{{ $deposit->bankDepositLog ? $deposit->bankDepositLog->deposit_method : 'Invalid Entry' }}</td>
                             <td>{{ $deposit->bankDepositLog ? $deposit->bankDepositLog->reference_number : 'Invalid Entry' }}</td>
                             <td>
                                 @if($deposit->bankDepositLog && $deposit->bankDepositLog->user && $deposit->bankDepositLog->user->first_name)
-                                    {{ $deposit->bankDepositLog->user->first_name }} {{ $deposit->bankDepositLog->user->last_name }}
+                                    {{\Illuminate\Support\Str::title( $deposit->bankDepositLog->user->first_name.' '.$deposit->bankDepositLog->user->last_name ) }} 
                                 @elseif($deposit->bankDepositLog && $deposit->bankDepositLog->user_id)
                                     {{ $deposit->bankDepositLog->user_id }}
                                 @else
