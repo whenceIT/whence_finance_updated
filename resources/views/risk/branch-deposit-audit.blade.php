@@ -663,11 +663,11 @@
                     <tr>
                         <th>Office</th>
                         <th>Building Paid</th>
-                        <th>Building Outstanding</th>
-                        <th>Building Ledger Balance</th>
+                        <th>Building Outstanding (System Outstanding)</th>
+                        <th>Building Ledger Balance (Bright's Ledger)</th>
                         <th>Statutory Paid</th>
-                        <th>Statutory Outstanding</th>
-                        <th>Statutory Ledger Balance</th>
+                        <th>Statutory Outstanding (System Outstanding)</th>
+                        <th>Statutory Ledger Balance (Bright's Ledger)</th>
                     </tr>
                 </thead>
                 <tbody id="ledgerTableBody">
