@@ -368,7 +368,11 @@ $(document).ready(function () {
 
     function shouldLockDeposit(name, depositTypeId) {
         // && ledgerBlocker
-        return isOptionalDeposit(name);
+        if (![32,67].includes(branchId)) {
+            return false;
+        } else {
+            return isOptionalDeposit(name);
+        }
     }
 
     var currentDepositType = null;
