@@ -73,19 +73,17 @@ public function getLedgerSummary()
 
             $building_paid = \App\Models\Deposit::query()
                 ->where('office', $office->id)
-                ->whereHas('bankDepositLog', function ($query) {
-                    $query->where('deposit_type', 3);
-                })
+                ->with('bankDepositLog')
+                ->where('deposit_type', 3)
                 ->sum('amount');
 
             $statutory_paid = \App\Models\Deposit::query()
                 ->where('office', $office->id)
-                ->whereHas('bankDepositLog', function ($query) {
-                    $query->where('deposit_type', 5);
-                })
+                ->with('bankDepositLog')
+                ->where('deposit_type', 5)
                 ->sum('amount');
 
-                // dd($ledger);
+            
             $data[] = [
                 'office_name' => $office->name,
                 'building_paid' => $building_paid,
