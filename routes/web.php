@@ -1504,6 +1504,12 @@ Route::post(
     'ApprovalWorkflowController@approveExpense'
 );
 
+
+Route::post(
+    'approvals/expense-approvals/{id}/{status}',
+    'ApprovalWorkflowController@declineExpense'
+);
+
 Route::post(
     'approvals/expense-approvals/bulk-approve',
     'ApprovalWorkflowController@bulkApproveExpenses'
@@ -1513,6 +1519,8 @@ Route::post(
     'approvals/expense-approvals/approve-all',
     'ApprovalWorkflowController@approveAllExpenses'
 );
+
+
 
     //expense types
     Route::get('type/data', 'ExpenseTypeController@index');

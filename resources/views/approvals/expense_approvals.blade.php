@@ -165,7 +165,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-danger btn-xs decline-btn"
-                                    data-url="{{ url('approvals/expense-approvals/'.$expense->id.'/declined') }}"
+                                    data-url="{{ url('expense/approvals/expense-approvals/'.$expense->id.'/declined') }}"
                                     data-message="Decline this expense?">
 
                                     <i class="fa fa-times"></i>

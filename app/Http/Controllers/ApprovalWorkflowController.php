@@ -113,6 +113,21 @@ public function approveExpense($id, $status)
     ]);
 }
 
+public function declineExpense($id,$status)
+{
+
+    $expense = Expense::findOrFail($id);
+
+    $expense->status = $status;
+    $expense->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Expense updated successfully'
+    ]);
+
+}
+
 
 public function bulkApproveExpenses(Request $request)
 {
