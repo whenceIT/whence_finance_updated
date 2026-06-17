@@ -337,6 +337,8 @@
     </div>
   </div>
 </div>
+
+
 <script>
 $(document).ready(function () {
 
@@ -365,7 +367,8 @@ $(document).ready(function () {
     }
 
     function shouldLockDeposit(name, depositTypeId) {
-        return isOptionalDeposit(name) && ledgerBlocker;
+        // && ledgerBlocker
+        return isOptionalDeposit(name);
     }
 
     var currentDepositType = null;
@@ -424,13 +427,6 @@ function lockAll() {
             .closest('.deposit-item').css('opacity', 1);
     }
 
-    function unlockAll() {
-        $('.deposit-item').each(function () {
-            $(this).find('input,button,select').prop('disabled', false);
-            $(this).css('opacity', 1);
-        });
-    }
-
     function markCompleted(id) {
         let box = $('.deposit-item[data-deposit-id="'+id+'"]');
 
@@ -472,9 +468,9 @@ function lockAll() {
             }
             
             var $card = $(`
-                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName) ? 'locked' : ''}" data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
+                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName) ? 'locked ' : ''}" data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
-                        <h4 class="deposit-title" style="margin:0;">${depositName} ${monthlyRequired.toLocaleString()}</h4>
+                        <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
                         <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
                     </div>
                     <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">

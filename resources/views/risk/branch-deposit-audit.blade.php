@@ -649,8 +649,32 @@
             </div>
         </div>
     </div>
-
 </div>
+
+
+
+<!-- Add a table section here -->
+<!-- <div id="ledgerTableSection" style="display: block; margin-top: 20px;">
+    <div class="deposit-header-box">
+        <h4 style="margin-top: 0;">Ledger Summary</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Office</th>
+                        <th>Building Paid</th>
+                        <th>Building Outstanding</th>
+                        <th>Admin Paid</th>
+                        <th>Admin Outstanding</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerTableBody">
+                    <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>  -->
 
 <script>
 (function(){
@@ -1651,6 +1675,30 @@ document.getElementById('debtBalancesForm').addEventListener('submit', function(
         }
     });
 });
+</script>
+
+<script>    
+    function fetchLedgerTable() {
+        $.get('api.manual.ledger', function(res) {
+            var $tbody = $('#ledgerTableBody').empty();
+            var data = res.data || [];
+            if (data.length === 0) {
+                $tbody.append('<tr><td colspan="5" class="text-center">No data available</td></tr>');
+            } else {
+                data.forEach(function(d) {
+                    $tbody.append('<tr>' +
+                        '<td>' + (d.office_name || '-') + '</td>' +
+                        '<td>K' + (parseFloat(d.building_paid) || 0).toLocaleString() + '</td>' +
+                        '<td>K' + (parseFloat(d.building_outstanding) || 0).toLocaleString() + '</td>' +
+                        '<td>K' + (parseFloat(d.statutory_paid) || 0).toLocaleString() + '</td>' +
+                        '<td>K' + (parseFloat(d.statutory_outstanding) || 0).toLocaleString() + '</td>' +
+                        '</tr>');
+                });
+            }
+            $('#ledgerTableSection').show();
+        });
+    }
+    fetchLedgerTable();
 </script>
 <script src="/js/kilo-alert.js"></script>
 
