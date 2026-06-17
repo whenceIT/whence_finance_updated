@@ -362,11 +362,11 @@ $(document).ready(function () {
         { id: 2, name: 'Managers Housing deposit', deposit_type: 7, bank: 'Access Bank Main / Salary Account' }
     ];
 
-    function isOptionalDeposit(name, depositTypeId) {
+    function isOptionalDeposit(name) {
         return OPTIONAL_DEPOSITS.some(d => d.name === name);
     }
 
-    function shouldLockDeposit(name, depositTypeId) {
+    function shouldLockDeposit(name) {
         // && ledgerBlocker
         if (![32,67].includes(branchId)) {
             return false;
