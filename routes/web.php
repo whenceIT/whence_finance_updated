@@ -510,6 +510,12 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('office-debts/type/{type}', [RiskController::class, 'branchDepositAuditByDebtType'])->name('risk.office-debts.by-type');
     Route::get('office-debts/debt',     [RiskController::class, 'officeDebtsByDebtType'])->name('risk.office-debts.debt');
 
+    // ── DebtBalances management ─────────────────────────────────────────────────
+    Route::post('debt-balances',           [RiskController::class, 'storeDebtBalance'])->name('risk.debt-balances.store');
+    Route::get('debt-balances',            [RiskController::class, 'listDebtBalances'])->name('risk.debt-balances.list');
+    Route::put('debt-balances/{id}',       [RiskController::class, 'updateDebtBalance'])->name('risk.debt-balances.update');
+    Route::delete('debt-balances/{id}',    [RiskController::class, 'deleteDebtBalance'])->name('risk.debt-balances.destroy');
+
     // ── Deposit query endpoint ───────────────────────────────────────────────
     Route::get('deposits/query',          [RiskController::class, 'queryDeposits'])->name('risk.deposits.query');
     Route::post('deposits/update-amount', [RiskController::class, 'updateDepositAmount'])->name('risk.deposits.update-amount');

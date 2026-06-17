@@ -1413,8 +1413,6 @@ class RiskController extends Controller
         $depositQuery = \App\Models\Deposit::query()
             ->with(['bankDepositLog'])
             ->whereIn('office', $officeIds);
-
-        
          
         if ($dateFrom !== null && $dateTo !== null) {
             $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
@@ -1910,4 +1908,111 @@ class RiskController extends Controller
 
         return response()->json(['rows' => $rows]);
     }
+    /**
+     * Store a new debt balance record
+     */
+    public function storeDebtBalance(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'office_id' => 'required|exists:offices,id',
+                'deposit_type_id' => 'required|exists:deposit_types,id',
+                'balance' => 'required|numeric|min:0',
+            ]);
+
+            $debtBalance = \App\Models\DebtBalances::updateOrCreate(
+                [
+                    'office_id' => $validated['office_id'],
+                    'deposit_type_id' => $validated['deposit_type_id'],
+                ],
+                [
+                    'balance' => (int) $validated['balance'],
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Debt balance recorded successfully!',
+                'data' => $debtBalance,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record debt balance: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * List all debt balance records
+     */
+    public function updateDebtBalance(Request $request, $id)
+    {
+        try {
+            $debtBalance = \App\Models\DebtBalances::findOrFail($id);
+
+            $validated = $request->validate([
+                'balance' => 'required|numeric|min:0',
+            ]);
+
+            $debtBalance->update([
+                'balance' => (int) $validated['balance'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Debt balance updated successfully!',
+                'data' => $debtBalance,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Debt balance record not found',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update debt balance: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a debt balance record
+     */
+    public function deleteDebtBalance($id)
+    {
+        try {
+            $debtBalance = \App\Models\DebtBalances::findOrFail($id);
+            $debtBalance->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Debt balance deleted successfully!',
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Debt balance record not found',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete debt balance: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

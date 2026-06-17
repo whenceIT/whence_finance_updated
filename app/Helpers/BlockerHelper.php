@@ -3,8 +3,11 @@
 namespace App\Helpers;
 
 use App\Models\Loan;
+use App\Models\DebtBalances;
+use App\Models\Deposit;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class BlockerHelper
 {
@@ -63,6 +66,56 @@ class BlockerHelper
             'balance' => $outstandingBalance,
         ];
 
+    }
+
+    public static function ledger_blocker()
+    {
+        $user = Sentinel::getUser();
+        $officeId = $user->office_id ?? null;
+        // overall: full months from Jan 1 this year through 28th of current month
+        $overallPeriodMonths = 6;   
+
+        if (isset($user->role->role_id) && $user->role->role_id != 4) {
+            return [
+                'status'=>false,
+                'amount' => 0,
+                'deposit_type'=> ''
+            ];
+        }
+        if (!$officeId) {
+            return null;
+        }
+
+        $ledger = DebtBalances::where('office_id', $officeId)->first();
+
+        if (!$ledger) {
+            return null;
+        }
+        $depositType = \App\Models\DepositType::where('id', $ledger->deposit_type_id)
+                    ->first();
+
+        $deposits =  Deposit::with('bankDepositLog')
+            ->where('office', $officeId)
+            ->where('deposit_type', $ledger->deposit_type_id)
+            ->get();
+        $months = $overallPeriodMonths - \App\Models\DepositMonthExemption::get_months_exempted($officeId, $depositType);
+       
+        $system_balance = (((int)$depositType->monthly_amount * $months) - $deposits->sum('amount'));
+        
+        if($system_balance > $ledger->balance){
+            $whatsNotRecorded = $system_balance - $ledger->balance;
+            return [
+                'status'=>true,
+                'amount' => $whatsNotRecorded,
+                'deposit_type'=> $depositType->name
+            ];
+        }
+
+        return [
+            'status'=>false,
+            'amount' => 0,
+            'deposit_type'=> ''
+        ];
     }
 
     public static function deposit_blocker(): string
