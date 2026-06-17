@@ -1320,6 +1320,7 @@
                         <ul class="treeview-menu">
                             @if(Sentinel::hasAccess('groups.create'))
                             <li><a href="{{ route('ledger.summary') }}"><i class="fa fa-circle-o"></i> General Ledger</a></li>
+                               <li><a href="{{ route('ledger.executive') }}"><i class="fa fa-circle-o"></i>Executive Ledger</a></li>
                             @endif
                             @if(Sentinel::hasAccess('reports.client_reports'))
                             <li><a href="{{ route('ledger.transactions') }}"><i class="fa fa-circle-o"></i> Branch Ledgers</a></li>

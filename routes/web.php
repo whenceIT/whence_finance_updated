@@ -1403,6 +1403,15 @@ Route::group(['prefix' => 'ledger'], function () {
     Route::get('/new_ledger/{officeName}', 'GeneralLedgerController@show_new')->name('ledger.show_new');
     Route::post('/branch-ledger/data/{office_id}', 'GeneralLedgerController@getLedger')
     ->name('branch-ledger.data');
+Route::get(
+    '/executive_ledger',
+    'GeneralLedgerController@executiveLedger'
+)->name('ledger.executive');
+
+Route::post(
+    '/executive-ledger/data',
+    'GeneralLedgerController@getExecutiveLedger'
+)->name('executive-ledger.data'); 
 });
 
 Route::group(['prefix' => 'performance_metrics'], function () {
