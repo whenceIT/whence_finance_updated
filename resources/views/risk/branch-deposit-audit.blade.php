@@ -318,9 +318,9 @@
         <button type="button" id="openFailedDepositsModal" class="btn btn-danger btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-exclamation-triangle"></i> Failed Deposits
         </button>
-        <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
+        <!-- <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-stop"></i> Exempt Offices
-        </button>
+        </button> -->
         <button type="button" id="openDepositExemptModal" class="btn btn-outline-primary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-calendar-times-o"></i> Exempt Months
         </button>
@@ -440,10 +440,12 @@
       <div class="sc-stats-grid">
           <!-- Outstanding Branch Debt -->
           <div class="sc-card sc-card-debt">
+                
               <div class="sc-card-title">Outstanding Branch Debt</div>
-              <div class="sc-row">Debt Accumulated&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['accumulated'], 2) }}</strong></div>
+              <i>Not ready for display</i>
+               <!--<div class="sc-row">Debt Accumulated&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['accumulated'], 2) }}</strong></div>
               <div class="sc-row">Debt Amount Repaid&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['paid'], 2) }}</strong></div>
-              <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 2) }}</strong></div>
+              <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 2) }}</strong></div> -->
           </div>
 
            <?php
@@ -534,9 +536,9 @@
                      </div>
                  </div>
              </div>
-             <div class="da-body" id="da-body-debt">
+             <!-- <div class="da-body" id="da-body-debt">
                  <p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading debt records&hellip;</p>
-             </div>
+             </div> -->
         </div>
 
 @foreach($types as $t)
