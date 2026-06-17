@@ -29,6 +29,7 @@ Route::post('/send-sms', [SmsController::class, 'sendSms']);
 Route::post('/send-bulk-sms', [SmsController::class, 'sendBulkSms']);
 Route::post('/search/clients', [SearchEngineController::class, 'clientSearch']);
 Route::get('/bank-deposits-with-records', [\App\Http\Controllers\BankDepositLogController::class, 'getDepositsWithRecords']);
+Route::get('/ledger-summary', [\App\Http\Controllers\BankDepositLogController::class, 'getLedgerSummary'])->name('api.manual.ledger');
 
 Route::prefix('api/provincial-ledger')->group(function () {
     Route::post('/', [\App\Http\Controllers\ProvincialLedgerApiController::class, 'store'])->name('api.provincial-ledger.store');

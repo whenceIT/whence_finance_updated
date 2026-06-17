@@ -4,6 +4,8 @@
 @endsection
 
 @section('content')
+
+    @include('components.ledger_blocker')
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">{{trans_choice('general.add',1)}} {{trans_choice('general.expense',1)}}</h3>
