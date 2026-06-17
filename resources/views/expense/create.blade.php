@@ -336,8 +336,6 @@
 
         $('form').on('submit', function(e) {
 
-
-
         let paymentMethod = $('#reference_type').val();
         let currentReferenceNumber = $('#reference_number').val();
         let valid = true;

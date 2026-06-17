@@ -276,6 +276,14 @@ public function checkDuplicate(Request $request)
 //     return redirect()->back()->withInput();
 // }
 
+
+$currentTime = now()->format('H:i');
+
+if ($currentTime >= '17:30' || $currentTime < '07:00') {
+    Flash::warning('Expenses cannot be added between 17:30 and 07:00.');
+    return redirect()->back();
+}
+
         $expense = new Expense();
         $expense->created_by_id = Sentinel::getUser()->id;
         $expense->office_id = $request->office_id;
