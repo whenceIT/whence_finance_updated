@@ -175,7 +175,6 @@
     <div class="table-responsive">
 
         <table class="table table-striped table-bordered" style="margin:0; min-width:900px;">
-            <div id="pagination" class="text-center" style="padding:15px;"></div>
 
     <thead>
 
@@ -204,6 +203,7 @@
         </tr>
 
     </tbody>
+            <div id="pagination" class="text-center" style="padding:15px;"></div>
 
 </table>
 </div>
