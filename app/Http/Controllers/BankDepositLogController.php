@@ -72,15 +72,17 @@ public function getLedgerSummary()
             $building_required = 10000;
 
             $building_paid = \App\Models\Deposit::query()
-                ->where('deposit_type', 3)
                 ->where('office', $office->id)
-                ->whereHas('bankDepositLog')
+                ->whereHas('bankDepositLog', function ($query) {
+                    $query->where('deposit_type', 3);
+                })
                 ->sum('amount');
 
             $statutory_paid = \App\Models\Deposit::query()
-                ->where('deposit_type', 5)
                 ->where('office', $office->id)
-                ->whereHas('bankDepositLog')
+                ->whereHas('bankDepositLog', function ($query) {
+                    $query->where('deposit_type', 5);
+                })
                 ->sum('amount');
 
                 // dd($ledger);
