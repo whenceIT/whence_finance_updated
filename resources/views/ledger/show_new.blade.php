@@ -207,8 +207,9 @@
         </tr>
 
     </tbody>
-   <div id="pagination" class="text-center" style="padding:15px;"></div>
+
 </table>
+  <div id="pagination" class="text-center" style="padding:15px;"></div>
 </div>
 
         </div>
