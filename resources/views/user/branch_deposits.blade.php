@@ -880,7 +880,7 @@ function lockAll() {
                             event: 'deposit.created',
                             data: {
                                 created_by: '{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}',
-                                office_id: {{ Sentinel::getUser()->office->name ?? 'null' }},
+                                office_id: '{{ Sentinel::getUser()?->office?->name }}',
                                 amount: currentDepositAmount,
                                 type: 'New Deposit requesting approval',
                                 deposit: {
