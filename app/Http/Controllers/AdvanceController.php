@@ -18,6 +18,7 @@ use App\Models\TopUp;
 use App\Models\AdvanceTransaction;
 use App\Models\UserRole;
 use App\Models\Notifix;
+use Illuminate\Support\Facades\Http;
 
 class AdvanceController extends Controller
 {
@@ -192,8 +193,35 @@ class AdvanceController extends Controller
             // Default behavior
         }
 
+        $office_id = Sentinel::getUser()->office_id;
+$office = Office::find($office_id);
+
+if ($office && $office->withinhere_wallet_id == null) {
+    return redirect('/user/verify_wallet');
+}
+
+$withinhere_wallet_id = $office->withinhere_wallet_id;
+
+
+      $response = Http::timeout(60)
+                ->post(
+                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                    [
+                        'wallet_id' => $withinhere_wallet_id,
+                        'start_date' => '2025-01-01',
+                        'end_date' => '2025-01-01'
+                    ]
+                );
+
+
+                   if ($response->successful()) {
+            $data = $response->json();
+
+            $cashBalance = $data['user']['cash_balance'] ?? null;
+        }
+
         $advance_topups = $query->get();
-        return view('advances.topups_pending_approval', compact('advance_topups'));
+        return view('advances.topups_pending_approval', compact('advance_topups','cashBalance'));
     }
 
     public function approve(Request $request, $id)
@@ -240,9 +268,37 @@ class AdvanceController extends Controller
         } else {
             // Default behavior
         }
+$office_id = Sentinel::getUser()->office_id;
+$office = Office::find($office_id);
+
+if ($office && $office->withinhere_wallet_id == null) {
+    return redirect('/user/verify_wallet');
+}
+
+$withinhere_wallet_id = $office->withinhere_wallet_id;
+
+
+      $response = Http::timeout(60)
+                ->post(
+                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                    [
+                        'wallet_id' => $withinhere_wallet_id,
+                        'start_date' => '2025-01-01',
+                        'end_date' => '2025-01-01'
+                    ]
+                );
+
+
+                   if ($response->successful()) {
+            $data = $response->json();
+
+            $cashBalance = $data['user']['cash_balance'] ?? null;
+        }
+
+
 
         $advances = $query->get();
-        return view('advances.pending_approvals', compact('advances'));
+        return view('advances.pending_approvals', compact('advances','cashBalance'));
     }
 
     public function showActiveAdvances()

@@ -242,8 +242,38 @@ public function checkDuplicate(Request $request)
     ->get();
 
 
+    
+        $office_id = Sentinel::getUser()->office_id;
+$office = Office::find($office_id);
+
+if ($office && $office->withinhere_wallet_id == null) {
+    return redirect('/user/verify_wallet');
+}
+
+$withinhere_wallet_id = $office->withinhere_wallet_id;
+
+
+      $response = Http::timeout(60)
+                ->post(
+                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                    [
+                        'wallet_id' => $withinhere_wallet_id,
+                        'start_date' => '2025-01-01',
+                        'end_date' => '2025-01-01'
+                    ]
+                );
+
+
+                   if ($response->successful()) {
+            $data = $response->json();
+
+            $cashBalance = $data['user']['cash_balance'] ?? null;
+        }
+
+
+
         
-        return view('expense.create', compact('offices','recentExpenses'));
+        return view('expense.create', compact('offices','recentExpenses','cashBalance'));
     }
 
     /**

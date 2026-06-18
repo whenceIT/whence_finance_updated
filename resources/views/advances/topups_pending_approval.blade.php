@@ -4,6 +4,29 @@ Pending Top-Up Requests
 @endsection
 
 @section('content')
+
+@if($cashBalance < 20000)
+
+<div class="box box-danger">
+    <div class="box-body text-center" style="padding: 30px 20px;">
+        <i class="fa fa-exclamation-triangle text-danger"
+           style="font-size: 48px; margin-bottom: 15px;"></i>
+
+        <h4 style="font-weight: bold; margin-bottom: 10px;">
+            Insufficient Cash Balance
+        </h4>
+
+        <p style="font-size: 16px; color: #555; margin-bottom: 0;">
+            Your cash balance is below the required minimum of
+            <strong>K20,000</strong>. You cannot approve any advance top-up at this time.
+        </p>
+    </div>
+</div>
+
+@else
+
+
+
 <div class="box box-primary">
     <div class="box-header with-border">
         <h3 class="box-title">Pending Advance Top-Up Requests</h3>
@@ -53,6 +76,8 @@ Pending Top-Up Requests
         @endif    
     </div>
 </div>
+
+@endif
 @endsection
 
 @section('footer-scripts')
