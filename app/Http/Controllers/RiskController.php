@@ -622,10 +622,10 @@ class RiskController extends Controller
                     ? ($bankLog->user->first_name . ' ' . $bankLog->user->last_name)
                     : ($dep->user_id ? 'Unknown' : 'Unknown'),
                 'office_name' => $offices->get($dep->office, 'Unknown'),
-                'amount' => (float) ($bankLog->amount ?? $dep->amount),
+                'amount' => (float)$dep->amount,
                 'deposit_method' => $bankLog->deposit_method ?? 'Cash',
                 'reference_number' => $bankLog->reference_number ?? 'N/A',
-                'created_date' => $bankLog->created_date ?? $dep->date,
+                'created_date' =>  $dep->date ?? $bankLog->created_date ,
             ];
         });
 
