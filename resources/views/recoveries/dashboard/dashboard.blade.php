@@ -1,12 +1,10 @@
 @extends('layouts.master')
 
 @section('title')
-    Recovery Dashboard
+    Recovery Dashboard 4
 @endsection
 
 @section('content')
-
-
 
 {{-- Period Selector --}}
 <div class="box box-primary">
@@ -219,7 +217,7 @@
     <div class="col-md-8">
         <div class="box box-primary">
             <div class="box-header with-border">
-                <h3 class="box-title">Specialist Performance</h3>
+                <h3 class="box-title">Specialist Performance bbb</h3>
                 <div class="box-tools pull-right">
                     <a href="{{ url('recovery/specialist/data') }}" class="btn btn-xs btn-default">Full Report →</a>
                     <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
