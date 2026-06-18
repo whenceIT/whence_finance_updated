@@ -1480,7 +1480,7 @@ Route::group(['prefix' => 'policies'], function () {
     Route::get('policy-engagements', 'PolicyController@policyEngagements')->name('policies.engagements');
 });
 
-//staff survey routes
+//staff survey routespolicies.track-engagement
 Route::group(['prefix' => 'survey'], function () {
     Route::get('/', [StaffSurveyController::class, 'show'])->name('survey.show');
     Route::post('/', [StaffSurveyController::class, 'store'])->name('survey.store');
