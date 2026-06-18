@@ -59,7 +59,7 @@
                                 @endif
                             </td>
                             <td>
-                                {{ $deposit->bankDepositLog->created_date }}
+                                {{ optional($deposit->bankDepositLog)->created_date ? \Carbon\Carbon::parse($deposit->bankDepositLog->created_date)->format('d M Y, H:i') : '—' }}
                             </td>
                             <td>
                                 @if($deposit->status == 1)
