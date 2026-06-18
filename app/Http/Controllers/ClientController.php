@@ -351,11 +351,19 @@ class ClientController extends Controller
             return redirect()->back();
         }
        
-        $client_uniqueid = Client::where('nrc_number', $request->nrc_number)->first();
-        if($client_uniqueid){
-            Flash::warning('A client with this nrc number' . ' ' . $request->nrc_number .' '. 'already exists');
-            return redirect()->back();
-        }else{
+     $client_uniqueid = Client::where('nrc_number', $request->nrc_number)->first();
+$client_uniquephone = Client::where('mobile', $request->mobile)->first();
+
+if ($client_uniqueid) {
+    Flash::warning('A client with NRC number ' . $request->nrc_number . ' already exists.');
+    return redirect()->back();
+}
+
+if ($client_uniquephone) {
+    Flash::warning('A client with mobile number ' . $request->mobile . ' already exists.');
+    return redirect()->back();
+}
+     
             $client = new Client();
 
         $client->created_by_id = Sentinel::getUser()->id;
@@ -423,7 +431,7 @@ class ClientController extends Controller
         GeneralHelper::audit_trail("Create", "Clients", $client->id);
         Flash::success(trans('general.successfully_saved'));
         return redirect('client/' . $client->id . '/show');
-        }
+        
     }
 
 

@@ -5,6 +5,28 @@
 
 @section('content')
 
+@if($cashBalance < 20000)
+
+<div class="box box-danger">
+    <div class="box-body text-center" style="padding: 30px 20px;">
+        <i class="fa fa-exclamation-triangle text-danger"
+           style="font-size: 48px; margin-bottom: 15px;"></i>
+
+        <h4 style="font-weight: bold; margin-bottom: 10px;">
+            Insufficient Cash Balance
+        </h4>
+
+        <p style="font-size: 16px; color: #555; margin-bottom: 0;">
+            Your cash balance is below the required minimum of
+            <strong>K20,000</strong>. You cannot add an expense at this time.
+        </p>
+    </div>
+</div>
+
+@else
+
+
+
     @include('components.ledger_blocker')
     <div class="box box-primary">
         <div class="box-header with-border">
@@ -272,6 +294,8 @@
         </form>
     </div>
     <!-- /.box -->
+
+@endif    
 @endsection
 @section('footer-scripts')
     <script>
