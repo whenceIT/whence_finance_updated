@@ -806,12 +806,24 @@ class PolicyController extends Controller
             'engagement_time' => 'required|integer|min:0',
         ]);
 
-        UserPolicyView::create([
-            'user_id' => $request->user_id,
-            'policy_of_the_day_id' => $request->policy_of_the_day_id,
-            'policy_id' => $request->policy_id,
-            'engagement_time' => $request->engagement_time,
-        ]);
+        // Find existing record or create new one
+        $view = UserPolicyView::where('user_id', $request->user_id)
+            ->where('policy_of_the_day_id', $request->policy_of_the_day_id)
+            ->first();
+
+        if ($view) {
+            // Add to existing engagement time
+            $view->engagement_time += $request->engagement_time;
+            $view->save();
+        } else {
+            // Create new record
+            UserPolicyView::create([
+                'user_id' => $request->user_id,
+                'policy_of_the_day_id' => $request->policy_of_the_day_id,
+                'policy_id' => $request->policy_id,
+                'engagement_time' => $request->engagement_time,
+            ]);
+        }
 
         return response()->json(['success' => true]);
     }
