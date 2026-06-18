@@ -1479,7 +1479,7 @@ $office = $userInfo->office;
                         position: fixed;
                         top: 25px;
                         right: 25px;
-                        width: 320px;
+                        width: 360px;
                         background: #ffffff;
                         border-radius: 12px;
                         box-shadow: 0 8px 20px rgba(0,0,0,0.25);
@@ -1492,24 +1492,47 @@ $office = $userInfo->office;
                         transition: all 0.5s ease;
                     `;
 
+                // Format amount with currency
+                const formattedAmount = data.amount ? `K ${parseFloat(data.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A';
+
                 // Inner content
                 div.innerHTML = `
-                        <div style="padding: 15px 20px; border-left: 6px solid #007bff;">
-                            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #007bff;">
-                                NEW DEPOSIT ALERT 🔔
+                        <div style="padding: 15px 20px; border-left: 6px solid #28a745;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #28a745;">
+                                🔔 NEW DEPOSIT ALERT
                             </h4>
-                            <p style="margin: 3px 0; font-size: 14px;"><strong>Created by:</strong> ${data.created_by || 'N/A'}</p>
-                            <p style="margin: 3px 0; font-size: 14px;"><strong>Branch ID:</strong> ${data.office_id || 'N/A'}</p>
-                            <p style="margin: 3px 0; font-size: 14px;"><strong>Date:</strong> ${data.date || 'N/A'}</p>
-                            <p style="margin: 3px 0; font-size: 14px;"><strong>Amount:</strong> ${data.amount || 'N/A'}</p>
-                            <p style="margin: 3px 0; font-size: 14px;"><strong>Type:</strong> ${data.type || 'N/A'}</p>
-                            <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                                <button style="
-                                    background: #007bff;
+                            <p style="margin: 3px 0; font-size: 13px; color: #666;">
+                                <strong style="color: #333;">Status:</strong> ${data.type || 'New Deposit requesting approval'}
+                            </p>
+                            <hr style="margin: 10px 0; border: none; border-top: 1px solid #eee;">
+                            <p style="margin: 3px 0; font-size: 13px;"><strong style="color: #333;">Created by:</strong> ${data.created_by || 'N/A'}</p>
+                            <p style="margin: 3px 0; font-size: 13px;"><strong style="color: #333;">Office ID:</strong> ${data.office_id || 'N/A'}</p>
+                            <p style="margin: 3px 0; font-size: 13px;"><strong style="color: #333;">Amount:</strong> <span style="color: #28a745; font-weight: 600;">${formattedAmount}</span></p>
+                            ${data.deposit ? `
+                                <hr style="margin: 10px 0; border: none; border-top: 1px solid #eee;">
+                                <p style="margin: 3px 0; font-size: 13px;"><strong style="color: #333;">Deposit Type:</strong> ${data.deposit.type || 'N/A'}</p>
+                                <p style="margin: 3px 0; font-size: 13px;"><strong style="color: #333;">Reference:</strong> ${data.deposit.reference || 'N/A'}</p>
+                                <p style="margin: 3px 0; font-size: 13px;"><strong style="color: #333;">Method:</strong> ${data.deposit.method || 'N/A'}</p>
+                                <p style="margin: 3px 0; font-size: 13px;"><strong style="color: #333;">Date:</strong> ${data.deposit.date || 'N/A'}</p>
+                            ` : ''}
+                            <div style="display: flex; justify-content: space-between; margin-top: 12px; gap: 8px;">
+                                <button class="view-deposits-btn" style="
+                                    background: #28a745;
                                     color: #fff;
                                     border: none;
                                     border-radius: 6px;
-                                    padding: 6px 14px;
+                                    padding: 8px 14px;
+                                    font-size: 13px;
+                                    cursor: pointer;
+                                    transition: background 0.3s ease;
+                                    flex: 1;
+                                ">View Deposits</button>
+                                <button class="close-notification-btn" style="
+                                    background: #6c757d;
+                                    color: #fff;
+                                    border: none;
+                                    border-radius: 6px;
+                                    padding: 8px 14px;
                                     font-size: 13px;
                                     cursor: pointer;
                                     transition: background 0.3s ease;
@@ -1527,12 +1550,26 @@ $office = $userInfo->office;
                     div.style.opacity = "1";
                 });
 
+                // View Deposits button
+                div.querySelector('.view-deposits-btn').addEventListener('click', () => {
+                    window.location.href = '/user/branch_deposits' + (data.office_id ? '?office_id=' + data.office_id : '');
+                });
+
                 // Close button
-                div.querySelector('button').addEventListener('click', () => {
+                div.querySelector('.close-notification-btn').addEventListener('click', () => {
                     div.style.transform = "translateX(150%)";
                     div.style.opacity = "0";
                     setTimeout(() => div.remove(), 400);
                 });
+
+                // Auto-dismiss after 15 seconds
+                setTimeout(() => {
+                    if (document.body.contains(div)) {
+                        div.style.transform = "translateX(150%)";
+                        div.style.opacity = "0";
+                        setTimeout(() => div.remove(), 400);
+                    }
+                }, 15000);
             }
 
             function showNotificationTest(data) {
@@ -1616,6 +1653,7 @@ $office = $userInfo->office;
                     showTicketNotification(data)
                 }
             });
+            
             socket.on('deposit.created', (data) => {
                 if ("{{ $role }}" === "1") {
                     showDepositNotification(data)
