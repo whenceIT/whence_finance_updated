@@ -250,6 +250,31 @@
             </div>
         </form>
     </div>
+
+    <?php
+
+$remainingInterest = 0;
+
+$lastInterest = App\Models\LoanTransaction::where('loan_id', $loan->id)
+    ->whereIn('transaction_type', ['interest', 'interest_initial']) // adjust column if needed
+    ->orderBy('id', 'desc')
+    ->first();
+
+if ($lastInterest) {
+
+    $repaymentsAfterInterest = App\Models\LoanTransaction::where('loan_id', $loan->id)
+        ->where('transaction_type', 'repayment') // adjust column if needed
+        ->where('id', '>', $lastInterest->id)
+        ->sum('credit');
+
+    $remainingInterest = max(
+        0,
+        $lastInterest->debit - $repaymentsAfterInterest
+    );
+}
+
+?>
+
     <div id="reschedule_loan_modal" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
@@ -262,6 +287,10 @@
       <form method="post" id="log"
                                                               action="{{ url('loan/'.$loan->id.'/reschedule_loan') }}">
                                                             {{csrf_field()}}
+
+                                                            <input type="hidden"
+       id="remaining_interest"
+       value="{{ $remainingInterest }}">
                                                             <div class="modal-body">
 
                                                             <div class="form-group">
@@ -292,13 +321,21 @@
                                                                            class="control-label">
                                                                         {{trans_choice('general.amount',1) }} {{ trans_choice('general.paid',1) }}  
                                                                     </label>
-                                                                    <input type="NUMBER" name="paid"
-                                                               class="form-control"
-                                                               value="" 
-                                                               max="{{$payment_amount}}"
-                                                               required id="paid" onkeyup="sum();">
+                                                                  <input type="NUMBER" name="paid"
+       class="form-control"
+       value=""
+       max="{{$payment_amount}}"
+       min="{{ $remainingInterest }}"
+       required
+       id="paid"
+       onkeyup="sum();">
 
                                                                 </div>
+
+                                                                <small class="text-danger">
+    Minimum payment required:
+    {{ number_format($remainingInterest, 2) }}
+</small>
 
                                                                 <div class="form-group">
                                                                     <label for="rescheduled_on_date"
@@ -394,6 +431,29 @@
 }
 
 
+function getMinimumInterestAmount() {
+    var outstanding = parseFloat($('#outstanding').val()) || 0;
+    var rate = parseFloat($('#interest_rate').val()) || 40;
+
+    return outstanding * (rate / (100 + rate));
+}
+
+$('#paid').on('input', function () {
+    var minInterest = getMinimumInterestAmount();
+
+    $(this).attr('min', minInterest);
+
+    if (parseFloat($(this).val()) < minInterest) {
+        this.setCustomValidity(
+            'Amount paid cannot be less than the interest amount (' +
+            minInterest.toFixed(2) + ')'
+        );
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
+
 $('#paymentForm').click(function(event){
         event.preventDefault();
         swal({
@@ -414,25 +474,43 @@ $('#paymentForm').click(function(event){
     });
 
 
-    $('#paymentForm1').click(function(event){
-        event.preventDefault();
-        swal({
-            title: "Are you sure you want to add this transaction?",
-            text: "Double check the transaction to make sure it's correct.",
-            icon: "warning",
-            type: "warning",
-            showCancelButton: true,
-            buttons: ["Cancel","Yes!"],
-            confirmButtonColor: 'green',
-            cancelButtonColor: '#d33',
-            confirmButtonText: "Yes I'm sure!"
-        }).then((willDelete) => {
-            if (willDelete) {
-                $('#log').submit();
-            }
-        });
-    });
+ $('#paymentForm1').click(function(event){
+    event.preventDefault();
 
+    swal({
+        title: "Are you sure you want to add this transaction?",
+        text: "Double check the transaction to make sure it's correct.",
+        icon: "warning",
+        type: "warning",
+        showCancelButton: true,
+        buttons: ["Cancel","Yes!"],
+        confirmButtonColor: 'green',
+        cancelButtonColor: '#d33',
+        confirmButtonText: "Yes I'm sure!"
+    }).then((willDelete) => {
+
+        if (willDelete) {
+
+            var paid = parseFloat($('#paid').val()) || 0;
+            var minInterest = parseFloat($('#remaining_interest').val()) || 0;
+
+            if (paid < minInterest) {
+
+                swal(
+                    "Invalid Amount",
+                    "Amount paid cannot be less than the remaining interest of " +
+                    minInterest.toFixed(2),
+                    "error"
+                );
+
+                return false;
+            }
+
+            $('#log').submit();
+        }
+
+    });
+});
 
 
 
