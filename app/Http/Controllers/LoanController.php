@@ -3248,6 +3248,7 @@ public function create()
         $pending_transactions = LoanTransactionUnapproved::where('loan_id', $id)->get();
         $count = count($pending_transactions);
         $Trans = LoanTransactionUnapproved::find($trans_id);
+        $loan_balance = GeneralHelper::loan_total_balance($loan->id);
         // $existing_transaction = LoanTransaction::where('loan_id', $id)->where('date', $Trans->date)->where('credit', $Trans->credit)->where('transaction_type', '!=', 'interest_waiver')->first();
         //disabled because client failing to add  2 transactions with same amount and date, we can add more checks to ensure its not a duplicate transaction instead of blocking all transactions with same amount and date
         $existing_transaction = [];
@@ -3321,12 +3322,15 @@ public function create()
                 LoanTransactionUnapproved::where('id', $trans_id)->delete();
 
 
-                event(new RepaymentCreated($loan_transaction));
-                if ($Trans->payment_apply_to == 'full_payment') {
-                    $loan = Loan::find($loan->id);
-                    $loan->status = "closed";
-                    $loan->save();
-                }
+                $new_loan_balance = $loan_balance - $Trans->credit;
+
+event(new RepaymentCreated($loan_transaction));
+
+if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
+    $loan = Loan::find($loan->id);
+    $loan->status = 'closed';
+    $loan->save();
+}
 
                 // Notify Loan Officer that transaction has been approved
                 $client = \App\Models\Client::find($loan->client_id);
