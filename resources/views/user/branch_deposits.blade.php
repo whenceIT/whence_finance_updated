@@ -122,8 +122,8 @@
 .shimmer-cell.reference { width: 160px; }
 
 .locked.deposit-card {
-    opacity: 0.6;
-    pointer-events: none;
+    /* opacity: 0.6;
+    pointer-events: none; */
 }
 
 @keyframes shimmer {
@@ -348,7 +348,8 @@ $(document).ready(function () {
     var userName = '{{ $user_name }}';
     var depositOrder = [];
     var ledgerBlocker = <?php echo json_encode($ledgerBlocker); ?>;
-    var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
+    var depositApiUrl = 'http://localhost:5000';
+    // var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
 
     const MANDATORY_DEPOSIT_TYPES = [
         { id: 3, name: 'Building & Infrastructure Fee Deposits', monthly_amount: 10000.00 },
@@ -368,11 +369,12 @@ $(document).ready(function () {
 
     function shouldLockDeposit(name) {
         // && ledgerBlocker
-        if (![32,67].includes(branchId)) {
-            return false;
-        } else {
-            return isOptionalDeposit(name);
-        }
+        // if (![32,67].includes(branchId)) {
+        //     return false;
+        // } else {
+        //     return isOptionalDeposit(name);
+        // }
+        return false
     }
 
     var currentDepositType = null;
@@ -408,12 +410,12 @@ $(document).ready(function () {
     }
 
 function lockAll() {
-        $('.deposit-item').each(function () {
-            if (!$(this).hasClass('locked')) {
-                $(this).find('input,button,select').prop('disabled', true);
-                $(this).css('opacity', 0.5);
-            }
-        });
+        // $('.deposit-item').each(function () {
+        //     if (!$(this).hasClass('locked')) {
+        //         $(this).find('input,button,select').prop('disabled', true);
+        //         $(this).css('opacity', 0.5);
+        //     }
+        // });
     }
 
     function unlockAll() {
@@ -524,10 +526,10 @@ function lockAll() {
                 </div>
             `);
             container.append($card);
-            if ($card.hasClass('locked')) {
-                $card.find('button, select, input').prop('disabled', true);
-                $card.css('opacity', '0.6');
-            }
+            // if ($card.hasClass('locked')) {
+            //     $card.find('button, select, input').prop('disabled', true);
+            //     $card.css('opacity', '0.6');
+            // }
             if (method) {
                 var $methodSelect = $card.find('.payment-method');
                 $methodSelect.val(method);
@@ -867,6 +869,37 @@ function lockAll() {
                 }),
                 success: function (res) {
                     KiloAlert.success(res.message || 'Deposit saved successfully');
+
+                    // Send notification to WebSocket server
+                    fetch('https://notifications.whencefinancesystem.com/emit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            event: 'deposit.created',
+                            data: {
+                                created_by: '{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}',
+                                office_id: {{ Sentinel::getUser()->office->id ?? 'null' }},
+                                amount: currentDepositAmount,
+                                type: 'New Deposit requesting approval',
+                                deposit: {
+                                    type: currentDepositTypeName,
+                                    reference: currentReferenceNumber,
+                                    method: currentPaymentMethod,
+                                    date: today()
+                                }
+                            }
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('Notification sent successfully:', data);
+                    })
+                    .catch(error => {
+                        alert('Error sending notification:', error);
+                    });
                 },
                 error: function(res) {
                     KiloAlert.error('Failed to save deposit. Please try again. ' + (res.responseJSON?.error || ''));
@@ -879,7 +912,7 @@ function lockAll() {
             $('#depositConfirmModal').modal('hide');
 
             // wait 4 second to reload page
-            setTimeout(function() { location.reload(); }, 4000);
+            setTimeout(function() { location.reload(); }, 5000);
         });
     });
 });
@@ -979,7 +1012,7 @@ $('#viewBankDepositsBtn').on('click', function() {
                 grouped[date].push(d);
             });
 
-var html = '<style>' +
+            var html = '<style>' +
                     '.deposit-month { margin-bottom: 25px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }' +
                     '.deposit-month-header { background: #3c8dbc; color: white; padding: 12px 15px; font-weight: bold; font-size: 16px; }' +
                     '.deposit-group-body { padding: 0; }' +

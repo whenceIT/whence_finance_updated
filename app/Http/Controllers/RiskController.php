@@ -616,16 +616,16 @@ class RiskController extends Controller
             $bankLog = $dep->bankDepositLog;
 
             return [
-                'id' => $bankLog->id ?? $dep->id,
+                'id' => $dep->id,
                 'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
                 'user_name' => $bankLog && $bankLog->user
                     ? ($bankLog->user->first_name . ' ' . $bankLog->user->last_name)
                     : ($dep->user_id ? 'Unknown' : 'Unknown'),
                 'office_name' => $offices->get($dep->office, 'Unknown'),
-                'amount' => (float) ($bankLog->amount ?? $dep->amount),
+                'amount' => (float)$dep->amount,
                 'deposit_method' => $bankLog->deposit_method ?? 'Cash',
                 'reference_number' => $bankLog->reference_number ?? 'N/A',
-                'created_date' => $bankLog->created_date ?? $dep->date,
+                'created_date' =>  $dep->date ?? $bankLog->created_date ,
             ];
         });
 
@@ -645,18 +645,18 @@ class RiskController extends Controller
         $id = $request->input('id');
         $amount = $request->input('amount');
 
-        $bankLog = BankDepositLog::find($id);
+        $bankLog = BankDepositLog::where('deposit_id',$id)->first();
+        
         if ($bankLog) {
             $bankLog->amount = $amount;
             $bankLog->save();
-            return response()->json(['success' => true]);
         }
 
-        $deposit = Deposit::withoutGlobalScope('approved')->find($id);
+        $deposit = Deposit::withoutGlobalScope('approved')->where('id',$id)->first();
+
         if (!$deposit) {
             return response()->json(['success' => false, 'message' => 'Record not found'], 404);
         }
-
         $deposit->amount = $amount;
         $deposit->save();
 
@@ -1519,7 +1519,8 @@ class RiskController extends Controller
                 $received = 0;
                 foreach ($validDeposits as $dep) {
                     if ((int) $dep->deposit_type === (int) $type->id) {
-                        $received += $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
+                        $received += (float) $dep->amount;
+                        // $received += $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
                     }
                 }
 
@@ -1551,7 +1552,7 @@ class RiskController extends Controller
                 $received = 0;
                 foreach ($validDeposits as $dep) {
                     if ((int) $dep->deposit_type === (int) $type->id) {
-                        $received += $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
+                        $received +=  (float) $dep->amount;
                     }
                 }
 

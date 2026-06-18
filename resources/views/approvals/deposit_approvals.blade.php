@@ -34,6 +34,7 @@
                         <th>Method</th>
                         <th>Reference</th>
                         <th>Branch Manager</th>
+                        <th>Recorded on</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -56,6 +57,9 @@
                                 @else
                                     N/A
                                 @endif
+                            </td>
+                            <td>
+                                {{ optional($deposit->bankDepositLog)->created_date ? \Carbon\Carbon::parse($deposit->bankDepositLog->created_date)->format('d M Y, H:i') : '—' }}
                             </td>
                             <td>
                                 @if($deposit->status == 1)

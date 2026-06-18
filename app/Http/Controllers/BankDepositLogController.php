@@ -47,6 +47,12 @@ public function getLedgerSummary()
         $officeId = request('office_id');
         
         $query = \App\Models\Office::query();
+        // exclude headquarter offices defined in config/offices.php
+        $hqOffices = config('offices.headquarter', []);
+     
+        if (!empty($hqOffices)) {
+            $query->whereNotIn('id', $hqOffices);
+        }
         if ($officeId) {
             $query->where('id', $officeId);
         }
@@ -71,21 +77,19 @@ public function getLedgerSummary()
             $statutory_required = 14500;
             $building_required = 10000;
 
-            $building_paid = DB::table('deposits')
-                ->join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
-                ->join('deposit_types', 'deposits.deposit_type', '=', 'deposit_types.id')
-                ->where('deposit_types.id', 3)
-                ->where('deposits.office', $office->id)
-                ->sum('deposits.amount');
+            $building_paid = \App\Models\Deposit::query()
+                ->where('office', $office->id)
+                ->with('bankDepositLog')
+                ->where('deposit_type', 3)
+                ->sum('amount');
 
-            $statutory_paid = DB::table('deposits')
-                ->join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
-                ->join('deposit_types', 'deposits.deposit_type', '=', 'deposit_types.id')
-                ->where('deposit_types.id', 5)
-                ->where('deposits.office', $office->id)
-                ->sum('deposits.amount');
+            $statutory_paid = \App\Models\Deposit::query()
+                ->where('office', $office->id)
+                ->with('bankDepositLog')
+                ->where('deposit_type', 5)
+                ->sum('amount');
 
-                // dd($ledger);
+            
             $data[] = [
                 'office_name' => $office->name,
                 'building_paid' => $building_paid,
