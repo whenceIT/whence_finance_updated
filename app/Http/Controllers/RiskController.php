@@ -1519,7 +1519,8 @@ class RiskController extends Controller
                 $received = 0;
                 foreach ($validDeposits as $dep) {
                     if ((int) $dep->deposit_type === (int) $type->id) {
-                        $received += $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
+                        $received += (float) $dep->amount;
+                        // $received += $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
                     }
                 }
 
@@ -1551,7 +1552,7 @@ class RiskController extends Controller
                 $received = 0;
                 foreach ($validDeposits as $dep) {
                     if ((int) $dep->deposit_type === (int) $type->id) {
-                        $received += $dep->bankDepositLog ? (float) $dep->bankDepositLog->amount : (float) $dep->amount;
+                        $received +=  (float) $dep->amount;
                     }
                 }
 

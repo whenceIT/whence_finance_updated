@@ -1,7 +1,8 @@
 <!-- Ledger summary table + fetch script moved here -->
-<div id="ledgerTableSection" style="display: none; margin-top: 20px;">
+
+<div id="ledgerTableSection" style="display: none; margin-top: 40px;">
     <div class="deposit-header-box">
-        <h4 style="margin-top: 0;">Ledger Summary</h4>
+        <h3 style="margin-top: 0;">Ledger Summary</h3>
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
             <thead>
