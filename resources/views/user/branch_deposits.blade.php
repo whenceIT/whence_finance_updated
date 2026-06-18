@@ -362,18 +362,76 @@ $(document).ready(function () {
         { id: 2, name: 'Managers Housing deposit', deposit_type: 7, bank: 'Access Bank Main / Salary Account' }
     ];
 
+    // Track payment status of mandatory deposits
+    var mandatoryDepositStatus = {};
+
     function isOptionalDeposit(name) {
         return OPTIONAL_DEPOSITS.some(d => d.name === name);
     }
 
-    function shouldLockDeposit(name) {
-        // && ledgerBlocker
-        // if (![32,67].includes(branchId)) {
-        //     return false;
-        // } else {
-        //     return isOptionalDeposit(name);
-        // }
-         return isOptionalDeposit(name);
+    function isMandatoryDeposit(name) {
+        return MANDATORY_DEPOSIT_TYPES.some(d => d.name === name);
+    }
+
+    function areAllMandatoryDepositsPaid() {
+        // Check if all mandatory deposits are fully paid
+        for (let i = 0; i < MANDATORY_DEPOSIT_TYPES.length; i++) {
+            let mandatoryDep = MANDATORY_DEPOSIT_TYPES[i];
+            let status = mandatoryDepositStatus[mandatoryDep.id];
+            
+            // If status not loaded yet or not fully paid, return false
+            if (!status || !status.isFullyPaid) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function shouldLockDeposit(name, total, monthlyRequired) {
+        // If not an optional deposit, never lock (mandatory deposits are always accessible)
+        if (!isOptionalDeposit(name)) {
+            return false;
+        }
+
+        // For optional deposits: unlock only if all mandatory deposits are fully paid
+        return !areAllMandatoryDepositsPaid();
+    }
+
+    function updateMandatoryDepositStatus(depositId, depositName, total, monthlyRequired) {
+        // Update the status tracking for mandatory deposits
+        if (isMandatoryDeposit(depositName)) {
+            mandatoryDepositStatus[depositId] = {
+                name: depositName,
+                total: total,
+                monthlyRequired: monthlyRequired,
+                isFullyPaid: total >= monthlyRequired && monthlyRequired > 0
+            };
+            
+            // After updating, check if we need to unlock optional deposits
+            if (areAllMandatoryDepositsPaid()) {
+                unlockOptionalDeposits();
+            }
+        }
+    }
+
+    function unlockOptionalDeposits() {
+        // Unlock all optional deposit cards
+        $('.deposit-item').each(function() {
+            var $card = $(this);
+            var depositId = $card.data('deposit-id');
+            
+            // Find the deposit name to check if it's optional
+            var depositName = $card.find('.deposit-title').text();
+            
+            if (isOptionalDeposit(depositName) && $card.hasClass('locked')) {
+                $card.removeClass('locked');
+                $card.find('button, select, input').prop('disabled', false);
+                $card.css('opacity', '1');
+                
+                // Remove the "Locked" badge
+                $card.find('span:contains("Locked")').remove();
+            }
+        });
     }
 
     var currentDepositType = null;
@@ -473,13 +531,13 @@ function lockAll() {
             }
             
             var $card = $(`
-                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName) ? 'locked ' : ''}" data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
+                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}" data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
                         <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
                         <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
                     </div>
                     <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                        ${shouldLockDeposit(depositName) ? '<span style="background: #6c757d; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px;">Locked</span>' : ''}
+                        ${shouldLockDeposit(depositName, total, monthlyRequired) ? '<span style="background: #6c757d; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px;">Locked</span>' : ''}
                     </div>
                     <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
                         <div style="flex: 1; background: #e8f4fc; border-radius: 6px; padding: 12px 15px;">
@@ -525,6 +583,10 @@ function lockAll() {
                 </div>
             `);
             container.append($card);
+            
+            // Update mandatory deposit status tracking
+            updateMandatoryDepositStatus(depositId, depositName, total, monthlyRequired);
+            
             if ($card.hasClass('locked')) {
                 $card.find('button, select, input').prop('disabled', true);
                 $card.css('opacity', '0.6');
