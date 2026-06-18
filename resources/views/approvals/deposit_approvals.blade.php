@@ -34,6 +34,7 @@
                         <th>Method</th>
                         <th>Reference</th>
                         <th>Branch Manager</th>
+                        <th>Recorded on</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -56,6 +57,9 @@
                                 @else
                                     N/A
                                 @endif
+                            </td>
+                            <td>
+                                {{ $deposit->bankDepositLog->created_date }}
                             </td>
                             <td>
                                 @if($deposit->status == 1)

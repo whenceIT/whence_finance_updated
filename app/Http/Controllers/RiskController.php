@@ -616,7 +616,7 @@ class RiskController extends Controller
             $bankLog = $dep->bankDepositLog;
 
             return [
-                'id' => $bankLog->id ?? $dep->id,
+                'id' => $bankLog->id,
                 'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
                 'user_name' => $bankLog && $bankLog->user
                     ? ($bankLog->user->first_name . ' ' . $bankLog->user->last_name)
@@ -645,18 +645,18 @@ class RiskController extends Controller
         $id = $request->input('id');
         $amount = $request->input('amount');
 
-        $bankLog = BankDepositLog::find($id);
+        $bankLog = BankDepositLog::where('id',$id)->first();
+        
         if ($bankLog) {
             $bankLog->amount = $amount;
             $bankLog->save();
-            return response()->json(['success' => true]);
         }
 
-        $deposit = Deposit::withoutGlobalScope('approved')->find($id);
+        $deposit = Deposit::withoutGlobalScope('approved')->where('id',$bankLog->deposit_id)->first();
+
         if (!$deposit) {
             return response()->json(['success' => false, 'message' => 'Record not found'], 404);
         }
-
         $deposit->amount = $amount;
         $deposit->save();
 
