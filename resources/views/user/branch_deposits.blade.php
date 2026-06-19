@@ -398,18 +398,22 @@ $(document).ready(function () {
     }
 
     function updateMandatoryDepositStatus(depositId, depositName, total, monthlyRequired) {
-        // Update the status tracking for mandatory deposits
-        if (isMandatoryDeposit(depositName)) {
-            mandatoryDepositStatus[depositId] = {
-                name: depositName,
-                total: total,
-                monthlyRequired: monthlyRequired,
-                isFullyPaid: total >= monthlyRequired && monthlyRequired > 0
-            };
-            
-            // After updating, check if we need to unlock optional deposits
-            if (areAllMandatoryDepositsPaid()) {
-                unlockOptionalDeposits();
+        
+        if (total !== 0) {
+                    // Update the status tracking for mandatory deposits
+            if (isMandatoryDeposit(depositName)) {
+                mandatoryDepositStatus[depositId] = {
+                    name: depositName,
+                    total: total,
+                    monthlyRequired: monthlyRequired,
+                    isFullyPaid:true
+                    // isFullyPaid: total > monthlyRequired && monthlyRequired > 0
+                };
+                
+                // After updating, check if we need to unlock optional deposits
+                if (areAllMandatoryDepositsPaid()) {
+                    unlockOptionalDeposits();
+                }
             }
         }
     }
@@ -531,14 +535,12 @@ function lockAll() {
             }
             
             var $card = $(`
-                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}" data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
+                <div class="deposit-item deposit-card data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
                         <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
                         <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
                     </div>
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                        ${shouldLockDeposit(depositName, total, monthlyRequired) ? '<span style="background: #6c757d; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px;">Locked</span>' : ''}
-                    </div>
+                    
                     <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
                         <div style="flex: 1; background: #e8f4fc; border-radius: 6px; padding: 12px 15px;">
                             <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Fee</small>
