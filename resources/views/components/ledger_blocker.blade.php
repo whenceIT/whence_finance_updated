@@ -10,7 +10,7 @@
             <div class="modal-body">
                 <p id="ledgerBlockerMessage" class="mb-2">Your office requires attention before proceeding.</p>
                 <p id="ledgerBlockerAmount" class="mb-3" style="font-size:1.75rem;font-weight:700;color:#c0392b;"></p>
-                <p class="mb-3">Not recorded in <span id="depositType" style="font-weight:700" class="font-weight-bold text-danger"></span> for the months between January and May.</p>
+                <p class="mb-3">Not recorded in <span id="depositType" style="font-weight:700" class="font-weight-bold text-danger"></span> in one of the months between January and May.</p>
                 <div class="alert alert-warning" role="alert" style="margin-bottom:0;">
                     <p class="mb-2">If you recorded the payment under expenses, please provide the <strong>reference_numbers</strong> recorded in the expense to I.T, so that they are moved to deposits (internal funds)</p>
                     <p class="mb-0">If not, please make these payments. If nothing was recorded under expenses, contact the risk manager.</p>
