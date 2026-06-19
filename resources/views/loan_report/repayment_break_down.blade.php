@@ -760,6 +760,7 @@ if (is_numeric($balance)) {
         <table class="table">
   <thead>
     <tr>
+      <th>Date</th>
       <th>NRC</th>
       <th >{{trans_choice('general.client',1)}} {{trans_choice('general.name',1)}}</th>
       <th >{{trans_choice('general.product',1)}}</th>
@@ -872,7 +873,7 @@ $total_loans = 0;
 
     ?>
   <tr>
-      
+    <td>{{$key->disbursement_date}}</td>
       <td>{{$key->external_id}}</td>
       <td>@if($key->client_type=="client")
                                     @if(!empty($key->client))

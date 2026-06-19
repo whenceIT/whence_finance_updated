@@ -916,7 +916,7 @@ class ReportController extends Controller
                         [$start_date, $end_date]
                     )->with('loan')->with('office')->get();
                 $expenses = Expense::whereBetween('date', [$start_date, $end_date])
-                    ->where('office_id', $office_id)->with('office')
+                    ->where('office_id', $office_id)->where('status','approved')->with('office')
                     ->get();
 
                 $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])
@@ -977,8 +977,7 @@ $targets_met = TargetsMet::whereBetween('date', [$start_date, $end_date])
                     [$start_date, $end_date]
                 )->with('loan')->with('office')->get();
 
-                $expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')
-                    ->get();
+                $expenses = Expense::whereBetween('date', [$start_date, $end_date])->with('office')->where('status','approved')->get();
 
                 $advances = Advance::whereBetween('date_approved', [$start_date, $end_date])->with('office')
                     ->get();
