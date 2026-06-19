@@ -125,7 +125,9 @@ class BlockerHelper
             'status'=>false,
             'amount' => 0,
             'deposit_type'=> '',
-            'message'=> 'Cleared and unblocked'
+            'message'=> 'Cleared and unblocked',
+            'system'=>  $system_balance,
+            'ledger'=>  $ledger->balance
         ];
     }
 
