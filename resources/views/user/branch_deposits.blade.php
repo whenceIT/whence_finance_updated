@@ -160,6 +160,11 @@
                 <i class="fa fa-info-circle"></i>
                 Enter deposit for the allowed monthly deposits required for your branch. Please ensure the total amount covers the full or atleast K5,000 partial minimum required deposit for the month. Once you click "Save Deposit", it will be recorded and cannot be reversed. If you are unsure about the required amount, click "This Month Deposit" to view your current month's deposit status.
             </p>
+
+            <p style="color: rgba(255, 17, 41, 0.84); padding:5px; font-weight: 500; background-color:rgba(255, 245, 246, 0.57); border-radius:4px;">
+                <i class="fa fa-info-circle"></i>
+                For the savings, salaries, and housing sections to unlock make sure to make and record full payments on the mandatory deposit
+            </p>
             <hr style="border-top:1px solid #eee; margin:20px 0;">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:10px;">
                 <div style="max-width:300px;">
@@ -366,24 +371,44 @@ $(document).ready(function () {
     var mandatoryDepositStatus = {};
 
     function isOptionalDeposit(name) {
-        return OPTIONAL_DEPOSITS.some(d => d.name === name);
+        return OPTIONAL_DEPOSITS.some(d => d.name.toLowerCase() === name.toLowerCase());
     }
 
     function isMandatoryDeposit(name) {
-        return MANDATORY_DEPOSIT_TYPES.some(d => d.name === name);
+        return MANDATORY_DEPOSIT_TYPES.some(d => d.name.toLowerCase() === name.toLowerCase());
     }
 
     function areAllMandatoryDepositsPaid() {
-        // Check if all mandatory deposits are fully paid
+        // Check if all mandatory deposits are fully paid by reading from DOM
+        console.log('Checking mandatory deposits payment status...');
+        
         for (let i = 0; i < MANDATORY_DEPOSIT_TYPES.length; i++) {
             let mandatoryDep = MANDATORY_DEPOSIT_TYPES[i];
-            let status = mandatoryDepositStatus[mandatoryDep.id];
             
-            // If status not loaded yet or not fully paid, return false
-            if (!status || !status.isFullyPaid) {
+            // Find the card by deposit ID
+            let $card = $(`.deposit-item[data-deposit-id="${mandatoryDep.id}"]`);
+            
+            if ($card.length === 0) {
+                console.log(`Card not found for: ${mandatoryDep.name} (ID: ${mandatoryDep.id})`);
+                return false;
+            }
+            
+            // Get payment info from data attributes
+            let total = parseFloat($card.data('total')) || 0;
+            let monthlyRequired = parseFloat($card.data('monthly-required')) || 0;
+            
+            // Check if this deposit is fully paid
+            let isFullyPaid = total >= monthlyRequired && monthlyRequired > 0;
+            
+            console.log(`${mandatoryDep.name}: Total=${total}, Required=${monthlyRequired}, FullyPaid=${isFullyPaid}`);
+            
+            if (!isFullyPaid) {
+                console.log(`Not all paid yet. Incomplete: ${mandatoryDep.name}`);
                 return false;
             }
         }
+        
+        console.log('✓ All mandatory deposits are fully paid!');
         return true;
     }
 
@@ -393,8 +418,9 @@ $(document).ready(function () {
             return false;
         }
 
-        // For optional deposits: unlock only if all mandatory deposits are fully paid
-        return !areAllMandatoryDepositsPaid();
+        // For optional deposits during initial load: lock them (we'll unlock later)
+        // Don't check areAllMandatoryDepositsPaid here because statuses aren't loaded yet
+        return true;
     }
 
 
@@ -419,26 +445,23 @@ $(document).ready(function () {
     }
 
     function checkAndUnlockOptionalDeposits(depositId, depositName, total, monthlyRequired) {
-        // Update mandatory deposit status if this is a mandatory deposit
-        if (isMandatoryDeposit(depositName)) {
-            mandatoryDepositStatus[depositId] = {
-                name: depositName,
-                total: total,
-                monthlyRequired: monthlyRequired,
-                isFullyPaid: total >= monthlyRequired && monthlyRequired > 0
-            };
-            
-            console.log('Mandatory Deposit Status:', depositName, {
-                total: total,
-                required: monthlyRequired,
-                isFullyPaid: total >= monthlyRequired && monthlyRequired > 0
-            });
-        }
+        console.log('checkAndUnlockOptionalDeposits called:', {
+            depositId: depositId,
+            depositName: depositName,
+            total: total,
+            monthlyRequired: monthlyRequired,
+            isMandatory: isMandatoryDeposit(depositName)
+        });
         
-        // Check if all mandatory deposits are paid and unlock if so
-        if (areAllMandatoryDepositsPaid()) {
-            console.log('All mandatory deposits paid! Unlocking optional deposits...');
-            unlockOptionalDeposits();
+        // Only check and unlock if this is a mandatory deposit
+        if (isMandatoryDeposit(depositName)) {
+            console.log(`Mandatory deposit loaded: ${depositName}`);
+            
+            // Check if all mandatory deposits are now paid and unlock if so
+            if (areAllMandatoryDepositsPaid()) {
+                console.log('🔓 All mandatory deposits paid! Unlocking optional deposits...');
+                unlockOptionalDeposits();
+            }
         }
     }
 
@@ -537,9 +560,12 @@ function lockAll() {
                 statusText = 'Fully Paid';
                 statusColor = '#27ae60';
             }
+
+            var gateStatus = shouldLockDeposit(depositName, total, monthlyRequired);
+            console.log('Gate: '+gateStatus, depositName);
             
             var $card = $(`
-                <div class="deposit-item deposit-card" 
+                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}" 
                      data-deposit-id="${depositId}" 
                      data-office-id="${officeId}" 
                      data-method="${method || ''}"
@@ -595,7 +621,11 @@ function lockAll() {
                 </div>
             `);
             container.append($card);
-            
+                        
+            if ($card.hasClass('locked')) {
+                $card.find('button, select, input').prop('disabled', true);
+                $card.css('opacity', '0.6');
+            }
             // Check and unlock optional deposits after loading this card
             checkAndUnlockOptionalDeposits(depositId, depositName, total, monthlyRequired);
             
@@ -970,10 +1000,10 @@ function lockAll() {
                     })
                     .then(response => response.json())
                     .then(data => {
-                        alert('Notification sent successfully:', data);
+                        console.log('Notification sent successfully:', data);
                     })
                     .catch(error => {
-                        alert('Error sending notification:', error);
+                        console.log('Error sending notification:', error);
                     });
                 },
                 error: function(res) {
