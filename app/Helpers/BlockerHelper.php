@@ -95,37 +95,54 @@ class BlockerHelper
             return null;
         }
 
-        $ledger = DebtBalances::where('office_id', $officeId)->first();
+        $ledgers = DebtBalances::where('office_id', $officeId)->get();
 
-        if (!$ledger) {
-            return null;
-        }
-        $depositType = \App\Models\DepositType::where('id', $ledger->deposit_type_id)
-                    ->first();
-
-        $deposits =  Deposit::with('bankDepositLog')
-            ->where('office', $officeId)
-            ->where('deposit_type', $ledger->deposit_type_id)
-            ->get();
-        $months = $overallPeriodMonths - \App\Models\DepositMonthExemption::get_months_exempted($officeId, $depositType);
-       
-        $system_balance = (((int)$depositType->monthly_amount * $months) - $deposits->sum('amount'));
-        
-        if($system_balance > $ledger->balance){
-            $whatsNotRecorded = $system_balance - $ledger->balance;
+        if ($ledgers->isEmpty()) {
             return [
-                'status'=>true,
-                'amount' => $whatsNotRecorded,
-                'deposit_type'=> $depositType->name,
-                'message'=> 'Blocked'
+                'status'=>false,
+                'amount' => 0,
+                'deposit_type'=> '',
+                'message'=> 'No ledgers found for this office'
             ];
+        }
+
+        foreach ($ledgers as $key => $ledger) {
+            if (!$ledger) {
+                return null;
+            }
+            $depositType = \App\Models\DepositType::where('id', $ledger->deposit_type_id)
+                        ->first();
+
+            if (!$depositType) {
+                continue; // Skip if deposit type not found
+            }
+
+            $deposits =  Deposit::with('bankDepositLog')
+                ->where('office', $officeId)
+                ->where('deposit_type', $ledger->deposit_type_id)
+                ->get();
+            $months = $overallPeriodMonths - \App\Models\DepositMonthExemption::get_months_exempted($officeId, $depositType);
+        
+            $system_balance = (((int)$depositType->monthly_amount * $months) - $deposits->sum('amount'));
+            
+            if($system_balance > $ledger->balance){
+                $whatsNotRecorded = $system_balance - $ledger->balance;
+                return [
+                    'status'=>true,
+                    'amount' => $whatsNotRecorded,
+                    'deposit_type'=> $depositType->name,
+                    'message'=> 'Blocked',
+                    'system_balance'=> $system_balance,
+                    'ledger_balance'=> $ledger->balance
+                ];
+            }
         }
 
         return [
             'status'=>false,
             'amount' => 0,
             'deposit_type'=> '',
-            'message'=> 'Cleared and unblocked',
+            'message'=> 'All ledgers cleared and unblocked',
             'system'=>  $system_balance,
             'ledger'=>  $ledger->balance
         ];
