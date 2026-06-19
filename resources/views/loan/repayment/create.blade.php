@@ -55,7 +55,9 @@
                         <input type="number" name="amount"
                                class="form-control"
                                value="{{$balance}}"
-                               required id="amount">
+                               required id="amount"
+                               max="{{$balance}}"
+                               >
                     </div>
                 </div>
                 <div class="form-group">
