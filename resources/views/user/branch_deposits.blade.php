@@ -348,7 +348,7 @@ $(document).ready(function () {
     var userName = '{{ $user_name }}';
     var depositOrder = [];
     var ledgerBlocker = <?php echo json_encode($ledgerBlocker); ?>;
-    var depositApiUrl = 'http://localhost:5000';
+    var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
 
     const MANDATORY_DEPOSIT_TYPES = [
         { id: 3, name: 'Building & Infrastructure Fee Deposits', monthly_amount: 10000.00 },
