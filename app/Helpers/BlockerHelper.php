@@ -79,14 +79,16 @@ class BlockerHelper
             return [
                 'status'=>false,
                 'amount' => 0,
-                'deposit_type'=> ''
+                'deposit_type'=> '',
+                'message'=> 'Not a BM or LC'
             ];
         }
-        if ($user->office_id == 2) {
+        if ($user->office_id == 2 || $user->office_id == 36) {
             return [
                 'status'=>false,
                 'amount' => 0,
-                'deposit_type'=> ''
+                'deposit_type'=> '',
+                'message'=> 'Except this office'
             ];
         }
         if (!$officeId) {
@@ -114,14 +116,16 @@ class BlockerHelper
             return [
                 'status'=>true,
                 'amount' => $whatsNotRecorded,
-                'deposit_type'=> $depositType->name
+                'deposit_type'=> $depositType->name,
+                'message'=> 'Blocked'
             ];
         }
 
         return [
             'status'=>false,
             'amount' => 0,
-            'deposit_type'=> ''
+            'deposit_type'=> '',
+            'message'=> 'Cleared and unblocked'
         ];
     }
 
