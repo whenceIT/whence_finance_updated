@@ -122,8 +122,8 @@
 .shimmer-cell.reference { width: 160px; }
 
 .locked.deposit-card {
-    /* opacity: 0.6;
-    pointer-events: none; */
+    opacity: 0.6;
+    pointer-events: none;
 }
 
 @keyframes shimmer {
@@ -157,8 +157,12 @@
         <div class="deposit-header-box">
             <h2 style="margin-top:0; font-weight: 700; font-size: 28px;" id="monthlyDepositsTitle">Monthly Deposits</h2>
             <p class="text-muted" style="margin-bottom:15px;">
-                <i class="fa fa-info-circle"></i>
                 Enter deposit for the allowed monthly deposits required for your branch. Please ensure the total amount covers the full or atleast K5,000 partial minimum required deposit for the month. Once you click "Save Deposit", it will be recorded and cannot be reversed. If you are unsure about the required amount, click "This Month Deposit" to view your current month's deposit status.
+            </p>
+
+            <p style="color: rgba(255, 17, 41, 0.84); padding:5px; font-weight: 500; background-color:rgba(255, 245, 246, 0.57); border-radius:4px;">
+                <i class="fa fa-info-circle"></i>
+                For the savings, salaries, and housing sections to unlock make sure to make and record full payments on the mandatory deposit
             </p>
             <hr style="border-top:1px solid #eee; margin:20px 0;">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:10px;">
@@ -348,7 +352,6 @@ $(document).ready(function () {
     var userName = '{{ $user_name }}';
     var depositOrder = [];
     var ledgerBlocker = <?php echo json_encode($ledgerBlocker); ?>;
-    // var depositApiUrl = 'http://localhost:5000';
     var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
 
     const MANDATORY_DEPOSIT_TYPES = [
@@ -363,18 +366,102 @@ $(document).ready(function () {
         { id: 2, name: 'Managers Housing deposit', deposit_type: 7, bank: 'Access Bank Main / Salary Account' }
     ];
 
+    // Track payment status of mandatory deposits
+    var mandatoryDepositStatus = {};
+
     function isOptionalDeposit(name) {
-        return OPTIONAL_DEPOSITS.some(d => d.name === name);
+        return OPTIONAL_DEPOSITS.some(d => d.name.toLowerCase() === name.toLowerCase());
     }
 
-    function shouldLockDeposit(name) {
-        // && ledgerBlocker
-        // if (![32,67].includes(branchId)) {
-        //     return false;
-        // } else {
-        //     return isOptionalDeposit(name);
-        // }
-        return false
+    function isMandatoryDeposit(name) {
+        return MANDATORY_DEPOSIT_TYPES.some(d => d.name.toLowerCase() === name.toLowerCase());
+    }
+
+    function areAllMandatoryDepositsPaid() {
+        // Check if all mandatory deposits are fully paid by reading from DOM
+        console.log('Checking mandatory deposits payment status...');
+        
+        for (let i = 0; i < MANDATORY_DEPOSIT_TYPES.length; i++) {
+            let mandatoryDep = MANDATORY_DEPOSIT_TYPES[i];
+            
+            // Find the card by deposit ID
+            let $card = $(`.deposit-item[data-deposit-id="${mandatoryDep.id}"]`);
+            
+            if ($card.length === 0) {
+                console.log(`Card not found for: ${mandatoryDep.name} (ID: ${mandatoryDep.id})`);
+                return false;
+            }
+            
+            // Get payment info from data attributes
+            let total = parseFloat($card.data('total')) || 0;
+            let monthlyRequired = parseFloat($card.data('monthly-required')) || 0;
+            
+            // Check if this deposit is fully paid
+            let isFullyPaid = total >= monthlyRequired && monthlyRequired > 0;
+            
+            console.log(`${mandatoryDep.name}: Total=${total}, Required=${monthlyRequired}, FullyPaid=${isFullyPaid}`);
+            
+            if (!isFullyPaid) {
+                console.log(`Not all paid yet. Incomplete: ${mandatoryDep.name}`);
+                return false;
+            }
+        }
+        
+        console.log('✓ All mandatory deposits are fully paid!');
+        return true;
+    }
+
+    function shouldLockDeposit(name, total, monthlyRequired) {
+        // If not an optional deposit, never lock (mandatory deposits are always accessible)
+        if (!isOptionalDeposit(name)) {
+            return false;
+        }
+
+        // For optional deposits during initial load: lock them (we'll unlock later)
+        // Don't check areAllMandatoryDepositsPaid here because statuses aren't loaded yet
+        return true;
+    }
+
+
+    function unlockOptionalDeposits() {
+        // Unlock all optional deposit cards
+        $('.deposit-item').each(function() {
+            var $card = $(this);
+            var depositId = $card.data('deposit-id');
+            
+            // Find the deposit name to check if it's optional
+            var depositName = $card.find('.deposit-title').text();
+            
+            if (isOptionalDeposit(depositName) && $card.hasClass('locked')) {
+                $card.removeClass('locked');
+                $card.find('button, select, input').prop('disabled', false);
+                $card.css('opacity', '1');
+                
+                // Remove the "Locked" badge
+                $card.find('span:contains("Locked")').remove();
+            }
+        });
+    }
+
+    function checkAndUnlockOptionalDeposits(depositId, depositName, total, monthlyRequired) {
+        console.log('checkAndUnlockOptionalDeposits called:', {
+            depositId: depositId,
+            depositName: depositName,
+            total: total,
+            monthlyRequired: monthlyRequired,
+            isMandatory: isMandatoryDeposit(depositName)
+        });
+        
+        // Only check and unlock if this is a mandatory deposit
+        if (isMandatoryDeposit(depositName)) {
+            console.log(`Mandatory deposit loaded: ${depositName}`);
+            
+            // Check if all mandatory deposits are now paid and unlock if so
+            if (areAllMandatoryDepositsPaid()) {
+                console.log('🔓 All mandatory deposits paid! Unlocking optional deposits...');
+                unlockOptionalDeposits();
+            }
+        }
     }
 
     var currentDepositType = null;
@@ -410,12 +497,12 @@ $(document).ready(function () {
     }
 
 function lockAll() {
-        // $('.deposit-item').each(function () {
-        //     if (!$(this).hasClass('locked')) {
-        //         $(this).find('input,button,select').prop('disabled', true);
-        //         $(this).css('opacity', 0.5);
-        //     }
-        // });
+        $('.deposit-item').each(function () {
+            if (!$(this).hasClass('locked')) {
+                $(this).find('input,button,select').prop('disabled', true);
+                $(this).css('opacity', 0.5);
+            }
+        });
     }
 
     function unlockAll() {
@@ -472,16 +559,23 @@ function lockAll() {
                 statusText = 'Fully Paid';
                 statusColor = '#27ae60';
             }
+
+            var gateStatus = shouldLockDeposit(depositName, total, monthlyRequired);
+            console.log('Gate: '+gateStatus, depositName);
             
             var $card = $(`
-                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName) ? 'locked ' : ''}" data-deposit-id="${depositId}" data-office-id="${officeId}" data-method="${method || ''}">
+                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}" 
+                     data-deposit-id="${depositId}" 
+                     data-office-id="${officeId}" 
+                     data-method="${method || ''}"
+                     data-total="${total}"
+                     data-monthly-required="${monthlyRequired}"
+                     data-deposit-type="${d_type || depositId}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
                         <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
                         <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
                     </div>
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                        ${shouldLockDeposit(depositName) ? '<span style="background: #6c757d; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px;">Locked</span>' : ''}
-                    </div>
+                
                     <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
                         <div style="flex: 1; background: #e8f4fc; border-radius: 6px; padding: 12px 15px;">
                             <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Fee</small>
@@ -526,10 +620,18 @@ function lockAll() {
                 </div>
             `);
             container.append($card);
-            // if ($card.hasClass('locked')) {
-            //     $card.find('button, select, input').prop('disabled', true);
-            //     $card.css('opacity', '0.6');
-            // }
+                        
+            if ($card.hasClass('locked')) {
+                $card.find('button, select, input').prop('disabled', true);
+                $card.css('opacity', '0.6');
+            }
+            // Check and unlock optional deposits after loading this card
+            checkAndUnlockOptionalDeposits(depositId, depositName, total, monthlyRequired);
+            
+            if ($card.hasClass('locked')) {
+                $card.find('button, select, input').prop('disabled', true);
+                $card.css('opacity', '0.6');
+            }
             if (method) {
                 var $methodSelect = $card.find('.payment-method');
                 $methodSelect.val(method);
@@ -598,9 +700,11 @@ function lockAll() {
             return (a.sort_order || 0) - (b.sort_order || 0);
         });
         var container = $('#depositSteps').empty();
+        
+        var loadedCount = 0;
+        var totalDeposits = deposits.length;
 
         deposits.forEach(function (d) {
-            // depositOrder.push(d.id);
             loadDepositCardData(d.id, d.name, branchId, container, d.method);
         });
         $('#depositStepsShimmer').hide();
@@ -790,7 +894,7 @@ function lockAll() {
     $(document).on('click', '.complete-btn', function () {
         let $btn = $(this);
         let box = $btn.closest('.deposit-item');
-        currentDepositType = box.data('deposit-id');
+        currentDepositType = box.data('deposit-type') || box.data('deposit-id');
         currentDepositTypeName = box.find('.deposit-title').text();
 
         let raw = box.find('.amount').val();
@@ -881,7 +985,7 @@ function lockAll() {
                             event: 'deposit.created',
                             data: {
                                 created_by: '{{ Sentinel::getUser()->first_name }} {{ Sentinel::getUser()->last_name }}',
-                                office_id: {{ Sentinel::getUser()->office->name ?? 'null' }},
+                                office_id: '{{ Sentinel::getUser()?->office?->name }}',
                                 amount: currentDepositAmount,
                                 type: 'New Deposit requesting approval',
                                 deposit: {
@@ -895,10 +999,10 @@ function lockAll() {
                     })
                     .then(response => response.json())
                     .then(data => {
-                        alert('Notification sent successfully:', data);
+                        console.log('Notification sent successfully:', data);
                     })
                     .catch(error => {
-                        alert('Error sending notification:', error);
+                        console.log('Error sending notification:', error);
                     });
                 },
                 error: function(res) {

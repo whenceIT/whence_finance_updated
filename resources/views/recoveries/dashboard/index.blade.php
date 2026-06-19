@@ -6,6 +6,25 @@
 
 @section('content')
 
+<style>
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(51, 122, 183, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(51, 122, 183, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(51, 122, 183, 0);
+    }
+}
+
+.btn-primary.pulse-active {
+    animation: pulse 2s infinite;
+}
+</style>
+
+
 {{-- Period Selector --}}
 <div class="box box-default">
     <div class="box-body" style="padding:10px 15px">
@@ -15,7 +34,7 @@
             <div class="btn-group" style="margin-right:10px">
                 @foreach(['month' => 'This Month', 'quarter' => 'This Quarter', 'year' => 'This Year'] as $p => $label)
                     <a href="{{ url('recovery/overview') }}?period={{ $p }}"
-                       class="btn btn-sm {{ $period === $p ? 'btn-primary' : 'btn-default' }}">
+                       class="btn btn-sm {{ $period === $p ? 'btn-primary pulse-active' : 'btn-default' }}">
                         {{ $label }}
                     </a>
                 @endforeach
@@ -35,7 +54,7 @@
                    class="form-control input-sm"
                    style="display:inline-block;width:130px;vertical-align:middle">
             <input type="hidden" name="period" value="custom">
-            <button type="submit" class="btn btn-sm {{ $period === 'custom' ? 'btn-primary' : 'btn-default' }}"
+            <button type="submit" class="btn btn-sm {{ $period === 'custom' ? 'btn-primary pulse-active' : 'btn-default' }}"
                     style="margin-left:6px;vertical-align:middle">
                 <i class="fa fa-filter"></i> Apply
             </button>
@@ -52,6 +71,45 @@
                 <i class="fa fa-clock-o"></i> {{ now()->format('d M Y') }}
             @endif
         </span>
+    </div>
+</div>
+
+
+
+<!-- Dynamic Headline based on current filters -->
+<div style="margin: 20px 0 25px 0; padding: 20px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;">
+                <i class="fa fa-line-chart" style="margin-right: 10px;"></i>
+                Recovery Performance Overview
+            </h2>
+            <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 1.1rem; font-weight: 500;">
+                @if($period === 'month')
+                    <i class="fa fa-calendar-o"></i> Viewing data for <strong>This Month</strong>
+                    <span style="opacity: 0.8; margin-left: 10px;">({{ now()->format('F Y') }})</span>
+                @elseif($period === 'quarter')
+                    <i class="fa fa-calendar"></i> Viewing data for <strong>This Quarter</strong>
+                    <span style="opacity: 0.8; margin-left: 10px;">(Q{{ now()->quarter }} {{ now()->year }})</span>
+                @elseif($period === 'year')
+                    <i class="fa fa-calendar-check-o"></i> Viewing data for <strong>This Year</strong>
+                    <span style="opacity: 0.8; margin-left: 10px;">({{ now()->year }})</span>
+                @elseif($period === 'custom' && $dateFrom && $dateTo)
+                    <i class="fa fa-calendar-plus-o"></i> Custom Period: <strong>{{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }}</strong> to <strong>{{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }}</strong>
+                    <span style="opacity: 0.8; margin-left: 10px;">({{ \Carbon\Carbon::parse($dateFrom)->diffInDays(\Carbon\Carbon::parse($dateTo)) + 1 }} days)</span>
+                @else
+                    <i class="fa fa-calendar"></i> Recovery Dashboard
+                @endif
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <div style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3);">
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Last Updated</div>
+                <div style="font-size: 1.1rem; color: #ffffff; font-weight: 600;">
+                    <i class="fa fa-clock-o"></i> {{ now()->format('h:i A') }}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
