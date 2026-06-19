@@ -3206,9 +3206,15 @@
         }
 
         // Debug ledgerBlocker
-        console.log('ledgerBlocker value:', '{{$ledgerBlocker}}');
-        console.log('ledgerBlocker type:', typeof '{{$ledgerBlocker}}');
-        console.log('ledgerBlocker as JSON:', @json($ledgerBlocker));
+        @if(isset($ledgerBlocker))
+            console.log('ledgerBlocker:', @json($ledgerBlocker));
+            console.log('ledgerBlocker status:', {{ $ledgerBlocker['status'] ?? 'null' }});
+            console.log('ledgerBlocker amount:', {{ $ledgerBlocker['amount'] ?? 'null' }});
+            console.log('ledgerBlocker deposit_type:', '{{ $ledgerBlocker['deposit_type'] ?? 'N/A' }}');
+            console.log('ledgerBlocker message:', '{{ $ledgerBlocker['message'] ?? 'N/A' }}');
+        @else
+            console.warn('ledgerBlocker variable is NOT defined - needs to be passed from controller');
+        @endif
     </script>
 
 @endsection

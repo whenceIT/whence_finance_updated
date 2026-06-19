@@ -1532,7 +1532,11 @@ public function create()
         // Log audit for accessing and viewing loan details page
         $user = Sentinel::getUser();
         $this->auditorService->logAccessedLoanDetail($user, request(), $loan);
-        return view('loan.show', compact('loan'));
+        
+        // Get ledger blocker status for debugging
+        $ledgerBlocker = \App\Helpers\BlockerHelper::ledger_blocker();
+        
+        return view('loan.show', compact('loan', 'ledgerBlocker'));
     }
 
 
