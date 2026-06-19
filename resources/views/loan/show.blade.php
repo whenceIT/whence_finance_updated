@@ -3204,6 +3204,11 @@
                 document.getElementById('interest').value = outputs;
             }
         }
+
+        // Debug ledgerBlocker
+        console.log('ledgerBlocker value:', '{{$ledgerBlocker}}');
+        console.log('ledgerBlocker type:', typeof '{{$ledgerBlocker}}');
+        console.log('ledgerBlocker as JSON:', @json($ledgerBlocker));
     </script>
 
 @endsection
