@@ -3210,6 +3210,8 @@
             console.log('ledgerBlocker:', @json($ledgerBlocker));
             console.log('ledgerBlocker status:', {{ $ledgerBlocker['status'] ?? 'null' }});
             console.log('ledgerBlocker amount:', {{ $ledgerBlocker['amount'] ?? 'null' }});
+            console.log('ledgerBlocker system:', {{ $ledgerBlocker['system'] ?? 'null' }});
+            console.log('ledgerBlocker ledger:', {{ $ledgerBlocker['ledger'] ?? 'null' }});
             console.log('ledgerBlocker deposit_type:', '{{ $ledgerBlocker['deposit_type'] ?? 'N/A' }}');
             console.log('ledgerBlocker message:', '{{ $ledgerBlocker['message'] ?? 'N/A' }}');
         @else
