@@ -775,22 +775,7 @@
                      @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('client/transfer_approvals') }}"><i class="fa fa-circle-o"></i> Client Transfer Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{\App\Models\ClientTransferRequest::count()}}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\ClientTransferRequest::where('new_office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
-                    @if($role != 3 || $role != 2 || $role != 11)
-                        @if(Sentinel::hasAccess('expenses'))
-                            <li>
-                                <a href="{{ url('loan/recovery_case_approvals') }}">
-                                    <i class="fa fa-circle-o"></i> 
-                                    Cases of Recoveries 
-                                    <span class="label label-danger pull-right-container" >
-                                        {{\App\Models\RecoveryCase::whereNull('approved_date')->count()}}
-                                    </span>
-                                </a>
-                            </li>
-                        @endif
-                        @if(Sentinel::hasAccess('expenses'))
-                            <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span> </a></li>
-                        @endif
-                    @endif
+
                     @if(Sentinel::hasAccess('expenses'))
                         <li><a href="{{ url('loan/reloan_approvals') }}"><i class="fa fa-circle-o"></i> Reloan Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-info pull-right-container" >{{ 0 }}</span>@else<span class="label label-info pull-right-container" >{{\App\Models\LoanTransactionsPending::where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
@@ -1579,16 +1564,31 @@
                                 <a href="{{ url('recovery/report/overview') }}"><i class="fa fa-circle-o"></i> Recovery Reports</a>
                             </li>
                         
-                    <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
-                    @endif
-                  
-                    <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('loan/dormant_loans') }}"><i class="fa fa-frown-o"></i>Dormant Loans</a></li>
-                    @endif
-              
+                            <!-- Branch Uncollected -->
+                            @if(Sentinel::hasAccess('expenses'))
+                            <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
+                            @endif
+                        
+                            <!-- Branch Uncollected -->
+                            @if(Sentinel::hasAccess('expenses'))
+                            <li><a href="{{ url('loan/dormant_loans') }}"><i class="fa fa-frown-o"></i>Dormant Loans</a></li>
+                            @endif
+                                        @if($role != 3 || $role != 2 || $role != 11)
+                                @if(Sentinel::hasAccess('expenses'))
+                                    <li>
+                                        <a href="{{ url('loan/recovery_case_approvals') }}">
+                                            <i class="fa fa-circle-o"></i> 
+                                            Cases of Recoveries 
+                                            <span class="label label-danger pull-right-container" >
+                                                {{\App\Models\RecoveryCase::whereNull('approved_date')->count()}}
+                                            </span>
+                                        </a>
+                                    </li>
+                                @endif
+                                @if(Sentinel::hasAccess('expenses'))
+                                    <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span> </a></li>
+                                @endif
+                            @endif
                     </ul>
                 </li>
             </ul>

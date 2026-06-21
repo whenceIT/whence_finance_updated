@@ -2484,7 +2484,11 @@ if($branchUser->role){
     @endif
 
     @include('components.policy-of-the-day')
+
+    @include('components.training-hub-bento')
 @endsection
+
+
 @section('footer-scripts')
     <script src="{{ asset('assets/plugins/amcharts/amcharts.js') }}" type="text/javascript"></script>
     <script src="{{ asset('assets/plugins/amcharts/serial.js') }}" type="text/javascript"></script>
@@ -3347,4 +3351,23 @@ function fetchGivenOutTable() {
 </style>
         @endif
     @endif
+
+    {{-- Auto-scroll script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Scroll to bottom immediately on page load
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            
+            // Scroll back to top after 3 seconds
+            setTimeout(function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }, 3000);
+        });
+    </script>
 @endsection
