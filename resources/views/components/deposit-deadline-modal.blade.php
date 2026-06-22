@@ -29,7 +29,6 @@
         </div>
     </div>
 </div>
-@endif
 
 <style>
     #depositDeadlineWidget {
@@ -224,3 +223,4 @@
         });
     });
 </script>
+@endif
