@@ -27,7 +27,7 @@
 
     @include('components.ledger_blocker')
     <!-- Test with Anchor House First -->
-    @if(false) 
+    @if(date('d') >= 27 && date('d') <= 31) 
         @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
             <script>
                 toastr.warning('Some branch deposits for this month have not been recorded', 'Warning');
@@ -36,7 +36,7 @@
                 }, 3000);
             </script>
         @else
-            <x-debt-blocker/>
+            <!-- <x-debt-blocker/> -->
         @endif
     @endif
 

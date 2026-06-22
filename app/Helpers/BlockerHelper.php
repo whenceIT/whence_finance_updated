@@ -14,7 +14,7 @@ class BlockerHelper
     /**
      * Debt Blocker for Loan Operations
      *
-     * Checks whether the office has made its required monthly setup deposit (deposit_type 0)
+     * Checks whether the office has made its required monthly setup cost deposit (deposit_type 0)
      * and returns both the payment status and the current outstanding balance from office_debts.
      *
      * @param object $user

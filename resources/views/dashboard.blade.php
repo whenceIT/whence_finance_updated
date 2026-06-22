@@ -2486,6 +2486,8 @@ if($branchUser->role){
     @include('components.policy-of-the-day')
 
     @include('components.training-hub-bento')
+
+    @include('components.deposit-deadline-modal')
 @endsection
 
 

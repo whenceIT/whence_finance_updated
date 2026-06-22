@@ -609,7 +609,7 @@ function lockAll() {
                     <small class="text-muted format-hint">Enter Payment Reference Number</small>
                     <input type="text" class="form-control reference" placeholder="Enter reference number" required>
                     <br>
-                    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="0.01" step="0.01" required>
+                    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="5000" step="0.01" required>
                     <br>
                     <button class="btn btn-primary complete-btn" style="min-width: 100px;">
                         <span class="btn-text">Save Deposit</span>
