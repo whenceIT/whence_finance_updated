@@ -105,13 +105,13 @@
                 
                 deposits.forEach(function(d) {
                     var dateVal = d.date || '-';
-                    var typeVal = d.deposit_type_name || '-';
-                    var officeVal = d.office_name || '-';
-                    var userVal = d.bank_deposit_log_user_first_name && d.bank_deposit_log_user_last_name 
-                        ? (d.bank_deposit_log_user_first_name + ' ' + d.bank_deposit_log_user_last_name) 
+                    var typeVal = d.deposit_type_info ? d.deposit_type_info.name : '-';
+                    var officeVal = d.office ? d.office.name : '-';
+                    var userVal = d.bank_deposit_log && d.bank_deposit_log.user
+                        ? (d.bank_deposit_log.user.first_name + ' ' + d.bank_deposit_log.user.last_name) 
                         : '-';
-                    var methodVal = d.bank_deposit_log_method || 'Cash';
-                    var refVal = d.bank_deposit_log_reference_number || 'N/A';
+                    var methodVal = d.bank_deposit_log ? (d.bank_deposit_log.deposit_method || 'Cash') : 'Cash';
+                    var refVal = d.bank_deposit_log ? (d.bank_deposit_log.reference_number || 'N/A') : 'N/A';
                     var amountVal = d.amount || 0;
                     
                     table += '<tr>' +
@@ -170,13 +170,13 @@
         csvContent += 'Deposit Type,User,Office,Amount,Method,Reference,Date\n';
         
         depositsData.forEach(function(d) {
-            var typeVal = d.deposit_type_name || '-';
-            var userVal = d.bank_deposit_log_user_first_name && d.bank_deposit_log_user_last_name 
-                ? (d.bank_deposit_log_user_first_name + ' ' + d.bank_deposit_log_user_last_name) 
+            var typeVal = d.deposit_type_info ? d.deposit_type_info.name : '-';
+            var userVal = d.bank_deposit_log && d.bank_deposit_log.user
+                ? (d.bank_deposit_log.user.first_name + ' ' + d.bank_deposit_log.user.last_name) 
                 : '-';
-            var officeVal = d.office_name || '-';
-            var methodVal = d.bank_deposit_log_method || 'Cash';
-            var refVal = d.bank_deposit_log_reference_number || 'N/A';
+            var officeVal = d.office ? d.office.name : '-';
+            var methodVal = d.bank_deposit_log ? (d.bank_deposit_log.deposit_method || 'Cash') : 'Cash';
+            var refVal = d.bank_deposit_log ? (d.bank_deposit_log.reference_number || 'N/A') : 'N/A';
             var dateVal = d.date || '-';
             
             var row = [

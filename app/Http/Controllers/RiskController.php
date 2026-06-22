@@ -590,7 +590,7 @@ class RiskController extends Controller
         $year = $request->query('year');
 
         $query = \App\Models\Deposit::query()
-            ->with(['bankDepositLog']);
+            ->with(['bankDepositLog.user', 'office', 'depositTypeInfo']);
 
         if ($officeId) {
             $query->where('office', (int) $officeId);
@@ -612,6 +612,7 @@ class RiskController extends Controller
         ]);
     }
 
+    
     public function updateDepositAmount(Request $request)
     {
         $request->validate([
