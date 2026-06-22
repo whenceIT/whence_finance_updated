@@ -17,9 +17,9 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <div style="float: left; font-size: 13px; color: #666;">
+                <!-- <div style="float: left; font-size: 13px; color: #666;">
                     Salaries, Savings, Housing acivating: <span id="countdown" style="font-weight: 700; color: #c0392b;"></span> from now.
-                </div>
+                </div> -->
                 <a href="{{ url('user/branch_deposits') }}" class="btn btn-primary">Go to Branch Deposits</a>
             </div>
         </div>
