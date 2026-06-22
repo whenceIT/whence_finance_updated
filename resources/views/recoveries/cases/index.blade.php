@@ -86,7 +86,7 @@
 {{-- Table --}}
 <div class="box">
   <div class="box-header with-border">
-    <h3 class="box-title">Cases ({{ $cases->total() }})</h3>
+    <h3 class="box-title">Cases ({{ $casesByProvince->flatten()->count() }})</h3>
     <div class="box-tools">
       @if(Sentinel::hasAccess('recoveries.create'))
         <a href="{{ url('recovery/case/create') }}" class="btn btn-primary btn-sm">
@@ -96,95 +96,168 @@
     </div>
   </div>
   <div class="box-body no-padding">
-    <table class="table table-hover table-striped">
-      <thead>
-        <tr>
-          <th>Case #</th>
-          <th>Client</th>
-          <th>Category</th>
-          <th>Outstanding</th>
-          <th>Recovered</th>
-          <th>Status</th>
-          <th>Specialist</th>
-          <th>Branch</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($cases as $case)
-          <tr>
-            <td>
-              <a href="{{ url('recovery/case/' . $case->id . '/show') }}">
-                {{ $case->case_number }}
-              </a>
-            </td>
-            <td>
-              <strong>{{ ($case->client->client_type ?? '') === 'business' ? ($case->client->full_name ?? '—') : (trim(($case->client->first_name ?? '') . ' ' . ($case->client->last_name ?? '')) ?: '—') }}</strong>
-            </td>
-            <td>
-              <span class="label label-default">
-                {{ $categories[$case->category] ?? ucwords(str_replace('_',' ',$case->category)) }}
-              </span>
-            </td>
-            <td>{{ number_format($case->loan_outstanding_amount, 2) }}</td>
-            <td>{{ number_format($case->amount_recovered, 2) }}</td>
-            <td>
+    @foreach($casesByProvince as $provinceName => $provinceCases)
+      @php
+        $provinceId = 'province-' . \Illuminate\Support\Str::slug($provinceName);
+        $officeGroups = $provinceCases->groupBy(function($case) {
+            return $case->originBranch ? $case->originBranch->name : 'Unknown Office';
+        })->sortKeys();
+      @endphp
+      
+      <div class="panel panel-default">
+        <div class="panel-heading" style="cursor: pointer; background: #3c8dbc; color: white;" 
+             data-toggle="collapse" data-target="#{{ $provinceId }}">
+          <h4 class="panel-title">
+            <i class="fa fa-map-marker"></i> 
+            <strong>{{ $provinceName }}</strong>
+            <span class="badge bg-white" style="color: #3c8dbc; margin-left: 10px;">{{ $provinceCases->count() }} cases</span>
+            <i class="fa fa-chevron-down pull-right" style="margin-top: 4px;"></i>
+          </h4>
+        </div>
+        
+        <div id="{{ $provinceId }}" class="panel-collapse collapse">
+          <div class="panel-body" style="padding: 0;">
+            
+            @foreach($officeGroups as $officeName => $officeCases)
               @php
-                $statusMap = [
-                  'runaway_pending_confirmation'    => ['Pending Confirmation', 'label-warning'],
-                  'runaway_active_recovery'         => ['Active Recovery',      'label-primary'],
-                  'recovered_runaway'               => ['Recovered',            'label-success'],
-                  'escalated_handover'              => ['Handover',             'label-default'],
-                  'escalated_in_review'             => ['In Review',            'label-info'],
-                  'escalated_active_recovery'       => ['Active Recovery',      'label-primary'],
-                  'recovered_post_escalation'       => ['Recovered',            'label-success'],
-                  'dormant_for_revival'             => ['For Revival',          'label-warning'],
-                  'recovery_revived'                => ['Revived',              'label-success'],
-                  'pre_litigation_review'           => ['Pre-Litigation',       'label-warning'],
-                  'legal_filed'                     => ['Legal Filed',          'label-danger'],
-                  'legal_active'                    => ['Legal Active',         'label-danger'],
-                  'legal_judgment_won'              => ['Judgment Won',         'label-info'],
-                  'recovered_legal'                 => ['Recovered',            'label-success'],
-                  'skip_trace_required'             => ['Trace Required',       'label-warning'],
-                  'skip_trace_digital_review'       => ['Digital Review',       'label-info'],
-                  'skip_trace_contact_reengagement' => ['Re-engagement',        'label-primary'],
-                  'skip_trace_field_intel_active'   => ['Field Intel',          'label-primary'],
-                  'located_for_recovery'            => ['Located',              'label-info'],
-                  'closed'                          => ['Closed',               'label-default'],
-                  'written_off'                     => ['Written Off',          'label-default'],
-                ];
-                [$stLabel, $stClass] = $statusMap[$case->status] ?? [ucwords(str_replace('_',' ',$case->status)), 'label-default'];
+                $officeId = $provinceId . '-office-' . \Illuminate\Support\Str::slug($officeName);
               @endphp
-              <span class="label {{ $stClass }}">{{ $stLabel }}</span>
-            </td>
-            <td>{{ $case->assignedSpecialist ? (trim(($case->assignedSpecialist->first_name ?? '') . ' ' . ($case->assignedSpecialist->last_name ?? '')) ?: '—') : '—' }}</td>
-            <td>{{ $case->originBranch ? $case->originBranch->name : '—' }}</td>
-            <td>
-              <a href="{{ url('recovery/case/' . $case->id . '/show') }}" class="btn btn-xs btn-default">View</a>
-              <a href="{{ url('recovery/case/' . $case->id . '/edit') }}" class="btn btn-xs btn-default">Edit</a>
-              <form action="{{ url('recovery/case/' . $case->id) }}" method="POST" style="display:inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to delete this case?')">Delete</button>
-              </form>
-            </td>
-          </tr>
-        @empty
-          <tr>
-            <td colspan="9" class="text-center" style="padding:30px;color:#999">
-              No cases found.
-              @if(Sentinel::hasAccess('recoveries.create'))
-                <a href="{{ url('recovery/case/create') }}">Create one?</a>
-              @endif
-            </td>
-          </tr>
-        @endforelse
-      </tbody>
-    </table>
+              
+              <div class="panel panel-default" style="margin: 10px; border-left: 3px solid #00c0ef;">
+                <div class="panel-heading" style="cursor: pointer; background: #f4f4f4;" 
+                     data-toggle="collapse" data-target="#{{ $officeId }}">
+                  <h5 class="panel-title">
+                    <i class="fa fa-building-o"></i> 
+                    {{ $officeName }}
+                    <span class="badge bg-blue">{{ $officeCases->count() }}</span>
+                    <i class="fa fa-chevron-down pull-right"></i>
+                  </h5>
+                </div>
+                
+                <div id="{{ $officeId }}" class="panel-collapse collapse">
+                  <div class="panel-body" style="padding: 0;">
+                    <table class="table table-hover table-striped" style="margin-bottom: 0;">
+                      <thead>
+                        <tr>
+                          <th>Case #</th>
+                          <th>Client</th>
+                          <th>Category</th>
+                          <th>Outstanding</th>
+                          <th>Recovered</th>
+                          <th>Status</th>
+                          <th>Specialist</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @foreach($officeCases as $case)
+                          <tr>
+                            <td>
+                              <a href="{{ url('recovery/case/' . $case->id . '/show') }}">
+                                {{ $case->case_number }}
+                              </a>
+                            </td>
+                            <td>
+                              <strong>{{ ($case->client->client_type ?? '') === 'business' ? ($case->client->full_name ?? '—') : (trim(($case->client->first_name ?? '') . ' ' . ($case->client->last_name ?? '')) ?: '—') }}</strong>
+                            </td>
+                            <td>
+                              <span class="label label-default">
+                                {{ $categories[$case->category] ?? ucwords(str_replace('_',' ',$case->category)) }}
+                              </span>
+                            </td>
+                            <td>{{ number_format($case->loan_outstanding_amount, 2) }}</td>
+                            <td>{{ number_format($case->amount_recovered, 2) }}</td>
+                            <td>
+                              @php
+                                $statusMap = [
+                                  'runaway_pending_confirmation'    => ['Pending Confirmation', 'label-warning'],
+                                  'runaway_active_recovery'         => ['Active Recovery',      'label-primary'],
+                                  'recovered_runaway'               => ['Recovered',            'label-success'],
+                                  'escalated_handover'              => ['Handover',             'label-default'],
+                                  'escalated_in_review'             => ['In Review',            'label-info'],
+                                  'escalated_active_recovery'       => ['Active Recovery',      'label-primary'],
+                                  'recovered_post_escalation'       => ['Recovered',            'label-success'],
+                                  'dormant_for_revival'             => ['For Revival',          'label-warning'],
+                                  'recovery_revived'                => ['Revived',              'label-success'],
+                                  'pre_litigation_review'           => ['Pre-Litigation',       'label-warning'],
+                                  'legal_filed'                     => ['Legal Filed',          'label-danger'],
+                                  'legal_active'                    => ['Legal Active',         'label-danger'],
+                                  'legal_judgment_won'              => ['Judgment Won',         'label-info'],
+                                  'recovered_legal'                 => ['Recovered',            'label-success'],
+                                  'skip_trace_required'             => ['Trace Required',       'label-warning'],
+                                  'skip_trace_digital_review'       => ['Digital Review',       'label-info'],
+                                  'skip_trace_contact_reengagement' => ['Re-engagement',        'label-primary'],
+                                  'skip_trace_field_intel_active'   => ['Field Intel',          'label-primary'],
+                                  'located_for_recovery'            => ['Located',              'label-info'],
+                                  'closed'                          => ['Closed',               'label-default'],
+                                  'written_off'                     => ['Written Off',          'label-default'],
+                                ];
+                                [$stLabel, $stClass] = $statusMap[$case->status] ?? [ucwords(str_replace('_',' ',$case->status)), 'label-default'];
+                              @endphp
+                              <span class="label {{ $stClass }}">{{ $stLabel }}</span>
+                            </td>
+                            <td>{{ $case->assignedSpecialist ? (trim(($case->assignedSpecialist->first_name ?? '') . ' ' . ($case->assignedSpecialist->last_name ?? '')) ?: '—') : '—' }}</td>
+                            <td>
+                              <a href="{{ url('recovery/case/' . $case->id . '/show') }}" class="btn btn-xs btn-default">View</a>
+                              <a href="{{ url('recovery/case/' . $case->id . '/edit') }}" class="btn btn-xs btn-default">Edit</a>
+                              <form action="{{ url('recovery/case/' . $case->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to delete this case?')">Delete</button>
+                              </form>
+                            </td>
+                          </tr>
+                        @endforeach
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              
+            @endforeach
+            
+          </div>
+        </div>
+      </div>
+    @endforeach
+
+    @if($casesByProvince->isEmpty())
+      <div class="box box-solid">
+        <div class="box-body">
+          <p class="text-center" style="padding:30px;color:#999;margin:0;">
+            No cases found.
+            @if(Sentinel::hasAccess('recoveries.create'))
+              <a href="{{ url('recovery/case/create') }}">Create one?</a>
+            @endif
+          </p>
+        </div>
+      </div>
+    @endif
+
+    <style>
+      .panel-heading[data-toggle="collapse"]:hover {
+        opacity: 0.9;
+      }
+      .panel-heading[data-toggle="collapse"] .fa-chevron-down {
+        transition: transform 0.3s;
+      }
+      .panel-heading[data-toggle="collapse"]:not(.collapsed) .fa-chevron-down {
+        transform: rotate(180deg);
+      }
+    </style>
+
+    <script>
+      $(document).ready(function() {
+        // Toggle chevron icon on collapse
+        $('.panel-collapse').on('show.bs.collapse', function () {
+          $(this).prev('.panel-heading').find('.fa-chevron-down').css('transform', 'rotate(180deg)');
+        });
+        $('.panel-collapse').on('hide.bs.collapse', function () {
+          $(this).prev('.panel-heading').find('.fa-chevron-down').css('transform', 'rotate(0deg)');
+        });
+      });
+    </script>
   </div>
-  @if($cases->hasPages())
-    <div class="box-footer">{{ $cases->links() }}</div>
-  @endif
 </div>
 
 <script>

@@ -54,4 +54,22 @@ enum RecoveryCategory: string
             self::SkipTrace   => 100.0,
         };
     }
+
+    /** Get count of cases for this category */
+    public function count(): int
+    {
+        return \App\Models\RecoveryCase::whereNotNull('approved_date')
+            ->where('category', $this->value)
+            ->count();
+    }
+
+    /** Get all category counts as array */
+    public static function allCounts(): array
+    {
+        $counts = [];
+        foreach (self::cases() as $category) {
+            $counts[$category->value] = $category->count();
+        }
+        return $counts;
+    }
 }

@@ -1566,14 +1566,14 @@
                         
                             <!-- Branch Uncollected -->
                             @if(Sentinel::hasAccess('expenses'))
-                            <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li>
+                            <!-- <li><a href="{{ url('loan/branch_uncollected') }}"><i class="fa fa-circle-o"></i> Branch uncollected</a></li> -->
                             @endif
                         
                             <!-- Branch Uncollected -->
                             @if(Sentinel::hasAccess('expenses'))
-                            <li><a href="{{ url('loan/dormant_loans') }}"><i class="fa fa-frown-o"></i>Dormant Loans</a></li>
+                            <!-- <li><a href="{{ url('loan/dormant_loans') }}"><i class="fa fa-frown-o"></i>Dormant Loans</a></li> -->
                             @endif
-                                        @if($role != 3 || $role != 2 || $role != 11)
+                            @if($role != 3 || $role != 2 || $role != 11)
                                 @if(Sentinel::hasAccess('expenses'))
                                     <li>
                                         <a href="{{ url('loan/recovery_case_approvals') }}">
