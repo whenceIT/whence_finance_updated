@@ -1,4 +1,4 @@
-@if(Sentinel::getUser()->role->role_id == 4)
+
 <!-- Deposit Deadline Countdown Widget -->
 <div id="depositDeadlineWidget" style="display: none;">
     <div class="deadline-widget">
@@ -223,4 +223,3 @@
         });
     });
 </script>
-@endif
