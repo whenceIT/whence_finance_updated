@@ -553,6 +553,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::get('closed', 'ClientController@closed');
     Route::get('clients_inactive', 'ClientController@clients_inactive');
     Route::get('clients_blacklisted', 'ClientController@clients_blacklisted');
+    Route::get('dormant_clients', 'ClientController@dormant_clients');
     Route::get('create', 'ClientController@create');
     Route::post('store', 'ClientController@store');
     Route::get('create_blacklist', 'ClientController@create_blacklist');

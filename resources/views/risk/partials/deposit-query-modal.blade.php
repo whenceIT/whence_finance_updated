@@ -104,16 +104,19 @@
                     '</tr></thead><tbody>';
                 
                 deposits.forEach(function(d) {
-                    var dateVal = d.created_date || d.date || '-';
-                    var typeVal = d.deposit_type_name || d.type_name || '-';
-                    var userVal = d.user_name || d.User || '-';
-                    var methodVal = d.deposit_method || d.method || '-';
-                    var refVal = d.reference_number || d.reference || '-';
+                    var dateVal = d.date || '-';
+                    var typeVal = d.deposit_type_name || '-';
+                    var officeVal = d.office_name || '-';
+                    var userVal = d.bank_deposit_log_user_first_name && d.bank_deposit_log_user_last_name 
+                        ? (d.bank_deposit_log_user_first_name + ' ' + d.bank_deposit_log_user_last_name) 
+                        : '-';
+                    var methodVal = d.bank_deposit_log_method || 'Cash';
+                    var refVal = d.bank_deposit_log_reference_number || 'N/A';
                     var amountVal = d.amount || 0;
                     
                     table += '<tr>' +
                         '<td style="padding:6px;">' + typeVal + '</td>' +
-                        '<td style="padding:6px;">' + d.office_name + '</td>' +
+                        '<td style="padding:6px;">' + officeVal + '</td>' +
                         '<td style="padding:6px; text-align:right;"><span class="editable-amount" data-id="' + d.id + '" contenteditable="true" style="cursor:text; padding:4px; border:1px solid transparent; border-radius:3px;">' + amountVal.toLocaleString() + '</span></td>' +
                         '<td style="padding:6px;">' + methodVal + '</td>' +
                         '<td style="padding:6px; font-family:monospace; font-size:11px;">' + refVal + '</td>' +
@@ -167,14 +170,23 @@
         csvContent += 'Deposit Type,User,Office,Amount,Method,Reference,Date\n';
         
         depositsData.forEach(function(d) {
+            var typeVal = d.deposit_type_name || '-';
+            var userVal = d.bank_deposit_log_user_first_name && d.bank_deposit_log_user_last_name 
+                ? (d.bank_deposit_log_user_first_name + ' ' + d.bank_deposit_log_user_last_name) 
+                : '-';
+            var officeVal = d.office_name || '-';
+            var methodVal = d.bank_deposit_log_method || 'Cash';
+            var refVal = d.bank_deposit_log_reference_number || 'N/A';
+            var dateVal = d.date || '-';
+            
             var row = [
-                d.deposit_type_name || d.type_name || '-',
-                d.user_name || d.User || '-',
-                d.office_name || '-',
+                typeVal,
+                userVal,
+                officeVal,
                 d.amount || 0,
-                d.deposit_method || d.method || '-',
-                d.reference_number || d.reference || '-',
-                d.created_date || d.date || '-'
+                methodVal,
+                refVal,
+                dateVal
             ].join(',');
             csvContent += row + '\n';
         });

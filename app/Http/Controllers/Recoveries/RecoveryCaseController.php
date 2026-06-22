@@ -136,7 +136,9 @@ class RecoveryCaseController extends Controller
                 ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
                 ->get();
 
-            $offices = Office::orderBy('name')->get();
+            $offices = Office::whereNotIn('id', [67, 69,70,71,72,73,74,75,76,77,78]) 
+                ->orderBy('name')
+                ->get();
             
             // Get specialists with their user relationship
             $specialists = Specialist::with('user')->where('is_active', true)->get();
@@ -433,11 +435,14 @@ class RecoveryCaseController extends Controller
         }
 
         $data = RecoveryPayment::where('status', 0)
-            ->whereHas('recoveryCase')
+            ->whereHas('recoveryCase', function($query) {
+                $query->whereHas('loan');
+            })
             ->with([
                 'recordedBy',
                 'recoveryCase',
                 'recoveryCase.loan',
+                'recoveryCase.loan.office',
                 'recoveryCase.client',
                 'recoveryCase.originBranch',
                 'recoveryCase.supportingBranch',
