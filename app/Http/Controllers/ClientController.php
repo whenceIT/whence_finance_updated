@@ -1523,7 +1523,7 @@ public function store_client_location(Request $request, $id){
             Flash::success("Client marked as recovered!");
             return redirect()->route('client.dormant_clients');
         } catch (\Throwable $th) {
-            dd($th);
+            dd($th, $id);
         }
     }
 }

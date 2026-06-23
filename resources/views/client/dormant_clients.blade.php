@@ -29,7 +29,7 @@
             <table class="table table-bordered table-hover table-striped" id="data-table">
                 <thead>
                 <tr>
-                    <th>Account #</th>
+                    <th>ID</th>
                     <th>Client Name</th>
                     <th>Mobile</th>
                     <th>Office</th>
@@ -49,7 +49,7 @@
                             : null;
                     ?>
                     <tr>
-                        <td>{{ $client->account_no ?? '-' }}</td>
+                        <td>{{ $client->id ?? '-' }}</td>
                         <td>
                             <strong>{{ $client->first_name }} {{ $client->last_name }}</strong>
                             @if($client->loans->isEmpty())
