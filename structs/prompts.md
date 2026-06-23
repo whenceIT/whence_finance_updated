@@ -21,4 +21,4 @@ Custom option to have two fields (This Month (default - when page loads)):
 https://lms2backend.whencefinancesystem.com
 
 
- ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}
+ 
