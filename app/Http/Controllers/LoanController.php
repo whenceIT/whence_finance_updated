@@ -3210,7 +3210,7 @@ public function create()
                 $loan_transaction->notes_pd = $request->notes;
                 // $loan_transaction->request_id = $request->$id;
                 $loan_transaction->save();
-                $client_id = $lnoan->client_id;
+                $client_id = $loan->client_id;
                 $client = \App\Models\Client::find($client_id);
                 Http::post('https://notifications.whencefinancesystem.com/emit', [
                     'event' => 'loan.created',

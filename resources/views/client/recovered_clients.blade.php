@@ -96,6 +96,8 @@
     </div>
 @endsection
 
+@include('components.kilo-alert')
+
 @section('footer-scripts')
 <script>
     $(document).ready(function() {

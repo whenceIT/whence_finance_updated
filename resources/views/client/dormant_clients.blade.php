@@ -133,6 +133,8 @@
     </div>
 @endsection
 
+@include('components.kilo-alert')
+
 @section('footer-scripts')
 <script>
     $(document).ready(function() {
@@ -207,13 +209,14 @@
             },
             success: function(response) {
                 if (response.success) {
-                    location.reload();
+                    KiloAlert.success('Client marked as recovered!');
+                    setTimeout(function() { location.reload(); }, 1500);
                 } else {
-                    alert('Error: ' + response.message);
+                    KiloAlert.error('Error: ' + response.message);
                 }
             },
             error: function(xhr) {
-                alert('An error occurred. Please try again.');
+                KiloAlert.error('An error occurred. Please try again.');
             }
         });
     }
