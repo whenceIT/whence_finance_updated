@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Deposit;
 use App\Models\BankDepositLog;
 use App\Models\DepositMonthExemption;
+use App\Models\DebtBalances;
 
 
 class RiskController extends Controller
@@ -1947,11 +1948,20 @@ class RiskController extends Controller
     public function updateDebtBalance(Request $request, $id)
     {
         try {
-            $debtBalance = \App\Models\DebtBalances::findOrFail($id);
+            $debtBalance = DebtBalances::findOrFail($id);
 
             $validated = $request->validate([
                 'balance' => 'required|numeric|min:0',
             ]);
+
+            if ($validated['balance'] == 0) {
+                $debtBalance->delete();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Debt balance deleted successfully!',
+                ]);
+            }
 
             $debtBalance->update([
                 'balance' => (int) $validated['balance'],
@@ -1987,7 +1997,7 @@ class RiskController extends Controller
     public function deleteDebtBalance($id)
     {
         try {
-            $debtBalance = \App\Models\DebtBalances::findOrFail($id);
+            $debtBalance = DebtBalances::findOrFail($id);
             $debtBalance->delete();
 
             return response()->json([
