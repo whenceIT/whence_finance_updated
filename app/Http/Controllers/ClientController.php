@@ -1517,6 +1517,7 @@ public function store_client_location(Request $request, $id){
     {
         try {
             $client = Client::where('id',$id)->first();
+            dd($client, $id);
             $client->is_dormant_recovery = 1;
             $client->save();
 
