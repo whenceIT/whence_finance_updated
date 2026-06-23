@@ -41,7 +41,7 @@ use Intervention\Image\Facades\Image;
 use Laracasts\Flash\Flash;
 use Carbon\Carbon;
 use App\Models\UserRole;
-//use Image;
+use Illuminate\Support\Facades\DB;
 
 
 class ClientController extends Controller
@@ -1513,17 +1513,16 @@ public function store_client_location(Request $request, $id){
         return view('client.recovered_clients', compact('data'));
     }
 
-    public function mark_recovered($id)
+public function mark_recovered($id)
     {
-        DB::update(
-            'UPDATE clients 
-            SET is_dormant_recovery = 1, updated_at = NOW()
-            WHERE id = ?',
-            [$id]
-        );
+        if (!Sentinel::hasAccess('clients.view')) {
+            return response()->json(['success' => false, 'message' => 'Permission Denied']);
+        }
 
-        Flash::success('Client marked as recovered!');
-        
-        return redirect()->route('client.dormant_clients');
+        $client = Client::findOrFail($id);
+        $client->is_dormant_recovery = 1;
+        $client->save();
+
+        return response()->json(['success' => true, 'message' => 'Client marked as recovered!']);
     }
 }

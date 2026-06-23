@@ -553,9 +553,9 @@ Route::group(['prefix' => 'client'], function () {
     Route::get('closed', 'ClientController@closed');
     Route::get('clients_inactive', 'ClientController@clients_inactive');
     Route::get('clients_blacklisted', 'ClientController@clients_blacklisted');
-    Route::get('dormant_clients', 'ClientController@dormant_clients');
-    Route::get('recovered_clients', 'ClientController@recovered_clients');
-    Route::get('{client}/mark-recovered', 'ClientController@mark_recovered');
+    Route::get('dormant_clients', 'ClientController@dormant_clients')->name('client.dormant_clients');
+    Route::get('recovered_clients', 'ClientController@recovered_clients')->name('client.recovered_clients');
+    Route::post('{client}/mark-recovered', 'ClientController@mark_recovered')->name('client.mark_recovered');
     Route::get('create', 'ClientController@create');
     Route::post('store', 'ClientController@store');
     Route::get('create_blacklist', 'ClientController@create_blacklist');

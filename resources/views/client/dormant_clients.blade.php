@@ -111,7 +111,7 @@
                                         </li>
                                     @endif
                                     <li>
-                                        <a href="{{ url('client/' . $client->id . '/mark-recovered') }}" onclick="return confirm('Mark this client as recovered?')">
+                                        <a href="javascript:void(0)" onclick="markRecovered({{ $client->id }})">
                                             <i class="fa fa-check"></i> Mark Recovered
                                         </a>
                                     </li>
@@ -193,5 +193,29 @@
             responsive: true
         });
     });
+
+    function markRecovered(clientId) {
+        if (!confirm('Mark this client as recovered?')) {
+            return;
+        }
+
+        $.ajax({
+            url: '{{ url('client') }}/' + clientId + '/mark-recovered',
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    }
 </script>
 @endsection
