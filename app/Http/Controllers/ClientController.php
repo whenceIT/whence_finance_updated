@@ -1513,7 +1513,7 @@ public function store_client_location(Request $request, $id){
         return view('client.recovered_clients', compact('data'));
     }
 
-public function mark_recovered($id)
+    public function mark_recovered($id)
     {
         dd($id);
 

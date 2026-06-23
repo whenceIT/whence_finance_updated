@@ -84,7 +84,14 @@ class BlockerHelper
                 'message'=> 'Not a BM or LC'
             ];
         }
-        
+        if ( $user->office_id == 18 || $user->office_id == 46) {
+            return [
+                'status'=>false,
+                'amount' => 0,
+                'deposit_type'=> '',
+                'message'=> 'Except this office'
+            ];
+        }
         if (!$officeId) {
             return null;
         }
