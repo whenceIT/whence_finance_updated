@@ -1,28 +1,24 @@
 @extends('layouts.master')
 @section('title')
-    {{ trans_choice('general.client', 2) }} - Dormant Clients
+    {{ trans_choice('general.client', 2) }} - Recovered Clients
 @endsection
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">
-                <i class="fa fa-users"></i> Dormant Clients
+                <i class="fa fa-users"></i> Recovered Clients
             </h3>
             <div class="box-tools pull-right">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a href="{{ url('client/dormant_clients') }}"><i class="fa fa-users"></i> Dormant Clients</a></li>
-                    <li><a href="{{ url('client/recovered_clients') }}"><i class="fa fa-check-circle"></i> Recovered Clients</a></li>
+                    <li><a href="{{ url('client/dormant_clients') }}"><i class="fa fa-users"></i> Dormant Clients</a></li>
+                    <li class="active"><a href="{{ url('client/recovered_clients') }}"><i class="fa fa-check-circle"></i> Recovered Clients</a></li>
                 </ul>
             </div>
         </div>
         <div class="box-body">
             <div class="alert alert-info">
                 <i class="fa fa-info-circle"></i> 
-                <strong>Dormant clients</strong> are active clients who either:
-                <ul style="margin-bottom: 0; margin-top: 5px;">
-                    <li>Have never taken a loan, OR</li>
-                    <li>Haven't taken a loan in the last 3 months</li>
-                </ul>
+                <strong>Recovered clients</strong> are active clients who have successfully completed their loan repayment and have a closed loan status.
             </div>
 
             @if($data->count() > 0)
@@ -34,27 +30,20 @@
                     <th>Mobile</th>
                     <th>Office</th>
                     <th>Loan Officer</th>
-                    <th>Last Loan Date</th>
-                    <th>Days Since Last Loan</th>
-                    <th>Total Loans</th>
+                    <th>Last Closed Loan Date</th>
+                    <th>Total Closed Loans</th>
                     <th>Action</th>
                 </tr>
                 </thead>
                 <tbody>
                 @foreach($data as $client)
                     <?php
-                        $lastLoan = $client->loans->first();
-                        $daysSinceLastLoan = $lastLoan 
-                            ? \Carbon\Carbon::parse($lastLoan->created_at)->diffInDays(\Carbon\Carbon::now())
-                            : null;
+                        $lastClosedLoan = $client->loans->first();
                     ?>
                     <tr>
                         <td>{{ $client->account_no ?? '-' }}</td>
                         <td>
                             <strong>{{ $client->first_name }} {{ $client->last_name }}</strong>
-                            @if($client->loans->isEmpty())
-                                <br><span class="label label-default">No Loans</span>
-                            @endif
                         </td>
                         <td>{{ $client->mobile ?? '-' }}</td>
                         <td>{{ $client->office->name ?? '-' }}</td>
@@ -66,22 +55,8 @@
                             @endif
                         </td>
                         <td>
-                            @if($lastLoan)
-                                {{ \Carbon\Carbon::parse($lastLoan->created_at)->format('d M Y') }}
-                            @else
-                                <span class="text-muted">Never</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($daysSinceLastLoan)
-                                <span class="label 
-                                    @if($daysSinceLastLoan >= 180) label-danger
-                                    @elseif($daysSinceLastLoan >= 120) label-warning
-                                    @else label-info
-                                    @endif
-                                ">
-                                    {{ $daysSinceLastLoan }} days
-                                </span>
+                            @if($lastClosedLoan)
+                                {{ \Carbon\Carbon::parse($lastClosedLoan->closed_at ?? $lastClosedLoan->created_at)->format('d M Y') }}
                             @else
                                 <span class="text-muted">-</span>
                             @endif
@@ -103,13 +78,6 @@
                                             </a>
                                         </li>
                                     @endif
-                                    @if(Sentinel::hasAccess('loans.create'))
-                                        <li>
-                                            <a href="{{ url('loan/create?client_id=' . $client->id) }}">
-                                                <i class="fa fa-plus"></i> Create Loan
-                                            </a>
-                                        </li>
-                                    @endif
                                 </ul>
                             </div>
                         </td>
@@ -120,8 +88,8 @@
             @else
             <div class="alert alert-success text-center" style="padding: 40px;">
                 <i class="fa fa-check-circle" style="font-size: 48px; color: #5cb85c; margin-bottom: 15px;"></i>
-                <h4>No Dormant Clients Found</h4>
-                <p class="text-muted">All active clients have had recent loan activity within the last 3 months.</p>
+                <h4>No Recovered Clients Found</h4>
+                <p class="text-muted">No active clients with closed loans found at this time.</p>
             </div>
             @endif
         </div>
@@ -140,9 +108,9 @@
             "ordering": true,
             "info": true,
             "autoWidth": false,
-            "order": [[6, "desc"]], // Sort by Days Since Last Loan
+            "order": [[5, "desc"]],
             "columnDefs": [
-                {"orderable": false, "targets": [8]} // Action column
+                {"orderable": false, "targets": [7]}
             ],
             buttons: [
                 {
@@ -150,7 +118,7 @@
                     text: '<i class="fa fa-file-excel-o"></i> Excel',
                     className: 'btn btn-success btn-sm',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7] // Exclude action column
+                        columns: [0, 1, 2, 3, 4, 5, 6]
                     }
                 },
                 {
@@ -159,7 +127,7 @@
                     className: 'btn btn-danger btn-sm',
                     orientation: 'landscape',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                        columns: [0, 1, 2, 3, 4, 5, 6]
                     }
                 },
                 {
@@ -167,14 +135,14 @@
                     text: '<i class="fa fa-print"></i> Print',
                     className: 'btn btn-default btn-sm',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                        columns: [0, 1, 2, 3, 4, 5, 6]
                     }
                 }
             ],
             "language": {
                 "lengthMenu": "{{ trans('general.lengthMenu') }}",
                 "zeroRecords": "{{ trans('general.zeroRecords') }}",
-                "info": "Showing _START_ to _END_ of _TOTAL_ dormant clients",
+                "info": "Showing _START_ to _END_ of _TOTAL_ recovered clients",
                 "infoEmpty": "{{ trans('general.infoEmpty') }}",
                 "search": "{{ trans('general.search') }}",
                 "infoFiltered": "(filtered from _MAX_ total clients)",

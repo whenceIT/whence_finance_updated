@@ -1483,4 +1483,35 @@ public function store_client_location(Request $request, $id){
 
         return view('client.dormant_clients', compact('data'));
     }
+
+    public function recovered_clients()
+    {
+        if (!Sentinel::hasAccess('clients.view')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
+
+        $user = Sentinel::getUser();
+        $userInfo = GeneralHelper::get_user_info();
+
+        $clientQuery = Client::where('status', 'active')
+            ->whereHas('loans', function ($query) {
+                $query->where('status', 'closed');
+            })
+            ->with(['loans' => function ($query) {
+                $query->where('status', 'closed')->latest('created_at');
+            }, 'office', 'staff']);
+
+        if ($userInfo->role == 6) {
+            $clientQuery->whereHas('office', function ($q) use ($user) {
+                $q->where('province_id', $user->province_id);
+            });
+        } elseif ($userInfo->role == 4) {
+            $clientQuery->where('office_id', $user->office_id);
+        }
+
+        $data = $clientQuery->get();
+
+        return view('client.recovered_clients', compact('data'));
+    }
 }
