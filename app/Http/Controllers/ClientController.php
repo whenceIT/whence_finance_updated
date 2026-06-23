@@ -1436,17 +1436,13 @@ public function store_client_location(Request $request, $id){
 
     public function dormant_clients()
     {
-        if (!Sentinel::hasAccess('clients.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
 
         $user = Sentinel::getUser();
         $userInfo = GeneralHelper::get_user_info();
         $threeMonthsAgo = Carbon::now()->subMonths(3);
 
         // Get clients with role-based filtering
-        $clientQuery = Client::where('status', 'active')
+        $clientQuery = Client::where('status', 'active')->where('status', 'active')
             ->with(['loans' => function ($query) {
                 $query->latest('created_at');
             }, 'office', 'staff']);
