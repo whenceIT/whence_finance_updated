@@ -1495,9 +1495,7 @@ public function store_client_location(Request $request, $id){
         $userInfo = GeneralHelper::get_user_info();
 
         $clientQuery = Client::where('status', 'active')
-            ->whereHas('loans', function ($query) {
-                $query->where('status', 'closed');
-            })
+            ->where('is_dormant_recovery', 1)
             ->with(['loans' => function ($query) {
                 $query->where('status', 'closed')->latest('created_at');
             }, 'office', 'staff']);
@@ -1513,5 +1511,15 @@ public function store_client_location(Request $request, $id){
         $data = $clientQuery->get();
 
         return view('client.recovered_clients', compact('data'));
+    }
+
+    public function mark_recovered($id)
+    {
+        $client = Client::where('id',$id)->first();
+        $client->is_dormant_recovery = 1;
+        $client->save();
+
+        Flash::success("Client marked as recovered!");
+        return redirect()->route('client.dormant_clients');
     }
 }

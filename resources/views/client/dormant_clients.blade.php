@@ -11,7 +11,7 @@
             <div class="box-tools pull-right">
                 <ul class="nav nav-tabs">
                     <li class="active"><a href="{{ url('client/dormant_clients') }}"><i class="fa fa-users"></i> Dormant Clients</a></li>
-                    <li><a href="{{ url('client/recovered_clients') }}"><i class="fa fa-check-circle"></i> Recovered Clients</a></li>
+                    <li><a href="{{ url('client/recovered_clients') }}"><i class="fa fa-check-circle"></i> Recovered Dormant Clients</a></li>
                 </ul>
             </div>
         </div>
@@ -110,6 +110,11 @@
                                             </a>
                                         </li>
                                     @endif
+                                    <li>
+                                        <a href="{{ url('client/' . $client->id . '/mark-recovered') }}" onclick="return confirm('Mark this client as recovered?')">
+                                            <i class="fa fa-check"></i> Mark Recovered
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </td>

@@ -87,7 +87,7 @@ class Client extends Model
 }
 
 public function motorVehicleLoans()
-{
-    return $this->hasMany(MotorVehicleLoan::class);
-}
+    {
+        return $this->hasMany(MotorVehicleLoan::class);
+    }
 }
