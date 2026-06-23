@@ -1442,7 +1442,7 @@ public function store_client_location(Request $request, $id){
         $threeMonthsAgo = Carbon::now()->subMonths(3);
 
         // Get clients with role-based filtering
-        $clientQuery = Client::where('status', 'active')->where('status', 'active')
+        $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
             ->with(['loans' => function ($query) {
                 $query->latest('created_at');
             }, 'office', 'staff']);
