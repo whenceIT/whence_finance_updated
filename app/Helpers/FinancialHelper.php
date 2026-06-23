@@ -6,6 +6,8 @@ use App\Models\Loan;
 use App\Models\Client;
 use App\Models\Deposit;
 use App\Models\LoanTransaction;
+use App\Models\UnitShare;
+use App\Helpers\GeneralHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -123,10 +125,46 @@ class FinancialHelper
 
     public static function dormant_recovery_unit_share($client, $loan)
     {
-        $unitShareCount = //count how many loans for this client that have 'dormant_recovery = 1';
+        $unitShareCount = Loan::where('client_id', $client->id)
+            ->where('is_dormant_recovery', 1)
+            ->where('status', 'closed')
+            ->count();
+
         $dormantRecovery = $client->is_dormant_recovery ?? false;
 
-        //if dormantRecovery is true
-        //
+        if (!$dormantRecovery) {
+            return [
+                'unit_share_count' => $unitShareCount,
+                'status' => 'not_recovered',
+                'message' => 'Client is not marked as recovered.',
+                'unit_share_amount' => 0,
+            ];
+        }
+
+        if ($unitShareCount >= 3) {
+            return [
+                'unit_share_count' => $unitShareCount,
+                'status' => 'max_shares_reached',
+                'message' => 'Client has already received maximum 3 unit shares.',
+                'unit_share_amount' => 0,
+            ];
+        }
+
+        $interestRate = GeneralHelper::determine_interest_rate($loan->id);
+        $interestAmount = $loan->principal * $interestRate;
+        $unitShareAmount = $interestAmount * 0.5;
+
+        UnitShare::create([
+            'unit' => $unitShareCount + 1,
+            'amount' => $unitShareAmount,
+            'loan_id' => $loan->id,
+        ]);
+
+        return [
+            'unit_share_count' => $unitShareCount + 1,
+            'status' => 'unit_share_created',
+            'message' => 'Unit share created for loan #' . $loan->id,
+            'unit_share_amount' => $unitShareAmount,
+        ];
     }
 }
