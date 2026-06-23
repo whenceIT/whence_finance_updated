@@ -84,14 +84,7 @@ class BlockerHelper
                 'message'=> 'Not a BM or LC'
             ];
         }
-        if (true) {
-            return [
-                'status'=>false,
-                'amount' => 0,
-                'deposit_type'=> '',
-                'message'=> 'Except this office'
-            ];
-        }
+        
         if (!$officeId) {
             return null;
         }

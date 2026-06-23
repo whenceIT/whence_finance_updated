@@ -1901,7 +1901,18 @@ class RiskController extends Controller
                 'balance' => 'required|numeric|min:0',
             ]);
 
-            $debtBalance = \App\Models\DebtBalances::updateOrCreate(
+            if ($validated['balance'] == 0) {
+                DebtBalances::where('deposit_type_id', $validated['deposit_type_id'])
+                    ->where('office_id', $validated['office_id'])
+                    ->delete();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Debt balance deleted successfully!',
+                ]);
+            }
+
+            $debtBalance = DebtBalances::updateOrCreate(
                 [
                     'office_id' => $validated['office_id'],
                     'deposit_type_id' => $validated['deposit_type_id'],

@@ -297,6 +297,7 @@ function totalAmount($transactions) {
 @include('components.policy-of-the-day')
 
 @include('components.deposit-deadline-modal')
+<!-- @include('components.general-reminder-modal') -->
 @endsection
 
 @section('footer-scripts')
