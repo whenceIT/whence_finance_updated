@@ -1515,9 +1515,7 @@ public function store_client_location(Request $request, $id){
 
     public function mark_recovered($id)
     {
-        dd($id);
-
-        $client = Client::findOrFail($id);
+        $client = $id;
         $client->is_dormant_recovery = 1;
         $client->save();
 
