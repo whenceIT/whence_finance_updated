@@ -84,7 +84,7 @@ class BlockerHelper
                 'message'=> 'Not a BM or LC'
             ];
         }
-        if (true) {
+        if ($user->office_id == 1 ||$user->office_id == 2 ||$user->office_id == 2 || $user->office_id == 36 || $user->office_id == 34 || $user->office_id == 39 || $user->office_id == 52) {
             return [
                 'status'=>false,
                 'amount' => 0,

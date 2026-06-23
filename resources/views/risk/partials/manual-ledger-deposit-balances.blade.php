@@ -35,10 +35,10 @@
             } else {
                 data.forEach(function(d) {
                     var buildingPaid = parseFloat(d.building_paid) || 0;
-                    var buildingOutstanding = parseFloat(d.building_outstanding) || 0;
+                    var buildingOutstanding = Math.max(0, parseFloat(d.building_outstanding) || 0);
                     var buildingLedger = d.ledger_balance_building ? (parseFloat(d.ledger_balance_building.balance) || 0) : 0;
                     var statutoryPaid = parseFloat(d.statutory_paid) || 0;
-                    var statutoryOutstanding = parseFloat(d.statutory_outstanding) || 0;
+                    var statutoryOutstanding = Math.max(0, parseFloat(d.statutory_outstanding) || 0);
                     var statutoryLedger = d.ledger_balance_statutory ? (parseFloat(d.ledger_balance_statutory.balance) || 0) : 0;
 
                     // Consider equal if difference is very small (tolerance for floating math)
