@@ -1515,9 +1515,7 @@ public function store_client_location(Request $request, $id){
 
 public function mark_recovered($id)
     {
-        if (!Sentinel::hasAccess('clients.view')) {
-            return response()->json(['success' => false, 'message' => 'Permission Denied']);
-        }
+        dd($id);
 
         $client = Client::findOrFail($id);
         $client->is_dormant_recovery = 1;
