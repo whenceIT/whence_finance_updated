@@ -223,7 +223,7 @@ class PlatformController extends Controller
         return response()->json(['success' => true, 'message' => 'Activated blocking for all offices.']);
     }
 
-public function deactivateBlockSkipAllOffices()
+    public function deactivateBlockSkipAllOffices()
     {
         PlatformSetting::where('key','like', 'branch_block_skiping_%')->delete();
         

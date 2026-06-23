@@ -604,6 +604,7 @@ function lockAll() {
                         <option value="access">Access</option>
                         <option value="absa">Absa</option>
                         <option value="withinhere">WithinHere</option>
+                        <option value="zanaco_online_transfer">Zanaco Online Transfer</option>
                     </select>
                     <br>
                     <small class="text-muted format-hint">Enter Payment Reference Number</small>
@@ -919,7 +920,7 @@ function lockAll() {
         }
 
         // Tempro bypass
-        let valid = true;
+        let valid = false;
 
         switch (paymentMethod) {
             case 'airtel':
@@ -942,6 +943,9 @@ function lockAll() {
                 break;
             case 'withinhere':
                 valid = /^\d+$/.test(currentReferenceNumber);
+                break;
+            case 'zanaco_online_transfer':
+                valid = /^\d{3}[A-Za-z]{4}\d{7}[A-Za-z]{2}$/.test(currentReferenceNumber);
                 break;
         }
 
