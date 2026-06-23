@@ -1515,11 +1515,15 @@ public function store_client_location(Request $request, $id){
 
     public function mark_recovered($id)
     {
-        $client = Client::where('id',$id)->first();
-        $client->is_dormant_recovery = 1;
-        $client->save();
+        try {
+            $client = Client::where('id',$id)->first();
+            $client->is_dormant_recovery = 1;
+            $client->save();
 
-        Flash::success("Client marked as recovered!");
-        return redirect()->route('client.dormant_clients');
+            Flash::success("Client marked as recovered!");
+            return redirect()->route('client.dormant_clients');
+        } catch (\Throwable $th) {
+            dd($th);
+        }
     }
 }
