@@ -598,7 +598,6 @@ function lockAll() {
                     <select class="form-control payment-method">
                         <option value="">Select Method</option>
                         <option value="airtel">Airtel Money</option>
-                        
                         <option value="zanaco_express">Zanaco Express</option>
                         <option value="mtn">MTN MoMo</option>
                         <option value="zanaco_cash">Zanaco Cash Deposit</option>

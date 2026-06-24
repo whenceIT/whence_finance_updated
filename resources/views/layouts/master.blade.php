@@ -1972,7 +1972,7 @@ $office = $userInfo->office;
     @include('components.x-settings-modal')
     @include('components.performance_pusher')
     @include('components.notification')
-
+    @include('components.ledger_blocker')
 </body>
 
 
