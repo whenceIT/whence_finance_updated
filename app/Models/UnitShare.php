@@ -14,6 +14,8 @@ class UnitShare extends Model
         'amount',
         'loan_id',
         'loan_txn_id',
+        'office_id',
+        'user_id',
     ];
 
     protected $casts = [
@@ -34,5 +36,15 @@ class UnitShare extends Model
     public function loanTransaction(): BelongsTo
     {
         return $this->belongsTo(LoanTransaction::class, 'loan_txn_id');
+    }
+
+    public function office(): BelongsTo
+    {
+        return $this->belongsTo(Office::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

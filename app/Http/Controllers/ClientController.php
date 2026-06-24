@@ -1436,65 +1436,38 @@ public function store_client_location(Request $request, $id){
 
     public function dormant_clients()
     {
-
-        $user = Sentinel::getUser();
-        $userInfo = GeneralHelper::get_user_info();
-        $threeMonthsAgo = Carbon::now()->subMonths(3);
-
-        // Get clients with role-based filtering
-        $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
-            ->with(['loans' => function ($query) {
-                $query->latest('created_at');
-            }, 'office', 'staff']);
-
-        // Apply role-based filtering
-        if ($userInfo->role == 6) {
-            // Provincial Manager: Only see clients in their own province
-            $clientQuery->whereHas('office', function ($q) use ($user) {
-                $q->where('province_id', $user->province_id);
-            });
-        } elseif ($userInfo->role == 4) {
-            // Branch Manager: Only see clients in their own office
-            $clientQuery->where('office_id', $user->office_id);
-        }
-        // Admin (role == 1) sees all clients by default
-
-        $allClients = $clientQuery->get();
-
-        // Filter dormant clients (no loans OR last loan was 3+ months ago)
-        $data = $allClients->filter(function ($client) use ($threeMonthsAgo) {
-            // Client has no loans
-            if ($client->loans->isEmpty()) {
-                return true;
-            }
-
-            // Client's last loan was created 3+ months ago
-            $lastLoan = $client->loans->first();
-            if ($lastLoan && $lastLoan->created_at < $threeMonthsAgo) {
-                return true;
-            }
-
-            return false;
-        });
-
-        return view('client.dormant_clients', compact('data'));
+        return redirect()->route('recovery.clients', ['type' => 'dormant']);
     }
 
     public function recovered_clients()
     {
+        return redirect()->route('recovery.clients', ['type' => 'recovered']);
+    }
+
+    public function recovery_clients()
+    {
         if (!Sentinel::hasAccess('clients.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
+            return response()->json(['success' => false, 'message' => 'Permission Denied']);
         }
 
         $user = Sentinel::getUser();
         $userInfo = GeneralHelper::get_user_info();
+        $type = request()->get('type', 'dormant');
 
-        $clientQuery = Client::where('status', 'active')
-            ->where('is_dormant_recovery', 1)
-            ->with(['loans' => function ($query) {
-                $query->where('status', 'closed')->latest('created_at');
-            }, 'office', 'staff']);
+        if ($type === 'recovered') {
+            $clientQuery = Client::where('status', 'active')
+                ->where('is_dormant_recovery', 1)
+                ->with(['loans' => function ($query) {
+                    $query->where('status', 'closed')->latest('created_at');
+                }, 'office', 'staff']);
+        } else {
+            $threeMonthsAgo = Carbon::now()->subMonths(3);
+
+            $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
+                ->with(['loans' => function ($query) {
+                    $query->latest('created_at');
+                }, 'office', 'staff']);
+        }
 
         if ($userInfo->role == 6) {
             $clientQuery->whereHas('office', function ($q) use ($user) {
@@ -1504,9 +1477,24 @@ public function store_client_location(Request $request, $id){
             $clientQuery->where('office_id', $user->office_id);
         }
 
-        $data = $clientQuery->get();
+        $allClients = $clientQuery->get();
 
-        return view('client.recovered_clients', compact('data'));
+        if ($type !== 'recovered') {
+            $data = $allClients->filter(function ($client) use ($threeMonthsAgo) {
+                if ($client->loans->isEmpty()) {
+                    return true;
+                }
+                $lastLoan = $client->loans->first();
+                if ($lastLoan && $lastLoan->created_at < $threeMonthsAgo) {
+                    return true;
+                }
+                return false;
+            });
+        } else {
+            $data = $allClients;
+        }
+
+        return view('recoveries.dormant_clients', compact('data', 'type'));
     }
 
     public function mark_recovered($id)

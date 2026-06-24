@@ -18,13 +18,28 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="{{ url('user/branch_deposits') }}" class="btn btn-primary">Go to Branch Deposits</a>
+                <a href="{{ url('user/branch_deposits') }}" class="btn btn-primary" id="ledgerBlockerGoBtn">
+                    <span class="btn-text">Go to Branch Deposits</span>
+                    <span class="btn-loader" style="display:none;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    </span>
+                </a>
+                <script>
+                    $(document).on('click', '#ledgerBlockerGoBtn', function() {
+                        var $btn = $(this);
+                        $btn.prop('disabled', true);
+                        $btn.find('.btn-text').hide();
+                        $btn.find('.btn-loader').show();
+                    });
+                </script>
             </div>
         </div>
     </div>
 </div>
 @endif
 
+@if(request()->path() != 'user/branch_deposits')
 <script>
     (function(){
         var ledgerBlocker = <?php echo json_encode($ledgerBlocker); ?>;
@@ -70,3 +85,4 @@
         setInterval(updateCountdown, 60000);
     })();
 </script>
+@endif

@@ -1,21 +1,21 @@
 @extends('layouts.master')
 @section('title')
-    {{ trans_choice('general.client', 2) }} - Dormant Clients
+    {{ trans_choice('general.client', 2) }} - Recovery Clients
 @endsection
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">
-                <i class="fa fa-users"></i> Dormant Clients
+                <i class="fa fa-users"></i> Recovery Clients
             </h3>
             <div class="box-tools pull-right">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a href="{{ url('client/dormant_clients') }}"><i class="fa fa-users"></i> Dormant Clients</a></li>
-                    <li><a href="{{ url('client/recovered_clients') }}"><i class="fa fa-check-circle"></i> Recovered Dormant Clients</a></li>
+                    <li class="active"><a href="javascript:void(0)" id="dormant-tab"><i class="fa fa-users"></i> Dormant Clients</a></li>
+                    <li><a href="javascript:void(0)" id="recovered-tab"><i class="fa fa-check-circle"></i> Recovered Clients</a></li>
                 </ul>
             </div>
         </div>
-        <div class="box-body">
+        <div class="box-body" id="clients-container">
             <div class="alert alert-info">
                 <i class="fa fa-info-circle"></i> 
                 <strong>Dormant clients</strong> are active clients who either:
@@ -25,6 +25,10 @@
                 </ul>
             </div>
 
+            <div id="loading-indicator" style="display:none;text-align:center;padding:20px;">
+                <i class="fa fa-spinner fa-spin fa-2x"></i> Loading...
+            </div>
+            <div id="clients-table-container">
             @if($data->count() > 0)
             <table class="table table-bordered table-hover table-striped" id="data-table">
                 <thead>
@@ -129,11 +133,10 @@
                 <p class="text-muted">All active clients have had recent loan activity within the last 3 months.</p>
             </div>
             @endif
+            </div>
         </div>
     </div>
 @endsection
-
-@include('components.kilo-alert')
 
 @section('footer-scripts')
 <script>
@@ -147,9 +150,9 @@
             "ordering": true,
             "info": true,
             "autoWidth": false,
-            "order": [[6, "desc"]], // Sort by Days Since Last Loan
+            "order": [[6, "desc"]],
             "columnDefs": [
-                {"orderable": false, "targets": [8]} // Action column
+                {"orderable": false, "targets": [8]}
             ],
             buttons: [
                 {
@@ -157,7 +160,7 @@
                     text: '<i class="fa fa-file-excel-o"></i> Excel',
                     className: 'btn btn-success btn-sm',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7] // Exclude action column
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
                     }
                 },
                 {
@@ -195,6 +198,100 @@
             responsive: true
         });
     });
+
+    $('#dormant-tab').on('click', function(e) {
+        e.preventDefault();
+        loadClients('dormant');
+    });
+
+    $('#recovered-tab').on('click', function(e) {
+        e.preventDefault();
+        loadClients('recovered');
+    });
+
+    function loadClients(type) {
+        $('#loading-indicator').show();
+        $('#clients-table-container').hide();
+        
+        $.ajax({
+            url: '{{ url('recovery/clients') }}',
+            data: {type: type},
+            success: function(response) {
+                $('#clients-table-container').html(response);
+                $('#loading-indicator').hide();
+                $('#clients-table-container').show();
+                
+                if ($('#data-table').length) {
+                    if ($.fn.DataTable.isDataTable('#data-table')) {
+                        $('#data-table').DataTable.destroy();
+                    }
+                    $('#data-table').DataTable({
+                        dom: 'Bfrtip',
+                        "paging": true,
+                        "lengthChange": true,
+                        "displayLength": 15,
+                        "searching": true,
+                        "ordering": true,
+                        "info": true,
+                        "autoWidth": false,
+                        "order": [[5, "desc"]],
+                        "columnDefs": [
+                            {"orderable": false, "targets": [7]}
+                        ],
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                text: '<i class="fa fa-file-excel-o"></i> Excel',
+                                className: 'btn btn-success btn-sm',
+                                exportOptions: {
+                                    columns: type === 'recovered' ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
+                                }
+                            },
+                            {
+                                extend: 'pdfHtml5',
+                                text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                                className: 'btn btn-danger btn-sm',
+                                orientation: 'landscape',
+                                exportOptions: {
+                                    columns: type === 'recovered' ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
+                                }
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="fa fa-print"></i> Print',
+                                className: 'btn btn-default btn-sm',
+                                exportOptions: {
+                                    columns: type === 'recovered' ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 5, 6, 7]
+                                }
+                            }
+                        ],
+                        "language": {
+                            "lengthMenu": "{{ trans('general.lengthMenu') }}",
+                            "zeroRecords": "{{ trans('general.zeroRecords') }}",
+                            "info": type === 'recovered' 
+                                ? "Showing _START_ to _END_ of _TOTAL_ recovered clients"
+                                : "Showing _START_ to _END_ of _TOTAL_ dormant clients",
+                            "infoEmpty": "{{ trans('general.infoEmpty') }}",
+                            "search": "{{ trans('general.search') }}",
+                            "infoFiltered": "(filtered from _MAX_ total clients)",
+                            "paginate": {
+                                "first": "{{ trans('general.first') }}",
+                                "last": "{{ trans('general.last') }}",
+                                "next": "{{ trans('general.next') }}",
+                                "previous": "{{ trans('general.previous') }}"
+                            }
+                        },
+                        responsive: true
+                    });
+                }
+            },
+            error: function() {
+                $('#clients-table-container').html('<div class="alert alert-danger">Failed to load clients.</div>');
+                $('#loading-indicator').hide();
+                $('#clients-table-container').show();
+            }
+        });
+    }
 
     function markRecovered(clientId) {
         if (!confirm('Mark this client as recovered?')) {

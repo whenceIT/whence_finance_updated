@@ -158,6 +158,8 @@ class FinancialHelper
             'unit' => $unitShareCount + 1,
             'amount' => $unitShareAmount,
             'loan_id' => $loan->id,
+            'office_id' => $loan->office_id,
+            'user_id' => $loan->loan_officer_id,
         ]);
 
         return [
