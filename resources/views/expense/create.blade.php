@@ -117,6 +117,7 @@
                 class="form-control">
             <option value="">Select Reference Type</option>
             <option value="airtel">Airtel Money</option>
+            <option value="airtel_app">Airtel App</option>
             <option value="mtn">MTN Money</option>
             <option value="zanaco_express">Zanaco Xpress</option>
             <option value="zanaco_cash">Zanaco Cash Deposit</option>
@@ -389,6 +390,7 @@
                 class="form-control">
             <option value="">Select Reference Type</option>
             <option value="airtel">Airtel Money</option>
+            <option value="airtel_app">Airtel App</option>
             <option value="mtn">MTN Money</option>
             <option value="zanaco_express">Zanaco Xpress</option>
             <option value="zanaco_cash">Zanaco Cash Deposit</option>
@@ -640,6 +642,10 @@ switch (paymentMethod) {
         valid = /^[A-Za-z]{2}\d{6}\.\d{4}\.[A-Za-z]\d{5}$/.test(currentReferenceNumber);
         break;
 
+    case 'airtel_app':
+        valid = /^[A-Za-z]{5}\d{15}$/.test(currentReferenceNumber);
+        break;
+
     case 'zanaco_express':
         valid = /^\d{12}$/.test(currentReferenceNumber);
         break;
@@ -762,6 +768,11 @@ $('#reference_type').change(function () {
         case 'airtel':
             hint.text('Format: MP260223.0953.J76581');
             referenceInput.attr('placeholder', 'MP260223.0953.J76581');
+            break;
+
+        case 'airtel_app':
+            hint.text('Format: APCZM194947529952000');
+            referenceInput.attr('placeholder', 'APCZM194947529952000');
             break;
 
         case 'zanaco_express':

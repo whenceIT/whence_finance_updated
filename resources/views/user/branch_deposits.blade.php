@@ -598,6 +598,7 @@ function lockAll() {
                     <select class="form-control payment-method">
                         <option value="">Select Method</option>
                         <option value="airtel">Airtel Money</option>
+                        <option value="airtel_app">Airtel App</option>
                         <option value="zanaco_express">Zanaco Express</option>
                         <option value="mtn">MTN MoMo</option>
                         <option value="zanaco_cash">Zanaco Cash Deposit</option>
@@ -642,6 +643,9 @@ function lockAll() {
                 switch (method) {
                     case 'airtel':
                         placeholder = 'MP260223.0953.J76581';
+                        break;
+                    case 'airtel_app':
+                        placeholder = 'APCZM194947529952000';
                         break;
                     case 'zanaco_express':
                         placeholder = '002504072516';
@@ -855,6 +859,11 @@ function lockAll() {
             case 'airtel':
                 hint.text('Format: MP260223.0953.J76581');
                 referenceInput.attr('placeholder', 'MP260223.0953.J76581');
+                break;
+
+            case 'airtel_app':
+                hint.text('Format: APCZM194947529952000');
+                referenceInput.attr('placeholder', 'APCZM194947529952000');
                 break;
 
             case 'zanaco_express':

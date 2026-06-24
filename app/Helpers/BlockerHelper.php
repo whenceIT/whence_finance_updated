@@ -152,10 +152,9 @@ class BlockerHelper
     public static function deposit_blocker(): string
     {
         return "Your office has not made the required monthly deposit of K5,000. Please contact your branch manager to resolve this issue and regain access to loan operations.";   
-
     }
 
-public static function monthlyDepositExists($user)
+    public static function monthlyDepositExists($user)
     {
         $officeId = $user->office_id ?? null;
 
@@ -185,7 +184,6 @@ public static function monthlyDepositExists($user)
             ->values()
             ->toArray();
 
-        
         return count(array_intersect($enabledTypes, $types)) === count($enabledTypes);
         
     }
