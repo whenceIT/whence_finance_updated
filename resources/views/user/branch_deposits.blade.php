@@ -564,7 +564,7 @@ function lockAll() {
             console.log('Gate: '+gateStatus, depositName);
             
             var $card = $(`
-                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}" 
+                <div class="deposit-item deposit-card " 
                      data-deposit-id="${depositId}" 
                      data-office-id="${officeId}" 
                      data-method="${method || ''}"

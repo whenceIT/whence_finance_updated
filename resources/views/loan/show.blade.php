@@ -25,8 +25,6 @@
         @endphp
     @endif
 
-    @include('components.ledger_blocker')
-    
     <!-- Test with Anchor House First -->
     @if(date('d') >= 27 && date('d') <= 31) 
         @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
