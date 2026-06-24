@@ -926,6 +926,9 @@ function lockAll() {
             case 'airtel':
                 valid = /^[A-Za-z]{2}\d{6}\.\d{4}\.[A-Za-z]\d{5}$/.test(currentReferenceNumber);
                 break;
+            case 'airtel_app':
+                valid = /^[A-Za-z]{5}\d{15}$/.test(currentReferenceNumber);
+                break;
             case 'zanaco_express':
                 valid = /^\d{12}$/.test(currentReferenceNumber);
                 break;
