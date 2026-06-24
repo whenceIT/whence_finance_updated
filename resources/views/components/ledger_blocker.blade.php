@@ -1,6 +1,7 @@
 @php 
  $ledgerBlocker = \App\Helpers\BlockerHelper::ledger_blocker();
 @endphp
+@if(request()->path() != 'user/branch_deposits')
 <div class="modal fade" id="ledgerBlockerModal" tabindex="-1" role="dialog" aria-labelledby="ledgerBlockerModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -17,14 +18,12 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <!-- <div style="float: left; font-size: 13px; color: #666;">
-                    Salaries, Savings, Housing acivating: <span id="countdown" style="font-weight: 700; color: #c0392b;"></span> from now.
-                </div> -->
                 <a href="{{ url('user/branch_deposits') }}" class="btn btn-primary">Go to Branch Deposits</a>
             </div>
         </div>
     </div>
 </div>
+@endif
 
 <script>
     (function(){
