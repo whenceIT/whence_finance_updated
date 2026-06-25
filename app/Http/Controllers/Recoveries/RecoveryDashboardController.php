@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
 use App\Services\RecoveryDashboardService;
+use App\Models\RecoveryFund;
 use Illuminate\Http\Request;
 
 class RecoveryDashboardController extends Controller
@@ -46,5 +47,59 @@ class RecoveryDashboardController extends Controller
             'period', 'dateFrom', 'dateTo', 'kpis', 'pipeline', 'specialists', 'categories',
             'branchBreakdown', 'recentActivity', 'monthlyTrend', 'recoveryMix'
         ));
+    }
+
+    public function getFunds()
+    {
+        $funds = RecoveryFund::orderBy('created_at', 'desc')->get();
+        $totalAmount = RecoveryFund::sum('amount');
+
+        return response()->json([
+            'funds' => $funds,
+            'totalAmount' => $totalAmount,
+        ]);
+    }
+
+    public function storeFund(Request $request)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $fund = RecoveryFund::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'fund' => $fund,
+            'message' => 'Recovery fund entry created successfully',
+        ]);
+    }
+
+    public function updateFund(Request $request, $id)
+    {
+        $fund = RecoveryFund::findOrFail($id);
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $fund->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'fund' => $fund,
+            'message' => 'Recovery fund entry updated successfully',
+        ]);
+    }
+
+    public function destroyFund($id)
+    {
+        $fund = RecoveryFund::findOrFail($id);
+        $fund->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Recovery fund entry deleted successfully',
+        ]);
     }
 }

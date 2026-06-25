@@ -122,7 +122,12 @@
         <div class="info-box bg-green">
             <span class="info-box-icon"><i class="fa fa-money"></i></span>
             <div class="info-box-content">
-                <span class="info-box-text">Total Recovered</span>
+                <span class="info-box-text">
+                    Total Recovered
+                    <button type="button" class="btn btn-xs btn-warning pull-right" data-toggle="modal" data-target="#recoveryFundModal" style="margin-top:-2px">
+                        <i class="fa fa-database"></i> Fund
+                    </button>
+                </span>
                 <span class="info-box-number">{{ number_format($kpis['totalRecovered'], 2) }}</span>
                 <div class="progress">
                     <div class="progress-bar"
@@ -583,4 +588,179 @@
 
 </div>
 
+{{-- ═══════════════════════════════════════════
+     Recovery Fund Modal
+═══════════════════════════════════════════ --}}
+<div class="modal fade" id="recoveryFundModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-green">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">
+                    <i class="fa fa-database"></i> Recovery Fund Management
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-aqua"><i class="fa fa-database"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Current Amount</span>
+                                <span class="info-box-number" id="unitShareAmount">
+                                    <i class="fa fa-spinner fa-spin"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Recovery Fund Entries</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-sm btn-success" onclick="showAddFundForm()">
+                                <i class="fa fa-plus"></i> Add Entry
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div id="addFundForm" style="display:none; margin-bottom:20px; padding:15px; background:#f9f9f9; border-radius:4px;">
+                            <form id="fundEntryForm">
+                                <div class="form-group">
+                                    <label>Amount <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" class="form-control" name="amount" placeholder="Enter amount" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-save"></i> Save Entry
+                                </button>
+                                <button type="button" class="btn btn-default" onclick="hideAddFundForm()">
+                                    Cancel
+                                </button>
+                            </form>
+                        </div>
+
+                        <table class="table table-striped table-hover" id="fundEntriesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Amount</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <i class="fa fa-spinner fa-spin"></i> Loading...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@section('scripts')
+<script>
+$(document).ready(function() {
+    // Load fund data when modal opens
+    $('#recoveryFundModal').on('show.bs.modal', function() {
+        loadFundData();
+    });
+});
+
+function loadFundData() {
+    $.ajax({
+        url: '{{ url("recovery/funds") }}',
+        method: 'GET',
+        success: function(response) {
+            // Update summary box
+            $('#unitShareAmount').text('K' + parseFloat(response.totalAmount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+
+            // Update table
+            var tbody = $('#fundEntriesTable tbody');
+            tbody.empty();
+
+            if (response.funds.length === 0) {
+                tbody.append('<tr><td colspan="4" class="text-center text-muted">No recovery fund entries yet</td></tr>');
+                return;
+            }
+
+            response.funds.forEach(function(fund) {
+                var row = '<tr>' +
+                    '<td>' + fund.id + '</td>' +
+                    '<td><strong>K' + parseFloat(fund.amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</strong></td>' +
+                    '<td>' + (fund.created_at ? new Date(fund.created_at).toLocaleString() : '—') + '</td>' +
+                    '<td>' +
+                        '<button class="btn btn-xs btn-danger" onclick="deleteFund(' + fund.id + ')"><i class="fa fa-trash"></i></button>' +
+                    '</td>' +
+                '</tr>';
+                tbody.append(row);
+            });
+        },
+        error: function() {
+            $('#unitShareAmount').text('Error');
+            $('#fundEntriesTable tbody').html('<tr><td colspan="4" class="text-center text-danger">Error loading data</td></tr>');
+        }
+    });
+}
+
+function showAddFundForm() {
+    $('#addFundForm').slideDown();
+}
+
+function hideAddFundForm() {
+    $('#addFundForm').slideUp();
+    $('#fundEntryForm')[0].reset();
+}
+
+$('#fundEntryForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    $.ajax({
+        url: '{{ url("recovery/funds") }}',
+        method: 'POST',
+        data: $(this).serialize(),
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            hideAddFundForm();
+            loadFundData();
+            alert('Recovery fund entry added successfully!');
+        },
+        error: function(xhr) {
+            alert('Error: ' + (xhr.responseJSON?.message || 'Failed to add recovery fund entry'));
+        }
+    });
+});
+
+function deleteFund(id) {
+    if (!confirm('Are you sure you want to delete this recovery fund entry?')) return;
+    
+    $.ajax({
+        url: '{{ url("recovery/funds") }}/' + id,
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function() {
+            loadFundData();
+            alert('Recovery fund entry deleted successfully!');
+        },
+        error: function() {
+            alert('Error deleting recovery fund entry');
+        }
+    });
+}
+</script>
 @endsection

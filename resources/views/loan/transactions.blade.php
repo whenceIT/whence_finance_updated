@@ -27,13 +27,17 @@
                 @foreach($data as $key)
 
                 <?php
-                $client_identification = $key->loan->client_id;
+                $client_identification = $key->loan->client_id ?? null;
                 //  $client = \App\Models\Client::where('id',$client_identification)->get();
-                $client = \App\Models\Client::find($client_identification);
+                $client = $client_identification ? \App\Models\Client::find($client_identification) : null;
+
+                
                 $balance = \App\Helpers\GeneralHelper::new_loan_total_balance($key->loan_id);
                 $payment_type = ($key->credit == $balance) ? 'Full' : (($key->credit == $balance / 2) ? 'Half' : 'Partial');
                 $mismatch = ($key->payment_apply_to == 'full_payment' && $payment_type != 'Full') || ($key->payment_apply_to == 'partial_payment' && $payment_type == 'Full');
                 ?>
+
+                
                     <tr class="clickable-row{{ $mismatch ? ' red-flag' : '' }}" data-loan-id="{{ $key->loan_id }}" data-transaction-id="{{ $key->id }}" data-client-name="{{ $client->first_name ?? '' }} {{ $client->middle_name ?? '' }} {{ $client->last_name ?? '' }}" data-loan-officer="{{ $key->created_by->first_name ?? '' }} {{ $key->created_by->last_name ?? '' }}" data-branch="{{ $key->office->name ?? '' }}" data-amount="{{ number_format($key->credit, 2) }}" data-date="{{ $key->date }}" data-payment-apply-to="{{ $key->payment_apply_to }}" data-balance="{{ number_format($balance, 2) }}" data-payment-type="{{ $payment_type }}" data-loan-principal="{{ number_format($key->loan->principal ?? 0, 2) }}" data-loan-interest-rate="{{ $key->loan->interest_rate ?? 0 }}" data-loan-status="{{ $key->loan->status ?? '' }}" data-mismatch="{{ $mismatch ? 'Yes' : 'No' }}">
                         <td><a href="{{ url('loan/'.$key->loan_id.'/show') }}" data-toggle="tooltip" title="Click to view">{{ $key->loan_id }}</a></td>
                         <td>
@@ -42,17 +46,20 @@
                             @endif
                         </td>
                         <td>
-                        @if(!empty($key->created_by))
-                                {{$key->created_by->first_name}}  {{$key->created_by->last_name}} 
+                            @if(!empty($key->created_by))
+                                {{$key->created_by->first_name}}  {{$key->created_by->last_name}}
                             @endif
                         </td>
-                         @if(!empty($client->first_name))
-                        <td>{{$client->first_name}} {{$client->middle_name}} {{$client->last_name}}</td>
-                        @endif
+                        <td>
+                            @if(!empty($client))
+                            {{$client->first_name}} {{$client->middle_name}} {{$client->last_name}}
+                            @endif
+                        </td>
                         <td>{{number_format($key->credit,2)}}</td>
                         <td>{{ number_format($balance, 2) }}</td>
                         <td>{{$key->date}}</td>
                         <td class="{{ $mismatch ? 'bg-danger [color:white]' : '' }}">{{$key->payment_apply_to}} ({{ $payment_type }})</td>
+                        <td>
                         <?php
                            $todaysDate = date('Y-m-d');
                         ?>
@@ -121,43 +128,9 @@
         </div>
     </div>
 
-      @if($HasPendingCarryOvers)
-<div class="modal fade" id="managerPendingCarryOverModal"
-     tabindex="-1"
-     data-backdrop="static"
-     data-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-
-            <div class="modal-header bg-danger">
-                <h4 class="modal-title">Pending Carry Overs</h4>
-            </div>
-
-            <div class="modal-body text-center">
-                <p>
-                    You have <strong>pending carry over requests</strong> awaiting your action.
-                </p>
-
-                <p>
-                    Please clear all pending carry overs before continuing to use the system.
-                </p>
-
-                <p>
-                    <a href="{{ url('user/carry_over_approvals') }}" class="btn btn-primary">
-                        View Pending Carry Overs
-                    </a>
-                </p>
-            </div>
-
-        </div>
-    </div>
-</div>
-@endif
-
-@endsection
+      @endsection
 @section('footer-scripts')
     <script>
-  $('#managerPendingCarryOverModal').modal('show');
         $('#data-table').DataTable({
             dom: 'frtip',
             "paging": true,

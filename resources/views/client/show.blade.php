@@ -6,6 +6,7 @@
         {{$client->full_name}} #{{$client->account_no}}
     @endif
 @endsection
+
 @section('content')
     <div class="row">
         <div class="col-md-3">
@@ -305,6 +306,7 @@
                                 <th>{{ trans('general.id') }}</th>
                                 <th>{{ trans_choice('general.product',1) }}</th>
                                 <th>{{ trans('general.outstanding') }}</th>
+                                <th>Recoveries Unit Share</th>
                                 <th>{{ trans_choice('general.status',1) }}</th>
                                 <th></th>
                             </tr>
@@ -317,6 +319,7 @@
                                         {{$key->name}}
                                     </td>
                                     <td>{{ number_format($key->balance,2) }}</td>
+                                    <td>{{ \App\Helpers\FinancialHelper::dormant_client_loan_info($key->id) }}</td>
                                     <td>
                                         @if($key->status=="disbursed")
                                             {{trans_choice('general.disbursed',1)}}

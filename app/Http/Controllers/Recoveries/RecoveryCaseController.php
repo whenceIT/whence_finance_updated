@@ -469,9 +469,6 @@ class RecoveryCaseController extends Controller
                 ->firstOrFail();
             $loan = $payment->recoveryCase->loan;
 
-            $client = \App\Models\Client::find($loan->client_id);
-            \App\Helpers\FinancialHelper::dormant_recovery_unit_share($client, $loan);
-
             // Create payment detail if needed (simplified for now)
             $payment_detail = new \App\Models\PaymentDetail();
             $payment_detail->save();

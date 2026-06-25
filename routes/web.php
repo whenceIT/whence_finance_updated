@@ -1947,6 +1947,12 @@ Route::group(['prefix' => 'recovery'], function () {
 
     Route::get('overview', 'Recoveries\RecoveryDashboardController@overview');
 
+    // Recovery Funds API
+    Route::get('funds',           'Recoveries\RecoveryDashboardController@getFunds');
+    Route::post('funds',          'Recoveries\RecoveryDashboardController@storeFund');
+    Route::put('funds/{id}',      'Recoveries\RecoveryDashboardController@updateFund');
+    Route::delete('funds/{id}',   'Recoveries\RecoveryDashboardController@destroyFund');
+
     Route::group(['prefix' => 'case'], function () {
         Route::get('data',                 'Recoveries\RecoveryCaseController@index');
         Route::get('create',               'Recoveries\RecoveryCaseController@create');

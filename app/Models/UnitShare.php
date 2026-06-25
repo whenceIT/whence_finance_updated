@@ -22,17 +22,11 @@ class UnitShare extends Model
         'amount' => 'decimal:2',
     ];
 
-    /**
-     * Get the loan that owns this unit share
-     */
     public function loan(): BelongsTo
     {
         return $this->belongsTo(Loan::class);
     }
 
-    /**
-     * Get the loan transaction associated with this unit share
-     */
     public function loanTransaction(): BelongsTo
     {
         return $this->belongsTo(LoanTransaction::class, 'loan_txn_id');

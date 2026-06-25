@@ -726,18 +726,12 @@ class LoanController extends Controller
              $carry_overs = CarryOver::where('status','pending')->where('office_id',$office_id)->count();
         }
 
-            if($carry_overs > 0){
-
-                $HasPendingCarryOvers = true;
-
-            }
-
 
         if ($role->role_id == "6") {
 
             foreach ($offices as $office) {
                 if ($office->province_id == $province_id) {
-                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)->get();
+                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)->with('loan')->get();
                     foreach ($transactions as $transaction) {
                         array_push($province_transactions, $transaction);
                     }
@@ -747,15 +741,15 @@ class LoanController extends Controller
 
         } else {
             if (Sentinel::hasAccess('settings')) {
-                $data = LoanTransactionUnapproved::get();
+                $data = LoanTransactionUnapproved::with('loan')->get();
             } else {
-                $data = LoanTransactionUnapproved::where('office_id', $office_id)->get();
+                $data = LoanTransactionUnapproved::where('office_id', $office_id)->with('loan')->get();
             }
         }
         
         // Log audit for accessing loan transactions approvals page
         $this->auditorService->logTransactionApprovalsPage(Sentinel::getUser(), request());
-        return view('loan.transactions', compact('data','HasPendingCarryOvers',));
+        return view('loan.transactions', compact('data'));
     }
 
 
@@ -3272,6 +3266,7 @@ public function create()
                 $Trans = LoanTransactionUnapproved::find($trans_id);
                 $loan->loan_product->gl_account_fund_source = $request->gl_account_fund_source_id;
 
+                // dd($Trans);
                 $payment_detail = new PaymentDetail();
                 $payment_detail->payment_type_id = $Trans->payment_type_id_pd;
                 $payment_detail->account_number = $Trans->account_number;
@@ -3328,16 +3323,18 @@ public function create()
 
                 $new_loan_balance = $loan_balance - $Trans->credit;
 
-event(new RepaymentCreated($loan_transaction));
+                event(new RepaymentCreated($loan_transaction));
 
-if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
-    $loan = Loan::find($loan->id);
-    $loan->status = 'closed';
-    $loan->save();
-}
+                if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
+                    $loan = Loan::find($loan->id);
+                    $loan->status = 'closed';
+                    $loan->save();
+                }
 
                 // Notify Loan Officer that transaction has been approved
                 $client = \App\Models\Client::find($loan->client_id);
+                // Recoveries Share Unit Capture - if Client was recovered dormant
+                // \App\Helpers\FinancialHelper::dormant_recovery_unit_share($client, $loan);
                 Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
  
                 //define Log audit for approving a transaction for approval, include $loan, client details in the log message
@@ -3371,6 +3368,9 @@ if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
                     $this->bulkSms->sendToClients([$client], $message);
                 }
                 
+                
+
+
                 GeneralHelper::audit_trail("Create Repayment", "Loans", $id);
 
                 Flash::success(trans('general.successfully_saved'));

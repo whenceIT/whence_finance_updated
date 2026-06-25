@@ -2,6 +2,7 @@
 @section('title')
     {{ trans_choice('general.add',1) }} {{ trans_choice('general.repayment',1) }}
 @endsection
+
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
@@ -56,7 +57,7 @@
                                class="form-control"
                                value="{{$balance}}"
                                required id="amount"
-                               max="{{$balance}}"
+                               
                                >
                     </div>
                 </div>

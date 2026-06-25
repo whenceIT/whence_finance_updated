@@ -186,7 +186,7 @@ class FinancialHelper
 
         // Persist the new unit share record linked to the loan and responsible officer.
         UnitShare::create([
-            'unit' => $unitShareCount + 1,
+            'unit' => 'dormant_client_unit_share',
             'amount' => $unitShareAmount,
             'loan_id' => $loan->id,
             'office_id' => $loan->office_id,
