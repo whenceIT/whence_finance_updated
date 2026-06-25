@@ -13,13 +13,13 @@ class Loan extends Model
 
     protected $fillable = [
         'dormant_recovery',
-        'unit_share_count',
+        'shared',
         // ... other fillable fields
     ];
 
     protected $casts = [
         'dormant_recovery' => 'integer',
-        'unit_share_count' => 'integer',
+        'shared' => 'integer',
     ];
 
     public function charges()

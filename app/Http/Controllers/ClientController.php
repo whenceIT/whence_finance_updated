@@ -1497,6 +1497,95 @@ public function store_client_location(Request $request, $id){
         return view('recoveries.dormant_clients', compact('data', 'type'));
     }
 
+public function fetch_dormant_clients()
+    {
+        if (!Sentinel::hasAccess('clients.view')) {
+            return response()->json(['success' => false, 'message' => 'Permission Denied']);
+        }
+
+        $user = Sentinel::getUser();
+        $userInfo = GeneralHelper::get_user_info();
+        $type = request()->get('type', 'dormant');
+        $start = request()->get('start', 0);
+        $length = request()->get('length', 10);
+        $searchValue = request()->get('search', []);
+
+        if ($type === 'recovered') {
+            $clientQuery = Client::where('status', 'active')
+                ->where('is_dormant_recovery', 1)
+                ->with(['loans' => function ($query) {
+                    $query->where('status', 'closed')->latest('created_at');
+                }, 'office', 'staff']);
+        } else {
+            $threeMonthsAgo = Carbon::now()->subMonths(3);
+
+            $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
+                ->with(['loans' => function ($query) {
+                    $query->latest('created_at');
+                }, 'office', 'staff']);
+        }
+
+        if ($userInfo->role == 6) {
+            $clientQuery->whereHas('office', function ($q) use ($user) {
+                $q->where('province_id', $user->province_id);
+            });
+        } elseif ($userInfo->role == 4) {
+            $clientQuery->where('office_id', $user->office_id);
+        }
+
+        $totalRecords = $clientQuery->count();
+        
+        $clients = $clientQuery->get();
+        
+        if ($type !== 'recovered') {
+            $clients = $clients->filter(function ($client) use ($threeMonthsAgo) {
+                if ($client->loans->isEmpty()) {
+                    return true;
+                }
+                $lastLoan = $client->loans->first();
+                if ($lastLoan && $lastLoan->created_at < $threeMonthsAgo) {
+                    return true;
+                }
+                return false;
+            });
+        }
+        
+        if (!empty($searchValue)) {
+            $clients = $clients->filter(function ($client) use ($searchValue) {
+                return stripos($client->first_name, $searchValue) !== false 
+                    || stripos($client->last_name, $searchValue) !== false
+                    || stripos($client->mobile, $searchValue) !== false;
+            });
+        }
+        
+        $filteredRecords = $clients->count();
+        $clients = $clients->slice($start, $length)->map(function ($client) {
+            $lastLoan = Loan::where('client_id', $client->id)->first();
+            $daysSinceLastLoan = $lastLoan 
+                ? \Carbon\Carbon::parse($lastLoan->created_at)->diffInDays(\Carbon\Carbon::now())
+                : null;
+            return [
+                'id' => $client->id,
+                'first_name' => $client->first_name,
+                'last_name' => $client->last_name,
+                'mobile' => $client->mobile,
+                'office' => $client->office->name ?? '-',
+                'loan_officer' => $client->staff ? $client->staff->first_name . ' ' . $client->staff->last_name : '-',
+                'last_loan_date' => $lastLoan ? \Carbon\Carbon::parse($lastLoan->created_at)->format('d M Y') : 'Never',
+                'days_since_last_loan' => $daysSinceLastLoan,
+                'total_loans' => Loan::where('client_id', $client->id)->where('shared', 1)->count(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'draw' => request()->get('draw', 1),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'data' => $clients
+        ]);
+    }
+
     public function mark_recovered($id)
     {
         $client = $id;

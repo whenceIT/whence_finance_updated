@@ -24,7 +24,7 @@ class RecoveryCaseService
             if (isset($data['category']) && $data['category'] === 'dormant') {
                 \App\Models\Loan::where('id', $data['loan_id'])->update([
                     'dormant_recovery' => 1,
-                    'unit_share_count' => 0,
+                    'shared' => 0,
                 ]);
             }
 

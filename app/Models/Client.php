@@ -10,6 +10,11 @@ class Client extends Model
     use SoftDeletes;
     protected $table = "clients";
 
+    protected $fillable = [
+        'approved_dormant',
+        // Add other fillable fields as needed
+    ];
+
     public function identifications()
     {
         return $this->hasMany(ClientIdentification::class, 'client_id', 'id');

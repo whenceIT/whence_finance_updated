@@ -469,6 +469,9 @@ class RecoveryCaseController extends Controller
                 ->firstOrFail();
             $loan = $payment->recoveryCase->loan;
 
+            $client = \App\Models\Client::find($loan->client_id);
+            \App\Helpers\FinancialHelper::dormant_recovery_unit_share($client, $loan);
+
             // Create payment detail if needed (simplified for now)
             $payment_detail = new \App\Models\PaymentDetail();
             $payment_detail->save();
@@ -537,7 +540,7 @@ class RecoveryCaseController extends Controller
             Flash::success('Recovery payment approved successfully.');
             return redirect('loan/recoveries_approvals');
         } catch (\Throwable $th) {
-            dd($th);
+            
              Flash::error('An error occurred while approving the recovery payment.');
              return redirect('loan/recoveries_approvals');
         }

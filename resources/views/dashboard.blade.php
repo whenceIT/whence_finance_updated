@@ -1717,113 +1717,27 @@ if($branchUser->role){
         </div>
 
 
-        @if($HasPendingCarryOvers)
-<div class="modal fade" id="managerPendingCarryOverModal"
-     tabindex="-1"
-     data-backdrop="static"
-     data-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-
-            <div class="modal-header bg-danger">
-                <h4 class="modal-title">Pending Carry Overs</h4>
-            </div>
-
-            <div class="modal-body text-center">
-                <p>
-                    You have <strong>pending carry over requests</strong> awaiting your action.
-                </p>
-
-                <p>
-                    Please clear all pending carry overs before continuing to use the system.
-                </p>
-
-                <p>
-                    <a href="{{ url('user/carry_over_approvals') }}" class="btn btn-primary">
-                        View Pending Carry Overs
-                    </a>
-                </p>
-            </div>
-
-        </div>
-    </div>
-</div>
-@endif
-
-
- @if($launchNewCarryOver)
-    <div class="modal fade" id="broughtForwardModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="{{ url('user/create_carry_over') }}">
-                @csrf
-
-                <div class="modal-header bg-warning">
-                    <h4 class="modal-title">Carry Over</h4>
-                </div>
-
-                <div class="modal-body">
-                    <p>
-                        Please enter your <strong>Carry Over (from last cycle)</strong> amount to continue.
-                    </p>
-
-                    
-
-                    <div class="form-group">
-                        <label>Amount</label>
-                        <input type="number" step="0.01" name="brought_f"
-                               class="form-control" required>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmCarryOverModal">
-                        Save & Continue
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="confirmCarryOverModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <div class="modal-header bg-danger">
-                <h4 class="modal-title">Confirm Carry Over</h4>
-            </div>
-
-            <div class="modal-body">
-                <p>
-                    By clicking <strong>Confirm</strong>, you acknowledge that the information you have entered is
-                    accurate and correct.
-                </p>
-
-                <p>
-                    You further understand that if the amount entered affects your target and ultimately your
-                    salary negatively  <strong>you and only you will be responsible</strong> for the consequences.
-                </p>
-
-                <p class="text-danger">
-                    Please ensure the amount entered is correct before proceeding.
-                </p>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    Cancel
-                </button>
-
-                <button type="button" class="btn btn-danger" id="confirmSubmitCarryOver">
-                    Confirm & Submit
-                </button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
+        @if(isset($confirmSubmitScript))
+        <script>
+            $('#confirmSubmitCarryOver').on('click', function() {
+                $.ajax({
+                    url: '{{ url('user/create_carry_over') }}',
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        brought_f: $('input[name=brought_f]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Carry Over submitted successfully');
+                            location.reload();
+                        } else {
+                            alert('Failed to submit carry over');
+                        }
+                    }
+                });
+            });
+        </script>
         @endif
 
 
@@ -2712,7 +2626,7 @@ if($branchUser->role){
     @if($role->role_id == '4')
         <script>
 
-  $('#managerPendingCarryOverModal').modal('show');
+
 
 
     var confirmSubmitCarryOverBtn = document.getElementById('confirmSubmitCarryOver');

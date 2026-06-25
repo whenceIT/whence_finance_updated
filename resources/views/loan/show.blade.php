@@ -986,7 +986,15 @@
 				                    </tr>
 
 
-
+                                    <tr style="background-color: #fdbebe;">
+                                        <th class="table-bold-loan">Recoveries Unit Share (Deducted)</th>
+                                        <td>
+                                            <span class="padded-td">
+                                            {{ \App\Helpers\FinancialHelper::dormant_client_loan_info($loan->id) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    
                                     <tr>
                                         <th class="table-bold-loan">Vetted by</th>
                                         <td>

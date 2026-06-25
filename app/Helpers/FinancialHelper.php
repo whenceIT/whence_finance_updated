@@ -123,15 +123,43 @@ class FinancialHelper
         ];
     }
 
+    /**
+     * Handles unit share allocation for dormant recovery loans.
+     *
+     * Checks whether a client qualifies for a unit share based on their dormant
+     * recovery status and how many unit shares they have already received.
+     * If eligible, calculates the unit share amount from the loan's interest
+     * and creates a new UnitShare record.
+     *
+     * @param  \App\Models\Client  $client  The client associated with the loan.
+     * @param  \App\Models\Loan    $loan    The loan being evaluated for unit share allocation.
+     * @return array {
+     *     unit_share_count: int,   // Current or updated count of unit shares for this client.
+     *     status: string,          // 'not_recovered' | 'max_shares_reached' | 'unit_share_created'
+     *     message: string,         // Human-readable description of the outcome.
+     *     unit_share_amount: float // Amount allocated to the new unit share (0 if not created).
+     * }
+     */
     public static function dormant_recovery_unit_share($client, $loan)
     {
+        // Count how many dormant recovery unit shares the client has already received.
         $unitShareCount = Loan::where('client_id', $client->id)
-            ->where('is_dormant_recovery', 1)
-            ->where('status', 'closed')
+            ->where('shared', 1)
             ->count();
 
+        if (!$loan || $loan->shared == 1) {
+            return [
+                'unit_share_count' => $unitShareCount,
+                'status' => 'not_recovered',
+                'message' => 'No dormant recovery loan found for client.',
+                'unit_share_amount' => 0,
+            ];
+        }
+        
+        // Retrieve the client's dormant recovery flag, defaulting to false if not set.
         $dormantRecovery = $client->is_dormant_recovery ?? false;
 
+        // If the client has not been marked as recovered, skip unit share allocation.
         if (!$dormantRecovery) {
             return [
                 'unit_share_count' => $unitShareCount,
@@ -141,6 +169,7 @@ class FinancialHelper
             ];
         }
 
+        // Enforce a maximum of 3 unit shares per client.
         if ($unitShareCount >= 3) {
             return [
                 'unit_share_count' => $unitShareCount,
@@ -150,10 +179,12 @@ class FinancialHelper
             ];
         }
 
+        // Calculate the unit share amount as 50% of the loan's interest.
         $interestRate = GeneralHelper::determine_interest_rate($loan->id);
         $interestAmount = $loan->principal * $interestRate;
         $unitShareAmount = $interestAmount * 0.5;
 
+        // Persist the new unit share record linked to the loan and responsible officer.
         UnitShare::create([
             'unit' => $unitShareCount + 1,
             'amount' => $unitShareAmount,
@@ -161,12 +192,67 @@ class FinancialHelper
             'office_id' => $loan->office_id,
             'user_id' => $loan->loan_officer_id,
         ]);
-
+        $loan->update(['shared' => 1]);
         return [
             'unit_share_count' => $unitShareCount + 1,
             'status' => 'unit_share_created',
             'message' => 'Unit share created for loan #' . $loan->id,
             'unit_share_amount' => $unitShareAmount,
         ];
+    }
+
+    public static function dormant_client_info($client_id)
+    {
+        $client = Client::find($client_id);
+        
+        if (!$client) {
+            return [
+                'eligible' => false,
+                'message' => 'Client not found.',
+                'unit_share_count' => 0,
+            ];
+        }
+
+        if ($client->approved_dormant != 1 || $client->is_dormant_recovery != 1) {
+            return [
+                'eligible' => false,
+                'message' => 'Client is not eligible for dormant recovery.',
+                'unit_share_count' => 0,
+            ];
+        }
+
+        $unitShareCount = UnitShare::whereHas('loan', function ($query) use ($client_id) {
+            $query->where('client_id', $client_id);
+        })->count();
+
+return [
+            'eligible' => true,
+            'message' => 'Client is eligible for dormant recovery.',
+            'unit_share_count' => $unitShareCount,
+        ];
+    }
+
+    public static function dormant_client_loan_info($loanId)
+    {
+        $loan = Loan::find($loanId);
+        
+        if (!$loan) {
+            return 0;
+        }
+
+        $client = Client::find($loan->client_id);
+        
+        if (!$client) {
+            return 0;
+        }
+
+        // $client->approved_dormant != 1 ||
+        if ( $client->is_dormant_recovery != 1) {
+            return 0;
+        }
+
+        $unitShareCount = UnitShare::where('loan_id', $loanId)->first() ?? 0;
+
+        return $unitShareCount->amount ?? 0;
     }
 }
