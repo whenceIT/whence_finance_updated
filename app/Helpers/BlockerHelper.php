@@ -30,13 +30,12 @@ class BlockerHelper
         $settings = \App\Models\PlatformSetting::getBranchDepositSettings($officeId);
         
 
-        if (isset($user->role->role_id) && $user->role->role_id == 1 || $user->role->role_id == 6) {
+        if (isset($user->role->role_id) && $user->role->role_id != 4) {
             return [
                 'status'  => true,
                 'balance' => 0,
             ];
         }
-
         if (!$officeId) {
             return ['status' => true, 'balance' => 0]; // Can't determine office → do not block
         }
@@ -86,7 +85,7 @@ class BlockerHelper
             ];
         }
         //
-        if ( $user->office_id == 11 || $user->office_id == 18 || $user->office_id == 46 || $user->office_id == 2) {
+        if ( $user->office_id == 11 || $user->office_id == 18 || $user->office_id == 46) {
             return [
                 'status'=>false,
                 'amount' => 0,
