@@ -3330,7 +3330,6 @@ public function create()
                     $loan->status = 'closed';
                     $loan->save();
                 }
-
                 // Notify Loan Officer that transaction has been approved
                 $client = \App\Models\Client::find($loan->client_id);
                 // Recoveries Share Unit Capture - if Client was recovered dormant

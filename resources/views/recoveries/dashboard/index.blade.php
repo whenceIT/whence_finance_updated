@@ -29,7 +29,8 @@
 4 - equal small cards (Active Cases, Resolved Cases, Specialists, Dept. Unit Share)
 -->
 @include('recoveries.partialials.bento-grid')
-
+<hr >
+<br>
 {{-- Period Selector --}}
 <div class="box box-default">
     <div class="box-body" style="padding:10px 15px">
@@ -132,7 +133,7 @@
                         <i class="fa fa-database"></i> Fund
                     </button>
                 </span>
-                <span class="info-box-number">{{ number_format($kpis['totalRecovered'], 2) + $funds }}</span>
+                <span class="info-box-number">{{ number_format($kpis['totalRecovered'], 2) }}</span>
                 <div class="progress">
                     <div class="progress-bar"
                          style="width:{{ $kpis['recoveredChange'] !== null ? min(abs($kpis['recoveredChange']),100) : 0 }}%">
@@ -163,24 +164,6 @@
                 </div>
                 <span class="progress-description">
                     {{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100) : 0 }}% of gross
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
-        <div class="info-box bg-blue">
-            <span class="info-box-icon"><i class="fa fa-money"></i></span>
-            <div class="info-box-content">
-                <span class="info-box-text">Dept. Unit Share</span>
-                <span class="info-box-number">{{ number_format($kpis['unitShare'], 2) }}</span>
-                <div class="progress">
-                    <div class="progress-bar"
-                         style="width:{{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100) : 0 }}%">
-                    </div>
-                </div>
-                <span class="progress-description">
-                    {{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100, 1) : 0 }}% of gross
                 </span>
             </div>
         </div>

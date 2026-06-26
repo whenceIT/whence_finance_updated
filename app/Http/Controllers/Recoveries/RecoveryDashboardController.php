@@ -47,8 +47,8 @@ class RecoveryDashboardController extends Controller
 
 
         //Non filtered data
-        $overal_tt_recovered = LoanTrasanctions::where('is_recovery', 1)->get();
-        $overal_tt_attribution = Expenses::where('is_attribution', 1)->get();
+        $overal_tt_recovered = \App\Models\LoanTransaction::where('is_recovery', 1)->sum('credit');
+        $overal_tt_attribution = \App\Models\Expense::where('is_attribution', 1)->sum('amount');
 
         return view('recoveries.dashboard.index', compact(
             'period', 'dateFrom', 'dateTo', 'kpis', 'pipeline', 'specialists', 'categories',
