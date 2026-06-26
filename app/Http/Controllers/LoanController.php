@@ -3336,7 +3336,6 @@ public function create()
                     $loan->save();
                 }
 
-                // Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
  
                 //define Log audit for approving a transaction for approval, include $loan, client details in the log message
                 $user = Sentinel::getUser();
@@ -3345,8 +3344,7 @@ public function create()
                 $amount = number_format($Trans->credit, 2);
                 $date = $Trans->date;
                 $paymentType = $Trans->payment_apply_to;
-                $dueDate = $loan->first_repayment_date ? date('d M Y', strtotime($loan->first_repayment_date)) : 'N/A';
-                $loanStatus = $loan->status;
+                $client = Client::where('id', $loan->client_id)->first();
 
                 if($loan->office_id == 8){
                     $balance = GeneralHelper::loan_total_balance($loan->id);
