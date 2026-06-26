@@ -1506,17 +1506,30 @@ public function fetch_dormant_clients()
         $user = Sentinel::getUser();
         $userInfo = GeneralHelper::get_user_info();
         $type = request()->get('type', 'dormant');
-        $start = request()->get('start', 0);
-        $length = request()->get('length', 10);
-        $searchValue = request()->get('search', []);
 
         if ($type === 'recovered') {
+            // Recovered clients
             $clientQuery = Client::where('status', 'active')
                 ->where('is_dormant_recovery', 1)
                 ->with(['loans' => function ($query) {
                     $query->where('status', 'closed')->latest('created_at');
                 }, 'office', 'staff']);
+        } elseif ($type === 'overdue') {
+            // Clients with overdue loans (disbursed + first_repayment_date < CURRENT_DATE)
+            $clientQuery = Client::where('status', 'active')
+                ->whereHas('loans', function ($query) {
+                    $query->where('status', 'disbursed')
+                          ->whereNotNull('first_repayment_date')
+                          ->where('first_repayment_date', '<', Carbon::now()->toDateString());
+                })
+                ->with(['loans' => function ($query) {
+                    $query->where('status', 'disbursed')
+                          ->whereNotNull('first_repayment_date')
+                          ->where('first_repayment_date', '<', Carbon::now()->toDateString())
+                          ->latest('first_repayment_date');
+                }, 'office', 'staff']);
         } else {
+            // Dormant clients
             $threeMonthsAgo = Carbon::now()->subMonths(3);
 
             $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
@@ -1525,6 +1538,7 @@ public function fetch_dormant_clients()
                 }, 'office', 'staff']);
         }
 
+        // Apply role-based filtering
         if ($userInfo->role == 6) {
             $clientQuery->whereHas('office', function ($q) use ($user) {
                 $q->where('province_id', $user->province_id);
@@ -1533,12 +1547,12 @@ public function fetch_dormant_clients()
             $clientQuery->where('office_id', $user->office_id);
         }
 
-        $totalRecords = $clientQuery->count();
-        
-        $clients = $clientQuery->get();
-        
-        if ($type !== 'recovered') {
-            $clients = $clients->filter(function ($client) use ($threeMonthsAgo) {
+        $allClients = $clientQuery->get();
+
+        // Filter dormant clients (no pagination - let DataTable handle it)
+        if ($type === 'dormant') {
+            $threeMonthsAgo = Carbon::now()->subMonths(3);
+            $clients = $allClients->filter(function ($client) use ($threeMonthsAgo) {
                 if ($client->loans->isEmpty()) {
                     return true;
                 }
@@ -1548,41 +1562,59 @@ public function fetch_dormant_clients()
                 }
                 return false;
             });
+        } else {
+            $clients = $allClients;
         }
-        
-        if (!empty($searchValue)) {
-            $clients = $clients->filter(function ($client) use ($searchValue) {
-                return stripos($client->first_name, $searchValue) !== false 
-                    || stripos($client->last_name, $searchValue) !== false
-                    || stripos($client->mobile, $searchValue) !== false;
-            });
-        }
-        
-        $filteredRecords = $clients->count();
-        $clients = $clients->slice($start, $length)->map(function ($client) {
-            $lastLoan = Loan::where('client_id', $client->id)->first();
+
+        // Map client data
+        $clientsData = $clients->map(function ($client) use ($type) {
+            $lastLoan = $client->loans->first();
             $daysSinceLastLoan = $lastLoan 
                 ? \Carbon\Carbon::parse($lastLoan->created_at)->diffInDays(\Carbon\Carbon::now())
                 : null;
-            return [
+
+            $data = [
                 'id' => $client->id,
                 'first_name' => $client->first_name,
                 'last_name' => $client->last_name,
                 'mobile' => $client->mobile,
-                'office' => $client->office->name ?? '-',
+                'office' => $client->office->name ?? 'Unknown Office',
+                'office_id' => $client->office_id ?? 0,
                 'loan_officer' => $client->staff ? $client->staff->first_name . ' ' . $client->staff->last_name : '-',
                 'last_loan_date' => $lastLoan ? \Carbon\Carbon::parse($lastLoan->created_at)->format('d M Y') : 'Never',
                 'days_since_last_loan' => $daysSinceLastLoan,
                 'total_loans' => Loan::where('client_id', $client->id)->where('shared', 1)->count(),
             ];
-        });
+
+            // Add overdue-specific data
+            if ($type === 'overdue' && $lastLoan) {
+                $data['loan_id'] = $lastLoan->id;
+                $data['loan_amount'] = $lastLoan->principal ?? 0;
+                $data['first_repayment_date'] = $lastLoan->first_repayment_date 
+                    ? \Carbon\Carbon::parse($lastLoan->first_repayment_date)->format('d M Y') 
+                    : 'N/A';
+                $data['days_overdue'] = $lastLoan->first_repayment_date
+                    ? \Carbon\Carbon::parse($lastLoan->first_repayment_date)->diffInDays(\Carbon\Carbon::now())
+                    : 0;
+            }
+
+            return $data;
+        })->values();
+
+        // Group by office
+        $clientsByOffice = $clientsData->groupBy('office')->map(function ($officeClients, $officeName) {
+            return [
+                'office_name' => $officeName,
+                'count' => $officeClients->count(),
+                'clients' => $officeClients->values()->all()
+            ];
+        })->values();
 
         return response()->json([
             'success' => true,
-            'draw' => request()->get('draw', 1),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredRecords,
-            'data' => $clients
+            'data' => $clientsData->all(),
+            'grouped_by_office' => $clientsByOffice->all(),
+            'total_count' => $clientsData->count()
         ]);
     }
 

@@ -3249,7 +3249,7 @@ public function create()
         $loan_balance = GeneralHelper::loan_total_balance($loan->id);
         // $existing_transaction = LoanTransaction::where('loan_id', $id)->where('date', $Trans->date)->where('credit', $Trans->credit)->where('transaction_type', '!=', 'interest_waiver')->first();
         //disabled because client failing to add  2 transactions with same amount and date, we can add more checks to ensure its not a duplicate transaction instead of blocking all transactions with same amount and date
-        $existing_transaction = [];
+        // $existing_transaction = [];
 
         if ($count > 1) {
             Flash::warning("This loan has more than one pending transaction!!");
@@ -3264,16 +3264,22 @@ public function create()
             } else {
 
                 $Trans = LoanTransactionUnapproved::find($trans_id);
+
+                if(!$Trans) {
+                    Flash::warning("This transaction failed!!");
+                    return redirect('loan/transaction_approvals');
+                }
+
                 $loan->loan_product->gl_account_fund_source = $request->gl_account_fund_source_id;
-;
+
                 $payment_detail = new PaymentDetail();
-                $payment_detail->payment_type_id = $Trans?->payment_type_id_pd;
-                $payment_detail->account_number = $Trans?->account_number;
-                $payment_detail->cheque_number = $Trans?->cheque_number;
-                $payment_detail->routing_code = $Trans?->routing_code;
-                $payment_detail->receipt_number = $Trans?->receipt_number;
-                $payment_detail->bank = $Trans?->bank;
-                $payment_detail->notes = $Trans?->notes_pd;
+                $payment_detail->payment_type_id = $Trans->payment_type_id_pd;
+                $payment_detail->account_number = $Trans->account_number;
+                $payment_detail->cheque_number = $Trans->cheque_number;
+                $payment_detail->routing_code = $Trans->routing_code;
+                $payment_detail->receipt_number = $Trans->receipt_number;
+                $payment_detail->bank = $Trans->bank;
+                $payment_detail->notes = $Trans->notes_pd;
                 $payment_detail->save();
 
 
@@ -3329,10 +3335,7 @@ public function create()
                     $loan->status = 'closed';
                     $loan->save();
                 }
-                // Notify Loan Officer that transaction has been approved
-                $client = \App\Models\Client::find($loan->client_id);
-                // Recoveries Share Unit Capture - if Client was recovered dormant
-                \App\Helpers\FinancialHelper::dormant_recovery_unit_share($client, $loan);
+
                 Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
  
                 //define Log audit for approving a transaction for approval, include $loan, client details in the log message
