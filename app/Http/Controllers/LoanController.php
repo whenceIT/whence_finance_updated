@@ -3334,7 +3334,7 @@ public function create()
                 // Notify Loan Officer that transaction has been approved
                 $client = \App\Models\Client::find($loan->client_id);
                 // Recoveries Share Unit Capture - if Client was recovered dormant
-                // \App\Helpers\FinancialHelper::dormant_recovery_unit_share($client, $loan);
+                \App\Helpers\FinancialHelper::dormant_recovery_unit_share($client, $loan);
                 Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
  
                 //define Log audit for approving a transaction for approval, include $loan, client details in the log message
