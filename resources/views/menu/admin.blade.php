@@ -1558,7 +1558,7 @@
                                 <a href="{{ url('recovery/specialist/data') }}"><i class="fa fa-circle-o"></i> Specialists</a>
                             </li>
                             <li class="@if(Request::is('client/dormant_clients')) active @endif">
-                                <a href="{{ url('client/dormant_clients') }}"><i class="fa fa-bell"></i> Dormant Clients</a>
+                                <!-- <a href="{{ url('client/dormant_clients') }}"><i class="fa fa-bell"></i> Dormant Clients</a> -->
                             </li>
                             <li class="@if(Request::is('recovery/nudge/*')) active @endif">
                                 <!-- <a href="{{ url('recovery/nudge/compose') }}"><i class="fa fa-bell"></i> Send Nudges</a> -->
