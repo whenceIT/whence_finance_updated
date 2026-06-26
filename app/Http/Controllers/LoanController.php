@@ -4285,6 +4285,10 @@ public function create()
         $pending_transactions = LoanTransactionsPending::where('loan_id', $id)->get();
         $count = count($pending_transactions);
         $Trans = LoanTransactionsPending::find($trans_id);
+        if (!$Trans) {
+            Flash::warning("Pending transaction not found!!");
+            return redirect('loan/reloan_approvals');
+        }
         $existing_transaction = LoanTransaction::where('loan_id', $id)->where('date', $Trans->date)->where('credit', $Trans->credit)->where('transaction_type', '!=', 'interest_waiver')->first();
         if ($count > 1) {
             Flash::warning("This loan has more than one pending reloan!!");
