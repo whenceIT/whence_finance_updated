@@ -1664,8 +1664,8 @@ public function create()
                 'loan_topup' => $loan_topup->toArray()
             ]
         ]);
-        Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
-        Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup, $client);
+        // Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
+        // Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup, $client);
 
         
         // Log audit for accessing and viewing top up approval requests page
@@ -1691,7 +1691,7 @@ public function create()
         $topup->save();
         $loanTransDisbursed->save();
         $loanTransInterest->save();
-        Notifix::notifyLoanOfficerTopUpApproved($loan, $topup, $client);
+        // Notifix::notifyLoanOfficerTopUpApproved($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         
         
@@ -1709,7 +1709,7 @@ public function create()
         $client = Client::where('id', $loan->client_id)->first();
         $topup->status = 'declined';
         $topup->save();
-        Notifix::notifyLoanOfficerTopUpDeclined($loan, $topup, $client);
+        // Notifix::notifyLoanOfficerTopUpDeclined($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $topup->loan_id . '/show');
     }
@@ -2427,7 +2427,7 @@ public function create()
             $loan->save();
 
             // Notify loan officer that their loan has been approved
-            Notifix::notifyLoanOfficerLoanApproved($loan, $client);
+            // Notifix::notifyLoanOfficerLoanApproved($loan, $client);
             // Log audit for updating the client's loan
             $user = Sentinel::getUser();
             $this->auditorService->logLoanUpdated($user, request(), $loan);
@@ -2464,7 +2464,7 @@ public function create()
             $loan->save();
 
             // Notify loan officer that their loan has been declined
-            Notifix::notifyLoanOfficerLoanDeclined($loan, $client);  
+            // Notifix::notifyLoanOfficerLoanDeclined($loan, $client);  
             
             // Log audit for declining the client's loan
             $user = Sentinel::getUser();
@@ -3060,8 +3060,8 @@ public function create()
             $payment_type_name = $payment_type ? $payment_type->name : 'Unknown';
 
             // Notify loan officer that their loan has been disbursed
-            Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
-            Notifix::notifyDailyReminderToRiskManager('disbused a loan amount of K'.$loan->principal);
+            // Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
+            // Notifix::notifyDailyReminderToRiskManager('disbused a loan amount of K'.$loan->principal);
             //define Log audit for disbursing loan
             $user = Sentinel::getUser();
             $this->auditorService->logDisbursedLoan($user, request(), $loan);
@@ -3220,8 +3220,8 @@ public function create()
                 ]);
 
                 // Notify managers for transaction approval
-                Notifix::notifyBmToApproveTransaction($loan, $client, $request->amount);
-                Notifix::notifyRiskToReviewLoan($loan, $client, $request->amount);
+                // Notifix::notifyBmToApproveTransaction($loan, $client, $request->amount);
+                // Notifix::notifyRiskToReviewLoan($loan, $client, $request->amount);
                 //define Log audit for entering a transaction for approval, include $loan, client details in the log message
                 $user = Sentinel::getUser();
                 $this->auditorService->logEnteredTransaction($user, request(), $loan);
@@ -3336,7 +3336,7 @@ public function create()
                     $loan->save();
                 }
 
-                Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
+                // Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
  
                 //define Log audit for approving a transaction for approval, include $loan, client details in the log message
                 $user = Sentinel::getUser();
@@ -4097,7 +4097,7 @@ public function create()
         $temporary_charge->notes = $request->notes;
         $temporary_charge->status = 'pending';
         $temporary_charge->save();
-        Notifix::notifyBmAndRkForNewCharge($loan, $temporary_charge);
+        // Notifix::notifyBmAndRkForNewCharge($loan, $temporary_charge);
         GeneralHelper::audit_trail("Temporary Charge Created", "Loans", $id);
         Flash::success("Charge added to pending charges for approval.");
         return redirect()->back();
@@ -4263,7 +4263,7 @@ public function create()
             ]);
 
             // Notify Branch Manager of pending reloan transaction approval
-            Notifix::notifyBmToApproveTransaction($loan, $client, $request->paid);
+            // Notifix::notifyBmToApproveTransaction($loan, $client, $request->paid);
 
             GeneralHelper::audit_trail("Update Repayment", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -4386,7 +4386,7 @@ public function create()
 
                 // Notify Loan Officer that reloan request has been approved
                 $client = \App\Models\Client::find($loan->client_id);
-                Notifix::notifyLoanOfficerReloanApproved($loan, $client);
+                // Notifix::notifyLoanOfficerReloanApproved($loan, $client);
 
                 GeneralHelper::audit_trail("Update Repayment", "Loans", $id);
                 Flash::success(trans('general.successfully_saved'));
@@ -4425,7 +4425,7 @@ public function create()
             $loan = Loan::find($trans->loan_id);
             if ($loan) {
                 $client = \App\Models\Client::find($loan->client_id);
-                Notifix::notifyLoanOfficerTransactionDeclined($loan, $client, $trans->payment_apply_to);
+                // Notifix::notifyLoanOfficerTransactionDeclined($loan, $client, $trans->payment_apply_to);
             }
         }
 
