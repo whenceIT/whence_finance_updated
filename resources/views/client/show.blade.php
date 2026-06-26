@@ -336,6 +336,9 @@
                                         @if($key->status=="closed")
                                             {{trans_choice('general.closed',1)}}
                                         @endif
+                                        @if($key->status=="declined")
+                                            Declined
+                                        @endif
                                         @if($key->status=="written_off")
                                             {{trans_choice('general.written_off',1)}}
                                         @endif

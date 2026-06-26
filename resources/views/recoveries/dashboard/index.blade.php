@@ -24,6 +24,11 @@
 }
 </style>
 
+<!-- Bento Grid of 5 cards
+1 - big card (Total Overall Recovered)
+4 - equal small cards (Active Cases, Resolved Cases, Specialists, Dept. Unit Share)
+-->
+@include('recoveries.partialials.bento-grid')
 
 {{-- Period Selector --}}
 <div class="box box-default">
@@ -75,7 +80,6 @@
 </div>
 
 
-
 <!-- Dynamic Headline based on current filters -->
 <div style="margin: 20px 0 25px 0; padding: 20px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
     <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -115,7 +119,7 @@
 
 {{-- ═══════════════════════════════════════════
      ROW 1 — Primary KPI info-boxes
-═══════════════════════════════════════════ --}}
+══════════════════════════════════════════ --}}
 <div class="row">
 
     <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
@@ -128,7 +132,7 @@
                         <i class="fa fa-database"></i> Fund
                     </button>
                 </span>
-                <span class="info-box-number">{{ number_format($kpis['totalRecovered'], 2) }}</span>
+                <span class="info-box-number">{{ number_format($kpis['totalRecovered'], 2) + $funds }}</span>
                 <div class="progress">
                     <div class="progress-bar"
                          style="width:{{ $kpis['recoveredChange'] !== null ? min(abs($kpis['recoveredChange']),100) : 0 }}%">
@@ -159,6 +163,24 @@
                 </div>
                 <span class="progress-description">
                     {{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100) : 0 }}% of gross
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+        <div class="info-box bg-blue">
+            <span class="info-box-icon"><i class="fa fa-money"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Dept. Unit Share</span>
+                <span class="info-box-number">{{ number_format($kpis['unitShare'], 2) }}</span>
+                <div class="progress">
+                    <div class="progress-bar"
+                         style="width:{{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100) : 0 }}%">
+                    </div>
+                </div>
+                <span class="progress-description">
+                    {{ $kpis['totalRecovered'] > 0 ? round(($kpis['deptRecovered']/$kpis['totalRecovered'])*100, 1) : 0 }}% of gross
                 </span>
             </div>
         </div>
@@ -200,7 +222,7 @@
 
 {{-- ═══════════════════════════════════════════
      ROW 2 — Net Recovery strip (secondary info-boxes)
-═══════════════════════════════════════════ --}}
+══════════════════════════════════════════ --}}
 <div class="row">
 
     <div class="col-lg-3 col-md-6 col-sm-6 col-xs-12">
@@ -247,7 +269,7 @@
 
 {{-- ═══════════════════════════════════════════
      ROW 3 — Pipeline table + Recovery Mix
-═══════════════════════════════════════════ --}}
+══════════════════════════════════════════ --}}
 <div class="row">
 
     <div class="col-md-8">
@@ -358,9 +380,9 @@
 
 </div>
 
-{{-- ═══════════════════════════════════════════
+{{-- ═════════════════════════════════════════════════════════════════════════════
      ROW 4 — Specialist Performance + Monthly Trend
-═══════════════════════════════════════════ --}}
+════════════════════════════════════════════════════════════════════════════ --}}
 <div class="row">
 
     <div class="col-md-8">
@@ -478,7 +500,7 @@
 
 {{-- ═══════════════════════════════════════════
      ROW 5 — Branch Breakdown + Recent Activity
-═══════════════════════════════════════════ --}}
+══════════════════════════════════════════ --}}
 <div class="row">
 
     <div class="col-md-5">
@@ -590,7 +612,7 @@
 
 {{-- ═══════════════════════════════════════════
      Recovery Fund Modal
-═══════════════════════════════════════════ --}}
+══════════════════════════════════════════ --}}
 <div class="modal fade" id="recoveryFundModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -669,13 +691,10 @@
 
 @endsection
 
-@section('scripts')
+@section('footer-scripts')
 <script>
 $(document).ready(function() {
-    // Load fund data when modal opens
-    $('#recoveryFundModal').on('show.bs.modal', function() {
-        loadFundData();
-    });
+    loadFundData();
 });
 
 function loadFundData() {
@@ -683,10 +702,8 @@ function loadFundData() {
         url: '{{ url("recovery/funds") }}',
         method: 'GET',
         success: function(response) {
-            // Update summary box
             $('#unitShareAmount').text('K' + parseFloat(response.totalAmount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
 
-            // Update table
             var tbody = $('#fundEntriesTable tbody');
             tbody.empty();
 

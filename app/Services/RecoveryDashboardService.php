@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\{RecoveryCase, RecoveryPayment, RecoverySpecialistTarget, User};
+use App\Models\{RecoveryCase, RecoveryPayment, RecoverySpecialistTarget, UnitShare, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 
@@ -33,9 +33,10 @@ class RecoveryDashboardService
         $totalCosts       = RecoveryCase::forPeriod($period)->whereNotNull('approved_date')->sum(
             DB::raw('recovery_costs + legal_costs_incurred + skip_trace_costs')
         );
+        
         $netRecovered     = $totalRecovered - $totalCosts;
+        $unitShare        = UnitShare::sum('amount');
 
-        // dd($deptRecovered);
         // Compare to previous period
         $prevRecovered = RecoveryPayment::whereHas('recoveryCase', function($q) use ($period) {
             $query = match($period) {
@@ -55,7 +56,7 @@ class RecoveryDashboardService
         return compact(
             'totalRecovered', 'deptRecovered', 'activeCases', 'resolvedCases',
             'resolutionRate', 'portfolioAtRisk', 'totalCosts', 'netRecovered',
-            'recoveredChange'
+            'recoveredChange', 'unitShare'
         );
     }
 

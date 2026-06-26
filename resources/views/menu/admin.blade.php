@@ -1589,7 +1589,10 @@
                                     </li>
                                 @endif
                                 @if(Sentinel::hasAccess('expenses'))
-                                    <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Recoveries Approvals <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span> </a></li>
+                                    <li><a href="{{ url('loan/recoveries_approvals') }}"><i class="fa fa-circle-o"></i> Transactions Approvals <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span> </a></li>
+                                @endif
+                                @if(Sentinel::hasAccess('expenses'))
+                                    <li><a href="{{ url('loan/approved_recoveries') }}"><i class="fa fa-circle-o"></i> Approved Transactions <span class="label label-danger pull-right-container" >{{\App\Helpers\GeneralHelper::pending_recoveries_approvals_count()}}</span> </a></li>
                                 @endif
                             @endif
                     </ul>

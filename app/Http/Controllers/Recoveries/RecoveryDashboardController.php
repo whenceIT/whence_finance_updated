@@ -43,15 +43,24 @@ class RecoveryDashboardController extends Controller
 
         $categories = \App\Models\RecoveryCase::CATEGORIES;
         
+        $funds = RecoveryFund::sum('amount');
+
+
+        //Non filtered data
+        $overal_tt_recovered = LoanTrasanctions::where('is_recovery', 1)->get();
+        $overal_tt_attribution = Expenses::where('is_attribution', 1)->get();
+
         return view('recoveries.dashboard.index', compact(
             'period', 'dateFrom', 'dateTo', 'kpis', 'pipeline', 'specialists', 'categories',
-            'branchBreakdown', 'recentActivity', 'monthlyTrend', 'recoveryMix'
+            'branchBreakdown', 'recentActivity', 'monthlyTrend', 'recoveryMix', 'funds',
+            // unfiltered data
+            'overal_tt_recovered', 'overal_tt_attribution'
         ));
     }
 
     public function getFunds()
     {
-        $funds = RecoveryFund::orderBy('created_at', 'desc')->get();
+        $funds = RecoveryFund::get();
         $totalAmount = RecoveryFund::sum('amount');
 
         return response()->json([

@@ -35,6 +35,7 @@ use App\Http\Controllers\Recoveries\RecoveryCaseController;
 use App\Http\Controllers\Recoveries\RecoveryNudgeController;
 use App\Http\Controllers\Recoveries\RecoverySpecialistController;
 use App\Http\Controllers\Recoveries\RecoveryReportController;
+use App\Http\Controllers\Recoveries\RecoveryTransactionController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
@@ -800,6 +801,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
+    Route::get('approved_recoveries', 'Recoveries\RecoveryTransactionController@approvedRecoveries');
     Route::get('recoveries_approvals', 'Recoveries\RecoveryCaseController@recoveriesApprovals');
     Route::get('recoveries_approve/{id}', 'Recoveries\RecoveryCaseController@recoveriesApprove');
     Route::get('recoveries_decline/{id}', 'Recoveries\RecoveryCaseController@recoveriesDecline');
