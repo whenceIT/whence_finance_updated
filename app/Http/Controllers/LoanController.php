@@ -3265,16 +3265,15 @@ public function create()
 
                 $Trans = LoanTransactionUnapproved::find($trans_id);
                 $loan->loan_product->gl_account_fund_source = $request->gl_account_fund_source_id;
-
-                // dd($Trans);
+;
                 $payment_detail = new PaymentDetail();
-                $payment_detail->payment_type_id = $Trans->payment_type_id_pd;
-                $payment_detail->account_number = $Trans->account_number;
-                $payment_detail->cheque_number = $Trans->cheque_number;
-                $payment_detail->routing_code = $Trans->routing_code;
-                $payment_detail->receipt_number = $Trans->receipt_number;
-                $payment_detail->bank = $Trans->bank;
-                $payment_detail->notes = $Trans->notes_pd;
+                $payment_detail->payment_type_id = $Trans?->payment_type_id_pd;
+                $payment_detail->account_number = $Trans?->account_number;
+                $payment_detail->cheque_number = $Trans?->cheque_number;
+                $payment_detail->routing_code = $Trans?->routing_code;
+                $payment_detail->receipt_number = $Trans?->receipt_number;
+                $payment_detail->bank = $Trans?->bank;
+                $payment_detail->notes = $Trans?->notes_pd;
                 $payment_detail->save();
 
 
