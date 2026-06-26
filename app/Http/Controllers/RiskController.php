@@ -1954,14 +1954,14 @@ class RiskController extends Controller
                 'balance' => 'required|numeric|min:0',
             ]);
 
-            if ($validated['balance'] == 0) {
-                $debtBalance->delete();
+            // if ($validated['balance'] == 0) {
+            //     $debtBalance->delete();
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Debt balance deleted successfully!',
-                ]);
-            }
+            //     return response()->json([
+            //         'success' => true,
+            //         'message' => 'Debt balance deleted successfully!',
+            //     ]);
+            // }
 
             $debtBalance->update([
                 'balance' => (int) $validated['balance'],

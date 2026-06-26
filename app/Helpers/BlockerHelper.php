@@ -126,6 +126,7 @@ class BlockerHelper
             $months = $overallPeriodMonths - \App\Models\DepositMonthExemption::get_months_exempted($officeId, $depositType);
         
             $system_balance = (((int)$depositType->monthly_amount * $months) - $deposits->sum('amount'));
+           
             
             if($system_balance > $ledger->balance){
                 $whatsNotRecorded = $system_balance - $ledger->balance;
@@ -138,10 +139,23 @@ class BlockerHelper
                     'ledger_balance'=> $ledger->balance
                 ];
             }
+
+            // 
+            // if($user->office_id == 4 || $user->office_id == 5 || $user->office_id == 46){
+            //     $whatsNotRecorded = $system_balance - $ledger->balance;
+            //     return [
+            //         'status'=>true,
+            //         'amount' => $whatsNotRecorded,
+            //         'deposit_type'=> $depositType->name,
+            //         'message'=> 'Blocked',
+            //         'system_balance'=> $system_balance,
+            //         'ledger_balance'=> $ledger->balance
+            //     ];
+            // }
         }
 
         return [
-            'status'=>false,
+            'status'=> false,
             'amount' => 0,
             'deposit_type'=> '',
             'message'=> 'All ledgers cleared and unblocked',
