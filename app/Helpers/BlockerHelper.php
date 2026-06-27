@@ -174,21 +174,28 @@ class BlockerHelper
 
         $enabledTypes = \App\Helpers\StatsHelper::getRequiredSkippedTypes($officeId);
   
+        
         if (empty($enabledTypes)) {
             return true;
         }
 
-        $types = DB::table('deposits')
-            ->whereIn('deposit_type', $enabledTypes)
-            ->where('office', $officeId)
-            ->where('date', '>=', $now->format('Y-m') . '-01')
-            ->where('date', '<=', $now->format('Y-m') . '-' . $now->format('t'))
-            ->pluck('deposit_type')
-            ->unique()
-            ->values()
+        $types = DB::table('deposit_types as dt')
+            ->leftJoin('deposits as d', function ($join) use ($officeId, $now) {
+                $join->on('dt.id', '=', 'd.deposit_type')
+                    ->where('d.office', $officeId)
+                    ->whereBetween('d.date', [
+                        $now->copy()->startOfMonth()->toDateString(),
+                        $now->copy()->endOfMonth()->toDateString(),
+                    ]);
+            })
+            ->whereIn('dt.id', $enabledTypes)
+            ->whereNotNull('dt.monthly_amount')
+            ->groupBy('dt.id', 'dt.monthly_amount')
+            ->havingRaw('COALESCE(SUM(d.amount), 0) < dt.monthly_amount')
+            ->pluck('dt.id')
             ->toArray();
 
-        return count(array_intersect($enabledTypes, $types)) === count($enabledTypes);
+        return empty($types) ? false : true;
         
     }
     
