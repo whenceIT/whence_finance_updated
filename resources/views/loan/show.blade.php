@@ -28,12 +28,12 @@
     <!-- Test with Anchor House First -->
     @if(date('d') >= 27 && date('d') <= 31) 
         @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
-            <script>
+            <!-- <script>
                 toastr.warning('Some branch deposits for this month have not been recorded', 'Warning');
                 setTimeout(function() {
                     window.location.href = '/user/branch_deposits';
                 }, 3000);
-            </script>
+            </script> -->
         @else
             <!-- <x-debt-blocker/> -->
         @endif
