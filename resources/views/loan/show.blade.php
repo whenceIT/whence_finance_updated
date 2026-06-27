@@ -24,16 +24,10 @@
             $monthlyDepositDone = true;
         @endphp
     @endif
-
-    <!-- Test with Anchor House First -->
+    
     @if(date('d') >= 27 && date('d') <= 31) 
-        @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
-            <!-- <script>
-                toastr.warning('Some branch deposits for this month have not been recorded', 'Warning');
-                setTimeout(function() {
-                    window.location.href = '/user/branch_deposits';
-                }, 3000);
-            </script> -->
+        @if($monthlyDepositDone && request()->path() != 'user/branch_deposits')
+            @include('components.current_month_deposit_blocker')
         @else
             <!-- <x-debt-blocker/> -->
         @endif

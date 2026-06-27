@@ -57,7 +57,7 @@
                                class="form-control"
                                value="{{$balance}}"
                                required id="amount"
-                               
+                               max="{{$balance}}"
                                >
                     </div>
                 </div>

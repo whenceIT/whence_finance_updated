@@ -123,7 +123,7 @@ class BlockerHelper
                 ->where('office', $officeId)
                 ->where('deposit_type', $ledger->deposit_type_id)
                 ->get();
-                
+
             $months = $overallPeriodMonths - \App\Models\DepositMonthExemption::get_months_exempted($officeId, $depositType);
         
             $system_balance = (((int)$depositType->monthly_amount * $months) - $deposits->sum('amount'));
@@ -160,7 +160,7 @@ class BlockerHelper
     {
         $officeId = $user->office_id ?? null;
 
-        if (isset($user->role->role_id) && $user->role->role_id != 4) {
+        if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
             return true;
         }
 
