@@ -85,7 +85,7 @@ class BlockerHelper
             ];
         }
         //
-        if ( $user->office_id == 11 || $user->office_id == 18 || $user->office_id == 46) {
+        if ( $user->office_id == 11 || $user->office_id == 18) {
             return [
                 'status'=>false,
                 'amount' => 0,
@@ -163,7 +163,7 @@ class BlockerHelper
         if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
             return true;
         }
-        if ( $user->office_id == 11 || $user->office_id == 18 || $user->office_id == 46) {
+        if ( $user->office_id == 11 || $user->office_id == 18 ) {
             return true;
         }
         if (!$officeId) {
