@@ -548,7 +548,7 @@
                            class="control-label col-md-4">{{trans_choice('general.phone',1)}}</label>
                     <div class="col-md-8">
                         <input type="text" name="phone" class="form-control"
-                               value="{{$loan->client->phone}}"
+                               value="{{ $loan->client->phone ?? $loan->client->mobile }}"
                                id="phone" readonly>
                     </div>
         </div>
