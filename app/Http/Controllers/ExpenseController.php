@@ -268,12 +268,13 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             $data = $response->json();
 
             $cashBalance = $data['user']['cash_balance'] ?? null;
+            $user_id = $data['user']['id'] ?? null;
         }
 
 
 
         
-        return view('expense.create', compact('offices','recentExpenses','cashBalance'));
+        return view('expense.create', compact('offices','recentExpenses','cashBalance','user_id'));
     }
 
     /**
@@ -314,6 +315,74 @@ if ($currentTime >= '17:30' || $currentTime < '07:00') {
     return redirect()->back();
 }
 
+  $paymentType = $request->payment_type;
+
+    if ($paymentType == 'mobile_money') {
+
+    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+
+    $payload = [
+        'amount' => $request->amount,
+        'phone' => $request->phone,
+        'reason' => 'new loan disbursement',
+        'user_id' => $request->user_id,
+        'operator'=> $request->hidden_operator,
+        'payout_type' => 'withinhere_to_mno',
+        'totalDeducted' => $request->total_deducted
+    ];
+
+} else {
+
+    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+
+    $payload = [
+        'amount' => $request->amount,
+        'user_id' => $request->user_id,
+        'bankId' => $request->bank_id,
+        'accountNumber' => $request->account_number,
+        'reason' => 'new loan disbursement',
+        'payout_type' => 'withinhere_to_bank',
+        'totalDeducted' => $request->total_deducted
+    ];
+}
+
+
+try {
+
+    $response = Http::post($url, $payload);
+
+    if (!$response->successful()) {
+
+         $body = $response->body();
+
+    Flash::success('API Error: ' . $body);
+    
+    }
+
+    $result = $response->json();
+
+} catch (\Exception $e) {
+
+    Flash::success('Could not connect to payment service.');
+
+    return redirect()->back();
+}
+
+
+if (
+    !isset($result['status']) ||
+    $result['status'] !== 'pending'
+) {
+
+    Flash::success('Transfer request was rejected.');
+
+   return redirect()->back();
+}
+
+
+
+
+
         $expense = new Expense();
         $expense->created_by_id = Sentinel::getUser()->id;
         $expense->office_id = $request->office_id;
@@ -322,8 +391,8 @@ if ($currentTime >= '17:30' || $currentTime < '07:00') {
         $expense->name = $request->name;
         $expense->notes = $request->notes;
         $expense->date = $request->date;
-        $expense->deposit_method = $request->reference_type;
-        $expense->reference_number = $request->reference_number;
+        $expense->deposit_method = $request->payment_type;
+        $expense->reference_number = $request->payment_type;
         $date = explode('-', $request->date);
         $expense->recurring = $request->recurring;
         if ($request->recurring == 1) {
@@ -337,51 +406,51 @@ if ($currentTime >= '17:30' || $currentTime < '07:00') {
         }
         $expense->year = $date[0];
         $expense->month = $date[1];
-        $expense->status = "pending";
-   $validator = Validator::make($request->all(), [
-    'proof_of_payment' => 'required|mimes:jpeg,png,jpg,gif,pdf|max:5120',
-]);
+        $expense->status = "approved";
+//    $validator = Validator::make($request->all(), [
+//     'proof_of_payment' => 'required|mimes:jpeg,png,jpg,gif,pdf|max:5120',
+// ]);
 
-if ($validator->fails()) {
-    Flash::warning(trans('general.validation_error'));
-    return redirect()->back()->withInput()->withErrors($validator);
-}
+// if ($validator->fails()) {
+//     Flash::warning(trans('general.validation_error'));
+//     return redirect()->back()->withInput()->withErrors($validator);
+// }
 
-if ($request->hasFile('proof_of_payment')) {
+// if ($request->hasFile('proof_of_payment')) {
 
-    $file = $request->file('proof_of_payment');
+//     $file = $request->file('proof_of_payment');
 
-    $fileName =
-        'expense_proofs/' .
-        date('Y') . '/' .
-        date('m') . '/' .
-        time() . '_' .
-        preg_replace(
-            '/[^A-Za-z0-9\.\-_]/',
-            '',
-            $file->getClientOriginalName()
-        );
+//     $fileName =
+//         'expense_proofs/' .
+//         date('Y') . '/' .
+//         date('m') . '/' .
+//         time() . '_' .
+//         preg_replace(
+//             '/[^A-Za-z0-9\.\-_]/',
+//             '',
+//             $file->getClientOriginalName()
+//         );
 
-    $s3Client = new S3Client([
-        'version' => 'latest',
-        'region' => 'nyc3',
-        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-        'credentials' => [
-            'key' => 'DO00RP9FA3QZTA3JV637',
-            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-        ],
-    ]);
+//     $s3Client = new S3Client([
+//         'version' => 'latest',
+//         'region' => 'nyc3',
+//         'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+//         'credentials' => [
+//             'key' => 'DO00RP9FA3QZTA3JV637',
+//             'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+//         ],
+//     ]);
 
-    $result = $s3Client->putObject([
-        'Bucket' => 'wfssystem',
-        'Key' => $fileName,
-        'Body' => fopen($file->getPathname(), 'r'),
-        'ACL' => 'public-read',
-        'ContentType' => $file->getMimeType(),
-    ]);
+//     $result = $s3Client->putObject([
+//         'Bucket' => 'wfssystem',
+//         'Key' => $fileName,
+//         'Body' => fopen($file->getPathname(), 'r'),
+//         'ACL' => 'public-read',
+//         'ContentType' => $file->getMimeType(),
+//     ]);
 
-    $expense->proof_of_payment = $result['ObjectURL'];
-}
+//     $expense->proof_of_payment = $result['ObjectURL'];
+// }
         $expense->gl_account_id = $request->gl_account_id;
         $expense->save();
 

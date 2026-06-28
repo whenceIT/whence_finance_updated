@@ -62,6 +62,7 @@ use App\Models\Notifix;
 use App\Services\NotifixService;
 use App\Models\ClientAppLoanApplications;
 use App\Models\Vehicle;
+use Illuminate\Support\Facades\Hash;
 
 
 class LoanController extends Controller
@@ -1535,8 +1536,39 @@ public function create()
         
         // Get ledger blocker status for debugging
         $ledgerBlocker = \App\Helpers\BlockerHelper::ledger_blocker();
+
+            $office_id = Sentinel::getUser()->office_id;
+$office = Office::find($office_id);
+
+if ($office && $office->withinhere_wallet_id == null) {
+    return redirect('/user/verify_wallet');
+}
+
+$withinhere_wallet_id = $office->withinhere_wallet_id;
+
+
+      $response = Http::timeout(60)
+                ->post(
+                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                    [
+                        'wallet_id' => $withinhere_wallet_id,
+                        'start_date' => '2025-01-01',
+                        'end_date' => '2025-01-01'
+                    ]
+                );
+
+
+                   if ($response->successful()) {
+            $data = $response->json();
+
+            $cashBalance = $data['user']['cash_balance'] ?? null;
+            $user_id = $data['user']['id'] ?? null;
+        }
+
+
+
         
-        return view('loan.show', compact('loan', 'ledgerBlocker'));
+        return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id'));
     }
 
 
@@ -2563,6 +2595,30 @@ public function create()
         return redirect()->back();
     }
 
+
+
+    public function verifyPassword(Request $request)
+{
+    $user = Sentinel::getUser();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false
+        ]);
+    }
+
+    if (Hash::check($request->password, $user->password)) {
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    return response()->json([
+        'success' => false
+    ]);
+}
+
     public function disburse_loan(Request $request, $id)
     {
         if (!Sentinel::hasAccess('loans.disburse')) {
@@ -2571,7 +2627,6 @@ public function create()
         }
         $rules = array(
             'disbursement_date' => 'required',
-            'payment_type_id' => 'required',
             'first_repayment_date' => 'required|after_or_equal:disbursement_date',
         );
         $validator = Validator::make($request->all(), $rules);
@@ -2583,6 +2638,72 @@ public function create()
                 Flash::warning("Loan not approved");
                 return redirect()->back();
             }
+
+            $paymentType = $request->payment_type;
+
+    if ($paymentType == 'mobile_money') {
+
+    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+
+    $payload = [
+        'amount' => $request->amount,
+        'phone' => $request->phone,
+        'reason' => 'new loan disbursement',
+        'user_id' => $request->user_id,
+        'operator'=> $request->hidden_operator,
+        'payout_type' => 'withinhere_to_mno',
+        'totalDeducted' => $request->total_deducted
+    ];
+
+} else {
+
+    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+
+    $payload = [
+        'amount' => $request->amount,
+        'user_id' => $request->user_id,
+        'bankId' => $request->bank_id,
+        'accountNumber' => $request->account_number,
+        'reason' => 'new loan disbursement',
+        'payout_type' => 'withinhere_to_bank',
+        'totalDeducted' => $request->total_deducted
+    ];
+}
+
+
+try {
+
+    $response = Http::post($url, $payload);
+
+    if (!$response->successful()) {
+
+         $body = $response->body();
+
+    Flash::success('API Error: ' . $body);
+    
+    }
+
+    $result = $response->json();
+
+} catch (\Exception $e) {
+
+    Flash::success('Could not connect to payment service.');
+
+    return redirect()->back();
+}
+
+if (
+    !isset($result['status']) ||
+    $result['status'] !== 'pending'
+) {
+
+    Flash::success('Transfer request was rejected.');
+
+   return redirect()->back();
+}
+
+
+
             $loan->status = "disbursed";
             $loan->disbursed_by_id = Sentinel::getUser()->id;
             $loan->disbursed_notes = $request->disbursed_notes;
@@ -2749,9 +2870,10 @@ public function create()
             }
             $loan->expected_maturity_date = $next_payment;
             $loan->save();
+
             $total_interest = LoanRepaymentSchedule::where('loan_id', $loan->id)->sum('interest');
             $payment_detail = new PaymentDetail();
-            $payment_detail->payment_type_id = $request->payment_type_id;
+            $payment_detail->payment_type_id = 3; //$request->payment_type_id;
             $payment_detail->account_number = $request->account_number;
             $payment_detail->cheque_number = $request->cheque_number;
             $payment_detail->routing_code = $request->routing_code;
@@ -3062,8 +3184,8 @@ public function create()
             }
 
             $client = $loan->client; // Get the client for notification
-            $payment_type = PaymentType::find($request->payment_type_id);
-            $payment_type_name = $payment_type ? $payment_type->name : 'Unknown';
+            $payment_type = 3;//PaymentType::find($request->payment_type_id);
+            $payment_type_name = $request->payment_type;
 
             // Notify loan officer that their loan has been disbursed
             Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
