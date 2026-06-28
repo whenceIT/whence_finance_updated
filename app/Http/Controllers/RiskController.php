@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Deposit;
 use App\Models\BankDepositLog;
 use App\Models\DepositMonthExemption;
+use App\Models\DebtBalances;
 
 
 class RiskController extends Controller
@@ -589,7 +590,8 @@ class RiskController extends Controller
         $depositType = $request->query('deposit_type');
         $year = $request->query('year');
 
-        $query = \App\Models\Deposit::query();
+        $query = \App\Models\Deposit::query()
+            ->with(['bankDepositLog.user', 'office', 'depositTypeInfo']);
 
         if ($officeId) {
             $query->where('office', (int) $officeId);
@@ -601,40 +603,17 @@ class RiskController extends Controller
             $query->whereYear('date', (int) $year);
         }
 
-        $deposits = $query->with(['user', 'bankDepositLog'])
-            ->orderBy('date', 'desc')
+        $deposits = $query->orderBy('date', 'desc')
             ->limit(500)
             ->get();
 
-        $officeIds = $deposits->pluck('office')->unique()->values()->all();
-        $depositTypeIds = $deposits->pluck('deposit_type')->unique()->values()->all();
-
-        $offices = \App\Models\Office::whereIn('id', $officeIds)->pluck('name', 'id');
-        $depositTypes = \App\Models\DepositType::whereIn('id', $depositTypeIds)->pluck('name', 'id');
-
-        $logs = $deposits->map(function ($dep) use ($offices, $depositTypes) {
-            $bankLog = $dep->bankDepositLog;
-
-            return [
-                'id' => $dep->id,
-                'deposit_type_name' => $depositTypes->get($dep->deposit_type, 'Unknown'),
-                'user_name' => $bankLog && $bankLog->user
-                    ? ($bankLog->user->first_name . ' ' . $bankLog->user->last_name)
-                    : ($dep->user_id ? 'Unknown' : 'Unknown'),
-                'office_name' => $offices->get($dep->office, 'Unknown'),
-                'amount' => (float)$dep->amount,
-                'deposit_method' => $bankLog->deposit_method ?? 'Cash',
-                'reference_number' => $bankLog->reference_number ?? 'N/A',
-                'created_date' =>  $dep->date ?? $bankLog->created_date ,
-            ];
-        });
-
         return response()->json([
-            'deposits' => $logs,
-            'total' => $logs->sum('amount'),
+            'deposits' => $deposits,
+            'total' => $deposits->sum('amount'),
         ]);
     }
 
+    
     public function updateDepositAmount(Request $request)
     {
         $request->validate([
@@ -1540,6 +1519,7 @@ class RiskController extends Controller
                     'balance'     => $balance,
                     'grand_total' => (int) $received,
                 ];
+
             }
 
         } else {
@@ -1579,6 +1559,7 @@ class RiskController extends Controller
         $totReq  = array_sum(array_column($depositCardStats, 'required'));
         $totRecv = array_sum(array_column($depositCardStats, 'received'));
 
+        // dd($depositCardStats);
         $depositCardTotals = [
             'label'       => 'All Types (Total)',
             'required'    => $totReq,
@@ -1921,7 +1902,18 @@ class RiskController extends Controller
                 'balance' => 'required|numeric|min:0',
             ]);
 
-            $debtBalance = \App\Models\DebtBalances::updateOrCreate(
+            if ($validated['balance'] == 0) {
+                DebtBalances::where('deposit_type_id', $validated['deposit_type_id'])
+                    ->where('office_id', $validated['office_id'])
+                    ->delete();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Debt balance deleted successfully!',
+                ]);
+            }
+
+            $debtBalance = DebtBalances::updateOrCreate(
                 [
                     'office_id' => $validated['office_id'],
                     'deposit_type_id' => $validated['deposit_type_id'],
@@ -1956,11 +1948,20 @@ class RiskController extends Controller
     public function updateDebtBalance(Request $request, $id)
     {
         try {
-            $debtBalance = \App\Models\DebtBalances::findOrFail($id);
+            $debtBalance = DebtBalances::findOrFail($id);
 
             $validated = $request->validate([
                 'balance' => 'required|numeric|min:0',
             ]);
+
+            // if ($validated['balance'] == 0) {
+            //     $debtBalance->delete();
+
+            //     return response()->json([
+            //         'success' => true,
+            //         'message' => 'Debt balance deleted successfully!',
+            //     ]);
+            // }
 
             $debtBalance->update([
                 'balance' => (int) $validated['balance'],
@@ -1996,7 +1997,7 @@ class RiskController extends Controller
     public function deleteDebtBalance($id)
     {
         try {
-            $debtBalance = \App\Models\DebtBalances::findOrFail($id);
+            $debtBalance = DebtBalances::findOrFail($id);
             $debtBalance->delete();
 
             return response()->json([

@@ -8,13 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('debt_balances', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('office_id');
-            $table->unsignedBigInteger('deposit_type_id');
-            $table->unsignedBigInteger('balance')->default(0);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('debt_balances')) {
+            Schema::create('debt_balances', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->unsignedBigInteger('office_id');
+                $table->unsignedBigInteger('deposit_type_id');
+                $table->unsignedBigInteger('balance')->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

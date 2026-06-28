@@ -54,6 +54,7 @@
                 <select id="blocker-payment-method" class="form-control" style="margin-bottom: 8px;">
                     <option value="">Select Method</option>
                     <option value="airtel">Airtel Money</option>
+                    <option value="airtel_app">Airtel App</option>
                     <option value="zanaco_express">Zanaco Express</option>
                     <option value="mtn">MTN MoMo</option>
                     <option value="zanaco_cash">Zanaco Cash Deposit</option>
@@ -102,6 +103,10 @@
                 case 'airtel':
                     hintEl.text('Format: MP260223.0953.J76581');
                     inputEl.attr('placeholder', 'MP260223.0953.J76581');
+                    break;
+                case 'airtel_app':
+                    hintEl.text('Format: APCZM194947529952000');
+                    inputEl.attr('placeholder', 'APCZM194947529952000');
                     break;
                 case 'zanaco_express':
                     hintEl.text('Format: 12 digit number (002504072516)');

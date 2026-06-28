@@ -222,35 +222,11 @@ if ($today->lt($cycleDate)) {
 
 $cycle_date = $cycleDate->format('Y-m-d');
 
-    $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
-    ->where('user_id', Sentinel::getUser()->id)
-    ->first();
-
- $launchNewCarryOver = false;
-
- 
-    if($carry_over == null){
-                $launchNewCarryOver = true;
-            }else{
-
-                   if($cycle_date != $carry_over->cycle_date)
-                    {
-                    $carry_over->status = 'closed';
-                    $carry_over->save();
-                    $launchNewCarryOver = true;
-                }
-            }
-
-
-
-
-
             $data = [];
             $start = null;
             $end = null;
 
-            return view('user.pmdashboard',compact(
-                'launchNewCarryOver',
+return view('user.pmdashboard',compact(
                 'province_data',
                   'provinces',
         'branches',
@@ -536,9 +512,7 @@ public function save_wallet(Request $request)
     {
 
         $branch_data = [];
-        $HasPendingCarryOvers = false;
         $pendingApproval = false;
-        $launchNewCarryOver = false;
         $numbers_status = null;
         $has_carry_over = null;
         $data = [];
@@ -759,33 +733,7 @@ public function save_wallet(Request $request)
                 }
 
 
-            }
-
-
-            $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
-                ->where('user_id', Sentinel::getUser()->id)
-                ->first();
-
-            $pendingApproval = false;
-            $launchNewCarryOver = false;
-            if ($carry_over == null) {
-                $launchNewCarryOver = true;
-            } else {
-
-                if ($carry_over->status == 'pending') {
-                    $pendingApproval = true;
-                } else {
-                    if ($cycle_date != $carry_over->cycle_date) {
-                        $carry_over->status = 'closed';
-                        $carry_over->save();
-
-                        $launchNewCarryOver = true;
-                    }
-                }
-
-            }
-
-
+}
 
 
             $myLoans = Loan::with('transactions')->where('loan_officer_id', $userId)->get();
@@ -909,20 +857,12 @@ public function save_wallet(Request $request)
             } else {
                 $officeIds = \App\Models\Office::where('district_id', $user->district_id)->pluck('id')->toArray();
             }
-            $carry_overs = CarryOver::where('status', 'pending')->whereIn('office_id', $officeIds)->count();
             $newBranchLoans = Loan::with('transactions')->whereIn('office_id', $officeIds)->get();
             foreach ($newBranchLoans as $branchLoan) {
                 foreach ($branchLoan->transactions as $Transaction) {
                     array_push($branchTransactions, $Transaction);
                 }
             }
-
-            if ($carry_overs > 0) {
-
-                $HasPendingCarryOvers = true;
-
-            }
-
 
             $cycle_end = $user->cycle_dates
                 ? (int) $user->cycle_dates->cycle_end_date
@@ -945,29 +885,7 @@ public function save_wallet(Request $request)
                 $cycleDate = $buildCycleDate(Carbon::now()->subMonth());
             }
 
-            $cycle_date = $cycleDate->format('Y-m-d');
-
-            $carry_over = CarryOver::whereIn('status', ['active', 'pending'])
-                ->where('user_id', Sentinel::getUser()->id)
-                ->first();
-
-            $launchNewCarryOver = false;
-
-
-            if ($carry_over == null) {
-                $launchNewCarryOver = true;
-            } else {
-
-                if ($cycle_date != $carry_over->cycle_date) {
-                    $carry_over->status = 'closed';
-                    $carry_over->save();
-                    $launchNewCarryOver = true;
-                }
-            }
-
-
-
-
+$cycle_date = $cycleDate->format('Y-m-d');
 
             if ($role->role_id == '4' || $role->role_id == '12') {
                 $branchId = Sentinel::getUser()->office_id;
@@ -1077,7 +995,7 @@ public function save_wallet(Request $request)
             $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         }
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'launchNewCarryOver', 'pendingApproval', 'HasPendingCarryOvers', 'true_date', 'numbers_status', 'branch_data', 'province_data'));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'pendingApproval', 'true_date', 'numbers_status', 'branch_data', 'province_data'));
         } else {
 
 

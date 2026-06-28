@@ -11,6 +11,17 @@ class Loan extends Model
     use SoftDeletes;
     protected $table = "loans";
 
+    protected $fillable = [
+        'dormant_recovery',
+        'shared',
+        // ... other fillable fields
+    ];
+
+    protected $casts = [
+        'dormant_recovery' => 'integer',
+        'shared' => 'integer',
+    ];
+
     public function charges()
     {
         return $this->hasMany(LoanCharge::class, 'loan_id', 'id');

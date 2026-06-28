@@ -24,19 +24,13 @@
             $monthlyDepositDone = true;
         @endphp
     @endif
+    
+    @if(date('d') >= 27 && date('d') <= 31) 
 
-    @include('components.ledger_blocker')
-    <!-- Test with Anchor House First -->
-    @if(false) 
-        @if(!$monthlyDepositDone && request()->path() != 'user/branch_deposits')
-            <script>
-                toastr.warning('Some branch deposits for this month have not been recorded', 'Warning');
-                setTimeout(function() {
-                    window.location.href = '/user/branch_deposits';
-                }, 3000);
-            </script>
+        @if($monthlyDepositDone && request()->path() != 'user/branch_deposits')
+            @include('components.current_month_deposit_blocker')
         @else
-            <x-debt-blocker/>
+            <!-- <x-debt-blocker/> -->
         @endif
     @endif
 
@@ -1157,7 +1151,15 @@
 				                    </tr>
 
 
-
+                                    <tr style="background-color: #fdbebe;">
+                                        <th class="table-bold-loan">Recoveries Unit Share (Deducted)</th>
+                                        <td>
+                                            <span class="padded-td">
+                                            {{ \App\Helpers\FinancialHelper::dormant_client_loan_info($loan->id) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    
                                     <tr>
                                         <th class="table-bold-loan">Vetted by</th>
                                         <td>

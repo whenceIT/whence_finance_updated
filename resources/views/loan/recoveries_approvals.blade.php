@@ -33,16 +33,20 @@
                 ?>
                     <tr>
                         <td>
-                            <a href="{{ url('loan/'.$key->recoveryCase->loan->id.'/show') }}" data-toggle="tooltip" title="Click to view loan">
-                                {{ $key->recoveryCase->loan->id }}
-                            </a>
+                            @if($key->recoveryCase->loan)
+                                <a href="{{ url('loan/'.$key->recoveryCase->loan->id.'/show') }}" data-toggle="tooltip" title="Click to view loan">
+                                    {{ $key->recoveryCase->loan->id }}
+                                </a>
+                            @else
+                                <span class="text-muted">Loan N/A</span>
+                            @endif
                             <br>
                             <button type="button" class="btn btn-xs btn-info" data-toggle="modal" data-target="#caseModal{{$key->id}}" title="View Case Details">
                                 <i class="fa fa-eye"></i> Case Details
                             </button>
                         </td>
                         <td>
-                            @if(!empty($key->recoveryCase->loan->office))
+                            @if($key->recoveryCase->loan && !empty($key->recoveryCase->loan->office))
                                 {{$key->recoveryCase->loan->office->name}}
                             @endif
                         </td>

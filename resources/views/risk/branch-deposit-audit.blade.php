@@ -465,6 +465,8 @@
                     $rec = (int) $s['received'];
                     $other = (int) $s['other'];
                     $bal = (int) $s['balance'];
+                    $displayBal = max(0, $bal); // Show 0 or positive only
+                    $excess = $bal < 0 ? abs($bal) : 0; // Calculate excess if negative
                 ?>
 
                 <div class="sc-card sc-card-dep">
@@ -477,7 +479,15 @@
                     <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ $rec == 0 ? number_format($other, 2) : number_format($rec, 2) }}</strong></div>
 
                     <?php if (!$isSpecial): ?>
-                        <div class="sc-balance">Balance&nbsp;&nbsp;<strong{{ $bal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($bal, 2) }}</strong></div>
+                        <div class="sc-balance">
+                            Balance&nbsp;&nbsp;<strong{{ $displayBal > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($displayBal, 2) }}</strong>
+                            <?php if ($excess > 0): ?>
+                                <div style="font-size:11px; color:#27ae60; margin-top:4px;">
+                                    <i class="fa fa-arrow-up" style="margin-right:2px;"></i>
+                                    Excess: K{{ number_format($excess, 2) }}
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
                 <?php $idx++; ?>

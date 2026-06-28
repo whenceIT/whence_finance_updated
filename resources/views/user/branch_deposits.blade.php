@@ -352,7 +352,7 @@ $(document).ready(function () {
     var userName = '{{ $user_name }}';
     var depositOrder = [];
     var ledgerBlocker = <?php echo json_encode($ledgerBlocker); ?>;
-    var depositApiUrl = 'https://lms2backend.whencefinancesystem.com';
+    var depositApiUrl = 'http://localhost:5000';
 
     const MANDATORY_DEPOSIT_TYPES = [
         { id: 3, name: 'Building & Infrastructure Fee Deposits', monthly_amount: 10000.00 },
@@ -564,7 +564,7 @@ function lockAll() {
             console.log('Gate: '+gateStatus, depositName);
             
             var $card = $(`
-                <div class="deposit-item deposit-card ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}" 
+                <div class="deposit-item deposit-card " 
                      data-deposit-id="${depositId}" 
                      data-office-id="${officeId}" 
                      data-method="${method || ''}"
@@ -604,12 +604,13 @@ function lockAll() {
                         <option value="access">Access</option>
                         <option value="absa">Absa</option>
                         <option value="withinhere">WithinHere</option>
+                        <option value="zanaco_online_transfer">Zanaco Online Transfer</option>
                     </select>
                     <br>
                     <small class="text-muted format-hint">Enter Payment Reference Number</small>
                     <input type="text" class="form-control reference" placeholder="Enter reference number" required>
                     <br>
-                    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="0.01" step="0.01" required>
+                    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="5000" step="0.01" required>
                     <br>
                     <button class="btn btn-primary complete-btn" style="min-width: 100px;">
                         <span class="btn-text">Save Deposit</span>
@@ -641,6 +642,9 @@ function lockAll() {
                 switch (method) {
                     case 'airtel':
                         placeholder = 'MP260223.0953.J76581';
+                        break;
+                    case 'airtel_app':
+                        placeholder = 'APCZM194947529952000';
                         break;
                     case 'zanaco_express':
                         placeholder = '002504072516';
@@ -856,6 +860,11 @@ function lockAll() {
                 referenceInput.attr('placeholder', 'MP260223.0953.J76581');
                 break;
 
+            case 'airtel_app':
+                hint.text('Format: APCZM194947529952000');
+                referenceInput.attr('placeholder', 'APCZM194947529952000');
+                break;
+
             case 'zanaco_express':
                 hint.text('Format: 12 digit number (002504072516)');
                 referenceInput.attr('placeholder', '002504072516');
@@ -919,11 +928,14 @@ function lockAll() {
         }
 
         // Tempro bypass
-        let valid = true;
+        let valid = false;
 
         switch (paymentMethod) {
             case 'airtel':
                 valid = /^[A-Za-z]{2}\d{6}\.\d{4}\.[A-Za-z]\d{5}$/.test(currentReferenceNumber);
+                break;
+            case 'airtel_app':
+                valid = /^[A-Za-z]{5}\d{15}$/.test(currentReferenceNumber);
                 break;
             case 'zanaco_express':
                 valid = /^\d{12}$/.test(currentReferenceNumber);
@@ -942,6 +954,9 @@ function lockAll() {
                 break;
             case 'withinhere':
                 valid = /^\d+$/.test(currentReferenceNumber);
+                break;
+            case 'zanaco_online_transfer':
+                valid = /^\d{3}[A-Za-z]{4}\d{7}[A-Za-z]{2}$/.test(currentReferenceNumber);
                 break;
         }
 

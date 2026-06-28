@@ -14,7 +14,7 @@ class BlockerHelper
     /**
      * Debt Blocker for Loan Operations
      *
-     * Checks whether the office has made its required monthly setup deposit (deposit_type 0)
+     * Checks whether the office has made its required monthly setup cost deposit (deposit_type 0)
      * and returns both the payment status and the current outstanding balance from office_debts.
      *
      * @param object $user
@@ -75,6 +75,7 @@ class BlockerHelper
         // overall: full months from Jan 1 this year through 28th of current month
         $overallPeriodMonths = 6;   
 
+        // if (true) {
         if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
             return [
                 'status'=>false,
@@ -83,7 +84,8 @@ class BlockerHelper
                 'message'=> 'Not a BM or LC'
             ];
         }
-        if ($user->office_id == 2 || $user->office_id == 36) {
+        //
+        if ( $user->office_id == 11 || $user->office_id == 18) {
             return [
                 'status'=>false,
                 'amount' => 0,
@@ -121,6 +123,7 @@ class BlockerHelper
                 ->where('office', $officeId)
                 ->where('deposit_type', $ledger->deposit_type_id)
                 ->get();
+
             $months = $overallPeriodMonths - \App\Models\DepositMonthExemption::get_months_exempted($officeId, $depositType);
         
             $system_balance = (((int)$depositType->monthly_amount * $months) - $deposits->sum('amount'));
@@ -151,17 +154,18 @@ class BlockerHelper
     public static function deposit_blocker(): string
     {
         return "Your office has not made the required monthly deposit of K5,000. Please contact your branch manager to resolve this issue and regain access to loan operations.";   
-
     }
 
-public static function monthlyDepositExists($user)
+    public static function monthlyDepositExists($user)
     {
         $officeId = $user->office_id ?? null;
 
-        if (isset($user->role->role_id) && $user->role->role_id != 4) {
+        if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
             return true;
         }
-
+        if ( $user->office_id == 11 || $user->office_id == 18 ) {
+            return true;
+        }
         if (!$officeId) {
             return false;
         }
@@ -170,22 +174,28 @@ public static function monthlyDepositExists($user)
 
         $enabledTypes = \App\Helpers\StatsHelper::getRequiredSkippedTypes($officeId);
   
+        
         if (empty($enabledTypes)) {
             return true;
         }
 
-        $types = DB::table('deposits')
-            ->whereIn('deposit_type', $enabledTypes)
-            ->where('office', $officeId)
-            ->where('date', '>=', $now->format('Y-m') . '-01')
-            ->where('date', '<=', $now->format('Y-m') . '-' . $now->format('t'))
-            ->pluck('deposit_type')
-            ->unique()
-            ->values()
+        $types = DB::table('deposit_types as dt')
+            ->leftJoin('deposits as d', function ($join) use ($officeId, $now) {
+                $join->on('dt.id', '=', 'd.deposit_type')
+                    ->where('d.office', $officeId)
+                    ->whereBetween('d.date', [
+                        $now->copy()->startOfMonth()->toDateString(),
+                        $now->copy()->endOfMonth()->toDateString(),
+                    ]);
+            })
+            ->whereIn('dt.id', $enabledTypes)
+            ->whereNotNull('dt.monthly_amount')
+            ->groupBy('dt.id', 'dt.monthly_amount')
+            ->havingRaw('COALESCE(SUM(d.amount), 0) < dt.monthly_amount')
+            ->pluck('dt.id')
             ->toArray();
 
-        
-        return count(array_intersect($enabledTypes, $types)) === count($enabledTypes);
+        return empty($types) ? false : true;
         
     }
     

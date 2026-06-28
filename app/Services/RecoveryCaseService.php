@@ -20,6 +20,14 @@ class RecoveryCaseService
 
             $case = RecoveryCase::create($data);
 
+            // If category is dormant, update the loan
+            if (isset($data['category']) && $data['category'] === 'dormant') {
+                \App\Models\Loan::where('id', $data['loan_id'])->update([
+                    'dormant_recovery' => 1,
+                    'shared' => 0,
+                ]);
+            }
+
             // Log the opening activity
             $this->logActivity($case, [
                 'activity_type' => 'status_change',

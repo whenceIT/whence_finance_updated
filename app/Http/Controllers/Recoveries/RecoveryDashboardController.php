@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
 use App\Services\RecoveryDashboardService;
+use App\Models\RecoveryFund;
 use Illuminate\Http\Request;
 
 class RecoveryDashboardController extends Controller
@@ -42,9 +43,72 @@ class RecoveryDashboardController extends Controller
 
         $categories = \App\Models\RecoveryCase::CATEGORIES;
         
+        $funds = RecoveryFund::sum('amount');
+
+
+        //Non filtered data
+        $overal_tt_recovered = \App\Models\LoanTransaction::where('is_recovery', 1)->sum('credit');
+        $overal_tt_attribution = \App\Models\Expense::where('is_attribution', 1)->sum('amount');
+
         return view('recoveries.dashboard.index', compact(
             'period', 'dateFrom', 'dateTo', 'kpis', 'pipeline', 'specialists', 'categories',
-            'branchBreakdown', 'recentActivity', 'monthlyTrend', 'recoveryMix'
+            'branchBreakdown', 'recentActivity', 'monthlyTrend', 'recoveryMix', 'funds',
+            // unfiltered data
+            'overal_tt_recovered', 'overal_tt_attribution'
         ));
+    }
+
+    public function getFunds()
+    {
+        $funds = RecoveryFund::get();
+        $totalAmount = RecoveryFund::sum('amount');
+
+        return response()->json([
+            'funds' => $funds,
+            'totalAmount' => $totalAmount,
+        ]);
+    }
+
+    public function storeFund(Request $request)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $fund = RecoveryFund::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'fund' => $fund,
+            'message' => 'Recovery fund entry created successfully',
+        ]);
+    }
+
+    public function updateFund(Request $request, $id)
+    {
+        $fund = RecoveryFund::findOrFail($id);
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $fund->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'fund' => $fund,
+            'message' => 'Recovery fund entry updated successfully',
+        ]);
+    }
+
+    public function destroyFund($id)
+    {
+        $fund = RecoveryFund::findOrFail($id);
+        $fund->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Recovery fund entry deleted successfully',
+        ]);
     }
 }

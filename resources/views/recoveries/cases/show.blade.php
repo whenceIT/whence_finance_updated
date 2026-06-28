@@ -28,15 +28,26 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
         ? ($case->client->full_name ?? '—')
         : (trim(($case->client->first_name ?? '') . ' ' . ($case->client->last_name ?? '')) ?: '—');
 
-    $loanRef = $case->loan->loan_id ?? ('Loan #' . $case->loan_id);
+    $loanRef = $case->loan->loan_id ?? $case->loan_id;
 @endphp
 
-{{-- Back Button --}}
-<div class="row">
-    <div class="col-12">
+{{-- Back Button & Toolbar --}}
+<div class="row" style="margin-bottom: 15px;">
+    <div class="col-xs-6">
         <a href="{{ url('recovery/case/data') }}" class="btn btn-default">
             <i class="fa fa-arrow-left"></i> Back to Cases
         </a>
+    </div>
+    <div class="col-xs-6 text-right">
+        @if($case->loan)
+            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#recovery_modal">
+                <i class="fa fa-money"></i> Record Repayment
+            </button>
+        @else
+            <button type="button" class="btn btn-default" title="No loan associated with this case">
+                <i class="fa fa-money"></i> Record Repayment
+            </button>
+        @endif
     </div>
 </div>
 
@@ -224,4 +235,168 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
     </div>
 </div>
 
+{{-- Include Recovery Payment Modal --}}
+
+    @php
+        // Prepare data for the recovery modal
+        $loan = \App\Models\Loan::where('id',$loanRef)->first();
+        $recoveryCases = collect([$case]); // Pass current case as collection
+    @endphp
+    @include('loan.repayment.recovery_modal')
+
+
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Recovery Case Auto-fill Logic
+    $('#recovery_case_id').on('change', function() {
+        var selectedOption = $(this).find('option:selected');
+        var outstanding = parseFloat(selectedOption.data('outstanding')) || 0;
+        var amountRecovered = parseFloat(selectedOption.data('amount-recovered')) || 0;
+        var clientName = selectedOption.data('client-name') || '-';
+        var recoveriesDeptPct = parseFloat(selectedOption.data('recoveries-dept-pct')) || 0;
+        var originBranchPct = parseFloat(selectedOption.data('origin-branch-pct')) || 0;
+        var supportingBranchPct = parseFloat(selectedOption.data('supporting-branch-pct')) || 0;
+        
+        // Show/hide panels
+        if ($(this).val()) {
+            $('#caseInfoPanel').show();
+            $('#attributionPanel').show();
+        } else {
+            $('#caseInfoPanel').hide();
+            $('#attributionPanel').hide();
+        }
+        
+        // Update case info display
+        $('#displayClientName').text(clientName);
+        $('#displayOutstanding').text(outstanding.toFixed(2));
+        $('#displayAmountRecovered').text(amountRecovered.toFixed(2));
+        $('#displayOutstandingBefore').text(outstanding.toFixed(2));
+        
+        // Update percentage labels
+        $('#recoveriesDeptPctLabel').text('(' + recoveriesDeptPct + '%)');
+        $('#originBranchPctLabel').text('(' + originBranchPct + '%)');
+        $('#supportingBranchPctLabel').text('(' + supportingBranchPct + '%)');
+        
+        // Set outstanding before
+        $('#outstanding_before').val(outstanding);
+        
+        // Reset amount and calculate outstanding after when amount changes
+        $('#recovery_amount').val('');
+        $('#outstanding_after').val(outstanding);
+        $('#displayOutstandingAfter').text(outstanding.toFixed(2));
+        
+        // Reset attribution amounts
+        $('#recoveries_dept_amount').val(0);
+        $('#origin_branch_amount').val(0);
+        $('#supporting_branch_amount').val(0);
+        $('#displayRecoveriesDeptAmount').text('0.00');
+        $('#displayOriginBranchAmount').text('0.00');
+        $('#displaySupportingBranchAmount').text('0.00');
+        
+        // Reset settlement dropdown
+        $('#is_settlement').val('0');
+        $('#settlementHint').text('Select "Yes" if this payment fully settles the debt');
+    });
+
+    // Calculate attribution amounts when amount changes
+    $('#recovery_amount').on('input', function() {
+        var amount = parseFloat($(this).val()) || 0;
+        var outstanding = parseFloat($('#outstanding_before').val()) || 0;
+        var recoveriesDeptPct = parseFloat($('#recovery_case_id option:selected').data('recoveries-dept-pct')) || 0;
+        var originBranchPct = parseFloat($('#recovery_case_id option:selected').data('origin-branch-pct')) || 0;
+        var supportingBranchPct = parseFloat($('#recovery_case_id option:selected').data('supporting-branch-pct')) || 0;
+        
+        // Calculate outstanding after
+        var outstandingAfter = Math.max(0, outstanding - amount);
+        $('#outstanding_after').val(outstandingAfter);
+        $('#displayOutstandingAfter').text(outstandingAfter.toFixed(2));
+        
+        // Auto-detect settlement: if outstanding after is 0 or amount >= outstanding, set settlement to Yes
+        if (outstandingAfter <= 0 && amount > 0) {
+            $('#is_settlement').val('1');
+            $('#settlementHint').html('<span class="text-success">✓ Auto-detected: This payment will fully settle the debt</span>');
+        } else if (amount >= outstanding && outstanding > 0) {
+            $('#is_settlement').val('1');
+            $('#settlementHint').html('<span class="text-success">✓ Auto-detected: This payment will fully settle the debt</span>');
+        } else {
+            $('#is_settlement').val('0');
+            $('#settlementHint').text('Select "Yes" if this payment fully settles the debt');
+        }
+        
+        // Calculate attribution amounts
+        var recoveriesDeptAmount = (amount * recoveriesDeptPct / 100);
+        var originBranchAmount = (amount * originBranchPct / 100);
+        var supportingBranchAmount = (amount * supportingBranchPct / 100);
+        
+        $('#recoveries_dept_amount').val(recoveriesDeptAmount);
+        $('#origin_branch_amount').val(originBranchAmount);
+        $('#supporting_branch_amount').val(supportingBranchAmount);
+        
+        $('#displayRecoveriesDeptAmount').text(recoveriesDeptAmount.toFixed(2));
+        $('#displayOriginBranchAmount').text(originBranchAmount.toFixed(2));
+        $('#displaySupportingBranchAmount').text(supportingBranchAmount.toFixed(2));
+    });
+
+    // Handle Payment Method change - update reference label and show/hide bank field
+    $('#payment_method').on('change', function() {
+        var selectedValue = $(this).val().toLowerCase();
+        
+        // Reset bank field
+        $('#bankRow').hide();
+        $('#bank_name').val('');
+        
+        // Update reference label based on payment method
+        if (selectedValue.indexOf('cash') !== -1) {
+            $('#paymentReferenceLabel').text('Receiver Name');
+            $('#payment_reference').attr('placeholder', 'Enter name of person receiving the payment');
+        } else if (selectedValue.indexOf('bank') !== -1 || selectedValue.indexOf('transfer') !== -1 || selectedValue.indexOf('cheque') !== -1) {
+            $('#paymentReferenceLabel').text('Bank Payment Reference');
+            $('#payment_reference').attr('placeholder', 'Enter cheque number, bank transaction ID, etc.');
+            $('#bankRow').show();
+        } else if (selectedValue.indexOf('mobile') !== -1 || selectedValue.indexOf('money') !== -1) {
+            $('#paymentReferenceLabel').text('Mobile Money Transaction (Txn#) Reference');
+            $('#payment_reference').attr('placeholder', 'Enter mobile money transaction number');
+        } else {
+            $('#paymentReferenceLabel').text('Payment Reference');
+            $('#payment_reference').attr('placeholder', 'Cheque number, transaction ID, etc.');
+        }
+    });
+
+    // Handle Is Settlement change (manual override)
+    $('#is_settlement').on('change', function() {
+        if ($(this).val() == '1') {
+            // If settlement, set outstanding after to 0
+            var outstanding = parseFloat($('#outstanding_before').val()) || 0;
+            var amount = parseFloat($('#recovery_amount').val()) || 0;
+            if (amount >= outstanding) {
+                $('#outstanding_after').val(0);
+                $('#displayOutstandingAfter').text('0.00');
+            }
+        }
+    });
+
+    // Recovery form submission
+    $('#recoverySubmitBtn').click(function(event){
+        event.preventDefault();
+        swal({
+            title: "Are you sure you want to record this recovery payment?",
+            text: "This will update the recovery case and loan balance.",
+            icon: "warning",
+            type: "warning",
+            showCancelButton: true,
+            buttons: ["Cancel","Yes!"],
+            confirmButtonColor: 'green',
+            cancelButtonColor: '#d33',
+            confirmButtonText: "Yes I'm sure!"
+        }).then((willDelete) => {
+            if (willDelete) {
+                $('#recoveryForm').submit();
+            }
+        });
+    });
+});
+</script>
+@endpush

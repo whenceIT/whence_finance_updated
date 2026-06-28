@@ -16,8 +16,14 @@ class RecoverySpecialistController extends Controller
 
     public function index(Request $request)
     {
-        $period      = $request->get('period', 'month');
-        $specialists = $this->dashboard->getSpecialistPerformance($period);
+        $period    = $request->get('period', 'all');
+        $dateFrom  = $request->get('date_from');
+        $dateTo    = $request->get('date_to');
+        
+        $specialists = $this->dashboard->getSpecialistPerformance($period, $dateFrom, $dateTo);
+        
+        // Sort by total recovered (highest to lowest)
+        $specialists = $specialists->sortByDesc('total_recovered')->values();
 
         return view('recoveries.specialists.index', compact('specialists', 'period'));
     }

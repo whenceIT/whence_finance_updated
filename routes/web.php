@@ -35,6 +35,7 @@ use App\Http\Controllers\Recoveries\RecoveryCaseController;
 use App\Http\Controllers\Recoveries\RecoveryNudgeController;
 use App\Http\Controllers\Recoveries\RecoverySpecialistController;
 use App\Http\Controllers\Recoveries\RecoveryReportController;
+use App\Http\Controllers\Recoveries\RecoveryTransactionController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
@@ -543,6 +544,8 @@ Route::group(['prefix' => 'provincial-ledger'], function () {
 });
 
 //route for clients
+Route::get('recovery/clients', 'ClientController@recovery_clients')->name('recovery.clients');
+Route::get('fetch-dormant-clients', 'ClientController@fetch_dormant_clients')->name('client.fetch_dormant_clients');
 Route::group(['prefix' => 'client'], function () {
     Route::get('data', 'ClientController@index')->name('client.data');
     Route::get('my_clients', 'ClientController@my_index');
@@ -553,6 +556,9 @@ Route::group(['prefix' => 'client'], function () {
     Route::get('closed', 'ClientController@closed');
     Route::get('clients_inactive', 'ClientController@clients_inactive');
     Route::get('clients_blacklisted', 'ClientController@clients_blacklisted');
+    Route::get('dormant_clients', 'ClientController@dormant_clients')->name('client.dormant_clients');
+    Route::get('recovered_clients', 'ClientController@recovered_clients')->name('client.recovered_clients');
+    Route::post('client/{client}/mark-recovered', 'ClientController@mark_recovered')->name('client.mark_recovered');
     Route::get('create', 'ClientController@create');
     Route::post('store', 'ClientController@store');
     Route::get('create_blacklist', 'ClientController@create_blacklist');
@@ -795,6 +801,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('branch_loans', 'LoanController@branch_index');
     Route::get('reloan_approvals', 'LoanController@reloan_approvals');
     Route::get('transaction_approvals', 'LoanController@transaction_approvals');
+    Route::get('approved_recoveries', 'Recoveries\RecoveryTransactionController@approvedRecoveries');
     Route::get('recoveries_approvals', 'Recoveries\RecoveryCaseController@recoveriesApprovals');
     Route::get('recoveries_approve/{id}', 'Recoveries\RecoveryCaseController@recoveriesApprove');
     Route::get('recoveries_decline/{id}', 'Recoveries\RecoveryCaseController@recoveriesDecline');
@@ -1941,6 +1948,12 @@ Route::post('collateral/{collateral}/change-status', 'CollateralApprovalControll
 Route::group(['prefix' => 'recovery'], function () {
 
     Route::get('overview', 'Recoveries\RecoveryDashboardController@overview');
+
+    // Recovery Funds API
+    Route::get('funds',           'Recoveries\RecoveryDashboardController@getFunds');
+    Route::post('funds',          'Recoveries\RecoveryDashboardController@storeFund');
+    Route::put('funds/{id}',      'Recoveries\RecoveryDashboardController@updateFund');
+    Route::delete('funds/{id}',   'Recoveries\RecoveryDashboardController@destroyFund');
 
     Route::group(['prefix' => 'case'], function () {
         Route::get('data',                 'Recoveries\RecoveryCaseController@index');

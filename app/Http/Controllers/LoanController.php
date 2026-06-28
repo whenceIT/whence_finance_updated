@@ -727,18 +727,12 @@ class LoanController extends Controller
              $carry_overs = CarryOver::where('status','pending')->where('office_id',$office_id)->count();
         }
 
-            if($carry_overs > 0){
-
-                $HasPendingCarryOvers = true;
-
-            }
-
 
         if ($role->role_id == "6") {
 
             foreach ($offices as $office) {
                 if ($office->province_id == $province_id) {
-                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)->get();
+                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)->with('loan')->get();
                     foreach ($transactions as $transaction) {
                         array_push($province_transactions, $transaction);
                     }
@@ -748,15 +742,15 @@ class LoanController extends Controller
 
         } else {
             if (Sentinel::hasAccess('settings')) {
-                $data = LoanTransactionUnapproved::get();
+                $data = LoanTransactionUnapproved::with('loan')->get();
             } else {
-                $data = LoanTransactionUnapproved::where('office_id', $office_id)->get();
+                $data = LoanTransactionUnapproved::where('office_id', $office_id)->with('loan')->get();
             }
         }
         
         // Log audit for accessing loan transactions approvals page
         $this->auditorService->logTransactionApprovalsPage(Sentinel::getUser(), request());
-        return view('loan.transactions', compact('data','HasPendingCarryOvers',));
+        return view('loan.transactions', compact('data'));
     }
 
 
@@ -1702,8 +1696,8 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
                 'loan_topup' => $loan_topup->toArray()
             ]
         ]);
-        Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
-        Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup, $client);
+        // Notifix::notifyBmForTopUpApprovalByOffice($loan, $loan_topup);
+        // Notifix::notifyRkForTopUpCloseToMaturity($loan, $loan_topup, $client);
 
         
         // Log audit for accessing and viewing top up approval requests page
@@ -1729,7 +1723,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         $topup->save();
         $loanTransDisbursed->save();
         $loanTransInterest->save();
-        Notifix::notifyLoanOfficerTopUpApproved($loan, $topup, $client);
+        // Notifix::notifyLoanOfficerTopUpApproved($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         
         
@@ -1747,7 +1741,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         $client = Client::where('id', $loan->client_id)->first();
         $topup->status = 'declined';
         $topup->save();
-        Notifix::notifyLoanOfficerTopUpDeclined($loan, $topup, $client);
+        // Notifix::notifyLoanOfficerTopUpDeclined($loan, $topup, $client);
         Flash::success(trans('general.successfully_saved'));
         return redirect('loan/' . $topup->loan_id . '/show');
     }
@@ -2465,7 +2459,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             $loan->save();
 
             // Notify loan officer that their loan has been approved
-            Notifix::notifyLoanOfficerLoanApproved($loan, $client);
+            // Notifix::notifyLoanOfficerLoanApproved($loan, $client);
             // Log audit for updating the client's loan
             $user = Sentinel::getUser();
             $this->auditorService->logLoanUpdated($user, request(), $loan);
@@ -2502,7 +2496,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             $loan->save();
 
             // Notify loan officer that their loan has been declined
-            Notifix::notifyLoanOfficerLoanDeclined($loan, $client);  
+            // Notifix::notifyLoanOfficerLoanDeclined($loan, $client);  
             
             // Log audit for declining the client's loan
             $user = Sentinel::getUser();
@@ -3188,8 +3182,8 @@ if (
             $payment_type_name = $request->payment_type;
 
             // Notify loan officer that their loan has been disbursed
-            Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
-            Notifix::notifyDailyReminderToRiskManager('disbused a loan amount of K'.$loan->principal);
+            // Notifix::notifyLoanOfficerLoanDisbursed($loan, $client, Sentinel::getUser(), $payment_type_name);
+            // Notifix::notifyDailyReminderToRiskManager('disbused a loan amount of K'.$loan->principal);
             //define Log audit for disbursing loan
             $user = Sentinel::getUser();
             $this->auditorService->logDisbursedLoan($user, request(), $loan);
@@ -3348,8 +3342,8 @@ if (
                 ]);
 
                 // Notify managers for transaction approval
-                Notifix::notifyBmToApproveTransaction($loan, $client, $request->amount);
-                Notifix::notifyRiskToReviewLoan($loan, $client, $request->amount);
+                // Notifix::notifyBmToApproveTransaction($loan, $client, $request->amount);
+                // Notifix::notifyRiskToReviewLoan($loan, $client, $request->amount);
                 //define Log audit for entering a transaction for approval, include $loan, client details in the log message
                 $user = Sentinel::getUser();
                 $this->auditorService->logEnteredTransaction($user, request(), $loan);
@@ -3377,7 +3371,7 @@ if (
         $loan_balance = GeneralHelper::loan_total_balance($loan->id);
         // $existing_transaction = LoanTransaction::where('loan_id', $id)->where('date', $Trans->date)->where('credit', $Trans->credit)->where('transaction_type', '!=', 'interest_waiver')->first();
         //disabled because client failing to add  2 transactions with same amount and date, we can add more checks to ensure its not a duplicate transaction instead of blocking all transactions with same amount and date
-        $existing_transaction = [];
+        // $existing_transaction = [];
 
         if ($count > 1) {
             Flash::warning("This loan has more than one pending transaction!!");
@@ -3392,6 +3386,12 @@ if (
             } else {
 
                 $Trans = LoanTransactionUnapproved::find($trans_id);
+
+                if(!$Trans) {
+                    Flash::warning("This transaction failed!!");
+                    return redirect('loan/transaction_approvals');
+                }
+
                 $loan->loan_product->gl_account_fund_source = $request->gl_account_fund_source_id;
 
                 $payment_detail = new PaymentDetail();
@@ -3450,17 +3450,14 @@ if (
 
                 $new_loan_balance = $loan_balance - $Trans->credit;
 
-event(new RepaymentCreated($loan_transaction));
+                event(new RepaymentCreated($loan_transaction));
 
-if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
-    $loan = Loan::find($loan->id);
-    $loan->status = 'closed';
-    $loan->save();
-}
+                if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
+                    $loan = Loan::find($loan->id);
+                    $loan->status = 'closed';
+                    $loan->save();
+                }
 
-                // Notify Loan Officer that transaction has been approved
-                $client = \App\Models\Client::find($loan->client_id);
-                Notifix::notifyLoanOfficerTransactionApproved($loan, $client, $Trans->payment_apply_to);
  
                 //define Log audit for approving a transaction for approval, include $loan, client details in the log message
                 $user = Sentinel::getUser();
@@ -3469,8 +3466,7 @@ if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
                 $amount = number_format($Trans->credit, 2);
                 $date = $Trans->date;
                 $paymentType = $Trans->payment_apply_to;
-                $dueDate = $loan->first_repayment_date ? date('d M Y', strtotime($loan->first_repayment_date)) : 'N/A';
-                $loanStatus = $loan->status;
+                $client = Client::where('id', $loan->client_id)->first();
 
                 if($loan->office_id == 8){
                     $balance = GeneralHelper::loan_total_balance($loan->id);
@@ -3493,6 +3489,9 @@ if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
                     $this->bulkSms->sendToClients([$client], $message);
                 }
                 
+                
+
+
                 GeneralHelper::audit_trail("Create Repayment", "Loans", $id);
 
                 Flash::success(trans('general.successfully_saved'));
@@ -4218,7 +4217,7 @@ if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
         $temporary_charge->notes = $request->notes;
         $temporary_charge->status = 'pending';
         $temporary_charge->save();
-        Notifix::notifyBmAndRkForNewCharge($loan, $temporary_charge);
+        // Notifix::notifyBmAndRkForNewCharge($loan, $temporary_charge);
         GeneralHelper::audit_trail("Temporary Charge Created", "Loans", $id);
         Flash::success("Charge added to pending charges for approval.");
         return redirect()->back();
@@ -4384,7 +4383,7 @@ if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
             ]);
 
             // Notify Branch Manager of pending reloan transaction approval
-            Notifix::notifyBmToApproveTransaction($loan, $client, $request->paid);
+            // Notifix::notifyBmToApproveTransaction($loan, $client, $request->paid);
 
             GeneralHelper::audit_trail("Update Repayment", "Loans", $id);
             Flash::success(trans('general.successfully_saved'));
@@ -4407,6 +4406,10 @@ if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
         $pending_transactions = LoanTransactionsPending::where('loan_id', $id)->get();
         $count = count($pending_transactions);
         $Trans = LoanTransactionsPending::find($trans_id);
+        if (!$Trans) {
+            Flash::warning("Pending transaction not found!!");
+            return redirect('loan/reloan_approvals');
+        }
         $existing_transaction = LoanTransaction::where('loan_id', $id)->where('date', $Trans->date)->where('credit', $Trans->credit)->where('transaction_type', '!=', 'interest_waiver')->first();
         if ($count > 1) {
             Flash::warning("This loan has more than one pending reloan!!");
@@ -4503,7 +4506,7 @@ if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
 
                 // Notify Loan Officer that reloan request has been approved
                 $client = \App\Models\Client::find($loan->client_id);
-                Notifix::notifyLoanOfficerReloanApproved($loan, $client);
+                // Notifix::notifyLoanOfficerReloanApproved($loan, $client);
 
                 GeneralHelper::audit_trail("Update Repayment", "Loans", $id);
                 Flash::success(trans('general.successfully_saved'));
@@ -4542,7 +4545,7 @@ if ($Trans->payment_apply_to == 'full_payment' && $new_loan_balance <= 0) {
             $loan = Loan::find($trans->loan_id);
             if ($loan) {
                 $client = \App\Models\Client::find($loan->client_id);
-                Notifix::notifyLoanOfficerTransactionDeclined($loan, $client, $trans->payment_apply_to);
+                // Notifix::notifyLoanOfficerTransactionDeclined($loan, $client, $trans->payment_apply_to);
             }
         }
 

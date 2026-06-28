@@ -540,12 +540,7 @@ function playMedia(type, path, name, size, poster = '', uploadId) {
             autoplay: false,
             preload: 'auto',
             fluid: true,
-            playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
-            plugins: {
-                volumeBar: {
-                    vertical: true
-                }
-            }
+            playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2]
         });
     } else if (type === 'image') {
         // Image preview

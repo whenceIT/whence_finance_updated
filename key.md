@@ -5,3 +5,6 @@ role == 4 (Branch Manager sees only all data(clients and loans etc) under his of
 role == 12 (DM Manager sees only all data(clients->office->district_id and loan_transactions->office->district_id loans->office->district_id etc) under his district_id (user->office->district_id))
 role == 6 (Provincial Manager sees only all data(clients and loans etc) under his provice  (user->province_id) )
 
+
+<!-- @include('components.ledger_blocker') -->
+

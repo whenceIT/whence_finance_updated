@@ -48,6 +48,7 @@ class RecoveryCaseController extends Controller
 
     public function dormant(Request $request)
     {
+        
         return $this->listCases($request, 'dormant');
     }
 
@@ -63,19 +64,28 @@ class RecoveryCaseController extends Controller
 
     public function resolved(Request $request)
     {
-        $cases = RecoveryCase::resolved()
-            ->with(['client', 'assignedSpecialist', 'originBranch'])
+        $allCases = RecoveryCase::resolved()
+            ->with(['client', 'assignedSpecialist', 'originBranch.province'])
             ->latest()
-            ->paginate(20);
+            ->get();
 
         $categories = RecoveryCase::CATEGORIES;
-        return view('recoveries.cases.index', compact('cases', 'categories'));
+        $categoryCounts = \App\Enums\RecoveryCategory::allCounts();
+        
+        // Group cases by province
+        $casesByProvince = $allCases->groupBy(function($case) {
+            return $case->originBranch && $case->originBranch->province 
+                ? $case->originBranch->province->name 
+                : 'Unknown Province';
+        })->sortKeys();
+
+        return view('recoveries.cases.index', compact('casesByProvince', 'categories', 'categoryCounts'));
     }
 
     private function listCases(Request $request, ?string $category)
     {
      
-        $query = RecoveryCase::with(['client', 'assignedSpecialist', 'originBranch'])
+        $query = RecoveryCase::with(['client', 'assignedSpecialist', 'originBranch.province'])
             ->whereNotNull('approved_date')
             ->latest();
 
@@ -96,12 +106,18 @@ class RecoveryCaseController extends Controller
             });
         }
 
-        // dd($query->get());
-        $cases      = $query->paginate(20)->withQueryString();
+        $allCases   = $query->get();
         $categories = RecoveryCase::CATEGORIES;
+        $categoryCounts = \App\Enums\RecoveryCategory::allCounts();
 
-       
-        return view('recoveries.cases.index', compact('cases', 'categories'));
+        // Group cases by province
+        $casesByProvince = $allCases->groupBy(function($case) {
+            return $case->originBranch && $case->originBranch->province 
+                ? $case->originBranch->province->name 
+                : 'Unknown Province';
+        })->sortKeys();
+
+        return view('recoveries.cases.index', compact('casesByProvince', 'categories', 'categoryCounts'));
     }
 
     // ── CRUD ─────────────────────────────────────────────────────────
@@ -120,7 +136,9 @@ class RecoveryCaseController extends Controller
                 ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
                 ->get();
 
-            $offices = Office::orderBy('name')->get();
+            $offices = Office::whereNotIn('id', [67, 69,70,71,72,73,74,75,76,77,78]) 
+                ->orderBy('name')
+                ->get();
             
             // Get specialists with their user relationship
             $specialists = Specialist::with('user')->where('is_active', true)->get();
@@ -417,11 +435,14 @@ class RecoveryCaseController extends Controller
         }
 
         $data = RecoveryPayment::where('status', 0)
-            ->whereHas('recoveryCase')
+            ->whereHas('recoveryCase', function($query) {
+                $query->whereHas('loan');
+            })
             ->with([
                 'recordedBy',
                 'recoveryCase',
                 'recoveryCase.loan',
+                'recoveryCase.loan.office',
                 'recoveryCase.client',
                 'recoveryCase.originBranch',
                 'recoveryCase.supportingBranch',
@@ -516,7 +537,7 @@ class RecoveryCaseController extends Controller
             Flash::success('Recovery payment approved successfully.');
             return redirect('loan/recoveries_approvals');
         } catch (\Throwable $th) {
-            dd($th);
+            
              Flash::error('An error occurred while approving the recovery payment.');
              return redirect('loan/recoveries_approvals');
         }
