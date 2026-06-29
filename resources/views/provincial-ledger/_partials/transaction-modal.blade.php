@@ -100,12 +100,12 @@ if ($office) {
                         <textarea id="pltDescription" placeholder="Enter description"></textarea>
                     </div>
                 </div>
-                <div class="plt-form-row">
+                <!-- <div class="plt-form-row">
                     <div class="plt-form-group plt-form-full">
                         <label for="pltFile">Upload Proof of Payment (Optional)</label>
                         <input type="file" id="pltFile" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
                     </div>
-                </div>
+                </div> -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="plt-btn plt-btn-secondary" data-dismiss="modal">Cancel</button>
