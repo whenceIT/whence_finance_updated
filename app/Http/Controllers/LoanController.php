@@ -1125,7 +1125,7 @@ public function create()
         ]);
     }
     ///////////////////////////////////////
-    public function create_client_loan($client, $loan_product)
+    public function create_client_loan(Request $request,$client, $loan_product)
     {
         $userBranch = Sentinel::getUser()->office_id;
         if (!Sentinel::hasAccess('loans.create')) {
@@ -1147,12 +1147,15 @@ public function create()
             Flash::warning($client->first_name . '  ' . $client->last_name . ' ' . 'already has a loan on' . ' ' . $loan_product->name);
             return redirect()->back();
         } else {
+
+$number = $request->query('office_id');
+$amount = $request->query('amount');
             
             // Log audit for creating a new client loan, log client information
            $this->auditorService->logCreateClientLoan(Sentinel::getUser(), request(), $client);
             return view(
                 'loan.create_client_loan',
-                compact('client', 'loan_product', 'userBranch')
+                compact('client', 'loan_product', 'userBranch','number','amount')
             );
         }
     }
@@ -2635,66 +2638,66 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
 
             $paymentType = $request->payment_type;
 
-    if ($paymentType == 'mobile_money') {
+//     if ($paymentType == 'mobile_money') {
 
-    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+//     $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
 
-    $payload = [
-        'amount' => $request->amount,
-        'phone' => $request->phone,
-        'reason' => 'new loan disbursement',
-        'user_id' => $request->user_id,
-        'operator'=> $request->hidden_operator,
-        'payout_type' => 'withinhere_to_mno',
-        'totalDeducted' => $request->total_deducted
-    ];
+//     $payload = [
+//         'amount' => $request->amount,
+//         'phone' => $request->phone,
+//         'reason' => 'new loan disbursement',
+//         'user_id' => $request->user_id,
+//         'operator'=> $request->hidden_operator,
+//         'payout_type' => 'withinhere_to_mno',
+//         'totalDeducted' => $request->total_deducted
+//     ];
 
-} else {
+// } else {
 
-    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+//     $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
 
-    $payload = [
-        'amount' => $request->amount,
-        'user_id' => $request->user_id,
-        'bankId' => $request->bank_id,
-        'accountNumber' => $request->account_number,
-        'reason' => 'new loan disbursement',
-        'payout_type' => 'withinhere_to_bank',
-        'totalDeducted' => $request->total_deducted
-    ];
-}
+//     $payload = [
+//         'amount' => $request->amount,
+//         'user_id' => $request->user_id,
+//         'bankId' => $request->bank_id,
+//         'accountNumber' => $request->account_number,
+//         'reason' => 'new loan disbursement',
+//         'payout_type' => 'withinhere_to_bank',
+//         'totalDeducted' => $request->total_deducted
+//     ];
+// }
 
 
-try {
+// try {
 
-    $response = Http::post($url, $payload);
+//     $response = Http::post($url, $payload);
 
-    if (!$response->successful()) {
+//     if (!$response->successful()) {
 
-         $body = $response->body();
+//          $body = $response->body();
 
-    Flash::success('API Error: ' . $body);
+//     Flash::success('API Error: ' . $body);
     
-    }
+//     }
 
-    $result = $response->json();
+//     $result = $response->json();
 
-} catch (\Exception $e) {
+// } catch (\Exception $e) {
 
-    Flash::success('Could not connect to payment service.');
+//     Flash::success('Could not connect to payment service.');
 
-    return redirect()->back();
-}
+//     return redirect()->back();
+// }
 
-if (
-    !isset($result['status']) ||
-    $result['status'] !== 'pending'
-) {
+// if (
+//     !isset($result['status']) ||
+//     $result['status'] !== 'pending'
+// ) {
 
-    Flash::success('Transfer request was rejected.');
+//     Flash::success('Transfer request was rejected.');
 
-   return redirect()->back();
-}
+//    return redirect()->back();
+// }
 
 
 
