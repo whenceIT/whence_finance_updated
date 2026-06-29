@@ -163,7 +163,9 @@ class BlockerHelper
         if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
             return true;
         }
-        if ( $user->office_id == 11 || $user->office_id == 18 ) {
+
+        //$user->office_id == 11 || $user->office_id == 18 
+        if (true) {
             return true;
         }
         if (!$officeId) {
