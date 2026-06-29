@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Laracasts\Flash\Flash;
+use Illuminate\Support\Facades\Http;
 
 class JournalController extends Controller
 {
@@ -156,7 +157,36 @@ public function expenses()
         } 
         $bank_accounts = BankAccount::all();
 
-        return view('journal.add_fund_transfers_and_payments',compact('offices','bank_accounts'));
+
+                $office_id = Sentinel::getUser()->office_id;
+$office = Office::find($office_id);
+
+if ($office && $office->withinhere_wallet_id == null) {
+    return redirect('/user/verify_wallet');
+}
+
+$withinhere_wallet_id = $office->withinhere_wallet_id;
+
+
+      $response = Http::timeout(60)
+                ->post(
+                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                    [
+                        'wallet_id' => $withinhere_wallet_id,
+                        'start_date' => '2025-01-01',
+                        'end_date' => '2025-01-01'
+                    ]
+                );
+
+
+                   if ($response->successful()) {
+            $data = $response->json();
+
+            $cashBalance = $data['user']['cash_balance'] ?? null;
+            $user_id = $data['user']['id'] ?? null;
+        }
+
+        return view('journal.add_fund_transfers_and_payments',compact('offices','bank_accounts','cashBalance','user_id'));
     }
 
 
@@ -219,6 +249,89 @@ public function expenses()
             'date' => 'required|date',
         ]);
 
+          $paymentType = $request->to_account;
+
+    if ($paymentType == 'mobile_money') {
+
+    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+
+    $payload = [
+        'amount' => $request->amount,
+        'phone' => $request->phone,
+        'reason' => 'new loan disbursement',
+        'user_id' => $request->user_id,
+        'operator'=> $request->hidden_operator,
+        'payout_type' => 'withinhere_to_mno',
+        'totalDeducted' => $request->total_deducted
+    ];
+
+} else if ($paymentType == 'bank_transfer') {
+
+    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+
+    $payload = [
+        'amount' => $request->amount,
+        'user_id' => $request->user_id,
+        'bankId' => $request->bank_id,
+        'accountNumber' => $request->account_number,
+        'reason' => 'new loan disbursement',
+        'payout_type' => 'withinhere_to_bank',
+        'totalDeducted' => $request->total_deducted
+    ];
+}else if ($paymentType == 'withinhere'){
+
+ $url = 'https://withinheremobileapi.com/api/v1/transfer/wallet';
+
+$payload = [
+
+    'senderId' => $request->user_id,
+
+    'recipients' => [
+        [
+            'userId' => $request->receiver_id,
+            'amount' => $request->amount,
+        ]
+    ],
+
+    'description' => $request->description,
+
+];
+
+}
+
+
+try {
+
+    $response = Http::post($url, $payload);
+
+    if (!$response->successful()) {
+
+         $body = $response->body();
+
+    Flash::success('API Error: ' . $body);
+    
+    }
+
+    $result = $response->json();
+
+} catch (\Exception $e) {
+
+    Flash::success('Could not connect to payment service.');
+
+}
+
+
+if (
+    !isset($result['status']) ||
+    $result['status'] !== 'pending'
+) {
+
+    Flash::success('Transfer request was rejected.');
+
+}
+
+
+
         $movement = new FundMovements();
 
         $movement->office_id = $request->office_id;
@@ -262,6 +375,7 @@ public function expenses()
         $movement->document_note = $request->document_note;
 
         $movement->save();
+        Flash::success('Fund Movement Saved Successfully.');
     return redirect()->back();
         // return redirect('')
         //     ->with('success', 'Fund movement saved successfully');

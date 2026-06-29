@@ -310,6 +310,40 @@
 
 
                     @if($loan->status=="approved")
+                      <div style="
+    margin: 15px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-radius: 10px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+">
+    <div>
+        <div style="font-size: 13px; opacity: 0.9;">
+            Current Wallet Balance
+        </div>
+        <div style="font-size: 28px; font-weight: bold; margin-top: 5px;">
+            K{{ number_format($cashBalance, 2) }}
+        </div>
+    </div>
+
+    <div style="
+        background: rgba(255,255,255,0.2);
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:22px;
+    ">
+        💰
+    </div>
+</div>
+
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="pull-right btn-group">
@@ -339,6 +373,8 @@
                                 </div>
                             </div>
                         </div>
+
+
                         <div class="row m-t-20" style="">
                             <div class="col-sm-7 col-md-7">
                                 <table class="table table-striped table-bordered">
@@ -466,6 +502,9 @@
                                                            required id="disbursement_date" readonly>
                                                 </div>
                                             </div>
+                                            <input type="hidden" name="total_deducted" id="hidden_total_deducted">
+                                             <input type="hidden" name="user_id" id="hidden_user_id">
+                                             <input type="hidden" name="hidden_operator" id="hidden_operator">
                                             <div class="form-group">
                                                 <label for="first_repayment_date"
                                                        class="control-label col-md-4">{{trans_choice('general.first',1)}} {{trans_choice('general.repayment',1)}} {{trans_choice('general.date',1)}}</label>
@@ -476,86 +515,78 @@
                                                            required id="first_repayment_date" readonly>
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <label for="payment_type_id"
-                                                       class="control-label col-md-4">{{trans_choice('general.payment',1)}} {{trans_choice('general.type',1)}}
-                                                </label>
-                                                <div class="col-md-8">
-                                                    <select name="payment_type_id" class="form-control select2"
-                                                            id="payment_type_id" required>
-                                                        <option></option>
-                                                        @foreach(\App\Models\PaymentType::all() as $key)
-                                                            <option value="{{$key->id}}">{{$key->name}}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="approved_amount"
-                                                       class="control-label col-md-4">{{trans_choice('general.show',1)}} {{trans_choice('general.payment',1)}} {{trans_choice('general.detail',2)}}</label>
-                                                <div class="col-md-8">
-                                                    <button type="button" class="btn btn-primary" data-toggle="collapse"
-                                                            data-target="#show_payment_details">
-                                                        <i class="fa fa-plus"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div id="show_payment_details" class="collapse">
-                                                <div class="form-group">
-                                                    <label for="account_number"
-                                                           class="control-label col-md-4">{{trans_choice('general.account',1)}}
-                                                        #</label>
-                                                    <div class="col-md-8">
-                                                        <input type="text" name="account_number"
-                                                               class="form-control"
-                                                               value=""
-                                                               id="account_number">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="cheque_number"
-                                                           class="control-label col-md-4">{{trans_choice('general.cheque',1)}}
-                                                        #</label>
-                                                    <div class="col-md-8">
-                                                        <input type="text" name="cheque_number"
-                                                               class="form-control"
-                                                               value=""
-                                                               id="cheque_number">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="routing_code"
-                                                           class="control-label col-md-4">{{trans_choice('general.routing_code',1)}}</label>
-                                                    <div class="col-md-8">
-                                                        <input type="text" name="routing_code"
-                                                               class="form-control"
-                                                               value=""
-                                                               id="routing_code">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="receipt_number"
-                                                           class="control-label col-md-4">{{trans_choice('general.receipt',1)}}
-                                                        #</label>
-                                                    <div class="col-md-8">
-                                                        <input type="text" name="receipt_number"
-                                                               class="form-control"
-                                                               value=""
-                                                               id="receipt_number">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="bank"
-                                                           class="control-label col-md-4">{{trans_choice('general.bank',1)}}
-                                                        #</label>
-                                                    <div class="col-md-8">
-                                                        <input type="text" name="bank"
-                                                               class="form-control"
-                                                               value=""
-                                                               id="bank">
-                                                    </div>
-                                                </div>
-                                            </div>
+
+                                                       <div class="form-group">
+                    <label for="amount"
+                           class="control-label col-md-4">{{trans_choice('general.amount',1)}}</label>
+                    <div class="col-md-8">
+                        <input type="number" name="amount" class="form-control"
+                               value="{{$loan->principal}}" required
+                               id="amount" readonly>
+                    </div>
+		</div>
+
+        <div class="form-group">
+    <label class="control-label col-md-4">Payment Type</label>
+    <div class="col-md-8">
+        <select name="payment_type"
+                id="payment_type"
+                class="form-control">
+            <option value="mobile_money" selected>
+                Mobile Money
+            </option>
+            <option value="bank">
+                Bank Account
+            </option>
+        </select>
+    </div>
+</div>
+
+<div id="mobileMoneySection">
+        <div class="form-group">
+              <label for="phone"
+                           class="control-label col-md-4">{{trans_choice('general.phone',1)}}</label>
+                    <div class="col-md-8">
+                        <input type="text" name="phone" class="form-control"
+                               value="{{ $loan->client->phone ?? $loan->client->mobile }}"
+                               id="phone" readonly>
+                    </div>
+        </div>
+</div>
+
+<div id="bankSection" style="display:none;">
+
+    <div class="form-group">
+        <label class="control-label col-md-4">
+            Bank
+        </label>
+
+        <div class="col-md-8">
+            <select id="bank_id"
+                    name="bank_id"
+                    class="form-control">
+                <option value="">
+                    Loading Banks...
+                </option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-md-4">
+            Account Number
+        </label>
+
+        <div class="col-md-8">
+            <input type="text"
+                   id="account_number"
+                   name="account_number"
+                   class="form-control">
+        </div>
+    </div>
+
+</div>
+                                         
                                             <div class="form-group">
                                                 <label for="disbursed_notes"
                                                        class="control-label col-md-4">{{trans_choice('general.note',2)}}</label>
@@ -569,13 +600,152 @@
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-default pull-left"
                                                     data-dismiss="modal">{{trans_choice('general.close',1)}}</button>
-                                            <button type="submit"
-                                                    class="btn btn-primary">{{trans_choice('general.save',1)}}</button>
+                                            <button type="button"
+        id="previewChargesBtn"
+        class="btn btn-primary">
+    {{trans_choice('general.save',1)}}
+</button>
                                         </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="modal fade" id="chargePreviewModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+                <h4 class="modal-title">Withdrawal Charges</h4>
+            </div>
+
+            <div class="modal-body">
+                <table class="table table-bordered">
+
+                <tr>
+    <th>Payment Type</th>
+    <td id="previewPaymentType"></td>
+</tr>
+
+<tr id="bankNameRow" style="display:none;">
+    <th>Bank</th>
+    <td id="previewBankName"></td>
+</tr>
+
+<tr id="accountNumberRow" style="display:none;">
+    <th>Account Number</th>
+    <td id="previewAccountNumber"></td>
+</tr>
+
+                <tr>
+    <th>Account Name</th>
+    <td id="accountName"></td>
+</tr>
+<tr>
+    <th>Phone Number</th>
+    <td id="resolvedPhone"></td>
+</tr>
+<tr>
+    <th>Operator</th>
+    <td id="resolvedOperator"></td>
+</tr>
+                    <tr>
+                        <th>Withdrawal Amount</th>
+                        <td id="withdrawalAmount"></td>
+                    </tr>
+                    <tr>
+                        <th>Gateway Fee</th>
+                        <td id="gatewayFee"></td>
+                    </tr>
+                    <tr>
+                        <th>Withinhere Fee</th>
+                        <td id="withinhereFee"></td>
+                    </tr>
+                    <tr>
+                        <th>Total Charge</th>
+                        <td id="totalCharge"></td>
+                    </tr>
+                    <tr>
+                        <th>Total Deducted</th>
+                        <td id="totalDeducted"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-default"
+                        data-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        id="confirmDisbursement">
+                    Confirm & Disburse
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="passwordConfirmModal">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+
+                <h4 class="modal-title">
+                    Confirm Password
+                </h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="alert alert-danger" id="passwordError" style="display:none;">
+                    Incorrect password.
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Enter your password to continue
+                    </label>
+
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        class="form-control"
+                        autocomplete="current-password">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-default"
+                    data-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="verifyPasswordBtn">
+                    Verify & Disburse
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
                     @endif
 
 
@@ -3031,6 +3201,402 @@
 @endsection
 @section('footer-scripts')
     <script>
+
+        function loadBanks() {
+
+    $.ajax({
+        url: 'https://withinheremobileapi.com/api/v1/payment/banks',
+        type: 'GET',
+
+        success: function(response) {
+
+            if(response.status){
+
+                let options =
+                    '<option value="">Select Bank</option>';
+
+                response.data.forEach(function(bank){
+
+                    options +=
+                        '<option value="' + bank.id + '">' +
+                        bank.name +
+                        '</option>';
+                });
+
+                $('#bank_id').html(options);
+            }
+        }
+    });
+}
+
+
+function getOperator(phoneNumber){
+
+    let digit = phoneNumber.charAt(2);
+
+    switch(digit){
+
+        case "7":
+            return "airtel";
+
+        case "6":
+            return "mtn";
+
+        case "5":
+            return "zamtel";
+
+        default:
+            return null;
+    }
+}
+
+$(document).ready(function () {
+
+    loadBanks();
+
+    $('#payment_type').change(function(){
+
+        if($(this).val() === 'bank'){
+
+            $('#mobileMoneySection').hide();
+            $('#bankSection').show();
+
+        }else{
+
+            $('#bankSection').hide();
+            $('#mobileMoneySection').show();
+
+        }
+
+    });
+
+    $('#previewChargesBtn').on('click', function () {
+
+        let amount = $('#amount').val();
+        let paymentType = $('#payment_type').val();
+
+        // Reset bank rows
+        $('#bankNameRow').hide();
+        $('#accountNumberRow').hide();
+
+        // ==========================
+        // MOBILE MONEY FLOW
+        // ==========================
+
+        if(paymentType === 'mobile_money') {
+
+            let phone = $('#phone').val();
+
+            let operator = getOperator(phone);
+
+            if(!operator){
+                alert('Unable to determine operator from phone number.');
+                return;
+            }
+
+            $.ajax({
+                url: 'https://withinheremobileapi.com/api/v1/transfer/withdrawal/charges',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    amount: amount,
+                    payout_type: 'withinhere_to_mno'
+                }),
+                success: function(chargeResponse) {
+
+                    if(!chargeResponse.success){
+                        alert('Unable to retrieve withdrawal charges.');
+                        return;
+                    }
+
+                    $.ajax({
+                        url: 'https://withinheremobileapi.com/api/v1/payment/resolve/mobile',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            phone: phone,
+                            operator: operator
+                        }),
+                        success: function(resolveResponse){
+
+                          let user_id = "{{ $user_id }}";
+
+                        $('#hidden_total_deducted').val(chargeResponse.data.totalDeducted);
+                        $('#hidden_user_id').val(user_id);
+                        $('#hidden_operator').val(operator);
+
+
+                            $('#previewPaymentType').text('Mobile Money');
+
+                            if(resolveResponse.success && resolveResponse.data){
+
+                                $('#accountName').text(
+                                    resolveResponse.data.accountName
+                                );
+
+                                $('#resolvedPhone').text(
+                                    resolveResponse.data.phone
+                                );
+
+                                $('#resolvedOperator').text(
+                                    resolveResponse.data.operator.toUpperCase()
+                                );
+
+                            } else {
+
+                                $('#accountName').text('Not Found');
+                                $('#resolvedPhone').text(phone);
+                                $('#resolvedOperator').text(operator.toUpperCase());
+                            }
+
+                            $('#withdrawalAmount').text(
+                                Number(chargeResponse.data.withdrawalAmount).toFixed(2)
+                            );
+
+                            $('#gatewayFee').text(
+                                Number(chargeResponse.data.gatewayFee).toFixed(2)
+                            );
+
+                            $('#withinhereFee').text(
+                                Number(chargeResponse.data.withinhereFee).toFixed(2)
+                            );
+
+                            $('#totalCharge').text(
+                                Number(chargeResponse.data.totalCharge).toFixed(2)
+                            );
+
+                            $('#totalDeducted').text(
+                                Number(chargeResponse.data.totalDeducted).toFixed(2)
+                            );
+
+                            $('#chargePreviewModal').modal('show');
+                        },
+                        error: function(){
+
+                            $('#accountName').text('Lookup Failed');
+                            $('#resolvedPhone').text(phone);
+                            $('#resolvedOperator').text(operator.toUpperCase());
+
+                            $('#chargePreviewModal').modal('show');
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    alert('Failed to retrieve withdrawal charges.');
+                    console.log(xhr.responseText);
+                }
+            });
+
+        }
+
+        // ==========================
+        // BANK FLOW
+        // ==========================
+
+        else {
+
+            let bankId = $('#bank_id').val();
+            let accountNumber = $('#account_number').val();
+
+            if(!bankId){
+                alert('Please select a bank.');
+                return;
+            }
+
+            if(!accountNumber){
+                alert('Please enter an account number.');
+                return;
+            }
+
+            $.ajax({
+
+                url: 'https://withinheremobileapi.com/api/v1/payment/resolve/bank',
+
+                type: 'POST',
+
+                contentType: 'application/json',
+
+                data: JSON.stringify({
+
+                    accountNumber: accountNumber,
+
+                    bankId: bankId
+
+                }),
+
+                success: function(bankResponse){
+
+                    if(!bankResponse.success){
+                        alert('Unable to verify bank account.');
+                        return;
+                    }
+
+                    $.ajax({
+
+                        url: 'https://withinheremobileapi.com/api/v1/transfer/withdrawal/charges',
+
+                        type: 'POST',
+
+                        contentType: 'application/json',
+
+                        data: JSON.stringify({
+
+                            amount: amount,
+
+                            payout_type: 'withinhere_to_bank'
+
+                        }),
+
+                        success: function(chargeResponse){
+
+                            $('#previewPaymentType').text(
+                                'Bank Transfer'
+                            );
+
+                            $('#bankNameRow').show();
+                            $('#accountNumberRow').show();
+
+                            $('#previewBankName').text(
+                                $('#bank_id option:selected').text()
+                            );
+
+                            $('#previewAccountNumber').text(
+                                accountNumber
+                            );
+
+                            $('#accountName').text(
+                                bankResponse.data.accountName
+                            );
+
+                            $('#resolvedPhone').text('-');
+                            $('#resolvedOperator').text('-');
+
+                            $('#withdrawalAmount').text(
+                                Number(chargeResponse.data.withdrawalAmount).toFixed(2)
+                            );
+
+                            $('#gatewayFee').text(
+                                Number(chargeResponse.data.gatewayFee).toFixed(2)
+                            );
+
+                            $('#withinhereFee').text(
+                                Number(chargeResponse.data.withinhereFee).toFixed(2)
+                            );
+
+                            $('#totalCharge').text(
+                                Number(chargeResponse.data.totalCharge).toFixed(2)
+                            );
+
+                            $('#totalDeducted').text(
+                                Number(chargeResponse.data.totalDeducted).toFixed(2)
+                            );
+
+                            $('#chargePreviewModal').modal('show');
+                        },
+
+                        error: function(){
+                            alert('Unable to retrieve bank transfer charges.');
+                        }
+                    });
+
+                },
+
+                error: function(){
+                    alert('Unable to verify bank account.');
+                }
+            });
+
+        }
+
+    });
+
+  $('#confirmDisbursement').on('click', function () {
+
+    $('#chargePreviewModal').modal('hide');
+
+    $('#confirmPassword').val('');
+    $('#passwordError').hide();
+
+    $('#passwordConfirmModal').modal('show');
+});
+
+
+
+
+$('#verifyPasswordBtn').on('click', function () {
+
+    let password = $('#confirmPassword').val();
+
+    if(password === ''){
+        alert('Please enter your password.');
+        return;
+    }
+
+    // Disable button immediately
+    $(this)
+        .prop('disabled', true)
+        .text('Verifying...');
+
+    $.ajax({
+
+        url: "{{ url('loan/verify-password') }}",
+
+        type: "POST",
+
+        data: {
+            password: password,
+            _token: "{{ csrf_token() }}"
+        },
+
+        success: function(response){
+
+            if(response.success){
+
+                $('#passwordConfirmModal').modal('hide');
+
+                $('#disburse_loan_form').submit();
+
+            }else{
+
+                $('#passwordError').show();
+
+                // Re-enable button
+                $('#verifyPasswordBtn')
+                    .prop('disabled', false)
+                    .text('Verify & Save');
+
+            }
+
+        },
+
+        error: function(){
+
+            $('#passwordError').show();
+
+            // Re-enable button
+            $('#verifyPasswordBtn')
+                .prop('disabled', false)
+                .text('Verify & Save');
+
+        }
+
+    });
+
+});
+
+$('#passwordConfirmModal').on('shown.bs.modal', function () {
+
+    $('#verifyPasswordBtn')
+        .prop('disabled', false)
+        .text('Verify & Save');
+
+    $('#confirmPassword').val('');
+    $('#passwordError').hide();
+
+});
+
+});
+
         if ($("#is_client").val() == 1) {
             $("#clients_div").show();
             $("#new_client_div").hide();
