@@ -1447,12 +1447,14 @@ public function store_client_location(Request $request, $id){
     public function recovery_clients()
     {
         if (!Sentinel::hasAccess('clients.view')) {
-            return response()->json(['success' => false, 'message' => 'Permission Denied']);
+            Flash::warning("Permission Denied");
+            return redirect()->back();
         }
 
         $user = Sentinel::getUser();
         $userInfo = GeneralHelper::get_user_info();
         $type = request()->get('type', 'dormant');
+        $search = request()->get('search', '');
 
         if ($type === 'recovered') {
             $clientQuery = Client::where('status', 'active')
@@ -1460,9 +1462,20 @@ public function store_client_location(Request $request, $id){
                 ->with(['loans' => function ($query) {
                     $query->where('status', 'closed')->latest('created_at');
                 }, 'office', 'staff']);
+        } elseif ($type === 'overdue') {
+            $clientQuery = Client::where('status', 'active')
+                ->whereHas('loans', function ($query) {
+                    $query->where('status', 'disbursed')
+                          ->whereNotNull('first_repayment_date')
+                          ->where('first_repayment_date', '<', Carbon::now()->toDateString());
+                })
+                ->with(['loans' => function ($query) {
+                    $query->where('status', 'disbursed')
+                          ->whereNotNull('first_repayment_date')
+                          ->where('first_repayment_date', '<', Carbon::now()->toDateString())
+                          ->latest('first_repayment_date');
+                }, 'office', 'staff']);
         } else {
-            $threeMonthsAgo = Carbon::now()->subMonths(3);
-
             $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
                 ->with(['loans' => function ($query) {
                     $query->latest('created_at');
@@ -1477,24 +1490,35 @@ public function store_client_location(Request $request, $id){
             $clientQuery->where('office_id', $user->office_id);
         }
 
+        if ($search) {
+            $clientQuery->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('nrc_number', 'like', "%{$search}%");
+            });
+        }
+
+        $clientQuery->whereHas('office');
         $allClients = $clientQuery->get();
 
-        if ($type !== 'recovered') {
-            $data = $allClients->filter(function ($client) use ($threeMonthsAgo) {
+        $now = \Carbon\Carbon::now();
+        $threeMonthsAgo = $now->copy()->subMonths(3);
+
+        if ($type === 'dormant') {
+            $filteredClients = $allClients->filter(function ($client) use ($threeMonthsAgo) {
                 if ($client->loans->isEmpty()) {
                     return true;
                 }
                 $lastLoan = $client->loans->first();
-                if ($lastLoan && $lastLoan->created_at < $threeMonthsAgo) {
-                    return true;
-                }
-                return false;
+                return $lastLoan && $lastLoan->created_at < $threeMonthsAgo;
             });
         } else {
-            $data = $allClients;
+            $filteredClients = $allClients;
         }
 
-        return view('recoveries.dormant_clients', compact('data', 'type'));
+        $clientsData = $filteredClients->slice(0, 50)->values();
+
+        return view('recoveries.dormant_clients', compact('clientsData', 'type'));
     }
 
 public function fetch_dormant_clients()
@@ -1529,13 +1553,19 @@ public function fetch_dormant_clients()
                           ->latest('first_repayment_date');
                 }, 'office', 'staff']);
         } else {
-            // Dormant clients
-            $threeMonthsAgo = Carbon::now()->subMonths(3);
-
             $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
                 ->with(['loans' => function ($query) {
                     $query->latest('created_at');
                 }, 'office', 'staff']);
+        }
+
+        $search = request()->get('search', '');
+        if ($search) {
+            $clientQuery->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('nrc_number', 'like', "%{$search}%");
+            });
         }
 
         // Apply role-based filtering
@@ -1547,80 +1577,55 @@ public function fetch_dormant_clients()
             $clientQuery->where('office_id', $user->office_id);
         }
 
-        $allClients = $clientQuery->get();
+        $clientQuery->whereHas('office');
 
-        // Filter dormant clients (no pagination - let DataTable handle it)
+        $allClients = $clientQuery->get()->filter(function ($client) {
+            return $client->office !== null;
+        });
+
+        $now = \Carbon\Carbon::now();
+        $threeMonthsAgo = $now->copy()->subMonths(3);
+
         if ($type === 'dormant') {
-            $threeMonthsAgo = Carbon::now()->subMonths(3);
             $clients = $allClients->filter(function ($client) use ($threeMonthsAgo) {
                 if ($client->loans->isEmpty()) {
                     return true;
                 }
                 $lastLoan = $client->loans->first();
-                if ($lastLoan && $lastLoan->created_at < $threeMonthsAgo) {
-                    return true;
-                }
-                return false;
+                return $lastLoan && $lastLoan->created_at < $threeMonthsAgo;
             });
         } else {
             $clients = $allClients;
         }
 
-        // Map client data
-        $clientsData = $clients->map(function ($client) use ($type) {
-            $lastLoan = $client->loans->first();
-            $daysSinceLastLoan = $lastLoan 
-                ? \Carbon\Carbon::parse($lastLoan->created_at)->diffInDays(\Carbon\Carbon::now())
-                : null;
+        $clientsData = $clients->values();
 
-            $data = [
-                'id' => $client->id,
-                'first_name' => $client->first_name,
-                'last_name' => $client->last_name,
-                'mobile' => $client->mobile,
-                'office' => $client->office->name ?? 'Unknown Office',
-                'office_id' => $client->office_id ?? 0,
-                'loan_officer' => $client->staff ? $client->staff->first_name . ' ' . $client->staff->last_name : '-',
-                'last_loan_date' => $lastLoan ? \Carbon\Carbon::parse($lastLoan->created_at)->format('d M Y') : 'Never',
-                'days_since_last_loan' => $daysSinceLastLoan,
-                'total_loans' => Loan::where('client_id', $client->id)->where('shared', 1)->count(),
-            ];
-
-            // Add overdue-specific data
-            if ($type === 'overdue' && $lastLoan) {
-                $data['loan_id'] = $lastLoan->id;
-                $data['loan_amount'] = $lastLoan->principal ?? 0;
-                $data['first_repayment_date'] = $lastLoan->first_repayment_date 
-                    ? \Carbon\Carbon::parse($lastLoan->first_repayment_date)->format('d M Y') 
-                    : 'N/A';
-                $data['days_overdue'] = $lastLoan->first_repayment_date
-                    ? \Carbon\Carbon::parse($lastLoan->first_repayment_date)->diffInDays(\Carbon\Carbon::now())
-                    : 0;
+        $clientsByOffice = [];
+        foreach ($clientsData as $client) {
+            $officeName = $client->office->name;
+            if (!isset($clientsByOffice[$officeName])) {
+                $clientsByOffice[$officeName] = ['office_name' => $officeName, 'count' => 0, 'clients' => []];
             }
-
-            return $data;
-        })->values();
-
-        // Group by office
-        $clientsByOffice = $clientsData->groupBy('office')->map(function ($officeClients, $officeName) {
-            return [
-                'office_name' => $officeName,
-                'count' => $officeClients->count(),
-                'clients' => $officeClients->values()->all()
-            ];
-        })->values();
+            $clientsByOffice[$officeName]['count']++;
+            $clientsByOffice[$officeName]['clients'][] = $client;
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $clientsData->all(),
-            'grouped_by_office' => $clientsByOffice->all(),
+            'data' => $clientsData->values(),
+            'grouped_by_office' => array_values($clientsByOffice),
             'total_count' => $clientsData->count()
         ]);
     }
 
     public function mark_recovered($id)
     {
-        $client = $id;
+        $client = Client::find($id);
+        
+        if (!$client) {
+            return response()->json(['success' => false, 'message' => 'Client not found']);
+        }
+        
         $client->is_dormant_recovery = 1;
         $client->save();
 

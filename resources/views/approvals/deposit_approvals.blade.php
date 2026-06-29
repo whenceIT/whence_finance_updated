@@ -15,6 +15,12 @@
                     <button type="button" class="btn btn-success btn-sm" id="approve-all-btn">
                         <i class="fa fa-check-circle"></i> Approve All
                     </button>
+                    <button type="button" class="btn btn-danger btn-sm" id="bulk-decline-btn">
+                        <i class="fa fa-times"></i> Decline Selected
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" id="decline-all-btn">
+                        <i class="fa fa-times-circle"></i> Decline All
+                    </button>
                 </div>
                 <div class="col-md-6 text-right">
                     <input type="text" id="search-input" class="form-control input-sm" placeholder="Search..." style="width: 200px;">
@@ -136,6 +142,52 @@
         $('#approve-all-btn').on('click', function() {
             if (confirm('Are you sure you want to APPROVE ALL deposits matching the current filters?')) {
                 $.post('{{ url("approvals/deposit-approvals/approve-all") }}', {
+                    _token: "{{ csrf_token() }}",
+                    deposit_type: $('#deposit_type').val(),
+                    office_id: $('#office_id').val()
+                }, function(response) {
+                    if (response.success) {
+                        window.KiloAlert.success(response.message);
+                    } else {
+                        window.KiloAlert.error(response.message || 'Action failed.');
+                    }
+                    setTimeout(() => location.reload(), 1500);
+                }).fail(function() {
+                    window.KiloAlert.error('Action failed. Please try again.');
+                });
+            }
+        });
+
+        $('#bulk-decline-btn').on('click', function() {
+            var selected = $('.row-select:checked').map(function() {
+                return this.value;
+            }).get();
+            
+            if (selected.length === 0) {
+                window.KiloAlert.warning('Please select at least one deposit to decline.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to DECLINE all selected deposits?')) {
+                $.post('{{ url("approvals/deposit-approvals/bulk-decline") }}', {
+                    _token: "{{ csrf_token() }}",
+                    ids: selected
+                }, function(response) {
+                    if (response.success) {
+                        window.KiloAlert.success(response.message);
+                    } else {
+                        window.KiloAlert.error(response.message || 'Action failed.');
+                    }
+                    setTimeout(() => location.reload(), 1500);
+                }).fail(function() {
+                    window.KiloAlert.error('Action failed. Please try again.');
+                });
+            }
+        });
+
+        $('#decline-all-btn').on('click', function() {
+            if (confirm('Are you sure you want to DECLINE ALL deposits matching the current filters?')) {
+                $.post('{{ url("approvals/deposit-approvals/decline-all") }}', {
                     _token: "{{ csrf_token() }}",
                     deposit_type: $('#deposit_type').val(),
                     office_id: $('#office_id').val()

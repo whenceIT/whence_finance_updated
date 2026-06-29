@@ -14,12 +14,17 @@ class ProvincialTransaction extends Model
         'amount',
         'type',
         'province_id',
+        'office_id',
         'transaction_date',
         'reference_number',
         'created_by',
         'payment_method',
+        'contribution',
         'file_path',
         'recorded_at',
+        'status',
+        'approved_by',
+        'approved_at',
     ];
     
     protected $casts = [
@@ -31,5 +36,20 @@ class ProvincialTransaction extends Model
     public function province()
     {
         return $this->belongsTo(Province::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function office()
+    {
+        return $this->belongsTo(Office::class, 'office_id');
     }
 }

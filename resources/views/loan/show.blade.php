@@ -25,18 +25,11 @@
         @endphp
     @endif
     
-    @if(date('d') >= 27 && date('d') <= 31) 
 
-        @if($monthlyDepositDone && request()->path() != 'user/branch_deposits')
-            @include('components.current_month_deposit_blocker')
-        @else
-            <!-- <x-debt-blocker/> -->
-        @endif
-    @endif
 
     <div class="row">
         <div class="col-md-12">
-            <div class="panel ">
+            <div class="panel">
                 <div class="panel-heading">
 		            <h6 class="panel-title">{{$loan->loan_product->name}}(#{{$loan->id}})
                         @if($loan->defaulted == 'yes')

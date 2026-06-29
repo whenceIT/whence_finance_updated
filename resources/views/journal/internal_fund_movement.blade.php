@@ -186,6 +186,78 @@
         </div>
 
    
+        <div class="col-md-6">
+
+            <a href="{{ url('provincial-ledger') }}"
+               style="text-decoration:none;">
+
+                <div style="
+                    background:#ffffff;
+                    border:1px solid #e5e7eb;
+                    border-radius:18px;
+                    min-height:320px;
+                    padding:25px;
+                    margin-bottom:25px;
+                    box-shadow:0 4px 20px rgba(0,0,0,0.06);
+                ">
+
+                    <div style="
+                        width:60px;
+                        height:60px;
+                        line-height:60px;
+                        background:#dcfce7;
+                        border-radius:18px;
+                        text-align:center;
+                        margin-bottom:25px;
+                    ">
+                        <i class="fa fa-bank"
+                           style="
+                                color:#16a34a;
+                                font-size:24px;
+                           ">
+                        </i>
+                    </div>
+
+                    <h3 style="
+                        font-size:24px;
+                        font-weight:700;
+                        color:#111827;
+                        margin-top:0;
+                        margin-bottom:12px;
+                    ">
+                        Contributions
+                    </h3>
+
+                    <p style="
+                        color:#6b7280;
+                        line-height:1.8;
+                        margin-bottom:25px;
+                    ">
+                        Record contributions to Provincial Manager towards Salaries, Petty Cash, Saving, Housing, etc...
+                    </p>
+
+
+
+                        <div style="margin-top:30px;">
+
+                        <div style="
+                            background:#dcfce7;
+                            color:#15803d;
+                            text-align:center;
+                            padding:12px;
+                            border-radius:10px;
+                            font-weight:600;
+                        ">
+                            Continue
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
         {{-- OTHER --}}
 
 

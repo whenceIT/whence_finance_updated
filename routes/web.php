@@ -543,6 +543,17 @@ Route::group(['prefix' => 'provincial-ledger'], function () {
     Route::get('/balance', [\App\Http\Controllers\ProvincialLedgerController::class, 'balance'])->name('provincial-ledger.balance');
 });
 
+// Provincial Transactions Routes
+Route::group(['prefix' => 'provincial-transactions'], function () {
+    Route::get('/pending', [\App\Http\Controllers\ProvincialLedgerController::class, 'pendingTransactions'])->name('provincial-transactions.pending');
+    Route::get('/approved', [\App\Http\Controllers\ProvincialLedgerController::class, 'approvedTransactions'])->name('provincial-transactions.approved');
+    Route::post('/{id}/approve', [\App\Http\Controllers\ProvincialLedgerController::class, 'approveTransaction'])->name('provincial-transactions.approve');
+    Route::post('/bulk-approve', [\App\Http\Controllers\ProvincialLedgerController::class, 'bulkApprove'])->name('provincial-transactions.bulk-approve');
+    Route::post('/approve-all', [\App\Http\Controllers\ProvincialLedgerController::class, 'approveAll'])->name('provincial-transactions.approve-all');
+    Route::post('/bulk-decline', [\App\Http\Controllers\ProvincialLedgerController::class, 'bulkDecline'])->name('provincial-transactions.bulk-decline');
+    Route::post('/decline-all', [\App\Http\Controllers\ProvincialLedgerController::class, 'declineAll'])->name('provincial-transactions.decline-all');
+});
+
 //route for clients
 Route::get('recovery/clients', 'ClientController@recovery_clients')->name('recovery.clients');
 Route::get('fetch-dormant-clients', 'ClientController@fetch_dormant_clients')->name('client.fetch_dormant_clients');
@@ -558,7 +569,7 @@ Route::group(['prefix' => 'client'], function () {
     Route::get('clients_blacklisted', 'ClientController@clients_blacklisted');
     Route::get('dormant_clients', 'ClientController@dormant_clients')->name('client.dormant_clients');
     Route::get('recovered_clients', 'ClientController@recovered_clients')->name('client.recovered_clients');
-    Route::post('client/{client}/mark-recovered', 'ClientController@mark_recovered')->name('client.mark_recovered');
+    Route::post('{id}/mark-recovered', 'ClientController@mark_recovered')->name('client.mark_recovered');
     Route::get('create', 'ClientController@create');
     Route::post('store', 'ClientController@store');
     Route::get('create_blacklist', 'ClientController@create_blacklist');
@@ -1934,7 +1945,9 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
     Route::post('approvals/deposit-approvals/{id}/{status}', 'ApprovalWorkflowController@approveDecline')->name('approvals.deposit-approvals.action');
     Route::post('approvals/deposit-approvals/bulk-approve', 'ApprovalWorkflowController@bulkApprove')->name('approvals.deposit-approvals.bulk');
     Route::post('approvals/deposit-approvals/approve-all', 'ApprovalWorkflowController@approveAll')->name('approvals.deposit-approvals.all');
-Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
+    Route::post('approvals/deposit-approvals/bulk-decline', 'ApprovalWorkflowController@bulkDecline')->name('approvals.deposit-approvals.bulk-decline');
+    Route::post('approvals/deposit-approvals/decline-all', 'ApprovalWorkflowController@declineAll')->name('approvals.deposit-approvals.decline-all');
+    Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
 Route::delete('collateral/{collateral}', 'CollateralController@destroy')->name('collateral.destroy');

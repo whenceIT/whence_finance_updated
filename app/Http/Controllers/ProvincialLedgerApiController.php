@@ -39,9 +39,11 @@ class ProvincialLedgerApiController extends Controller
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:income,expense',
             'province_id' => 'required|exists:province,id',
+            'office_id' => 'nullable|exists:offices,id',
             'transaction_date' => 'required|date',
             'reference_number' => 'nullable|string',
             'payment_method' => 'nullable|string',
+            'contribution' => 'required|in:salary,savings,housing,transport,internet,petty_cash,other',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 
@@ -49,6 +51,9 @@ class ProvincialLedgerApiController extends Controller
         $user = Sentinel::getUser();
         $data['created_by'] = $user ? $user->id : null;
         $data['recorded_at'] = now();
+        if (!$data['office_id'] && $user && $user->office_id) {
+            $data['office_id'] = $user->office_id;
+        }
 
         if ($data['type'] === 'expense') {
             $totalIncome = ProvincialTransaction::where('type', 'income')->sum('amount');
@@ -66,7 +71,7 @@ class ProvincialLedgerApiController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\./_-]/', '', $file->getClientOriginalName());
+            $fileName = time() . '_' . preg_replace('#[^a-zA-Z0-9._-]#', '', $file->getClientOriginalName());
             
             $s3Client = new S3Client([
                 'version' => 'latest',
@@ -120,15 +125,17 @@ class ProvincialLedgerApiController extends Controller
             'amount' => 'sometimes|numeric|min:0',
             'type' => 'sometimes|in:income,expense',
             'province_id' => 'sometimes|exists:province,id',
+            'office_id' => 'sometimes|exists:offices,id',
             'transaction_date' => 'sometimes|date',
             'reference_number' => 'nullable|string',
             'payment_method' => 'nullable|string',
+            'contribution' => 'nullable|in:salary,savings,housing,transport,internet,petty_cash,other',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\./_-]/', '', $file->getClientOriginalName());
+            $fileName = time() . '_' . preg_replace('#[^a-zA-Z0-9._-]#', '', $file->getClientOriginalName());
             
             $s3Client = new S3Client([
                 'version' => 'latest',

@@ -30,8 +30,10 @@
                 <th>Date</th>
                 <th>Title</th>
                 <th>Province</th>
+                <th>Contribution</th>
                 <th>Amount</th>
                 <th>Reference</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
@@ -40,8 +42,18 @@
                 <td>{{ $tx->transaction_date }}</td>
                 <td>{{ $tx->title }}</td>
                 <td>{{ $tx->province->name ?? 'N/A' }}</td>
+                <td>{{ ucfirst(str_replace('_', ' ', $tx->contribution ?? '-')) }}</td>
                 <td class="text-right">K{{ number_format($tx->amount, 2) }}</td>
                 <td>{{ $tx->reference_number ?? '-' }}</td>
+                <td>
+                    @if($tx->status == 'approved')
+                        <span class="label label-success"><i class="fa fa-check"></i> Approved</span>
+                    @elseif($tx->status == 'pending')
+                        <span class="label label-warning"><i class="fa fa-clock-o"></i> Pending</span>
+                    @else
+                        <span class="label label-default">{{ $tx->status ?? '-' }}</span>
+                    @endif
+                </td>
             </tr>
             @endforeach
         </tbody>

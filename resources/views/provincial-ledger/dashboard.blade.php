@@ -17,8 +17,11 @@
                 </form>
             @endif
             <div style="display:flex; gap:8px;">
-                <button type="button" class="btn btn-primary" onclick="openTransactionModal('income')"><i class="fa fa-plus"></i> Record Income</button>
+                <button type="button" class="btn btn-primary" onclick="openTransactionModal('income')"><i class="fa fa-plus"></i> Record Income / Contribution</button>
+                
+                @if(Sentinel::getUser()->role->role_id == 6)
                 <button type="button" class="btn btn-danger" onclick="openTransactionModal('expense')"><i class="fa fa-plus"></i> Record Expense</button>
+                @endif
             </div>
         </div>
     </div>
@@ -32,6 +35,7 @@
                 </div>
             </div>
         </div>
+        @if(Sentinel::getUser() && Sentinel::getUser()->role && Sentinel::getUser()->role->role_id == 6)
         <div class="col-md-4">
             <div class="panel panel-danger">
                 <div class="panel-heading">Total Expenses</div>
@@ -48,6 +52,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
     
     <div class="row">
@@ -60,6 +65,7 @@
                         <th>Title</th>
                         <th>Type</th>
                         <th>Province</th>
+                        <th>Contribution</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
@@ -70,6 +76,7 @@
                         <td>{{ $tx->title }}</td>
                         <td>{{ ucfirst($tx->type) }}</td>
                         <td>{{ $tx->province->name ?? 'N/A' }}</td>
+                        <td>{{ ucfirst(str_replace('_', ' ', $tx->contribution ?? '-')) }}</td>
                         <td>K{{ number_format($tx->amount, 2) }}</td>
                     </tr>
                     @endforeach
