@@ -20,7 +20,7 @@ Custom option to have two fields (This Month (default - when page loads)):
 
 
 
-@include('components.current_month_deposit_blocker')
+
 
             <!-- <x-debt-blocker/> -->
  ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}
