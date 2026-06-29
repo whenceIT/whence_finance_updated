@@ -66,7 +66,7 @@ class ProvincialLedgerApiController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\./_-]/', '', $file->getClientOriginalName());
+            $fileName = time() . '_' . preg_replace('#[^a-zA-Z0-9._-]#', '', $file->getClientOriginalName());
             
             $s3Client = new S3Client([
                 'version' => 'latest',
@@ -128,7 +128,7 @@ class ProvincialLedgerApiController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9\./_-]/', '', $file->getClientOriginalName());
+            $fileName = time() . '_' . preg_replace('#[^a-zA-Z0-9._-]#', '', $file->getClientOriginalName());
             
             $s3Client = new S3Client([
                 'version' => 'latest',
