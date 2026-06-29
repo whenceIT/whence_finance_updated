@@ -28,9 +28,8 @@
     @if(date('d') >= 27 && date('d') <= 31) 
 
         @if($monthlyDepositDone && request()->path() != 'user/branch_deposits')
-            @include('components.current_month_deposit_blocker')
+            
         @else
-            <!-- <x-debt-blocker/> -->
         @endif
     @endif
 
