@@ -150,6 +150,7 @@ class ProvincialLedgerController extends Controller
         $province_id = $user && $user->office ? $user->office->province_id : null;
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
+        $query = ProvincialTransaction::query()->where('status', 'pending');
 
         if ($isAdmin) {
             $provinces = Province::all();

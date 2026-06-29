@@ -18,7 +18,7 @@ Custom option to have two fields (This Month (default - when page loads)):
  - select month field (defult current month)
  - select year field (defult current year)
 
-https://lms2backend.whencefinancesystem.com
+
 
 @include('components.current_month_deposit_blocker')
 
