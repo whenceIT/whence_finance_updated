@@ -148,7 +148,6 @@ class ProvincialLedgerController extends Controller
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
-        $query = ProvincialTransaction::whereNull('status');
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
 
