@@ -60,7 +60,7 @@ if ($office) {
                         <input type="number" id="pltAmount" step="0.01" min="0" placeholder="0.00">
                     </div>
                 </div>
-@if($officeProvince)
+                @if($officeProvince)
                 <div class="plt-form-row" style="margin-bottom: 0;">
                     <div class="plt-form-group">
                         <label>Provincial Office</label>

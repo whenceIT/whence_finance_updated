@@ -20,6 +20,9 @@ class ProvincialTransaction extends Model
         'payment_method',
         'file_path',
         'recorded_at',
+        'status',
+        'approved_by',
+        'approved_at',
     ];
     
     protected $casts = [
@@ -31,5 +34,15 @@ class ProvincialTransaction extends Model
     public function province()
     {
         return $this->belongsTo(Province::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }
