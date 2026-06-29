@@ -25,7 +25,7 @@
         @endphp
     @endif
     
-    @if($block && in_array($block->office_id, [40, 46, 12, 10, 39, 8, 7, 52, 49, 53, 55, 54]))
+    @if($block && in_array($block->office_id, [40, 12, 10, 39, 8, 7, 52, 49, 55, 54]))
         @if($monthlyDepositDone && request()->path() != 'user/branch_deposits')
             @include('components.current_month_deposit_blocker')
         @endif
