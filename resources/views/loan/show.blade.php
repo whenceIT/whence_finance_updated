@@ -29,7 +29,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <div class="panel ">
+            <div class="panel">
                 <div class="panel-heading">
 		            <h6 class="panel-title">{{$loan->loan_product->name}}(#{{$loan->id}})
                         @if($loan->defaulted == 'yes')
