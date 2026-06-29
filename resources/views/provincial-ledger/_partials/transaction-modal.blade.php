@@ -41,6 +41,7 @@ if ($office) {
             <div class="modal-body plt-modal">
                 <input type="hidden" id="pltEditId" value="">
                 <input type="hidden" id="pltUserProvince" value="{{ $officeProvince ? $officeProvince->id : '' }}">
+                <input type="hidden" id="pltUserOffice" value="{{ is_object($office) ? $office->id : ($office ?: ($user->office_id ?? '')) }}">
                 <div class="plt-form-row">
                     <div class="plt-form-group">
                         <label for="pltType">Type</label>
@@ -80,6 +81,19 @@ if ($office) {
                             <option value="withinhere">Withinhere</option>
                             <option value="artel_money">Artel Money</option>
                             <option value="momo_money">MoMo Money</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="plt-form-group">
+                        <label for="pltContribution">Contribution Type</label>
+                        <select id="pltContribution">
+                            <option value="">Select Contribution</option>
+                            <option value="salary">Salary</option>
+                            <option value="savings">Savings</option>
+                            <option value="housing">Housing</option>
+                            <option value="transport">Transport</option>
+                            <option value="internet">Internet</option>
+                            <option value="petty_cash">Petty Cash</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
@@ -127,6 +141,7 @@ if ($office) {
         modal.find('#pltTitle').val('');
         modal.find('#pltAmount').val('');
         modal.find('#pltPaymentMethod').val('');
+        modal.find('#pltContribution').val('');
         modal.find('#pltTransactionDate').val(new Date().toISOString().split('T')[0]);
         modal.find('#pltReferenceNumber').val('');
         modal.find('#pltRecordedAt').val(new Date().toISOString().slice(0, 16));
@@ -146,15 +161,17 @@ if ($office) {
         formData.append('amount', $('#pltAmount').val());
         formData.append('type', currentType);
         formData.append('province_id', $('#pltUserProvince').val());
+        formData.append('office_id', $('#pltUserOffice').val());
         formData.append('payment_method', $('#pltPaymentMethod').val());
+        formData.append('contribution', $('#pltContribution').val());
         formData.append('transaction_date', $('#pltTransactionDate').val());
         formData.append('reference_number', $('#pltReferenceNumber').val());
         formData.append('recorded_at', $('#pltRecordedAt').val());
         
-        var fileInput = $('#pltFile')[0];
-        if (fileInput.files && fileInput.files[0]) {
-            formData.append('file', fileInput.files[0]);
-        }
+        // var fileInput = $('#pltFile')[0];
+        // if (fileInput.files && fileInput.files[0]) {
+        //     formData.append('file', fileInput.files[0]);
+        // }
 
         $.ajax({
             url: '{{ route("api.provincial-ledger.store") }}',

@@ -39,9 +39,11 @@ class ProvincialLedgerApiController extends Controller
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:income,expense',
             'province_id' => 'required|exists:province,id',
+            'office_id' => 'nullable|exists:offices,id',
             'transaction_date' => 'required|date',
             'reference_number' => 'nullable|string',
             'payment_method' => 'nullable|string',
+            'contribution' => 'nullable|in:salary,savings,housing,transport,internet,petty_cash,other',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 
@@ -49,6 +51,9 @@ class ProvincialLedgerApiController extends Controller
         $user = Sentinel::getUser();
         $data['created_by'] = $user ? $user->id : null;
         $data['recorded_at'] = now();
+        if (!$data['office_id'] && $user && $user->office_id) {
+            $data['office_id'] = $user->office_id;
+        }
 
         if ($data['type'] === 'expense') {
             $totalIncome = ProvincialTransaction::where('type', 'income')->sum('amount');
@@ -120,9 +125,11 @@ class ProvincialLedgerApiController extends Controller
             'amount' => 'sometimes|numeric|min:0',
             'type' => 'sometimes|in:income,expense',
             'province_id' => 'sometimes|exists:province,id',
+            'office_id' => 'sometimes|exists:offices,id',
             'transaction_date' => 'sometimes|date',
             'reference_number' => 'nullable|string',
             'payment_method' => 'nullable|string',
+            'contribution' => 'nullable|in:salary,savings,housing,transport,internet,petty_cash,other',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 

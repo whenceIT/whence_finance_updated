@@ -30,9 +30,10 @@
                     <th style="width: 30px;">
                         <input type="checkbox" id="select-all">
                     </th>
-            <th>Date</th>
+                    <th>Date</th>
                     <th>Title</th>
                     <th>Type</th>
+                    <th>Contribution</th>
                     <th>Amount</th>
                     <th>Province</th>
                     <th>Actions</th>
@@ -51,6 +52,7 @@
                             {{ ucfirst($tx->type) }}
                         </span>
                     </td>
+                    <td>{{ ucfirst(str_replace('_', ' ', $tx->contribution ?? '-')) }}</td>
                     <td>K{{ number_format($tx->amount, 2) }}</td>
                     <td>{{ $tx->province->name ?? 'N/A' }}</td>
                     <td>
@@ -61,7 +63,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center text-muted" style="padding: 30px;">
+                    <td colspan="8" class="text-center text-muted" style="padding: 30px;">
                         <i class="fa fa-check-circle" style="font-size: 48px; color: #5cb85c; margin-bottom: 10px;"></i>
                         <h4>No Pending Transactions</h4>
                         <p>All transactions have been processed.</p>

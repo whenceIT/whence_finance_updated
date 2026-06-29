@@ -19,6 +19,7 @@
                     <th>Date</th>
                     <th>Title</th>
                     <th>Type</th>
+                    <th>Contribution</th>
                     <th>Amount</th>
                     <th>Province</th>
                     <th>Approved By</th>
@@ -35,6 +36,7 @@
                             {{ ucfirst($tx->type) }}
                         </span>
                     </td>
+                    <td>{{ ucfirst(str_replace('_', ' ', $tx->contribution ?? '-')) }}</td>
                     <td>K{{ number_format($tx->amount, 2) }}</td>
                     <td>{{ $tx->province->name ?? 'N/A' }}</td>
                     <td>{{ $tx->approver->first_name ?? 'N/A' }} {{ $tx->approver->last_name ?? '' }}</td>
@@ -42,7 +44,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center text-muted" style="padding: 30px;">
+                    <td colspan="8" class="text-center text-muted" style="padding: 30px;">
                         <i class="fa fa-file" style="font-size: 48px; color: #999; margin-bottom: 10px;"></i>
                         <h4>No Approved Transactions</h4>
                         <p>Approve transactions from the pending list.</p>

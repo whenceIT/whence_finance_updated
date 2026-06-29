@@ -1314,7 +1314,7 @@
                         
 
                         <!-- Accounts Section -->
-                        @if($role==6 || $role == 1)
+                        @if($role==6 || $role == 1 || $role == 12 || $role == 4)
                         <li class="treeview @if(Request::is('provincial-ledger*')) active menu-open @endif" style="padding-left: 10px;">
                             <a href="#">
                                 <i class="fa fa-book"></i> <span>Provincial</span>

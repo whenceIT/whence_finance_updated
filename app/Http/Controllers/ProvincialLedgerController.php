@@ -14,6 +14,7 @@ class ProvincialLedgerController extends Controller
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
+        $office_id = $user->office_id ?? null;
         $query = ProvincialTransaction::query();
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
@@ -24,12 +25,15 @@ class ProvincialLedgerController extends Controller
                 $query->where('province_id', $selectedProvinceId);
             }
         } else {
-            if ($province_id) {
+            if ($user->role && $user->role->role_id == 6) {
                 $query->where('province_id', $province_id);
             }
-            $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
+            if ($user->role && ($user->role->role_id == 4 || $user->role->role_id == 12)) {
+                $query->where('office_id', $office_id);
+            }
+            $provinces = $province_id ? Province::where('id', $user->office->province_id)->get() : Province::all();
         }
-        
+
         $query->where('status', 'approved');
         $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
         $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
@@ -69,6 +73,7 @@ class ProvincialLedgerController extends Controller
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
+        $office_id = $user->office_id ?? null;
         $query = ProvincialTransaction::where('type', 'income');
         $query->where('status', 'approved');
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
@@ -80,12 +85,15 @@ class ProvincialLedgerController extends Controller
                 $query->where('province_id', $selectedProvinceId);
             }
         } else {
-            if ($province_id) {
+            if ($user->role && $user->role->role_id == 6) {
                 $query->where('province_id', $province_id);
             }
-            $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
+            if ($user->role && ($user->role->role_id == 4 || $user->role->role_id == 12)) {
+                $query->where('office_id', $office_id);
+            }
+            $provinces = $province_id ? Province::where('id', $user->office->province_id)->get() : Province::all();
         }
-        
+
         $income = $query->with('province')->orderBy('created_at', 'desc')->get();
         $total = $income->sum('amount');
 
@@ -96,6 +104,7 @@ class ProvincialLedgerController extends Controller
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
+        $office_id = $user->office_id ?? null;
         $query = ProvincialTransaction::where('type', 'expense');
         $query->where('status', 'approved');
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
@@ -107,12 +116,15 @@ class ProvincialLedgerController extends Controller
                 $query->where('province_id', $selectedProvinceId);
             }
         } else {
-            if ($province_id) {
+            if ($user->role && $user->role->role_id == 6) {
                 $query->where('province_id', $province_id);
             }
-            $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
+            if ($user->role && ($user->role->role_id == 4 || $user->role->role_id == 12)) {
+                $query->where('office_id', $office_id);
+            }
+            $provinces = $province_id ? Province::where('id',$user->office->province_id)->get() : Province::all();
         }
-        
+
         $expenses = $query->with('province')->orderBy('created_at', 'desc')->get();
         $total = $expenses->sum('amount');
 
@@ -148,6 +160,7 @@ class ProvincialLedgerController extends Controller
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
+        $office_id = $user->office_id ?? null;
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
         $query = ProvincialTransaction::query()->where('status', 'pending');
@@ -158,8 +171,11 @@ class ProvincialLedgerController extends Controller
                 $query->where('province_id', $selectedProvinceId);
             }
         } else {
-            if ($province_id) {
+            if ($user->role && $user->role->role_id == 6) {
                 $query->where('province_id', $province_id);
+            }
+            if ($user->role && ($user->role->role_id == 4 || $user->role->role_id == 12)) {
+                $query->where('office_id', $office_id);
             }
             $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
         }
@@ -173,6 +189,7 @@ class ProvincialLedgerController extends Controller
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
+        $office_id = $user->office_id ?? null;
         $query = ProvincialTransaction::where('status', 'approved');
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
@@ -183,8 +200,11 @@ class ProvincialLedgerController extends Controller
                 $query->where('province_id', $selectedProvinceId);
             }
         } else {
-            if ($province_id) {
+            if ($user->role && $user->role->role_id == 6) {
                 $query->where('province_id', $province_id);
+            }
+            if ($user->role && ($user->role->role_id == 4 || $user->role->role_id == 12)) {
+                $query->where('office_id', $office_id);
             }
             $provinces = $province_id ? Province::where('id', $province_id)->get() : Province::all();
         }
@@ -268,6 +288,7 @@ public function approveTransaction(Request $request, $id)
     {
         $user = Sentinel::getUser();
         $province_id = $user && $user->office ? $user->office->province_id : null;
+        $office_id = $user->office_id ?? null;
         $query = ProvincialTransaction::where('status', 'pending');
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
@@ -277,8 +298,11 @@ public function approveTransaction(Request $request, $id)
                 $query->where('province_id', $selectedProvinceId);
             }
         } else {
-            if ($province_id) {
+            if ($user->role && $user->role->role_id == 6) {
                 $query->where('province_id', $province_id);
+            }
+            if ($user->role && ($user->role->role_id == 4 || $user->role->role_id == 12)) {
+                $query->where('office_id', $office_id);
             }
         }
 

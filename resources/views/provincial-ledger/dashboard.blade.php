@@ -32,6 +32,7 @@
                 </div>
             </div>
         </div>
+        @if(Sentinel::getUser()->role->role_id == 6)
         <div class="col-md-4">
             <div class="panel panel-danger">
                 <div class="panel-heading">Total Expenses</div>
@@ -48,6 +49,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
     
     <div class="row">
@@ -60,6 +62,7 @@
                         <th>Title</th>
                         <th>Type</th>
                         <th>Province</th>
+                        <th></th>
                         <th>Amount</th>
                     </tr>
                 </thead>
@@ -70,6 +73,7 @@
                         <td>{{ $tx->title }}</td>
                         <td>{{ ucfirst($tx->type) }}</td>
                         <td>{{ $tx->province->name ?? 'N/A' }}</td>
+                        <td>{{ ucfirst(str_replace('_', ' ', $tx->contribution ?? '-')) }}</td>
                         <td>K{{ number_format($tx->amount, 2) }}</td>
                     </tr>
                     @endforeach
