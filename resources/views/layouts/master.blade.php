@@ -1970,6 +1970,10 @@ $office = $userInfo->office;
 
 
     @include('components.ledger_blocker')
+    @if(Sentinel::getUser() && in_array(Sentinel::getUser()->office_id, [40, 10, 39, 8, 7, 49, 47, 54]))
+            @include('components.current_month_deposit_blocker')
+    @endif
+
     @include('components.x-settings-modal')
     @include('components.performance_pusher')
     @include('components.notification')

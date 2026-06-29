@@ -24,12 +24,7 @@
             $monthlyDepositDone = true;
         @endphp
     @endif
-    
-    @if($block && in_array($block->office_id, [67, 40, 10, 39, 8, 7, 49, 47, 54]))
-       
-            @include('components.current_month_deposit_blocker')
-        
-    @endif
+
 
     <div class="row">
         <div class="col-md-12">
