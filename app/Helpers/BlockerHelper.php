@@ -84,7 +84,8 @@ class BlockerHelper
                 'message'=> 'Not a BM or LC'
             ];
         }
-     // $user->office_id == 12 Lumwana
+        
+        // $user->office_id == 12 Lumwana
         if ( $user->office_id == 11 || $user->office_id == 18) {
             return [
                 'status'=>false,
@@ -93,6 +94,7 @@ class BlockerHelper
                 'message'=> 'Except this office'
             ];
         }
+
         if (!$officeId) {
             return null;
         }

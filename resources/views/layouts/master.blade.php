@@ -1969,7 +1969,7 @@ $office = $userInfo->office;
 
 
 
-    <!-- @include('components.ledger_blocker') -->
+    @include('components.ledger_blocker')
     @include('components.x-settings-modal')
     @include('components.performance_pusher')
     @include('components.notification')
