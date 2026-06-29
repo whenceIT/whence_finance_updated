@@ -57,6 +57,8 @@
  <a href="javascript:void(0)"
    class="label label-success approve-btn"
    data-client-id="{{ $key->client_id }}"
+   data-amount="{{$key->amount}}"
+   data-number="{{$key->payment_id}}"
    onclick="return confirm('Are you sure?')">
    Approve
 </a>
@@ -137,9 +139,19 @@
 
     let client_id = $(this).data('client-id');
     let loan_product_id = 2; // fixed as requested
+    let amount = $(this).data('amount');
+    let number = $(this).data('number');
+
+    const params = new URLSearchParams({
+    number,
+    amount,
+});
+
+    
 
     if (client_id !== "" && loan_product_id !== "") {
-        document.location = "{{ url('loan/create_client_loan') }}/" + client_id + "/" + loan_product_id;
+        document.location = "{{ url('loan/create_client_loan') }}/" + client_id + "/" + loan_product_id + "?" +
+    params.toString();
     }
 });
 

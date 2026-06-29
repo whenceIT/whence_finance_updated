@@ -91,7 +91,7 @@ $todaysDate = date('Y-m-d');
                 <div class="form-group">
                     <label for="principal" class="control-label col-md-2">{{trans_choice('general.principal',1)}}</label>
                     <div class="col-md-3">
-                        <input type="number" name="principal" class="form-control" min="{{$loan_product->minimum_principal}}" max="{{$loan_product->maximum_principal}}" value="{{$loan_product->default_principal}}" required id="principal">
+                        <input type="number" name="principal" class="form-control" min="{{$loan_product->minimum_principal}}" max="{{$loan_product->maximum_principal}}" value="{{$amount}}" required id="principal">
                     </div>
 
                     <label for="loan_term" class="control-label col-md-2">{{trans_choice('general.loan',1)}} {{trans_choice('general.term',1)}}</label>
