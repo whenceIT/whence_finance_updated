@@ -43,7 +43,7 @@ class ProvincialLedgerApiController extends Controller
             'transaction_date' => 'required|date',
             'reference_number' => 'nullable|string',
             'payment_method' => 'nullable|string',
-            'contribution' => 'nullable|in:salary,savings,housing,transport,internet,petty_cash,other',
+            'contribution' => 'required|in:salary,savings,housing,transport,internet,petty_cash,other',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 

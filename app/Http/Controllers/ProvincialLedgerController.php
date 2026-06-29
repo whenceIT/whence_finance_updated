@@ -75,7 +75,6 @@ class ProvincialLedgerController extends Controller
         $province_id = $user && $user->office ? $user->office->province_id : null;
         $office_id = $user->office_id ?? null;
         $query = ProvincialTransaction::where('type', 'income');
-        $query->where('status', 'approved');
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
 
@@ -106,7 +105,7 @@ class ProvincialLedgerController extends Controller
         $province_id = $user && $user->office ? $user->office->province_id : null;
         $office_id = $user->office_id ?? null;
         $query = ProvincialTransaction::where('type', 'expense');
-        $query->where('status', 'approved');
+   
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
 

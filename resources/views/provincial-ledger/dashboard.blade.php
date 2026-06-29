@@ -17,8 +17,11 @@
                 </form>
             @endif
             <div style="display:flex; gap:8px;">
-                <button type="button" class="btn btn-primary" onclick="openTransactionModal('income')"><i class="fa fa-plus"></i> Record Income</button>
+                <button type="button" class="btn btn-primary" onclick="openTransactionModal('income')"><i class="fa fa-plus"></i> Record Income / Contribution</button>
+                
+                @if(Sentinel::getUser()->role->role_id == 6)
                 <button type="button" class="btn btn-danger" onclick="openTransactionModal('expense')"><i class="fa fa-plus"></i> Record Expense</button>
+                @endif
             </div>
         </div>
     </div>
@@ -32,7 +35,7 @@
                 </div>
             </div>
         </div>
-        @if(Sentinel::getUser()->role->role_id == 6)
+        @if(Sentinel::getUser() && Sentinel::getUser()->role && Sentinel::getUser()->role->role_id == 6)
         <div class="col-md-4">
             <div class="panel panel-danger">
                 <div class="panel-heading">Total Expenses</div>
@@ -62,7 +65,7 @@
                         <th>Title</th>
                         <th>Type</th>
                         <th>Province</th>
-                        <th></th>
+                        <th>Contribution</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
