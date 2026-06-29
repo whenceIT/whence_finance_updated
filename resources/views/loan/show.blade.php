@@ -24,7 +24,15 @@
             $monthlyDepositDone = true;
         @endphp
     @endif
-
+    
+    @if($block && in_array($block->office_id, [40, 46, 12, 10, 39, 8, 7, 52, 49, 53, 55, 54]))
+        @if(date('d') >= 27 && date('d') <= 31) 
+            @if($monthlyDepositDone && request()->path() != 'user/branch_deposits')
+                
+            @else
+            @endif
+        @endif
+    @endif
 
     <div class="row">
         <div class="col-md-12">
