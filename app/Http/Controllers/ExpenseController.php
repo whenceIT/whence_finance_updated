@@ -310,7 +310,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
 
 $currentTime = now()->format('H:i');
 
-if ($currentTime >= '17:30' || $currentTime < '07:00') {
+if ($currentTime >= '19:00' || $currentTime < '07:00') {
     Flash::warning('Expenses cannot be added between 17:30 and 07:00.');
     return redirect()->back();
 }
