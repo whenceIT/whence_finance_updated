@@ -116,6 +116,7 @@ public function updatePhone(Request $request, $client)
         'success' => true,
         'message' => 'Phone number updated successfully.'
     ]);
+
 }
 
     public function my_index()
@@ -578,35 +579,35 @@ if ($client_uniquephone) {
          }
  
          $client = Client::find($id);
-         $client->staff_id = $request->staff_id;
-         $client->nrc_number = $request->external_id;
-         $client->mobile = $request->mobile;
-         $client->phone = $request->phone;
-         $client->email = $request->email;
-         $client->client_type = $request->client_type;
+        //  $client->staff_id = $request->staff_id;
+        //  $client->nrc_number = $request->external_id;
+        //  $client->mobile = $request->mobile;
+        //  $client->phone = $request->phone;
+        //  $client->email = $request->email;
+        //  $client->client_type = $request->client_type;
          $client->first_name = $request->first_name;
          $client->middle_name = $request->middle_name;
          $client->last_name = $request->last_name;
-         $client->gender = $request->gender;
-         $client->marital_status = $request->marital_status;
-         $client->dob = $request->dob;
-        //  $client->dob = Carbon::createFromFormat('Y-m-d', $request->dob)->format('m/d/Y');
-        //   $client->dob = Carbon::toFormattedDateString('Y-m-d', $request->dob);
-         $client->working_place = $request->working_place;
-         $client->working_position = $request->working_position;
-         $client->salary = $request->salary;
-         $client->nrc_number = $request->nrc_number;
-         $client->full_name = $request->full_name;
-         $client->incorporation_number = $request->incorporation_number;
-         $client->key_contact_person = $request->key_contact_person;
-         $client->key_contact_person_nrc_number = $request->key_contact_person_nrc_number;
-         $client->number_of_shareholders = $request->number_of_shareholders;
-         $client->company_registration_date = $request->company_registration_date;
-         $client->type_of_business = $request->type_of_business;
-         $client->street = $request->street;
-         $client->address = $request->address;
-         $client->joined_date = $request->joined_date;
-         $client->notes = $request->notes;
+        //  $client->gender = $request->gender;
+        //  $client->marital_status = $request->marital_status;
+        //  $client->dob = $request->dob;
+        // //  $client->dob = Carbon::createFromFormat('Y-m-d', $request->dob)->format('m/d/Y');
+        // //   $client->dob = Carbon::toFormattedDateString('Y-m-d', $request->dob);
+        //  $client->working_place = $request->working_place;
+        //  $client->working_position = $request->working_position;
+        //  $client->salary = $request->salary;
+        //  $client->nrc_number = $request->nrc_number;
+        //  $client->full_name = $request->full_name;
+        //  $client->incorporation_number = $request->incorporation_number;
+        //  $client->key_contact_person = $request->key_contact_person;
+        //  $client->key_contact_person_nrc_number = $request->key_contact_person_nrc_number;
+        //  $client->number_of_shareholders = $request->number_of_shareholders;
+        //  $client->company_registration_date = $request->company_registration_date;
+        //  $client->type_of_business = $request->type_of_business;
+        //  $client->street = $request->street;
+        //  $client->address = $request->address;
+        //  $client->joined_date = $request->joined_date;
+        //  $client->notes = $request->notes;
          $client->save();
          if (Setting::where('setting_key', 'enable_custom_fields')->first()->setting_value == 1) {
              $custom_fields = CustomField::where('category', 'clients')->get();
