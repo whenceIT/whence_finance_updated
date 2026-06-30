@@ -99,6 +99,25 @@ class ClientController extends Controller
     return view('client.data', compact('data', 'query'));
 }
 
+
+public function updatePhone(Request $request, $client)
+{
+    $request->validate([
+        'phone' => 'required|string|max:30',
+    ]);
+
+    $client = Client::findOrFail($client);
+
+    $client->phone = $request->phone;
+    $client->mobile = $request->phone;
+    $client->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Phone number updated successfully.'
+    ]);
+}
+
     public function my_index()
     {
         if (!Sentinel::hasAccess('clients.my_clients')) {

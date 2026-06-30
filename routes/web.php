@@ -560,6 +560,7 @@ Route::get('fetch-dormant-clients', 'ClientController@fetch_dormant_clients')->n
 Route::group(['prefix' => 'client'], function () {
     Route::get('data', 'ClientController@index')->name('client.data');
     Route::get('my_clients', 'ClientController@my_index');
+    Route::post('{id}/phone', 'ClientController@updatePhone');
     Route::get('branch_clients', 'ClientController@branch_index');
     Route::get('declined', 'ClientController@declined');
     Route::get('pending_approval', 'ClientController@pending_approval');
