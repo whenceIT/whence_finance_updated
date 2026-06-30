@@ -87,7 +87,7 @@ $todaysDate = date('Y-m-d');
             {{-- Loan Terms --}}
             <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
                 <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">Loan Terms</h4>
-
+ <input type="hidden" name="phone_number" id="phone_number">
                 <div class="form-group">
                     <label for="principal" class="control-label col-md-2">{{trans_choice('general.principal',1)}}</label>
                     <div class="col-md-3">
@@ -492,5 +492,10 @@ $todaysDate = date('Y-m-d');
                 }
             }
         });
+
+        
+                              let phone_numbeer = "{{ $number }}";
+                               $('#phone_number').val(phone_numbeer);
+
     </script>
 @endsection
