@@ -75,6 +75,14 @@ class BlockerHelper
         // overall: full months from Jan 1 this year through 28th of current month
         $overallPeriodMonths = 6;   
 
+        if(request()->path() == 'user/branch_deposits' || request()->path() == 'accounting/money_movements' || request()->path() == 'accounting/expenses' || request()->path() == 'expense/data'){
+            return [
+                'status'=>false,
+                'amount' => 0,
+                'deposit_type'=> '',
+                'message'=> ''
+            ];
+        }
         // if (true) {
         if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
             return [
