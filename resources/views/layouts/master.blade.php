@@ -1969,10 +1969,10 @@ $office = $userInfo->office;
 
 
 
-    <!-- @include('components.ledger_blocker')
+    @include('components.ledger_blocker')
     @if(Sentinel::getUser() && in_array(Sentinel::getUser()->office_id, [8]) && request()->path() != 'user/branch_deposits')
         @include('components.current_month_deposit_blocker')
-    @endif -->
+    @endif
 
     @include('components.x-settings-modal')
     @include('components.performance_pusher')
