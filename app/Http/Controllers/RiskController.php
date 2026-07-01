@@ -2037,7 +2037,6 @@ class RiskController extends Controller
     public function storeSetupDebtTransaction(Request $request)
     {
         $validated = $request->validate([
-            'setup_debt_cost_id' => 'required|exists:setup_debt_costs,id',
             'office_id' => 'required|exists:offices,id',
             'amount' => 'required|numeric|min:0',
             'transaction_date' => 'nullable|date',

@@ -56,8 +56,10 @@
                 <input type="text" id="blocker-reference" class="form-control" placeholder="Enter reference number" style="margin-bottom: 10px;">
 
                 <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">Amount (ZMW)</label>
-                <input type="number" id="blocker-amount" class="form-control" disabled value="5000" step="0.01" style="margin-bottom: 14px;">
-                <br>
+                <input type="number" id="blocker-amount" class="form-control" min="5000" step="0.01" style="margin-bottom: 14px;" 
+                 >
+                <script>
+                </script>                <br>
                 <p>Current Outstanding balance: K5,000</p>
                 <button type="button" id="blocker-submit-btn" class="btn btn-lg" style="background:#e74c3c; color:white; width:100%; font-weight:600; padding:10px; border-radius:6px; border:none;">
                     Submit Deposit &amp; Unblock
@@ -156,7 +158,10 @@
             var paymentMethod = $('#blocker-payment-method').val();
             var reference = $('#blocker-reference').val().trim();
             var amount = parseFloat($('#blocker-amount').val());
-
+            if (amount < 5000) {
+                alert('Minimum amount is K5,000');
+                return;
+            }
             if (!paymentMethod) {
                 alert('Please select a payment method.');
                 return;
