@@ -200,7 +200,7 @@ class BlockerHelper
             ->exists();
 
         
-        return $hasTransaction ; 
+        return !$hasTransaction; 
     }
     
 }

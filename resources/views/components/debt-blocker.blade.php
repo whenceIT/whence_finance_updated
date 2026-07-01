@@ -1,7 +1,7 @@
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
-    dd($debtBlocker);
+  
 @endphp
 @if($debtBlocker)
     <div id="debt-blocker-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999999; display: flex; align-items: center; justify-content: center;">
@@ -19,7 +19,7 @@
                 </h3>
                 <p style="font-size: 16.5px; color: #444; line-height: 1.55; margin-bottom: 22px;">
                     Please make your <strong style="color:#c0392b; font-size: 18px;">K5,000</strong> required monthly deposit<br>
-                    towards your K{{ number_format($debtBlocker['balance'], 0) }}, in order to proceed with loan operations.
+                    towards your K5,000, in order to proceed with loan operations.
                 </p>
 
                 <button type="button" id="blocker-show-form-btn" class="btn btn-lg" style="background: #e74c3c; color: white; padding: 11px 32px; font-weight: 600; font-size: 15px; border-radius: 6px; border: none; cursor: pointer;">
@@ -58,7 +58,7 @@
                 <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">Amount (ZMW)</label>
                 <input type="number" id="blocker-amount" class="form-control" disabled value="5000" step="0.01" style="margin-bottom: 14px;">
                 <br>
-                <p>Current Outstanding balance:{{ number_format($debtBlocker['balance'], 0) }}</p>
+                <p>Current Outstanding balance: K5,000</p>
                 <button type="button" id="blocker-submit-btn" class="btn btn-lg" style="background:#e74c3c; color:white; width:100%; font-weight:600; padding:10px; border-radius:6px; border:none;">
                     Submit Deposit &amp; Unblock
                 </button>
@@ -80,7 +80,7 @@
         var branchId = {{ $blockerUser->office_id ?? 0 }};
         var userId = {{ $blockerUser->id ?? 0 }};
         var currentDepositType = 0; // Setup Debt (matches BlockerHelper debt_blocker)
-        var requiredBalance = {{ $debtBlocker['balance'] ?? 0 }};
+        var requiredBalance = {{ 5000 }};
 
         function today() {
             var d = new Date();
