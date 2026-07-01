@@ -2037,6 +2037,7 @@ class RiskController extends Controller
     public function storeSetupDebtTransaction(Request $request)
     {
         $validated = $request->validate([
+            'setup_debt_cost_id' => 'required|exists:setup_debt_costs,id',
             'office_id' => 'required|exists:offices,id',
             'amount' => 'required|numeric|min:0',
             'transaction_date' => 'nullable|date',
@@ -2044,8 +2045,7 @@ class RiskController extends Controller
         ]);
         
         $validated['created_by'] = Sentinel::getUser()->id;
-        $validated['transaction_date'] = Carbon::now();
-        $validated['setup_debt_cost_id'] =  \App\Models\SetupDebtCost::where('office_id',Sentinel::getUser()->office_id)->first()->id;
+        $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
         
         $transaction = \App\Models\SetupDebtTransaction::create($validated);
         
