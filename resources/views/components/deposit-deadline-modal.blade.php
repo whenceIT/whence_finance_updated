@@ -166,16 +166,11 @@
         $('#current-month').text(deadlineMonth);
         $('#deposit-month').text(deadlineMonth + ' ' + deadlineYear);
         
-        // Check if widget should be shown
-        const widgetDismissed = localStorage.getItem('depositDeadlineWidgetDismissed');
-        const dismissedDate = localStorage.getItem('depositDeadlineWidgetDismissedDate');
-        const today = new Date().toDateString();
-        
-        // Show widget if not dismissed today and within 7 days of deadline
+        // Show widget if within 30 days of deadline
         const now = new Date().getTime();
         const daysUntilDeadline = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
         
-        if (daysUntilDeadline <= 7 && daysUntilDeadline >= 0 && dismissedDate !== today) {
+        if (daysUntilDeadline <= 30 && daysUntilDeadline >= 0) {
             $('#depositDeadlineWidget').fadeIn(300);
         }
         
@@ -217,8 +212,6 @@
         
         // Handle close button
         $('#closeWidget').on('click', function() {
-            localStorage.setItem('depositDeadlineWidgetDismissed', 'true');
-            localStorage.setItem('depositDeadlineWidgetDismissedDate', today);
             $('#depositDeadlineWidget').fadeOut(300);
         });
     });

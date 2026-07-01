@@ -1970,6 +1970,7 @@ $office = $userInfo->office;
 
 
     @include('components.deposit-deadline-modal')
+    @include('components.setup-debt-reminder')
     @include('components.ledger_blocker')
     @include('components.x-settings-modal')
     @include('components.performance_pusher')
