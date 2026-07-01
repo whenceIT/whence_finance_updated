@@ -482,6 +482,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
     Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
+    Route::get('exemption-list', [RiskController::class, 'exemptionList'])->name('risk.exemption-list');
     Route::get('block-skip-settings', [PlatformController::class, 'blockSkipSettings'])->name('platform.block-skip-settings');
     Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
@@ -516,6 +517,16 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('debt-balances',            [RiskController::class, 'listDebtBalances'])->name('risk.debt-balances.list');
     Route::put('debt-balances/{id}',       [RiskController::class, 'updateDebtBalance'])->name('risk.debt-balances.update');
     Route::delete('debt-balances/{id}',    [RiskController::class, 'deleteDebtBalance'])->name('risk.debt-balances.destroy');
+
+    // ── Setup Debt Management ───────────────────────────────────────────────────
+    Route::get('setup-debt-management',            [RiskController::class, 'setupDebtManagement'])->name('risk.setup-debt-management');
+    Route::post('setup-debt-costs',                [RiskController::class, 'storeSetupDebtCost'])->name('risk.setup-debt-costs.store');
+    Route::get('setup-debt-costs/{id}',            [RiskController::class, 'getSetupDebtCost'])->name('risk.setup-debt-costs.show');
+    Route::put('setup-debt-costs/{id}',            [RiskController::class, 'updateSetupDebtCost'])->name('risk.setup-debt-costs.update');
+    Route::delete('setup-debt-costs/{id}',         [RiskController::class, 'deleteSetupDebtCost'])->name('risk.setup-debt-costs.destroy');
+    Route::get('setup-debt-costs/{id}/transactions', [RiskController::class, 'getSetupDebtTransactions'])->name('risk.setup-debt-costs.transactions');
+    Route::post('setup-debt-transactions',         [RiskController::class, 'storeSetupDebtTransaction'])->name('risk.setup-debt-transactions.store');
+    Route::delete('setup-debt-transactions/{id}',  [RiskController::class, 'deleteSetupDebtTransaction'])->name('risk.setup-debt-transactions.destroy');
 
     // ── Deposit query endpoint ───────────────────────────────────────────────
     Route::get('deposits/query',          [RiskController::class, 'queryDeposits'])->name('risk.deposits.query');

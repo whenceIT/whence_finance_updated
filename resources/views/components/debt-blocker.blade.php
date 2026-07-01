@@ -1,19 +1,9 @@
 @php
     $blockerUser = Sentinel::getUser();
-    if ($blockerUser) {
-        $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
-    } else {
-        $debtBlocker = ['status' => true, 'balance' => 0];
-    }
-    $userRole = $blockerUser ? $blockerUser->roles->first() : null;
-    if ($blockerUser && $userRole && $userRole->id == 4) {
-        $monthlyDepositOk = \App\Helpers\BlockerHelper::monthlyDepositExists($blockerUser);
-    } else {
-        $monthlyDepositOk = true;
-    }
+    $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+    dd($debtBlocker);
 @endphp
-@if($debtBlocker['status'] && $debtBlocker['balance'] > 0)
-    {{-- Debt Blocker Overlay (reusable component) --}}
+@if($debtBlocker)
     <div id="debt-blocker-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999999; display: flex; align-items: center; justify-content: center;">
         <div id="debt-blocker-card" style="background: #ffffff; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.35); max-width: 480px; width: 94%; padding: 28px 24px; text-align: center; border: 2px solid #e74c3c;">
             
@@ -44,7 +34,7 @@
             <!-- DEPOSIT FORM STATE (hidden until button click) -->
             <div id="blocker-deposit-form" style="display: none; text-align: left;">
                 <h4 style="color: #c0392b; font-weight: 700; margin-bottom: 4px; font-size: 18px;">
-                    Record K{{ number_format($debtBlocker['balance'], 0) }} Setup Deposit
+                    Record K5,000 Setup Deposit
                 </h4>
                 <p style="font-size: 13px; color: #666; margin-bottom: 14px;">
                     This will unblock loan operations for your office.
@@ -54,7 +44,7 @@
                 <select id="blocker-payment-method" class="form-control" style="margin-bottom: 8px;">
                     <option value="">Select Method</option>
                     <option value="airtel">Airtel Money</option>
-                    <option value="airtel_app">Airtel App</option>
+                    <!-- <option value="airtel_app">Airtel App</option> -->
                     <option value="zanaco_express">Zanaco Express</option>
                     <option value="mtn">MTN MoMo</option>
                     <option value="zanaco_cash">Zanaco Cash Deposit</option>
@@ -188,37 +178,40 @@
             var currentReferenceNumber = reference;
             var currentPaymentMethod = paymentMethod;
 
+            // Disable submit button to prevent double-submission
+            $('#blocker-submit-btn').prop('disabled', true).text('Processing...');
+
+            // Record this transaction in the SetupDebtTransactions model/table
             $.ajax({
-                url: 'https://lms2backend.whencefinancesystem.com/create-deposit',
+                url: '{{ route("risk.setup-debt-transactions.store") }}',
                 type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    deposit_type: currentDepositType,
-                    office: branchId,
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    office_id: branchId,
                     amount: currentDepositAmount,
-                    date: today()
-                }),
-                success: function (res) {
-                    $.ajax({
-                        url: 'https://lms2backend.whencefinancesystem.com/create-deposit-log',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            deposit_type: currentDepositType,
-                            deposit_id: res.deposit_id,
-                            office_id: branchId,
-                            user_id: userId,
-                            amount: currentDepositAmount,
-                            reference_number: currentReferenceNumber,
-                            deposit_method: currentPaymentMethod
-                        })
-                    })
-                    .done(function () {
-                        location.reload();
-                    })
-                    .fail(function () {
-                        location.reload();
-                    });
+                    payment_method: currentPaymentMethod,
+                    reference_number: currentReferenceNumber,
+                    notes: 'Setup Debt Monthly Deposit'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('Deposit recorded successfully! The page will now reload.');
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (response.message || 'Unknown error occurred'));
+                        $('#blocker-submit-btn').prop('disabled', false).text('Submit Deposit & Unblock');
+                    }
+                },
+                error: function (xhr) {
+                    var errorMsg = 'Failed to record deposit.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg += ' ' + xhr.responseJSON.message;
+                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        var errors = Object.values(xhr.responseJSON.errors).flat();
+                        errorMsg += ' ' + errors.join(', ');
+                    }
+                    alert(errorMsg);
+                    $('#blocker-submit-btn').prop('disabled', false).text('Submit Deposit & Unblock');
                 }
             });
         });
