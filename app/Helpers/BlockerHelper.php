@@ -40,7 +40,7 @@ class BlockerHelper
             ];
         }
         // if (true) {
-        if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
+        if (true) {
             return [
                 'status'=>false,
                 'amount' => 0,
