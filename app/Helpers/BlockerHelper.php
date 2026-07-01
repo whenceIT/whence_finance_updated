@@ -199,7 +199,6 @@ class BlockerHelper
             ->havingRaw('SUM(amount) >= 5000')
             ->exists();
 
-        
         return !$hasTransaction; 
     }
     
