@@ -156,10 +156,22 @@
                             <b>{{trans_choice('general.mobile',1)}}</b>
                             <a class="pull-right">{{$client->mobile}}</a>
                         </li>
-                        <li class="list-group-item">
-                            <b>{{trans_choice('general.phone',1)}}</b>
-                            <a class="pull-right">{{$client->phone}}</a>
-                        </li>
+                       <li class="list-group-item">
+    <b>{{ trans_choice('general.phone',1) }}</b>
+
+    <span class="pull-right">
+        {{ $client->phone }}
+
+        <button
+            type="button"
+            class="btn btn-xs btn-primary"
+            data-toggle="modal"
+            data-target="#editPhoneModal"
+            style="margin-left:10px;">
+            Edit
+        </button>
+    </span>
+</li>
                         <li class="list-group-item">
                             <b>{{trans_choice('general.email',1)}}</b>
                             <a class="pull-right">{{$client->email}}</a>
@@ -1421,6 +1433,89 @@
         </div>
         <!-- /.modal-dialog -->
     </div>
+
+    <div class="modal fade" id="editPhoneModal">
+    <div class="modal-dialog">
+        <form id="phoneForm">
+            @csrf
+
+            <div class="modal-content">
+
+            <input type="hidden" id="client_first_name" value="{{ $client->first_name }}">
+<input type="hidden" id="client_last_name" value="{{ $client->last_name }}">
+
+                <div class="modal-header">
+                    <button class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Edit Phone Number</h4>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label>Phone Number</label>
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="phone"
+                            id ="edit_phone"
+                            value="{{ $client->phone ?? $client->mobile }}"
+                            required>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-default"
+                        data-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+                        Save
+                    </button>
+
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="verificationResultModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title" id="verificationTitle">Verification</h4>
+            </div>
+
+            <div class="modal-body text-center">
+
+                <div id="verificationIcon" style="font-size:60px;margin-bottom:15px;"></div>
+
+                <div id="verificationMessage"></div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button
+                    class="btn btn-primary"
+                    data-dismiss="modal">
+                    OK
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 @endsection
 @section('footer-scripts')
     <script>
@@ -1520,5 +1615,180 @@
             },
             responsive: false
         });
+
+
+        function showVerificationModal(title, icon, message){
+
+    $("#verificationTitle").text(title);
+
+    $("#verificationIcon").html(icon);
+
+    $("#verificationMessage").html(message);
+
+    $("#verificationResultModal").modal("show");
+
+}
+
+
+    function normalizeName(name) {
+    return (name || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s]/g, "")
+        .replace(/\s+/g, " ");
+}
+
+function getOperator(phoneNumber) {
+
+    phoneNumber = phoneNumber.replace(/\D/g, "");
+
+    if(phoneNumber.length !== 10){
+        return null;
+    }
+
+    switch(phoneNumber.charAt(2)){
+        case "7":
+            return "airtel";
+        case "6":
+            return "mtn";
+        case "5":
+            return "zamtel";
+        default:
+            return null;
+    }
+}
+
+function namesMatch(firstName, lastName, accountName){
+
+    firstName = normalizeName(firstName);
+    lastName = normalizeName(lastName);
+    accountName = normalizeName(accountName);
+
+    const words = accountName.split(" ");
+
+    return words.includes(firstName) && words.includes(lastName);
+
+}
+
+$('#phoneForm').submit(function(e){
+
+    e.preventDefault();
+
+    const phone = $('#edit_phone').val().replace(/\D/g,'');
+
+    const firstName = $('#client_first_name').val();
+    const lastName = $('#client_last_name').val();
+
+    const operator = getOperator(phone);
+
+    if(!operator){
+        alert("Invalid phone number.");
+        return;
+    }
+
+    $.ajax({
+
+        url: "https://withinheremobileapi.com/api/v1/payment/resolve/mobile",
+
+        method: "POST",
+
+        contentType: "application/json",
+
+        data: JSON.stringify({
+            phone: phone,
+            operator: operator
+        }),
+
+        success:function(response){
+
+            console.log("API RESPONSE", response);
+
+            if(
+                !response ||
+                !response.data ||
+                !response.data.accountName
+            ){
+                alert("Could not verify this phone number.");
+                return;
+            }
+
+            const accountName = response.data.accountName;
+
+            if(!namesMatch(firstName,lastName,accountName)){
+
+             showVerificationModal(
+    "Verification Failed",
+    "❌",
+    "<strong>Registered Name:</strong><br>" +
+    accountName +
+    "<br><br>" +
+    "<strong>Client Name:</strong><br>" +
+    firstName + " " + lastName +
+    "<br><br>" +
+    "<span class='text-danger'>The names do not match.</span>"
+);
+
+                return;
+
+            }
+
+            $.ajax({
+
+                url: "{{ url('client/'.$client->id.'/phone') }}",
+
+                method: "POST",
+
+                data: $('#phoneForm').serialize(),
+
+                success:function(res){
+
+                   showVerificationModal(
+    "Success",
+    "✅",
+    "Phone number updated successfully."
+);
+
+setTimeout(function(){
+
+    location.reload();
+
+},1500);
+
+                    location.reload();
+
+                },
+
+                error:function(xhr){
+
+                    console.log(xhr);
+
+                    showVerificationModal(
+    "Verification Error",
+    "❌",
+    "Unable to verify the mobile number. Please try again."
+);
+
+                }
+
+            });
+
+        },
+
+        error:function(xhr){
+
+            console.log(xhr);
+
+           showVerificationModal(
+    "Invalid Number",
+    "⚠️",
+    "Please enter a valid Zambian mobile number."
+);
+
+        }
+
+    });
+
+});
+
     </script>
 @endsection
