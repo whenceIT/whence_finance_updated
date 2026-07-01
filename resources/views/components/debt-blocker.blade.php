@@ -121,11 +121,36 @@
         var userId = {{ $blockerUser->id ?? 0 }};
         var currentDepositType = 0; // Setup Debt (matches BlockerHelper debt_blocker)
         var requiredBalance = {{ 5000 }};
+        
+        // Store original body styles
+        var originalBodyOverflow = '';
+        var originalBodyPosition = '';
+        var scrollY = 0;
 
         function today() {
             var d = new Date();
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-01';
         }
+        
+        // Prevent background scroll on mobile
+        function lockScroll() {
+            scrollY = window.scrollY;
+            originalBodyOverflow = document.body.style.overflow;
+            originalBodyPosition = document.body.style.position;
+            document.body.style.position = 'fixed';
+            document.body.style.top = '-' + scrollY + 'px';
+            document.body.style.width = '100%';
+        }
+        
+        function unlockScroll() {
+            document.body.style.position = originalBodyPosition;
+            document.body.style.top = '';
+            document.body.style.overflow = originalBodyOverflow;
+            window.scrollTo(0, scrollY);
+        }
+        
+        // Lock scroll on load
+        lockScroll();
 
         function updateReferenceHint(method, hintEl, inputEl) {
             inputEl.val('');
