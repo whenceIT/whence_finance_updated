@@ -1967,10 +1967,17 @@ $office = $userInfo->office;
 
     </script>
 
-
+    @php
+        $blockerUser = Sentinel::getUser();
+        $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+    @endphp
 
     @include('components.deposit-deadline-modal')
-    @include('components.setup-debt-reminder')
+ 
+    @if($debtBlocker)
+        @include('components.setup-debt-reminder')
+    @endif
+
     @include('components.x-settings-modal')
     @include('components.performance_pusher')
     @include('components.notification')
