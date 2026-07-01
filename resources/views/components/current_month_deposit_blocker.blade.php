@@ -10,7 +10,7 @@
                 <i class="fa fa-university" style="font-size: 48px; color: #126cf3; margin-bottom: 15px;"></i>
                 <p style="margin-bottom: 15px; font-size: 14px;">
                     You have not fully paid your <strong>June's required madatory deposits in Building, Administration, and Statutory</strong>. 
-                    Please make the necessary deposits to continue using this system.
+                    Please record the necessary missing deposits to continue using this system.
                 </p>
                 <p style="font-size: 12px; color: #999; margin-bottom: 20px;">
                     <i class="fa fa-info-circle"></i> 
