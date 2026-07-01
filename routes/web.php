@@ -16,6 +16,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BranchDepositController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GOAController;
 use Illuminate\Support\Facades\Route;
@@ -456,6 +457,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('get_district_regionals_by_district/{id}', 'UserController@get_district_regionals_by_district');
 
      Route::get('branch_deposits','UserController@branch_deposits');
+     Route::get('branch-deposits','BranchDepositController@branchDeposits');
      Route::get('deposit_logs','UserController@deposit_logs');
 });
 //route for offices
