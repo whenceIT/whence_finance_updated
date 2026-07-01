@@ -1,7 +1,7 @@
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
-  
+    dd($debtBlocker);
 @endphp
 @if($debtBlocker)
     <div id="debt-blocker-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999999; display: flex; align-items: center; justify-content: center;">
@@ -158,6 +158,7 @@
             var paymentMethod = $('#blocker-payment-method').val();
             var reference = $('#blocker-reference').val().trim();
             var amount = parseFloat($('#blocker-amount').val());
+
             if (amount < 5000) {
                 alert('Minimum amount is K5,000');
                 return;

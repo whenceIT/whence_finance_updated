@@ -192,11 +192,11 @@ class BlockerHelper
         
         // Office IS listed → check for 5000 transaction this month
         $hasTransaction = SetupDebtTransaction::where('office_id', $officeId)
-            ->where('amount', 5000) // Assuming the column is 'balance'
             ->whereBetween('transaction_date', [
                 $now->copy()->startOfMonth()->toDateString(), 
                 $now->copy()->endOfMonth()->toDateString()
             ])
+            ->havingRaw('SUM(amount) >= 5000')
             ->exists();
 
         
