@@ -273,35 +273,42 @@ class PlatformController extends Controller
     public function updateDepositExemptMonths(Request $request)
     {
         $data = $request->validate([
-            'deposit_months_exempted' => 'required|integer|min:0|max:12',
-            'deposit_type_id' => 'nullable|exists:deposit_types,id',
-            'offices' => 'nullable',
+            'months' => 'required|array',
+            'months.*' => 'required|integer|min:1|max:12',
+            'year' => 'required|integer|min:1900|max:' . (date('Y') + 10),
+            'deposit_type_id' => 'nullable|string',
+            'offices' => 'nullable|string',
         ]);
 
-        $months = (int) $data['deposit_months_exempted'];
-        $depositTypeId = $data['deposit_type_id'] ?? null;
-        $officeIds = null;
+        $monthCount = count($data['months']);
 
-        if (!empty($data['offices'])) {
-            $officeIds = is_array($data['offices'])
-                ? $data['offices']
-                : array_filter(array_map('trim', explode(',', $data['offices'])));
+        $depositTypeIds = null;
+        if (!empty($data['deposit_type_id'])) {
+            $types = array_filter(array_map('trim', explode(',', $data['deposit_type_id'])));
+            $depositTypeIds = \App\Models\DepositType::whereIn('id', $types)->pluck('id')->all();
         }
 
-        if ($officeIds) {
-            $officeIds = \App\Models\Office::whereIn('id', $officeIds)->pluck('id')->all();
+        $officeIds = null;
+        if (!empty($data['offices'])) {
+            $offices = array_filter(array_map('trim', explode(',', $data['offices'])));
+            $officeIds = \App\Models\Office::whereIn('id', $offices)->pluck('id')->all();
         } else {
             $officeIds = \App\Models\Office::query()->pluck('id')->all();
         }
 
         foreach ($officeIds as $officeId) {
-            DepositMonthExemption::updateOrCreate(
-                [
-                    'office_id' => $officeId,
-                    'deposit_type_id' => $depositTypeId,
-                ],
-                ['no_months_exclude' => $months]
-            );
+            foreach ($depositTypeIds ?? [null] as $depositTypeId) {
+                DepositMonthExemption::updateOrCreate(
+                    [
+                        'office_id' => $officeId,
+                        'deposit_type_id' => $depositTypeId,
+                    ],
+                    [
+                        'no_months_exclude' => $monthCount,
+                        'months' => $data['months'],
+                    ]
+                );
+            }
         }
 
         return response()->json(['success' => true, 'message' => 'Deposit exemption months updated successfully.']);

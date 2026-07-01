@@ -15,12 +15,14 @@ class DepositMonthExemption extends Model
         'office_id',
         'deposit_type_id',
         'no_months_exclude',
+        'months',
     ];
 
     protected $casts = [
         'office_id' => 'integer',
         'deposit_type_id' => 'integer',
         'no_months_exclude' => 'integer',
+        'months' => 'array',
     ];
 
     public function office()
@@ -31,6 +33,13 @@ class DepositMonthExemption extends Model
     public function depositType()
     {
         return $this->belongsTo(DepositType::class);
+    }
+
+    public static function office_name($id)
+    {
+        $officeId = self::where('id', $id)->first()->office_id;
+     
+        return Office::where('id', $officeId)->first()->name ?? '-';
     }
 
     /**

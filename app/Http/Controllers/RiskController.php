@@ -1676,7 +1676,7 @@ class RiskController extends Controller
      */
     public function branchDepositAuditByType(int $depositTypeId, Request $request)
     {
-        $period       = $request->query('period', 'month');
+        $period       = $request->query('period', 'year');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
         $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
@@ -1690,73 +1690,7 @@ class RiskController extends Controller
             $dateTo   = $endDate;
         }
 
-        $offices  = \App\Models\Office::orderBy('name')->get();
-        if ($officeId !== null) {
-            $offices = $offices->filter(fn($o) => $o->id == $officeId)->values();
-        }
-
-        $depositQuery = \App\Models\Deposit::where('deposit_type', $depositTypeId);
-
-        if ($officeId !== null) {
-            $depositQuery->where('office', $officeId);
-        }
-
-        if ($dateFrom !== null && $dateTo !== null) {
-            $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
-        }
-
-        $deposits = $depositQuery->get();
-
-        // Group deposits by office id
-        $depsByOffice = [];
-        foreach ($deposits as $dep) {
-            $oid = $dep->office;
-            if (!isset($depsByOffice[$oid])) {
-                $depsByOffice[$oid] = [];
-            }
-            $depsByOffice[$oid][] = $dep;
-        }
-
-        // Build one row per office
-        $rows = [];
-        foreach ($offices as $office) {
-            $officeDeps = $depsByOffice[$office->id] ?? [];
-
-            $total      = 0;
-            $count      = 0;
-            $monthCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-            foreach ($officeDeps as $dep) {
-                $total      += (float) $dep->amount;
-                $count       += 1;
-                $monthNum    = (int) date('n', strtotime((string) $dep->date));
-                $monthCount[$monthNum - 1] += 1;
-            }
-
-            $rows[] = [
-                'office_id'     => $office->id,
-                'office_name'   => $office->name,
-                'total'         => $total,
-                'deposit_count' => $count,
-                'months'        => $monthCount,
-            ];
-        }
-
-        $stats = [
-            'offices_with_deposits' => 0,
-            'offices_with_total'    => 0,
-            'total_offices'         => count($rows),
-        ];
-        foreach ($rows as $row) {
-            if ($row['deposit_count'] > 0) {
-                $stats['offices_with_deposits'] += 1;
-            }
-            if ($row['total'] > 0) {
-                $stats['offices_with_total'] += 1;
-            }
-         }
-
-        return response()->json(['rows' => $rows, 'stats' => $stats]);
+        
     }
 
     /**

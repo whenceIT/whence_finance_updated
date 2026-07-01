@@ -9,22 +9,6 @@
 @section('content')
 @include('components.kilo-alert')
 <style>
-    .da-key-guide {
-        background: #f7f8fc;
-        border-radius: 4px;
-        border: 1px solid #e0e4ed;
-        padding: 6px 10px;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12px;
-    }
-    .da-key-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
     .da-type-card {
         background: #fff;
         border-radius: 8px;
@@ -52,112 +36,6 @@
     .da-summary-item  { color: #555; }
     .da-summary-item strong { color: #667eea; }
     .right-group { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-    .da-stats { display:flex; gap:12px; }
-    .da-stat  { font-size:12px; color:#888; white-space:nowrap; }
-    .da-stat strong { color:#667eea; font-size:13px; }
-    .da-search-wrap { position:relative; }
-    .da-search-wrap .fa-search { position:absolute; left:8px; top:50%; transform:translateY(-50%); color:#bbb; font-size:12px; pointer-events:none; }
-    .da-office-search {
-        padding:4px 10px 4px 26px; border:1px solid #ddd; border-radius:20px;
-        font-size:12px; width:180px; outline:none; transition:border-color .2s, box-shadow .2s;
-        background:#fff;
-    }
-    .da-office-search:focus { border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.15); }
-    .da-body { display: none; padding: 16px 20px; border-top: 1px solid #f0f0f0; background: #fafbff; }
-    .da-type-card.open .da-body { display: block; }
-    .da-loading { color: #999; font-size: 14px; padding: 10px 20px; }
-    .da-empty { color: #bbb; font-size: 13px; font-style: italic; padding: 8px 20px; }
-    .da-office-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-    .da-office-table thead th {
-        background: #667eea; color: #fff; padding: 7px 12px; font-size: 12px;
-        font-weight: 600; text-transform: uppercase; letter-spacing: .5px; text-align: left;
-    }
-    .da-office-table tbody td {
-        padding: 7px 12px; font-size: 13px; border-bottom: 1px solid #eef0f7; color: #444; vertical-align: middle;
-    }
-    .da-office-table tbody tr:last-child td { border-bottom: none; }
-     .da-office-table tbody tr.da-alert td {
-         background: #fff0f0 !important;
-         color: #c0392b;
-     }
-     .da-office-table tbody tr.da-alert td.da-debt-out { color: #e61700; }
-     .da-office-table tbody tr:hover td { background: #f0f4ff; }
-     .da-office-table tbody tr.da-alert:hover td  { background: #ffe0e0 !important; }
-     .da-office-table tbody tr.da-row-warn:hover td { background: #fff0c0 !important; }
-     .da-office-table tbody tr.da-row-zero:hover td { background: #ffdad4 !important; }
-    .da-office-table tbody td.da-amt { font-weight: 700; color: #333; }
-    .da-office-table tbody tr.da-row-zero td {
-        background: #fff5f5 !important;
-        color: #c0392b;
-    }
-    .da-office-table tbody tr.da-row-zero td.da-amt { color: #e61700; }
-    .da-office-table tbody tr.da-row-zero { animation: daPulse 2.5s ease-in-out infinite; }
-    .da-office-table tbody tr.da-row-warn td {
-        background: #fffbe6 !important;
-        color: #b7950b;
-    }
-     .da-office-table tbody tr.da-row-warn td.da-amt { color: #e61700; }
-     .da-office-table tbody tr.da-row-warn { animation: daWarnPulse 2.5s ease-in-out infinite; }
-     @keyframes daPulse {
-         0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
-         50%       { box-shadow: inset 3px 0 0 0 #cf1a05; }
-     }
-     @keyframes daWarnPulse {
-         0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
-         50%       { box-shadow: inset 3px 0 0 0 #f39c12; }
-     }
-
-     /* Debt per-office expandable detail row */
-     .da-debt-detail-row td {
-         cursor: default;
-         border-top: 2px solid #f0c0b8;
-     }
-     .da-debt-detail-row {
-         background: #fdf3f2 !important;
-     }
-     /* Rows with inline onclick are fully clickable */
-     .da-office-table tbody tr[onclick] { cursor: pointer; }
-     .da-office-table tbody tr[onclick] td { cursor: pointer; }
-     .da-office-table tbody tr[onclick]:hover td { background: #fdf3f2 !important; }
-    .da-month-grid { display: flex; gap: 3px; flex-wrap: nowrap; }
-    .da-month-box {
-        width: 22px; height: 22px; border-radius: 3px;
-        font-size: 9px; font-weight: 700; line-height: 22px;
-        text-align: center; display: inline-block;
-        background: #f0f0f0; color: #bbb;
-    }
-     .da-month-box.has {
-         background: #667eea; color: #fff;
-     }
-     .da-month-box.has-debt {
-         background: #c0392b; color: #fff;
-     }
-
-    /* Debt repayment card row states */
-    .da-debt-out { color: #c0392b; }
-    .da-alert {
-        background: #fff0f0 !important;
-        font-weight: 600;
-        animation: daWarnPulse 2.5s ease-in-out infinite;
-    }
-    .da-status-pill {
-        display: inline-block; padding: 2px 10px; border-radius: 12px;
-        font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
-    }
-    .da-status-owing    { background: #fdecea; color: #c0392b; }
-    .da-status-partial  { background: #fff8e1; color: #f39c12; }
-    .da-status-paid     { background: #eafaf1; color: #27ae60; }
-    .da-search-row {
-        display: flex; align-items: center; gap: 6px;
-        padding: 6px 8px; margin: 0 0 6px 0;
-        background: #f7f8fc; border-radius: 5px; border: 1px solid #e0e4ed;
-    }
-    .da-search-row i { color: #aaa; font-size: 13px; }
-    .da-search-row .da-office-search {
-        border: none; background: transparent; outline: none;
-        font-size: 13px; color: #444; width: 100%;
-    }
-    .da-search-row .da-office-search::placeholder { color: #bbb; }
     .da-filter-bar {
         display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
         padding: 10px 16px; margin-bottom: 18px;
@@ -340,11 +218,8 @@
 
 
 
-    @if(!$officeIdParam)
-        @include('risk.partials.exemption-list-modal')
-    @else
-        @include('risk.partials.office-exemptions-card')
-    @endif
+    
+    
 
     @include('risk.partials.deposit-query-modal', ['offices' => $offices ?? []])
     @include('risk.partials.failed-deposits-modal')
@@ -514,13 +389,13 @@
                     Grand Total&nbsp;&nbsp;<strong{{ $tGT > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tGT, 2) }}</strong>
                     <br>
                     <small> <i>(Received + Other Received)</i> </small>
-</div>
-</div>
-</div>
+            </div>
+            </div>
+            </div>
 
 
 
- <div id="daContainer">
+    <div id="daContainer">
         <div class="da-type-card bg-danger" data-type-id="debt">
              <div class="da-type-header">
                  <div class="left">
@@ -543,15 +418,12 @@
                          </span> -->
                          <i class="fa fa-exclamation-circle" style="color:#c0392b"></i>
 
-                     </div>
-                 </div>
-             </div>
-             <!-- <div class="da-body" id="da-body-debt">
-                 <p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading debt records&hellip;</p>
-             </div> -->
-        </div>
+</div>
+              </div>
+              </div>
+         </div>
 
-@foreach($types as $t)
+         @foreach($types as $t)
         @php
             $tid = $t['id'];
             $tname = $t['name'];
@@ -588,7 +460,6 @@
                 </div>
             </div>
             <div class="da-body" id="da-body-{{ $tid }}">
-                <p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading offices&hellip;</p>
             </div>
         </div>
         @endforeach
@@ -660,247 +531,15 @@
         </div>
     </div>
 </div>
+<!-- @include('risk.partials.exemption-list-table') -->
+<!-- @include('risk.partials.manual-ledger-deposit-balances') -->
 
+<script>(function(){
 
-
-@include('risk.partials.manual-ledger-deposit-balances')
-
-<script>
-(function(){
-
-    var csrf = (function(){
+var csrf = (function(){
         var m = document.querySelector('meta[name="csrf-token"]');
         return m ? m.getAttribute('content') : '';
     })();
-
-    function toCurrency(val) {
-        if (!val) return '–';
-        return parseFloat(val).toLocaleString('en-US', { style:'currency', currency:'ZMW' });
-    }
-
-     // Exposed on window so inline onclick handlers in the table can reach it
-     window.toggleDebtDetail = function(rowIdx, detailId, toggleIconId) {
-         var $detailRows = $('#daDebtDetail_' + rowIdx);
-         if ($detailRows.length) {
-             var expanded = $detailRows[0].dataset.expanded === 'true';
-             var $icon = $('#' + toggleIconId);
-             if ($icon.length) {
-                 $icon.html(expanded ? '<i class="fa fa-caret-right"></i>' : '<i class="fa fa-caret-down"></i>');
-             }
-             $detailRows[0].dataset.expanded = (!expanded).toString();
-             $detailRows.toggle(!expanded);
-         }
-     }
-
-     function fetchOffices(typeId, bodyEl) {
-        bodyEl.innerHTML = '<p class="da-loading"><i class="fa fa-spinner fa-spin"></i> Loading&hellip;</p>';
-
-        // Build query string from the URL (set by the da-period filter on every change)
-        var qs     = window.location.search;
-        var isDebt = typeId === 'debt';
-        var url;
-
-        if (isDebt) {
-            url = '/risk/office-debts/debt' + qs;
-        } else {
-            url = '/risk/branch-deposit-audit/type/' + typeId + qs;
-        }
-
-        fetch(url, {
-            headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }
-        }).then(function(r) { return r.json(); }).then(function(resp) {
-            if (!resp.rows || resp.rows.length === 0) {
-                bodyEl.innerHTML = '<p class="da-empty">No records found.</p>';
-                return;
-            }
-
-             // ── Sort ───────────────────────────────────────────────────────────────
-             if (isDebt) {
-                 resp.rows.sort(function(a, b) {
-                     var d = (b.outstanding_amount || 0) - (a.outstanding_amount || 0);
-                     return d !== 0 ? d : (b.original_amount || 0) - (a.original_amount || 0);
-                 });
-             } else {
-                 resp.rows.sort(function(a, b) {
-                     var aNoDep  = a.deposit_count === 0;
-                     var bNoDep  = b.deposit_count === 0;
-                     if (aNoDep !== bNoDep) return aNoDep ? 1 : -1;
-                     var aZeroT  = !a.total     || a.total     === 0;
-                     var bZeroT  = !b.total     || b.total     === 0;
-                     if (aZeroT !== bZeroT) return aZeroT ? 1 : -1;
-                     return (b.total || 0) - (a.total || 0);
-                 });
-             }
-
-             // ── Row class helper (grouped: per-office) ─────────────────────────────
-             function debtGroupCls(row) {
-                 if (row.outstanding_amount <= 0)  return ' da-row-zero';
-                 if (row.outstanding_amount < row.original_amount) return ' da-row-warn';
-                 return ' da-alert';
-             }
-
-             // ── Per-office status pill text ────────────────────────────────────────
-             function debtStatusText(row) {
-                 if (row.outstanding_amount <= 0)  return 'Cleared';
-                 if (row.outstanding_amount < row.original_amount) return 'Partial';
-                 return 'Owing';
-             }
-
-             // ── Per-office status pill HTML ────────────────────────────────────────
-             function debtStatusPill(row) {
-                 var cls = row.outstanding_amount <= 0 ? 'da-status-paid'
-                        : row.outstanding_amount <  row.original_amount ? 'da-status-partial'
-                        : 'da-status-owing';
-                 return '<span class="da-status-pill ' + cls + '">' + debtStatusText(row) + '</span>';
-              }
-
-              // ── Build per-office month grid from month_boxes[12] ──────────────────
-             function monthGridHtml(row) {
-                 var mNames  = ['J','F','M','A','M','J','J','A','S','O','N','D'];
-                 var boxes   = '';
-                 for (var i = 0; i < 12; i++) {
-                     var active = row.month_boxes && row.month_boxes[i];
-                     boxes += '<span class="da-month-box' + (active ? ' has-debt' : '') + '"'
-                          +   'title="' + mNames[i] + '">'
-                          +   mNames[i]
-                          +   '</span>';
-                 }
-                 return '<div class="da-month-grid">' + boxes + '</div>';
-             }
-
-             // ── Detail sub-row HTML (one per debt month) ──────────────────────────
-             function debtDetailHtml(idx, row) {
-                 var tips = {};
-                 (row.months_detail || []).forEach(function(md) {
-                     var m = (md.month || 1) - 1;
-                     tips[m] = (tips[m] || '') + 'K' + (md.outstanding || 0).toLocaleString();
-                 });
-
-                 var html = '<tr id="daDebtDetail_' + idx + '" class="da-debt-detail-row" data-expanded="false" style="display:none;">'
-                          + '<td colspan="6" style="padding:4px 12px 10px 48px;">';
-
-                 (row.months_detail || []).forEach(function(md, di) {
-                     var mNames   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                     var label    = mNames[(md.month || 1) - 1] + ' ' + (md.year || '');
-                     var statusCls= md.outstanding <= 0 ? 'da-status-paid'
-                                  : md.outstanding < md.original ? 'da-status-partial'
-                                  : 'da-status-owing';
-                     var statusLbl= md.outstanding <= 0 ? 'Cleared'
-                                  : md.outstanding < md.original ? 'Partial'
-                                  : 'Owing';
-                     if (di > 0) html += '<div style="border-top:1px solid #f0e8e8;margin:3px 0;"></div>';
-                     html += '<div style="display:flex;gap:16px;align-items:center;font-size:12px;">'
-                          +   '<span style="font-weight:700;color:#555;min-width:80px;">' + label + '</span>'
-                          +   '<span>Balance: <strong style="color:#c0392b;">K' + md.outstanding.toLocaleString() + '</strong></span>'
-                          +   '<span class="da-status-pill ' + statusCls + '">' + statusLbl + '</span>'
-                          +   '<span style="color:#777;">' + md.deposit_type + '</span>'
-                          +   (md.notes ? '<span style="color:#999;">' + md.notes + '</span>' : '')
-                          +   '</div>';
-                 });
-
-                 html += '</td></tr>';
-                 return html;
-             }
-
-                // ── Build table ──────────────────────────────────────────────────────
-              var html = '<div class="da-key-guide" style="margin-bottom:8px;padding:6px 10px;background:#f7f8fc;border-radius:4px;border:1px solid #e0e4ed;display:flex;align-items:center;gap:8px;">'
-                      + '<span style="font-size:12px;font-weight:700;color:#555;">Key:</span>'
-                      + '<span class="da-key-item"><span class="da-month-box has" style="margin-right:4px;"></span>Deposit made</span>'
-                      + '<span class="da-key-item"><span class="da-month-box" style="margin-right:4px;">M</span>No deposits</span>'
-                      + '<span class="da-key-item"><span class="da-month-box has-debt" style="margin-right:4px;color:#fff;">!</span>Debt</span>'
-                      + '</div>'
-                      + '<div class="da-search-row"><i class="fa fa-search"></i>'
-                      + '<input type="text" class="da-office-search"'
-                      +   'placeholder="Filter by branch name, status, original or outstanding amount&hellip;"'
-                      + 'autocomplete="off" spellcheck="false"></div>'
-                      + '<table class="da-office-table"><thead>'
-
-              if (isDebt) {
-                  html += '<tr>'
-                        +   '<th>#</th>'
-                        +   '<th>Office</th>'
-                        +   '<th style="width:130px;">Original</th>'
-                        +   '<th style="width:140px;">Outstanding</th>'
-                        +   '<th>Months in Debt</th>'
-                        +   '<th style="width:90px;">Status</th>'
-                        +   '</tr>';
-              } else {
-                 html += '<tr><th>#</th><th>Office</th><th>Deposits</th><th class="da-amt">Total Amount</th><th>Months</th></tr>';
-             }
-
-             html += '</thead><tbody>';
-
-             var rows = resp.rows;
-             rows.forEach(function(row, idx) {
-                 var cls = isDebt ? debtGroupCls(row) : (function() {
-                     if (row.deposit_count === 0)           return ' da-row-zero';
-                     if (!row.total || row.total === 0)     return ' da-row-warn';
-                     return '';
-                 })();
-
-                    if (isDebt) {
-
-                        // Toggle: expand/collapse per-office debt breakdown
-                        var debtToggleId = 'debtToggle_' + idx;
-
-                        html += '<tr class="' + cls + '"'
-                            +   ' data-idx="' + idx + '"'
-                            +   ' onclick="toggleDebtDetail(' + idx + ', ' + idx + ', \'' + debtToggleId + '\')">'
-                         +   '<td style="cursor:pointer;">'
-                         +   '<span id="' + debtToggleId + '" style="display:inline-block;width:14px;text-align:center;margin-right:4px;color:#667eea;font-size:11px;"><i class="fa fa-caret-right"></i></span>'
-                            +   row.office_id
-                            +   '</td>'
-                            +   '<td style="cursor:pointer;font-weight:700;color:#333;">' + row.office_name + '</td>'
-                            +   '<td class="da-amt"  style="cursor:pointer;">K' + row.original_amount.toLocaleString() + '</td>'
-                            +   '<td class="da-amt da-debt-out" style="cursor:pointer;">K' + row.outstanding_amount.toLocaleString() + '</td>'
-                            +   '<td style="cursor:pointer;">' + monthGridHtml(row) + '</td>'
-                            +   '<td style="cursor:pointer;">' + debtStatusPill(row) + '</td>'
-                            +   '</tr>';
-
-                      // Sub-row: per-month particulars
-                      html += debtDetailHtml(idx, row);
-                  } else {
-                     var mNames = ['J','F','M','A','M','J','J','A','S','O','N','D'];
-                     var mBoxes = '';
-                     for (var i = 0; i < 12; i++) {
-                         var cnt = (row.months && row.months[i]) || 0;
-                         mBoxes += '<span class="da-month-box' + (cnt > 0 ? ' has' : '') + '" title="' + mNames[i] + ': ' + cnt + ' deposit(s)">' + mNames[i] + '</span>';
-                     }
-
-                     html += '<tr class="' + cls + '">'
-                           + '<td>' + (row.deposit_count > 0 ? '<span class="da-badge da-badge-success">' + row.deposit_count + '</span>' : '—') + '</td>'
-                           + '<td>' + row.office_name + '</td>'
-                           + '<td>' + (row.deposit_count > 0 ? row.deposit_count + ' deposit(s)' : '<em>No deposits</em>') + '</td>'
-                           + '<td class="da-amt">' + (row.deposit_count > 0 ? toCurrency(row.total) : '—') + '</td>'
-                           + '<td><div class="da-month-grid">' + mBoxes + '</div></td>'
-                           + '</tr>';
-                 }
-             });
-
-            html += '</tbody></table>';
-
-             // ── Footer summary (debt only) ───────────────────────────────────────
-             if (isDebt && resp.rows) {
-                 var sumOrig = 0;
-                 var sumOut  = 0;
-                 resp.rows.forEach(function(r) {
-                     sumOrig += (r.original_amount          || 0);
-                     sumOut  += (r.outstanding_amount       || 0);
-                 });
-                 html += '<div style="padding:8px 2px;font-size:12px;color:#888;border-top:1px solid #eef0f7;margin-top:6px;">'
-                       +   '<strong style="color:#333">Total Original: </strong>'
-                       +   'K' + Math.round(sumOrig).toLocaleString()
-                       +   '&nbsp;&nbsp;&nbsp;<strong style="color:#c0392b">Total Outstanding: </strong>'
-                       +   'K' + Math.round(sumOut).toLocaleString()
-                       +   '</div>';
-             }
-
-            bodyEl.innerHTML = html;
-            bodyEl.dataset.loaded = 'true';
-        }).catch(function() {
-            bodyEl.innerHTML = '<p class="da-empty">Error loading data. Try again.</p>';
-        });
-    }
 
     document.querySelectorAll('.da-type-header').forEach(function(header) {
         header.addEventListener('click', function() {
@@ -909,25 +548,7 @@
             var typeId = card.getAttribute('data-type-id');
             var body   = document.getElementById('da-body-' + typeId);
 
-            if (!card.classList.contains('open') && body && !body.dataset.loaded) {
-                fetchOffices(typeId, body);
-            }
             card.classList.toggle('open');
-        });
-    });
-
-    document.addEventListener('input', function(e) {
-        if (!e.target.classList.contains('da-office-search')) return;
-        var input  = e.target;
-        var body   = input.closest('.da-body');
-        var table  = body ? body.querySelector('.da-office-table') : null;
-        if (!table) return;
-
-        var term = input.value.trim().toLowerCase();
-        var rows = table.querySelectorAll('tbody tr');
-        rows.forEach(function(row) {
-            var txt = row.textContent.toLowerCase();
-            row.style.display = (term === '' || txt.indexOf(term) !== -1) ? '' : 'none';
         });
     });
 
@@ -946,11 +567,6 @@
             if (officeEl && officeEl.value) {
                 params.set('office_id', officeEl.value);
             }
-
-            // Invalidate every expanded card so they re-fetch for the new period
-            document.querySelectorAll('.da-body[data-loaded]').forEach(function(body) {
-                body.dataset.loaded = '';
-            });
 
             if (value === 'custom') {
                 var startEl = document.getElementById('da-start-date');
@@ -993,11 +609,6 @@
             if (officeEl && officeEl.value) {
                 params.set('office_id', officeEl.value);
             }
-
-            // Invalidate cached expanded cards
-            document.querySelectorAll('.da-body[data-loaded]').forEach(function(body) {
-                body.dataset.loaded = '';
-            });
 
             window.location.href = '?' + params.toString();
         }

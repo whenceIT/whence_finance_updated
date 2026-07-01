@@ -93,8 +93,8 @@ class BlockerHelper
             ];
         }
         
-        // $user->office_id == 12 Lumwana
-        if ( $user->office_id == 11 || $user->office_id == 18) {
+        // Except Choma and Mongu for June only
+        if (($user->office_id == 11 || $user->office_id == 18) && date('n') == 6) {
             return [
                 'status'=>false,
                 'amount' => 0,
