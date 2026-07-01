@@ -12,7 +12,7 @@ $todaysDate = date('Y-m-d');
         <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }} @if($loan_product->id == 0) (Motor Vehicle Loan) @endif</h3>
         <div class="box-tools pull-right">
             <button onclick="window.history.back()" class="btn btn-info btn-sm">
-                {{ trans_choice('general.cancel',1) }}
+                {{ trans_choice('general.cancel',1) }} 
             </button>
         </div>
     </div>

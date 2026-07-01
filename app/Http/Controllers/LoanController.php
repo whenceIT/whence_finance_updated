@@ -1148,7 +1148,7 @@ public function create()
             return redirect()->back();
         } else {
 
-$number = $request->query('office_id');
+$number = $request->query('number');
 $amount = $request->query('amount');
             
             // Log audit for creating a new client loan, log client information

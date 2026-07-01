@@ -536,15 +536,87 @@
 </div>
 
 <div id="mobileMoneySection">
-        <div class="form-group">
-              <label for="phone"
-                           class="control-label col-md-4">{{trans_choice('general.phone',1)}}</label>
-                    <div class="col-md-8">
-                        <input type="text" name="phone" class="form-control"
-                               value="{{ $loan->client->phone ?? $loan->client->mobile }}"
-                               id="phone" readonly>
-                    </div>
+
+    <div class="form-group">
+        <label class="control-label col-md-4">
+            Phone
+        </label>
+
+        <div class="col-md-8">
+
+            <input 
+            type="text" 
+            name="phone" 
+            class="form-control"
+            value="{{ $loan->client->phone ?? $loan->client->mobile }}"
+            id="phone"
+            readonly>
+
         </div>
+    </div>
+
+
+<div class="form-group">
+
+    <label class="control-label col-md-4">
+        Alternate Number
+    </label>
+
+    <div class="col-md-8">
+
+        <button 
+        type="button"
+        id="alternateToggleBtn"
+        class="btn btn-default">
+
+            Use different number
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="form-group" id="alternateNumberDiv" style="display:none;">
+
+    <label class="control-label col-md-4">
+        Enter Number
+    </label>
+
+    <div class="col-md-8">
+
+        <input 
+        type="text"
+        id="alternatePhone"
+        class="form-control"
+        placeholder="Enter alternate number">
+
+    </div>
+
+</div>
+
+
+    <div class="form-group" id="alternateNumberDiv" style="display:none;">
+
+        <label class="control-label col-md-4">
+            Alternate Number
+        </label>
+
+
+        <div class="col-md-8">
+
+            <input 
+            type="text"
+            id="alternatePhone"
+            class="form-control"
+            placeholder="Enter alternate number">
+
+        </div>
+
+    </div>
+
+
 </div>
 
 <div id="bankSection" style="display:none;">
@@ -738,6 +810,66 @@
 
         </div>
     </div>
+</div>
+
+<div class="modal fade" id="otpModal">
+
+<div class="modal-dialog modal-sm">
+
+<div class="modal-content">
+
+
+<div class="modal-header">
+
+<h4 class="modal-title">
+Verify Alternate Number
+</h4>
+
+</div>
+
+
+<div class="modal-body">
+
+
+<div class="alert alert-danger" id="otpError" style="display:none;">
+Invalid verification code
+</div>
+
+
+<label>
+Enter code sent to client
+</label>
+
+
+<input 
+type="number"
+id="otpCode"
+class="form-control">
+
+
+</div>
+
+
+
+<div class="modal-footer">
+
+
+<button 
+class="btn btn-primary"
+id="verifyOtpBtn">
+
+Verify Code
+
+</button>
+
+
+</div>
+
+
+</div>
+
+</div>
+
 </div>
                     @endif
 
@@ -3195,6 +3327,12 @@
 @section('footer-scripts')
     <script>
 
+let verifiedPhone = null;
+
+
+
+$('#useAlternateNumber').length
+
         function loadBanks() {
 
     $.ajax({
@@ -3223,6 +3361,8 @@
 }
 
 
+
+
 function getOperator(phoneNumber){
 
     let digit = phoneNumber.charAt(2);
@@ -3244,6 +3384,70 @@ function getOperator(phoneNumber){
 }
 
 $(document).ready(function () {
+
+let generatedOTP = null;
+let alternateNumberUsed = false;
+let alternatePhoneNumber = null;
+let registered_phone = null;
+
+
+$('#alternateToggleBtn').click(function(){
+
+
+    $('#alternateNumberDiv').slideToggle();
+
+
+    if($(this).text().trim() == "Use different number"){
+
+        $(this).text("Use registered number");
+
+    }else{
+
+        $(this).text("Use different number");
+
+    }
+
+
+});
+
+$('#verifyOtpBtn').click(function(){
+
+
+let entered = $('#otpCode').val();
+
+
+
+if(parseInt(entered) !== generatedOTP){
+
+
+    $('#otpError').show();
+
+    return;
+
+}
+
+
+// OTP correct
+
+$('#phone').val(alternatePhoneNumber);
+
+
+// hide OTP modal
+
+$('#otpModal').modal('hide');
+
+
+// continue password verification
+
+$('#confirmPassword').val('');
+
+$('#passwordError').hide();
+
+
+$('#passwordConfirmModal').modal('show');
+
+
+});
 
     loadBanks();
 
@@ -3278,8 +3482,39 @@ $(document).ready(function () {
 
         if(paymentType === 'mobile_money') {
 
-            let phone = $('#phone').val();
+let phone = $('#phone').val();
+registered_phone = phone
 
+
+alternateNumberUsed = false;
+
+
+if($('#alternateNumberDiv').is(':visible')){
+
+
+   
+    let alt = $('#alternatePhone').val();
+
+
+    if(!alt){
+
+        alert('Please enter alternate number');
+        return;
+
+    }
+
+
+    alternatePhoneNumber = alt;
+
+
+    alternateNumberUsed = true;
+
+    phone = alt
+
+
+
+
+}
             let operator = getOperator(phone);
 
             if(!operator){
@@ -3362,7 +3597,7 @@ $(document).ready(function () {
                                 Number(chargeResponse.data.totalDeducted).toFixed(2)
                             );
 
-                            $('#chargePreviewModal').modal('show');
+       $('#chargePreviewModal').modal('show');
                         },
                         error: function(){
 
@@ -3503,16 +3738,88 @@ $(document).ready(function () {
 
     });
 
-  $('#confirmDisbursement').on('click', function () {
 
-    $('#chargePreviewModal').modal('hide');
+$('#confirmDisbursement').on('click', function () {
 
-    $('#confirmPassword').val('');
-    $('#passwordError').hide();
 
-    $('#passwordConfirmModal').modal('show');
+    if(alternateNumberUsed){
+
+
+        generatedOTP = Math.floor(
+            100000 + Math.random() * 900000
+        );
+
+
+        let message =
+        "Your verification code for loan disbursement is "
+        + generatedOTP;
+
+
+
+        fetch(
+        'https://lms2backend.whencefinancesystem.com/send-sms',
+        {
+
+        method:'POST',
+
+        headers:{
+        'Content-Type':'application/json',
+        'Accept':'application/json'
+        },
+
+
+        body:JSON.stringify({
+
+            phone: registered_phone,
+
+            message: message
+
+        })
+
+        })
+
+        .then(res=>res.json())
+
+        .then(data=>{
+
+
+            console.log("SMS SENT", data);
+
+
+            $('#chargePreviewModal').modal('hide');
+
+
+            $('#otpCode').val('');
+
+            $('#otpError').hide();
+
+
+            $('#otpModal').modal('show');
+
+
+        });
+
+
+    }
+
+    else{
+
+
+        $('#chargePreviewModal').modal('hide');
+
+
+        $('#confirmPassword').val('');
+
+        $('#passwordError').hide();
+
+
+        $('#passwordConfirmModal').modal('show');
+
+
+    }
+
+
 });
-
 
 
 
