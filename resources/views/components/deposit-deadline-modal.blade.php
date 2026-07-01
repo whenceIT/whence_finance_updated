@@ -153,13 +153,13 @@
 
 <script>
     $(document).ready(function() {
-        // Deadline date: June 26, 2026
-        const deadlineDate = new Date('2026-06-26T23:59:59').getTime();
+        // Deadline date: July 26, 2026
+        const deadlineDate = new Date('2026-07-26T23:59:59').getTime();
         
         // Get current month name
         const monthNames = ["January", "February", "March", "April", "May", "June", 
                            "July", "August", "September", "October", "November", "December"];
-        const deadlineMonth = monthNames[5]; // June (0-indexed)
+        const deadlineMonth = monthNames[6]; // July (0-indexed)
         const deadlineYear = 2026;
         
         // Update header and message with current month
