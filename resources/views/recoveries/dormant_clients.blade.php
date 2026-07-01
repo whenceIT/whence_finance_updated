@@ -143,9 +143,7 @@
             </div>
         </div>
     </div>
-@endsection
 
-@section('footer-scripts')
 <style>
 .nav-tabs > li > a {
     cursor: pointer !important;

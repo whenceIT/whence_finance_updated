@@ -13,6 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('office_id');
             $table->unsignedBigInteger('deposit_type_id')->nullable();
             $table->integer('no_months_exclude')->default(0);
+            $table->json('months')->nullable();
             $table->timestamps();
             $table->unique(['office_id', 'deposit_type_id']);
         });

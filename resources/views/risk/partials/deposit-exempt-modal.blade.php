@@ -27,14 +27,33 @@
                 <input type="hidden" id="pltEditId" value="">
                 <div class="plt-form-row">
                     <div class="plt-form-group plt-form-full">
-                        <label for="pltMonths">Number of Months to Exempt</label>
-                        <input type="number" id="pltMonths" min="0" max="12" value="0" placeholder="Enter months">
+                        <label for="pltMonths">Select Months to Exempt</label>
+                        <select id="pltMonths" class="plt-office-select" name="months[]" multiple>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="plt-form-row">
+                    <div class="plt-form-group plt-form-full">
+                        <label for="pltYear">Year</label>
+                        <input type="number" id="pltYear" min="{{ date('Y') }}" max="{{ date('Y') + 10 }}" value="{{ date('Y') }}" placeholder="Enter year">
                     </div>
                 </div>
                 <div class="plt-form-row">
                     <div class="plt-form-group plt-form-full">
                         <label for="pltDepositType">Select Deposit Type (optional)</label>
-                        <select id="pltDepositType" class="plt-office-select" name="deposit_type_id">
+                        <select id="pltDepositType" class="plt-office-select" name="deposit_type_id[]" multiple>
                             <option value="">All deposit types</option>
                             @foreach($depositTypes as $type)
                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
@@ -63,6 +82,28 @@
 
 <script>
 (function() {
+    function initMonthsSelect() {
+        if (typeof $.fn.select2 === 'undefined') return;
+        $('#pltMonths').select2({
+            placeholder: 'Select months to exempt',
+            allowClear: true,
+            width: 'resolve',
+            dropdownAutoWidth: true,
+            closeOnSelect: false,
+            dropdownParent: $('#depositExemptModal')
+        }).on('select2:open', function() {
+            $('.select2-search__field').attr('placeholder', 'Type to search months...');
+        });
+    }
+
+    function destroyMonthsSelect() {
+        if (typeof $.fn.select2 !== 'undefined') {
+            if ($('#pltMonths').hasClass('select2-hidden-accessible')) {
+                $('#pltMonths').select2('destroy');
+            }
+        }
+    }
+
     function initOfficeSelect() {
         if (typeof $.fn.select2 === 'undefined') return;
         $('#pltOffices').select2({
@@ -80,11 +121,11 @@
     function initDepositTypeSelect() {
         if (typeof $.fn.select2 === 'undefined') return;
         $('#pltDepositType').select2({
-            placeholder: 'Select deposit type (optional)',
+            placeholder: 'Select deposit types (optional)',
             allowClear: true,
             width: 'resolve',
             dropdownAutoWidth: true,
-            closeOnSelect: true,
+            closeOnSelect: false,
             dropdownParent: $('#depositExemptModal')
         }).on('select2:open', function() {
             $('.select2-search__field').attr('placeholder', 'Type to search deposit types...');
@@ -93,6 +134,7 @@
 
     function destroyOfficeSelect() {
         if (typeof $.fn.select2 !== 'undefined') {
+            destroyMonthsSelect();
             if ($('#pltOffices').hasClass('select2-hidden-accessible')) {
                 $('#pltOffices').select2('destroy');
             }
@@ -104,10 +146,12 @@
 
     window.openDepositExemptModal = function() {
         destroyOfficeSelect();
-        $('#pltMonths').val('0');
+        $('#pltMonths').val([]);
+        $('#pltYear').val('{{ date('Y') }}');
         $('#pltDepositType').val(null);
         $('#pltOffices').val([]);
         $('#depositExemptModal').modal('show');
+        initMonthsSelect();
         initOfficeSelect();
         initDepositTypeSelect();
     };
@@ -117,18 +161,26 @@
     });
 
     $('#pltSaveExempt').on('click', function() {
-        var months = parseInt($('#pltMonths').val()) || 0;
-        var depositTypeId = $('#pltDepositType').val() || null;
+        var months = $('#pltMonths').val();
+        var year = parseInt($('#pltYear').val()) || {{ date('Y') }};
+        var depositTypeIds = $('#pltDepositType').val();
+        var depositTypeIdStr = depositTypeIds && depositTypeIds.length ? depositTypeIds.join(',') : null;
         var offices = $('#pltOffices').val();
         var officesStr = offices && offices.length ? offices.join(',') : null;
+
+        if (!months || !months.length) {
+            KiloAlert.error('Please select at least one month.');
+            return;
+        }
 
         $.ajax({
             url: '{{ route("settings.platform.block-skip.update-months") }}',
             type: 'POST',
             data: {
                 _token: '{{ csrf_token() }}',
-                deposit_months_exempted: months,
-                deposit_type_id: depositTypeId,
+                months: months,
+                year: year,
+                deposit_type_id: depositTypeIdStr,
                 offices: officesStr
             },
             success: function(response) {

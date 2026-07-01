@@ -1466,11 +1466,6 @@ public function store_client_location(Request $request, $id){
 
     public function recovery_clients()
     {
-        if (!Sentinel::hasAccess('clients.view')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
-
         $user = Sentinel::getUser();
         $userInfo = GeneralHelper::get_user_info();
         $type = request()->get('type', 'dormant');

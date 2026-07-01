@@ -153,29 +153,24 @@
 
 <script>
     $(document).ready(function() {
-        // Deadline date: June 26, 2026
-        const deadlineDate = new Date('2026-06-26T23:59:59').getTime();
+        // Deadline date: July 26, 2026
+        const deadlineDate = new Date('2026-07-26T23:59:59').getTime();
         
         // Get current month name
         const monthNames = ["January", "February", "March", "April", "May", "June", 
                            "July", "August", "September", "October", "November", "December"];
-        const deadlineMonth = monthNames[5]; // June (0-indexed)
+        const deadlineMonth = monthNames[6]; // July (0-indexed)
         const deadlineYear = 2026;
         
         // Update header and message with current month
         $('#current-month').text(deadlineMonth);
         $('#deposit-month').text(deadlineMonth + ' ' + deadlineYear);
         
-        // Check if widget should be shown
-        const widgetDismissed = localStorage.getItem('depositDeadlineWidgetDismissed');
-        const dismissedDate = localStorage.getItem('depositDeadlineWidgetDismissedDate');
-        const today = new Date().toDateString();
-        
-        // Show widget if not dismissed today and within 7 days of deadline
+        // Show widget if within 30 days of deadline
         const now = new Date().getTime();
         const daysUntilDeadline = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
         
-        if (daysUntilDeadline <= 7 && daysUntilDeadline >= 0 && dismissedDate !== today) {
+        if (daysUntilDeadline <= 30 && daysUntilDeadline >= 0) {
             $('#depositDeadlineWidget').fadeIn(300);
         }
         
@@ -217,8 +212,6 @@
         
         // Handle close button
         $('#closeWidget').on('click', function() {
-            localStorage.setItem('depositDeadlineWidgetDismissed', 'true');
-            localStorage.setItem('depositDeadlineWidgetDismissedDate', today);
             $('#depositDeadlineWidget').fadeOut(300);
         });
     });

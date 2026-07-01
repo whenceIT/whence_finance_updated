@@ -142,6 +142,8 @@
                     <li @if(Request::is('audits*')) class="active" @endif><a href="{{ url('risk/overview') }}"><i class="fa fa-circle-o"></i> Overview</a></li>
                     <li @if(Request::is('audits*')) class="active" @endif><a href="{{ route('audits.index') }}"><i class="fa fa-circle-o"></i> Audit Trail</a></li>
                     <li @if(Request::is('risk/branch-deposit-audit*')) class="active" @endif><a href="{{ url('risk/branch-deposit-audit?period=overall',) }}"><i class="fa fa-circle-o"></i> Branch Deposit Audit</a></li>
+                    <li @if(Request::is('risk/exemption-list*')) class="active" @endif><a href="{{ route('risk.exemption-list') }}"><i class="fa fa-circle-o"></i> Exemption List</a></li>
+                    <li @if(Request::is('risk/setup-debt-management*')) class="active" @endif><a href="{{ route('risk.setup-debt-management') }}"><i class="fa fa-circle-o"></i> Setup Debt Costs</a></li>
                     <li @if(Request::is('risk/heat-map*')) class="active" @endif><a href="{{ url('risk/heat-map') }}"><i class="fa fa-circle-o"></i> Risk Heat Map</a></li>
                     <li @if(Request::is('risk/branch-ranking*')) class="active" @endif><a href="{{ url('risk/branch-ranking') }}"><i class="fa fa-circle-o"></i> Branch Risk Ranking</a></li>
                     <li @if(Request::is('risk/fraud-feed*')) class="active" @endif><a href="{{ url('risk/fraud-feed') }}"><i class="fa fa-circle-o"></i> Real-Time Risk</a></li>

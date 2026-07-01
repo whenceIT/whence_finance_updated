@@ -1676,7 +1676,7 @@ class RiskController extends Controller
      */
     public function branchDepositAuditByType(int $depositTypeId, Request $request)
     {
-        $period       = $request->query('period', 'month');
+        $period       = $request->query('period', 'year');
         $customMonth  = (int) $request->query('custom_month', date('n'));
         $customYear   = (int) $request->query('custom_year', date('Y'));
         $officeId     = $request->query('office_id') !== null ? (int) $request->query('office_id') : null;
@@ -1690,73 +1690,7 @@ class RiskController extends Controller
             $dateTo   = $endDate;
         }
 
-        $offices  = \App\Models\Office::orderBy('name')->get();
-        if ($officeId !== null) {
-            $offices = $offices->filter(fn($o) => $o->id == $officeId)->values();
-        }
-
-        $depositQuery = \App\Models\Deposit::where('deposit_type', $depositTypeId);
-
-        if ($officeId !== null) {
-            $depositQuery->where('office', $officeId);
-        }
-
-        if ($dateFrom !== null && $dateTo !== null) {
-            $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
-        }
-
-        $deposits = $depositQuery->get();
-
-        // Group deposits by office id
-        $depsByOffice = [];
-        foreach ($deposits as $dep) {
-            $oid = $dep->office;
-            if (!isset($depsByOffice[$oid])) {
-                $depsByOffice[$oid] = [];
-            }
-            $depsByOffice[$oid][] = $dep;
-        }
-
-        // Build one row per office
-        $rows = [];
-        foreach ($offices as $office) {
-            $officeDeps = $depsByOffice[$office->id] ?? [];
-
-            $total      = 0;
-            $count      = 0;
-            $monthCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-            foreach ($officeDeps as $dep) {
-                $total      += (float) $dep->amount;
-                $count       += 1;
-                $monthNum    = (int) date('n', strtotime((string) $dep->date));
-                $monthCount[$monthNum - 1] += 1;
-            }
-
-            $rows[] = [
-                'office_id'     => $office->id,
-                'office_name'   => $office->name,
-                'total'         => $total,
-                'deposit_count' => $count,
-                'months'        => $monthCount,
-            ];
-        }
-
-        $stats = [
-            'offices_with_deposits' => 0,
-            'offices_with_total'    => 0,
-            'total_offices'         => count($rows),
-        ];
-        foreach ($rows as $row) {
-            if ($row['deposit_count'] > 0) {
-                $stats['offices_with_deposits'] += 1;
-            }
-            if ($row['total'] > 0) {
-                $stats['offices_with_total'] += 1;
-            }
-         }
-
-        return response()->json(['rows' => $rows, 'stats' => $stats]);
+        
     }
 
     /**
@@ -2017,4 +1951,118 @@ class RiskController extends Controller
         }
     }
 
+    public function exemptionList()
+    {
+        return view('risk.exemption-list');
+    }
+
+
+
+    /**
+     * Setup Debt Management
+     */
+    public function setupDebtManagement(Request $request)
+    {
+        $offices = \App\Helpers\StatsHelper::getActiveOffices();
+        $costs = \App\Models\SetupDebtCost::with(['office', 'transactions'])->get();
+        
+        $rows = [];
+        foreach ($costs as $cost) {
+            $totalPaid = $cost->transactions->sum('amount');
+            $balance = $cost->amount - $totalPaid;
+            
+            $rows[] = [
+                'id' => $cost->id,
+                'office' => $cost->office,
+                'amount' => $cost->amount,
+                'total_paid' => $totalPaid,
+                'balance' => $balance,
+                'description' => $cost->description,
+                'created_at' => $cost->created_at,
+                'transactions' => $cost->transactions,
+            ];
+        }
+        
+        return view('risk.setup-debt-management', compact('offices', 'rows'));
+    }
+    
+    public function storeSetupDebtCost(Request $request)
+    {
+        $validated = $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+        ]);
+        
+        $cost = \App\Models\SetupDebtCost::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Setup debt cost created successfully',
+            'data' => $cost,
+        ]);
+    }
+    
+    
+    public function updateSetupDebtCost(Request $request, $id)
+    {
+        $cost = \App\Models\SetupDebtCost::findOrFail($id);
+        
+        $validated = $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+        ]);
+        
+        $cost->update($validated);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Setup debt cost updated successfully',
+            'data' => $cost,
+        ]);
+    }
+    
+    public function deleteSetupDebtCost($id)
+    {
+        $cost = \App\Models\SetupDebtCost::findOrFail($id);
+        $cost->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Setup debt cost deleted successfully',
+        ]);
+    }
+    
+    public function storeSetupDebtTransaction(Request $request)
+    {
+        $validated = $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'amount' => 'required|numeric|min:0',
+            'transaction_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+        
+        $validated['created_by'] = Sentinel::getUser()->id;
+        $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
+        
+        $transaction = \App\Models\SetupDebtTransaction::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction recorded successfully',
+            'data' => $transaction,
+        ]);
+    }
+    
+    public function deleteSetupDebtTransaction($id)
+    {
+        $transaction = \App\Models\SetupDebtTransaction::findOrFail($id);
+        $transaction->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction deleted successfully',
+        ]);
+    }
 }
