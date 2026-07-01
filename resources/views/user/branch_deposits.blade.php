@@ -459,7 +459,7 @@ $(document).ready(function () {
             // Check if all mandatory deposits are now paid and unlock if so
             if (areAllMandatoryDepositsPaid()) {
                 console.log('🔓 All mandatory deposits paid! Unlocking optional deposits...');
-                // unlockOptionalDeposits();
+                unlockOptionalDeposits();
             }
         }
     }

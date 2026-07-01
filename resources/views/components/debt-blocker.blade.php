@@ -3,47 +3,7 @@
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
 @endphp
 @if($debtBlocker)
-    <style>
-        /* Prevent iOS zoom on input focus */
-        @media screen and (max-width: 768px) {
-            #blocker-payment-method,
-            #blocker-reference,
-            #blocker-amount {
-                font-size: 16px !important;
-            }
-            
-            /* Prevent body scroll when blocker is active */
-            body {
-                overflow: hidden;
-                position: fixed;
-                width: 100%;
-            }
-            
-            /* Make modal scrollable on mobile */
-            #debt-blocker-card {
-                max-height: 90vh;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-        }
-        
-        /* Better focus states for mobile */
-        #blocker-payment-method:focus,
-        #blocker-reference:focus,
-        #blocker-amount:focus {
-            outline: 2px solid #3498db;
-            outline-offset: 2px;
-            border-color: #3498db;
-        }
-        
-        /* Prevent double-tap zoom on buttons */
-        #blocker-show-form-btn,
-        #blocker-submit-btn {
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
-        }
-    </style>
-    <div id="debt-blocker-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999999; display: flex; align-items: center; justify-content: center; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+    <div id="debt-blocker-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999999; display: flex; align-items: center; justify-content: center;">
         <div id="debt-blocker-card" style="background: #ffffff; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.35); max-width: 480px; width: 94%; padding: 28px 24px; text-align: center; border: 2px solid #e74c3c;">
             
             <!-- WARNING STATE -->
@@ -79,8 +39,8 @@
                     This will unblock loan operations for your office.
                 </p>
 
-                <label style="font-weight:600; font-size:16px; display:block; margin-bottom:6px;">Payment Method</label>
-                <select id="blocker-payment-method" class="form-control" style="margin-bottom: 12px; font-size: 16px; padding: 12px; border-radius: 6px; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 12px center; background-size: 20px; padding-right: 40px;">
+                <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">Payment Method</label>
+                <select id="blocker-payment-method" class="form-control" style="margin-bottom: 8px;">
                     <option value="">Select Method</option>
                     <option value="airtel">Airtel Money</option>
                     <!-- <option value="airtel_app">Airtel App</option> -->
@@ -91,22 +51,21 @@
                     <option value="withinhere">WithinHere</option>
                 </select>
 
-                <label style="font-weight:600; font-size:16px; display:block; margin-bottom:6px;">Reference Number</label>
-                <small id="blocker-format-hint" class="text-muted" style="display:block; margin-bottom:6px; font-size:14px;">Enter Payment Reference Number</small>
-                <input type="text" id="blocker-reference" class="form-control" placeholder="Enter reference number" style="margin-bottom: 12px; font-size: 16px; padding: 12px; border-radius: 6px; border: 1px solid #ccc;">
+                <small id="blocker-format-hint" class="text-muted" style="display:block; margin-bottom:4px;">Enter Payment Reference Number</small>
+                <input type="text" id="blocker-reference" class="form-control" placeholder="Enter reference number" style="margin-bottom: 10px;">
 
-                <label style="font-weight:600; font-size:16px; display:block; margin-bottom:6px;">Amount (ZMW)</label>
-                <input type="number" id="blocker-amount" class="form-control" min="5000" step="0.01" inputmode="decimal" style="margin-bottom: 14px; font-size: 16px; padding: 12px; border-radius: 6px; border: 1px solid #ccc;">                
-                 <br>
-                <p style="font-size: 15px; margin-bottom: 14px;">Current Outstanding balance: <strong>K5,000</strong></p>
-                <button type="button" id="blocker-submit-btn" class="btn btn-lg" style="background:#e74c3c; color:white; width:100%; font-weight:600; padding:14px; border-radius:6px; border:none; font-size:16px; cursor:pointer; touch-action: manipulation;">
+                <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">Amount (ZMW)</label>
+                <input type="number" id="blocker-amount" class="form-control" min="5000" step="0.01" style="margin-bottom: 14px;" 
+                 >                <br>
+                <p>Current Outstanding balance: K5,000</p>
+                <button type="button" id="blocker-submit-btn" class="btn btn-lg" style="background:#e74c3c; color:white; width:100%; font-weight:600; padding:10px; border-radius:6px; border:none;">
                     Submit Deposit &amp; Unblock
                 </button>
 
                 
                 <!-- Put a policy warning that says to enter correct genuiune Payment Reference Number -->
-                <div style="background:#f8f9fa; border:1px solid #dee2e6; padding:12px; margin-top:14px; border-radius:6px;">
-                    <p style="font-size:13px; color:#666; margin-bottom:0; line-height:1.5;">
+                <div style="background:#f8f9fa; border:1px solid #dee2e6; padding:10px; margin-top:10px;">
+                    <p style="font-size:12px; color:#666; margin-bottom:0;">
                         <strong>Policy Warning:</strong> Please ensure you enter a correct and genuine Payment Reference Number. Incorrect or forged references will result in delayed processing.
                     </p>
                 </div>
@@ -121,36 +80,11 @@
         var userId = {{ $blockerUser->id ?? 0 }};
         var currentDepositType = 0; // Setup Debt (matches BlockerHelper debt_blocker)
         var requiredBalance = {{ 5000 }};
-        
-        // Store original body styles
-        var originalBodyOverflow = '';
-        var originalBodyPosition = '';
-        var scrollY = 0;
 
         function today() {
             var d = new Date();
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-01';
         }
-        
-        // Prevent background scroll on mobile
-        function lockScroll() {
-            scrollY = window.scrollY;
-            originalBodyOverflow = document.body.style.overflow;
-            originalBodyPosition = document.body.style.position;
-            document.body.style.position = 'fixed';
-            document.body.style.top = '-' + scrollY + 'px';
-            document.body.style.width = '100%';
-        }
-        
-        function unlockScroll() {
-            document.body.style.position = originalBodyPosition;
-            document.body.style.top = '';
-            document.body.style.overflow = originalBodyOverflow;
-            window.scrollTo(0, scrollY);
-        }
-        
-        // Lock scroll on load
-        lockScroll();
 
         function updateReferenceHint(method, hintEl, inputEl) {
             inputEl.val('');
