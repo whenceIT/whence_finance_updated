@@ -283,7 +283,7 @@ $(document).ready(function() {
         var selectedMonth = $(this).val();
         if (selectedMonth) {
             // Reload page with selected month parameter
-            window.location.href = '/user/branch-deposits?month=' + selectedMonth;
+            window.location.href = '/user/branch_deposits?month=' + selectedMonth;
         }
     });
     

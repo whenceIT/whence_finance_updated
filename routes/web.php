@@ -459,6 +459,7 @@ Route::group(['prefix' => 'user'], function () {
     //  Route::get('branch_deposits','UserController@branch_deposits');
      Route::get('branch_deposits','BranchDepositController@branchDeposits');
      Route::get('branch-deposits','BranchDepositController@branchDeposits');
+     Route::get('branch-deposits/standalone','BranchDepositController@standalonePage')->name('branch-deposits.standalone');
      Route::get('branch-deposits/overall-history','BranchDepositController@getOverallHistory')->name('branch-deposits.overall-history');
      Route::get('deposit_logs','UserController@deposit_logs');
 });
@@ -487,6 +488,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
     Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
     Route::get('exemption-list', [RiskController::class, 'exemptionList'])->name('risk.exemption-list');
+    Route::get('blocked-list', [BranchDepositController::class, 'blockages'])->name('risk.blocked-list');
     Route::get('block-skip-settings', [PlatformController::class, 'blockSkipSettings'])->name('platform.block-skip-settings');
     Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);

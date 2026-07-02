@@ -21,6 +21,11 @@ class BranchDepositController extends Controller
         return view('branch-deposits.index', compact('selectedMonth','selectedMonthForInput','status'));
     }
 
+    public function blockages(Request $request)
+    {
+        return view('branch-deposits.standalone');
+    }
+
     public function getOverallHistory(Request $request)
     {
         $officeId = Sentinel::getUser()->office_id;

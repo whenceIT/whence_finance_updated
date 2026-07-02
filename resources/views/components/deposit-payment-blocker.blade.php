@@ -1,6 +1,6 @@
 
 
-@if(true)
+@if(request()->path() != 'user/branch_deposits')
 <!-- Deposit Payment Blocker Modal -->
 <div id="depositPaymentBlocker" style="
     position: fixed;
@@ -88,7 +88,7 @@
         </div>
         
         <!-- Action Button -->
-        <a href="/user/branch-deposits" style="
+        <a href="/user/branch_deposits" style="
             display: inline-block;
             padding: 12px 30px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
