@@ -366,7 +366,7 @@
 {{-- ═════════════════════════════════════════════════════════════════════════════
      ROW 4 — Specialist Performance + Monthly Trend
 ════════════════════════════════════════════════════════════════════════════ --}}
-<div class="row">
+<!-- <div class="row">
 
     <div class="col-md-8">
         <div class="box box-primary">
@@ -479,7 +479,7 @@
         </div>
     </div>
 
-</div>
+</div> -->
 
 {{-- ═══════════════════════════════════════════
      ROW 5 — Branch Breakdown + Recent Activity

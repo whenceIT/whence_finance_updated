@@ -30,6 +30,48 @@
     </div>
 </div>
 
+<!-- Weekly Deposit Snackbars -->
+<div id="weeklyDepositSnackbars">
+    <div class="deposit-snackbar week-1" id="snackbar-week1">
+        <div class="snackbar-icon">
+            <i class="fa fa-building"></i>
+        </div>
+        <div class="snackbar-content">
+            <strong>Week 1 Reminder</strong>
+            <span>Complete Building Deposit fee in the 1st week</span>
+        </div>
+        <button class="snackbar-close" onclick="closeSnackbar('snackbar-week1')">
+            <i class="fa fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="deposit-snackbar week-2" id="snackbar-week2">
+        <div class="snackbar-icon">
+            <i class="fa fa-briefcase"></i>
+        </div>
+        <div class="snackbar-content">
+            <strong>Week 2 Reminder</strong>
+            <span>Complete Administration Deposit fee in the 2nd week</span>
+        </div>
+        <button class="snackbar-close" onclick="closeSnackbar('snackbar-week2')">
+            <i class="fa fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="deposit-snackbar week-3" id="snackbar-week3">
+        <div class="snackbar-icon">
+            <i class="fa fa-gavel"></i>
+        </div>
+        <div class="snackbar-content">
+            <strong>Week 3 Reminder</strong>
+            <span>Complete Statutory Deposit fee in the 3rd week</span>
+        </div>
+        <button class="snackbar-close" onclick="closeSnackbar('snackbar-week3')">
+            <i class="fa fa-times"></i>
+        </button>
+    </div>
+</div>
+
 <style>
     #depositDeadlineWidget {
         position: fixed;
@@ -149,6 +191,132 @@
             box-shadow: 0 8px 24px rgba(231, 76, 60, 0.8);
         }
     }
+    
+    /* Weekly Deposit Snackbars */
+    #weeklyDepositSnackbars {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9998;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 400px;
+    }
+    
+    .deposit-snackbar {
+        background: #fff;
+        border-radius: 8px;
+        padding: 12px 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transform: translateX(450px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        border-left: 4px solid;
+    }
+    
+    .deposit-snackbar.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    
+    .deposit-snackbar.hide {
+        transform: translateX(450px);
+        opacity: 0;
+    }
+    
+    .deposit-snackbar.week-1 {
+        border-left-color: #3498db;
+        background: linear-gradient(135deg, #ffffff 0%, #e8f4f8 100%);
+    }
+    
+    .deposit-snackbar.week-2 {
+        border-left-color: #f39c12;
+        background: linear-gradient(135deg, #ffffff 0%, #fef5e7 100%);
+    }
+    
+    .deposit-snackbar.week-3 {
+        border-left-color: #e74c3c;
+        background: linear-gradient(135deg, #ffffff 0%, #fadbd8 100%);
+    }
+    
+    .snackbar-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 18px;
+    }
+    
+    .week-1 .snackbar-icon {
+        background: rgba(52, 152, 219, 0.15);
+        color: #3498db;
+    }
+    
+    .week-2 .snackbar-icon {
+        background: rgba(243, 156, 18, 0.15);
+        color: #f39c12;
+    }
+    
+    .week-3 .snackbar-icon {
+        background: rgba(231, 76, 60, 0.15);
+        color: #e74c3c;
+    }
+    
+    .snackbar-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .snackbar-content strong {
+        font-size: 13px;
+        font-weight: 700;
+        color: #2c3e50;
+        display: block;
+    }
+    
+    .snackbar-content span {
+        font-size: 12px;
+        color: #7f8c8d;
+        line-height: 1.3;
+    }
+    
+    .snackbar-close {
+        background: transparent;
+        border: none;
+        color: #95a5a6;
+        cursor: pointer;
+        padding: 4px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+    
+    .snackbar-close:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #e74c3c;
+    }
+    
+    @media (max-width: 768px) {
+        #weeklyDepositSnackbars {
+            right: 10px;
+            top: 10px;
+            max-width: calc(100% - 20px);
+        }
+    }
 </style>
 
 <script>
@@ -214,5 +382,39 @@
         $('#closeWidget').on('click', function() {
             $('#depositDeadlineWidget').fadeOut(300);
         });
+        
+        // Weekly Snackbar Animation System
+        showWeeklySnackbars();
     });
+    
+    function showWeeklySnackbars() {
+        const snackbars = ['snackbar-week1', 'snackbar-week2', 'snackbar-week3'];
+        let currentIndex = 0;
+        
+        function showNextSnackbar() {
+            // Hide all snackbars
+            snackbars.forEach(id => {
+                $('#' + id).removeClass('show').addClass('hide');
+            });
+            
+            // Show current snackbar
+            setTimeout(() => {
+                $('#' + snackbars[currentIndex]).removeClass('hide').addClass('show');
+            }, 100);
+            
+            // Move to next snackbar
+            currentIndex = (currentIndex + 1) % snackbars.length;
+        }
+        
+        // Show first snackbar after 2 seconds
+        setTimeout(() => {
+            showNextSnackbar();
+            // Rotate through snackbars every 5 seconds
+            setInterval(showNextSnackbar, 5000);
+        }, 2000);
+    }
+    
+    function closeSnackbar(snackbarId) {
+        $('#' + snackbarId).removeClass('show').addClass('hide');
+    }
 </script>
