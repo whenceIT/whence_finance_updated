@@ -785,9 +785,9 @@ class LoanController extends Controller
 
         }else{
              if (Sentinel::hasAccess('settings')) {
-                $data =  ClientAppLoanApplications::get();
+                $data =  ClientAppLoanApplications::where('status','pending')->get();
             } else {
-                $data = ClientAppLoanApplications::where('branch', $office_id)->get();
+                $data = ClientAppLoanApplications::where('branch', $office_id)->where('status','pending')->get();
             }
         }
 
@@ -1160,6 +1160,15 @@ $amount = $request->query('amount');
         }
     }
 
+
+    public function decline_client_application($id)
+    {
+     $application = ClientAppLoanApplications::find($id);
+     $application->status = 'declined';
+     $application->save();
+     return redirect('loan/pending_client_app_applications');
+    }
+
     public function create_group_loan($group, $loan_product)
     {
         if (!Sentinel::hasAccess('loans.create')) {
@@ -1289,6 +1298,15 @@ $amount = $request->query('amount');
                 $loan->year = $date[0];
                 $loan->phone_number = $request->phone_number;
 		        $loan->save();
+
+                $application = ClientAppLoanApplications::where('client_id', $client->id)
+    ->where('status', 'pending')
+    ->first();
+
+if ($application) {
+    $application->status = 'approved';
+    $application->save();
+}
 
             // Broadcast loan created event for real-time updates
             \Illuminate\Support\Facades\Log::info('LoanCreated event firing for loan ID: ' . $loan->id);
@@ -2639,66 +2657,66 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
 
             $paymentType = $request->payment_type;
 
-    if ($paymentType == 'mobile_money') {
+//     if ($paymentType == 'mobile_money') {
 
-    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+//     $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
 
-    $payload = [
-        'amount' => $request->amount,
-        'phone' => $request->phone,
-        'reason' => 'new loan disbursement',
-        'user_id' => $request->user_id,
-        'operator'=> $request->hidden_operator,
-        'payout_type' => 'withinhere_to_mno',
-        'totalDeducted' => $request->total_deducted
-    ];
+//     $payload = [
+//         'amount' => $request->amount,
+//         'phone' => $request->phone,
+//         'reason' => 'new loan disbursement',
+//         'user_id' => $request->user_id,
+//         'operator'=> $request->hidden_operator,
+//         'payout_type' => 'withinhere_to_mno',
+//         'totalDeducted' => $request->total_deducted
+//     ];
 
-} else {
+// } else {
 
-    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+//     $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
 
-    $payload = [
-        'amount' => $request->amount,
-        'user_id' => $request->user_id,
-        'bankId' => $request->bank_id,
-        'accountNumber' => $request->account_number,
-        'reason' => 'new loan disbursement',
-        'payout_type' => 'withinhere_to_bank',
-        'totalDeducted' => $request->total_deducted
-    ];
-}
+//     $payload = [
+//         'amount' => $request->amount,
+//         'user_id' => $request->user_id,
+//         'bankId' => $request->bank_id,
+//         'accountNumber' => $request->account_number,
+//         'reason' => 'new loan disbursement',
+//         'payout_type' => 'withinhere_to_bank',
+//         'totalDeducted' => $request->total_deducted
+//     ];
+// }
 
 
-try {
+// try {
 
-    $response = Http::post($url, $payload);
+//     $response = Http::post($url, $payload);
 
-    if (!$response->successful()) {
+//     if (!$response->successful()) {
 
-         $body = $response->body();
+//          $body = $response->body();
 
-    Flash::success('API Error: ' . $body);
+//     Flash::success('API Error: ' . $body);
     
-    }
+//     }
 
-    $result = $response->json();
+//     $result = $response->json();
 
-} catch (\Exception $e) {
+// } catch (\Exception $e) {
 
-    Flash::success('Could not connect to payment service.');
+//     Flash::success('Could not connect to payment service.');
 
-    return redirect()->back();
-}
+//     return redirect()->back();
+// }
 
-if (
-    !isset($result['status']) ||
-    $result['status'] !== 'pending'
-) {
+// if (
+//     !isset($result['status']) ||
+//     $result['status'] !== 'pending'
+// ) {
 
-    Flash::success('Transfer request was rejected.');
+//     Flash::success('Transfer request was rejected.');
 
-   return redirect()->back();
-}
+//    return redirect()->back();
+// }
 
 
 
