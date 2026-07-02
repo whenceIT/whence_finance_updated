@@ -204,9 +204,10 @@
     .deposit-snackbar {
         background: #fff;
         border-radius: 8px;
-        padding: 12px 16px;
+        padding: 0 16px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         display: flex;
+        flex-direction: row;
         align-items: center;
         gap: 12px;
         transform: translateY(20px);
@@ -215,12 +216,14 @@
         border-left: 4px solid;
         max-height: 0;
         overflow: hidden;
+        width: 280px;
     }
     
     .deposit-snackbar.show {
         transform: translateY(0);
         opacity: 1;
         max-height: 100px;
+        padding: 12px 16px;
     }
     
     .deposit-snackbar.hide {
@@ -247,7 +250,7 @@
     .snackbar-icon {
         width: 40px;
         height: 40px;
-        border-radius: 50%;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -275,6 +278,7 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
+        min-width: 0;
     }
     
     .snackbar-content strong {
