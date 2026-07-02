@@ -456,7 +456,8 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('get_districts_by_province/{id}', 'UserController@get_districts_by_province');
     Route::get('get_district_regionals_by_district/{id}', 'UserController@get_district_regionals_by_district');
 
-     Route::get('branch_deposits','UserController@branch_deposits');
+    //  Route::get('branch_deposits','UserController@branch_deposits');
+     Route::get('branch_deposits','BranchDepositController@branchDeposits');
      Route::get('branch-deposits','BranchDepositController@branchDeposits');
      Route::get('branch-deposits/overall-history','BranchDepositController@getOverallHistory')->name('branch-deposits.overall-history');
      Route::get('deposit_logs','UserController@deposit_logs');
