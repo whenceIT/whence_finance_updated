@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Deposit;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+
+class BranchDepositController extends Controller
+{
+    public function branchDeposits(Request $request){
+
+        $selectedMonth = $request->get('month', date('Y-m'));
+
+        $parts = explode('-', $selectedMonth);
+        $selectedMonth = sprintf('%02d-%s', $parts[1], $parts[0]);
+        $selectedMonthForInput = $parts[0] . '-' . $parts[1];
+
+        $status = Deposit::depositStatusByMonth(Sentinel::getUser()->office_id, $selectedMonth);
+
+        return view('branch-deposits.index', compact('selectedMonth','selectedMonthForInput','status'));
+    }
+
+   // Controller function
+public function blockages(Request $request)
+{
+    // Get all blockages with office relationship
+    $blockages = \App\Models\Blockage::with('office')->latest()->get();
+    $offices = \App\Models\Office::all();
+    
+    return view('branch-deposits.standalone', compact('blockages', 'offices'));
+}
+
+public function storeBlockage(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $blockage = \App\Models\Blockage::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Blockage record created successfully',
+            'data' => [
+                'id' => $blockage->id,
+                'office_id' => $blockage->office_id,
+                'office_name' => $blockage->office?->name ?? 'N/A',
+                'reason' => $blockage->reason,
+                'created_at' => $blockage->created_at?->format('Y-m-d H:i:s'),
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create blockage record: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function destroyBlockage($id)
+{
+    try {
+        $blockage = \App\Models\Blockage::findOrFail($id);
+        $blockage->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Office unblocked successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to unblock: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+    public function getOverallHistory(Request $request)
+    {
+        $officeId = Sentinel::getUser()->office_id;
+        
+        // Get all deposits with their related data for the current office
+        $deposits = Deposit::withoutGlobalScope('approved')->with(['depositTypeInfo', 'bankDepositLog.user'])
+            ->where('office', $officeId)
+            ->whereHas('bankDepositLog')
+            ->orderBy('date', 'desc')
+            ->get();
+        
+        // Group by month-year
+        $groupedDeposits = $deposits->groupBy(function($deposit) {
+            return date('F Y', strtotime($deposit->date));
+        });
+        
+        // Format the data
+        $formattedData = [];
+        foreach ($groupedDeposits as $monthYear => $monthDeposits) {
+            $formattedData[$monthYear] = [
+                'total_amount' => $monthDeposits->sum('amount'),
+                'deposits' => $monthDeposits->map(function($deposit) {
+                    return [
+                        'id' => $deposit->id,
+                        'date' => $deposit->date,
+                        'amount' => $deposit->amount,
+                        'status' => $deposit->status ? 'Verified & Approved':'Pending verification',
+                        'deposit_type_name' => $deposit->depositTypeInfo?->name ?? 'N/A',
+                        'deposit_type_id' => $deposit->deposit_type,
+                        'bank_log_amount' => $deposit->bankDepositLog?->amount ?? 0,
+                        'deposit_method' => $deposit->bankDepositLog?->deposit_method ?? 'N/A',
+                        'reference_number' => $deposit->bankDepositLog?->reference_number ?? 'N/A',
+                        'user_name' => ($deposit->bankDepositLog?->user?->first_name ?? '') . ' ' . ($deposit->bankDepositLog?->user?->last_name ?? ''),
+                        'created_date' => $deposit->bankDepositLog?->created_date ?? null,
+                    ];
+                })->toArray()
+            ];
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $formattedData
+        ]);
+    }
+}

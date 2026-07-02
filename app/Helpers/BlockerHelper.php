@@ -40,7 +40,7 @@ class BlockerHelper
             ];
         }
         // if (true) {
-        if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
+        if (true) {
             return [
                 'status'=>false,
                 'amount' => 0,
@@ -49,15 +49,6 @@ class BlockerHelper
             ];
         }
         
-        // Except Choma and Mongu for June only
-        if (($user->office_id == 11 || $user->office_id == 18) && date('n') == 6) {
-            return [
-                'status'=>false,
-                'amount' => 0,
-                'deposit_type'=> '',
-                'message'=> 'Except this office'
-            ];
-        }
 
         if (!$officeId) {
             return null;
