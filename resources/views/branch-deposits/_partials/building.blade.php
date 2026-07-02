@@ -1,34 +1,56 @@
 @php
-    $officeId = Sentinel::getUser()->office_id;
-    $selectedMonth = $selectedMonth ?? date('Y-m');
+$officeId = Sentinel::getUser()->office_id;
+$depositTypeId = 3; // or whatever deposit type you need
+$selectedMonth = $selectedMonth ?? date('Y-m');
+// Validate format
+if (!preg_match('/^\d{4}-\d{2}$/', $selectedMonth)) {
+    // If it's in MM-YYYY format, convert it
+    if (preg_match('/^(\d{2})-(\d{4})$/', $selectedMonth, $matches)) {
+        $selectedMonth = $matches[2] . '-' . $matches[1]; // Convert to YYYY-MM
+    } else {
+        $selectedMonth = date('Y-m'); // Fallback to current month
+    }
+}
+$deposits = \DB::table('deposits as d')
+    ->leftJoin('deposit_types as dt', 'd.deposit_type', '=', 'dt.id')
+    ->leftJoin('bank_deposit_log as bdl', function($join) {
+        $join->on('bdl.deposit_id', '=', 'd.id')
+             ->on('bdl.deposit_type', '=', 'd.deposit_type')
+             ->on('bdl.office_id', '=', 'd.office')
+             ->whereRaw('DATE_FORMAT(bdl.created_date, "%Y-%m") = DATE_FORMAT(d.date, "%Y-%m")');
+    })
+    ->where('d.deposit_type', $depositTypeId)
+    ->where('d.office', $officeId)
+    ->whereRaw('DATE_FORMAT(d.date, "%Y-%m") = ?', [$selectedMonth])
+    ->select(
+        'd.*',
+        'dt.name as deposit_type_name',
+        'dt.monthly_amount',
+        'dt.bank',
+        'dt.gl_account',
+        'bdl.id as bank_deposit_log_id',
+        'bdl.user_id as bank_deposit_log_user_id',
+        'bdl.amount as bank_deposit_log_amount',
+        'bdl.deposit_method as bank_deposit_log_method',
+        'bdl.reference_number as bank_deposit_log_reference_number',
+        'bdl.created_date as bank_deposit_log_created_date'
+    )
+    ->orderBy('dt.sort_order', 'asc')
+    ->get();
+
     
-    // Fetch deposits using join between Deposit and BankDepositLog
-    // deposits: id, deposit_type, office, amount, debt, date, status
-    // bank_deposit_log: id, deposit_type, office_id, user_id, amount, deposit_method, deposit_id, reference_number, created_date
-    $deposits = \App\Models\Deposit::join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
-        ->where('bank_deposit_log.office_id', $officeId)
-        ->where('bank_deposit_log.deposit_type', 3)
-        ->whereRaw('DATE_FORMAT(bank_deposit_log.created_date, "%Y-%m") = ?', [$selectedMonth])
-        ->select(
-            'deposits.*',
-            'bank_deposit_log.id as log_id',
-            'bank_deposit_log.amount as log_amount',
-            'bank_deposit_log.reference_number',
-            'bank_deposit_log.deposit_method',
-            'bank_deposit_log.created_date as deposit_date'
-        )
-        ->orderBy('bank_deposit_log.created_date', 'desc')
-        ->get();
-        
     // Get deposit type info
     $depositType = \App\Models\DepositType::find(3);
     $depositName = $depositType->name ?? 'Administration Department fee deposit';
     $monthlyRequired = $depositType->monthly_amount ?? 10000;
     
-    // Calculate totals using log_amount from bank_deposit_log
-    $totalAmount = $deposits->sum('log_amount');
+    // Calculate totals using amount from bank_deposit_log
+    $totalAmount = $deposits->sum('amount');
+    $approvalStatus = $deposits->isNotEmpty() && $deposits[0]->status  == 1 ? 'Verified & Approved':'Pending verification '; 
+    
     $balance = $monthlyRequired - $totalAmount;
     
+
     // Determine status
     $statusText = 'Not Paid';
     $statusColor = '#e74c3c';
@@ -44,7 +66,7 @@
 <div class="deposit-item deposit-card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
         <h4 class="deposit-title" style="margin:0;">{{ $depositName }}</h4>
-        <span style="background:{{ $statusColor }};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">{{ $statusText }}</span>
+        <span style="background:{{ $statusColor }};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">{{$approvalStatus ?? ''}} {{ $statusText }}</span>
     </div>
 
     <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
@@ -58,7 +80,7 @@
         </div>
         <div style="flex: 1; background: #fff3cd; border-radius: 6px; padding: 12px 15px;">
             <small style="color: #343a40; font-weight: 600; font-size: 12px;">Balance</small>
-            <div style="color: #856404; font-weight: 700; font-size: 16px; margin-top: 4px;">K{{ number_format(abs($balance), 2) }}</div>
+            <div style="color: #856404; font-weight: 700; font-size: 16px; margin-top: 4px;">K{{ number_format(max(0, $balance), 2) }}</div>
         </div>
     </div>
     <!-- <div class="deposit-btns">
@@ -66,7 +88,7 @@
         <button class="deposit-history-btn btn btn-info btn-sm">Check Deposit History</button>
     </div> -->
     <label class="deposit-label">Payment Method</label>
-    <select class="form-control payment-method">
+    <select class="form-control payment-method" {{ $disabled ?? false ? 'disabled' : '' }}>
         <option value="">Select Method</option>
         <option value="airtel">Airtel Money</option>
         <option value="zanaco_express">Zanaco Express</option>
@@ -79,11 +101,11 @@
     </select>
     <br>
     <small class="text-muted format-hint">Enter Payment Reference Number</small>
-    <input type="text" class="form-control reference" placeholder="Enter reference number" required>
+    <input type="text" class="form-control reference" placeholder="Enter reference number" required {{ $disabled ?? false ? 'readonly' : '' }}>
     <br>
-    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="5000" step="0.01" required>
+    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="5000" step="0.01" required {{ $disabled ?? false ? 'readonly' : '' }}>
     <br>
-    <button class="btn btn-primary complete-btn" style="min-width: 100px;">
+    <button class="btn btn-primary complete-btn-1" style="min-width: 100px;" {{ $disabled ?? false ? 'disabled' : '' }}>
         <span class="btn-text">Save Deposit</span>
         <span class="btn-loader" style="display: none; margin-left: 8px;">
             <i class="fa fa-spinner fa-spin"></i>
@@ -136,7 +158,25 @@ $(document).ready(function() {
     var branchId = {{ Sentinel::getUser()->office_id }};
     var currentDepositType = 3; // Building & Infrastructure
     var currentDepositTypeName = '{{ $depositName }}';
-
+    
+    /* ---------- GET SELECTED MONTH FROM URL OR USE CURRENT ---------- */
+    function getSelectedMonth() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const monthParam = urlParams.get('month');
+        
+        if (monthParam) {
+            return monthParam;
+        }
+        
+        // Return current year-month if no param
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        return `${year}-${month}`;
+    }
+    
+    var selectedMonth = getSelectedMonth();
+    
     /* ---------- PAYMENT METHOD FORMAT HINT ---------- */
     $(document).on('change', '.payment-method', function () {
         let box = $(this).closest('.deposit-item');
@@ -222,7 +262,7 @@ $(document).ready(function() {
     }
 
     /* ---------- SAVE DEPOSIT BUTTON ---------- */
-    $(document).on('click', '.complete-btn', function() {
+    $(document).on('click', '.complete-btn-1', function() {
         let $btn = $(this);
         let box = $btn.closest('.deposit-item');
         
@@ -257,6 +297,41 @@ $(document).ready(function() {
             return now.toISOString().split('T')[0];
         }
 
+        function getSelectedMonthDate(selectedMonth) {
+            let parts = selectedMonth.split('-');
+            let year, month;
+            
+            // Check if first part is year (4 digits) or month (1-2 digits)
+            if (parts[0].length === 4) {
+                // Format: YYYY-MM
+                year = parseInt(parts[0]);
+                month = parseInt(parts[1]);
+            } else {
+                // Format: MM-YYYY
+                year = parseInt(parts[1]);
+                month = parseInt(parts[0]);
+            }
+            
+            // Get current day
+            let now = new Date();
+            let day = now.getDate();
+            
+            // If February, set day to 1
+            if (month === 2) {
+                day = 1;
+            }
+            
+            // Make sure day doesn't exceed last day of month
+            let lastDay = new Date(year, month, 0).getDate();
+            if (day > lastDay) {
+                day = lastDay;
+            }
+            
+            // Returns date in yyyy-mm-dd format (e.g., 2026-07-15)
+            return year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        }
+
+
         $.ajax({
             url: `${depositApiUrl}/create-deposit`,
             type: 'POST',
@@ -268,7 +343,7 @@ $(document).ready(function() {
                 reference_number: currentReferenceNumber,
                 deposit_method: paymentMethod,
                 user_id: userId,
-                date: today()
+                date: getSelectedMonthDate('{{ $selectedMonth }}')
             }),
             success: function (res) {
                 KiloAlert.success(res.message || 'Deposit saved successfully');

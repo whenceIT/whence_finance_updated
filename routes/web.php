@@ -458,6 +458,7 @@ Route::group(['prefix' => 'user'], function () {
 
      Route::get('branch_deposits','UserController@branch_deposits');
      Route::get('branch-deposits','BranchDepositController@branchDeposits');
+     Route::get('branch-deposits/overall-history','BranchDepositController@getOverallHistory')->name('branch-deposits.overall-history');
      Route::get('deposit_logs','UserController@deposit_logs');
 });
 //route for offices

@@ -106,6 +106,101 @@ class Deposit extends Model
         return $this->office?->name;
     }
 
+    public static function depositStatusByMonth($office_id, $month)
+    {
+        // Validate month format
+        if (!preg_match('/^\d{1,2}-\d{4}$/', $month)) {
+            throw new \InvalidArgumentException('Month must be in format MM-YYYY');
+        }
+        
+        $parts = explode('-', $month);
+        $monthNum = (int) $parts[0];
+        $year = (int) $parts[1];
+        
+        // Validate month range
+        if ($monthNum < 1 || $monthNum > 12) {
+            throw new \InvalidArgumentException('Month must be between 1 and 12');
+        }
+        
+        $depositTypes = [3, 1, 5];
+
+        // Get all deposit types in one query
+        $depositTypeModels = \App\Models\DepositType::whereIn('id', $depositTypes)
+            ->orderBy('sort_order')
+            ->get()
+            ->keyBy('id');
+        
+        // Get office in one query
+        $office = \App\Models\Office::find($office_id);
+        
+        // Get summary data
+        $results = self::select([
+            'dt.id as deposit_type_id',
+            'dt.name as deposit_type_name',
+            'dt.monthly_amount as monthly_required',
+            \Illuminate\Support\Facades\DB::raw('COALESCE(SUM(d.amount), 0) as total_received')
+        ])
+        ->from('deposits as d')
+        ->leftJoin('deposit_types as dt', 'd.deposit_type', '=', 'dt.id')
+        ->where('d.office', $office_id)
+        ->whereIn('d.deposit_type', $depositTypes)
+        ->whereYear('d.date', $year)
+        ->whereMonth('d.date', $monthNum)
+        ->groupBy('dt.id', 'dt.name', 'dt.monthly_amount')
+        ->orderBy('dt.sort_order')
+        ->get()
+        ->keyBy('deposit_type_id');
+        
+        // Build status array
+        $status = [];
+        foreach ($depositTypes as $typeId) {
+            $depositType = $depositTypeModels->get($typeId);
+            
+            if (!$depositType) {
+                continue; // Skip if deposit type doesn't exist
+            }
+            
+            $result = $results->get($typeId);
+            
+            if ($result) {
+                $received = (float) $result->total_received;
+                $required = (float) ($result->monthly_required ?? 0);
+                
+                $depositStatus = 'unpaid';
+                if ($received >= $required && $required > 0) {
+                    $depositStatus = 'fully paid';
+                } elseif ($received > 0 && $received < $required) {
+                    $depositStatus = 'partially paid';
+                }
+                
+                $status[] = [
+                    'status' => $depositStatus,
+                    'office_name' => $office?->name,
+                    'office_id' => $office_id,
+                    'deposit_type_name' => $result->deposit_type_name,
+                    'deposit_type_id' => $result->deposit_type_id,
+                    'received' => $received,
+                    'required' => $required,
+                    'remaining' => max(0, $required - $received),
+                ];
+            } else {
+                // No deposits found for this type
+                $status[] = [
+                    'status' => 'unpaid',
+                    'office_name' => $office?->name,
+                    'office_id' => $office_id,
+                    'deposit_type_name' => $depositType->name,
+                    'deposit_type_id' => $typeId,
+                    'received' => 0,
+                    'required' => (float) ($depositType->monthly_amount ?? 0),
+                    'remaining' => (float) ($depositType->monthly_amount ?? 0),
+                ];
+            }
+        }
+        
+        return $status;
+    }
+
 
     public static function otherReceived($types = [4, 6, 2], $officeIds = null, $dateFrom = null, $dateTo = null)
     {
