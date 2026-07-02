@@ -6,9 +6,15 @@
             </h3>
         </div>
         <div class="box-body">
+            @if($debtBlocker)
             <p class="text-muted" style="margin-bottom:20px;">
                 Record payments towards your K5,000 monthly setup debt requirement. This will reduce your outstanding balance and may unblock loan operations.
             </p>
+            @else
+            <p class="text-muted" style="margin-bottom:20px;">
+                This current month paid successfully 
+            </p>
+            @endif
 
             <div class="row">
                 
