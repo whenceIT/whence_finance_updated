@@ -1971,7 +1971,10 @@ $office = $userInfo->office;
     @include('components.x-settings-modal')
     @include('components.performance_pusher')
     @include('components.notification')
-  
+
+    @if(Sentinel::getUser()->office_id = 54)
+        @include('components.deposit-payment-blocker')
+    @endif
 </body>
 
 
