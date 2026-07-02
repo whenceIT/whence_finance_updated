@@ -12,6 +12,12 @@ class Blockage extends Model
     protected $table = 'blockages';
 
     protected $fillable = [
-        'office_id'
+        'office_id',
+        'reason'
     ];
+
+    public function office()
+    {
+        return $this->belongsTo(Office::class, 'office_id', 'id');
+    }
 }

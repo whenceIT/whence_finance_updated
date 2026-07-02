@@ -1,6 +1,9 @@
-
-
-@if(request()->path() != 'user/branch_deposits')
+@php
+    $blockages = \App\Models\Blockage::where('office_id', Sentinel::getUser()->office_id)->get();
+    $status = $blockages->isNotEmpty();
+    $blockage = $blockages->first();
+@endphp
+@if($status && request()->path() != 'user/branch_deposits')
 <!-- Deposit Payment Blocker Modal -->
 <div id="depositPaymentBlocker" style="
     position: fixed;
@@ -62,7 +65,7 @@
             margin: 0 0 20px 0;
             color: #636e72;
         ">
-            Please make the deposit payment for <strong style="color: #2d3436;">June</strong> to access the system.
+            {{ $blockage->reason ?? 'Please make the deposit arrears in order to access the system' }}
         </p>
         
         <!-- Contact Info -->

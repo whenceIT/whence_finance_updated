@@ -21,10 +21,62 @@ class BranchDepositController extends Controller
         return view('branch-deposits.index', compact('selectedMonth','selectedMonthForInput','status'));
     }
 
-    public function blockages(Request $request)
-    {
-        return view('branch-deposits.standalone');
+   // Controller function
+public function blockages(Request $request)
+{
+    // Get all blockages with office relationship
+    $blockages = \App\Models\Blockage::with('office')->latest()->get();
+    $offices = \App\Models\Office::all();
+    
+    return view('branch-deposits.standalone', compact('blockages', 'offices'));
+}
+
+public function storeBlockage(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $blockage = \App\Models\Blockage::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Blockage record created successfully',
+            'data' => [
+                'id' => $blockage->id,
+                'office_id' => $blockage->office_id,
+                'office_name' => $blockage->office?->name ?? 'N/A',
+                'reason' => $blockage->reason,
+                'created_at' => $blockage->created_at?->format('Y-m-d H:i:s'),
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create blockage record: ' . $e->getMessage()
+        ], 500);
     }
+}
+
+public function destroyBlockage($id)
+{
+    try {
+        $blockage = \App\Models\Blockage::findOrFail($id);
+        $blockage->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Office unblocked successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to unblock: ' . $e->getMessage()
+        ], 500);
+    }
+}
 
     public function getOverallHistory(Request $request)
     {

@@ -1972,9 +1972,8 @@ $office = $userInfo->office;
     @include('components.performance_pusher')
     @include('components.notification')
 
-    @if(Sentinel::getUser()->office_id == 54)
-        @include('components.deposit-payment-blocker')
-    @endif
+    @include('components.deposit-payment-blocker')
+
 </body>
 
 

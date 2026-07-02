@@ -489,6 +489,8 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
     Route::get('exemption-list', [RiskController::class, 'exemptionList'])->name('risk.exemption-list');
     Route::get('blocked-list', [BranchDepositController::class, 'blockages'])->name('risk.blocked-list');
+    Route::post('blockages', [BranchDepositController::class, 'storeBlockage'])->name('blockages.store');
+    Route::delete('blockages/{id}', [BranchDepositController::class, 'destroyBlockage'])->name('blockages.destroy');
     Route::get('block-skip-settings', [PlatformController::class, 'blockSkipSettings'])->name('platform.block-skip-settings');
     Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
