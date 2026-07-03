@@ -187,33 +187,33 @@
     <div class="page-chrome">
         <h1><i class="fa fa-history"></i> Branch Deposit Audit</h1>
         <p>Click a deposit type to expand and view all offices, including those with no deposits, for that type.</p>
-        <a href="#odModal" id="openOfficeDebtModal" class="btn btn-primary btn-sm" style="border-radius:6px;text-decoration:none;color:#fff;">
+        <!-- <a href="#odModal" id="openOfficeDebtModal" class="btn btn-primary btn-sm" style="border-radius:6px;text-decoration:none;color:#fff;">
             <i class="fa fa-balance-scale"></i>Edit Office Debt
-        </a>
+        </a> -->
         <button type="button" id="openDepositQueryModal" class="btn btn-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-search"></i> Deposits Statements
         </button>
-        <button type="button" id="openFailedDepositsModal" class="btn btn-danger btn-sm" style="border-radius:6px; margin-top:4px;">
+        <!-- <button type="button" id="openFailedDepositsModal" class="btn btn-danger btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-exclamation-triangle"></i> Failed Deposits
-        </button>
+        </button> -->
         <!-- <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-stop"></i> Exempt Offices
         </button> -->
         <button type="button" id="openDepositExemptModal" class="btn btn-outline-primary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-calendar-times-o"></i> Exempt Months
         </button>
-        <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
+        <!-- <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-check-circle"></i> Activate Blocking for All Offices
         </button>
         <button type="button" id="deactivateAllOfficesBtn" class="btn btn-warning btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-ban"></i> Remove Blocking All Offices
-        </button>
-        <a href="{{ route('platform.block-skip-settings') }}" class="btn btn-outline-info btn-sm" style="border-radius:6px; margin-top:4px;">
+        </button> -->
+        <!-- <a href="{{ route('platform.block-skip-settings') }}" class="btn btn-outline-info btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-unlock"></i> Block Skip Settings
-        </a>
-        <button type="button" id="openDebtBalancesModal" class="btn btn-info btn-sm" style="border-radius:6px; margin-top:4px;">
+        </a> -->
+        <!-- <button type="button" id="openDebtBalancesModal" class="btn btn-info btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-plus-circle"></i> Record Debt Balance
-        </button>
+        </button> -->
     </div>
 
 
@@ -317,7 +317,7 @@
           <div class="sc-card sc-card-debt">
                 
               <div class="sc-card-title">Outstanding Branch Debt</div>
-              <i>Not ready for display</i>
+              <i>This will display balances in Building, Administration and Statutory</i>
                <!--<div class="sc-row">Debt Accumulated&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['accumulated'], 2) }}</strong></div>
               <div class="sc-row">Debt Amount Repaid&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['paid'], 2) }}</strong></div>
               <div class="sc-balance">Balance&nbsp;&nbsp;<strong>K{{ number_format((int)$debtCards['balance'], 2) }}</strong></div> -->
@@ -401,7 +401,7 @@
                  <div class="left">
                      <span class="toggle-icon"><i class="fa fa-caret-right"></i></span>
                      <span class="type-name">Debt Repayment (For Branches in Debt)</span>
-                     <span class="type-meta">Bank</span>
+                     <span class="type-meta">All</span>
                  </div>
                  <div class="right-group">
                      <div class="da-stats">
@@ -417,51 +417,50 @@
                              <i class="fa fa-line-chart" style="color:#c0392b"></i> <strong>K{{ number_format((int)\App\Models\OfficeDebt::sum('outstanding_amount'), 0) }}</strong> outstanding
                          </span> -->
                          <i class="fa fa-exclamation-circle" style="color:#c0392b"></i>
-
-</div>
+                    </div>
               </div>
               </div>
          </div>
 
-         @foreach($types as $t)
-        @php
-            $tid = $t['id'];
-            $tname = $t['name'];
-            $tbank = $t['bank'] ?? '–';
-            $tgl = $t['gl_account'] ?? '–';
-            $tcount = $t['office_count'];
-            $withDep = $t['offices_with_deposits'];
-            $ttotal = $t['total_amount'];
-        @endphp
-        <div class="da-type-card" data-type-id="{{ $tid }}">
-            <div class="da-type-header">
-                <div class="left">
-                    <span class="toggle-icon"><i class="fa fa-caret-right"></i></span>
-                    <span class="type-name">{{ $tname }}</span>
-                    <span class="type-meta">{{ $tbank }} &nbsp;|&nbsp; GL: {{ $tgl }}</span>
-                </div>
-                <div class="right-group">
-                    <div class="da-stats">
-                        <span class="da-stat" title="Total offices">
-                        <!-- <span class="da-stat" title="Total offices">
-                            <i class="fa fa-building"></i> <strong>{{ $tcount }}</strong> offices
-                        </span>
-                        <span class="da-stat" title="Offices with deposits">
-                        </span> -->
-                        <!-- <span class="da-stat" title="Offices with deposits">
-                            <i class="fa fa-check-circle" style="color:#000"></i> <strong>{{ $withDep }}</strong> with deposits
-                        </span>
-                        </span> -->
-                        <!-- <span class="da-stat" title="Overall total amount across all offices">
-                            <i class="fa fa-line-chart" style="color:#000"></i> <strong>K{{ number_format((float)$ttotal, 2) }}</strong> total
-                        </span> -->
-                        <i class="fa fa-check-circle" style="color:#000"></i> 
+        @foreach($types as $t)
+            @php
+                $tid = $t['id'];
+                $tname = $t['name'];
+                $tbank = $t['bank'] ?? '–';
+                $tgl = $t['gl_account'] ?? '–';
+                $tcount = $t['office_count'];
+                $withDep = $t['offices_with_deposits'];
+                $ttotal = $t['total_amount'];
+            @endphp
+            <div class="da-type-card" data-type-id="{{ $tid }}">
+                <div class="da-type-header">
+                    <div class="left">
+                        <span class="toggle-icon"><i class="fa fa-caret-right"></i></span>
+                        <span class="type-name">{{ $tname }}</span>
+                        <span class="type-meta">{{ $tbank }} &nbsp;|&nbsp; GL: {{ $tgl }}</span>
+                    </div>
+                    <div class="right-group">
+                        <div class="da-stats">
+                            <span class="da-stat" title="Total offices">
+                            <span class="da-stat" title="Total offices">
+                                <i class="fa fa-building"></i> <strong>{{ $tcount }}</strong> offices
+                            </span>
+                            <span class="da-stat" title="Offices with deposits">
+                            </span> 
+                            <span class="da-stat" title="Offices with deposits">
+                                <i class="fa fa-check-circle" style="color:#000"></i> <strong>{{ $withDep }}</strong> with deposits
+                            </span>
+                            </span>
+                             <span class="da-stat" title="Overall total amount across all offices">
+                                <i class="fa fa-line-chart" style="color:#000"></i> <strong>K{{ number_format((float)$ttotal, 2) }}</strong> total
+                            </span>
+                            <i class="fa fa-check-circle" style="color:#000"></i> 
+                        </div>
                     </div>
                 </div>
+                <div class="da-body" id="da-body-{{ $tid }}">
+                </div>
             </div>
-            <div class="da-body" id="da-body-{{ $tid }}">
-            </div>
-        </div>
         @endforeach
     </div>
 
