@@ -117,50 +117,50 @@ class ApprovalWorkflowController extends Controller
         return response()->json(['success' => true, 'message' => $count . ' deposit(s) declined successfully.']);
     }
 
-public function expenseApprovals()
-{
+    public function expenseApprovals()
+    {
 
-$expenses = Expense::with([
-    'office',
-    'type',
-    'created_by'
-])
-->where('status', 'pending')
-->orderBy('id', 'desc')
-->paginate(50);
+    $expenses = Expense::with([
+        'office',
+        'type',
+        'created_by'
+    ])
+    ->where('status', 'pending')
+    ->orderBy('id', 'desc')
+    ->paginate(50);
 
-    return view('approvals.expense_approvals', compact('expenses'));
-}
+        return view('approvals.expense_approvals', compact('expenses'));
+    }
 
-public function approveExpense($id, $status)
-{
-   
+    public function approveExpense($id, $status)
+    {
+    
 
-    $expense = Expense::findOrFail($id);
+        $expense = Expense::findOrFail($id);
 
-    $expense->status = $status;
-    $expense->save();
+        $expense->status = $status;
+        $expense->save();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Expense updated successfully'
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Expense updated successfully'
+        ]);
+    }   
 
-public function declineExpense($id,$status)
-{
+    public function declineExpense($id,$status)
+    {
 
-    $expense = Expense::findOrFail($id);
+        $expense = Expense::findOrFail($id);
 
-    $expense->status = $status;
-    $expense->save();
+        $expense->status = $status;
+        $expense->save();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Expense updated successfully'
-    ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Expense updated successfully'
+        ]);
 
-}
+    }
 
 
 public function bulkApproveExpenses(Request $request)
