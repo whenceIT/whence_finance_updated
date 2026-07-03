@@ -49,12 +49,16 @@ class RecoveryDashboardController extends Controller
         //Non filtered data
         $overal_tt_recovered = \App\Models\LoanTransaction::where('is_recovery', 1)->sum('credit');
         $overal_tt_attribution = \App\Models\Expense::where('is_attribution', 1)->sum('amount');
+        $overal_tt_active_cases = \App\Models\RecoveryCase::active()->count();
+        $overal_tt_closed_cases = \App\Models\RecoveryCase::resolved()->count();
+        $overall_tt_debt_attr = \App\Models\RecoveryPayment::where('status', 1)->sum('recoveries_dept_amount');
 
         return view('recoveries.dashboard.index', compact(
             'period', 'dateFrom', 'dateTo', 'kpis', 'pipeline', 'specialists', 'categories',
             'branchBreakdown', 'recentActivity', 'monthlyTrend', 'recoveryMix', 'funds',
             // unfiltered data
-            'overal_tt_recovered', 'overal_tt_attribution'
+            'overal_tt_recovered', 'overal_tt_attribution', 'overal_tt_active_cases', 'overal_tt_closed_cases',
+            'overall_tt_debt_attr'
         ));
     }
 

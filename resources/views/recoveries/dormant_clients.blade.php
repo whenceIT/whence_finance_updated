@@ -93,7 +93,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-@foreach($clientsData as $client)
+                                
+                            @foreach($clientsData as $client)
                                     <tr>
                                         <td>{{ $client->id }}</td>
                                         <td><strong>{{ $client->first_name }} {{ $client->last_name }}</strong></td>
@@ -214,7 +215,7 @@
         }
 
         $.ajax({
-            url: '{{ url('client') }}/' + clientId + '/mark-recovered',
+            url: '{{ route('client.mark_recovered', ['id' => '__CLIENT_ID__']) }}'.replace('__CLIENT_ID__', clientId),
             type: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'

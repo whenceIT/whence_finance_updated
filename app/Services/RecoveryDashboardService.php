@@ -24,13 +24,14 @@ class RecoveryDashboardService
                 ->whereNotNull('approved_date');
             })
             ->sum('amount'); // or 'amount' depending on your column
+
         $deptRecovered    = (clone $payments)->sum('recoveries_dept_amount');
-        $activeCases      = RecoveryCase::active()->whereNotNull('approved_date')->count();
-        $resolvedCases    = RecoveryCase::forPeriod($period)->whereNotNull('approved_date')->resolved()->count();
+        $activeCases      = RecoveryCase::active()->forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date')->count();
+        $resolvedCases    = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date')->resolved()->count();
         $totalCases       = (clone $cases)->count();
         $resolutionRate   = $totalCases > 0 ? round(($resolvedCases / $totalCases) * 100, 1) : 0;
-        $portfolioAtRisk  = RecoveryCase::active()->whereNotNull('approved_date')->sum('loan_outstanding_amount');
-        $totalCosts       = RecoveryCase::forPeriod($period)->whereNotNull('approved_date')->sum(
+        $portfolioAtRisk  = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->active()->whereNotNull('approved_date')->sum('loan_outstanding_amount');
+        $totalCosts       = RecoveryCase::forPeriod($period, $dateFrom, $dateTo)->whereNotNull('approved_date')->sum(
             DB::raw('recovery_costs + legal_costs_incurred + skip_trace_costs')
         );
         

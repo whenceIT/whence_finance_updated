@@ -3635,7 +3635,7 @@ $new_balance = $debit_amount - $credit_amount;
                 return redirect('loan/' . $loan->id . '/show');
             }
         } catch (\Throwable $th) {
-            dd($th);
+            dd($th.' Contact IT Support');
             return null;
         }
     }

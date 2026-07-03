@@ -40,13 +40,17 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
     </div>
     <div class="col-xs-6 text-right">
         @if($case->loan)
-            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#recovery_modal">
-                <i class="fa fa-money"></i> Record Repayment
-            </button>
+            @if($case->approved_date != null)
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#recovery_modal">
+                    <i class="fa fa-money"></i> Record Repayment
+                </button>
+            @else
+                <span class="label label-warning">
+                    <i class="fa fa-money"></i> Pending Approval
+                </span>
+            @endif
         @else
-            <button type="button" class="btn btn-default" title="No loan associated with this case">
-                <i class="fa fa-money"></i> Record Repayment
-            </button>
+            <i class="fa fa-money">No loan associated with this case</i> 
         @endif
     </div>
 </div>
@@ -58,7 +62,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
             <span class="info-box-icon bg-aqua"><i class="fa fa-bank"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Outstanding</span>
-                <span class="info-box-number">K {{ number_format(($case->loan_outstanding_amount ?? 0) - ($case->payments->sum('amount')), 2) }}</span>
+                <span class="info-box-number">K {{ number_format(($case->loan_outstanding_amount ?? 0) - ($case->payments->where('status', 1)->sum('amount')), 2) }}</span>
             </div>
         </div>
     </div>
@@ -67,7 +71,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
             <span class="info-box-icon bg-green"><i class="fa fa-check-circle"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Recovered</span>
-                <span class="info-box-number">K {{ number_format($case->payments->sum('amount'), 2) }}</span>
+                <span class="info-box-number">K {{ number_format($case->payments->where('status', 1)->sum('amount'), 2) }}</span>
             </div>
         </div>
     </div>

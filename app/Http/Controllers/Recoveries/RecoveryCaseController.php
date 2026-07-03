@@ -62,6 +62,11 @@ class RecoveryCaseController extends Controller
         return $this->listCases($request, 'skip_trace');
     }
 
+    public function dormant_clients()
+    {
+        return redirect()->route('recovery.clients', ['type' => 'dormant']);
+    }
+
     public function resolved(Request $request)
     {
         $allCases = RecoveryCase::resolved()
@@ -134,6 +139,10 @@ class RecoveryCaseController extends Controller
                 ->whereNotNull('loans.first_repayment_date')
                 ->where('loans.status', '!=', 'closed')
                 ->whereRaw("DATE(loans.first_repayment_date) <= ?", [Carbon::today()->subDays(7)->toDateString()])
+                ->whereNotIn('loans.id', function ($query) {
+                    $query->select('loan_id')->from('recovery_cases')
+                        ->whereNotNull('loan_id');
+                })
                 ->get();
 
             $offices = Office::whereNotIn('id', [67, 69,70,71,72,73,74,75,76,77,78]) 
@@ -164,6 +173,13 @@ class RecoveryCaseController extends Controller
                 'category'                => 'required|in:' . implode(',', array_keys(RecoveryCase::CATEGORIES)),
                 'loan_outstanding_amount' => 'required|numeric|min:0',
             ]);
+
+            
+            $existingCase = RecoveryCase::withTrashed()->where('loan_id', $request->loan_id)->first();
+            if ($existingCase) {
+                return redirect()->back()
+                    ->with('error', "A case already exists for this loan (Case #{$existingCase->case_number}).");
+            }
 
             // Derive client_id from the selected loan — no need to expose it in the form
             $loan = Loan::where('id', $request->loan_id)->first();

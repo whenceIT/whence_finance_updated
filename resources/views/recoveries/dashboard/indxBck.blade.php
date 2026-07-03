@@ -31,7 +31,6 @@
 @include('recoveries._partials.bento-grid')
 <hr >
 <br>
-<br>
 {{-- Period Selector --}}
 <div class="box box-default">
     <div class="box-body" style="padding:10px 15px">
@@ -83,12 +82,12 @@
 
 
 <!-- Dynamic Headline based on current filters -->
-<div style="margin: 20px 0 25px 0; padding: 20px 25px; background: linear-gradient(135deg, #ebeef8 0%, #cac8cc 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+<div style="margin: 20px 0 25px 0; padding: 20px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
     <div style="display: flex; align-items: center; justify-content: space-between;">
         <div>
-            <h2 style="margin: 0 0 8px 0; color: #272636; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;">
+            <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;">
                 <i class="fa fa-line-chart" style="margin-right: 10px;"></i>
-                Filter 
+                Recovery Performance Overview
             </h2>
             <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 1.1rem; font-weight: 500;">
                 @if($period === 'month')
@@ -364,6 +363,123 @@
 
 </div>
 
+{{-- ═════════════════════════════════════════════════════════════════════════════
+     ROW 4 — Specialist Performance + Monthly Trend
+════════════════════════════════════════════════════════════════════════════ --}}
+<!-- <div class="row">
+
+    <div class="col-md-8">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title"><i class="fa fa-users"></i> Specialist Performance</h3>
+                <div class="box-tools pull-right">
+                    <a href="{{ url('recovery/specialist/data') }}"
+                       class="btn btn-xs btn-default">Full Report →</a>
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body no-padding">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>Specialist</th>
+                            <th>Category</th>
+                            <th>Recovered</th>
+                            <th>Active</th>
+                            <th>Resolved</th>
+                            <th>vs Target</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($specialists as $row)
+                        @php
+                            $cat = $row['category'] ?? 'escalated';
+                            [$barColor, $labelColor] = match($row['status']) {
+                                'exceeding' => ['progress-bar-success', 'label-success'],
+                                'on_track'  => ['progress-bar-info',    'label-info'],
+                                'at_risk'   => ['progress-bar-warning', 'label-warning'],
+                                'no_target' => ['progress-bar-default', 'label-default'],
+                                default     => ['progress-bar-danger',  'label-danger'],
+                            };
+                        @endphp
+                        <tr>
+                            <td>
+                                <strong>
+                                    {{ $row['specialist']->first_name }}
+                                    {{ $row['specialist']->last_name }}
+                                </strong>
+                            </td>
+                            <td>
+                                <span class="label {{ $catLabels[$cat][0] ?? 'label-default' }}">
+                                    {{ $categories[$cat] ?? ucwords(str_replace('_', ' ', $cat)) }}
+                                </span>
+                            </td>
+                            <td><strong>{{ number_format($row['total_recovered'], 2) }}</strong></td>
+                            <td>{{ $row['active_cases'] }}</td>
+                            <td>{{ $row['resolved_cases'] }}</td>
+                            <td style="min-width:120px">
+                                @if($row['has_target'] ?? false)
+                                <div class="progress progress-xs" style="margin-bottom:2px">
+                                    <div class="progress-bar {{ $barColor }}"
+                                         style="width:{{ min($row['target_pct'],100) }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ $row['target_pct'] }}% of K{{ number_format($row['target_amount'],2) }}</small>
+                                @else
+                                <small class="text-muted">No target set</small>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="label {{ $labelColor }}">
+                                    {{ $row['status'] === 'no_target' ? 'No Target' : ucwords(str_replace('_',' ',$row['status'])) }}
+                                </span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center text-muted" style="padding:24px">
+                                No specialists assigned yet
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title"><i class="fa fa-bar-chart"></i> Monthly Trend</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                @php $maxTrend = collect($monthlyTrend)->max('amount') ?: 1; @endphp
+                @foreach($monthlyTrend as $month)
+                <div class="progress-group">
+                    <span class="progress-text">{{ $month['label'] }}</span>
+                    <span class="progress-number">
+                        <b>{{ number_format($month['amount'], 2) }}</b>
+                    </span>
+                    <div class="progress sm">
+                        <div class="progress-bar progress-bar-aqua"
+                             style="width:{{ $maxTrend > 0 ? round(($month['amount']/$maxTrend)*100) : 0 }}%">
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+</div> -->
 
 {{-- ═══════════════════════════════════════════
      ROW 5 — Branch Breakdown + Recent Activity
@@ -407,7 +523,73 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- <div class="col-md-7">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title"><i class="fa fa-history"></i> Recent Activity</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body no-padding">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Case</th>
+                            <th>Activity</th>
+                            <th>By</th>
+                            <th>When</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentActivity as $activity)
+                        <tr>
+                            <td>
+                                @if($activity->recoveryCase)
+                                    <a href="{{ url('recovery/case/' . $activity->recoveryCase->id . '/show') }}">
+                                        {{ $activity->recoveryCase->case_number }}
+                                    </a>
+                                    <div style="font-size:11px;color:#999">
+                                        {{ ($activity->recoveryCase->client->client_type ?? '') === 'business' ? ($activity->recoveryCase->client->full_name ?? '') : trim(($activity->recoveryCase->client->first_name ?? '') . ' ' . ($activity->recoveryCase->client->last_name ?? '')) }}
+                                    </div>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                            <td>
+                                {{ ucwords(str_replace('_', ' ', $activity->activity_type)) }}
+                                @if(!empty($activity->description))
+                                    <div style="font-size:11px;color:#999">
+                                        {{ strlen($activity->description) > 50 ? substr($activity->description, 0, 50) . '…' : $activity->description }}
+                                    </div>
+                                @endif
+                            </td>
+                            <td style="white-space:nowrap">
+                                {{ $activity->performedBy
+                                    ? trim(($activity->performedBy->first_name ?? '') . ' ' . ($activity->performedBy->last_name ?? ''))
+                                    : '—' }}
+                            </td>
+                            <td style="white-space:nowrap">
+                                <small class="text-muted">
+                                    {{ $activity->created_at->diffForHumans() }}
+                                </small>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="text-center text-muted" style="padding:24px">
+                                No recent activity
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div> -->
 
 </div>
 
