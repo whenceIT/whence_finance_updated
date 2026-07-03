@@ -50,6 +50,7 @@ class RecoveryClientController extends Controller
 {
   public function dormant_clients()
     {
+        dd('here');
         return redirect()->route('recovery.clients', ['type' => 'dormant']);
     }
 

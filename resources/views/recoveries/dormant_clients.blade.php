@@ -93,7 +93,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-@foreach($clientsData as $client)
+                                
+                            @foreach($clientsData as $client)
                                     <tr>
                                         <td>{{ $client->id }}</td>
                                         <td><strong>{{ $client->first_name }} {{ $client->last_name }}</strong></td>
