@@ -64,7 +64,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="control-label">Receipt Number</label>
-                        <input type="text" name="receipt_number" id="recovery_receipt_number" class="form-control" placeholder="Auto-generated if empty">
+                        <input type="text" disabled name="receipt_number" id="recovery_receipt_number" class="form-control" placeholder="Auto-generated if empty">
                     </div>
                 </div>
                 <div class="col-md-6">

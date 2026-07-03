@@ -7,6 +7,7 @@ use App\Models\LoanTransaction;
 use App\Models\RecoveryCase;
 use App\Models\Office;
 use App\Models\UserRole;
+use App\Models\RecoveryFund;
 use App\Services\AuditorService;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Http\Request;
@@ -110,12 +111,13 @@ class RecoveryTransactionController extends Controller
             ],
             'recovery_transaction_access'
         );
-
+        $funds = RecoveryFund::sum('amount');
         return view('recoveries.transactions.approved', compact(
             'transactions', 
             'transactionsByOffice', 
             'totalAmount', 
-            'totalCases'
+            'totalCases',
+            'funds'
         ));
     }
 }
