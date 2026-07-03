@@ -22,14 +22,14 @@ class BranchDepositController extends Controller
     }
 
    // Controller function
-public function blockages(Request $request)
-{
-    // Get all blockages with office relationship
-    $blockages = \App\Models\Blockage::with('office')->latest()->get();
-    $offices = \App\Models\Office::all();
-    
-    return view('branch-deposits.standalone', compact('blockages', 'offices'));
-}
+    public function blockages(Request $request)
+    {
+        // Get all blockages with office relationship
+        $blockages = \App\Models\Blockage::with('office')->latest()->get();
+        $offices = \App\Models\Office::all();
+        
+        return view('branch-deposits.standalone', compact('blockages', 'offices'));
+    }
 
 public function storeBlockage(Request $request)
 {
