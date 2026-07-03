@@ -62,7 +62,6 @@ class RecoveryClientController extends Controller
     {
 
 
-        dd('here');
         $user = Sentinel::getUser();
         $type = request()->get('type', 'dormant');
         $search = request()->get('search', '');
