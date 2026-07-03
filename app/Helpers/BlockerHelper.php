@@ -5,6 +5,8 @@ namespace App\Helpers;
 use App\Models\Loan;
 use App\Models\DebtBalances;
 use App\Models\Deposit;
+use App\Models\SetupDebtCost;
+use App\Models\SetupDebtTransaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -14,59 +16,13 @@ class BlockerHelper
     /**
      * Debt Blocker for Loan Operations
      *
-     * Checks whether the office has made its required monthly setup cost deposit (deposit_type 0)
-     * and returns both the payment status and the current outstanding balance from office_debts.
-     *
      * @param object $user
-     * @return array{status: bool, balance: float|int|null}
-     *         status  = true  → deposit recorded this month (no blocker)
-     *         status  = false → no deposit found this month (show blocker)
-     *         balance = outstanding_amount from office_debts table for this office/month
+     * @return array{status: bool, balance: int}
+     *         status  = true  → no blocker (allowed)
+     *         status  = false → blocker active (needs deposit)
+     *         balance = 0
      */
-    public static function debt_blocker($user)
-    {
-        $officeId = $user->office_id ?? null;
-
-        $settings = \App\Models\PlatformSetting::getBranchDepositSettings($officeId);
-        
-
-        if (isset($user->role->role_id) && $user->role->role_id != 4) {
-            return [
-                'status'  => true,
-                'balance' => 0,
-            ];
-        }
-        if (!$officeId) {
-            return ['status' => true, 'balance' => 0]; // Can't determine office → do not block
-        }
-
-        $now = Carbon::now();
-
-        $outstandingDebtPaidThisMonth = DB::table('deposits')
-            ->where('deposit_type', 0) //Set up debt has deposit_type_id = 0 in office_debts table
-            ->where('office', $officeId)
-            ->where('date', '>=', $now->format('Y-m') . '-01')
-            ->where('date', '<=', $now->format('Y-m') . '-31')
-            ->exists();
-
-        $outstandingBalance = DB::table('office_debts')
-            ->where('office_id', $officeId)
-            ->where('deposit_type_id', 0) // Set up debt has deposit_type_id = 0 in office_debts table
-            ->value('outstanding_amount') ?? 0;
-
-        if (isset($settings['set_up_debt']) && $settings['set_up_debt'] == true) {
-            return [
-                'status'  => false,
-                'balance' => 0,
-            ];
-        }
-        
-        return [
-            'status'  => $outstandingDebtPaidThisMonth,
-            'balance' => $outstandingBalance,
-        ];
-
-    }
+    
 
     public static function ledger_blocker()
     {
@@ -84,7 +40,7 @@ class BlockerHelper
             ];
         }
         // if (true) {
-        if (isset($user->role->role_id) && !in_array($user->role->role_id, [4, 3])) {
+        if (true) {
             return [
                 'status'=>false,
                 'amount' => 0,
@@ -93,15 +49,6 @@ class BlockerHelper
             ];
         }
         
-        // Except Choma and Mongu for June only
-        if (($user->office_id == 11 || $user->office_id == 18) && date('n') == 6) {
-            return [
-                'status'=>false,
-                'amount' => 0,
-                'deposit_type'=> '',
-                'message'=> 'Except this office'
-            ];
-        }
 
         if (!$officeId) {
             return null;
@@ -206,6 +153,44 @@ class BlockerHelper
 
         return empty($types) ? false : true;
         
+    }
+
+    public static function debt_blocker($user) 
+    {
+        
+        $officeId = $user->office_id ?? null;
+        
+        // Super admin or non-employee roles bypass debt check
+        // if (isset($user->role->role_id) &&  && !in_array($user->role->role_id, [4, 3])) {
+        //     return false;
+        // }
+        
+        // No office ID means no debt to check
+        if (!$officeId) {
+            return false;
+        }
+        
+        $now = Carbon::now();
+        
+        // Check if office is listed in debt cost table
+        $listed = SetupDebtCost::where('office_id', $officeId)->exists();
+        
+       
+        // If not listed, no debt check needed → allow
+        if (!$listed) {
+            return false;
+        }
+        
+        // Office IS listed → check for 5000 transaction this month
+        $hasTransaction = SetupDebtTransaction::where('office_id', $officeId)
+            ->whereBetween('transaction_date', [
+                $now->copy()->startOfMonth()->toDateString(), 
+                $now->copy()->endOfMonth()->toDateString()
+            ])
+            ->havingRaw('SUM(amount) >= 5000')
+            ->exists();
+
+        return !$hasTransaction; 
     }
     
 }

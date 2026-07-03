@@ -855,12 +855,12 @@ $office = $userInfo->office;
                     </span>
                 </a>
                 <!-- Add a Notification  -->
-                <a href="#" onclick="toggleNotificationDropdown(event); return false;"
+                <!-- <a href="#" onclick="toggleNotificationDropdown(event); return false;"
                     style="color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-bell" style="font-size: 18px;"></i>
                     <span id="notificationBadge"
                         style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
-                </a>
+                </a> -->
                 <!-- Tools Menu (visible on mobile) -->
                 <a href="#" onclick="toggleUserDropdown(event); return false;"
                     style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
@@ -1968,15 +1968,12 @@ $office = $userInfo->office;
     </script>
 
 
-
-    @include('components.ledger_blocker')
-    @if(Sentinel::getUser() && in_array(Sentinel::getUser()->office_id, [8, 54]) && request()->path() != 'user/branch_deposits')
-        @include('components.current_month_deposit_blocker')
-    @endif
-
     @include('components.x-settings-modal')
     @include('components.performance_pusher')
     @include('components.notification')
+
+    @include('components.deposit-payment-blocker')
+
 </body>
 
 

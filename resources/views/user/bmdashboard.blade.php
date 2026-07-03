@@ -295,8 +295,16 @@ function totalAmount($transactions) {
 </section>
 
 @include('components.policy-of-the-day')
+@php
+    $blockerUser = Sentinel::getUser();
+    $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+@endphp
 
-<!-- @include('components.deposit-deadline-modal') -->
+@include('components.deposit-deadline-modal')
+
+@if($debtBlocker)
+    @include('components.setup-debt-reminder')
+@endif
 @endsection
 
 @section('footer-scripts')

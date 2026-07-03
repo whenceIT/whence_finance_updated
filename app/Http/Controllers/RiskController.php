@@ -1951,4 +1951,118 @@ class RiskController extends Controller
         }
     }
 
+    public function exemptionList()
+    {
+        return view('risk.exemption-list');
+    }
+
+
+
+    /**
+     * Setup Debt Management
+     */
+    public function setupDebtManagement(Request $request)
+    {
+        $offices = \App\Helpers\StatsHelper::getActiveOffices();
+        $costs = \App\Models\SetupDebtCost::with(['office', 'transactions'])->get();
+        
+        $rows = [];
+        foreach ($costs as $cost) {
+            $totalPaid = $cost->transactions->sum('amount');
+            $balance = $cost->amount - $totalPaid;
+            
+            $rows[] = [
+                'id' => $cost->id,
+                'office' => $cost->office,
+                'amount' => $cost->amount,
+                'total_paid' => $totalPaid,
+                'balance' => $balance,
+                'description' => $cost->description,
+                'created_at' => $cost->created_at,
+                'transactions' => $cost->transactions,
+            ];
+        }
+        
+        return view('risk.setup-debt-management', compact('offices', 'rows'));
+    }
+    
+    public function storeSetupDebtCost(Request $request)
+    {
+        $validated = $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+        ]);
+        
+        $cost = \App\Models\SetupDebtCost::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Setup debt cost created successfully',
+            'data' => $cost,
+        ]);
+    }
+    
+    
+    public function updateSetupDebtCost(Request $request, $id)
+    {
+        $cost = \App\Models\SetupDebtCost::findOrFail($id);
+        
+        $validated = $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+        ]);
+        
+        $cost->update($validated);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Setup debt cost updated successfully',
+            'data' => $cost,
+        ]);
+    }
+    
+    public function deleteSetupDebtCost($id)
+    {
+        $cost = \App\Models\SetupDebtCost::findOrFail($id);
+        $cost->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Setup debt cost deleted successfully',
+        ]);
+    }
+    
+    public function storeSetupDebtTransaction(Request $request)
+    {
+        $validated = $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'amount' => 'required|numeric|min:0',
+            'transaction_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+        
+        $validated['created_by'] = Sentinel::getUser()->id;
+        $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
+        
+        $transaction = \App\Models\SetupDebtTransaction::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction recorded successfully',
+            'data' => $transaction,
+        ]);
+    }
+    
+    public function deleteSetupDebtTransaction($id)
+    {
+        $transaction = \App\Models\SetupDebtTransaction::findOrFail($id);
+        $transaction->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction deleted successfully',
+        ]);
+    }
 }

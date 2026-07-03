@@ -2401,7 +2401,18 @@ if($branchUser->role){
 
     @include('components.training-hub-bento')
 
-    <!-- @include('components.deposit-deadline-modal') -->
+     @php
+        $blockerUser = Sentinel::getUser();
+        $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+    @endphp
+
+    @if($blockerUser->role->role_id != 1)
+        @include('components.deposit-deadline-modal')
+    @endif
+ 
+    @if($debtBlocker)
+        @include('components.setup-debt-reminder')
+    @endif
 @endsection
 
 

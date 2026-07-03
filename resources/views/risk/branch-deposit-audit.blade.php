@@ -531,8 +531,7 @@
         </div>
     </div>
 </div>
-<!-- @include('risk.partials.exemption-list-table') -->
-<!-- @include('risk.partials.manual-ledger-deposit-balances') -->
+@include('risk.partials.exemption-list-table')
 
 <script>(function(){
 

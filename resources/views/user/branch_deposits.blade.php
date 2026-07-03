@@ -4,6 +4,8 @@
 
 @section('content')
 @php
+    $blockerUser = Sentinel::getUser();
+    $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
     $ledgerBlocker = \App\Helpers\BlockerHelper::ledger_blocker();
 @endphp
 <x-kilo-alert/>
@@ -178,9 +180,194 @@
             </div>
         </div>
     </section>
-    <!-- Display a width length ads div here, to look like a realistic ad -->
-    <!-- <div style="width: 98%; height: 90px; background: url('https://media.giphy.com/media/3oEjI6SIIHBdRxz40KG/200w.gif') center/cover no-repeat; border-radius: 6px; margin: 15px auto; cursor: pointer;" onclick="window.open('https://www.w3schools.com', '_blank');"></div> -->
+
+    <!-- Add the form for blocker-deposit-form here -->
     <section class="content">
+        <div class="box box-danger">
+            <div class="box-header with-border bg-red">
+                <h3 class="box-title">
+                    <i class="fa fa-money"></i> Record Setup Debt Deposit
+                </h3>
+            </div>
+            <div class="box-body">
+                <p class="text-muted" style="margin-bottom:20px;">
+                    Record payments towards your K5,000 monthly setup debt requirement. This will reduce your outstanding balance and may unblock loan operations.
+                </p>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <form id="setup-debt-deposit-form">
+                            <div class="form-group">
+                                <label style="font-weight:600; font-size:16px;">Payment Method <span class="text-danger">*</span></label>
+                                <select id="setup-payment-method" class="form-control" required style="font-size: 16px; padding: 0px; border-radius: 6px;">
+                                    <option value="">Select Method</option>
+                                    <option value="airtel">Airtel Money</option>
+                                    <option value="zanaco_express">Zanaco Express</option>
+                                    <option value="mtn">MTN MoMo</option>
+                                    <option value="zanaco_cash">Zanaco Cash Deposit</option>
+                                    <option value="access">Access</option>
+                                    <option value="withinhere">WithinHere</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight:600; font-size:16px;">Reference Number <span class="text-danger">*</span></label>
+                                <small id="setup-format-hint" class="text-muted" style="display:block; margin-bottom:6px; font-size:14px;">Enter Payment Reference Number</small>
+                                <input type="text" id="setup-reference" class="form-control" placeholder="Enter reference number" required style="font-size: 16px; padding: 12px; border-radius: 6px;">
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight:600; font-size:16px;">Amount (ZMW) <span class="text-danger">*</span></label>
+                                <input type="number" id="setup-amount" class="form-control" min="5000" step="0.01" placeholder="5000.00" required inputmode="decimal" style="font-size: 16px; padding: 12px; border-radius: 6px;">
+                                <small class="text-muted">Minimum: K5,000</small>
+                            </div>
+
+                            <div class="alert alert-info" style="margin-top:15px;">
+                                <i class="fa fa-info-circle"></i> <strong>Policy Warning:</strong> Please ensure you enter a correct and genuine Payment Reference Number. Incorrect or forged references will result in delayed processing.
+                            </div>
+
+                            <button type="submit" id="setup-submit-btn" class="btn btn-primary btn-lg" style="width:100%; font-size:16px; padding:14px; margin-top:10px;">
+                                <i class="fa fa-save"></i> Submit Setup Debt Deposit
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        @if($debtBlocker)
+                        <div class="info-box bg-yellow">
+                            <span class="info-box-icon"><i class="fa fa-exclamation-triangle"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Outstanding Balance</span>
+                                <span class="info-box-number">K5,000</span>
+                            </div>
+                        </div>
+                        <div class="callout callout-warning">
+                            <h4><i class="fa fa-info"></i> Note:</h4>
+                            <p style="font-size:13px;">Complete your monthly setup debt deposit to unlock all loan operations for your branch.</p>
+                        </div>
+                        @else
+                             <div class="info-box bg-green">
+                            <span class="info-box-icon"><i class="fa fa-exclamation-triangle"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Paid</span>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        $(document).ready(function() {
+            // Payment method hint updates
+            function updateSetupReferenceHint(method) {
+                var hintEl = $('#setup-format-hint');
+                var inputEl = $('#setup-reference');
+                inputEl.val('');
+                
+                switch (method) {
+                    case 'airtel':
+                        hintEl.text('Format: MP260223.0953.J76581');
+                        inputEl.attr('placeholder', 'MP260223.0953.J76581');
+                        break;
+                    case 'zanaco_express':
+                        hintEl.text('Format: 12 digit number (002504072516)');
+                        inputEl.attr('placeholder', '002504072516');
+                        break;
+                    case 'mtn':
+                        hintEl.text('Format: 10 digit number (8704564481)');
+                        inputEl.attr('placeholder', '8704564481');
+                        break;
+                    case 'zanaco_cash':
+                        hintEl.text('Format: 16 digit number (0502605703255600)');
+                        inputEl.attr('placeholder', '0502605703255600');
+                        break;
+                    case 'access':
+                        hintEl.text('Format: FJB2606341708208');
+                        inputEl.attr('placeholder', 'FJB2606341708208');
+                        break;
+                    case 'withinhere':
+                        hintEl.text('Format: 1777356230718931');
+                        inputEl.attr('placeholder', '1777356230718931');
+                        break;
+                    default:
+                        hintEl.text('Enter Payment Reference Number');
+                        inputEl.attr('placeholder', 'Enter reference number');
+                }
+            }
+
+            $('#setup-payment-method').on('change', function() {
+                updateSetupReferenceHint($(this).val());
+            });
+
+            // Form submission
+            $('#setup-debt-deposit-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                var paymentMethod = $('#setup-payment-method').val();
+                var reference = $('#setup-reference').val().trim();
+                var amount = parseFloat($('#setup-amount').val());
+
+                if (!paymentMethod) {
+                    alert('Please select a payment method.');
+                    return;
+                }
+                if (!reference) {
+                    alert('Please enter a payment reference number.');
+                    return;
+                }
+                if (isNaN(amount) || amount < 5000) {
+                    alert('Amount must be at least K5,000');
+                    return;
+                }
+
+                if (!confirm('Confirm: The K' + amount.toFixed(2) + ' deposit has been made and the details above are correct?')) {
+                    return;
+                }
+
+                // Disable submit button
+                var submitBtn = $('#setup-submit-btn');
+                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Processing...');
+
+                $.ajax({
+                    url: '{{ route("risk.setup-debt-transactions.store") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        office_id: {{ Sentinel::getUser()->office_id }},
+                        amount: amount,
+                        payment_method: paymentMethod,
+                        reference_number: reference,
+                        notes: 'Setup Debt Monthly Deposit - Branch Deposits Page'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Deposit recorded successfully! The page will now reload.');
+                            window.location.reload();
+                        } else {
+                            alert('Error: ' + (response.message || 'Unknown error occurred'));
+                            submitBtn.prop('disabled', false).html('<i class="fa fa-save"></i> Submit Setup Debt Deposit');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMsg = 'Failed to record deposit.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg += ' ' + xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            var errors = Object.values(xhr.responseJSON.errors).flat();
+                            errorMsg += ' ' + errors.join(', ');
+                        }
+                        alert(errorMsg);
+                        submitBtn.prop('disabled', false).html('<i class="fa fa-save"></i> Submit Setup Debt Deposit');
+                    }
+                });
+            });
+        });
+    </script>
+    
+        <section class="content">
         <div id="depositSteps">
             <div id="depositStepsShimmer" style="display: flex; flex-direction: column; gap: 20px; padding: 20px;">
                 <div style="background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); animation: shimmerCard 1.5s infinite;">
@@ -408,7 +595,7 @@ $(document).ready(function () {
         }
         
         console.log('✓ All mandatory deposits are fully paid!');
-        return true;
+        return false;
     }
 
     function shouldLockDeposit(name, total, monthlyRequired) {
@@ -534,7 +721,7 @@ function lockAll() {
 
 
         
-    function loadDepositCardData(depositId, depositName, officeId, container, method) {
+    function loadDepositCardData(depositId, depositName, officeId, container, method, callback) {
     var selectedMonth = $('#monthFilter').val();
     $.ajax({
         url: `${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}&month=${selectedMonth}`,
@@ -693,6 +880,11 @@ function lockAll() {
                     </div>
                 </div>
             `);
+            
+            if (callback) callback();
+        },
+        error: function() {
+            if (callback) callback();
         }
     });
 }
@@ -709,53 +901,122 @@ function lockAll() {
         var loadedCount = 0;
         var totalDeposits = deposits.length;
 
-        deposits.forEach(function (d) {
-            loadDepositCardData(d.id, d.name, branchId, container, d.method);
-        });
-        $('#depositStepsShimmer').hide();
+        // Load cards sequentially to maintain order
+        function loadNext(index) {
+            if (index >= deposits.length) {
+                $('#depositStepsShimmer').hide();
+                return;
+            }
+            
+            var d = deposits[index];
+            var depositId = d.id;
+            var depositName = d.name;
+            var method = d.method;
+            var officeId = branchId;
+            
+            var selectedMonth = $('#monthFilter').val();
+            $.ajax({
+                url: `${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}&month=${selectedMonth}`,
+                method: 'GET',
+                success: function(res) {
+                    var depositData = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+                    var monthlyRequired = parseFloat(res.monthly_required || res.total_required || (depositData.length > 0 ? parseFloat(depositData[0].monthly_amount || 0) : 0));
+                    var total = 0;
+                    
+                    var monthly_amt = depositData[0]?.monthly_amount || 0;
+                    var d_type = depositData[0]?.deposit_type || null;
+                    depositData.forEach(function(dep) {
+                        total += parseFloat(dep.amount) || 0;
+                    });
+                    var balance = monthlyRequired - total;
+                    
+                    var statusText = 'Not Paid';
+                    var statusColor = '#e74c3c';
+                    if (total > 0 && monthlyRequired > total) {
+                        statusText = 'Partially Paid';
+                        statusColor = '#f39c12';
+                    } else if (total > 0 && monthlyRequired <= total) {
+                        statusText = 'Fully Paid';
+                        statusColor = '#27ae60';
+                    }
+
+                    var gateStatus = shouldLockDeposit(depositName, total, monthlyRequired);
+                    
+                    var $card = $(`
+                        <div class="deposit-item deposit-card ${shouldLockDeposit(depositName, total, monthlyRequired) ? 'locked ' : ''}" 
+                             data-deposit-id="${depositId}" 
+                             data-office-id="${officeId}" 
+                             data-method="${method || ''}"
+                             data-total="${total}"
+                             data-monthly-required="${monthlyRequired}"
+                             data-deposit-type="${d_type || depositId}"
+                             data-sort-order="${d.sort_order || 0}">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                                <h4 class="deposit-title" style="margin:0;">${depositName}</h4>
+                                <span style="background:${statusColor};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">${statusText}</span>
+                            </div>
+                        
+                            <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">
+                                <div style="flex: 1; background: #e8f4fc; border-radius: 6px; padding: 12px 15px;">
+                                    <small style="color: #343a40; font-weight: 600; font-size: 12px;">Monthly Fee</small>
+                                    <div style="color: #003366; font-weight: 700; font-size: 16px; margin-top: 4px;">K${monthly_amt || 0}</div>
+                                </div>
+                                <div style="flex: 1; background: #f0f7f0; border-radius: 6px; padding: 12px 15px;">
+                                    <small style="color: #343a40; font-weight: 600; font-size: 12px;">Current Paid</small>
+                                    <div style="color: #006600; font-weight: 700; font-size: 16px; margin-top: 4px;">K${total.toLocaleString() || 0}</div>
+                                </div>
+                                <div style="flex: 1; background: #fff3cd; border-radius: 6px; padding: 12px 15px;">
+                                    <small style="color: #343a40; font-weight: 600; font-size: 12px;">Balance</small>
+                                    <div style="color: #856404; font-weight: 700; font-size: 16px; margin-top: 4px;">K${monthlyRequired === 0 && balance < 0 ? (-1 * balance).toLocaleString() : balance.toLocaleString() || 0}</div>
+                                </div>
+                            </div>
+                            <div class="deposit-btns">
+                              <button class="this-month-btn btn btn-success btn-sm">This Month Deposit</button>
+                              <button class="deposit-history-btn btn btn-info btn-sm">Check Deposit History</button>
+                            </div>
+                            <label class="deposit-label">Payment Method</label>
+                            <select class="form-control payment-method">
+                                <option value="">Select Method</option>
+                                <option value="airtel">Airtel Money</option>
+                                <option value="zanaco_express">Zanaco Express</option>
+                                <option value="mtn">MTN MoMo</option>
+                                <option value="zanaco_cash">Zanaco Cash Deposit</option>
+                                <option value="access">Access</option>
+                                <option value="absa">Absa</option>
+                                <option value="withinhere">WithinHere</option>
+                                <option value="zanaco_online_transfer">Zanaco Online Transfer</option>
+                            </select>
+                            <br>
+                            <small class="text-muted format-hint">Enter Payment Reference Number</small>
+                            <input type="text" class="form-control reference" placeholder="Enter reference number" required>
+                            <br>
+                            <input type="number" class="form-control amount" placeholder="Enter amount to add" min="5000" step="0.01" required>
+                            <br>
+                            <button class="btn btn-primary complete-btn" style="min-width: 100px;">
+                                <span class="btn-text">Save Deposit</span>
+                                <span class="btn-loader" style="display: none; margin-left: 8px;">
+                                    <i class="fa fa-spinner fa-spin"></i>
+                                </span>
+                            </button>
+                        </div>
+                    `);
+                    container.append($card);
+                    
+                    // Load next card
+                    loadNext(index + 1);
+                },
+                error: function() {
+                    // Continue loading even if one fails
+                    loadNext(index + 1);
+                }
+            });
+        }
+        
+        // Start loading from first deposit
+        loadNext(0);
     }).fail(function() {
         $('#depositStepsShimmer').hide();
     });
-
-    // // This Month button handler
-    // $(document).on('click', '.this-month-btn', function() {
-    //     var $card = $(this).closest('.deposit-card');
-    //     var depositId = $card.data('deposit-id');
-    //     var officeId = $card.data('office-id');
-        
-    //     var selectedMonth = $('#monthFilter').val();
-    //     $.get(`${depositApiUrl}/deposit-types/${depositId}/this-month?office_id=${officeId}&month=${selectedMonth}`, function(res) {
-    //         var deposits = res.data || [];
-    //         var monthlyRequired = res.monthly_required || (deposits.length > 0 ? parseFloat(deposits[0].monthly_amount || 0) : 0);
-    //         var $tbody = $('#thisMonthDepositTable').empty();
-    //         var total = 0;
-    //         var monthly_amt = deposits[0]?.monthly_amount || 0;
-    //         var d_type = deposits[0]?.deposit_type || null;
-    //         deposits.forEach(function(d) {
-    //             var amount = parseFloat(d.amount) || 0;
-    //             total += amount;
-    //             var dateVal = formatDate(d.date || d.created_at);
-    //             $tbody.append('<tr>' +
-    //                 '<td style="padding:6px;">' + dateVal + '</td>' +
-    //                 '<td style="padding:6px; text-align:right;">' + amount.toLocaleString() + '</td>' +
-    //                 '<td style="padding:6px;">' + (d.bank_deposit_log_method || '-') + '</td>' +
-    //                 '<td style="padding:6px; font-family:monospace; font-size:11px;">' + (d.bank_deposit_log_reference_number || '-') + '</td>' +
-    //                 '</tr>');
-    //         });
-    //         var required = monthlyRequired * 1;
-    //         var balance = required - total;
-    //         $('#thisMonthDepositReceived').text('K' + total.toLocaleString());
-    //         $('#thisMonthDepositRequired').text('K' + required.toLocaleString());
-    //         $('#thisMonthDepositBalance').text('K' + balance.toLocaleString());
-    //         $card.find('.existing-amount').text('Current Amount: K' + total.toLocaleString());
-    //         $card.find('.monthly-required').text('Monthly Required: K' + required.toLocaleString());
-    //         $card.find('.current-balance').text('Current Month Balance: K' + balance.toLocaleString());
-    //         $('#thisMonthDepositModal .modal-title').text('This Month Deposits: ' + ($card.find('.deposit-title').text() || '-'));
-    //         $('#thisMonthDepositModal').modal('show');
-    //     }).fail(function(xhr, status, error) {
-    //         console.error('Failed to fetch this month deposits:', error);
-    //     });
-    // });
 
     // Deposit History button handler
     $(document).on('click', '.deposit-history-btn', function() {
@@ -822,17 +1083,27 @@ function lockAll() {
             console.log('Deposit Check Response:', response);
             unlockAll();
             $('#depositSteps').empty();
-            // depositOrder = [];
+            
             $.get(`${depositApiUrl}/deposit-types`, function (res) {
                 var deposits = res.data || res;
                 deposits.sort(function(a, b) {
                     return (a.sort_order || 0) - (b.sort_order || 0);
                 });
-                deposits.forEach(function (d) {
-                    // depositOrder.push(d.id);
-                    loadDepositCardData(d.id, d.name, branchId, $('#depositSteps'), d.method);
-                });
-                $('#depositStepsShimmer').hide();
+                
+                // Load cards sequentially to maintain order
+                function loadNext(index) {
+                    if (index >= deposits.length) {
+                        $('#depositStepsShimmer').hide();
+                        return;
+                    }
+                    
+                    var d = deposits[index];
+                    loadDepositCardData(d.id, d.name, branchId, $('#depositSteps'), d.method, function() {
+                        loadNext(index + 1);
+                    });
+                }
+                
+                loadNext(0);
             }).fail(function() {
                 $('#depositStepsShimmer').hide();
             });

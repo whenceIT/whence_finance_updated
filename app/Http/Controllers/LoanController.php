@@ -757,11 +757,6 @@ class LoanController extends Controller
     public function pending_client_app_applications()
     {
         
-        if (!Sentinel::hasAccess('expenses')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
-
             $province_transactions = [];
 
 
@@ -770,6 +765,21 @@ class LoanController extends Controller
          $province_id = Sentinel::getUser()->province_id;
          $role = UserRole::where('user_id', $userId)->first();
          $office_id = Sentinel::getUser()->office_id;
+
+
+
+    if ($role->role_id == "3") {
+    $userId = Sentinel::getUser()->id;
+
+    $data = Client::where('status', 'active')
+        ->where('staff_id', $userId)
+        ->whereIn('id', function ($query) {
+            $query->select('client_id')
+                ->from('client_app_loan_applications')
+                ->where('status', 'pending');
+        })
+        ->get();
+}
 
         if($role->role_id == "6"){
               foreach ($offices as $office) {
@@ -785,9 +795,9 @@ class LoanController extends Controller
 
         }else{
              if (Sentinel::hasAccess('settings')) {
-                $data =  ClientAppLoanApplications::get();
+                $data =  ClientAppLoanApplications::where('status','pending')->get();
             } else {
-                $data = ClientAppLoanApplications::where('branch', $office_id)->get();
+                $data = ClientAppLoanApplications::where('branch', $office_id)->where('status','pending')->get();
             }
         }
 
@@ -1148,7 +1158,7 @@ public function create()
             return redirect()->back();
         } else {
 
-$number = $request->query('office_id');
+$number = $request->query('number');
 $amount = $request->query('amount');
             
             // Log audit for creating a new client loan, log client information
@@ -1158,6 +1168,15 @@ $amount = $request->query('amount');
                 compact('client', 'loan_product', 'userBranch','number','amount')
             );
         }
+    }
+
+
+    public function decline_client_application($id)
+    {
+     $application = ClientAppLoanApplications::find($id);
+     $application->status = 'declined';
+     $application->save();
+     return redirect('loan/pending_client_app_applications');
     }
 
     public function create_group_loan($group, $loan_product)
@@ -1289,6 +1308,15 @@ $amount = $request->query('amount');
                 $loan->year = $date[0];
                 $loan->phone_number = $request->phone_number;
 		        $loan->save();
+
+                $application = ClientAppLoanApplications::where('client_id', $client->id)
+    ->where('status', 'pending')
+    ->first();
+
+if ($application) {
+    $application->status = 'approved';
+    $application->save();
+}
 
             // Broadcast loan created event for real-time updates
             \Illuminate\Support\Facades\Log::info('LoanCreated event firing for loan ID: ' . $loan->id);

@@ -16,6 +16,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BranchDepositController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GOAController;
 use Illuminate\Support\Facades\Route;
@@ -455,7 +456,11 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('get_districts_by_province/{id}', 'UserController@get_districts_by_province');
     Route::get('get_district_regionals_by_district/{id}', 'UserController@get_district_regionals_by_district');
 
-     Route::get('branch_deposits','UserController@branch_deposits');
+    //  Route::get('branch_deposits','UserController@branch_deposits');
+     Route::get('branch_deposits','BranchDepositController@branchDeposits');
+     Route::get('branch-deposits','BranchDepositController@branchDeposits');
+     Route::get('branch-deposits/standalone','BranchDepositController@standalonePage')->name('branch-deposits.standalone');
+     Route::get('branch-deposits/overall-history','BranchDepositController@getOverallHistory')->name('branch-deposits.overall-history');
      Route::get('deposit_logs','UserController@deposit_logs');
 });
 //route for offices
@@ -482,6 +487,10 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
     Route::get('branch-ranking', [RiskController::class, 'branchRanking'])->name('risk.branch-ranking');
     Route::get('branch-deposit-audit', [RiskController::class, 'branchDepositAudit'])->name('risk.branch-deposit-audit');
+    Route::get('exemption-list', [RiskController::class, 'exemptionList'])->name('risk.exemption-list');
+    Route::get('blocked-list', [BranchDepositController::class, 'blockages'])->name('risk.blocked-list');
+    Route::post('blockages', [BranchDepositController::class, 'storeBlockage'])->name('blockages.store');
+    Route::delete('blockages/{id}', [BranchDepositController::class, 'destroyBlockage'])->name('blockages.destroy');
     Route::get('block-skip-settings', [PlatformController::class, 'blockSkipSettings'])->name('platform.block-skip-settings');
     Route::get('branch-deposit-audit/type/{depositTypeId}', [RiskController::class, 'branchDepositAuditByType']);
     Route::get('recovery-efficiency', [RiskController::class, 'recoveryEfficiency']);
@@ -516,6 +525,16 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('debt-balances',            [RiskController::class, 'listDebtBalances'])->name('risk.debt-balances.list');
     Route::put('debt-balances/{id}',       [RiskController::class, 'updateDebtBalance'])->name('risk.debt-balances.update');
     Route::delete('debt-balances/{id}',    [RiskController::class, 'deleteDebtBalance'])->name('risk.debt-balances.destroy');
+
+    // ── Setup Debt Management ───────────────────────────────────────────────────
+    Route::get('setup-debt-management',            [RiskController::class, 'setupDebtManagement'])->name('risk.setup-debt-management');
+    Route::post('setup-debt-costs',                [RiskController::class, 'storeSetupDebtCost'])->name('risk.setup-debt-costs.store');
+    Route::get('setup-debt-costs/{id}',            [RiskController::class, 'getSetupDebtCost'])->name('risk.setup-debt-costs.show');
+    Route::put('setup-debt-costs/{id}',            [RiskController::class, 'updateSetupDebtCost'])->name('risk.setup-debt-costs.update');
+    Route::delete('setup-debt-costs/{id}',         [RiskController::class, 'deleteSetupDebtCost'])->name('risk.setup-debt-costs.destroy');
+    Route::get('setup-debt-costs/{id}/transactions', [RiskController::class, 'getSetupDebtTransactions'])->name('risk.setup-debt-costs.transactions');
+    Route::post('setup-debt-transactions',         [RiskController::class, 'storeSetupDebtTransaction'])->name('risk.setup-debt-transactions.store');
+    Route::delete('setup-debt-transactions/{id}',  [RiskController::class, 'deleteSetupDebtTransaction'])->name('risk.setup-debt-transactions.destroy');
 
     // ── Deposit query endpoint ───────────────────────────────────────────────
     Route::get('deposits/query',          [RiskController::class, 'queryDeposits'])->name('risk.deposits.query');
@@ -821,6 +840,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('recovery_case_approve/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseApprove');
     Route::get('recovery_case_decline/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseDecline');
     Route::get('pending_client_app_applications','LoanController@pending_client_app_applications');
+    Route::get('{id}/decline_client_application','LoanController@decline_client_application');
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
     Route::get('loan/waiver-approvals', 'LoanController@showWaiver')->name('waiver.approvals');

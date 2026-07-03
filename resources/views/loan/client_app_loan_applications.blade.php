@@ -62,6 +62,10 @@
    onclick="return confirm('Are you sure?')">
    Approve
 </a>
+
+ <a href="{{ url('loan/'.$key->id.'/decline_client_application')}}"  onclick="return confirm('Are you sure?')">
+                            <span class="label label-danger style="color:red" >Decline</span>
+                            </a>
                        
                         </td>
                     </tr>
