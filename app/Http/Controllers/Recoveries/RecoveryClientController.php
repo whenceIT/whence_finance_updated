@@ -61,9 +61,8 @@ class RecoveryClientController extends Controller
     public function recovery_clients()
     {
 
-        
+
         $user = Sentinel::getUser();
-        $userInfo = GeneralHelper::get_user_info();
         $type = request()->get('type', 'dormant');
         $search = request()->get('search', '');
 
@@ -93,11 +92,15 @@ class RecoveryClientController extends Controller
                 }, 'office', 'staff']);
         }
 
-        if ($userInfo->role == 6) {
+        if (!$user || !$user->role) {
+            return redirect()->route('login');
+        }
+        
+        if ($user->role->role_id == 6) {
             $clientQuery->whereHas('office', function ($q) use ($user) {
                 $q->where('province_id', $user->province_id);
             });
-        } elseif ($userInfo->role == 4) {
+        } elseif ($user->role->role_id == 4) {
             $clientQuery->where('office_id', $user->office_id);
         }
 

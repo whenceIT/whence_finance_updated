@@ -102,7 +102,7 @@
         </div>
         <div class="bento-content">
             <div class="bento-title">Total Amount Recovered</div>
-            <div class="bento-value">K{{ number_format($totalAmount, 2) + $funds}}</div>
+            <div class="bento-value">K{{ number_format($totalAmount + $funds, 2) }}</div>
             <div class="bento-footer">Sum of all approved recovery transactions</div>
         </div>
     </div>

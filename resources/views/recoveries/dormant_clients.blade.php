@@ -214,7 +214,7 @@
         }
 
         $.ajax({
-            url: '{{ url('client') }}/' + clientId + '/mark-recovered',
+            url: '{{ route('client.mark_recovered', ['id' => clientId]) }}',
             type: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
