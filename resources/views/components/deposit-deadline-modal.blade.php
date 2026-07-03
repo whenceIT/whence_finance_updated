@@ -4,9 +4,9 @@
     <!-- Weekly Deposit Snackbars -->
     <div id="weeklyDepositSnackbars">
         <div class="deposit-snackbar week-1" id="snackbar-week1">
-            <div class="snackbar-icon">
+            <!-- <div class="snackbar-icon">
                 <i class="fa fa-building"></i>
-            </div>
+            </div> -->
             <div class="snackbar-content">
                 <strong>Week 1</strong>
                 <span>Complete <b>Building Deposit</b> fee in the 1st week</span>
@@ -14,9 +14,9 @@
         </div>
         
         <div class="deposit-snackbar week-2" id="snackbar-week2">
-            <div class="snackbar-icon">
+            <!-- <div class="snackbar-icon">
                 <i class="fa fa-briefcase"></i>
-            </div>
+            </div> -->
             <div class="snackbar-content">
                 <strong>Week 2</strong>
                 <span>Complete <b>Administration Deposit</b> fee in the 2nd week</span>
@@ -24,9 +24,9 @@
         </div>
         
         <div class="deposit-snackbar week-3" id="snackbar-week3">
-            <div class="snackbar-icon">
+            <!-- <div class="snackbar-icon">
                 <i class="fa fa-gavel"></i>
-            </div>
+            </div> -->
             <div class="snackbar-content">
                 <strong>Week 3</strong>
                 <span>Complete <b>Statutory Deposit</b>fee in the 3rd week</span>
@@ -248,8 +248,8 @@
     }
     
     .snackbar-icon {
-        width: 40px;
-        height: 40px;
+        width: 10px;
+        height: 10px;
         border-radius: 8px;
         display: flex;
         align-items: center;
