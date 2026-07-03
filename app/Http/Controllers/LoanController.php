@@ -3401,6 +3401,16 @@ if (
         $count = count($pending_transactions);
         $Trans = LoanTransactionUnapproved::find($trans_id);
         $loan_balance = GeneralHelper::loan_total_balance($loan->id);
+   $new_balance = 0;
+$debit_amount = 0;
+$credit_amount = 0;
+
+foreach (LoanTransaction::where('loan_id', $loan->id)->get() as $transaction) {
+    $debit_amount += $transaction->debit;
+    $credit_amount += $transaction->credit;
+}
+
+$new_balance = $debit_amount - $credit_amount;
         // $existing_transaction = LoanTransaction::where('loan_id', $id)->where('date', $Trans->date)->where('credit', $Trans->credit)->where('transaction_type', '!=', 'interest_waiver')->first();
         //disabled because client failing to add  2 transactions with same amount and date, we can add more checks to ensure its not a duplicate transaction instead of blocking all transactions with same amount and date
         // $existing_transaction = [];
@@ -3480,7 +3490,7 @@ if (
                 LoanTransactionUnapproved::where('id', $trans_id)->delete();
 
 
-                $new_loan_balance = $loan_balance - $Trans->credit;
+                $new_loan_balance = $new_balance - $Trans->credit;
 
                 event(new RepaymentCreated($loan_transaction));
 
