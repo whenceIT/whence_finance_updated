@@ -14,5 +14,10 @@ class ClientAppLoanApplications extends Model
         return $this->hasOne(Office::class, 'id', 'branch');
     }
 
+    public function client()
+{
+    return $this->belongsTo(Client::class, 'client_id');
+}
+
 }
 
