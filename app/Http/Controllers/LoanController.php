@@ -757,11 +757,6 @@ class LoanController extends Controller
     public function pending_client_app_applications()
     {
         
-        if (!Sentinel::hasAccess('expenses')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
-        }
-
             $province_transactions = [];
 
 
@@ -770,6 +765,21 @@ class LoanController extends Controller
          $province_id = Sentinel::getUser()->province_id;
          $role = UserRole::where('user_id', $userId)->first();
          $office_id = Sentinel::getUser()->office_id;
+
+
+
+    if ($role->role_id == "3") {
+    $userId = Sentinel::getUser()->id;
+
+    $data = Client::where('status', 'active')
+        ->where('staff_id', $userId)
+        ->whereIn('id', function ($query) {
+            $query->select('client_id')
+                ->from('client_app_loan_applications')
+                ->where('status', 'pending');
+        })
+        ->get();
+}
 
         if($role->role_id == "6"){
               foreach ($offices as $office) {
@@ -3615,7 +3625,7 @@ if (
                 return redirect('loan/' . $loan->id . '/show');
             }
         } catch (\Throwable $th) {
-            dd($th);
+            dd($th.' Contact IT Support');
             return null;
         }
     }

@@ -166,6 +166,13 @@
                     </span>
                 </a>
             </li>
+
+            <li><a href="{{ url('loan/pending_client_app_applications') }}"><i class="fa fa-mobile"></i>Client App Loan Applications<span class="label label-warning pull-right">
+{{ \App\Models\Client::where('status', 'active')
+    ->where('staff_id', Sentinel::getUser()->id)
+    ->whereIn('id', \App\Models\ClientAppLoanApplications::where('status', 'pending')->pluck('client_id'))
+    ->count() }}
+            </span></a></li>
             
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/cycle') }}">
@@ -1565,7 +1572,7 @@
                                 <a href="{{ url('recovery/specialist/data') }}"><i class="fa fa-circle-o"></i> Specialists</a>
                             </li>
                             <li class="@if(Request::is('client/dormant_clients')) active @endif">
-                                <a href="{{ url('client/dormant_clients') }}"><i class="fa fa-bell"></i> Dormant Clients</a>
+                                <a href="{{ url('recovery/dormant_clients') }}"><i class="fa fa-bell"></i> Dormant Clients</a>
                             </li>
                             <li class="@if(Request::is('recovery/nudge/*')) active @endif">
                                 <!-- <a href="{{ url('recovery/nudge/compose') }}"><i class="fa fa-bell"></i> Send Nudges</a> -->

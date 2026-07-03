@@ -5,6 +5,7 @@
 
 @push('scripts')
 <script>
+    alert('here');
 document.querySelectorAll('.nudge-ch').forEach(function(btn) {
     btn.addEventListener('click', function() {
         document.querySelectorAll('.nudge-ch').forEach(b => {
@@ -171,6 +172,7 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
             </div>
         </div>
     </div>
+    
 
     {{-- Actions: Payment + Cost --}}
     @if(!$case->is_resolved)
@@ -178,8 +180,13 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
         <div class="col-md-5">
             <div class="box box-success">
                 <div class="box-header with-border">
-                    <h3 class="box-title"><i class="fa fa-dollar"></i> Record Payment</h3>
+                    <h3 class="box-title"><i class="fa fa-dollar"></i> Record Repayment</h3>
                 </div>
+                @else
+                <div class="box-header with-border">
+                    <h3 class="box-title"><i class="fa fa-dollar"></i> Pending</h3>
+                </div>
+                @endif
                 <div class="box-body">
                     <p class="text-muted" style="font-size:13px;margin-bottom:14px">
                         Payments post through the loan repayment system for proper GL,
