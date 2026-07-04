@@ -256,6 +256,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
     {
         $user = Sentinel::getUser();
         $query = Advance::where('status', 'pending');
+        $role = UserRole::where('user_id', $user->id)->first()->role_id;
 
         if ($user->inRole(1)) {
             // Admin sees all
@@ -298,7 +299,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
 
 
         $advances = $query->get();
-        return view('advances.pending_approvals', compact('advances','cashBalance'));
+        return view('advances.pending_approvals', compact('advances','cashBalance','role'));
     }
 
     public function showActiveAdvances()
