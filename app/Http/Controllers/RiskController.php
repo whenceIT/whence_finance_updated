@@ -1690,7 +1690,61 @@ class RiskController extends Controller
             $dateTo   = $endDate;
         }
 
-        
+        $offices = \App\Helpers\StatsHelper::getActiveOffices();
+        $officeIds = $officeId ? [$officeId] : $offices->pluck('id')->all();
+
+        $depositQuery = \App\Models\Deposit::query()
+            ->with(['bankDepositLog', 'office'])
+            ->whereIn('office', $officeIds)
+            ->where('deposit_type', $depositTypeId);
+
+        if ($dateFrom !== null && $dateTo !== null) {
+            $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
+        }
+
+        $deposits = $depositQuery->get();
+
+        $officeMap = [];
+        foreach ($offices as $office) {
+            $officeMap[$office->id] = [
+                'office_id'   => $office->id,
+                'office_name' => $office->name,
+                'total'       => 0,
+                'deposit_count' => 0,
+                'deposits'    => [],
+            ];
+        }
+
+        foreach ($deposits as $dep) {
+            $oid = $dep->office;
+            if (!isset($officeMap[$oid])) {
+                $officeMap[$oid] = [
+                    'office_id'   => $oid,
+                    'office_name' => optional($dep->office)->name ?? '—',
+                    'total'       => 0,
+                    'deposit_count' => 0,
+                    'deposits'    => [],
+                ];
+            }
+
+            $amount = (float) $dep->amount;
+            $officeMap[$oid]['total'] += $amount;
+            $officeMap[$oid]['deposit_count']++;
+            $officeMap[$oid]['deposits'][] = [
+                'date'          => is_string($dep->date) ? $dep->date : $dep->date->format('Y-m-d'),
+                'amount'        => $amount,
+                'bank'          => $dep->bank,
+                'gl_account'    => $dep->gl_account,
+                'bank_deposit_log_id' => $dep->bankDepositLog?->id,
+            ];
+        }
+
+        return response()->json([
+            'deposit_type_id' => $depositTypeId,
+            'office_id'       => $officeId,
+            'period'          => $period,
+            'offices'         => array_values($officeMap),
+        ]);
     }
 
     /**

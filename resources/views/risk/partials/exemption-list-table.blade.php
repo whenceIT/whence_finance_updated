@@ -5,6 +5,7 @@
     <div class="card-body" style="padding: 0;">
         @php
             $exemptions = \App\Models\DepositMonthExemption::with(['office', 'depositType'])->get();
+            $grouped = $exemptions->groupBy('office_id');
         @endphp
         
         @if($exemptions->isEmpty())
@@ -13,39 +14,57 @@
             <table class="table" style="margin: 0; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f7f8fc;">
-                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">ID</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Office</th>
-                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Deposit Type</th>
-                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Months Excluded</th>
+                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Deposit Types</th>
+                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Exemptions</th>
+                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Total Months Excluded</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Months</th>
-                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Created</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($exemptions as $ex)
+                    @foreach($grouped as $officeId => $officeExemptions)
+                        @php
+                            $office = $officeExemptions->first()->office;
+                            $depositTypes = $officeExemptions->pluck('depositType.name')->map(function($name) {
+                                return $name ?? 'All Types';
+                            })->unique()->values()->toArray();
+                            $totalExemptions = $officeExemptions->count();
+                            $totalMonthsExcluded = $officeExemptions->sum('no_months_exclude');
+                        @endphp
                         <tr>
-                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                {{ $ex->id }}
+                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7; font-weight: 500;">
+                                {{ $office->name ?? 'Unknown Office' }}
                             </td>
                             <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                {{App\Models\DepositMonthExemption::office_name($ex->id)}}
+                                @foreach($depositTypes as $type)
+                                    <span style="display: inline-block; background: #667eea; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin: 2px; margin-right: 4px;">
+                                        {{ $type }}
+                                    </span>
+                                @endforeach
                             </td>
                             <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                {{ $ex->depositType->name ?? 'All Types' }}
+                                {{ $totalExemptions }}
                             </td>
                             <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                {{ $ex->no_months_exclude }}
+                                {{ $totalMonthsExcluded }}
                             </td>
                             <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                @if($ex->months && count($ex->months) > 0)
-                                    {{ implode(', ', array_map(function($m) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][$m-1] ?? $m; }, $ex->months)) }}
+                                @php
+                                    $allMonths = [];
+                                    foreach($officeExemptions as $ex) {
+                                        if(!empty($ex->months)) {
+                                            $allMonths = array_merge($allMonths, $ex->months);
+                                        }
+                                    }
+                                    $uniqueMonths = array_unique($allMonths);
+                                @endphp
+                                @if(!empty($uniqueMonths))
+                                    {{ implode(', ', array_map(function($m) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][$m-1] ?? $m; }, $uniqueMonths)) }}
                                 @else
                                     <span style="color: #999;">—</span>
                                 @endif
                             </td>
-                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7; color: #888;">
-                                {{ $ex->created_at->format('Y-m-d') }}
-                            </td>
+                            <!-- Add an Edit Button -->
                         </tr>
                     @endforeach
                 </tbody>
