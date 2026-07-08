@@ -127,7 +127,7 @@ class ProvincialLedgerController extends Controller
         $expenses = $query->with('province')->orderBy('created_at', 'desc')->get();
         $total = $expenses->sum('amount');
 
-        return view('provincial-ledger.expenses', compact('expenses', 'total', 'provinces', 'isAdmin', 'selectedProvinceId', 'provincialLedgerEnabled'));
+        return view('provincial-ledger.expenses', compact('expenses', 'total', 'provinces', 'isAdmin', 'selectedProvinceId'));
     }
 
     public function balance()

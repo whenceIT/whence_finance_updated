@@ -9,17 +9,6 @@ use Illuminate\Database\Eloquent\Builder;
 class User extends EloquentUser
 {
 
-
-    //Where ever User's model is queried, Inactive users will be excluded by default. To include them, use the withTrashed() method.
-    // protected static function boot()
-    // {
-    //     parent::boot();
-
-    //     static::addGlobalScope('excludeInactive', function (Builder $builder) {
-    //         $builder->where('status', '<>', 'Inactive');
-    //     });
-    // }
-
     protected $fillable = [
         'email',
         'password',
