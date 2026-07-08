@@ -101,6 +101,7 @@
                     '<th style="padding:8px;">Method</th>' +
                     '<th style="padding:8px;">Reference</th>' +
                     '<th style="padding:8px;">Date</th>' +
+                    '<th style="padding:8px;">Action</th>' +
                     '</tr></thead><tbody>';
                 
                 deposits.forEach(function(d) {
@@ -113,6 +114,8 @@
                     var methodVal = d.bank_deposit_log ? (d.bank_deposit_log.deposit_method || 'Cash') : 'Cash';
                     var refVal = d.bank_deposit_log ? (d.bank_deposit_log.reference_number || 'N/A') : 'N/A';
                     var amountVal = d.amount || 0;
+                    var depositId = d.id;
+                    var logId = d.bank_deposit_log ? d.bank_deposit_log.id : null;
                     
                     table += '<tr>' +
                         '<td style="padding:6px;">' + typeVal + '</td>' +
@@ -121,6 +124,7 @@
                         '<td style="padding:6px;">' + methodVal + '</td>' +
                         '<td style="padding:6px; font-family:monospace; font-size:11px;">' + refVal + '</td>' +
                         '<td style="padding:6px;">' + dateVal + '</td>' +
+                        '<td style="padding:6px;"><button class="btn btn-xs btn-danger btn-delete-deposit" data-deposit-id="' + depositId + '"><i class="fa fa-trash"></i></button></td>' +
                         '</tr>';
                 });
                 
@@ -150,6 +154,39 @@
                             }
                         })
                         .catch(err => console.error('Save error:', err));
+                    });
+                });
+                
+                resultDiv.querySelectorAll('.btn-delete-deposit').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var depositId = this.getAttribute('data-deposit-id');
+                        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        
+                        if (!confirm('Are you sure you want to delete this deposit?')) {
+                            return;
+                        }
+                        
+                        fetch('/risk/deposits/delete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify({ deposit_id: depositId })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.closest('tr').remove();
+                            } else {
+                                alert(data.message || 'Failed to delete deposit');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Delete error:', err);
+                            alert('Error deleting deposit');
+                        });
                     });
                 });
             })

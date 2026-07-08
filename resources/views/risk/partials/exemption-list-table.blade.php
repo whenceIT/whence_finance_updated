@@ -5,6 +5,8 @@
     <div class="card-body" style="padding: 0;">
         @php
             $exemptions = \App\Models\DepositMonthExemption::with(['office', 'depositType'])->get();
+            $depositTypes = \App\Models\DepositType::orderBy('name')->get();
+            $offices = \App\Models\Office::orderBy('name')->get();
         @endphp
         
         @if($exemptions->isEmpty())
@@ -13,38 +15,50 @@
             <table class="table" style="margin: 0; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f7f8fc;">
-                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">ID</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Office</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Deposit Type</th>
-                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Months Excluded</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Months</th>
-                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Created</th>
+                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Amount Exempted</th>
+                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($exemptions as $ex)
+                    @foreach($exemptions as $exemption)
+                        @php
+                            $office = $exemption->office;
+                            $depositType = $exemption->depositType;
+                            $months = $exemption->months ?? [];
+                            $monthlyAmount = $depositType ? $depositType->monthly_amount : 0;
+                            $amountExcluded = $monthlyAmount * $exemption->no_months_exclude;
+                            $depositTypeName = $depositType ? $depositType->name : 'All Types';
+                        @endphp
                         <tr>
-                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                {{ $ex->id }}
+                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7; font-weight: 500;">
+                                {{ $office ? $office->name : 'Unknown Office' }}
                             </td>
                             <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                {{App\Models\DepositMonthExemption::office_name($ex->id)}}
+                                <span style="display: inline-block; background: #667eea; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px;">
+                                    {{ $depositTypeName }}
+                                </span>
                             </td>
                             <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                {{ $ex->depositType->name ?? 'All Types' }}
-                            </td>
-                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                {{ $ex->no_months_exclude }}
-                            </td>
-                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                @if($ex->months && count($ex->months) > 0)
-                                    {{ implode(', ', array_map(function($m) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][$m-1] ?? $m; }, $ex->months)) }}
+                                @if(!empty($months))
+                                    @foreach($months as $m)
+                                        <span style="display: inline-block; background: #667eea; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin: 2px; margin-right: 4px;">
+                                            {{ ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][$m-1] ?? $m }}
+                                        </span>
+                                    @endforeach
                                 @else
                                     <span style="color: #999;">—</span>
                                 @endif
                             </td>
-                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7; color: #888;">
-                                {{ $ex->created_at->format('Y-m-d') }}
+                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
+                                K{{ number_format($amountExcluded, 2) }}
+                            </td>
+                            <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="openEditExemptModal({{ json_encode($exemption) }})">
+                                    <i class="fa fa-edit"></i> Edit
+                                </button>
                             </td>
                         </tr>
                     @endforeach
@@ -53,3 +67,5 @@
         @endif
     </div>
 </div>
+
+@include('risk.partials.deposit-exempt-modal', ['depositTypes' => $depositTypes, 'offices' => $offices])

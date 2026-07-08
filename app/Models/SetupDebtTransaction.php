@@ -15,8 +15,10 @@ class SetupDebtTransaction extends Model
         'office_id',
         'amount',
         'transaction_date',
+        'reference_number',
         'notes',
         'created_by',
+        'status',
     ];
 
     protected $casts = [

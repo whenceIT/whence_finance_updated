@@ -5,7 +5,7 @@
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <h3 style="margin:0;">Provincial Expenses</h3>
         <div style="display:flex; gap:8px; align-items:center;">
-            @if(!empty($isAdmin))
+            @if(!empty($isAdmin) && !in_array(Sentinel::getUser()->id, config('admin.provincial_ledger_enabled', [])))
                 <form method="GET" action="{{ route('provincial-ledger.expenses') }}" style="display:flex; gap:8px; align-items:center; margin:0;">
                     <label for="province_id" style="margin:0; font-weight:600;">Province</label>
                     <select id="province_id" name="province_id" class="form-control" onchange="this.form.submit()" style="min-width:220px;">
@@ -17,7 +17,7 @@
                 </form>
             @endif
 
-            @if(Sentinel::getUser()->role->role_id == 6)
+            @if(Sentinel::getUser()->role->role_id == 6 || in_array(Sentinel::getUser()->id, config('admin.provincial_ledger_enabled', [])))
              <button type="button" class="btn btn-danger" onclick="openTransactionModal('expense')"><i class="fa fa-plus"></i> Record Expense</button>
             @endif
         </div>

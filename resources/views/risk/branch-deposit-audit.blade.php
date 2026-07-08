@@ -131,6 +131,75 @@
     .od-form-group input:focus, .od-form-group select:focus, .od-form-group textarea:focus { border-color: #667eea; }
     .od-editable-highlight { border: 3px solid #2196f3 !important; box-shadow: 0 0 0 3px rgba(33,150,243,0.25); }
 
+    /* Drill-down office/deposit table */
+    .da-office-row {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        background: #fafafa;
+        overflow: hidden;
+    }
+    .da-office-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: #f0f4f8;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .da-office-name {
+        font-weight: 600;
+        color: #333;
+    }
+    .da-office-months {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    .da-month-box {
+        width: 36px;
+        height: 40px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        position: relative;
+        border: 1px solid #ddd;
+    }
+    .da-month-box.da-month-has-deposits {
+        background: #27ae60;
+        color: #fff;
+        border-color: #27ae60;
+    }
+    .da-month-box.da-month-has-deposits .da-month-amount {
+        font-size: 9px;
+        color: #fff;
+    }
+    .da-month-box.da-month-past-no-deposits,
+    .da-month-box.da-month-current-no-deposits {
+        background: #ffebee;
+        color: #c62828;
+        border-color: #ffcdd2;
+    }
+    .da-month-box.da-month-future-no-deposits {
+        background: transparent;
+        color: #999;
+        border-color: #ddd;
+    }
+    .da-month-amount {
+        position: absolute;
+        bottom: 3px;
+        font-size: 8px;
+    }
+    .da-office-no-deposits {
+        padding: 12px 14px;
+        text-align: center;
+        color: #888;
+        font-style: italic;
+    }
+
     /* Action cell */
     .od-actions { display: flex; gap: 4px; }
     .od-btn { padding: 3px 8px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; }
@@ -199,7 +268,7 @@
         <!-- <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-stop"></i> Exempt Offices
         </button> -->
-        <button type="button" id="openDepositExemptModal" class="btn btn-outline-primary btn-sm" style="border-radius:6px; margin-top:4px;">
+        <button type="button" id="btnOpenDepositExemptModal" class="btn btn-outline-primary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-calendar-times-o"></i> Exempt Months
         </button>
         <!-- <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
@@ -223,7 +292,6 @@
 
     @include('risk.partials.deposit-query-modal', ['offices' => $offices ?? []])
     @include('risk.partials.failed-deposits-modal')
-    @include('risk.partials.deposit-exempt-modal', ['offices' => $offices ?? [], 'depositTypes' => $depositTypes ?? []])
 
 
     <div class="da-filter-bar">
@@ -422,7 +490,7 @@
               </div>
          </div>
 
-        @foreach($types as $t)
+@foreach($types as $t)
             @php
                 $tid = $t['id'];
                 $tname = $t['name'];
@@ -437,24 +505,10 @@
                     <div class="left">
                         <span class="toggle-icon"><i class="fa fa-caret-right"></i></span>
                         <span class="type-name">{{ $tname }}</span>
-                        <span class="type-meta">{{ $tbank }} &nbsp;|&nbsp; GL: {{ $tgl }}</span>
                     </div>
                     <div class="right-group">
                         <div class="da-stats">
-                            <span class="da-stat" title="Total offices">
-                            <span class="da-stat" title="Total offices">
-                                <i class="fa fa-building"></i> <strong>{{ $tcount }}</strong> offices
-                            </span>
-                            <span class="da-stat" title="Offices with deposits">
-                            </span> 
-                            <span class="da-stat" title="Offices with deposits">
-                                <i class="fa fa-check-circle" style="color:#000"></i> <strong>{{ $withDep }}</strong> with deposits
-                            </span>
-                            </span>
-                             <span class="da-stat" title="Overall total amount across all offices">
-                                <i class="fa fa-line-chart" style="color:#000"></i> <strong>K{{ number_format((float)$ttotal, 2) }}</strong> total
-                            </span>
-                            <i class="fa fa-check-circle" style="color:#000"></i> 
+                            
                         </div>
                     </div>
                 </div>
@@ -538,17 +592,6 @@ var csrf = (function(){
         var m = document.querySelector('meta[name="csrf-token"]');
         return m ? m.getAttribute('content') : '';
     })();
-
-    document.querySelectorAll('.da-type-header').forEach(function(header) {
-        header.addEventListener('click', function() {
-            var card   = header.closest('.da-type-card');
-            if (!card) return;
-            var typeId = card.getAttribute('data-type-id');
-            var body   = document.getElementById('da-body-' + typeId);
-
-            card.classList.toggle('open');
-        });
-    });
 
     // Period filter — wired via addEventListener so the handler is in the same scope
     (function() {
@@ -1200,17 +1243,17 @@ document.getElementById('closeDepositQueryModal').addEventListener('click', func
     document.getElementById('depositQueryModal').style.display = 'none';
 });
 
-document.getElementById('openFailedDepositsModal').addEventListener('click', function() {
-    document.getElementById('failedDepositsModal').style.display = 'block';
-});
+// document.getElementById('openFailedDepositsModal').addEventListener('click', function() {
+//     document.getElementById('failedDepositsModal').style.display = 'block';
+// });
 
-document.getElementById('closeFailedDepositsModal').addEventListener('click', function() {
-    document.getElementById('failedDepositsModal').style.display = 'none';
-});
+// document.getElementById('closeFailedDepositsModal').addEventListener('click', function() {
+//     document.getElementById('failedDepositsModal').style.display = 'none';
+// });
 
-document.getElementById('openDepositExemptModal').addEventListener('click', function() {
-    if (typeof window.openDepositExemptModal === 'function') {
-        window.openDepositExemptModal();
+document.getElementById('btnOpenDepositExemptModal').addEventListener('click', function() {
+    if (typeof window.openEditExemptModal === 'function') {
+        window.openEditExemptModal();
     }
 });
 
@@ -1220,11 +1263,11 @@ if (officeIdParam) {
 }
 
 // ── Debt Balances Modal ────────────────────────────────────────────────────────
-document.getElementById('openDebtBalancesModal').addEventListener('click', function() {
-    $('#debtBalancesModal').modal('show');
-    // Reset form
-    document.getElementById('debtBalancesForm').reset();
-});
+// document.getElementById('openDebtBalancesModal').addEventListener('click', function() {
+//     $('#debtBalancesModal').modal('show');
+//     // Reset form
+//     document.getElementById('debtBalancesForm').reset();
+// });
 
 // ── Handle Debt Balances Form Submission ───────────────────────────────────────
 document.getElementById('debtBalancesForm').addEventListener('submit', function(e) {
@@ -1256,8 +1299,6 @@ document.getElementById('debtBalancesForm').addEventListener('submit', function(
                 KiloAlert.success(response.message || 'Debt balance recorded successfully!');
                 $('#debtBalancesModal').modal('hide');
                 document.getElementById('debtBalancesForm').reset();
-                // Optionally reload the page or update the stats
-                // location.reload();
             } else {
                 KiloAlert.error(response.message || 'Failed to record debt balance.');
             }
@@ -1273,9 +1314,120 @@ document.getElementById('debtBalancesForm').addEventListener('submit', function(
         }
     });
 });
+
+// ── Drill-down: Click type header to show office deposits ──
+(function() {
+    var monthNames = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+    var currentMonth = new Date().getMonth();
+    var currentYear = new Date().getFullYear();
+
+    function formatCurrency(amount) {
+        return 'K' + parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function groupDepositsByMonth(deposits) {
+        var months = {};
+        deposits.forEach(function(d) {
+            var dateStr = d.date;
+            var month = dateStr ? parseInt(dateStr.split('-')[1], 10) : 1;
+            if (!months[month]) {
+                months[month] = { total: 0, count: 0 };
+            }
+            months[month].total += parseFloat(d.amount) || 0;
+            months[month].count++;
+        });
+        return months;
+    }
+
+    function getMonthStatus(monthIdx, hasDeposits) {
+        if (hasDeposits) return 'has-deposits';
+        if (monthIdx < currentMonth) return 'past-no-deposits';
+        if (monthIdx === currentMonth) return 'current-no-deposits';
+        return 'future-no-deposits';
+    }
+
+    function renderOfficeDeposits(officeData, depositTypeId) {
+        var container = document.getElementById('da-body-' + depositTypeId);
+        if (!container) return;
+
+        var html = '';
+        officeData.forEach(function(office) {
+            var total = office.total || 0;
+            var months = groupDepositsByMonth(office.deposits || []);
+
+            var monthBoxes = monthNames.map(function(m, idx) {
+                var hasDeposits = months[idx + 1] && months[idx + 1].count > 0;
+                var status = getMonthStatus(idx, hasDeposits);
+                var amount = hasDeposits ? formatCurrency(months[idx + 1].total) : '';
+                return '<div class="da-month-box da-month-' + status + '" title="' + (amount || 'No deposits') + '">' + m + (amount ? '<span class="da-month-amount">' + amount + '</span>' : '') + '</div>';
+            }).join('');
+
+            html += '<div class="da-office-row" data-office-id="' + office.office_id + '"><div class="da-office-header"><span class="da-office-name">' + office.office_name + '</span><div class="da-office-months">' + monthBoxes + '</div></div></div>';
+        });
+
+        container.innerHTML = html;
+    }
+
+    function fetchAndRenderDeposits(typeId, period) {
+        var card = document.querySelector('.da-type-card[data-type-id="' + typeId + '"]');
+        var body = document.getElementById('da-body-' + typeId);
+        if (!card || !body) return;
+
+        if (card.classList.contains('open')) {
+            card.classList.remove('open');
+            body.innerHTML = '';
+            return;
+        }
+
+        var allCards = document.querySelectorAll('.da-type-card');
+        allCards.forEach(function(c) {
+            if (c !== card) {
+                c.classList.remove('open');
+                var b = document.getElementById('da-body-' + c.getAttribute('data-type-id'));
+                if (b) b.innerHTML = '';
+            }
+        });
+
+        card.classList.add('open');
+
+        var params = new URLSearchParams({ period: period || 'year' });
+        var currentParams = new URLSearchParams(window.location.search);
+        var officeId = currentParams.get('office_id');
+        if (officeId) {
+            params.set('office_id', officeId);
+        }
+
+        fetch('/risk/branch-deposit-audit/type/' + typeId + '?' + params.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                renderOfficeDeposits(data.offices || [], typeId);
+            })
+            .catch(function(err) {
+                console.error('Error fetching deposits:', err);
+                body.innerHTML = '<div class="da-error">Failed to load office deposits. Please try again.</div>';
+            });
+    }
+
+    document.querySelectorAll('.da-type-header').forEach(function(header) {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function() {
+            var card = header.closest('.da-type-card');
+            if (!card) return;
+            var typeId = card.getAttribute('data-type-id');
+            var period = document.getElementById('da-period') ? document.getElementById('da-period').value : 'year';
+            fetchAndRenderDeposits(typeId, period);
+        });
+    });
+})();
 </script>
 
 {{-- Ledger table script moved to partial: resources/views/risk/partials/manual-ledger-deposit-balances.blade.php --}}
 
+@include('risk.partials.deposit-exempt-modal', ['depositTypes' => $depositTypes ?? [], 'offices' => $offices ?? []])
 @include('risk.partials.office-debt-modal')
 @endsection

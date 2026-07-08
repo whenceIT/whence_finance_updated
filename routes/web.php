@@ -246,6 +246,7 @@ Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
     Route::post('/platform/block-skip/initialize-all', [PlatformController::class, 'initializeBlockSkipAllOffices']);
     Route::post('/platform/block-skip/deactivate-all', [PlatformController::class, 'deactivateBlockSkipAllOffices']);
     Route::post('/platform/block-skip/update-months', [PlatformController::class, 'updateDepositExemptMonths'])->name('settings.platform.block-skip.update-months');
+    Route::put('/deposit-month-exemptions/{id}', [PlatformController::class, 'updateDepositMonthExemption'])->name('deposit-month-exemptions.update');
 });
 
 // Course Categories Management Routes
@@ -540,6 +541,7 @@ Route::group(['prefix' => 'risk'], function () {
     // ── Deposit query endpoint ───────────────────────────────────────────────
     Route::get('deposits/query',          [RiskController::class, 'queryDeposits'])->name('risk.deposits.query');
     Route::post('deposits/update-amount', [RiskController::class, 'updateDepositAmount'])->name('risk.deposits.update-amount');
+    Route::post('deposits/delete',        [RiskController::class, 'deleteDeposit'])->name('risk.deposits.delete');
     Route::get('failed-deposits',         [RiskController::class, 'queryFailedDeposits'])->name('risk.failed-deposits');
 
     // ── Supervisor: run all fraud rules (called client-side by monitor.js)
@@ -1965,6 +1967,10 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
     Route::post('approvals/deposit-approvals/approve-all', 'ApprovalWorkflowController@approveAll')->name('approvals.deposit-approvals.all');
     Route::post('approvals/deposit-approvals/bulk-decline', 'ApprovalWorkflowController@bulkDecline')->name('approvals.deposit-approvals.bulk-decline');
     Route::post('approvals/deposit-approvals/decline-all', 'ApprovalWorkflowController@declineAll')->name('approvals.deposit-approvals.decline-all');
+
+    // Setup Debt Approvals
+    Route::post('approvals/setup-debt/{id}/{status}', 'ApprovalWorkflowController@approveDeclineSetupDebt')->name('approvals.setup-debt.action');
+
     Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
@@ -2005,6 +2011,7 @@ Route::group(['prefix' => 'recovery'], function () {
         Route::get('cross_branch',         'Recoveries\RecoveryCaseController@crossBranch');
         Route::get('escalated',            'Recoveries\RecoveryCaseController@escalated');
         Route::get('dormant',              'Recoveries\RecoveryCaseController@dormant');
+        Route::get('client-dormants',  'Recoveries\RecoveryCaseController@clientDormants')->name('recovery.client-dormants');
         Route::get('legal',                'Recoveries\RecoveryCaseController@legal');
         Route::get('skip_trace',           'Recoveries\RecoveryCaseController@skipTrace');
         Route::get('resolved',             'Recoveries\RecoveryCaseController@resolved');

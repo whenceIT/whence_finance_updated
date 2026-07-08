@@ -68,10 +68,59 @@
                             @endforeach
                         </select>
                     </div>
+                    
+                    <!-- Reason Type Dropdown -->
                     <div class="form-group">
-                        <label for="reason">Reason <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="reason" name="reason" rows="4" maxlength="1000" required></textarea>
+                        <div>
+                            <label for="reason_type">Reason Type <span class="text-danger">*</span></label>
+                            <select class="form-control" id="reason_type" name="reason_type" required>
+                                <option value="">Select Reason Type</option>
+                                <option value="Building & Infrastructure fee deposit">Building and infrastructure</option>
+                                <option value="Statutory payments deposit">Statutory</option>
+                                <option value="Administration Department fee deposit">Administration fees</option>
+                                <option value="Debt Setup Cost">K5,000 minimum, Debt Setup Cost</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="reason_status">Status <span class="text-danger">*</span></label>
+                            <select class="form-control" id="reason_status" name="reason_status" required>
+                                <option value="">Select Status</option>
+                                <option value="Not paid">Not paid</option>
+                                <option value="You have balance">Have a balance</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <!-- Month Selector - User Friendly with Checkboxes -->
+                    <div class="form-group">
+                        <label>Months <span class="text-danger">*</span></label>
+                        <div id="month-selector" class="month-selector-container">
+                            <?php
+                                $months = [
+                                    1 => 'January', 2 => 'February', 3 => 'March',
+                                    4 => 'April', 5 => 'May', 6 => 'June',
+                                    7 => 'July', 8 => 'August', 9 => 'September',
+                                    10 => 'October', 11 => 'November', 12 => 'December'
+                                ];
+                                $currentMonth = date('n'); // 1-12
+                            ?>
+                            @foreach($months as $monthNum => $monthName)
+                                <label class="month-checkbox-label {{ $monthNum == $currentMonth ? 'selected' : '' }}">
+                                    <input type="checkbox" class="month-checkbox" name="months[]" value="{{ $monthName }} {{ date('Y') }}" {{ $monthNum == $currentMonth ? 'checked' : '' }}>
+                                    <span>{{ $monthName }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <small class="text-muted">Click on months to select/deselect</small>
+                    </div>
+                    
+                    <!-- Auto-generated Reason Field -->
+                    <div class="form-group">
+                        <label for="reason">Reason (Auto-generated) <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" maxlength="1000" readonly style="background-color: #f8f9fa;"></textarea>
+                        <small class="text-muted">The reason will be auto-generated based on your selections above.</small>
+                    </div>
+                    
                     <div id="error-messages" class="text-danger" style="display:none;"></div>
                 </div>
                 <div class="modal-footer">
@@ -88,6 +137,42 @@ $(document).ready(function() {
     $('#blockages-table').DataTable({
         order: [[0, 'desc']]
     });
+
+    // Auto-generate reason field when selections change
+    function updateReason() {
+        var type = $('#reason_type').val();
+        var status = $('#reason_status').val();
+        var selectedMonths = [];
+        
+        // Get selected months from checkboxes
+        $('.month-checkbox:checked').each(function() {
+            selectedMonths.push($(this).val());
+        });
+        
+        if (type && status) {
+            // Build the reason with type and status first
+            var reason = status + ' - in ' + type ;
+            
+            // Add months if selected
+            if (selectedMonths.length > 0) {
+                reason += '\nFor Months of: ' + selectedMonths.join(', ');
+            }
+            
+            $('#reason').val(reason);
+        } else {
+            $('#reason').val('');
+        }
+    }
+    
+    // Listen for changes on all inputs
+    $('#reason_type').on('change', updateReason);
+    $('#reason_status').on('change', updateReason);
+    
+    // Handle month checkbox clicks
+    $('.month-checkbox').on('click', updateReason);
+    
+    // Initialize reason on page load
+    updateReason();
 
     // Handle form submission
     $('#blockageForm').on('submit', function(e) {

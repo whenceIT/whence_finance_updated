@@ -642,6 +642,20 @@ class RiskController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function deleteDeposit(Request $request)
+    {
+        $request->validate([
+            'deposit_id' => 'required|exists:deposits,id',
+        ]);
+
+        $depositId = $request->input('deposit_id');
+
+        BankDepositLog::where('deposit_id', $depositId)->delete();
+        Deposit::withoutGlobalScope('approved')->where('id', $depositId)->delete();
+
+        return response()->json(['success' => true, 'message' => 'Deposit deleted successfully']);
+    }
+
     public function queryFailedDeposits(Request $request)
     {
         $deposits = \App\Models\Deposit::query()
@@ -1690,7 +1704,61 @@ class RiskController extends Controller
             $dateTo   = $endDate;
         }
 
-        
+        $offices = \App\Helpers\StatsHelper::getActiveOffices();
+        $officeIds = $officeId ? [$officeId] : $offices->pluck('id')->all();
+
+        $depositQuery = \App\Models\Deposit::query()
+            ->with(['bankDepositLog', 'office'])
+            ->whereIn('office', $officeIds)
+            ->where('deposit_type', $depositTypeId);
+
+        if ($dateFrom !== null && $dateTo !== null) {
+            $depositQuery->whereBetween('date', [$dateFrom, $dateTo]);
+        }
+
+        $deposits = $depositQuery->get();
+
+        $officeMap = [];
+        foreach ($offices as $office) {
+            $officeMap[$office->id] = [
+                'office_id'   => $office->id,
+                'office_name' => $office->name,
+                'total'       => 0,
+                'deposit_count' => 0,
+                'deposits'    => [],
+            ];
+        }
+
+        foreach ($deposits as $dep) {
+            $oid = $dep->office;
+            if (!isset($officeMap[$oid])) {
+                $officeMap[$oid] = [
+                    'office_id'   => $oid,
+                    'office_name' => optional($dep->office)->name ?? '—',
+                    'total'       => 0,
+                    'deposit_count' => 0,
+                    'deposits'    => [],
+                ];
+            }
+
+            $amount = (float) $dep->amount;
+            $officeMap[$oid]['total'] += $amount;
+            $officeMap[$oid]['deposit_count']++;
+            $officeMap[$oid]['deposits'][] = [
+                'date'          => is_string($dep->date) ? $dep->date : $dep->date->format('Y-m-d'),
+                'amount'        => $amount,
+                'bank'          => $dep->bank,
+                'gl_account'    => $dep->gl_account,
+                'bank_deposit_log_id' => $dep->bankDepositLog?->id,
+            ];
+        }
+
+        return response()->json([
+            'deposit_type_id' => $depositTypeId,
+            'office_id'       => $officeId,
+            'period'          => $period,
+            'offices'         => array_values($officeMap),
+        ]);
     }
 
     /**
@@ -2037,14 +2105,18 @@ class RiskController extends Controller
     public function storeSetupDebtTransaction(Request $request)
     {
         $validated = $request->validate([
+            'setup_debt_cost_id' => 'nullable',
             'office_id' => 'required|exists:offices,id',
             'amount' => 'required|numeric|min:0',
             'transaction_date' => 'nullable|date',
+            'reference_number' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
         ]);
-        
+        $cost = \App\Models\SetupDebtCost::where('office_id', $validated['office_id'])->first();
         $validated['created_by'] = Sentinel::getUser()->id;
+        $validated['setup_debt_cost_id'] = $cost->id;
         $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
+        $validated['status'] = 1;
         
         $transaction = \App\Models\SetupDebtTransaction::create($validated);
         

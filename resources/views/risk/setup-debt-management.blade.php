@@ -3,6 +3,10 @@
 @section('title')
     Setup Debt Management
 @endsection
+@php
+    $blockerUser = Sentinel::getUser();
+    $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+@endphp
 
 @section('content')
 <div class="row">
@@ -109,6 +113,11 @@
                                     <button class="btn btn-xs btn-warning" onclick="editCost({{ $row['id'] }})" title="Edit">
                                         <i class="fa fa-edit"></i>
                                     </button>
+                                    @if($row['balance'] > 0)
+                                    <button class="btn btn-xs btn-danger" onclick="blockOffice({{ $row['office']->id }}, '{{ addslashes($row['office']->name) }}')" title="Block">
+                                        <i class="fa fa-ban"></i> Block
+                                    </button>
+                                    @endif
                                     <button class="btn btn-xs btn-danger" onclick="deleteCost({{ $row['id'] }})" title="Delete">
                                         <i class="fa fa-trash"></i>
                                     </button>
@@ -197,6 +206,11 @@
                                value="{{ date('Y-m-d') }}" required>
                     </div>
                     
+                    <div class="form-group">
+                        <label>Reference Number</label>
+                        <input type="text" class="form-control" id="trans_reference_number" name="reference_number" maxlength="100" placeholder="Optional reference or receipt number">
+                    </div>
+
                     <div class="form-group">
                         <label>Notes</label>
                         <textarea class="form-control" id="trans_notes" name="notes" 
@@ -309,6 +323,7 @@ function openTransactionModal(costId, officeName, officeId) {
     $('#trans_office_id').val(officeId);
     $('#trans_office_name').text(officeName);
     $('#trans_date').val('{{ date("Y-m-d") }}');
+    $('#trans_reference_number').val('');
     $('#transactionModal').modal('show');
 }
 
@@ -369,6 +384,33 @@ function viewTransactions(costId, officeName) {
         $('#transactionsContent').html(html);
     }).fail(function() {
         $('#transactionsContent').html('<div class="alert alert-danger">Failed to load transactions</div>');
+    });
+}
+
+function blockOffice(officeId, officeName) {
+    if (!confirm('Block ' + officeName + ' due to unpaid setup debt (minimum 5,000)?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: '{{ route("blockages.store") }}',
+        type: 'POST',
+        data: {
+            office_id: officeId,
+            reason: 'You have not paid 5,000 minimum towards set up cost',
+            _token: $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                alert('Office blocked successfully');
+                location.reload();
+            } else {
+                alert(response.message || 'Failed to block office');
+            }
+        },
+        error: function() {
+            alert('Failed to block office');
+        }
     });
 }
 

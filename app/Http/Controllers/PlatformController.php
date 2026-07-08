@@ -313,4 +313,24 @@ class PlatformController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Deposit exemption months updated successfully.']);
     }
+
+    public function updateDepositMonthExemption(Request $request, $id)
+    {
+        $exemption = DepositMonthExemption::findOrFail($id);
+        
+        $data = $request->validate([
+            'deposit_type_id' => 'nullable|exists:deposit_types,id',
+            'months' => 'nullable|array',
+            'months.*' => 'integer|min:1|max:12',
+        ]);
+        
+        if (isset($data['months'])) {
+            $data['months'] = array_values($data['months']);
+        }
+        $data['no_months_exclude'] = isset($data['months']) ? count($data['months']) : 0;
+        
+        $exemption->update($data);
+        
+        return response()->json(['success' => true, 'message' => 'Exemption updated successfully.']);
+    }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RecoveryCase;
 use App\Models\RecoveryPayment;
 use App\Models\Loan;
+use App\Models\Client;
 use App\Models\Expense;
 use App\Models\Office;
 use App\Models\User;
@@ -60,6 +61,55 @@ class RecoveryCaseController extends Controller
     public function skipTrace(Request $request)
     {
         return $this->listCases($request, 'skip_trace');
+    }
+
+    public function clientDormants(Request $request)
+    {
+        $user = Sentinel::getUser();
+        $search = $request->get('search', '');
+
+        $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
+            ->with(['loans' => function ($query) {
+                $query->latest('created_at');
+            }, 'office', 'staff']);
+
+        if (!$user || !$user->role) {
+            return redirect()->route('login');
+        }
+
+        if ($user->role->role_id == 6) {
+            $clientQuery->whereHas('office', function ($q) use ($user) {
+                $q->where('province_id', $user->province_id);
+            });
+        } elseif ($user->role->role_id == 4) {
+            $clientQuery->where('office_id', $user->office_id);
+        }
+
+        if ($search) {
+            $clientQuery->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('nrc_number', 'like', "%{$search}%");
+            });
+        }
+
+        $clientQuery->whereHas('office');
+        $allClients = $clientQuery->get();
+
+        $now = Carbon::now();
+        $threeMonthsAgo = $now->copy()->subMonths(3);
+
+        $filteredClients = $allClients->filter(function ($client) use ($threeMonthsAgo) {
+            if ($client->loans->isEmpty()) {
+                return true;
+            }
+            $lastLoan = $client->loans->first();
+            return $lastLoan && $lastLoan->created_at < $threeMonthsAgo;
+        });
+
+        $clientsData = $filteredClients->slice(0, 50)->values();
+
+        return view('recoveries.dormant_clients', compact('clientsData', 'search'));
     }
 
     public function dormant_clients()
