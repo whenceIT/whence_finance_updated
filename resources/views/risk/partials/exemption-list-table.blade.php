@@ -17,8 +17,8 @@
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Office</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Deposit Types</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Exemptions</th>
-                        <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">No Exempts</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Amount Exempted</th>
+                        <!-- <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Amount Exempted</th> -->
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Months</th>
                         <th style="padding: 12px 15px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e4ed;">Actions</th>
                     </tr>
@@ -41,20 +41,10 @@
                                 {{ $office->name ?? 'Unknown Office' }}
                             </td>
                             <td style="padding: 12px 15px; border-bottom: 1px solid #eef0f7;">
-                                @php
-                                    $typeCounts = $officeExemptions->mapWithKeys(function($ex) {
-                                        return [$ex->deposit_type_id => $ex->months ?? []];
-                                    })->map(function($months) {
-                                        return count(array_unique($months));
-                                    });
-                                @endphp
+                             
                                 @foreach($depositTypes as $type)
-                                    @php
-                                        $typeId = \App\Models\DepositType::where('name', $type)->first()?->id;
-                                        $count = $typeId ? ($typeCounts->get($typeId, 0)) : 0;
-                                    @endphp
                                     <span style="display: inline-block; background: #667eea; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin: 2px; margin-right: 4px;">
-                                        {{ $type }} <strong>({{ $count }})</strong>
+                                        {{ $type }} 
                                     </span>
                                 @endforeach
                             </td>
