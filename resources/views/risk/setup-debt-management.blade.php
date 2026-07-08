@@ -107,13 +107,12 @@
                                     <button class="btn btn-xs btn-primary" onclick="openTransactionModal({{ $row['id'] }}, '{{ $row['office']->name }}', {{ $row['office']->id }})" title="Add Payment">
                                         <i class="fa fa-money"></i> Pay
                                     </button>
-                                    <!-- <button class="btn btn-xs btn-info" onclick="viewTransactions({{ $row['id'] }}, '{{ $row['office']->name }}')" title="View Payments">
+                                    <button class="btn btn-xs btn-info" onclick="viewTransactions({{ $row['id'] }}, '{{ $row['office']->name }}')" title="View Payments">
                                         <i class="fa fa-list"></i>
                                     </button>
                                     <button class="btn btn-xs btn-warning" onclick="editCost({{ $row['id'] }})" title="Edit">
                                         <i class="fa fa-edit"></i>
-                                    </button> -->
-                                    &nbsp;
+                                    </button>
                                     @if($row['balance'] > 0)
                                     <button class="btn btn-xs btn-danger" onclick="blockOffice({{ $row['office']->id }}, '{{ addslashes($row['office']->name) }}')" title="Block">
                                         <i class="fa fa-ban"></i> Block

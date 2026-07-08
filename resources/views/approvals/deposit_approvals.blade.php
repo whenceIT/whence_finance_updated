@@ -6,6 +6,8 @@
         <div class="box-header with-border">
             <h3 class="box-title">Deposit Approvals</h3>
         </div>
+
+
         <div class="box-body">
             <div class="row" style="margin-bottom: 15px;">
                 <div class="col-md-6">
@@ -26,7 +28,6 @@
                     <input type="text" id="search-input" class="form-control input-sm" placeholder="Search..." style="width: 200px;">
                 </div>
             </div>
-           
         </div>
         <div class="box-body table-responsive">
             <table class="table table-bordered table-striped">

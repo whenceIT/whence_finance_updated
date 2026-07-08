@@ -663,6 +663,7 @@
             <option value="zanaco_cash">Zanaco Cash Deposit</option>
             <option value="access">Access Bank</option>
             <option value="withinhere">Within Here</option>
+            <option value="zicb">Zambia Industrial Commercial Bank</option>
         </select>
     </div>
 </div>
