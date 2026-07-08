@@ -68,10 +68,36 @@
                             @endforeach
                         </select>
                     </div>
+                    
+                    <!-- Reason Type Dropdown -->
                     <div class="form-group">
-                        <label for="reason">Reason <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="reason" name="reason" rows="4" maxlength="1000" required></textarea>
+                        <label for="reason_type">Reason Type <span class="text-danger">*</span></label>
+                        <select class="form-control" id="reason_type" name="reason_type" required>
+                            <option value="">Select Reason Type</option>
+                            <option value="Building and infrastructure">Building and infrastructure</option>
+                            <option value="Statutory">Statutory</option>
+                            <option value="Administration fees">Administration fees</option>
+                            <option value="Debt Setup Cost">Debt Setup Cost</option>
+                        </select>
                     </div>
+                    
+                    <!-- Status Dropdown -->
+                    <div class="form-group">
+                        <label for="reason_status">Status <span class="text-danger">*</span></label>
+                        <select class="form-control" id="reason_status" name="reason_status" required>
+                            <option value="">Select Status</option>
+                            <option value="not paid">not paid</option>
+                            <option value="balance">balance</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Auto-generated Reason Field -->
+                    <div class="form-group">
+                        <label for="reason">Reason (Auto-generated) <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" maxlength="1000" readonly style="background-color: #f8f9fa;"></textarea>
+                        <small class="text-muted">The reason will be auto-generated based on your selections above.</small>
+                    </div>
+                    
                     <div id="error-messages" class="text-danger" style="display:none;"></div>
                 </div>
                 <div class="modal-footer">
@@ -88,6 +114,22 @@ $(document).ready(function() {
     $('#blockages-table').DataTable({
         order: [[0, 'desc']]
     });
+
+    // Auto-generate reason field when selections change
+    function updateReason() {
+        var type = $('#reason_type').val();
+        var status = $('#reason_status').val();
+        
+        if (type && status) {
+            $('#reason').val(type + ' - ' + status);
+        } else {
+            $('#reason').val('');
+        }
+    }
+    
+    // Listen for changes on both dropdowns
+    $('#reason_type').on('change', updateReason);
+    $('#reason_status').on('change', updateReason);
 
     // Handle form submission
     $('#blockageForm').on('submit', function(e) {

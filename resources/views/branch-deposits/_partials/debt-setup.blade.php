@@ -1,3 +1,8 @@
+@php
+    $blockerUser = Sentinel::getUser();
+    $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+@endphp
+
 <div class="content">
     <div class="box box-danger">
         <div class="box-header with-border bg-red">
