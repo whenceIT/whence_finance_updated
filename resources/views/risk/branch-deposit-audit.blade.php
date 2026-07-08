@@ -268,7 +268,7 @@
         <!-- <button type="button" id="openSettingsModal" class="btn btn-outline-secondary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-stop"></i> Exempt Offices
         </button> -->
-        <button type="button" id="openDepositExemptModal" class="btn btn-outline-primary btn-sm" style="border-radius:6px; margin-top:4px;">
+        <button type="button" id="btnOpenDepositExemptModal" class="btn btn-outline-primary btn-sm" style="border-radius:6px; margin-top:4px;">
             <i class="fa fa-calendar-times-o"></i> Exempt Months
         </button>
         <!-- <button type="button" id="activateAllOfficesBtn" class="btn btn-success btn-sm" style="border-radius:6px; margin-top:4px;">
@@ -1251,9 +1251,9 @@ document.getElementById('closeDepositQueryModal').addEventListener('click', func
 //     document.getElementById('failedDepositsModal').style.display = 'none';
 // });
 
-document.getElementById('openDepositExemptModal').addEventListener('click', function() {
-    if (typeof window.openDepositExemptModal === 'function') {
-        window.openDepositExemptModal();
+document.getElementById('btnOpenDepositExemptModal').addEventListener('click', function() {
+    if (typeof window.openEditExemptModal === 'function') {
+        window.openEditExemptModal();
     }
 });
 
@@ -1428,5 +1428,6 @@ document.getElementById('debtBalancesForm').addEventListener('submit', function(
 
 {{-- Ledger table script moved to partial: resources/views/risk/partials/manual-ledger-deposit-balances.blade.php --}}
 
+@include('risk.partials.deposit-exempt-modal', ['depositTypes' => $depositTypes ?? [], 'offices' => $offices ?? []])
 @include('risk.partials.office-debt-modal')
 @endsection

@@ -2006,6 +2006,7 @@ Route::group(['prefix' => 'recovery'], function () {
         Route::get('cross_branch',         'Recoveries\RecoveryCaseController@crossBranch');
         Route::get('escalated',            'Recoveries\RecoveryCaseController@escalated');
         Route::get('dormant',              'Recoveries\RecoveryCaseController@dormant');
+        Route::get('client-dormants',  'Recoveries\RecoveryCaseController@clientDormants')->name('recovery.client-dormants');
         Route::get('legal',                'Recoveries\RecoveryCaseController@legal');
         Route::get('skip_trace',           'Recoveries\RecoveryCaseController@skipTrace');
         Route::get('resolved',             'Recoveries\RecoveryCaseController@resolved');
