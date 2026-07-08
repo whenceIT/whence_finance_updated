@@ -292,7 +292,6 @@
 
     @include('risk.partials.deposit-query-modal', ['offices' => $offices ?? []])
     @include('risk.partials.failed-deposits-modal')
-    @include('risk.partials.deposit-exempt-modal', ['offices' => $offices ?? [], 'depositTypes' => $depositTypes ?? []])
 
 
     <div class="da-filter-bar">
