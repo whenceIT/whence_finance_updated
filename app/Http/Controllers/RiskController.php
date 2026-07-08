@@ -2105,15 +2105,16 @@ class RiskController extends Controller
     public function storeSetupDebtTransaction(Request $request)
     {
         $validated = $request->validate([
-            'setup_debt_cost_id' => 'required|exists:setup_debt_costs,id',
+            'setup_debt_cost_id' => 'nullable',
             'office_id' => 'required|exists:offices,id',
             'amount' => 'required|numeric|min:0',
             'transaction_date' => 'nullable|date',
             'reference_number' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
         ]);
-        
+        $cost = \App\Models\SetupDebtCost::where('office_id', $validated['office_id'])->first();
         $validated['created_by'] = Sentinel::getUser()->id;
+        $validated['setup_debt_cost_id'] = $cost->id;
         $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
         
         $transaction = \App\Models\SetupDebtTransaction::create($validated);
