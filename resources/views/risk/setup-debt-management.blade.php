@@ -3,6 +3,10 @@
 @section('title')
     Setup Debt Management
 @endsection
+@php
+    $blockerUser = Sentinel::getUser();
+    $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+@endphp
 
 @section('content')
 <div class="row">
@@ -103,12 +107,18 @@
                                     <button class="btn btn-xs btn-primary" onclick="openTransactionModal({{ $row['id'] }}, '{{ $row['office']->name }}', {{ $row['office']->id }})" title="Add Payment">
                                         <i class="fa fa-money"></i> Pay
                                     </button>
-                                    <button class="btn btn-xs btn-info" onclick="viewTransactions({{ $row['id'] }}, '{{ $row['office']->name }}')" title="View Payments">
+                                    <!-- <button class="btn btn-xs btn-info" onclick="viewTransactions({{ $row['id'] }}, '{{ $row['office']->name }}')" title="View Payments">
                                         <i class="fa fa-list"></i>
                                     </button>
                                     <button class="btn btn-xs btn-warning" onclick="editCost({{ $row['id'] }})" title="Edit">
                                         <i class="fa fa-edit"></i>
+                                    </button> -->
+                                    &nbsp;
+                                    @if($row['balance'] > 0)
+                                    <button class="btn btn-xs btn-danger" onclick="blockOffice({{ $row['office']->id }}, '{{ addslashes($row['office']->name) }}')" title="Block">
+                                        <i class="fa fa-ban"></i> Block
                                     </button>
+                                    @endif
                                     <button class="btn btn-xs btn-danger" onclick="deleteCost({{ $row['id'] }})" title="Delete">
                                         <i class="fa fa-trash"></i>
                                     </button>
@@ -375,6 +385,33 @@ function viewTransactions(costId, officeName) {
         $('#transactionsContent').html(html);
     }).fail(function() {
         $('#transactionsContent').html('<div class="alert alert-danger">Failed to load transactions</div>');
+    });
+}
+
+function blockOffice(officeId, officeName) {
+    if (!confirm('Block ' + officeName + ' due to unpaid setup debt (minimum 5,000)?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: '{{ route("blockages.store") }}',
+        type: 'POST',
+        data: {
+            office_id: officeId,
+            reason: 'You have not paid 5,000 minimum towards set up cost',
+            _token: $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                alert('Office blocked successfully');
+                location.reload();
+            } else {
+                alert(response.message || 'Failed to block office');
+            }
+        },
+        error: function() {
+            alert('Failed to block office');
+        }
     });
 }
 
