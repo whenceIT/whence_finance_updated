@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Deposit;
 use App\Models\DepositType;
 use App\Models\BankDepositLog;
+use App\Models\SetupDebtCost;
+use App\Models\SetupDebtTransaction;
 use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\Expense;
@@ -35,7 +37,12 @@ class ApprovalWorkflowController extends Controller
 
         $depositTypes = DepositType::orderBy('sort_order')->get();
 
-        return view('approvals.deposit_approvals', compact('deposits', 'depositTypes'));
+        $setupDebtDeposits = SetupDebtTransaction::with(['office', 'setupDebtCost'])
+            ->where('status', 0)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('approvals.deposit_approvals', compact('deposits', 'depositTypes', 'setupDebtDeposits'));
     }
 
     public function approveDecline($id, $status)
@@ -195,6 +202,20 @@ public function approveAllExpenses(Request $request)
         'success' => true,
         'message' => $count.' expenses approved successfully.'
     ]);
+}
+
+public function approveDeclineSetupDebt($id, $status)
+{
+    $setupDebtTransaction = SetupDebtTransaction::findOrFail($id);
+    
+    if ($status == 1) {
+        $setupDebtTransaction->status = 1;
+        $setupDebtTransaction->save();
+        return response()->json(['success' => true, 'message' => 'Setup debt transaction approved successfully.']);
+    } else {
+        $setupDebtTransaction->delete();
+        return response()->json(['success' => true, 'message' => 'Setup debt transaction declined and deleted.']);
+    }
 }
 
 }

@@ -18,6 +18,7 @@ class SetupDebtTransaction extends Model
         'reference_number',
         'notes',
         'created_by',
+        'status',
     ];
 
     protected $casts = [

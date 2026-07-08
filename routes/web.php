@@ -1967,6 +1967,10 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
     Route::post('approvals/deposit-approvals/approve-all', 'ApprovalWorkflowController@approveAll')->name('approvals.deposit-approvals.all');
     Route::post('approvals/deposit-approvals/bulk-decline', 'ApprovalWorkflowController@bulkDecline')->name('approvals.deposit-approvals.bulk-decline');
     Route::post('approvals/deposit-approvals/decline-all', 'ApprovalWorkflowController@declineAll')->name('approvals.deposit-approvals.decline-all');
+
+    // Setup Debt Approvals
+    Route::post('approvals/setup-debt/{id}/{status}', 'ApprovalWorkflowController@approveDeclineSetupDebt')->name('approvals.setup-debt.action');
+
     Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
