@@ -20,6 +20,7 @@ Custom option to have two fields (This Month (default - when page loads)):
 
 
 
+                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] === 'unpaid')
 
 
             <!-- <x-debt-blocker/> -->
