@@ -78,7 +78,7 @@
                                 <option value="Building & Infrastructure fee deposit">Building and infrastructure</option>
                                 <option value="Statutory payments deposit">Statutory</option>
                                 <option value="Administration Department fee deposit">Administration fees</option>
-                                <option value="Debt Setup Cost">Debt Setup Cost</option>
+                                <option value="Debt Setup Cost">K5,000 minimum, Debt Setup Cost</option>
                             </select>
                         </div>
                         <div>
