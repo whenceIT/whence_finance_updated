@@ -642,6 +642,20 @@ class RiskController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function deleteDeposit(Request $request)
+    {
+        $request->validate([
+            'deposit_id' => 'required|exists:deposits,id',
+        ]);
+
+        $depositId = $request->input('deposit_id');
+
+        BankDepositLog::where('deposit_id', $depositId)->delete();
+        Deposit::withoutGlobalScope('approved')->where('id', $depositId)->delete();
+
+        return response()->json(['success' => true, 'message' => 'Deposit deleted successfully']);
+    }
+
     public function queryFailedDeposits(Request $request)
     {
         $deposits = \App\Models\Deposit::query()
@@ -2091,6 +2105,7 @@ class RiskController extends Controller
     public function storeSetupDebtTransaction(Request $request)
     {
         $validated = $request->validate([
+            'setup_debt_cost_id' => 'required|exists:setup_debt_costs,id',
             'office_id' => 'required|exists:offices,id',
             'amount' => 'required|numeric|min:0',
             'transaction_date' => 'nullable|date',

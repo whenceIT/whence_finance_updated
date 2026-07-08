@@ -198,6 +198,11 @@
                     </div>
                     
                     <div class="form-group">
+                        <label>Reference Number</label>
+                        <input type="text" class="form-control" id="trans_reference_number" name="reference_number" maxlength="100" placeholder="Optional reference or receipt number">
+                    </div>
+
+                    <div class="form-group">
                         <label>Notes</label>
                         <textarea class="form-control" id="trans_notes" name="notes" 
                                   rows="3" placeholder="Optional payment notes..."></textarea>
@@ -309,6 +314,7 @@ function openTransactionModal(costId, officeName, officeId) {
     $('#trans_office_id').val(officeId);
     $('#trans_office_name').text(officeName);
     $('#trans_date').val('{{ date("Y-m-d") }}');
+    $('#trans_reference_number').val('');
     $('#transactionModal').modal('show');
 }
 

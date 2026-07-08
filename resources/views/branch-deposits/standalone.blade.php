@@ -71,24 +71,47 @@
                     
                     <!-- Reason Type Dropdown -->
                     <div class="form-group">
-                        <label for="reason_type">Reason Type <span class="text-danger">*</span></label>
-                        <select class="form-control" id="reason_type" name="reason_type" required>
-                            <option value="">Select Reason Type</option>
-                            <option value="Building and infrastructure">Building and infrastructure</option>
-                            <option value="Statutory">Statutory</option>
-                            <option value="Administration fees">Administration fees</option>
-                            <option value="Debt Setup Cost">Debt Setup Cost</option>
-                        </select>
+                        <div>
+                            <label for="reason_type">Reason Type <span class="text-danger">*</span></label>
+                            <select class="form-control" id="reason_type" name="reason_type" required>
+                                <option value="">Select Reason Type</option>
+                                <option value="Building & Infrastructure fee deposit">Building and infrastructure</option>
+                                <option value="Statutory payments deposit">Statutory</option>
+                                <option value="Administration Department fee deposit">Administration fees</option>
+                                <option value="Debt Setup Cost">Debt Setup Cost</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="reason_status">Status <span class="text-danger">*</span></label>
+                            <select class="form-control" id="reason_status" name="reason_status" required>
+                                <option value="">Select Status</option>
+                                <option value="Not paid">Not paid</option>
+                                <option value="You have balance">Have a balance</option>
+                            </select>
+                        </div>
                     </div>
-                    
-                    <!-- Status Dropdown -->
+
+                    <!-- Month Selector - User Friendly with Checkboxes -->
                     <div class="form-group">
-                        <label for="reason_status">Status <span class="text-danger">*</span></label>
-                        <select class="form-control" id="reason_status" name="reason_status" required>
-                            <option value="">Select Status</option>
-                            <option value="not paid">not paid</option>
-                            <option value="balance">balance</option>
-                        </select>
+                        <label>Months <span class="text-danger">*</span></label>
+                        <div id="month-selector" class="month-selector-container">
+                            <?php
+                                $months = [
+                                    1 => 'January', 2 => 'February', 3 => 'March',
+                                    4 => 'April', 5 => 'May', 6 => 'June',
+                                    7 => 'July', 8 => 'August', 9 => 'September',
+                                    10 => 'October', 11 => 'November', 12 => 'December'
+                                ];
+                                $currentMonth = date('n'); // 1-12
+                            ?>
+                            @foreach($months as $monthNum => $monthName)
+                                <label class="month-checkbox-label {{ $monthNum == $currentMonth ? 'selected' : '' }}">
+                                    <input type="checkbox" class="month-checkbox" name="months[]" value="{{ $monthName }} {{ date('Y') }}" {{ $monthNum == $currentMonth ? 'checked' : '' }}>
+                                    <span>{{ $monthName }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <small class="text-muted">Click on months to select/deselect</small>
                     </div>
                     
                     <!-- Auto-generated Reason Field -->
@@ -119,17 +142,37 @@ $(document).ready(function() {
     function updateReason() {
         var type = $('#reason_type').val();
         var status = $('#reason_status').val();
+        var selectedMonths = [];
+        
+        // Get selected months from checkboxes
+        $('.month-checkbox:checked').each(function() {
+            selectedMonths.push($(this).val());
+        });
         
         if (type && status) {
-            $('#reason').val(type + ' - ' + status);
+            // Build the reason with type and status first
+            var reason = status + ' - in ' + type ;
+            
+            // Add months if selected
+            if (selectedMonths.length > 0) {
+                reason += '\nFor Months of: ' + selectedMonths.join(', ');
+            }
+            
+            $('#reason').val(reason);
         } else {
             $('#reason').val('');
         }
     }
     
-    // Listen for changes on both dropdowns
+    // Listen for changes on all inputs
     $('#reason_type').on('change', updateReason);
     $('#reason_status').on('change', updateReason);
+    
+    // Handle month checkbox clicks
+    $('.month-checkbox').on('click', updateReason);
+    
+    // Initialize reason on page load
+    updateReason();
 
     // Handle form submission
     $('#blockageForm').on('submit', function(e) {

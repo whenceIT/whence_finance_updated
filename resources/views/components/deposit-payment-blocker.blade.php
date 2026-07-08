@@ -7,7 +7,7 @@
 <!-- Deposit Payment Blocker Modal -->
 <div id="depositPaymentBlocker" style="
     position: fixed;
-    top: 0;
+    top: 0;x
     left: 0;
     width: 100%;
     height: 100%;
