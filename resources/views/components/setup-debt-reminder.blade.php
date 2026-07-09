@@ -26,9 +26,16 @@
             <p class="widget-message" id="debt-message">
                 Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong id="debt-deadline-date">July 5, 2026</strong>
             </p>
+    
+            @if(!in_array($blockerUser->id, config('role.risk', [])))
             <a href="{{ url('user/branch_deposits') }}" class="widget-action-btn">
                 <i class="fa fa-money"></i> Record Payment Now
             </a>
+            @else
+            <a href="{{ url('risk/blocked-list') }}" class="widget-action-btn">
+                <i class="fa fa-lock"></i> Block Unpaid Offices
+            </a>
+            @endif
         </div>
     </div>
 </div>
@@ -211,14 +218,8 @@
         // Deadline date: July 5, 2026 at 23:59:59
         const debtDeadline = new Date('2026-07-05T23:59:59').getTime();
         
-        // Calculate days until deadline
-        const now = new Date().getTime();
-        const daysUntilDebt = Math.ceil((debtDeadline - now) / (1000 * 60 * 60 * 24));
-        
-        // Show widget if deadline hasn't passed and within 30 days
-        if (daysUntilDebt >= 0 && daysUntilDebt <= 30) {
-            $('#setupDebtReminderWidget').fadeIn(300);
-        }
+        // Always show the widget regardless of deadline status
+        $('#setupDebtReminderWidget').fadeIn(300);
         
         // Update countdown every second
         const debtCountdownInterval = setInterval(function() {

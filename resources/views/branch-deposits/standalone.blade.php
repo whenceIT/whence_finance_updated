@@ -1,10 +1,42 @@
 @extends('layouts.master')
 
 @section('title')
-    Branch Blocking List
+    Deposit Deadline Management
 @endsection
-
+@php
+    $blockerUser = Sentinel::getUser();
+    $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+    $deadlineName = isset($deadline) ? $deadline->name : 'Building Deposit';
+    $deadlineDateValue = isset($deadline) && $deadline->countdown_date ? \Carbon\Carbon::parse($deadline->countdown_date)->format('Y-m-d\TH:i') : '';
+@endphp
 @section('content')
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Deposit Deadline Settings</h3>
+            </div>
+            <div class="box-body" style="min-height: 300px;">
+                <form id="deadlineForm">
+                    <div class="form-group">
+                        <label for="deadline_name">Deadline Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="deadline_name" name="name" 
+                               value="{{ old('name', $deadlineName) }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="deadline_date">Countdown Date <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control" id="deadline_date" name="countdown_date" 
+                               value="{{ old('countdown_date', $deadlineDateValue) }}" required>
+                        <small class="text-muted">Set the deadline for deposit reminders</small>
+                    </div>
+                    <div id="deadline-error" class="text-danger" style="display:none;"></div>
+                    <button type="submit" class="btn btn-primary" id="deadlineSaveBtn">Save Deadline</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-12">
         <div class="box box-primary">
@@ -61,8 +93,7 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="office_id">Office <span class="text-danger">*</span></label>
-                        <select class="form-control" id="office_id" name="office_id" required>
-                            <option value="">Select Office</option>
+                        <select class="form-control select2" id="office_id" name="office_id[]" multiple required style="width: 100%;">
                             @foreach($offices ?? [] as $office)
                             <option value="{{ $office->id }}">{{ $office->name }}</option>
                             @endforeach
@@ -78,7 +109,7 @@
                                 <option value="Building & Infrastructure fee deposit">Building and infrastructure</option>
                                 <option value="Statutory payments deposit">Statutory</option>
                                 <option value="Administration Department fee deposit">Administration fees</option>
-                                <option value="Debt Setup Cost">K5,000 minimum, Debt Setup Cost</option>
+                                <option value="the K5,000 minimum, Debt Setup Cost">K5,000 minimum, Debt Setup Cost</option>
                             </select>
                         </div>
                         <div>
@@ -174,6 +205,13 @@ $(document).ready(function() {
     // Initialize reason on page load
     updateReason();
 
+    // Initialize select2 for offices
+    $('.select2').select2({
+        width: '100%',
+        placeholder: 'Select offices',
+        allowClear: true
+    });
+
     // Handle form submission
     $('#blockageForm').on('submit', function(e) {
         e.preventDefault();
@@ -185,8 +223,10 @@ $(document).ready(function() {
         $('#saveBtn').prop('disabled', true).text('Saving...');
         
         // Get form data
+        var selectedOffices = $('#office_id').val() || [];
+        
         var formData = {
-            office_id: $('#office_id').val(),
+            office_id: selectedOffices,
             reason: $('#reason').val(),
             _token: '{{ csrf_token() }}'
         };
@@ -246,7 +286,6 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        // Remove the row from the table
                         $('#blockage-row-' + blockageId).fadeOut(300, function() {
                             $(this).remove();
                         });
@@ -258,7 +297,51 @@ $(document).ready(function() {
             });
         }
     });
+
+    // Handle deadline form submission
+    $('#deadlineForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $('#deadline-error').hide().empty();
+        $('#deadlineSaveBtn').prop('disabled', true).text('Saving...');
+        
+        var formData = {
+            name: $('#deadline_name').val(),
+            countdown_date: $('#deadline_date').val(),
+            _token: '{{ csrf_token() }}'
+        };
+        
+        $.ajax({
+            url: '{{ route("deposits.deadline.update") }}',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                }
+            },
+            error: function(xhr) {
+                if (xhr.status === 422) {
+                    var errors = xhr.responseJSON.errors;
+                    var errorHtml = '<ul>';
+                    $.each(errors, function(key, value) {
+                        errorHtml += '<li>' + value[0] + '</li>';
+                    });
+                    errorHtml += '</ul>';
+                    $('#deadline-error').html(errorHtml).show();
+                } else {
+                    toastr.error('An error occurred. Please try again.');
+                }
+            },
+            complete: function() {
+                $('#deadlineSaveBtn').prop('disabled', false).text('Save Deadline');
+            }
+        });
+    });
 });
 </script>
+
+@include('components.deposit-deadline-modal')
+@include('components.setup-debt-reminder')
 
 @endsection

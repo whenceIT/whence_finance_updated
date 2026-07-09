@@ -1,41 +1,6 @@
-
 <!-- Deposit Widgets Container -->
 <div class="deposit-widgets-container">
-    <!-- Weekly Deposit Snackbars -->
-    <div id="weeklyDepositSnackbars">
-        <div class="deposit-snackbar week-1" id="snackbar-week1">
-            <!-- <div class="snackbar-icon">
-                <i class="fa fa-building"></i>
-            </div> -->
-            <div class="snackbar-content">
-                <strong>Week 1</strong>
-                <span>Complete <b>Building Deposit</b> fee in the 1st week</span>
-            </div>
-        </div>
-        
-        <div class="deposit-snackbar week-2" id="snackbar-week2">
-            <!-- <div class="snackbar-icon">
-                <i class="fa fa-briefcase"></i>
-            </div> -->
-            <div class="snackbar-content">
-                <strong>Week 2</strong>
-                <span>Complete <b>Administration Deposit</b> fee in the 2nd week</span>
-            </div>
-        </div>
-        
-        <div class="deposit-snackbar week-3" id="snackbar-week3">
-            <!-- <div class="snackbar-icon">
-                <i class="fa fa-gavel"></i>
-            </div> -->
-            <div class="snackbar-content">
-                <strong>Week 3</strong>
-                <span>Complete <b>Statutory Deposit</b>fee in the 3rd week</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Deposit Deadline Countdown Widget -->
-    <div id="depositDeadlineWidget" style="display: none;">
+    <div id="depositDeadlineWidget">
         <div class="deadline-widget">
             <div class="widget-header">
                 <i class="fa fa-exclamation-triangle"></i> <span id="current-month">Monthly</span> Deposits Reminder
@@ -45,22 +10,11 @@
             </div>
             <div class="widget-body">
                 <div class="countdown-display">
-                    <div class="countdown-item">
-                        <span class="countdown-number" id="days">-</span>
-                        <span class="countdown-text">Days</span>
-                    </div>
-                    <div class="countdown-item">
-                        <span class="countdown-number" id="hours">-</span>
-                        <span class="countdown-text">Hours</span>
-                    </div>
-                    <div class="countdown-item">
-                        <span class="countdown-number" id="minutes">-</span>
-                        <span class="countdown-text">Mins</span>
-                    </div>
+                    <div class="countdown-item"><span class="countdown-number" id="days">-</span><span class="countdown-text">Days</span></div>
+                    <div class="countdown-item"><span class="countdown-number" id="hours">-</span><span class="countdown-text">Hrs</span></div>
+                    <div class="countdown-item"><span class="countdown-number" id="minutes">-</span><span class="countdown-text">Min</span></div>
                 </div>
-                <p class="widget-message" id="deadline-message">
-                    You have <strong id="days-remaining">-</strong> days to complete all required deposits for <strong id="deposit-month">June 2026</strong>.
-                </p>
+                <p class="widget-message" id="deadline-message">Complete <b id="deadline-name">Building Deposit</b> fee</p>
             </div>
         </div>
     </div>
@@ -69,24 +23,17 @@
 <style>
     .deposit-widgets-container {
         position: fixed;
-        bottom: 20px;
-        left: 20px;
+        bottom: 15px;
+        left: 15px;
         z-index: 9999;
         display: flex;
         flex-direction: column;
-        gap: 0;
-        max-width: 280px;
+        gap: 8px;
+        max-width: 240px;
     }
     
     #depositDeadlineWidget {
         animation: slideIn 0.5s ease-out;
-    }
-    
-    #weeklyDepositSnackbars {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 10px;
     }
     
     @keyframes slideIn {
@@ -101,19 +48,19 @@
     }
     
     .deadline-widget {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        width: 280px;
+        background: linear-gradient(135deg, #eab366 0%, #ff9d00 100%);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        width: 240px;
         overflow: hidden;
     }
     
     .widget-header {
         background: rgba(0, 0, 0, 0.2);
-        padding: 10px 15px;
+        padding: 8px 12px;
         color: #fff;
         font-weight: bold;
-        font-size: 13px;
+        font-size: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -124,10 +71,10 @@
         border: none;
         color: #fff;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 14px;
         padding: 0;
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -140,14 +87,14 @@
     }
     
     .widget-body {
-        padding: 15px;
+        padding: 10px;
     }
     
     .countdown-display {
         display: flex;
         justify-content: space-around;
-        gap: 10px;
-        margin-bottom: 12px;
+        gap: 8px;
+        margin-bottom: 8px;
     }
     
     .countdown-item {
@@ -157,7 +104,7 @@
     
     .countdown-number {
         display: block;
-        font-size: 28px;
+        font-size: 22px;
         font-weight: bold;
         color: #fff;
         line-height: 1;
@@ -165,190 +112,48 @@
     
     .countdown-text {
         display: block;
-        font-size: 10px;
+        font-size: 9px;
         color: rgba(255, 255, 255, 0.8);
         text-transform: uppercase;
-        margin-top: 3px;
+        margin-top: 2px;
     }
     
     .widget-message {
         color: #fff;
-        font-size: 12px;
+        font-size: 11px;
         text-align: center;
         margin: 0;
-        padding: 8px;
+        padding: 6px;
         background: rgba(0, 0, 0, 0.15);
-        border-radius: 6px;
+        border-radius: 4px;
     }
     
     .widget-message strong {
-        font-size: 14px;
-    }
-    
-    /* Urgent state */
-    .deadline-widget.urgent {
-        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% {
-            box-shadow: 0 8px 24px rgba(231, 76, 60, 0.4);
-        }
-        50% {
-            box-shadow: 0 8px 24px rgba(231, 76, 60, 0.8);
-        }
-    }
-    
-    /* Weekly Deposit Snackbars */
-    .deposit-snackbar {
-        background: #fff;
-        border-radius: 8px;
-        padding: 0 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-        transform: translateY(20px);
-        opacity: 0;
-        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        border-left: 4px solid;
-        max-height: 0;
-        overflow: hidden;
-        width: 280px;
-    }
-    
-    .deposit-snackbar.show {
-        transform: translateY(0);
-        opacity: 1;
-        max-height: 100px;
-        padding: 12px 16px;
-    }
-    
-    .deposit-snackbar.hide {
-        transform: translateY(20px);
-        opacity: 0;
-        max-height: 0;
-    }
-    
-    .deposit-snackbar.week-1 {
-        border-left-color: #3498db;
-        background: linear-gradient(135deg, #ffffff 0%, #e8f4f8 100%);
-    }
-    
-    .deposit-snackbar.week-2 {
-        border-left-color: #f39c12;
-        background: linear-gradient(135deg, #ffffff 0%, #fef5e7 100%);
-    }
-    
-    .deposit-snackbar.week-3 {
-        border-left-color: #e74c3c;
-        background: linear-gradient(135deg, #ffffff 0%, #fadbd8 100%);
-    }
-    
-    .snackbar-icon {
-        width: 10px;
-        height: 10px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        font-size: 18px;
-    }
-    
-    .week-1 .snackbar-icon {
-        background: rgba(52, 152, 219, 0.15);
-        color: #3498db;
-    }
-    
-    .week-2 .snackbar-icon {
-        background: rgba(243, 156, 18, 0.15);
-        color: #f39c12;
-    }
-    
-    .week-3 .snackbar-icon {
-        background: rgba(231, 76, 60, 0.15);
-        color: #e74c3c;
-    }
-    
-    .snackbar-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-    }
-    
-    .snackbar-content strong {
-        font-size: 13px;
-        font-weight: 700;
-        color: #2c3e50;
-        display: block;
-    }
-    
-    .snackbar-content span {
         font-size: 12px;
-        color: #7f8c8d;
-        line-height: 1.3;
-    }
-    
-    .snackbar-close {
-        background: transparent;
-        border: none;
-        color: #95a5a6;
-        cursor: pointer;
-        padding: 4px;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        transition: all 0.2s;
-        flex-shrink: 0;
-    }
-    
-    .snackbar-close:hover {
-        background: rgba(0, 0, 0, 0.05);
-        color: #e74c3c;
-    }
-    
-    @media (max-width: 768px) {
-        #weeklyDepositSnackbars {
-            right: 10px;
-            top: 10px;
-            max-width: calc(100% - 20px);
-        }
     }
 </style>
 
 <script>
     $(document).ready(function() {
-        // Deadline date: July 26, 2026
-        const deadlineDate = new Date('2026-07-26T23:59:59').getTime();
-        
-        // Get current month name
+        const deadlineData = @json($deadline ?? (object)[]);
+        const deadlineDate = deadlineData.countdown_date ? new Date(deadlineData.countdown_date).getTime() : null;
+        const deadlineName = deadlineData.name || 'Building Deposit';
         const monthNames = ["January", "February", "March", "April", "May", "June", 
                            "July", "August", "September", "October", "November", "December"];
-        const deadlineMonth = monthNames[6]; // July (0-indexed)
-        const deadlineYear = 2026;
         
-        // Update header and message with current month
-        $('#current-month').text(deadlineMonth);
-        $('#deposit-month').text(deadlineMonth + ' ' + deadlineYear);
-        
-        // Show widget if within 30 days of deadline
-        const now = new Date().getTime();
-        const daysUntilDeadline = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
-        
-        if (daysUntilDeadline <= 30 && daysUntilDeadline >= 0) {
-            $('#depositDeadlineWidget').fadeIn(300);
+        if (deadlineDate) {
+            const deadlineMonth = monthNames[new Date(deadlineData.countdown_date).getMonth()];
+            $('#current-month').text(deadlineMonth);
         }
         
-        // Update countdown every second
-        const countdownInterval = setInterval(function() {
+        $('#deadline-name').text(deadlineName);
+        
+        const updateCountdown = function() {
+            if (!deadlineDate) {
+                clearInterval(countdownInterval);
+                return;
+            }
+            
             const now = new Date().getTime();
             const distance = deadlineDate - now;
             
@@ -357,7 +162,6 @@
                 $('#days').text('0');
                 $('#hours').text('0');
                 $('#minutes').text('0');
-                $('#days-remaining').text('0');
                 $('#deadline-message').html('<strong style="color: #ffcccc;">Deposit deadline has passed.</strong>');
                 return;
             }
@@ -369,59 +173,26 @@
             $('#days').text(days);
             $('#hours').text(hours);
             $('#minutes').text(minutes);
-            $('#days-remaining').text(days);
             
-            // Update message and style based on urgency
             if (days === 0) {
-                $('#deadline-message').html('⚠️ <strong>URGENT: Less than 24 hours</strong> to complete all required deposits for <strong>' + deadlineMonth + ' ' + deadlineYear + '</strong>.');
                 $('.deadline-widget').addClass('urgent');
-            } else if (days === 1) {
-                $('#deadline-message').html('You have <strong>1 day</strong> to complete all required deposits for <strong>' + deadlineMonth + ' ' + deadlineYear + '</strong>.');
-                $('.deadline-widget').addClass('urgent');
-            } else {
-                $('#deadline-message').html('You have <strong>' + days + ' days</strong> to complete all required deposits for <strong>' + deadlineMonth + ' ' + deadlineYear + '</strong>.');
             }
-        }, 1000);
+        };
         
-        // Handle close button
-        $('#closeWidget').on('click', function() {
-            $('#depositDeadlineWidget').fadeOut(300);
-            // Also close all snackbars
-            $('.deposit-snackbar').removeClass('show').addClass('hide');
-        });
+        const countdownInterval = setInterval(updateCountdown, 1000);
+        updateCountdown();
         
-        // Weekly Snackbar Animation System
-        showWeeklySnackbars();
-    });
-    
-    function showWeeklySnackbars() {
-        const snackbars = ['snackbar-week1', 'snackbar-week2', 'snackbar-week3'];
-        let currentIndex = 0;
-        
-        function showNextSnackbar() {
-            // Hide all snackbars
-            snackbars.forEach(id => {
-                $('#' + id).removeClass('show').addClass('hide');
-            });
+        if (deadlineDate) {
+            const now = new Date().getTime();
+            const daysUntilDeadline = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
             
-            // Show current snackbar
-            setTimeout(() => {
-                $('#' + snackbars[currentIndex]).removeClass('hide').addClass('show');
-            }, 100);
-            
-            // Move to next snackbar
-            currentIndex = (currentIndex + 1) % snackbars.length;
+            if (daysUntilDeadline <= 30 && daysUntilDeadline >= 0) {
+                $('#depositDeadlineWidget').fadeIn(300);
+            }
         }
         
-        // Show first snackbar after 2 seconds
-        setTimeout(() => {
-            showNextSnackbar();
-            // Rotate through snackbars every 5 seconds
-            setInterval(showNextSnackbar, 5000);
-        }, 2000);
-    }
-    
-    function closeSnackbar(snackbarId) {
-        $('#' + snackbarId).removeClass('show').addClass('hide');
-    }
+        $('#closeWidget').on('click', function() {
+            $('#depositDeadlineWidget').fadeOut(300);
+        });
+    });
 </script>

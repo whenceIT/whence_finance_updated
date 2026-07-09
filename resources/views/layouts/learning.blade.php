@@ -47,32 +47,43 @@
                         </div>
                     </a>
                 </div>
-                
+                  
+                <!-- Search Field with Animated Placeholder -->
+                <div class="search-container" style="margin-left: 20px; position: relative; display: flex; align-items: center;">
+                    <i class="fa fa-search" style="color: rgba(255,255,255,0.7); font-size: 16px; margin-right: 8px;"></i>
+                    <input type="text" id="learning-search" class="form-control" placeholder=" " style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 10px; border-radius: 4px; font-size: 14px; width: 350px; outline: none;">
+                </div>
+
+                @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
                 <!-- Navigation -->
-                <nav class="learning-nav">
-                    @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
-                        <a href="{{ url('learning/settings/courses') }}" class="nav-link">
-                            <i class="fa fa-book"></i>
-                            <span>Manage Courses</span>
-                        </a>
-                        <a href="{{ url('learning/settings/students') }}" class="nav-link">
-                            <i class="fa fa-users"></i>
-                            <span>Manage Students</span>
-                        </a>
-                        <a href="{{ url('learning/settings/teachers') }}" class="nav-link">
-                            <i class="fa fa-graduation-cap"></i>
-                            <span>Manage Trainers</span>
-                        </a>
-                        <a href="{{ url('learning/settings/general-topics') }}" class="nav-link">
-                            <i class="fa fa-folder-open"></i>
-                            <span>Manage Topics</span>
-                        </a>
-                        <a href="{{ url('learning/analytics') }}" class="nav-link">
-                            <i class="fa fa-chart-bar"></i>
-                            <span>Analytics</span>
-                        </a>
-                    @endif
-                </nav>
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm" id="learning-menu-toggle" style="background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                        <i class="fa fa-th"></i>
+                    </button>
+                    <div class="dropdown-menu" id="learning-dropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 220px; z-index: 1001; overflow: hidden;">
+                            <a href="{{ url('learning/settings/courses') }}" class="dropdown-item" style="display: flex; align-items: center; padding: 10px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px;">
+                                <i class="fa fa-book" style="width: 20px; margin-right: 10px;"></i>
+                                <span>Manage Courses</span>
+                            </a>
+                            <a href="{{ url('learning/settings/students') }}" class="dropdown-item" style="display: flex; align-items: center; padding: 10px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px;">
+                                <i class="fa fa-users" style="width: 20px; margin-right: 10px;"></i>
+                                <span>Manage Students</span>
+                            </a>
+                            <a href="{{ url('learning/settings/teachers') }}" class="dropdown-item" style="display: flex; align-items: center; padding: 10px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px;">
+                                <i class="fa fa-graduation-cap" style="width: 20px; margin-right: 10px;"></i>
+                                <span>Manage Trainers</span>
+                            </a>
+                            <a href="{{ url('learning/settings/general-topics') }}" class="dropdown-item" style="display: flex; align-items: center; padding: 10px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px;">
+                                <i class="fa fa-folder-open" style="width: 20px; margin-right: 10px;"></i>
+                                <span>Manage Topics</span>
+                            </a>
+                            <a href="{{ url('learning/analytics') }}" class="dropdown-item" style="display: flex; align-items: center; padding: 10px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px;">
+                                <i class="fa fa-chart-bar" style="width: 20px; margin-right: 10px;"></i>
+                                <span>Analytics</span>
+                            </a>
+                    </div>
+                </div>
+                @endif
                 
                 <!-- User Menu -->
                 <div class="user-menu">
@@ -449,6 +460,26 @@
                 $userDropdown.removeClass('show');
             }
 
+            // Animated Search Placeholder
+            (function animateSearchPlaceholder() {
+                var placeholders = [
+                    'Search courses, topics, or students...',
+                    'Find your learning path...',
+                    'Explore new knowledge...',
+                    'What would you like to learn today?'
+                ];
+                var $searchInput = $('#learning-search');
+                var index = 0;
+                
+                function updatePlaceholder() {
+                    $searchInput.attr('placeholder', placeholders[index]);
+                    index = (index + 1) % placeholders.length;
+                }
+                
+                setInterval(updatePlaceholder, 4000);
+                updatePlaceholder();
+            })();
+
             // Toggle sidebar on button click
             $toggleBtn.on('click', function(e) {
                 e.preventDefault();
@@ -496,11 +527,27 @@
                 }
             });
 
-            // Add active class to nav links
-            $('.learning-nav a').each(function() {
+            // Add active class to dropdown items
+            $('#learning-dropdown .dropdown-item').each(function() {
                 var $link = $(this);
                 if (currentPath === $link.attr('href')) {
                     $link.addClass('active');
+                }
+            });
+
+            // Toggle learning dropdown menu
+            $('#learning-menu-toggle').on('click', function(e) {
+                e.stopPropagation();
+                $('#learning-dropdown').toggle();
+            });
+
+            // Close learning dropdown when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#learning-menu-toggle, #learning-dropdown').length) {
+                    $('#learning-dropdown').hide();
+                }
+                if (!$(e.target).closest('#user-profile-toggle').length) {
+                    closeUserDropdown();
                 }
             });
 
@@ -896,9 +943,9 @@
                     intro: 'Your centralized learning management system. This platform helps you watch learning materials, access courses, track progress, and earn certificates - all in one place!'
                 },
                 {
-                    element: '.learning-nav',
+                    element: '#learning-menu-toggle',
                     title: '📋 Navigation Menu',
-                    intro: 'Quick access to Dashboard, Manage Courses, Students, and Trainers. Use these links to navigate between different sections of the platform.'
+                    intro: 'Click the menu icon to access quick links to Manage Courses, Students, Trainers, Topics, and Analytics.'
                 },
                 {
                     element: '#stats-grid',

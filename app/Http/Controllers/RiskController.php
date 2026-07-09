@@ -604,9 +604,9 @@ class RiskController extends Controller
         }
 
         $deposits = $query->orderBy('date', 'desc')
-            ->limit(500)
             ->get();
-
+            
+        
         return response()->json([
             'deposits' => $deposits,
             'total' => $deposits->sum('amount'),
@@ -1522,7 +1522,6 @@ class RiskController extends Controller
                 $totReq  += $required;
                 $totRecv += $received;
 
-               
                 $isMandatory = in_array((int) $type->id, [3, 1, 5]);
                 $depositCardStats[] = [
                     'label'       => $type->name,
@@ -2116,7 +2115,7 @@ class RiskController extends Controller
         $validated['created_by'] = Sentinel::getUser()->id;
         $validated['setup_debt_cost_id'] = $cost->id;
         $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
-        $validated['status'] = 1;
+        $validated['status'] = 0;
         
         $transaction = \App\Models\SetupDebtTransaction::create($validated);
         

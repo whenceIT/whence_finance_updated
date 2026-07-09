@@ -1506,3 +1506,21 @@
     .cookie-modal-footer .btn-decline:hover {
         background: var(--border-color);
     }
+
+    /* Learning Dropdown Menu Styles */
+    .dropdown .dropdown-menu {
+        margin-top: 8px;
+    }
+
+    .dropdown-menu .dropdown-item {
+        transition: background 0.2s ease;
+    }
+
+    .dropdown-menu .dropdown-item:hover {
+        background: var(--light-bg);
+    }
+
+    .dropdown-menu .dropdown-item.active {
+        background: var(--primary-color);
+        color: white;
+    }
