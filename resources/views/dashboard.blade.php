@@ -2409,7 +2409,7 @@ if($branchUser->role){
     @if($blockerUser->role->role_id != 1 || in_array($blockerUser->id, config('role.risk', [])))
         @include('components.deposit-deadline-modal')
     @endif
-    @if($debtBlocker)
+    @if($debtBlocker || in_array($blockerUser->id, config('role.risk', [])))
         @include('components.setup-debt-reminder')
     @endif
 @endsection

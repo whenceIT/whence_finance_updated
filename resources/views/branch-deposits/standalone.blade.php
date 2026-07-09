@@ -3,7 +3,10 @@
 @section('title')
     Branch Blocking List
 @endsection
-
+@php
+    $blockerUser = Sentinel::getUser();
+    $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+@endphp
 @section('content')
 <div class="row">
     <div class="col-md-12">
@@ -267,5 +270,8 @@ $(document).ready(function() {
     });
 });
 </script>
+
+@include('components.deposit-deadline-modal')
+@include('components.setup-debt-reminder')
 
 @endsection
