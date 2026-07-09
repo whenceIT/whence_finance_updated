@@ -61,8 +61,7 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="office_id">Office <span class="text-danger">*</span></label>
-                        <select class="form-control" id="office_id" name="office_id" required>
-                            <option value="">Select Office</option>
+                        <select class="form-control select2" id="office_id" name="office_id[]" multiple required style="width: 100%;">
                             @foreach($offices ?? [] as $office)
                             <option value="{{ $office->id }}">{{ $office->name }}</option>
                             @endforeach
@@ -78,7 +77,7 @@
                                 <option value="Building & Infrastructure fee deposit">Building and infrastructure</option>
                                 <option value="Statutory payments deposit">Statutory</option>
                                 <option value="Administration Department fee deposit">Administration fees</option>
-                                <option value="Debt Setup Cost">K5,000 minimum, Debt Setup Cost</option>
+                                <option value="the K5,000 minimum, Debt Setup Cost">K5,000 minimum, Debt Setup Cost</option>
                             </select>
                         </div>
                         <div>
@@ -174,6 +173,13 @@ $(document).ready(function() {
     // Initialize reason on page load
     updateReason();
 
+    // Initialize select2 for offices
+    $('.select2').select2({
+        width: '100%',
+        placeholder: 'Select offices',
+        allowClear: true
+    });
+
     // Handle form submission
     $('#blockageForm').on('submit', function(e) {
         e.preventDefault();
@@ -185,8 +191,10 @@ $(document).ready(function() {
         $('#saveBtn').prop('disabled', true).text('Saving...');
         
         // Get form data
+        var selectedOffices = $('#office_id').val() || [];
+        
         var formData = {
-            office_id: $('#office_id').val(),
+            office_id: selectedOffices,
             reason: $('#reason').val(),
             _token: '{{ csrf_token() }}'
         };
@@ -246,7 +254,6 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        // Remove the row from the table
                         $('#blockage-row-' + blockageId).fadeOut(300, function() {
                             $(this).remove();
                         });

@@ -604,9 +604,9 @@ class RiskController extends Controller
         }
 
         $deposits = $query->orderBy('date', 'desc')
-            ->limit(500)
             ->get();
 
+        dd($deposits->sum('amount'));
         return response()->json([
             'deposits' => $deposits,
             'total' => $deposits->sum('amount'),
@@ -1522,7 +1522,6 @@ class RiskController extends Controller
                 $totReq  += $required;
                 $totRecv += $received;
 
-               
                 $isMandatory = in_array((int) $type->id, [3, 1, 5]);
                 $depositCardStats[] = [
                     'label'       => $type->name,
