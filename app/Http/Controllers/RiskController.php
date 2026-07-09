@@ -606,7 +606,7 @@ class RiskController extends Controller
         $deposits = $query->orderBy('date', 'desc')
             ->get();
 
-        dd($deposits->sum('amount'));
+       
         return response()->json([
             'deposits' => $deposits,
             'total' => $deposits->sum('amount'),
