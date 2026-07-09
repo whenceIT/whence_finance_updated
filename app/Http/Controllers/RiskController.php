@@ -2116,7 +2116,7 @@ class RiskController extends Controller
         $validated['created_by'] = Sentinel::getUser()->id;
         $validated['setup_debt_cost_id'] = $cost->id;
         $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
-        $validated['status'] = 1;
+        $validated['status'] = 0;
         
         $transaction = \App\Models\SetupDebtTransaction::create($validated);
         
