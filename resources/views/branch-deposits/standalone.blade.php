@@ -1,13 +1,42 @@
 @extends('layouts.master')
 
 @section('title')
-    Branch Blocking List
+    Deposit Deadline Management
 @endsection
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+    $deadlineName = isset($deadline) ? $deadline->name : 'Building Deposit';
+    $deadlineDateValue = isset($deadline) && $deadline->countdown_date ? \Carbon\Carbon::parse($deadline->countdown_date)->format('Y-m-d\TH:i') : '';
 @endphp
 @section('content')
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Deposit Deadline Settings</h3>
+            </div>
+            <div class="box-body" style="min-height: 300px;">
+                <form id="deadlineForm">
+                    <div class="form-group">
+                        <label for="deadline_name">Deadline Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="deadline_name" name="name" 
+                               value="{{ old('name', $deadlineName) }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="deadline_date">Countdown Date <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control" id="deadline_date" name="countdown_date" 
+                               value="{{ old('countdown_date', $deadlineDateValue) }}" required>
+                        <small class="text-muted">Set the deadline for deposit reminders</small>
+                    </div>
+                    <div id="deadline-error" class="text-danger" style="display:none;"></div>
+                    <button type="submit" class="btn btn-primary" id="deadlineSaveBtn">Save Deadline</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-12">
         <div class="box box-primary">
@@ -267,6 +296,47 @@ $(document).ready(function() {
                 }
             });
         }
+    });
+
+    // Handle deadline form submission
+    $('#deadlineForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $('#deadline-error').hide().empty();
+        $('#deadlineSaveBtn').prop('disabled', true).text('Saving...');
+        
+        var formData = {
+            name: $('#deadline_name').val(),
+            countdown_date: $('#deadline_date').val(),
+            _token: '{{ csrf_token() }}'
+        };
+        
+        $.ajax({
+            url: '{{ route("deposits.deadline.update") }}',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                }
+            },
+            error: function(xhr) {
+                if (xhr.status === 422) {
+                    var errors = xhr.responseJSON.errors;
+                    var errorHtml = '<ul>';
+                    $.each(errors, function(key, value) {
+                        errorHtml += '<li>' + value[0] + '</li>';
+                    });
+                    errorHtml += '</ul>';
+                    $('#deadline-error').html(errorHtml).show();
+                } else {
+                    toastr.error('An error occurred. Please try again.');
+                }
+            },
+            complete: function() {
+                $('#deadlineSaveBtn').prop('disabled', false).text('Save Deadline');
+            }
+        });
     });
 });
 </script>

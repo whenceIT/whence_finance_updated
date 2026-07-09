@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Deposit;
+use App\Models\Deadline;
 use App\Models\Office;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class BranchDepositController extends Controller
 {
-    public function branchDeposits(Request $request){
+    public function __construct()
+    {
+        $this->middleware('sentinel');
+    }
 
+    public function branchDeposits(Request $request){
         $selectedMonth = $request->get('month', date('Y-m'));
 
         $parts = explode('-', $selectedMonth);
@@ -18,16 +23,18 @@ class BranchDepositController extends Controller
         $selectedMonthForInput = $parts[0] . '-' . $parts[1];
 
         $status = Deposit::depositStatusByMonth(Sentinel::getUser()->office_id, $selectedMonth);
+        $deadline = Deadline::first();
 
-        return view('branch-deposits.index', compact('selectedMonth','selectedMonthForInput','status'));
+        return view('branch-deposits.index', compact('selectedMonth','selectedMonthForInput','status','deadline'));
     }
 
     public function blockages(Request $request)
     {
         $blockages = \App\Models\Blockage::with('office')->latest()->get();
         $offices = \App\Models\Office::all();
+        $deadline = Deadline::first();
         
-        return view('branch-deposits.standalone', compact('blockages', 'offices'));
+        return view('branch-deposits.standalone', compact('blockages', 'offices', 'deadline'));
     }
 
     public function storeBlockage(Request $request)
@@ -134,6 +141,43 @@ class BranchDepositController extends Controller
         return response()->json([
             'success' => true,
             'data' => $formattedData
+        ]);
+    }
+
+    public function getDeadline()
+    {
+        $deadline = Deadline::first();
+        return response()->json([
+            'success' => true,
+            'data' => $deadline
+        ]);
+    }
+
+    public function updateDeadline(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'countdown_date' => 'required|date',
+        ]);
+
+        $deadline = Deadline::first();
+
+        if ($deadline) {
+            $deadline->update([
+                'name' => $validated['name'],
+                'countdown_date' => $validated['countdown_date'],
+            ]);
+        } else {
+            $deadline = Deadline::create([
+                'name' => $validated['name'],
+                'countdown_date' => $validated['countdown_date'],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Deadline updated successfully',
+            'data' => $deadline
         ]);
     }
 }

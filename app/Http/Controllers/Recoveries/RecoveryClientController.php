@@ -4,51 +4,15 @@ namespace App\Http\Controllers\Recoveries;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
-use App\Helpers\GeneralHelper;
-use App\Mail\SendLoginDetailsEmail;
-use App\Models\AuditLogs;
-use App\Models\BlacklistHistory;
-use App\Models\BlacklistReason;
 use App\Models\Client;
-use App\Models\ClientIdentification;
-use App\Models\ClientLocation;
-use App\Models\ClientNextOfKin;
-use App\Models\ClientUser;
-use App\Models\CustomField;
-use App\Models\CustomFieldMeta;
-use App\Models\Document;
-use App\Models\Loan;
-use App\Models\Note;
-use App\Models\ClientTransferRequest;
 use App\Models\Office;
-use App\Models\Notifix;
-use Aws\S3\S3Client;
-use Aws\Exception\AwsException;
-use League\Flysystem\Filesystem;
-use Illuminate\Support\Facades\Http;
-use App\Models\Savings;
-use App\Models\Setting;
-use App\Models\User;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
-use Intervention\Image\Facades\Image as InterventionImage;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\View;
-use Intervention\Image\Facades\Image;
-use Laracasts\Flash\Flash;
 use Carbon\Carbon;
-use App\Models\UserRole;
-use Illuminate\Support\Facades\DB;
 
 
 class RecoveryClientController extends Controller
 {
-  public function dormant_clients()
+    public function dormant_clients()
     {
         return redirect()->route('recovery.clients', ['type' => 'dormant']);
     }

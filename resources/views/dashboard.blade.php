@@ -2406,9 +2406,8 @@ if($branchUser->role){
         $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
     @endphp
 
-    @if($blockerUser->role->role_id != 1 || in_array($blockerUser->id, config('role.risk', [])))
-        @include('components.deposit-deadline-modal')
-    @endif
+    @include('components.deposit-deadline-modal')
+
     @if($debtBlocker || in_array($blockerUser->id, config('role.risk', [])))
         @include('components.setup-debt-reminder')
     @endif

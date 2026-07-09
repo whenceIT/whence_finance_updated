@@ -1574,8 +1574,8 @@
                             <li class="@if(Request::is('client/dormant_clients')) active @endif">
                                 <a href="{{ url('recovery/dormant_clients') }}"><i class="fa fa-bell"></i> Dormant Clients</a>
                             </li>
-                            <li class="@if(Request::is('recovery/dormant-client/*')) active @endif">
-                                <a href="{{ url('recovery/client-dormants') }}"><i class="fa fa-bell"></i> Client Dormants</a>
+                            <li class="@if(Request::is('clients-in-dormant/*')) active @endif">
+                                <a href="{{ url('recovery/clients-in-dormant') }}"><i class="fa fa-bell"></i> Client Dormants</a>
                             </li>
                             <li class="@if(Request::is('recovery/report/*')) active @endif">
                                 <!-- <a href="{{ url('recovery/report/overview') }}"><i class="fa fa-circle-o"></i> Recovery Reports</a> -->
