@@ -79,8 +79,8 @@ class RecoveryClientController extends Controller
                     ->orWhere('nrc_number', 'like', "%{$search}%");
                 });
             }
-dd($clientQuery);
-            $clientQuery->whereHas('office');
+
+         
             $allClients = $clientQuery->get();
             
             $now = \Carbon\Carbon::now();
