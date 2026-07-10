@@ -74,7 +74,6 @@ class RecoveryClientController extends Controller
 
             
             if ($search) {
-                dd('searching...');
                 $clientQuery->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
@@ -82,9 +81,13 @@ class RecoveryClientController extends Controller
                 });
             }
 
-        
-            $allClients = $clientQuery->get();
-            dd('1 ', $allClients);
+            try {
+                $allClients = $clientQuery->get();
+            } catch (\Throwable $th) {
+                dd($th);
+                dd('1 ', $allClients);
+            }
+            
             $now = \Carbon\Carbon::now();
             $threeMonthsAgo = $now->copy()->subMonths(3);
 
