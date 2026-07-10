@@ -36,6 +36,7 @@ class RecoveryClientController extends Controller
                     ->with(['loans' => function ($query) {
                         $query->where('status', 'closed')->latest('created_at');
                     }, 'office', 'staff']);
+                dd($clientQuery);
             } elseif ($type === 'overdue') {
                 $clientQuery = Client::where('status', 'active')
                     ->whereHas('loans', function ($query) {
@@ -49,11 +50,15 @@ class RecoveryClientController extends Controller
                             ->where('first_repayment_date', '<', Carbon::now()->toDateString())
                             ->latest('first_repayment_date');
                     }, 'office', 'staff']);
+                dd($clientQuery);
             } else {
+                
                 $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
                     ->with(['loans' => function ($query) {
                         $query->latest('created_at');
                     }, 'office', 'staff']);
+
+                dd($clientQuery);
             }
 
             if (!$user || !$user->role) {

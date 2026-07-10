@@ -298,6 +298,9 @@ function totalAmount($transactions) {
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+    $deadline = \App\Models\Deadline::first();
+    $deadlineName = isset($deadline) ? $deadline->name : 'Building Deposit';
+    $deadlineDateValue = isset($deadline) && $deadline->countdown_date ? \Carbon\Carbon::parse($deadline->countdown_date)->format('Y-m-d\TH:i') : '';
 @endphp
 
 @include('components.deposit-deadline-modal')

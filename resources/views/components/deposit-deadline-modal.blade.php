@@ -3,7 +3,7 @@
     <div id="depositDeadlineWidget">
         <div class="deadline-widget">
             <div class="widget-header">
-                <i class="fa fa-exclamation-triangle"></i> <span id="current-month">Monthly</span> Deposits Reminder
+                <i class="fa fa-exclamation-triangle"></i> <span id="current-month">Monthly</span> Deposits | Weekly Reminder
                 <button class="widget-close" id="closeWidget">
                     <i class="fa fa-times"></i>
                 </button>
@@ -14,7 +14,7 @@
                     <div class="countdown-item"><span class="countdown-number" id="hours">-</span><span class="countdown-text">Hrs</span></div>
                     <div class="countdown-item"><span class="countdown-number" id="minutes">-</span><span class="countdown-text">Min</span></div>
                 </div>
-                <p class="widget-message" id="deadline-message">Complete <b id="deadline-name">Building Deposit</b> fee</p>
+                <p class="widget-message" id="deadline-message">Complete <b id="deadline-name">--</b>, and prevent system locking.</p>
             </div>
         </div>
     </div>

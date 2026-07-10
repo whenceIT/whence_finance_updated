@@ -70,9 +70,9 @@
 @endphp
 
 <div class="deposit-item deposit-card">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
-        <h4 class="deposit-title" style="margin:0;">{{ $depositName }}</h4>
-        <span style="background:{{ $statusColor }};color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;">{{$approvalStatus ?? ''}} {{ $statusText }}</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;background:linear-gradient(90deg, #e3f2fd 0%,#bbdefb 100%);padding:16px 20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(10px);">
+        <h4 class="deposit-title" style="margin:0;font-size:18px;font-weight:700;color:#1a237e;line-height:1.3;">{{ $depositName }}</h4>
+        <span style="background:{{ $statusColor }};color:#fff;padding:8px 16px;border-radius:24px;font-size:12px;font-weight:600;min-width:90px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);">{{$approvalStatus ?? ''}} {{ $statusText }}</span>
     </div>
 
     <div style="display: flex; flex-direction: row; gap: 10px; margin: 15px 0;">

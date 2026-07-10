@@ -6,7 +6,7 @@
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
-    $deadlineName = isset($deadline) ? $deadline->name : 'Building Deposit';
+    $deadlineName = isset($deadline) ? $deadline->name : 'Administration Department fee deposit';
     $deadlineDateValue = isset($deadline) && $deadline->countdown_date ? \Carbon\Carbon::parse($deadline->countdown_date)->format('Y-m-d\TH:i') : '';
 @endphp
 @section('content')
@@ -20,8 +20,15 @@
                 <form id="deadlineForm">
                     <div class="form-group">
                         <label for="deadline_name">Deadline Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="deadline_name" name="name" 
-                               value="{{ old('name', $deadlineName) }}" required>
+                        <select class="form-control" id="deadline_name" name="name" required>
+                            <option value="">Select Deadline Name</option>
+                            <option value="Administration Department fee deposit" {{ old('name', $deadlineName) == 'Administration Department fee deposit' ? 'selected' : '' }}>Administration Department fee deposit</option>
+                            <option value="Managers Housing deposit" {{ old('name', $deadlineName) == 'Managers Housing deposit' ? 'selected' : '' }}>Managers Housing deposit</option>
+                            <option value="Building & Infrastructure fee deposits" {{ old('name', $deadlineName) == 'Building & Infrastructure fee deposits' ? 'selected' : '' }}>Building & Infrastructure fee deposits</option>
+                            <option value="Salaries deposits" {{ old('name', $deadlineName) == 'Salaries deposits' ? 'selected' : '' }}>Salaries deposits</option>
+                            <option value="Statutory payments deposits" {{ old('name', $deadlineName) == 'Statutory payments deposits' ? 'selected' : '' }}>Statutory payments deposits</option>
+                            <option value="Savings deposits" {{ old('name', $deadlineName) == 'Savings deposits' ? 'selected' : '' }}>Savings deposits</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="deadline_date">Countdown Date <span class="text-danger">*</span></label>
@@ -106,10 +113,12 @@
                             <label for="reason_type">Reason Type <span class="text-danger">*</span></label>
                             <select class="form-control" id="reason_type" name="reason_type" required>
                                 <option value="">Select Reason Type</option>
-                                <option value="Building & Infrastructure fee deposit">Building and infrastructure</option>
-                                <option value="Statutory payments deposit">Statutory</option>
-                                <option value="Administration Department fee deposit">Administration fees</option>
-                                <option value="the K5,000 minimum, Debt Setup Cost">K5,000 minimum, Debt Setup Cost</option>
+                                <option value="Administration Department fee deposit">Administration Department fee deposit</option>
+                                <option value="Managers Housing deposit">Managers Housing deposit</option>
+                                <option value="Building & Infrastructure fee deposits">Building & Infrastructure fee deposits</option>
+                                <option value="Salaries deposits">Salaries deposits</option>
+                                <option value="Statutory payments deposits">Statutory payments deposits</option>
+                                <option value="Savings deposits">Savings deposits</option>
                             </select>
                         </div>
                         <div>
