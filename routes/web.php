@@ -18,6 +18,7 @@ use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BranchDepositController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DeadlineController;
 use App\Http\Controllers\GOAController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
@@ -178,6 +179,8 @@ Route::any('create_payroll_loan_application', 'HomeController@create_payroll_loa
 Route::get('notifications', 'HomeController@getNotifications')->middleware('sentinel');
 Route::get('notification-count', 'HomeController@getNotificationCount')->middleware('sentinel');
 Route::post('run-scheduled-commands', 'NotificationController@runScheduledCommands')->middleware('sentinel');
+// Endpoint for client-side to trigger server lock once deadline expires
+Route::post('/deadline/trigger-lock', [DeadlineController::class, 'triggerLock'])->name('deadline.trigger-lock')->middleware('sentinel');
 Route::delete('notifications/{notificationId}', 'NotificationController@delete')->middleware('sentinel');
 Route::post('notifications/mark-all-read', 'HomeController@markAllNotificationsRead')->middleware('sentinel');
 Route::post('notifications/{id}/mark-read', 'HomeController@markNotificationRead')->middleware('sentinel');

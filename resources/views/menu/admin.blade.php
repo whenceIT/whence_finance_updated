@@ -925,39 +925,6 @@
                     </li>
                     @endif
 
-
-                      @if($role == 1 )
-            <li class="treeview @if(Request::is('hr/*')) active @endif">
-                <a href="#">
-                    <i class="fa fa-users"></i> <span>Human Resources</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                    
-                    <li class="@if(Request::is('hr/employees')) active @endif">
-                        <a href="{{ url('hr/employees') }}">
-                            <i class="fa fa-circle-o"></i> Employee Records
-                        </a>
-                    </li>
-                    <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
-                        <a href="{{ url('hr/workforce_analytics') }}">
-                            <i class="fa fa-circle-o"></i> Workforce Analytics
-                        </a>
-                    </li>
-
-                    <li class="@if(Request::is('hr/administrative-records*')) active @endif">
-                        <a href="{{ url('hr/administrative-records') }}">
-                            <i class="fa fa-circle-o"></i> Administrative Records
-                        </a>
-                    </li>
-                </ul>
-
-          
-            </li>
-            @endif
-
                     <!-- Administration Expenses -->
                     @if($role==1)
                     <li class="treeview @if(Request::is('administration-expenses*') || Request::is('bank-account-expenses*')) active menu-open @endif" style="padding-left: 10px;">
@@ -1096,6 +1063,35 @@
             @endif
 
   
+            @if($role == 1 )
+            <li class="treeview @if(Request::is('hr/*')) active @endif">
+                <a href="#">
+                    <i class="fa fa-users"></i> <span>Human Resources</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    
+                    <li class="@if(Request::is('hr/employees')) active @endif">
+                        <a href="{{ url('hr/employees') }}">
+                            <i class="fa fa-circle-o"></i> Employee Records
+                        </a>
+                    </li>
+                    <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
+                        <a href="{{ url('hr/workforce_analytics') }}">
+                            <i class="fa fa-circle-o"></i> Workforce Analytics
+                        </a>
+                    </li>
+
+                    <li class="@if(Request::is('hr/administrative-records*')) active @endif">
+                        <a href="{{ url('hr/administrative-records') }}">
+                            <i class="fa fa-circle-o"></i> Administrative Records
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            @endif
 
 
             <!-- ============================================

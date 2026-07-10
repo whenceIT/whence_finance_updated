@@ -163,6 +163,24 @@
                 $('#hours').text('0');
                 $('#minutes').text('0');
                 $('#deadline-message').html('<strong style="color: #ffcccc;">Deposit deadline has passed.</strong>');
+
+                // Trigger server-side lock via AJAX (only for authenticated users)
+                // try {
+                //     $.ajax({
+                //         url: '{{ route('deadline.trigger-lock') }}',
+                //         method: 'POST',
+                //         data: {
+                //             _token: '{{ csrf_token() }}'
+                //         }
+                //     }).done(function(res) {
+                //         console.log('Deadline trigger response', res);
+                //     }).fail(function(err) {
+                //         console.error('Failed to trigger deadline lock', err);
+                //     });
+                // } catch (e) {
+                //     console.error(e);
+                // }
+
                 return;
             }
             
