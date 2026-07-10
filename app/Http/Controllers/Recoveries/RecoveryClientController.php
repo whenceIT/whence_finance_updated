@@ -50,10 +50,13 @@ class RecoveryClientController extends Controller
                             ->latest('first_repayment_date');
                     }, 'office', 'staff']);
             } else {
+                
                 $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
                     ->with(['loans' => function ($query) {
                         $query->latest('created_at');
                     }, 'office', 'staff']);
+
+                dd($clientQuery);
             }
 
             if (!$user || !$user->role) {
