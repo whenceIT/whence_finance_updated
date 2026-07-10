@@ -2022,7 +2022,6 @@ Route::group(['prefix' => 'recovery'], function () {
     // Client recovery management routes
     //route for clients
     Route::get('clients', 'Recoveries\RecoveryClientController@recovery_clients')->name('recovery.clients');
-    Route::get('dormant_clients', 'Recoveries\RecoveryClientController@dormant_clients')->name('client.dormant_clients');
     Route::get('clients-in-dormant', 'Recoveries\RecoveryClientController@dormant_clients')->name('recoveries.dormant-clients');
     Route::get('recovered_clients', 'Recoveries\RecoveryClientController@recovered_clients')->name('client.recovered_clients');
     Route::post('{id}/mark-recovered', 'Recoveries\RecoveryClientController@mark_recovered')->name('client.mark_recovered');

@@ -1571,11 +1571,9 @@
                             <li class="@if(Request::is('recovery/specialist/*')) active @endif">
                                 <a href="{{ url('recovery/specialist/data') }}"><i class="fa fa-circle-o"></i> Specialists</a>
                             </li>
-                            <li class="@if(Request::is('client/dormant_clients')) active @endif">
-                                <a href="{{ url('recovery/dormant_clients') }}"><i class="fa fa-bell"></i> Dormant Clients</a>
-                            </li>
+
                             <li class="@if(Request::is('clients-in-dormant/*')) active @endif">
-                                <a href="{{ url('recovery/clients-in-dormant') }}"><i class="fa fa-bell"></i> Client Dormants</a>
+                                <a href="{{ url('recovery/clients-in-dormant') }}"><i class="fa fa-bell"></i> Recover Dormant Client </a>
                             </li>
                             <li class="@if(Request::is('recovery/report/*')) active @endif">
                                 <!-- <a href="{{ url('recovery/report/overview') }}"><i class="fa fa-circle-o"></i> Recovery Reports</a> -->
