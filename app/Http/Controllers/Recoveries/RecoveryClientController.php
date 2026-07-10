@@ -80,7 +80,7 @@ class RecoveryClientController extends Controller
                 });
             }
 
-          dd('0', $clientQuery);
+        
             $allClients = $clientQuery->get();
             dd('1', $allClients);
             $now = \Carbon\Carbon::now();
