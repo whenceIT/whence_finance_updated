@@ -39,7 +39,6 @@ class RecoveryClientController extends Controller
                     ->with(['loans' => function ($query) {
                         $query->where('status', 'closed')->latest('created_at');
                     }, 'office', 'staff']);
-                dd('1 ',$clientQuery);
             } elseif ($type === 'overdue') {
                 $clientQuery = Client::where('status', 'active')
                     ->whereHas('loans', function ($query) {
@@ -53,7 +52,6 @@ class RecoveryClientController extends Controller
                             ->where('first_repayment_date', '<', Carbon::now()->toDateString())
                             ->latest('first_repayment_date');
                     }, 'office', 'staff']);
-                dd('2 ',$clientQuery);
             } else {
                 
                 $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
@@ -82,10 +80,10 @@ class RecoveryClientController extends Controller
             }
 
             try {
-                $allClients = $clientQuery->get();
+                $allClients = $clientQuery->take(500)->get();
             } catch (\Throwable $th) {
-                dd($th);
-                dd('1 ', $allClients);
+                \Log::error('Client query failed: ' . $th->getMessage());
+                $allClients = collect();
             }
             
             $now = \Carbon\Carbon::now();
@@ -105,10 +103,10 @@ class RecoveryClientController extends Controller
 
             $clientsData = $filteredClients->slice(0, 50)->values();
 
-            dd('2',$clientsData);
             return view('recoveries.dormant_clients', compact('clientsData', 'type'));
         } catch (\Throwable $th) {
-            dd($th);
+            \Log::error('Recovery clients failed: ' . $th->getMessage());
+            return view('recoveries.dormant_clients', ['clientsData' => collect(), 'type' => $type]);
         }
     }
     
