@@ -6,7 +6,7 @@
 
 @section('content')
 
-@if($cashBalance < 30000 && $role !== 1)
+@if($cashBalance < 20000 && $role !== 1)
 
 <div class="box box-danger">
     <div class="box-body text-center" style="padding: 30px 20px;">
