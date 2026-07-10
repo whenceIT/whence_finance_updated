@@ -27,11 +27,11 @@ class RecoveryClientController extends Controller
         try {
             
             $user = Sentinel::getUser();
-            dd($user);
+           
             $type = request()->get('type', 'dormant');
-            dd($type);
+         
             $search = request()->get('search', '');
-            dd($search);
+   
 
             if ($type === 'recovered') {
                 $clientQuery = Client::where('status', 'active')
