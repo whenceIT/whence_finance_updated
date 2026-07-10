@@ -25,10 +25,13 @@ class RecoveryClientController extends Controller
     public function recovery_clients()
     {
         try {
-                
+            
             $user = Sentinel::getUser();
+            dd($user);
             $type = request()->get('type', 'dormant');
+            dd($type);
             $search = request()->get('search', '');
+            dd($search);
 
             if ($type === 'recovered') {
                 $clientQuery = Client::where('status', 'active')
@@ -36,7 +39,7 @@ class RecoveryClientController extends Controller
                     ->with(['loans' => function ($query) {
                         $query->where('status', 'closed')->latest('created_at');
                     }, 'office', 'staff']);
-                dd($clientQuery);
+                dd('1 ',$clientQuery);
             } elseif ($type === 'overdue') {
                 $clientQuery = Client::where('status', 'active')
                     ->whereHas('loans', function ($query) {
@@ -50,7 +53,7 @@ class RecoveryClientController extends Controller
                             ->where('first_repayment_date', '<', Carbon::now()->toDateString())
                             ->latest('first_repayment_date');
                     }, 'office', 'staff']);
-                dd($clientQuery);
+                dd('2 ',$clientQuery);
             } else {
                 
                 $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
@@ -58,7 +61,7 @@ class RecoveryClientController extends Controller
                         $query->latest('created_at');
                     }, 'office', 'staff']);
 
-                dd($clientQuery);
+                dd('3 ',$clientQuery);
             }
 
             if (!$user || !$user->role) {
