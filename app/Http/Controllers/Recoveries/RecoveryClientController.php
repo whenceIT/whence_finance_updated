@@ -98,7 +98,7 @@ class RecoveryClientController extends Controller
 
             return view('recoveries.dormant_clients', compact('clientsData', 'type'));
         } catch (\Throwable $th) {
-            return redirect()->route('login')->with('error', 'An error occurred: ' . $th->getMessage());
+            dd($th);
         }
     }
     
