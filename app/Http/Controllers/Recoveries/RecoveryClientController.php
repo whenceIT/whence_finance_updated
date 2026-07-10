@@ -72,7 +72,7 @@ class RecoveryClientController extends Controller
                 $clientQuery->where('office_id', $user->office_id);
             }
 
-            dd($search);
+            
             if ($search) {
                 dd('searching...');
                 $clientQuery->where(function ($q) use ($search) {
