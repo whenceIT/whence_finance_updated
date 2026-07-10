@@ -82,7 +82,7 @@ class RecoveryClientController extends Controller
 
          
             $allClients = $clientQuery->get();
-            
+            dd('1',$allClients);
             $now = \Carbon\Carbon::now();
             $threeMonthsAgo = $now->copy()->subMonths(3);
 
@@ -100,6 +100,7 @@ class RecoveryClientController extends Controller
 
             $clientsData = $filteredClients->slice(0, 50)->values();
 
+            dd('2',$clientsData);
             return view('recoveries.dormant_clients', compact('clientsData', 'type'));
         } catch (\Throwable $th) {
             dd($th);
