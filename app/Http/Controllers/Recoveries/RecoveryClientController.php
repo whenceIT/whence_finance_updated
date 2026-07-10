@@ -79,10 +79,10 @@ class RecoveryClientController extends Controller
                     ->orWhere('nrc_number', 'like', "%{$search}%");
                 });
             }
-
+dd($clientQuery);
             $clientQuery->whereHas('office');
             $allClients = $clientQuery->get();
-            dd('3 ',$clientQuery);
+            
             $now = \Carbon\Carbon::now();
             $threeMonthsAgo = $now->copy()->subMonths(3);
 
