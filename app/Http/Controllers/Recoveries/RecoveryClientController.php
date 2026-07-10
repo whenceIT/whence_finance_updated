@@ -61,11 +61,7 @@ class RecoveryClientController extends Controller
                         $query->latest('created_at');
                     }, 'office', 'staff']);
 
-                dd('3 ',$clientQuery);
-            }
-
-            if (!$user || !$user->role) {
-                return redirect()->route('login');
+                
             }
             
             if ($user->role->role_id == 6) {
@@ -86,7 +82,7 @@ class RecoveryClientController extends Controller
 
             $clientQuery->whereHas('office');
             $allClients = $clientQuery->get();
-
+            dd('3 ',$clientQuery);
             $now = \Carbon\Carbon::now();
             $threeMonthsAgo = $now->copy()->subMonths(3);
 
