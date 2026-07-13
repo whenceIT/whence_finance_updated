@@ -108,6 +108,178 @@ Add Insurance
 
 </div>
 
+
+
+<div class="box box-danger">
+
+<div class="box-header with-border">
+
+<h3 class="box-title">
+
+Vehicle Custody
+
+</h3>
+
+<a
+href="{{ url('vehicles/'.$vehicle->id.'/custody/create') }}"
+class="btn btn-danger btn-xs pull-right">
+
+Receive Vehicle
+
+</a>
+
+</div>
+
+<div class="box-body">
+
+@if($vehicle->custody)
+
+<p>
+
+<strong>Status:</strong>
+
+<span class="label label-success">
+
+{{ ucfirst($vehicle->custody->status) }}
+
+</span>
+
+</p>
+
+<p>
+
+<strong>Received:</strong>
+
+{{ $vehicle->custody->received_at }}
+
+</p>
+
+<p>
+
+<strong>Received By:</strong>
+
+{{ optional($vehicle->custody->receiver)->name }}
+
+</p>
+
+<p>
+
+<strong>Keys Received:</strong>
+
+{{ $vehicle->custody->keys_received }}
+
+</p>
+
+<p>
+
+<strong>Key Tags:</strong>
+
+{{ $vehicle->custody->key_tag_numbers }}
+
+</p>
+
+<p>
+
+<strong>Garage:</strong>
+
+{{ optional($vehicle->custody->garage)->garage_name }}
+
+</p>
+
+<a
+href="{{ url('vehicles/'.$vehicle->id.'/custody') }}"
+class="btn btn-primary btn-block">
+
+View Custody Details
+
+</a>
+
+@else
+
+<div class="alert alert-warning">
+
+Vehicle has not yet been received into custody.
+
+</div>
+
+@endif
+
+</div>
+
+</div>
+
+
+
+<div class="box box-info">
+
+<div class="box-header with-border">
+
+<h3 class="box-title">
+
+Garage / Storage Facility
+
+</h3>
+
+</div>
+
+<div class="box-body">
+
+@if(optional($vehicle->custody)->garage)
+
+<p>
+
+<strong>Garage Name</strong><br>
+
+{{ $vehicle->custody->garage->garage_name }}
+
+</p>
+
+<p>
+
+<strong>Location</strong><br>
+
+{{ $vehicle->custody->garage->physical_location }}
+
+</p>
+
+<p>
+
+<strong>GPS Coordinates</strong><br>
+
+{{ $vehicle->custody->garage->gps_coordinates }}
+
+</p>
+
+<p>
+
+<strong>Contact Person</strong><br>
+
+{{ $vehicle->custody->garage->contact_person }}
+
+</p>
+
+<p>
+
+<strong>Phone</strong><br>
+
+{{ $vehicle->custody->garage->contact_phone }}
+
+</p>
+
+@else
+
+<div class="alert alert-info">
+
+No garage assigned.
+
+</div>
+
+@endif
+
+</div>
+
+</div>
+
 </div>
 
 

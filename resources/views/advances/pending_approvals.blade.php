@@ -6,12 +6,16 @@
 
 @section('content')
 
-@if($cashBalance < 20000 && $role !== 1)
+@if($cashBalance < 200000 && $role !== 1)
 
 <div class="box box-danger">
     <div class="box-body text-center" style="padding: 30px 20px;">
         <i class="fa fa-exclamation-triangle text-danger"
            style="font-size: 48px; margin-bottom: 15px;"></i>
+
+           Cash Balance: {{ $cashBalance }}<br>
+Role: {{ $role }}<br>
+
 
         <h4 style="font-weight: bold; margin-bottom: 10px;">
             Insufficient Cash Balance
