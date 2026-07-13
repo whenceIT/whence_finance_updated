@@ -49,8 +49,15 @@
                         <label class="control-label">Amount <span class="text-danger">*</span></label>
                         <div class="input-group input-group-lg" style="margin-bottom: 15px;">
                             <span class="input-group-addon"><strong>K</strong></span>
-                            <input type="number" name="amount" id="recovery_amount" class="form-control" step="0.01" required placeholder="Enter recovery amount" style="font-size: 18px; font-weight: bold;">
+                            <input type="number" name="amount" id="recovery_amount" class="form-control" step="0.01" required placeholder="Enter recovered amount" style="font-size: 18px; font-weight: bold;">
                         </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label" style="font-weight: bold;">Dept Share Amount</label>
+                        <input type="number" name="dept_share_amount" id="dept_share_amount" class="form-control" step="0.01" placeholder="Enter dept share amount" style="background-color: #fdecea;">
+                        <small class="text-muted">Amount allocated to Recoveries Dept (optional)</small>
                     </div>
                 </div>
             </div>
@@ -61,11 +68,6 @@
                     <div class="form-group">
                         <label class="control-label">Payment Date</label>
                         <input type="text" name="date" id="payment_date" class="form-control date-picker" value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label" style="font-weight: bold;">Dept Share Amount</label>
-                        <input type="number" name="dept_share_amount" id="dept_share_amount" class="form-control" step="0.01" placeholder="Enter dept share amount">
-                        <small class="text-muted">Amount allocated to Recoveries Dept (optional)</small>
                     </div>
                     <div class="form-group">
                         <label class="control-label">Is it Full Settlement?</label>

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Laracasts\Flash\Flash;
 use App\Models\LedgerIncome;
+use App\Models\RecoveriesDeptExcalatedShare;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class RecoveryCaseController extends Controller
@@ -612,6 +613,8 @@ class RecoveryCaseController extends Controller
     public function recoveriesDecline($id)
     {
         $payment = RecoveryPayment::findOrFail($id);
+        // Delete related escalated shares
+        RecoveriesDeptExcalatedShare::where('recovery_payment_id', $payment->id)->delete();
         // Delete the payment
         $payment->delete();
         Flash::success('Recovery payment declined and deleted successfully.');

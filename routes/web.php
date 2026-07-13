@@ -39,6 +39,7 @@ use App\Http\Controllers\Recoveries\RecoverySpecialistController;
 use App\Http\Controllers\Recoveries\RecoveryReportController;
 use App\Http\Controllers\Recoveries\RecoveryTransactionController;
 use App\Http\Controllers\Recoveries\RecoveryClientController;
+use App\Http\Controllers\Recoveries\DeptSharesController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
@@ -335,7 +336,13 @@ Route::group(['prefix' => 'hr'],function(){
     Route::post('administrative-records/{id}/decline', 'HRController@declineRecord');
     Route::get('employee-exports', 'HRController@employeeExports')->name('hr.employee-exports');
     Route::post('employee-exports', 'HRController@exportEmployees')->name('hr.employee-exports.download');
+    Route::get('employee-exports/excel', 'HRController@exportEmployeesToExcel')->name('hr.employee-exports.excel');
     Route::get('workforce_analytics','HRController@workforce_analytics');
+});
+
+// Recovery routes
+Route::group(['prefix' => 'recovery'], function () {
+    Route::get('dept-shares', 'Recoveries\DeptSharesController@index')->name('dept.shares');
 });
 
 // GOA Manager routes

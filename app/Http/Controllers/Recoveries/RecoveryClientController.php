@@ -33,7 +33,11 @@ class RecoveryClientController extends Controller
             $search = request()->get('search', '');
    
 
-            if ($type === 'recovered') {
+            if ($type === 'escalated') {
+                $clientQuery = Client::where('status', 'active')
+                    ->whereDoesntHave('loans')
+                    ->with(['office', 'staff']);
+            } elseif ($type === 'recovered') {
                 $clientQuery = Client::where('status', 'active')
                     ->where('is_dormant_recovery', 1)
                     ->with(['loans' => function ($query) {
@@ -92,11 +96,13 @@ class RecoveryClientController extends Controller
             if ($type === 'dormant') {
                 $filteredClients = $allClients->filter(function ($client) use ($threeMonthsAgo) {
                     if ($client->loans->isEmpty()) {
-                        return true;
+                        return false;
                     }
                     $lastLoan = $client->loans->first();
                     return $lastLoan && $lastLoan->created_at < $threeMonthsAgo;
                 });
+            } elseif ($type === 'escalated') {
+                $filteredClients = $allClients;
             } else {
                 $filteredClients = $allClients;
             }

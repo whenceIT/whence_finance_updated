@@ -28,6 +28,7 @@ use App\Models\CycleDates;
 use App\Models\LoanTransaction;
 use App\Models\Office;
 use App\Models\UserRole;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Province;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -48,6 +49,7 @@ use App\Models\AuditLogs;
 use App\Models\PayrollTemplateMeta;
 use App\Models\AdministrativeRecord;
 use App\Models\Position;
+use App\Exports\EmployeesExport;
 
 
 class HRController extends Controller{
@@ -604,6 +606,89 @@ public function workforce_analytics()
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportEmployeesToExcel()
+    {
+        $employees = DB::select("
+            SELECT 
+                u.id,
+                o.name AS office_name,
+                p.name AS province_name,
+                u.email,
+                u.first_name,
+                u.last_name,
+                u.status,
+                u.phone,
+                u.date_of_birth,
+                u.date_of_joining,
+                u.marital_status,
+                u.branch,
+                u.salary_mode,
+                u.bank_name,
+                u.bank_account_number,
+                u.health_details,
+                u.health_insurance_provider,
+                u.health_insurance_number,
+                u.external_company,
+                u.external_designation,
+                u.internal_designation,
+                u.created_at,
+                u.updated_at,
+                u.mobile_number,
+                u.current_address,
+                u.relation_to_emergency,
+                u.confirmation_date,
+                u.qualification,
+                u.school_university,
+                u.level_of_education,
+                u.year_completed,
+                u.major,
+                u.tpin,
+                u.ssn,
+                u.nhima,
+                u.salary_details,
+                u.deleted_at,
+                CASE
+                    WHEN u.status = 'active' THEN 'Active User'
+                    WHEN u.status = 'inactive' THEN 'Inactive User'
+                    ELSE u.status
+                END AS user_status,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN DATEDIFF(u.updated_at, u.created_at)
+                    ELSE DATEDIFF(NOW(), u.created_at)
+                END AS days_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(MONTH, u.created_at, NOW())
+                END AS months_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(YEAR, u.created_at, NOW())
+                END AS years_in_institution,
+                CASE
+                    WHEN u.status = 'inactive' 
+                    THEN CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at), 12), ' Months')
+                    ELSE CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, NOW()), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, NOW()), 12), ' Months')
+                END AS time_spent,
+                CASE
+                    WHEN u.status = 'inactive' THEN 'Former Employee'
+                    ELSE 'Current Employee'
+                END AS employment_category
+            FROM users u
+            INNER JOIN audit_trail atl ON atl.user_id = u.id
+            LEFT JOIN role_users ru ON ru.user_id = u.id
+            LEFT JOIN offices o ON o.id = u.office_id
+            LEFT JOIN province p ON p.id = u.province_id
+            WHERE atl.created_at >= '2026-01-01 00:00:00'
+                AND atl.created_at <= '2026-01-30 23:59:59'
+            GROUP BY u.id
+        ");
+
+        return Excel::download(new EmployeesExport($employees), 'employees-export-' . date('Y-m-d') . '.xlsx');
     }
 
 }
