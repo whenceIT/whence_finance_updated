@@ -333,6 +333,8 @@ Route::group(['prefix' => 'hr'],function(){
     Route::get('administrative-records/data', 'HRController@administrativeRecordsData');
     Route::post('administrative-records/{id}/approve', 'HRController@approveRecord');
     Route::post('administrative-records/{id}/decline', 'HRController@declineRecord');
+    Route::get('employee-exports', 'HRController@employeeExports')->name('hr.employee-exports');
+    Route::post('employee-exports', 'HRController@exportEmployees')->name('hr.employee-exports.download');
     Route::get('workforce_analytics','HRController@workforce_analytics');
 });
 

@@ -3611,6 +3611,17 @@ $new_balance = $debit_amount - $credit_amount;
                 $recoveryPayment->outstanding_after = $outstandingAfter;
                 $recoveryPayment->notes = $request->notes;
                 $recoveryPayment->save();
+
+                // Handle dept_share_amount
+                if ($request->filled('dept_share_amount') && $request->dept_share_amount > 0) {
+                    \App\Models\RecoveriesDeptExcalatedShare::create([
+                        'recovery_case_id' => $recoveryCase->id,
+                        'recovery_payment_id' => $recoveryPayment->id,
+                        'dept_share_amount' => $request->dept_share_amount,
+                        'notes' => $request->notes,
+                        'created_by' => Sentinel::getUser()->id,
+                    ]);
+                }
                 
                 // Update recovery case with amount recovered (from case, not form)
                 $recoveryCase->amount_recovered = $previousRecovered + $amount;
