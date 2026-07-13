@@ -28,7 +28,7 @@
                     </li>
                     <li class="{{ $type == 'overdue' ? 'active' : '' }}">
                         <a href="{{ route('recovery.clients', ['type' => 'overdue']) }}">
-                            <i class="fa fa-exclamation-triangle"></i> Overdue Loans
+                            <i class="fa fa-exclamation-triangle"></i> Defaulted Clients
                         </a>
                     </li>
                 </ul>
@@ -165,11 +165,19 @@
                                                     <i class="fa fa-eye"></i> View
                                                 </a>
                                                 
-                                                @if($type === 'dormant')
-                                                    <button class="btn btn-xs btn-success" onclick="markRecovered({{ $client->id }})">
-                                                        <i class="fa fa-check"></i> Mark Recovered
-                                                    </button>
-                                                @endif
+@if($type === 'overdue')
+                                                 @if($client->staff && !$client->staff->esc_recovered)
+                                                     <button class="btn btn-xs btn-success" onclick="markEscRecovered({{ $client->id }}, {{ $client->staff->id }})">
+                                                         <i class="fa fa-check"></i> Mark Recovered
+                                                     </button>
+                                                 @elseif($client->staff && $client->staff->esc_recovered)
+                                                     <span class="badge bg-green">Recovered</span>
+                                                 @endif
+                                             @elseif($type === 'dormant')
+                                                 <button class="btn btn-xs btn-success" onclick="markRecovered({{ $client->id }})">
+                                                     <i class="fa fa-check"></i> Mark Recovered
+                                                 </button>
+                                             @endif
                                             </td>
                                     </tr>
                                     @endforeach
@@ -384,6 +392,31 @@
                 if (response.success) {
                     alert('Client marked as recovered!');
                     window.location.href = '{{ route('recovery.clients', ['type' => 'dormant']) }}';
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    }
+
+    function markEscRecovered(clientId, userId) {
+        if (!confirm('Mark this user as recovered?')) {
+            return;
+        }
+
+        $.ajax({
+            url: '{{ route('client.mark_esc_recovered', ['clientId' => '__CLIENT_ID__', 'userId' => '__USER_ID__']) }}'.replace('__CLIENT_ID__', clientId).replace('__USER_ID__', userId),
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('User marked as recovered!');
+                    window.location.href = '{{ route('recovery.clients', ['type' => 'overdue']) }}';
                 } else {
                     alert('Error: ' + response.message);
                 }

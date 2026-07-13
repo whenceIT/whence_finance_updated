@@ -2037,6 +2037,7 @@ Route::group(['prefix' => 'recovery'], function () {
     Route::get('clients-in-dormant', 'Recoveries\RecoveryClientController@dormant_clients')->name('recoveries.dormant-clients');
     Route::get('recovered_clients', 'Recoveries\RecoveryClientController@recovered_clients')->name('client.recovered_clients');
     Route::post('{id}/mark-recovered', 'Recoveries\RecoveryClientController@mark_recovered')->name('client.mark_recovered');
+    Route::post('mark-esc-recovered/{clientId}/{userId}', 'Recoveries\RecoveryClientController@markEscRecovered')->name('client.mark_esc_recovered');
 
     // Nudge routes
     Route::get('nudge/compose',   'Recoveries\RecoveryNudgeController@compose');

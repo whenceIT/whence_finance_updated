@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Recoveries;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Client;
+use App\Models\User;
 use App\Models\Office;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Carbon\Carbon;
@@ -128,5 +129,19 @@ class RecoveryClientController extends Controller
         $client->save();
 
         return response()->json(['success' => true, 'message' => 'Client marked as recovered!']);
+    }
+
+    public function markEscRecovered($clientId, $userId)
+    {
+        $user = User::find($userId);
+        
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found']);
+        }
+        
+        $user->esc_recovered = 1;
+        $user->save();
+
+        return response()->json(['success' => true, 'message' => 'User marked as recovered!']);
     }
 }

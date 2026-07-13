@@ -2036,6 +2036,16 @@ class RiskController extends Controller
         $rows = [];
         foreach ($costs as $cost) {
             $totalPaid = $cost->transactions->sum('amount');
+            
+            // query from deposits where deposit_type = 6 and office = cost->office->id for 13/07/2026
+            $targetDate = '2026-07-13';
+            $depositAmount = \App\Models\Deposit::where('deposit_type', 6)
+                ->where('office', $cost->office_id)
+                ->whereDate('date', $targetDate)
+                ->sum('amount');
+            
+            // Add deposit amount to total paid
+            $totalPaid += $depositAmount;
             $balance = $cost->amount - $totalPaid;
             
             $rows[] = [
@@ -2047,6 +2057,7 @@ class RiskController extends Controller
                 'description' => $cost->description,
                 'created_at' => $cost->created_at,
                 'transactions' => $cost->transactions,
+                'deposit_amount' => $depositAmount,
             ];
         }
         
@@ -2123,6 +2134,45 @@ class RiskController extends Controller
             'success' => true,
             'message' => 'Transaction recorded successfully',
             'data' => $transaction,
+        ]);
+    }
+    
+    public function getSetupDebtTransactions(Request $request)
+    {
+        $costId = $request->query('cost_id');
+        
+        $transactions = \App\Models\SetupDebtTransaction::with('creator')
+            ->when($costId, fn($q) => $q->where('setup_debt_cost_id', $costId))
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+        
+        // Get deposit from 13/07/2026 for the cost's office
+        if ($costId) {
+            $cost = \App\Models\SetupDebtCost::findOrFail($costId);
+            $targetDate = '2026-07-13';
+            $depositAmount = \App\Models\Deposit::where('deposit_type', 6)
+                ->where('office', $cost->office_id)
+                ->whereDate('date', $targetDate)
+                ->sum('amount');
+            
+            if ($depositAmount > 0) {
+                // Create a fake transaction for the deposit
+                $depositTransaction = (object) [
+                    'id' => 'deposit_' . $costId,
+                    'amount' => $depositAmount,
+                    'transaction_date' => '2026-07-13',
+                    'notes' => 'Savings Deposit',
+                    'creator' => null,
+                ];
+                $transactions->push($depositTransaction);
+            }
+        }
+        
+        $totalPaid = $transactions->sum('amount');
+        
+        return response()->json([
+            'transactions' => $transactions,
+            'total_paid' => $totalPaid,
         ]);
     }
     
