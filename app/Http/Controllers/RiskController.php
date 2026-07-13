@@ -2142,7 +2142,7 @@ class RiskController extends Controller
         $costId = $request->query('cost_id');
         
         $transactions = \App\Models\SetupDebtTransaction::with('creator')
-            ->where('setup_debt_cost_id', $gi)
+            ->where('setup_debt_cost_id', $costId)
             ->orderBy('transaction_date', 'desc')
             ->get();
         
