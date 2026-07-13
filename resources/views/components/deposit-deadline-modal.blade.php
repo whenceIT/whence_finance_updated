@@ -163,6 +163,7 @@
                 $('#hours').text('0');
                 $('#minutes').text('0');
                 $('#deadline-message').html('<strong style="color: #ffcccc;">Deposit deadline has passed.</strong>');
+                $('#depositDeadlineWidget').hide();
                 return;
             }
             

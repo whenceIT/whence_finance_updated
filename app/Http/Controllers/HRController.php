@@ -529,7 +529,7 @@ if ($json !== false) {
     }
 
 
-    public function workforce_analytics()
+public function workforce_analytics()
     {
         $baseUrl = 'https://lms2backend.whencefinancesystem.com'; // e.g. http://localhost:3000
 
@@ -537,12 +537,73 @@ if ($json !== false) {
         $diversity = Http::get($baseUrl . '/diversity-and-inclusion')->json();
         $tenure = Http::get($baseUrl . '/tenure-and-stability')->json();
         $offices = Http::get($baseUrl . '/office-workforce-insights')->json();
-
-            return view('hr.workforce_analytics', [
+            
+        return view('hr.workforce_analytics', [
             'diversity' => $diversity,
             'tenure' => $tenure,
             'offices' => $offices
         ]);
+    }
+
+    public function employeeExports()
+    {
+        $positions = Position::orderBy('name')->get();
+        $offices = Office::orderBy('name')->get();
+        
+        return view('hr.employee-exports', compact('positions', 'offices'));
+    }
+
+    public function exportEmployees(Request $request)
+    {
+        $query = User::with(['office', 'position']);
+
+        if ($request->filled('office_id')) {
+            $query->where('office_id', $request->office_id);
+        }
+
+        if ($request->filled('position_id')) {
+            $query->where('position_id', $request->position_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $employees = $query->orderBy('first_name')->get();
+
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=employees-export-' . date('Y-m-d') . '.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $columns = ['Employee Number', 'First Name', 'Last Name', 'Email', 'Office', 'Position', 'Phone', 'Status', 'Date of Joining', 'Employment Type'];
+
+        $callback = function() use ($employees, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($employees as $employee) {
+                fputcsv($file, [
+                    $employee->employee_number,
+                    $employee->first_name,
+                    $employee->last_name,
+                    $employee->email,
+                    optional($employee->office)->name,
+                    optional($employee->position)->name,
+                    $employee->phone,
+                    $employee->status,
+                    $employee->date_of_joining,
+                    $employee->employment_type
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
 }

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use App\Models\Expense;
 use Laracasts\Flash\Flash;
+use App\Services\LockService;
 
 class ApprovalWorkflowController extends Controller
 {
@@ -48,7 +49,14 @@ class ApprovalWorkflowController extends Controller
     public function approveDecline($id, $status)
     {
         if ($status == 1) {
+            $deposit = Deposit::withoutGlobalScope('approved')->find($id);
             Deposit::withoutGlobalScope('approved')->where('id', $id)->update(['status' => 1]);
+            
+            if ($deposit) {
+                $lockService = new LockService();
+                $lockService->unblock_deposits($deposit->office);
+            }
+            
             return response()->json(['success' => true, 'message' => 'Approved successfully.']);
         } else {
             BankDepositLog::where('deposit_id', $id)->delete();
@@ -64,8 +72,15 @@ class ApprovalWorkflowController extends Controller
         if (empty($ids)) {
             return response()->json(['success' => false, 'message' => 'No deposits selected.']);
         }
+
+        $officeIds = Deposit::withoutGlobalScope('approved')->whereIn('id', $ids)->pluck('office')->unique()->filter()->values();
         
         Deposit::withoutGlobalScope('approved')->whereIn('id', $ids)->update(['status' => 1]);
+
+        $lockService = new LockService();
+        foreach ($officeIds as $officeId) {
+            $lockService->unblock_deposits($officeId);
+        }
         
         return response()->json(['success' => true, 'message' => count($ids) . ' deposit(s) approved successfully.']);
     }
@@ -80,13 +95,32 @@ class ApprovalWorkflowController extends Controller
             $query->where('d.deposit_type', $request->deposit_type);
         }
 
+        $officeIds = collect();
         if ($request->filled('office_id') && $request->office_id !== 'all') {
             $query->where('d.office', $request->office_id);
+            $officeIds->push($request->office_id);
+        } else {
+            $officeIds = Deposit::withoutGlobalScope('approved')
+                ->where(function ($q) use ($request) {
+                    if ($request->filled('deposit_type') && $request->deposit_type !== 'all') {
+                        $q->where('deposit_type', $request->deposit_type);
+                    }
+                })
+                ->whereNull('status')
+                ->pluck('office')
+                ->unique()
+                ->filter()
+                ->values();
         }
 
         $count = $query->count();
         $query->update(['status' => 1]);
-        
+
+        $lockService = new LockService();
+        foreach ($officeIds as $officeId) {
+            $lockService->unblock_deposits($officeId);
+        }
+
         return response()->json(['success' => true, 'message' => $count . ' deposit(s) approved successfully.']);
     }
 

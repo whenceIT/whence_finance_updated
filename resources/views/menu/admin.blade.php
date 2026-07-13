@@ -925,39 +925,6 @@
                     </li>
                     @endif
 
-
-                      @if($role == 1 )
-            <li class="treeview @if(Request::is('hr/*')) active @endif">
-                <a href="#">
-                    <i class="fa fa-users"></i> <span>Human Resources</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                    
-                    <li class="@if(Request::is('hr/employees')) active @endif">
-                        <a href="{{ url('hr/employees') }}">
-                            <i class="fa fa-circle-o"></i> Employee Records
-                        </a>
-                    </li>
-                    <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
-                        <a href="{{ url('hr/workforce_analytics') }}">
-                            <i class="fa fa-circle-o"></i> Workforce Analytics
-                        </a>
-                    </li>
-
-                    <li class="@if(Request::is('hr/administrative-records*')) active @endif">
-                        <a href="{{ url('hr/administrative-records') }}">
-                            <i class="fa fa-circle-o"></i> Administrative Records
-                        </a>
-                    </li>
-                </ul>
-
-          
-            </li>
-            @endif
-
                     <!-- Administration Expenses -->
                     @if($role==1)
                     <li class="treeview @if(Request::is('administration-expenses*') || Request::is('bank-account-expenses*')) active menu-open @endif" style="padding-left: 10px;">
@@ -1096,6 +1063,40 @@
             @endif
 
   
+            @if($role == 1 )
+            <li class="treeview @if(Request::is('hr/*')) active @endif">
+                <a href="#">
+                    <i class="fa fa-users"></i> <span>Human Resources</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    
+                    <li class="@if(Request::is('hr/employees')) active @endif">
+                        <a href="{{ url('hr/employees') }}">
+                            <i class="fa fa-circle-o"></i> Employee Records
+                        </a>
+                    </li>
+                    <li class="@if(Request::is('hr/workforce_analytics')) active @endif">
+                        <a href="{{ url('hr/workforce_analytics') }}">
+                            <i class="fa fa-circle-o"></i> Workforce Analytics
+                        </a>
+                    </li>
+
+                    <li class="@if(Request::is('hr/administrative-records*')) active @endif">
+                        <a href="{{ url('hr/administrative-records') }}">
+                            <i class="fa fa-circle-o"></i> Disciplinary
+                        </a>
+                    </li>
+                    <li class="@if(Request::is('hr/exports*')) active @endif">
+                        <a href="{{ url('hr/employee-exports') }}">
+                            <i class="fa fa-circle-o"></i> Exports
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            @endif
 
 
             <!-- ============================================
@@ -1571,11 +1572,9 @@
                             <li class="@if(Request::is('recovery/specialist/*')) active @endif">
                                 <a href="{{ url('recovery/specialist/data') }}"><i class="fa fa-circle-o"></i> Specialists</a>
                             </li>
-                            <li class="@if(Request::is('client/dormant_clients')) active @endif">
-                                <a href="{{ url('recovery/dormant_clients') }}"><i class="fa fa-bell"></i> Dormant Clients</a>
-                            </li>
+
                             <li class="@if(Request::is('clients-in-dormant/*')) active @endif">
-                                <a href="{{ url('recovery/clients-in-dormant') }}"><i class="fa fa-bell"></i> Client Dormants</a>
+                                <a href="{{ url('recovery/clients-in-dormant') }}"><i class="fa fa-bell"></i> Recover Dormant Client </a>
                             </li>
                             <li class="@if(Request::is('recovery/report/*')) active @endif">
                                 <!-- <a href="{{ url('recovery/report/overview') }}"><i class="fa fa-circle-o"></i> Recovery Reports</a> -->
@@ -1613,18 +1612,7 @@
                 </li>
             </ul>
             @endif
-
-
             
-
-
-          
-
-
-             
-
-
-
             <!-- Sticky Logout Button -->
             <!-- <div class="sidebar-footer" style="position: fixed; bottom: 0; left: 0; background: linear-gradient(135deg, #667eea 0%, #100E3D 100%); padding: 15px; width: 230px; border-radius: 0 0 0 8px; z-index: 1000;">
                 <a href="{{ url('logout') }}" class="btn btn-danger btn-block" style="color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); font-weight: bold;">

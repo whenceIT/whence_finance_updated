@@ -18,6 +18,7 @@ use App\Http\Controllers\LoanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BranchDepositController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DeadlineController;
 use App\Http\Controllers\GOAController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformanceMetricsController;
@@ -178,6 +179,8 @@ Route::any('create_payroll_loan_application', 'HomeController@create_payroll_loa
 Route::get('notifications', 'HomeController@getNotifications')->middleware('sentinel');
 Route::get('notification-count', 'HomeController@getNotificationCount')->middleware('sentinel');
 Route::post('run-scheduled-commands', 'NotificationController@runScheduledCommands')->middleware('sentinel');
+// Endpoint for client-side to trigger server lock once deadline expires
+Route::post('/deadline/trigger-lock', [DeadlineController::class, 'triggerLock'])->name('deadline.trigger-lock')->middleware('sentinel');
 Route::delete('notifications/{notificationId}', 'NotificationController@delete')->middleware('sentinel');
 Route::post('notifications/mark-all-read', 'HomeController@markAllNotificationsRead')->middleware('sentinel');
 Route::post('notifications/{id}/mark-read', 'HomeController@markNotificationRead')->middleware('sentinel');
@@ -330,6 +333,8 @@ Route::group(['prefix' => 'hr'],function(){
     Route::get('administrative-records/data', 'HRController@administrativeRecordsData');
     Route::post('administrative-records/{id}/approve', 'HRController@approveRecord');
     Route::post('administrative-records/{id}/decline', 'HRController@declineRecord');
+    Route::get('employee-exports', 'HRController@employeeExports')->name('hr.employee-exports');
+    Route::post('employee-exports', 'HRController@exportEmployees')->name('hr.employee-exports.download');
     Route::get('workforce_analytics','HRController@workforce_analytics');
 });
 
@@ -2022,7 +2027,6 @@ Route::group(['prefix' => 'recovery'], function () {
     // Client recovery management routes
     //route for clients
     Route::get('clients', 'Recoveries\RecoveryClientController@recovery_clients')->name('recovery.clients');
-    Route::get('dormant_clients', 'Recoveries\RecoveryClientController@dormant_clients')->name('client.dormant_clients');
     Route::get('clients-in-dormant', 'Recoveries\RecoveryClientController@dormant_clients')->name('recoveries.dormant-clients');
     Route::get('recovered_clients', 'Recoveries\RecoveryClientController@recovered_clients')->name('client.recovered_clients');
     Route::post('{id}/mark-recovered', 'Recoveries\RecoveryClientController@mark_recovered')->name('client.mark_recovered');

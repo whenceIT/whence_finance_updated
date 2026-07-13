@@ -25,10 +25,13 @@ class RecoveryClientController extends Controller
     public function recovery_clients()
     {
         try {
-                
+            
             $user = Sentinel::getUser();
+           
             $type = request()->get('type', 'dormant');
+         
             $search = request()->get('search', '');
+   
 
             if ($type === 'recovered') {
                 $clientQuery = Client::where('status', 'active')
@@ -36,7 +39,6 @@ class RecoveryClientController extends Controller
                     ->with(['loans' => function ($query) {
                         $query->where('status', 'closed')->latest('created_at');
                     }, 'office', 'staff']);
-                dd($clientQuery);
             } elseif ($type === 'overdue') {
                 $clientQuery = Client::where('status', 'active')
                     ->whereHas('loans', function ($query) {
@@ -50,7 +52,6 @@ class RecoveryClientController extends Controller
                             ->where('first_repayment_date', '<', Carbon::now()->toDateString())
                             ->latest('first_repayment_date');
                     }, 'office', 'staff']);
-                dd($clientQuery);
             } else {
                 
                 $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
@@ -58,11 +59,7 @@ class RecoveryClientController extends Controller
                         $query->latest('created_at');
                     }, 'office', 'staff']);
 
-                dd($clientQuery);
-            }
-
-            if (!$user || !$user->role) {
-                return redirect()->route('login');
+                
             }
             
             if ($user->role->role_id == 6) {
@@ -73,6 +70,7 @@ class RecoveryClientController extends Controller
                 $clientQuery->where('office_id', $user->office_id);
             }
 
+            
             if ($search) {
                 $clientQuery->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', "%{$search}%")
@@ -81,9 +79,13 @@ class RecoveryClientController extends Controller
                 });
             }
 
-            $clientQuery->whereHas('office');
-            $allClients = $clientQuery->get();
-
+            try {
+                $allClients = $clientQuery->take(500)->get();
+            } catch (\Throwable $th) {
+                \Log::error('Client query failed: ' . $th->getMessage());
+                $allClients = collect();
+            }
+            
             $now = \Carbon\Carbon::now();
             $threeMonthsAgo = $now->copy()->subMonths(3);
 
@@ -103,7 +105,8 @@ class RecoveryClientController extends Controller
 
             return view('recoveries.dormant_clients', compact('clientsData', 'type'));
         } catch (\Throwable $th) {
-            dd($th);
+            \Log::error('Recovery clients failed: ' . $th->getMessage());
+            return view('recoveries.dormant_clients', ['clientsData' => collect(), 'type' => $type]);
         }
     }
     

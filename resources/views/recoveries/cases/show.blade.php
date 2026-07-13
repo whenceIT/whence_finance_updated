@@ -242,11 +242,12 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
 {{-- Include Recovery Payment Modal --}}
 
     @php
-        // Prepare data for the recovery modal
-        $loan = \App\Models\Loan::where('id',$loanRef)->first();
+        $loan = $case->loan;
         $recoveryCases = collect([$case]); // Pass current case as collection
     @endphp
-    @include('loan.repayment.recovery_modal')
+    @if($loan)
+        @include('loan.repayment.recovery_modal')
+    @endif
 
 
 @endsection

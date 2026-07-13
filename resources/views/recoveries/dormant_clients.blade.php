@@ -99,7 +99,7 @@
                                         <td>{{ $client->id }}</td>
                                         <td><strong>{{ $client->first_name }} {{ $client->last_name }}</strong></td>
                                         <td>{{ $client->mobile }}</td>
-                                        <td>{{ $client->office->name }}</td>
+                                        <td>{{ $client->office ? $client->office->name : '-' }}</td>
                                         <td>{{ $client->staff ? $client->staff->first_name . ' ' . $client->staff->last_name : '-' }}</td>
                                         
                                         @if($type === 'overdue')
