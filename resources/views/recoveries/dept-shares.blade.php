@@ -38,19 +38,6 @@
                         <h3 class="box-title">Details</h3>
                     </div>
                     <div class="box-body">
-                        <div class="row" style="margin-bottom: 15px;">
-                            <div class="col-md-6">
-                                <h4><i class="fa fa-file-text-o"></i> Recoveries Dept Excalated Share</h4>
-                                <p class="text-muted">Total amount from recovery cases department share allocation</p>
-                                <h2>K {{ number_format($totalDeptShare, 2) }}</h2>
-                            </div>
-                            <div class="col-md-6">
-                                <h4><i class="fa fa-file-text-o"></i> Unit Share</h4>
-                                <p class="text-muted">Total amount from unit share allocations</p>
-                                <h2>K {{ number_format($totalUnitShare, 2) }}</h2>
-                            </div>
-                        </div>
-                        
                         <form method="GET" class="form-inline" style="margin-bottom: 15px;">
                             <div class="form-group" style="margin-right: 10px;">
                                 <label for="type" style="margin-right: 5px;">Filter:</label>
@@ -86,37 +73,37 @@
                                             <td>{{ $share->id }}</td>
                                             <td>
                                                 @if($share->recoveryCase)
-                                                    <a href="{{ url('recovery/case/' . $share->recoveryCase->id . '/show') }}">{{ $share->recoveryCase->case_number ?? 'N/A' }}</a>
+                                                    <a href="{{ url('recovery/case/' . $share->recoveryCase->id . '/show') }}">{{ $share->recoveryCase->case_number ?? '0' }}</a>
                                                 @else
-                                                    N/A
+                                                    0
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($share->recoveryCase && $share->recoveryCase->loan)
-                                                    {{ $share->recoveryCase->loan->loan_id ?? 'N/A' }}
+                                                    {{ $share->recoveryCase->loan->loan_id ?? '0' }}
                                                 @else
-                                                    N/A
+                                                    '--'
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($share->recoveryCase && $share->recoveryCase->originBranch)
-                                                    {{ $share->recoveryCase->originBranch->name ?? 'N/A' }}
+                                                    {{ $share->recoveryCase->originBranch->name ?? '0' }}
                                                 @else
-                                                    N/A
+                                                    0
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($share->recoveryCase && $share->recoveryCase->client)
-                                                    {{ $share->recoveryCase->client->first_name ?? '' }} {{ $share->recoveryCase->client->last_name ?? '' }}
+                                                    {{ $share->recoveryCase->client->first_name ?? '0' }} {{ $share->recoveryCase->client->last_name ?? '0' }}
                                                 @else
-                                                    N/A
+                                                    0
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($share->recoveryCase && $share->recoveryCase->assignedSpecialist)
-                                                    {{ $share->recoveryCase->assignedSpecialist->first_name ?? '' }} {{ $share->recoveryCase->assignedSpecialist->last_name ?? '' }}
+                                                    {{ $share->recoveryCase->assignedSpecialist->first_name ?? '0' }} {{ $share->recoveryCase->assignedSpecialist->last_name ?? '0' }}
                                                 @else
-                                                    N/A
+                                                    0
                                                 @endif
                                             </td>
                                             <td>K {{ number_format($share->dept_share_amount, 2) }}</td>
@@ -129,24 +116,24 @@
                                             <td>N/A</td>
                                             <td>
                                                 @if($share->loan)
-                                                    <a href="{{ url('loan/' . $share->loan->id . '/show') }}">{{ $share->loan->loan_id ?? 'N/A' }}</a>
+                                                    <a href="{{ url('loan/' . $share->loan->id . '/show') }}">{{ $share->loan->loan_id ?? '0' }}</a>
                                                 @else
-                                                    N/A
+                                                    0
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($share->office)
-                                                    {{ $share->office->name ?? 'N/A' }}
+                                                    {{ $share->office->name ?? '0' }}
                                                 @else
-                                                    N/A
+                                                    0
                                                 @endif
                                             </td>
                                             <td>N/A</td>
                                             <td>
                                                 @if($share->user)
-                                                    {{ $share->user->first_name ?? '' }} {{ $share->user->last_name ?? '' }}
+                                                    {{ $share->user->first_name ?? '0' }} {{ $share->user->last_name ?? '0' }}
                                                 @else
-                                                    N/A
+                                                    0
                                                 @endif
                                             </td>
                                             <td>K {{ number_format($share->amount, 2) }}</td>
