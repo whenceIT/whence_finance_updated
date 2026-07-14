@@ -13,12 +13,12 @@ class DeptSharesController extends Controller
     {
         $filterType = $request->get('type', '');
         
-        $deptShares = RecoveriesDeptExcalatedShare::with(['recoveryCase.assignedSpecialist', 'createdBy'])->get()->map(function($item) {
+        $deptShares = RecoveriesDeptExcalatedShare::with(['recoveryCase.assignedSpecialist', 'createdBy', 'office'])->get()->map(function($item) {
             $item->type = 'dept_share';
             return $item;
         });
         
-        $unitShares = UnitShare::with(['user'])->get()->map(function($item) {
+        $unitShares = UnitShare::with(['user', 'office'])->get()->map(function($item) {
             $item->type = 'unit_share';
             return $item;
         });
@@ -29,7 +29,7 @@ class DeptSharesController extends Controller
             $deptShares = collect();
         }
         
-        $allShares = $deptShares->merge($unitShares)->sortByDesc('created_at');
+        $allShares = $deptShares->concat($unitShares)->sortByDesc('created_at')->values();
 
         $totalDeptShare = $deptShares->sum('dept_share_amount');
         $totalUnitShare = $unitShares->sum('amount');

@@ -1718,10 +1718,11 @@ class RiskController extends Controller
         $deposits = $depositQuery->get();
 
         $officeMap = [];
-        foreach ($offices as $office) {
-            $officeMap[$office->id] = [
-                'office_id'   => $office->id,
-                'office_name' => $office->name,
+        foreach ($officeIds as $id) {
+            $office = $offices->firstWhere('id', $id);
+            $officeMap[$id] = [
+                'office_id'   => $id,
+                'office_name' => $office ? $office->name : '—',
                 'total'       => 0,
                 'deposit_count' => 0,
                 'deposits'    => [],

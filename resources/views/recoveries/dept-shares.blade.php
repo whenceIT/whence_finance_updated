@@ -10,9 +10,11 @@
         <div class="box box-primary">
             <div class="box-header with-border">
                 <div class="box-tools pull-right">
+                    @if(Sentinel::getUser() && Sentinel::getUser()->role && Sentinel::getUser()->role->role_id == 1)
                     <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#shareModal">
                         <i class="fa fa-plus"></i> Record Reconciling Entry
                     </button>
+                    @endif
                 </div>
                 <h3 class="box-title"><i class="fa fa-share"></i> Department Shares Summary</h3>
             </div>
@@ -62,7 +64,7 @@
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Case/Office</th>
+                                        <th>Case</th>
                                         <th>Staff</th>
                                         <th>Amount</th>
                                         <th>Created At</th>
@@ -80,7 +82,7 @@
                                                 @elseif($share->office)
                                                     {{ $share->office->name }}
                                                 @else
-                                                    --
+                                                    Recociliation Entry
                                                 @endif
                                             </td>
                                             <td>
@@ -90,13 +92,13 @@
                                                     @elseif($share->createdBy)
                                                         {{ $share->createdBy->first_name ?? '0' }} {{ $share->createdBy->last_name ?? '0' }}
                                                     @else
-                                                        --
+                                                        Recoveries Cordinator
                                                     @endif
                                                 @else
                                                     @if($share->user)
                                                         {{ $share->user->first_name ?? '0' }} {{ $share->user->last_name ?? '0' }}
                                                     @else
-                                                        --
+                                                        Recoveries Cordinator
                                                     @endif
                                                 @endif
                                             </td>

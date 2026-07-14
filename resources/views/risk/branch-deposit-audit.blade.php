@@ -134,7 +134,7 @@
     /* Drill-down office/deposit table */
     .da-office-row {
         border: 1px solid #e0e0e0;
-        border-radius: 6px;
+        border-radius: 0px;
         margin-bottom: 12px;
         background: #fafafa;
         overflow: hidden;
@@ -199,6 +199,30 @@
         color: #888;
         font-style: italic;
     }
+
+    /* Deposit drill-down shimmer loading */
+    .da-body.da-loading {
+        min-height: 80px;
+        position: relative;
+    }
+    .da-shimmer-row {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        background: #fafafa;
+        padding: 10px 14px;
+    }
+    .da-shimmer-line {
+        height: 12px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 400px 12px;
+        animation: shimmer 1.2s ease-in-out infinite;
+        border-radius: 4px;
+        margin-bottom: 8px;
+    }
+    .da-shimmer-line.short { width: 40%; }
+    .da-shimmer-line.medium { width: 60%; }
+    .da-shimmer-line.long { width: 100%; }
 
     /* Action cell */
     .od-actions { display: flex; gap: 4px; }
@@ -1390,6 +1414,10 @@ document.getElementById('debtBalancesForm').addEventListener('submit', function(
 
         card.classList.add('open');
 
+        // Show shimmer loading state
+        body.classList.add('da-loading');
+        body.innerHTML = '<div class="da-shimmer-row"><div class="da-shimmer-line long"></div><div class="da-shimmer-line medium"></div><div class="da-shimmer-line short"></div></div>';
+
         var params = new URLSearchParams({ period: period || 'year' });
         var currentParams = new URLSearchParams(window.location.search);
         var officeId = currentParams.get('office_id');
@@ -1405,10 +1433,12 @@ document.getElementById('debtBalancesForm').addEventListener('submit', function(
         })
             .then(function(response) { return response.json(); })
             .then(function(data) {
+                body.classList.remove('da-loading');
                 renderOfficeDeposits(data.offices || [], typeId);
             })
             .catch(function(err) {
                 console.error('Error fetching deposits:', err);
+                body.classList.remove('da-loading');
                 body.innerHTML = '<div class="da-error">Failed to load office deposits. Please try again.</div>';
             });
     }
