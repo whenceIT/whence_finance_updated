@@ -53,7 +53,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6" id="deptShareContainer" style="display: none;">
                     <div class="form-group">
                         <label class="control-label" style="font-weight: bold;">Dept Share Amount</label>
                         <input type="number" name="dept_share_amount" id="dept_share_amount" class="form-control" step="0.01" placeholder="Enter dept share amount" style="background-color: #fdecea;">
@@ -143,7 +143,20 @@ $(document).ready(function() {
         }
     }
 
+    function updateDeptShareVisibility() {
+        var selectedOption = $('#recovery_case_id :selected');
+        var escRecovered = selectedOption.data('esc-recovered');
+        if (escRecovered == 1) {
+            $('#deptShareContainer').show();
+        } else {
+            $('#deptShareContainer').hide();
+        }
+    }
+
     $('#recovery_case_id, #recovery_amount').on('change input', checkForm);
+    $('#recovery_case_id').on('change', updateDeptShareVisibility);
+    
+    updateDeptShareVisibility(); // initial check
     checkForm(); // initial check
 });
 </script>

@@ -14,6 +14,7 @@ class Loan extends Model
     protected $fillable = [
         'dormant_recovery',
         'shared',
+        'esc_recovered',
         // ... other fillable fields
     ];
 

@@ -57,6 +57,14 @@ class RecoveryClientController extends Controller
                             ->where('first_repayment_date', '<', Carbon::now()->toDateString())
                             ->latest('first_repayment_date');
                     }, 'office', 'staff']);
+            } elseif ($type === 'recovered-defults') {
+                $clientQuery = Client::where('status', 'active')
+                    ->whereHas('loans', function ($query) {
+                        $query->where('loans.esc_recovered', 1);
+                    })
+                    ->with(['loans' => function ($query) {
+                        $query->where('loans.esc_recovered', 1);
+                    }, 'office', 'staff']);
             } else {
                 
                 $clientQuery = Client::where('is_dormant_recovery', 0)->where('status', 'active')
@@ -104,6 +112,8 @@ class RecoveryClientController extends Controller
                 });
             } elseif ($type === 'escalated') {
                 $filteredClients = $allClients;
+            } elseif ($type === 'recovered-defults') {
+                $filteredClients = $allClients;
             } else {
                 $filteredClients = $allClients;
             }
@@ -131,17 +141,17 @@ class RecoveryClientController extends Controller
         return response()->json(['success' => true, 'message' => 'Client marked as recovered!']);
     }
 
-    public function markEscRecovered($clientId, $userId)
+    public function markEscRecovered($clientId, $loanId)
     {
-        $user = User::find($userId);
+        $loan = \App\Models\Loan::find($loanId);
         
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'User not found']);
+        if (!$loan) {
+            return response()->json(['success' => false, 'message' => 'Loan not found']);
         }
         
-        $user->esc_recovered = 1;
-        $user->save();
+        $loan->esc_recovered = 1;
+        $loan->save();
 
-        return response()->json(['success' => true, 'message' => 'User marked as recovered!']);
+        return response()->json(['success' => true, 'message' => 'Loan marked as recovered!']);
     }
 }

@@ -2137,10 +2137,9 @@ class RiskController extends Controller
         ]);
     }
     
-    public function getSetupDebtTransactions(Request $request)
+    public function getSetupDebtTransactions(Request $request, $id)
     {
-        $costId = $request->query('cost_id');
-        
+        $costId = $id;
         $transactions = \App\Models\SetupDebtTransaction::with('creator')
             ->where('setup_debt_cost_id', $costId)
             ->orderBy('transaction_date', 'desc')

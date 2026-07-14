@@ -10,15 +10,15 @@
             </h3>
             <div class="box-tools pull-right">
                 <ul class="nav nav-tabs">
-                    
-                    <li class="{{ $type == 'recovered' ? 'active' : '' }}">
-                        <a href="{{ route('recovery.clients', ['type' => 'recovered']) }}">
-                            <i class="fa fa-check-circle"></i> Recovered Clients
-                        </a>
-                    </li>
+                 
                     <li class="{{ $type == 'dormant' ? 'active' : '' }}">
                         <a href="{{ route('recovery.clients', ['type' => 'dormant']) }}">
                             <i class="fa fa-users"></i> Find Dormant Clients
+                        </a>
+                    </li>
+                    <li class="{{ $type == 'overdue' ? 'active' : '' }}">
+                        <a href="{{ route('recovery.clients', ['type' => 'overdue']) }}">
+                            <i class="fa fa-exclamation-triangle"></i>Find Defaulted (Escalated) Clients
                         </a>
                     </li>
                     <li class="{{ $type == 'escalated' ? 'active' : '' }}">
@@ -26,9 +26,14 @@
                             <i class="fa fa-users"></i> Never Loaned
                         </a>
                     </li>
-                    <li class="{{ $type == 'overdue' ? 'active' : '' }}">
-                        <a href="{{ route('recovery.clients', ['type' => 'overdue']) }}">
-                            <i class="fa fa-exclamation-triangle"></i> Defaulted Clients
+                    <li class="{{ $type == 'recovered-defults' ? 'active' : '' }}">
+                        <a href="{{ route('recovery.clients', ['type' => 'recovered-defults']) }}" style="background-color: #5cb85c; color: white;">
+                            <i class="fa fa-check-circle"></i> Recovered Defaulted Clients
+                        </a>
+                    </li>   
+                    <li class="{{ $type == 'recovered' ? 'active' : '' }}">
+                        <a href="{{ route('recovery.clients', ['type' => 'recovered']) }}" style="background-color: #5cb85c; color: white;">
+                            <i class="fa fa-check-circle"></i> Recovered Dormant Clients
                         </a>
                     </li>
                 </ul>
@@ -53,7 +58,7 @@
             </div>
             
             @if($type == 'dormant')
-                <div class="alert alert-info">
+                <div class="alert alert-warning">
                     <i class="fa fa-info-circle"></i> 
                     Search for <strong>Dormant clients</strong> who haven't taken a loan in the last 3 months, and mark them as recovered to start unit share deduction in their next 3 loans
                 </div>
@@ -61,6 +66,16 @@
                 <div class="alert alert-warning">
                     <i class="fa fa-exclamation-triangle"></i> 
                     <strong>Never Loaned Clients</strong> are active clients who have never taken a loan.
+                </div>
+            @elseif($type == 'overdue')
+                <div class="alert alert-warning">
+                    <i class="fa fa-exclamation-triangle"></i> 
+                    <strong>Clients</strong> who have defaulted their last loans (Escalated Clients)
+                </div>
+            @elseif($type == 'recovered-defults')
+                <div class="alert alert-success">
+                    <i class="fa fa-check-circle"></i> 
+                    <strong>Recovered Defaulted Clients</strong> are clients whose loans have been marked as recovered (esc_recovered = 1).
                 </div>
             @endif
 
@@ -75,6 +90,8 @@
                                 No Clients with Overdue Loans Found
                             @elseif($type === 'escalated')
                                 No Never Loaned Clients Found
+                            @elseif($type === 'recovered-defults')
+                                No Recovered Defaulted Clients Found
                             @else
                                 No Dormant Clients Found
                             @endif
@@ -82,6 +99,8 @@
                         <p class="text-muted">
                             @if($type === 'escalated')
                                 All clients have taken at least one loan.
+                            @elseif($type === 'recovered-defults')
+                                No loans have been marked as recovered yet.
                             @else
                                 All clients are up to date.
                             @endif
@@ -98,7 +117,7 @@
                                     <th>Office</th>
                                     <th>Loan Officer</th>
                                     
-                                    @if($type === 'overdue')
+                                    @if($type === 'overdue' || $type === 'recovered-defults')
                                         <th>Loan ID</th>
                                         <th>Loan Amount</th>
                                         <th>First Repayment Date</th>
@@ -123,27 +142,38 @@
                                         <td>{{ $client->office ? $client->office->name : '-' }}</td>
                                         <td>{{ $client->staff ? $client->staff->first_name . ' ' . $client->staff->last_name : '-' }}</td>
                                         
-                                        <td>
-                                            @if($type === 'overdue')
-                                                @php
-                                                    $lastLoan = $client->loans->first();
-                                                    $overdueLoan = $lastLoan && $lastLoan->first_repayment_date && $lastLoan->first_repayment_date < \Carbon\Carbon::now()->toDateString() ? $lastLoan : null;
-                                                @endphp
-                                                @if($overdueLoan)
-                                                    <td><a href="{{ url('loan/' . $overdueLoan->id . '/show') }}">{{ $overdueLoan->id }}</a></td>
-                                                    <td>K{{ number_format($overdueLoan->principal ?? 0, 2) }}</td>
-                                                    <td>{{ $overdueLoan->first_repayment_date ? \Carbon\Carbon::parse($overdueLoan->first_repayment_date)->format('d M Y') : 'N/A' }}</td>
-                                                    <td><span class="badge bg-red">{{ $overdueLoan->first_repayment_date ? \Carbon\Carbon::parse($overdueLoan->first_repayment_date)->diffInDays(\Carbon\Carbon::now()) : 0 }} days</span></td>
-                                                @else
-                                                    <td colspan="4">No overdue loan</td>
-                                                @endif
+                                        @if($type === 'overdue')
+                                            @php
+                                                $lastLoan = $client->loans->first();
+                                                $overdueLoan = $lastLoan && $lastLoan->first_repayment_date && $lastLoan->first_repayment_date < \Carbon\Carbon::now()->toDateString() ? $lastLoan : null;
+                                            @endphp
+                                            @if($overdueLoan)
+                                                <td><a href="{{ url('loan/' . $overdueLoan->id . '/show') }}">{{ $overdueLoan->id }}</a></td>
+                                                <td>K{{ number_format($overdueLoan->principal ?? 0, 2) }}</td>
+                                                <td>{{ $overdueLoan->first_repayment_date ? \Carbon\Carbon::parse($overdueLoan->first_repayment_date)->format('d M Y') : 'N/A' }}</td>
+                                                <td><span class="badge bg-red">{{ $overdueLoan->first_repayment_date ? \Carbon\Carbon::parse($overdueLoan->first_repayment_date)->diffInDays(\Carbon\Carbon::now()) : 0 }} days</span></td>
                                             @else
-                                                @php
-                                                    $lastLoan = $client->loans->first();
-                                                @endphp
-                                                <td>{{ $lastLoan ? $lastLoan->created_at->format('d M Y') : 'Never' }}</td>
-                                                <td>{{ $lastLoan ? \Carbon\Carbon::now()->diffInDays($lastLoan->created_at) . ' days' : 'N/A' }}</td>
+                                                <td colspan="4">No overdue loan</td>
                                             @endif
+                                        @elseif($type === 'recovered-defults')
+                                            @php
+                                                $recoveredLoan = $client->loans->where('esc_recovered', 1)->first();
+                                            @endphp
+                                            @if($recoveredLoan)
+                                                <td><a href="{{ url('loan/' . $recoveredLoan->id . '/show') }}">{{ $recoveredLoan->id }}</a></td>
+                                                <td>K{{ number_format($recoveredLoan->principal ?? 0, 2) }}</td>
+                                                <td>{{ $recoveredLoan->first_repayment_date ? \Carbon\Carbon::parse($recoveredLoan->first_repayment_date)->format('d M Y') : 'N/A' }}</td>
+                                                <td><span class="badge bg-green">Recovered</span></td>
+                                            @else
+                                                <td colspan="4">No recovered loan</td>
+                                            @endif
+                                        @else
+                                            @php
+                                                $lastLoan = $client->loans->first();
+                                            @endphp
+                                            <td>{{ $lastLoan ? $lastLoan->created_at->format('d M Y') : 'Never' }}</td>
+                                            <td>{{ $lastLoan ? \Carbon\Carbon::now()->diffInDays($lastLoan->created_at) . ' days' : 'N/A' }}</td>
+                                        @endif
                                             
                                             <td><span class="badge bg-gray">{{ $client->loans->where('shared', 1)->count() }}</span></td>
                                             <td>
@@ -165,12 +195,15 @@
                                                     <i class="fa fa-eye"></i> View
                                                 </a>
                                                 
-@if($type === 'overdue')
-                                                 @if($client->staff && !$client->staff->esc_recovered)
-                                                     <button class="btn btn-xs btn-success" onclick="markEscRecovered({{ $client->id }}, {{ $client->staff->id }})">
+@if($type === 'overdue' || $type === 'recovered-defults')
+                                                 @php
+                                                     $loanToMark = $type === 'overdue' ? $client->loans->where('status', 'disbursed')->whereNotNull('first_repayment_date')->where('first_repayment_date', '<', \Carbon\Carbon::now()->toDateString())->first() : $client->loans->where('esc_recovered', 1)->first();
+                                                 @endphp
+                                                 @if($loanToMark && $loanToMark->esc_recovered != 1)
+                                                     <button class="btn btn-xs btn-success" onclick="markEscRecovered({{ $client->id }}, {{ $loanToMark->id }})">
                                                          <i class="fa fa-check"></i> Mark Recovered
                                                      </button>
-                                                 @elseif($client->staff && $client->staff->esc_recovered)
+                                                 @elseif($loanToMark && $loanToMark->esc_recovered == 1)
                                                      <span class="badge bg-green">Recovered</span>
                                                  @endif
                                              @elseif($type === 'dormant')
@@ -402,21 +435,21 @@
         });
     }
 
-    function markEscRecovered(clientId, userId) {
-        if (!confirm('Mark this user as recovered?')) {
+    function markEscRecovered(clientId, loanId) {
+        if (!confirm('Mark this loan as recovered?')) {
             return;
         }
 
         $.ajax({
-            url: '{{ route('client.mark_esc_recovered', ['clientId' => '__CLIENT_ID__', 'userId' => '__USER_ID__']) }}'.replace('__CLIENT_ID__', clientId).replace('__USER_ID__', userId),
+            url: '{{ route('client.mark_esc_recovered', ['clientId' => '__CLIENT_ID__', 'loanId' => '__LOAN_ID__']) }}'.replace('__CLIENT_ID__', clientId).replace('__LOAN_ID__', loanId),
             type: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             success: function(response) {
                 if (response.success) {
-                    alert('User marked as recovered!');
-                    window.location.href = '{{ route('recovery.clients', ['type' => 'overdue']) }}';
+                    alert('Loan marked as recovered!');
+                    window.location.href = '{{ route('recovery.clients', ['type' => 'recovered-defults']) }}';
                 } else {
                     alert('Error: ' + response.message);
                 }
