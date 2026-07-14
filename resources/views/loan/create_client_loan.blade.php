@@ -145,6 +145,20 @@ $todaysDate = date('Y-m-d');
                         </div>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label for="has_collateral" class="control-label col-md-2">Loan Has Collateral? <span class="text-danger">*</span></label>
+                    <div class="col-md-3">
+                        <select name="has_collateral" class="form-control select2" id="has_collateral" required>
+                            <option value="">-- Select --</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <small class="text-muted">Select Yes to add collateral information</small>
+                    </div>
+                </div>
+
+                <input type="hidden" name="redirect_to_collateral" id="redirect_to_collateral" value="0">
             </div>
 
             {{-- Disbursement & Verification --}}
@@ -496,6 +510,24 @@ $todaysDate = date('Y-m-d');
         
                               let phone_numbeer = "{{ $number }}";
                                $('#phone_number').val(phone_numbeer);
+
+        // Handle collateral selection - redirect to collateral create page
+        $('#has_collateral').change(function() {
+            if ($(this).val() == '1') {
+                // Get the loan_id that will be created (need to submit first)
+                // For now, we'll set a flag to redirect after form submit
+                $('#redirect_to_collateral').val('1');
+            }
+        });
+
+        // Handle collateral selection - redirect to collateral create page after loan creation
+        $('#has_collateral').change(function() {
+            if ($(this).val() == '1') {
+                $('#redirect_to_collateral').val('1');
+            } else {
+                $('#redirect_to_collateral').val('0');
+            }
+        });
 
     </script>
 @endsection

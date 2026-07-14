@@ -16,6 +16,9 @@
                     <div class="col-md-8">
                         <select name="loan_id" class="form-control select2" required>
                             <option value="">Select loan</option>
+                            @php
+                                $selectedLoanId = old('loan_id', $loanId ?? '');
+                            @endphp
                             @foreach($loans as $loan)
                                 @php
                                     $client = optional($loan->client);
@@ -23,7 +26,7 @@
 
                                 <option 
                                     value="{{ $loan->id }}"
-                                    {{ old('loan_id') == $loan->id ? 'selected' : '' }}
+                                    {{ $selectedLoanId == $loan->id ? 'selected' : '' }}
                                 >
                                     #{{ $loan->id }} 
                                     | K{{ number_format($loan->principal, 2) }} 
@@ -71,7 +74,7 @@
                         <input type="number" step="0.01" name="initial_price" class="form-control" value="{{ old('initial_price') }}" required>
                         {!! $errors->first('initial_price', '<span class="help-block">:message</span>') !!}
                     </div>
-                    <label class="control-label col-md-2">Current Worth</label>
+                    <label class="control-label col-md-2">Current Market Price</label>
                     <div class="col-md-2">
                         <input type="number" step="0.01" name="current_worth" class="form-control" value="{{ old('current_worth') }}" required>
                         {!! $errors->first('current_worth', '<span class="help-block">:message</span>') !!}

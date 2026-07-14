@@ -337,11 +337,6 @@ Route::group(['prefix' => 'hr'],function(){
     Route::get('employee-exports', 'HRController@employeeExports')->name('hr.employee-exports');
     Route::post('employee-exports', 'HRController@exportEmployees')->name('hr.employee-exports.download');
     Route::get('employee-exports/excel', 'HRController@exportEmployeesToExcel')->name('hr.employee-exports.excel');
-    Route::get('employee-exports/inactive', 'HRController@exportInactiveEmployees')->name('hr.employee-exports.inactive');
-    Route::get('employee-exports/active', 'HRController@exportActiveEmployees')->name('hr.employee-exports.active');
-    Route::get('employee-exports/erp', 'HRController@exportEmployeeERP')->name('hr.employee-exports.erp');
-    Route::get('employee-exports/napsa', 'HRController@exportEmployeeNAPSA')->name('hr.employee-exports.napsa');
-    Route::get('employee-exports/nhima', 'HRController@exportEmployeeNHIMA')->name('hr.employee-exports.nhima');
     Route::get('workforce_analytics','HRController@workforce_analytics');
 });
 
