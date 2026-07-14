@@ -2039,9 +2039,9 @@ class RiskController extends Controller
             
             // query from deposits where deposit_type = 6 and office = cost->office->id for 13/07/2026
             $targetDate = '2026-07-13';
-            $depositAmount = \App\Models\Deposit::where('deposit_type', 6)
-                ->where('office', $cost->office_id)
-                ->whereDate('date', $targetDate)
+            $depositAmount = \App\Models\BankDepositLog::where('deposit_type_id', 6)
+                ->where('office_id', $cost->office_id)
+                ->whereDate('created_at', $targetDate)
                 ->sum('amount');
             
             // Add deposit amount to total paid
@@ -2149,9 +2149,9 @@ class RiskController extends Controller
         if ($costId) {
             $cost = \App\Models\SetupDebtCost::findOrFail($costId);
             $targetDate = '2026-07-13';
-            $depositAmount = \App\Models\Deposit::where('deposit_type', 6)
-                ->where('office', $cost->office_id)
-                ->whereDate('date', $targetDate)
+            $depositAmount = \App\Models\BankDepositLog::where('deposit_type', 6)
+                ->where('office_id', $cost->office_id)
+                ->whereDate('created_date', $targetDate)
                 ->sum('amount');
             
             if ($depositAmount > 0) {
