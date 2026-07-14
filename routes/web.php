@@ -343,6 +343,7 @@ Route::group(['prefix' => 'hr'],function(){
 // Recovery routes
 Route::group(['prefix' => 'recovery'], function () {
     Route::get('dept-shares', 'Recoveries\DeptSharesController@index')->name('dept.shares');
+    Route::post('dept-shares/store', 'Recoveries\DeptSharesController@store')->name('recovery.dept-shares.store');
 });
 
 // GOA Manager routes

@@ -13,20 +13,23 @@ class DeptSharesController extends Controller
     {
         $filterType = $request->get('type', '');
         
+        $deptShares = RecoveriesDeptExcalatedShare::with(['recoveryCase.assignedSpecialist', 'createdBy'])->get()->map(function($item) {
+            $item->type = 'dept_share';
+            return $item;
+        });
+        
+        $unitShares = UnitShare::with(['user'])->get()->map(function($item) {
+            $item->type = 'unit_share';
+            return $item;
+        });
+        
         if ($filterType === 'dept_share') {
-            $deptShares = RecoveriesDeptExcalatedShare::with(['recoveryCase' => function($q) {
-                $q->with(['loan', 'originBranch', 'client', 'assignedSpecialist']);
-            }])->get();
             $unitShares = collect();
         } elseif ($filterType === 'unit_share') {
             $deptShares = collect();
-            $unitShares = UnitShare::with(['loan', 'office', 'user'])->get();
-        } else {
-            $deptShares = RecoveriesDeptExcalatedShare::with(['recoveryCase' => function($q) {
-                $q->with(['loan', 'originBranch', 'client', 'assignedSpecialist']);
-            }])->get();
-            $unitShares = UnitShare::with(['loan', 'office', 'user'])->get();
         }
+        
+        $allShares = $deptShares->merge($unitShares)->sortByDesc('created_at');
 
         $totalDeptShare = $deptShares->sum('dept_share_amount');
         $totalUnitShare = $unitShares->sum('amount');
@@ -34,9 +37,35 @@ class DeptSharesController extends Controller
         return view('recoveries.dept-shares', compact(
             'totalDeptShare', 
             'totalUnitShare',
-            'deptShares',
-            'unitShares',
+            'allShares',
             'filterType'
         ));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'share_type' => 'required|in:dept_share,unit_share',
+            'amount' => 'required|numeric|min:0',
+            'notes' => 'nullable|string'
+        ]);
+
+        if ($validated['share_type'] === 'dept_share') {
+            RecoveriesDeptExcalatedShare::create([
+                'dept_share_amount' => $validated['amount'],
+                'notes' => $validated['notes'],
+                'created_by' => auth()->id()
+            ]);
+            $message = 'Recovery Dept Share recorded successfully';
+        } else {
+            UnitShare::create([
+                'amount' => $validated['amount'],
+                'notes' => $validated['notes'],
+                'user_id' => auth()->id()
+            ]);
+            $message = 'Unit Share recorded successfully';
+        }
+
+        return response()->json(['message' => $message]);
     }
 }

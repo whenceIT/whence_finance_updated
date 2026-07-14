@@ -16,6 +16,7 @@ class UnitShare extends Model
         'loan_txn_id',
         'office_id',
         'user_id',
+        'notes',
     ];
 
     protected $casts = [

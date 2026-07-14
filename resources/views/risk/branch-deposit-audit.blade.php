@@ -449,7 +449,7 @@
                 <div class="sc-row">Received&nbsp;&nbsp;<strong>K{{ number_format($tC, 2) }}</strong></div>
                 <div class="sc-row">Other Received&nbsp;&nbsp;<strong>K{{ number_format($tOther, 2) }}</strong></div>
                 <div class="sc-balance">
-                    Balance&nbsp;&nbsp;<strong{{ $tB > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tB, 2) }}</strong>
+                    Balance&nbsp;&nbsp;<strong{{ $tB > 0 ? ' style="color:#e61700"' : '' }}>K{{ number_format($tR - $tC, 2) }}</strong>
                     <br>
                     <small> <i>(Required - Received)</i> </small>
                 </div>

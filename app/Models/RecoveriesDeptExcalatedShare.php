@@ -9,6 +9,7 @@ class RecoveriesDeptExcalatedShare extends Model
     protected $fillable = [
         'recovery_case_id',
         'recovery_payment_id',
+        'office_id',
         'dept_share_amount',
         'notes',
         'created_by',
@@ -31,5 +32,10 @@ class RecoveriesDeptExcalatedShare extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function office()
+    {
+        return $this->belongsTo(Office::class, 'office_id');
     }
 }
