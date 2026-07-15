@@ -356,9 +356,9 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
 });
 
 Route::group(['prefix' => 'vehicles'], function () {
-    Route::get('/', 'VehicleController@index');
+    Route::get('/', 'VehicleController@MotorVehicles');
     Route::get('dashboard', 'VehicleController@dashboard');
-    Route::get('create', 'VehicleController@create');
+    Route::get('create', 'VehicleController@MotorVehicleLoan');
     Route::any('store', 'VehicleController@store');
     Route::any('{id}', 'VehicleController@show');
     Route::any('{id}/edit', 'VehicleController@edit');

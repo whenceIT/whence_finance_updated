@@ -17,6 +17,7 @@ use App\Models\Loan;
 use App\Models\VehicleCustody;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use App\Models\Office;
 
 class VehicleController extends Controller
 {
@@ -594,28 +595,106 @@ if ($request->hasFile('photos')) {
 
    
 
-    public function MotorVehicleLoan(Request $request)
-    {
+   public function MotorVehicleLoan(Request $request)
+{
+    $query = Loan::where('loan_product_id', 0);
 
-       $recentLoans = Loan::where('loan_product_id',0)->where('created_date','desc')
-    ->get();
+    // Search (Loan ID or Client Name)
+    if ($request->filled('search')) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('id', 'like', "%{$search}%")
+              ->orWhereHas('client', function ($client) use ($search) {
+                    $client->where('first_name', 'like', "%{$search}%")
+                           ->orWhere('last_name', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    // Status Filter
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Branch Filter
+    if ($request->filled('office')) {
+        $query->where('office_id', $request->office);
+    }
+
+    // Date Filter
+    if ($request->filled('date')) {
+        $query->whereDate('created_date', $request->date);
+    }
+
+    $recentLoans = $query
+        ->orderBy('created_date', 'desc')
+        ->paginate(20)
+        ->appends($request->all());
+
+    $offices = Office::orderBy('name')->get();
 
     return view(
-        'motor_vehicle.motor_vehicle_loans',compact('recentLoans')
+        'motor_vehicle.motor_vehicle_loans',
+        compact('recentLoans', 'offices')
     );
+}
+
+
+   public function MotorVehicles(Request $request)
+{
+    $query = Vehicle::with('client.office');
+
+    // Search
+    if ($request->filled('search')) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+
+            $q->where('vehicle_code', 'like', "%{$search}%")
+              ->orWhere('registration_number', 'like', "%{$search}%")
+              ->orWhere('make', 'like', "%{$search}%")
+              ->orWhere('model', 'like', "%{$search}%")
+              ->orWhereHas('client', function ($client) use ($search) {
+
+                    $client->where('first_name', 'like', "%{$search}%")
+                           ->orWhere('last_name', 'like', "%{$search}%");
+
+              });
+
+        });
     }
-    
 
-    public function MotorVehicles(Request $request)
-    {
-
-    $vehicles = Vehicle::with('client')->latest()->get();
-
-     return view(
-        'motor_vehicle.motor_vehicles',compact('vehicles')
-     );
-
+    // Status Filter
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
     }
+
+    // Branch Filter
+ // Branch Filter
+if ($request->filled('office')) {
+    $query->whereHas('client', function ($q) use ($request) {
+        $q->where('office_id', $request->office);
+    });
+}
+
+    // Registration Date Filter
+    if ($request->filled('date')) {
+        $query->whereDate('created_at', $request->date);
+    }
+
+    $vehicles = $query
+        ->latest()
+        ->paginate(20)
+        ->appends($request->all());
+
+    $offices = Office::orderBy('name')->get();
+
+    return view(
+        'motor_vehicle.motor_vehicles',
+        compact('vehicles', 'offices')
+    );
+}
 
 
 
