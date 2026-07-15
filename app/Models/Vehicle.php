@@ -61,4 +61,9 @@ class Vehicle extends Model
 {
     return $this->hasMany(VehiclePhoto::class);
 }
+
+public function custody()
+{
+    return $this->hasOne(VehicleCustody::class);
+}
 }

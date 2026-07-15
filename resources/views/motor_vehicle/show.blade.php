@@ -17,41 +17,64 @@
 <div class="col-md-4">
 
 <div class="box box-primary">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-car"></i> Vehicle Information
+        </h3>
+    </div>
 
-<div class="box-header with-border">
-    <h3 class="box-title">Vehicle Summary</h3>
-</div>
+    <div class="box-body no-padding">
+        <table class="table table-striped">
+            <tr>
+                <th width="35%">Vehicle Code</th>
+                <td>{{ $vehicle->vehicle_code }}</td>
 
-<div class="box-body">
+                <th width="20%">Registration</th>
+                <td>
+                    <span class="label label-primary">
+                        {{ $vehicle->registration_number }}
+                    </span>
+                </td>
+            </tr>
 
-<p>
-<strong>Vehicle Code:</strong>
-{{ $vehicle->vehicle_code }}
-</p>
+            <tr>
+                <th>Owner</th>
+                <td>
+                    {{ optional($vehicle->client)->first_name }}
+                    {{ optional($vehicle->client)->last_name }}
+                </td>
 
-<p>
-<strong>Owner:</strong>
-{{ optional($vehicle->client)->first_name }}
-{{ optional($vehicle->client)->last_name }}
-</p>
+                <th>Market Value</th>
+                <td>
+                    <strong class="text-green">
+                        K{{ number_format($vehicle->market_value,2) }}
+                    </strong>
+                </td>
+            </tr>
 
-<p>
-<strong>Registration:</strong>
-{{ $vehicle->registration_number }}
-</p>
+            <tr>
+                <th>Engine Number</th>
+                <td >
+                    <strong class="text-red">
+                        {{ $vehicle->engine_number }}
+                    </strong>
+                </td>
 
-<p>
-<strong>Market Value:</strong>
-K{{ number_format($vehicle->market_value,2) }}
-</p>
+                <th>Chassis Number</th>
+                <td>
+                    <strong class="text-blue">
+                        {{ $vehicle->engine_number }}
+                    </strong>
+                </td>
 
-<p>
-<strong>Forced Sale Value:</strong>
-K{{ number_format($vehicle->forced_sale_value,2) }}
-</p>
+            </tr>
 
-</div>
+        
+                
+      
 
+        </table>
+    </div>
 </div>
 
 <div class="box box-success">
@@ -73,38 +96,45 @@ Add Insurance
 
 </div>
 
-<div class="box-body">
+<table class="table table-hover">
 
-@if($vehicle->insurancePolicies->count())
+<thead>
+<tr>
+    <th>Insurer</th>
+    <th>Value</th>
+    <th>Policy Number</th>
+    <th>Expiry</th>
+</tr>
+</thead>
 
-    @foreach($vehicle->insurancePolicies as $insurance)
+<tbody>
 
-        <p>
+@forelse($vehicle->insurancePolicies as $insurance)
 
-            {{ $insurance->insurer_name }}
-
-            <br>
-
-            Expires:
+<tr>
+    <td>{{ $insurance->insurer_name }}</td>
+    <td>{{ $insurance->insured_value }}</td>
+    <td>{{ $insurance->policy_number }}</td>
+    <td>
+        <span class="label label-success">
             {{ $insurance->expiry_date }}
+        </span>
+    </td>
+</tr>
 
-        </p>
+@empty
 
-        <hr>
+<tr>
+    <td colspan="2" class="text-center text-muted">
+        No insurance found
+    </td>
+</tr>
 
-    @endforeach
+@endforelse
 
-@else
+</tbody>
 
-    <div class="alert alert-warning">
-
-        No insurance added.
-
-    </div>
-
-@endif
-
-</div>
+</table>
 
 </div>
 
@@ -130,81 +160,49 @@ Receive Vehicle
 
 </div>
 
-<div class="box-body">
+<table class="table table-bordered">
 
-@if($vehicle->custody)
+<tr>
+    <th>Status</th>
 
-<p>
+    <td>
+        <span class="label label-success">
+            {{ ucfirst($vehicle->custody->status) }}
+        </span>
+    </td>
+</tr>
 
-<strong>Status:</strong>
+<tr>
+    <th>Received</th>
+    <td>{{ $vehicle->custody->received_at }}</td>
+</tr>
 
-<span class="label label-success">
+<tr>
+    <th>Received By</th>
+    <td>{{ optional($vehicle->custody->receiver)->first_name }} {{ optional($vehicle->custody->receiver)->last_name }}</td>
+</tr>
 
-{{ ucfirst($vehicle->custody->status) }}
+<tr>
+    <th>Key Received</th>
+    <td>{{ $vehicle->custody->keys_received }}</td>
+</tr>
 
-</span>
+<tr>
+    <th>Key Tag Numbers</th>
+    <td>{{ $vehicle->custody->key_tag_numbers }}</td>
+</tr>
 
-</p>
+<tr>
+    <th>Remarks</th>
+    <td>{{ $vehicle->custody->remarks }}</td>
+</tr>
 
-<p>
+</table>
 
-<strong>Received:</strong>
-
-{{ $vehicle->custody->received_at }}
-
-</p>
-
-<p>
-
-<strong>Received By:</strong>
-
-{{ optional($vehicle->custody->receiver)->name }}
-
-</p>
-
-<p>
-
-<strong>Keys Received:</strong>
-
-{{ $vehicle->custody->keys_received }}
-
-</p>
-
-<p>
-
-<strong>Key Tags:</strong>
-
-{{ $vehicle->custody->key_tag_numbers }}
-
-</p>
-
-<p>
-
-<strong>Garage:</strong>
-
-{{ optional($vehicle->custody->garage)->garage_name }}
-
-</p>
-
-<a
-href="{{ url('vehicles/'.$vehicle->id.'/custody') }}"
-class="btn btn-primary btn-block">
-
-View Custody Details
-
-</a>
-
-@else
-
-<div class="alert alert-warning">
-
-Vehicle has not yet been received into custody.
-
-</div>
-
-@endif
-
-</div>
+<!-- <a class="btn btn-primary btn-block" href="{{ url('vehicles/'.$vehicle->id.'/custody') }}">
+    <i class="fa fa-eye"></i>
+    View Custody
+</a> -->
 
 </div>
 
@@ -224,13 +222,13 @@ Garage / Storage Facility
 
 <div class="box-body">
 
-@if(optional($vehicle->custody)->garage)
+@if($vehicle->custody->garage_name)
 
 <p>
 
 <strong>Garage Name</strong><br>
 
-{{ $vehicle->custody->garage->garage_name }}
+{{ $vehicle->custody->garage_name }}
 
 </p>
 
@@ -238,23 +236,30 @@ Garage / Storage Facility
 
 <strong>Location</strong><br>
 
-{{ $vehicle->custody->garage->physical_location }}
+{{ $vehicle->custody->garage_location }}
 
 </p>
 
 <p>
+    <strong>GPS Coordinates</strong><br>
 
-<strong>GPS Coordinates</strong><br>
-
-{{ $vehicle->custody->garage->gps_coordinates }}
-
+    @if($vehicle->custody->garage_gps)
+        <a href="{{ $vehicle->custody->garage_gps }}"
+           target="_blank"
+           class="btn btn-primary btn-sm">
+            <i class="fa fa-map-marker"></i>
+            Open in Google Maps
+        </a>
+    @else
+        <span class="text-muted">Not available</span>
+    @endif
 </p>
 
 <p>
 
 <strong>Contact Person</strong><br>
 
-{{ $vehicle->custody->garage->contact_person }}
+{{ $vehicle->custody->garage_contact_person }}
 
 </p>
 
@@ -262,7 +267,7 @@ Garage / Storage Facility
 
 <strong>Phone</strong><br>
 
-{{ $vehicle->custody->garage->contact_phone }}
+{{ $vehicle->custody->garage_contact_phone }}
 
 </p>
 
@@ -279,6 +284,10 @@ No garage assigned.
 </div>
 
 </div>
+
+
+
+
 
 </div>
 

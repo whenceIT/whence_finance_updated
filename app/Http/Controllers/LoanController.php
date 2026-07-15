@@ -1342,12 +1342,15 @@ if ($application) {
             Vehicle::create([
             'vehicle_code' => 'VH'.time(),
             'client_id' => $client->id,
+            'loan_id' => $loan->id,
             'make' => $request->make,
             'model' => $request->model,
             'year' => $request->year,
             'registration_number' => $request->registration_number,
             'market_value' => $request->market_value,
-            'forced_sale_value' => $request->forced_sale_value
+            'engine_number' => $request->engine_number,
+            'chassis_number' => $request->chassis_number,
+            'insurance_policy_number' => $request->insurance_policy_number
         ]);
 
             }

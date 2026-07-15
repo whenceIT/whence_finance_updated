@@ -115,9 +115,10 @@
 <select
     name="condition_rating"
     class="form-control">
-
+    
+<option></option>
 <option>Excellent</option>
-<option selected>Good</option>
+<option>Good</option>
 <option>Fair</option>
 <option>Poor</option>
 
@@ -141,43 +142,6 @@
 
 </div>
 
-<div class="form-group">
-
-<label>Fuel Level</label>
-
-<select
-    name="fuel_level"
-    class="form-control">
-
-    <option value="">Select Fuel Level</option>
-    <option>Empty</option>
-    <option>1/4 Tank</option>
-    <option>1/2 Tank</option>
-    <option>3/4 Tank</option>
-    <option>Full Tank</option>
-
-</select>
-
-</div>
-
-<div class="form-group">
-
-<label>Fuel Level</label>
-
-<select
-    name="fuel_level"
-    class="form-control">
-
-    <option value="">Select Fuel Level</option>
-    <option>Empty</option>
-    <option>1/4 Tank</option>
-    <option>1/2 Tank</option>
-    <option>3/4 Tank</option>
-    <option>Full Tank</option>
-
-</select>
-
-</div>
 
 <div class="form-group">
 
