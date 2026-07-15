@@ -43,9 +43,6 @@
         <button type="button" id="resetFilters" class="btn btn-secondary btn-sm" style="border-radius:4px;">
             <i class="fa fa-refresh"></i> Reset
         </button>
-        <a href="{{ route('branch-deposit-transactions.pdf', request()->except('page')) }}" class="btn btn-success btn-sm" style="border-radius:4px;" target="_blank">
-            <i class="fa fa-file-pdf-o"></i> PDF Export
-        </a>
     </div>
 
     <div class="table-responsive">
@@ -58,13 +55,13 @@
                     <th>Deposit Type</th>
                     <th>Reference</th>
                     <th>Method</th>
-                    <th>User</th>
+                    <th>Recorded By</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($deposits as $deposit)
                     <tr>
-                        <td>{{ $deposit->date ? date('Y-m-d', strtotime($deposit->date)) : 'N/A' }}</td>
+                        <td>{{ $deposit->bankDepositLog->created_date ? date('Y-m-d', strtotime($deposit->bankDepositLog->created_date)) : 'N/A' }}</td>
                         <td>{{ App\Models\Office::officeName($deposit->office)->name ?? 'N/A' }}</td>
                         <td>{{ number_format($deposit->amount, 2) }}</td>
                         <td>{{ $deposit->depositTypeInfo->name ?? 'N/A' }}</td>
