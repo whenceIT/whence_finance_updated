@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('policy_quiz_attempts', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('policy_quiz_id');
             $table->unsignedBigInteger('user_id');
             $table->datetime('started_at');
@@ -23,8 +23,6 @@ return new class extends Migration
             $table->boolean('passed')->nullable();
             $table->timestamps();
             
-            $table->foreign('policy_quiz_id')->references('id')->on('policy_quizzes');
-            $table->foreign('user_id')->references('id')->on('users');
             $table->unique(['policy_quiz_id', 'user_id']); // One active attempt per user per quiz
         });
     }

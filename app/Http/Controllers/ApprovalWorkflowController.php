@@ -124,39 +124,41 @@ class ApprovalWorkflowController extends Controller
         return response()->json(['success' => true, 'message' => $count . ' deposit(s) approved successfully.']);
     }
 
-    public function bulkDecline(Request $request)
-    {
-        $ids = $request->input('ids');
-        
-        if (empty($ids)) {
-            return response()->json(['success' => false, 'message' => 'No deposits selected.']);
-        }
-        
-        Deposit::withoutGlobalScope('approved')->whereIn('id', $ids)->whereNull('status')->delete();
-        
-        return response()->json(['success' => true, 'message' => count($ids) . ' deposit(s) declined successfully.']);
-    }
+public function bulkDecline(Request $request)
+     {
+         $ids = $request->input('ids');
+         
+         if (empty($ids)) {
+             return response()->json(['success' => false, 'message' => 'No deposits selected.']);
+         }
+         
+         BankDepositLog::whereIn('deposit_id', $ids)->delete();
+         Deposit::withoutGlobalScope('approved')->whereIn('id', $ids)->whereNull('status')->delete();
+         return response()->json(['success' => true, 'message' => count($ids) . ' deposit(s) declined successfully.']);
+     }
 
-    public function declineAll(Request $request)
-    {
-        $query = Deposit::withoutGlobalScope('approved')
-            ->select(['d.*'])
-            ->from('deposits AS d')
-            ->whereNull('status');
+public function declineAll(Request $request)
+     {
+         $query = Deposit::withoutGlobalScope('approved')
+             ->select(['d.*'])
+             ->from('deposits AS d')
+             ->whereNull('status');
 
-        if ($request->filled('deposit_type') && $request->deposit_type !== 'all') {
-            $query->where('d.deposit_type', $request->deposit_type);
-        }
+         if ($request->filled('deposit_type') && $request->deposit_type !== 'all') {
+             $query->where('d.deposit_type', $request->deposit_type);
+         }
 
-        if ($request->filled('office_id') && $request->office_id !== 'all') {
-            $query->where('d.office', $request->office_id);
-        }
+         if ($request->filled('office_id') && $request->office_id !== 'all') {
+             $query->where('d.office', $request->office_id);
+         }
 
-        $count = $query->count();
-        $query->delete();
-        
-        return response()->json(['success' => true, 'message' => $count . ' deposit(s) declined successfully.']);
-    }
+         $ids = (clone $query)->pluck('d.id');
+         $count = $ids->count();
+         BankDepositLog::whereIn('deposit_id', $ids)->delete();
+         $query->delete();
+         
+         return response()->json(['success' => true, 'message' => $count . ' deposit(s) declined successfully.']);
+     }
 
     public function expenseApprovals()
     {

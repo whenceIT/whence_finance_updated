@@ -191,6 +191,8 @@ class BranchDepositController extends Controller
         $year = $parts[0] ?? date('Y');
 
         $query = Deposit::withoutGlobalScope('approved')
+            ->select('deposits.*')
+            ->join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
             ->with(['depositTypeInfo', 'office', 'bankDepositLog.user']);
 
         $query->whereYear('date', $year)
@@ -200,7 +202,7 @@ class BranchDepositController extends Controller
             $query->where('deposit_type', $depositTypeId);
         }
 
-        $deposits = $query->orderBy('date', 'desc')->get();
+        $deposits = $query->orderBy('bank_deposit_log.created_date', 'desc')->get();
 
         $depositTypes = \App\Models\DepositType::orderBy('name')->get();
 
@@ -222,6 +224,8 @@ class BranchDepositController extends Controller
         $year = $parts[0] ?? date('Y');
 
         $query = Deposit::withoutGlobalScope('approved')
+            ->select('deposits.*')
+            ->join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
             ->with(['depositTypeInfo', 'office', 'bankDepositLog.user']);
 
         $query->whereYear('date', $year)
@@ -231,7 +235,7 @@ class BranchDepositController extends Controller
             $query->where('deposit_type', $depositTypeId);
         }
 
-        $deposits = $query->orderBy('date', 'desc')->get();
+        $deposits = $query->orderBy('bank_deposit_log.created_date', 'desc')->get();
 
         return view('risk.branch-deposit-transactions-pdf', compact(
             'deposits',

@@ -13,21 +13,22 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('policy_quizzes', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->integer('passing_threshold')->default(80); // percentage
-            $table->integer('time_limit_minutes')->default(10);
-            $table->integer('max_questions')->default(15);
-            $table->datetime('open_date');
-            $table->datetime('close_date');
-            $table->boolean('active')->default(true);
-            $table->unsignedBigInteger('created_by');
-            $table->timestamps();
-            
-            $table->foreign('created_by')->references('id')->on('users');
-        });
+        if (Schema::hasTable('setup_depolicy_quizzesbt_transactions')){
+            Schema::create('policy_quizzes', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->string('title');
+                $table->text('description')->nullable();
+                $table->integer('passing_threshold')->default(80); // percentage
+                $table->integer('time_limit_minutes')->default(10);
+                $table->integer('max_questions')->default(15);
+                $table->datetime('open_date');
+                $table->datetime('close_date');
+                $table->boolean('active')->default(true);
+                $table->unsignedBigInteger('created_by');
+                $table->timestamps();
+                
+            });
+        }
     }
 
     /**

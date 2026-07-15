@@ -2102,3 +2102,27 @@ Route::group(['prefix' => 'bank-account-expenses', 'middleware' => 'sentinel'], 
     Route::delete('/{expense}', [BankAccountExpenseController::class, 'destroy'])->name('bank_account_expenses.destroy');
     Route::get('/dashboard', [BankAccountExpenseController::class, 'getDashboard'])->name('bank_account_expenses.dashboard');
 });
+// Policy Quizzes Routes
+Route::group(['prefix' => 'policy-quizzes'], function () {
+    // User-facing routes
+    Route::get('/', [App\Http\Controllers\PolicyQuizController::class, 'index'])->name('policy.quizzes.index');
+    Route::get('/{id}/start', [App\Http\Controllers\PolicyQuizController::class, 'start'])->name('policy.quizzes.start');
+    Route::get('/{id}/question/{question}', [App\Http\Controllers\PolicyQuizController::class, 'question'])->name('policy.quizzes.question');
+    Route::post('/{id}/answer', [App\Http\Controllers\PolicyQuizController::class, 'answer'])->name('policy.quizzes.answer');
+    Route::post('/{id}/submit', [App\Http\Controllers\PolicyQuizController::class, 'submit'])->name('policy.quizzes.submit');
+    Route::get('/{id}/results', [App\Http\Controllers\PolicyQuizController::class, 'results'])->name('policy.quizzes.results');
+});
+
+// Admin Policy Quiz Routes
+Route::group(['prefix' => 'admin/policy-quizzes'], function () {
+    Route::get('/', [App\Http\Controllers\PolicyQuizController::class, 'adminIndex'])->name('admin.policy-quizzes.index');
+    Route::get('/create', [App\Http\Controllers\PolicyQuizController::class, 'create'])->name('admin.policy-quizzes.create');
+    Route::post('/', [App\Http\Controllers\PolicyQuizController::class, 'store'])->name('admin.policy-quizzes.store');
+    Route::get('/{id}/edit', [App\Http\Controllers\PolicyQuizController::class, 'edit'])->name('admin.policy-quizzes.edit');
+    Route::put('/{id}', [App\Http\Controllers\PolicyQuizController::class, 'update'])->name('admin.policy-quizzes.update');
+    Route::delete('/{id}', [App\Http\Controllers\PolicyQuizController::class, 'destroy'])->name('admin.policy-quizzes.destroy');
+    Route::get('/{id}/upload', [App\Http\Controllers\PolicyQuizController::class, 'upload'])->name('policy.quizzes.upload');
+    Route::post('/{id}/upload', [App\Http\Controllers\PolicyQuizController::class, 'uploadQuestions'])->name('policy.quizzes.upload.questions');
+    Route::get('/{id}/report', [App\Http\Controllers\PolicyQuizController::class, 'report'])->name('policy.quizzes.report');
+    Route::get('/{id}/completion', [App\Http\Controllers\PolicyQuizController::class, 'completionDashboard'])->name('policy.quizzes.completion-dashboard');
+});

@@ -1,6 +1,10 @@
 @extends('layouts.master')
 
 @section('content')
+@php
+use App\Models\PolicyQuizAttempt;
+use Illuminate\Support\Facades\Auth;
+@endphp
 <div class="content-wrapper">
     <section class="content-header">
         <h1>Policy Quizzes</h1>

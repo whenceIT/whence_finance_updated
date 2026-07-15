@@ -7,7 +7,7 @@ use App\Models\PolicyQuizAttempt;
 use App\Models\PolicyQuizQuestion;
 use App\Models\PolicyQuizUserAnswer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use League\Csv\Reader;
@@ -25,7 +25,7 @@ class PolicyQuizController extends Controller
             ->get();
 
         // Check for any active attempts
-        $activeAttempts = PolicyQuizAttempt::where('user_id', Auth::id())
+        $activeAttempts = PolicyQuizAttempt::where('user_id', Sentinel::getUser()->id)
             ->whereNull('completed_at')
             ->get()
             ->keyBy('policy_quiz_id');
@@ -47,7 +47,7 @@ class PolicyQuizController extends Controller
         }
 
         // Check for existing active attempt
-        $existingAttempt = $quiz->getUserAttempt(Auth::id());
+        $existingAttempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
         if ($existingAttempt) {
             return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1]);
         }
@@ -55,7 +55,7 @@ class PolicyQuizController extends Controller
         // Create new attempt
         $attempt = PolicyQuizAttempt::create([
             'policy_quiz_id' => $quiz->id,
-            'user_id' => Auth::id(),
+            'user_id' => Sentinel::getUser()->id,
             'started_at' => now(),
         ]);
 
@@ -69,7 +69,7 @@ class PolicyQuizController extends Controller
     public function question($id, $questionNum)
     {
         $quiz = PolicyQuiz::findOrFail($id);
-        $attempt = $quiz->getUserAttempt(Auth::id());
+        $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
         
         if (!$attempt) {
             return redirect()->route('policy.quizzes.start', $id);
@@ -123,7 +123,7 @@ class PolicyQuizController extends Controller
         ]);
 
         $quiz = PolicyQuiz::findOrFail($id);
-        $attempt = $quiz->getUserAttempt(Auth::id());
+        $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
         
         if (!$attempt) {
             return redirect()->route('policy.quizzes.start', $id);
@@ -160,7 +160,7 @@ class PolicyQuizController extends Controller
     public function submit($id)
     {
         $quiz = PolicyQuiz::findOrFail($id);
-        $attempt = $quiz->getUserAttempt(Auth::id());
+        $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
         
         if (!$attempt) {
             return redirect()->route('policy.quizzes.index');
@@ -181,7 +181,7 @@ class PolicyQuizController extends Controller
     {
         $quiz = PolicyQuiz::findOrFail($id);
         $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', Sentinel::getUser()->id)
             ->whereNotNull('completed_at')
             ->latest()
             ->firstOrFail();
@@ -236,7 +236,7 @@ class PolicyQuizController extends Controller
             'max_questions' => $request->max_questions,
             'open_date' => $request->open_date,
             'close_date' => $request->close_date,
-            'created_by' => Auth::id(),
+            'created_by' => Sentinel::getUser()->id,
         ]);
 
         return redirect()->route('admin.policy-quizzes.index')

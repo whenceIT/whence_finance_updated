@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('policy_quiz_questions', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('policy_quiz_id');
             $table->text('question_text');
             $table->string('option_a');
@@ -26,7 +26,6 @@ return new class extends Migration
             $table->text('explanation')->nullable();
             $table->timestamps();
             
-            $table->foreign('policy_quiz_id')->references('id')->on('policy_quizzes')->onDelete('cascade');
         });
     }
 

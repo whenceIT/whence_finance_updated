@@ -22,6 +22,7 @@
     "intervention/image": "^3.7",
     "laracasts/flash": "^3.2.1",
     "laravel/framework": "^9.19",
+    "league/csv": "^9.0",
     "laravel/helpers": "^1.5.0",
     "laravel/tinker": "^2.7",
     "laravel/ui": "^4.0",

@@ -918,6 +918,9 @@
                         
                             <li><a href="{{ route('policies.engagements') }}"><i class="fa fa-circle-o"></i> Policy Engagements</a></li>
                         
+                            <li><a href="{{ route('policy.quizzes.index') }}"><i class="fa fa-circle-o"></i> Take Quiz</a></li>
+                        
+                            <li><a href="{{ route('admin.policy-quizzes.index') }}"><i class="fa fa-cog"></i> Manage Quizzes</a></li>
                         </ul>
                     </li>
                     @endif
