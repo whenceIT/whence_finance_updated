@@ -180,4 +180,35 @@ class BranchDepositController extends Controller
             'data' => $deadline
         ]);
     }
+
+    public function branchDepositTransactions(Request $request)
+    {
+        $selectedMonth = $request->get('month', date('Y-m'));
+        $depositTypeId = $request->get('deposit_type_id');
+
+        $parts = explode('-', $selectedMonth);
+        $monthNum = $parts[1] ?? date('m');
+        $year = $parts[0] ?? date('Y');
+
+        $query = Deposit::withoutGlobalScope('approved')
+            ->with(['depositTypeInfo', 'office', 'bankDepositLog.user']);
+
+        $query->whereYear('date', $year)
+            ->whereMonth('date', $monthNum);
+
+        if ($depositTypeId) {
+            $query->where('deposit_type', $depositTypeId);
+        }
+
+        $deposits = $query->orderBy('date', 'desc')->get();
+
+        $depositTypes = \App\Models\DepositType::orderBy('name')->get();
+
+        return view('risk.branch-deposit-transactions', compact(
+            'deposits',
+            'depositTypes',
+            'selectedMonth',
+            'depositTypeId'
+        ));
+    }
 }

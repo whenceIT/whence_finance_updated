@@ -142,12 +142,14 @@
                     <li @if(Request::is('audits*')) class="active" @endif><a href="{{ url('risk/overview') }}"><i class="fa fa-circle-o"></i> Overview</a></li>
                     <li @if(Request::is('audits*')) class="active" @endif><a href="{{ route('audits.index') }}"><i class="fa fa-circle-o"></i> Audit Trail</a></li>
                     <li @if(Request::is('risk/branch-deposit-audit*')) class="active" @endif><a href="{{ url('risk/branch-deposit-audit?period=overall',) }}"><i class="fa fa-circle-o"></i> Branch Deposit Audit</a></li>
+                    <li @if(Request::is('risk/branch-deposit-transactions*')) class="active" @endif><a href="{{ route('branch-deposit-transactions') }}"><i class="fa fa-circle-o"></i> Branch Deposit Transactions</a></li>
                     <li @if(Request::is('risk/exemption-list*')) class="active" @endif><a href="{{ route('risk.exemption-list') }}"><i class="fa fa-circle-o"></i> Exemption List</a></li>
                     <li @if(Request::is('risk/blocked-list*')) class="active" @endif><a href="{{ route('risk.blocked-list') }}"><i class="fa fa-circle-o"></i> Blocked List</a></li>
                     <li @if(Request::is('risk/setup-debt-management*')) class="active" @endif><a href="{{ route('risk.setup-debt-management') }}"><i class="fa fa-circle-o"></i> Setup Debt Costs</a></li>
                     <li @if(Request::is('risk/heat-map*')) class="active" @endif><a href="{{ url('risk/heat-map') }}"><i class="fa fa-circle-o"></i> Risk Heat Map</a></li>
                     <li @if(Request::is('risk/branch-ranking*')) class="active" @endif><a href="{{ url('risk/branch-ranking') }}"><i class="fa fa-circle-o"></i> Branch Risk Ranking</a></li>
                     <li @if(Request::is('risk/fraud-feed*')) class="active" @endif><a href="{{ url('risk/fraud-feed') }}"><i class="fa fa-circle-o"></i> Real-Time Risk</a></li>
+                    
                     <!-- <li @if(Request::is('risk/recovery-efficiency*')) class="active" @endif><a href="{{ url('risk/recovery-efficiency') }}"><i class="fa fa-circle-o"></i> Recovery Tracker</a></li>
                     <li @if(Request::is('risk/policy-breach*')) class="active" @endif><a href="{{ url('risk/policy-breach') }}"><i class="fa fa-circle-o"></i> Policy Breach Tracker</a></li>
                     <li @if(Request::is('risk/cost-value*')) class="active" @endif><a href="{{ url('risk/cost-value') }}"><i class="fa fa-circle-o"></i> Risk Cost vs Value<br>Preservation Analytics</a></li>
@@ -748,7 +750,7 @@
                         </ul>
                     </li>
                     @endif
-<li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
+                    <li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
                     
                 </ul>
             </li>
@@ -897,7 +899,7 @@
                     
 
                     <!-- Company Policies -->
-                    @if(Sentinel::hasAccess('reports'))
+                   @hasRole('role.exec', 'role.policy_manager', 'role.risk')
                     <li class="treeview @if(Request::is('policies/*')) active menu-open @endif" style="padding-left: 10px;">
                         <a href="#">
                             <i class="fa fa-book"></i> <span>Company Policies</span>
@@ -906,21 +908,16 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
-                            @hasRole('role.exec','role.policy_manager')
-                                <li><a href="{{ route('policies.dashboard') }}"><i class="fa fa-circle-o"></i> Policy Dashboard</a></li>
-                            @endif
-                            @if(Sentinel::hasAccess('reports.client_reports'))
-                                <li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
-                            @endif
-                            @hasRole('role.exec','role.policy_manager')
-                                <li><a href="{{ route('policies.user_responses') }}"><i class="fa fa-circle-o"></i> User Responses</a></li>
-                            @endif
-                            @hasRole('role.exec','role.policy_manager')
-                                <li><a href="{{ route('policies.add_policies') }}"><i class="fa fa-circle-o"></i> Add Policies</a></li>
-                            @endif
-                            @hasRole('role.exec','role.policy_manager')
-                                <li><a href="{{ route('policies.engagements') }}"><i class="fa fa-circle-o"></i> Policy Engagements</a></li>
-                            @endif
+                            <li><a href="{{ route('policies.dashboard') }}"><i class="fa fa-circle-o"></i> Policy Dashboard</a></li>
+                
+                            <li><a href="{{ route('policies.view_policies') }}"><i class="fa fa-circle-o"></i> View Policies</a></li>
+                
+                            <li><a href="{{ route('policies.user_responses') }}"><i class="fa fa-circle-o"></i> User Responses</a></li>
+                    
+                            <li><a href="{{ route('policies.add_policies') }}"><i class="fa fa-circle-o"></i> Add Policies</a></li>
+                        
+                            <li><a href="{{ route('policies.engagements') }}"><i class="fa fa-circle-o"></i> Policy Engagements</a></li>
+                        
                         </ul>
                     </li>
                     @endif

@@ -20,7 +20,7 @@
             </div>
             <div class="box-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="info-box">
                             <span class="info-box-icon bg-blue"><i class="fa fa-share"></i></span>
                             <div class="info-box-content">
@@ -29,12 +29,33 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="info-box">
                             <span class="info-box-icon bg-green"><i class="fa fa-usd"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Unit Share</span>
                                 <span class="info-box-number">K {{ number_format($totalUnitShare, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-purple"><i class="fa fa-tag"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Dept Attribution</span>
+                                <span class="info-box-number">K {{ number_format($overallTtDebtAttr, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top: 15px;">
+                    <div class="col-md-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-navy"><i class="fa fa-calculator"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Total Shares</span>
+                                <span class="info-box-number">K {{ number_format($totalDeptShare + $totalUnitShare + $overallTtDebtAttr, 2) }}</span>
                             </div>
                         </div>
                     </div>

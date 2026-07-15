@@ -33,10 +33,12 @@ class DeptSharesController extends Controller
 
         $totalDeptShare = $deptShares->sum('dept_share_amount');
         $totalUnitShare = $unitShares->sum('amount');
+        $overallTtDebtAttr = \App\Models\RecoveryPayment::where('status', 1)->sum('recoveries_dept_amount');
 
         return view('recoveries.dept-shares', compact(
             'totalDeptShare', 
             'totalUnitShare',
+            'overallTtDebtAttr',
             'allShares',
             'filterType'
         ));
