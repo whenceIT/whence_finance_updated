@@ -531,6 +531,7 @@ Route::group(['prefix' => 'risk'], function () {
     Route::post('store-audit-submission', [RiskController::class, 'storeAuditSubmission'])->name('risk.store-audit-submission');
     Route::delete('audit-submission/{submissionId}', [RiskController::class, 'deleteAuditSubmission'])->name('risk.delete-audit-submission');
     Route::get('branch-deposit-transactions', [BranchDepositController::class, 'branchDepositTransactions'])->name('branch-deposit-transactions');
+    Route::get('branch-deposit-transactions/pdf', [BranchDepositController::class, 'branchDepositTransactionsPdf'])->name('branch-deposit-transactions.pdf');
     Route::get('fraud-feed',                    [RiskController::class, 'fraudFeed'])->name('risk.fraud-feed');
     Route::get('fraud-alerts',                  [RiskController::class, 'getFraudAlerts'])->name('risk.fraud-alerts');
     Route::delete('fraud-alert/{id}', [RiskController::class, 'destroyAlert'])->name('risk.fraud-alert.destroy');

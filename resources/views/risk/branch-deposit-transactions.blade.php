@@ -62,7 +62,7 @@
                 @forelse($deposits as $deposit)
                     <tr>
                         <td>{{ $deposit->date ? date('Y-m-d', strtotime($deposit->date)) : 'N/A' }}</td>
-                        <td>{{ $deposit->office->name ?? 'N/A' }}</td>
+                        <td>{{ App\Models\Office::officeName($deposit->office) ?? 'N/A' }}</td>
                         <td>{{ number_format($deposit->amount, 2) }}</td>
                         <td>{{ $deposit->depositTypeInfo->name ?? 'N/A' }}</td>
                         <td>{{ $deposit->bankDepositLog->reference_number ?? 'N/A' }}</td>
