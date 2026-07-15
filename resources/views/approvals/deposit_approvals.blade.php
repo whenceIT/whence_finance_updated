@@ -26,9 +26,9 @@
                             <button type="button" class="btn btn-danger btn-sm" id="bulk-decline-btn">
                                 <i class="fa fa-times"></i> Decline Selected
                             </button>
-                            <button type="button" class="btn btn-danger btn-sm" id="decline-all-btn">
+                            <!-- <button type="button" class="btn btn-danger btn-sm" id="decline-all-btn">
                                 <i class="fa fa-times-circle"></i> Decline All
-                            </button>
+                            </button> -->
                         </div>
                         <div class="col-md-6 text-right">
                             <input type="text" id="search-input" class="form-control input-sm" placeholder="Search..." style="width: 200px;">

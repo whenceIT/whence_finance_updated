@@ -28,6 +28,7 @@ use App\Models\CycleDates;
 use App\Models\LoanTransaction;
 use App\Models\Office;
 use App\Models\UserRole;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Province;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -48,6 +49,7 @@ use App\Models\AuditLogs;
 use App\Models\PayrollTemplateMeta;
 use App\Models\AdministrativeRecord;
 use App\Models\Position;
+use App\Exports\EmployeesExport;
 
 
 class HRController extends Controller{
@@ -604,6 +606,502 @@ public function workforce_analytics()
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+public function exportEmployeesToExcel(Request $request)
+    {
+        $period = $request->get('period', 'all');
+        $dateFilter = $this->getDateFilterClause($period, $request);
+        
+        $employees = DB::select("
+            SELECT 
+                u.id,
+                o.name AS office_name,
+                p.name AS province_name,
+                u.email,
+                u.first_name,
+                u.last_name,
+                u.status,
+                u.phone,
+                u.date_of_birth,
+                u.date_of_joining,
+                u.marital_status,
+                u.branch,
+                u.salary_mode,
+                u.bank_name,
+                u.bank_account_number,
+                u.health_details,
+                u.health_insurance_provider,
+                u.health_insurance_number,
+                u.external_company,
+                u.external_designation,
+                u.internal_designation,
+                u.created_at,
+                u.updated_at,
+                u.mobile_number,
+                u.current_address,
+                u.relation_to_emergency,
+                u.confirmation_date,
+                u.qualification,
+                u.school_university,
+                u.level_of_education,
+                u.year_completed,
+                u.major,
+                u.tpin,
+                u.ssn,
+                u.nhima,
+                u.salary_details,
+                u.deleted_at,
+                CASE
+                    WHEN u.status = 'active' THEN 'Active User'
+                    WHEN u.status = 'inactive' THEN 'Inactive User'
+                    ELSE u.status
+                END AS user_status,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN DATEDIFF(u.updated_at, u.created_at)
+                    ELSE DATEDIFF(NOW(), u.created_at)
+                END AS days_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(MONTH, u.created_at, NOW())
+                END AS months_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(YEAR, u.created_at, NOW())
+                END AS years_in_institution,
+                CASE
+                    WHEN u.status = 'inactive' 
+                    THEN CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at), 12), ' Months')
+                    ELSE CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, NOW()), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, NOW()), 12), ' Months')
+                END AS time_spent,
+                CASE
+                    WHEN u.status = 'inactive' THEN 'Former Employee'
+                    ELSE 'Current Employee'
+                END AS employment_category
+            FROM users u
+            LEFT JOIN role_users ru ON ru.user_id = u.id
+            LEFT JOIN offices o ON o.id = u.office_id
+            LEFT JOIN province p ON p.id = u.province_id" . $dateFilter . "
+            GROUP BY u.id
+        ");
+
+        return Excel::download(new EmployeesExport($employees), 'employees-export-' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function exportInactiveEmployees(Request $request)
+    {
+        $period = $request->get('period', 'all');
+        $dateFilter = $this->getDateFilterClause($period, $request);
+        
+        $employees = DB::select("
+            SELECT 
+                u.id,
+                o.name AS office_name,
+                p.name AS province_name,
+                u.email,
+                u.first_name,
+                u.last_name,
+                u.status,
+                u.phone,
+                u.date_of_birth,
+                u.date_of_joining,
+                u.marital_status,
+                u.branch,
+                u.salary_mode,
+                u.bank_name,
+                u.bank_account_number,
+                u.health_details,
+                u.health_insurance_provider,
+                u.health_insurance_number,
+                u.external_company,
+                u.external_designation,
+                u.internal_designation,
+                u.created_at,
+                u.updated_at,
+                u.mobile_number,
+                u.current_address,
+                u.relation_to_emergency,
+                u.confirmation_date,
+                u.qualification,
+                u.school_university,
+                u.level_of_education,
+                u.year_completed,
+                u.major,
+                u.tpin,
+                u.ssn,
+                u.nhima,
+                u.salary_details,
+                u.deleted_at,
+                CASE
+                    WHEN u.status = 'active' THEN 'Active User'
+                    WHEN u.status = 'inactive' THEN 'Inactive User'
+                    ELSE u.status
+                END AS user_status,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN DATEDIFF(u.updated_at, u.created_at)
+                    ELSE DATEDIFF(NOW(), u.created_at)
+                END AS days_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(MONTH, u.created_at, NOW())
+                END AS months_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(YEAR, u.created_at, NOW())
+                END AS years_in_institution,
+                CASE
+                    WHEN u.status = 'inactive' 
+                    THEN CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at), 12), ' Months')
+                    ELSE CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, NOW()), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, NOW()), 12), ' Months')
+                END AS time_spent,
+                CASE
+                    WHEN u.status = 'inactive' THEN 'Former Employee'
+                    ELSE 'Current Employee'
+                END AS employment_category
+            FROM users u
+            LEFT JOIN role_users ru ON ru.user_id = u.id
+            LEFT JOIN offices o ON o.id = u.office_id
+            LEFT JOIN province p ON p.id = u.province_id
+            WHERE u.status = 'inactive'" . $dateFilter . "
+            GROUP BY u.id
+        ");
+
+        return Excel::download(new EmployeesExport($employees), 'inactive-employees-export-' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function exportActiveEmployees(Request $request)
+    {
+        $period = $request->get('period', 'all');
+        $dateFilter = $this->getDateFilterClause($period, $request);
+        
+        $employees = DB::select("
+            SELECT 
+                u.id,
+                o.name AS office_name,
+                p.name AS province_name,
+                u.email,
+                u.first_name,
+                u.last_name,
+                u.status,
+                u.phone,
+                u.date_of_birth,
+                u.date_of_joining,
+                u.marital_status,
+                u.branch,
+                u.salary_mode,
+                u.bank_name,
+                u.bank_account_number,
+                u.health_details,
+                u.health_insurance_provider,
+                u.health_insurance_number,
+                u.external_company,
+                u.external_designation,
+                u.internal_designation,
+                u.created_at,
+                u.updated_at,
+                u.mobile_number,
+                u.current_address,
+                u.relation_to_emergency,
+                u.confirmation_date,
+                u.qualification,
+                u.school_university,
+                u.level_of_education,
+                u.year_completed,
+                u.major,
+                u.tpin,
+                u.ssn,
+                u.nhima,
+                u.salary_details,
+                u.deleted_at,
+                CASE
+                    WHEN u.status = 'active' THEN 'Active User'
+                    WHEN u.status = 'inactive' THEN 'Inactive User'
+                    ELSE u.status
+                END AS user_status,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN DATEDIFF(u.updated_at, u.created_at)
+                    ELSE DATEDIFF(NOW(), u.created_at)
+                END AS days_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(MONTH, u.created_at, NOW())
+                END AS months_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(YEAR, u.created_at, NOW())
+                END AS years_in_institution,
+                CASE
+                    WHEN u.status = 'inactive' 
+                    THEN CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at), 12), ' Months')
+                    ELSE CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, NOW()), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, NOW()), 12), ' Months')
+                END AS time_spent,
+                CASE
+                    WHEN u.status = 'inactive' THEN 'Former Employee'
+                    ELSE 'Current Employee'
+                END AS employment_category
+            FROM users u
+            LEFT JOIN role_users ru ON ru.user_id = u.id
+            LEFT JOIN offices o ON o.id = u.office_id
+            LEFT JOIN province p ON p.id = u.province_id
+            WHERE u.status = 'active'" . $dateFilter . "
+            GROUP BY u.id
+        ");
+
+        return Excel::download(new EmployeesExport($employees), 'active-employees-export-' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function exportEmployeeERP(Request $request)
+    {
+        $period = $request->get('period', 'all');
+        $dateFilter = $this->getDateFilterClause($period, $request);
+
+        $employees = DB::select("
+            SELECT
+                u.employee_number,
+                u.first_name,
+                u.last_name,
+                u.internal_designation AS title,
+                o.name AS department,
+                u.branch,
+                u.date_of_joining AS hire_date,
+                CASE
+                    WHEN u.status = 'inactive' THEN u.updated_at
+                    ELSE NULL
+                END AS termination_date
+            FROM users u
+            LEFT JOIN offices o ON o.id = u.office_id
+            WHERE 1=1 {$dateFilter}
+        ");
+
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=employees-erp-export-' . date('Y-m-d') . '.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $columns = ['Employee Number', 'First Name', 'Last Name', 'Title', 'Department', 'Branch', 'Hire Date', 'Termination Date'];
+
+        $callback = function() use ($employees, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($employees as $employee) {
+                fputcsv($file, [
+                    $employee->employee_number ?? '',
+                    $employee->first_name,
+                    $employee->last_name,
+                    $employee->title,
+                    $employee->department,
+                    $employee->branch,
+                    $employee->hire_date,
+                    $employee->termination_date ?? ''
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportEmployeeNAPSA(Request $request)
+    {
+        $period = $request->get('period', 'all');
+        $dateFilter = $this->getDateFilterClause($period, $request);
+        
+        $employees = DB::select("
+            SELECT 
+                u.id,
+                o.name AS office_name,
+                p.name AS province_name,
+                u.email,
+                u.first_name,
+                u.last_name,
+                u.status,
+                u.phone,
+                u.date_of_birth,
+                u.date_of_joining,
+                u.marital_status,
+                u.branch,
+                u.salary_mode,
+                u.bank_name,
+                u.bank_account_number,
+                u.health_details,
+                u.health_insurance_provider,
+                u.health_insurance_number,
+                u.external_company,
+                u.external_designation,
+                u.internal_designation,
+                u.created_at,
+                u.updated_at,
+                u.mobile_number,
+                u.current_address,
+                u.relation_to_emergency,
+                u.confirmation_date,
+                u.qualification,
+                u.school_university,
+                u.level_of_education,
+                u.year_completed,
+                u.major,
+                u.tpin,
+                u.ssn,
+                u.nhima,
+                u.salary_details,
+                u.deleted_at,
+                CASE
+                    WHEN u.status = 'active' THEN 'Active User'
+                    WHEN u.status = 'inactive' THEN 'Inactive User'
+                    ELSE u.status
+                END AS user_status,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN DATEDIFF(u.updated_at, u.created_at)
+                    ELSE DATEDIFF(NOW(), u.created_at)
+                END AS days_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(MONTH, u.created_at, NOW())
+                END AS months_in_institution,
+                CASE
+                    WHEN u.status = 'inactive'
+                    THEN TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at)
+                    ELSE TIMESTAMPDIFF(YEAR, u.created_at, NOW())
+                END AS years_in_institution,
+                CASE
+                    WHEN u.status = 'inactive' 
+                    THEN CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, u.updated_at), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, u.updated_at), 12), ' Months')
+                    ELSE CONCAT(TIMESTAMPDIFF(YEAR, u.created_at, NOW()), ' Years ', MOD(TIMESTAMPDIFF(MONTH, u.created_at, NOW()), 12), ' Months')
+                END AS time_spent,
+                CASE
+                    WHEN u.status = 'inactive' THEN 'Former Employee'
+                    ELSE 'Current Employee'
+                END AS employment_category
+            FROM users u
+            LEFT JOIN role_users ru ON ru.user_id = u.id
+            LEFT JOIN offices o ON o.id = u.office_id
+            LEFT JOIN province p ON p.id = u.province_id
+            LEFT JOIN job_positions pos ON pos.id = u.position_id
+            WHERE u.status = 'active' AND u.tpin IS NOT NULL" . $dateFilter . "
+            GROUP BY u.id
+        ");
+
+        return Excel::download(new EmployeesExport($employees), 'employees-napsa-export-' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function exportEmployeeNHIMA(Request $request)
+    {
+        $period = $request->get('period', 'all');
+        $dateFilter = $this->getDateFilterClause($period, $request, true);
+        
+        $employees = User::where(function($query) {
+            $query->where('status', 'active')
+                ->orWhere('status', 'inactive');
+        })
+            ->whereNotNull('nhima');
+
+        if ($dateFilter) {
+            $employees->whereRaw($dateFilter);
+        }
+
+        $employees = $employees->orderBy('first_name')
+            ->get();
+
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=employees-nhima-export-' . date('Y-m-d') . '.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $columns = ['NHIMA Number', 'Employee Name', 'Office', 'Health Provider', 'Insurance Number'];
+
+        $callback = function() use ($employees, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($employees as $employee) {
+                fputcsv($file, [
+                    $employee->nhima,
+                    $employee->first_name . ' ' . $employee->last_name,
+                    optional($employee->office)->name,
+                    $employee->health_insurance_provider,
+                    $employee->health_insurance_number
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    private function getDateFilterClause($period, $request, $forEloquent = false)
+    {
+        $now = Carbon::now();
+        $clause = '';
+
+        switch ($period) {
+            case 'this_month':
+                $startDate = $now->copy()->startOfMonth()->format('Y-m-d H:i:s');
+                $endDate = $now->copy()->endOfMonth()->format('Y-m-d H:i:s');
+                $clause = $forEloquent 
+                    ? "u.created_at BETWEEN '{$startDate}' AND '{$endDate}'"
+                    : " AND u.created_at BETWEEN '{$startDate}' AND '{$endDate}'";
+                break;
+
+            case 'last_month':
+                $startDate = $now->copy()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
+                $endDate = $now->copy()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
+                $clause = $forEloquent 
+                    ? "u.created_at BETWEEN '{$startDate}' AND '{$endDate}'"
+                    : " AND u.created_at BETWEEN '{$startDate}' AND '{$endDate}'";
+                break;
+
+            case 'this_year':
+                $startDate = $now->copy()->startOfYear()->format('Y-m-d H:i:s');
+                $endDate = $now->copy()->endOfYear()->format('Y-m-d H:i:s');
+                $clause = $forEloquent 
+                    ? "u.created_at BETWEEN '{$startDate}' AND '{$endDate}'"
+                    : " AND u.created_at BETWEEN '{$startDate}' AND '{$endDate}'";
+                break;
+
+            case 'last_year':
+                $startDate = $now->copy()->subYear()->startOfYear()->format('Y-m-d H:i:s');
+                $endDate = $now->copy()->subYear()->endOfYear()->format('Y-m-d H:i:s');
+                $clause = $forEloquent 
+                    ? "u.created_at BETWEEN '{$startDate}' AND '{$endDate}'"
+                    : " AND u.created_at BETWEEN '{$startDate}' AND '{$endDate}'";
+                break;
+
+            case 'custom':
+                $startDate = $request->get('start_date');
+                $endDate = $request->get('end_date');
+                if ($startDate && $endDate) {
+                    $clause = $forEloquent 
+                        ? "u.created_at BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'"
+                        : " AND u.created_at BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'";
+                }
+                break;
+
+            case 'all':
+            default:
+                break;
+        }
+
+        return $clause;
     }
 
 }

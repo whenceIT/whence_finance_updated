@@ -87,11 +87,14 @@ $todaysDate = date('Y-m-d');
             {{-- Loan Terms --}}
             <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
                 <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">Loan Terms</h4>
- <input type="hidden" name="phone_number" id="phone_number">
+                <input type="hidden" name="phone_number" id="phone_number">
                 <div class="form-group">
                     <label for="principal" class="control-label col-md-2">{{trans_choice('general.principal',1)}}</label>
                     <div class="col-md-3">
                         <input type="number" name="principal" class="form-control" min="{{$loan_product->minimum_principal}}" max="{{$loan_product->maximum_principal}}" value="{{$amount}}" required id="principal">
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Maximum Principal: K{{ number_format($loan_product->maximum_principal, 2) }}</small>
                     </div>
 
                     <label for="loan_term" class="control-label col-md-2">{{trans_choice('general.loan',1)}} {{trans_choice('general.term',1)}}</label>
@@ -145,6 +148,20 @@ $todaysDate = date('Y-m-d');
                         </div>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label for="has_collateral" class="control-label col-md-2">Loan Has Collateral? <span class="text-danger">*</span></label>
+                    <div class="col-md-3">
+                        <select name="has_collateral" class="form-control select2" id="has_collateral" required>
+                            <option value="">-- Select --</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <small class="text-muted">Select Yes to add collateral information</small>
+                    </div>
+                </div>
+
+                <input type="hidden" name="redirect_to_collateral" id="redirect_to_collateral" value="0">
             </div>
 
             {{-- Disbursement & Verification --}}
@@ -494,8 +511,26 @@ $todaysDate = date('Y-m-d');
         });
 
         
-                              let phone_numbeer = "{{ $number }}";
-                               $('#phone_number').val(phone_numbeer);
+        let phone_numbeer = "{{ $number }}";
+        $('#phone_number').val(phone_numbeer);
+
+        // Handle collateral selection - redirect to collateral create page
+        $('#has_collateral').change(function() {
+            if ($(this).val() == '1') {
+                // Get the loan_id that will be created (need to submit first)
+                // For now, we'll set a flag to redirect after form submit
+                $('#redirect_to_collateral').val('1');
+            }
+        });
+
+        // Handle collateral selection - redirect to collateral create page after loan creation
+        $('#has_collateral').change(function() {
+            if ($(this).val() == '1') {
+                $('#redirect_to_collateral').val('1');
+            } else {
+                $('#redirect_to_collateral').val('0');
+            }
+        });
 
     </script>
 @endsection

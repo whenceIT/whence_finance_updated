@@ -52,13 +52,14 @@ class RecoveryDashboardController extends Controller
         $overal_tt_active_cases = \App\Models\RecoveryCase::active()->count();
         $overal_tt_closed_cases = \App\Models\RecoveryCase::resolved()->count();
         $overall_tt_debt_attr = \App\Models\RecoveryPayment::where('status', 1)->sum('recoveries_dept_amount');
+        $escalated_client_share = \App\Models\RecoveriesDeptExcalatedShare::sum('dept_share_amount');
 
         return view('recoveries.dashboard.index', compact(
             'period', 'dateFrom', 'dateTo', 'kpis', 'pipeline', 'specialists', 'categories',
             'branchBreakdown', 'recentActivity', 'monthlyTrend', 'recoveryMix', 'funds',
             // unfiltered data
             'overal_tt_recovered', 'overal_tt_attribution', 'overal_tt_active_cases', 'overal_tt_closed_cases',
-            'overall_tt_debt_attr'
+            'overall_tt_debt_attr', 'escalated_client_share'
         ));
     }
 

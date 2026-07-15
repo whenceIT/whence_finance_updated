@@ -76,6 +76,7 @@ class User extends EloquentUser
         'nhima',
         'salary_details',
         'daily_learning',
+        'esc_recovered',
     ];
     public function payroll()
     {

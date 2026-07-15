@@ -337,11 +337,6 @@ Route::group(['prefix' => 'hr'],function(){
     Route::get('employee-exports', 'HRController@employeeExports')->name('hr.employee-exports');
     Route::post('employee-exports', 'HRController@exportEmployees')->name('hr.employee-exports.download');
     Route::get('employee-exports/excel', 'HRController@exportEmployeesToExcel')->name('hr.employee-exports.excel');
-    Route::get('employee-exports/inactive', 'HRController@exportInactiveEmployees')->name('hr.employee-exports.inactive');
-    Route::get('employee-exports/active', 'HRController@exportActiveEmployees')->name('hr.employee-exports.active');
-    Route::get('employee-exports/erp', 'HRController@exportEmployeeERP')->name('hr.employee-exports.erp');
-    Route::get('employee-exports/napsa', 'HRController@exportEmployeeNAPSA')->name('hr.employee-exports.napsa');
-    Route::get('employee-exports/nhima', 'HRController@exportEmployeeNHIMA')->name('hr.employee-exports.nhima');
     Route::get('workforce_analytics','HRController@workforce_analytics');
 });
 
@@ -369,16 +364,14 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
 });
 
 Route::group(['prefix' => 'vehicles'], function () {
-    Route::get('/', 'VehicleController@MotorVehicles');
+    Route::get('/', 'VehicleController@index');
     Route::get('dashboard', 'VehicleController@dashboard');
-    Route::get('create', 'VehicleController@MotorVehicleLoan');
+    Route::get('create', 'VehicleController@create');
     Route::any('store', 'VehicleController@store');
     Route::any('{id}', 'VehicleController@show');
     Route::any('{id}/edit', 'VehicleController@edit');
     Route::any('{id}/update', 'VehicleController@update');
     Route::get('search-clients', 'VehicleController@searchbClients');
-    Route::get('{vehicle}/custody/create','VehicleController@createCustody');
-    Route::any('{vehicle}/custody','VehicleController@storeCustody');
     Route::get('{vehicle}/insurance/create','VehicleController@createInsurance');
     Route::any('{vehicle}/insurance/store','VehicleController@storeInsurance');
     Route::get('{vehicle}/documents/create','VehicleController@createDocuments');
@@ -387,8 +380,6 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::any('{vehicle}/photos/store','VehicleController@storePhotos');
     Route::get('{vehicle}/inspections/create','VehicleController@createInspections');
     Route::any('{vehicle}/inspections/store','VehicleController@storeInspections');
-    Route::get('loans1','VehicleController@MotorVehicleLoan');
-    Route::get('new_route','VehicleController@MotorVehicleLoan');
 });
 
 //route for users
@@ -534,8 +525,6 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('audit-report-print/{submissionId}', [RiskController::class, 'printAuditReport'])->name('risk.audit-report-print');
     Route::post('store-audit-submission', [RiskController::class, 'storeAuditSubmission'])->name('risk.store-audit-submission');
     Route::delete('audit-submission/{submissionId}', [RiskController::class, 'deleteAuditSubmission'])->name('risk.delete-audit-submission');
-    Route::get('branch-deposit-transactions', [BranchDepositController::class, 'branchDepositTransactions'])->name('branch-deposit-transactions');
-    Route::get('branch-deposit-transactions/pdf', [BranchDepositController::class, 'branchDepositTransactionsPdf'])->name('branch-deposit-transactions.pdf');
     Route::get('fraud-feed',                    [RiskController::class, 'fraudFeed'])->name('risk.fraud-feed');
     Route::get('fraud-alerts',                  [RiskController::class, 'getFraudAlerts'])->name('risk.fraud-alerts');
     Route::delete('fraud-alert/{id}', [RiskController::class, 'destroyAlert'])->name('risk.fraud-alert.destroy');
@@ -2105,28 +2094,4 @@ Route::group(['prefix' => 'bank-account-expenses', 'middleware' => 'sentinel'], 
     Route::put('/{expense}', [BankAccountExpenseController::class, 'update'])->name('bank_account_expenses.update');
     Route::delete('/{expense}', [BankAccountExpenseController::class, 'destroy'])->name('bank_account_expenses.destroy');
     Route::get('/dashboard', [BankAccountExpenseController::class, 'getDashboard'])->name('bank_account_expenses.dashboard');
-});
-// Policy Quizzes Routes
-Route::group(['prefix' => 'policy-quizzes'], function () {
-    // User-facing routes
-    Route::get('/', [App\Http\Controllers\PolicyQuizController::class, 'index'])->name('policy.quizzes.index');
-    Route::get('/{id}/start', [App\Http\Controllers\PolicyQuizController::class, 'start'])->name('policy.quizzes.start');
-    Route::get('/{id}/question/{question}', [App\Http\Controllers\PolicyQuizController::class, 'question'])->name('policy.quizzes.question');
-    Route::post('/{id}/answer', [App\Http\Controllers\PolicyQuizController::class, 'answer'])->name('policy.quizzes.answer');
-    Route::post('/{id}/submit', [App\Http\Controllers\PolicyQuizController::class, 'submit'])->name('policy.quizzes.submit');
-    Route::get('/{id}/results', [App\Http\Controllers\PolicyQuizController::class, 'results'])->name('policy.quizzes.results');
-});
-
-// Admin Policy Quiz Routes
-Route::group(['prefix' => 'admin/policy-quizzes'], function () {
-    Route::get('/', [App\Http\Controllers\PolicyQuizController::class, 'adminIndex'])->name('admin.policy-quizzes.index');
-    Route::get('/create', [App\Http\Controllers\PolicyQuizController::class, 'create'])->name('admin.policy-quizzes.create');
-    Route::post('/', [App\Http\Controllers\PolicyQuizController::class, 'store'])->name('admin.policy-quizzes.store');
-    Route::get('/{id}/edit', [App\Http\Controllers\PolicyQuizController::class, 'edit'])->name('admin.policy-quizzes.edit');
-    Route::put('/{id}', [App\Http\Controllers\PolicyQuizController::class, 'update'])->name('admin.policy-quizzes.update');
-    Route::delete('/{id}', [App\Http\Controllers\PolicyQuizController::class, 'destroy'])->name('admin.policy-quizzes.destroy');
-    Route::get('/{id}/upload', [App\Http\Controllers\PolicyQuizController::class, 'upload'])->name('policy.quizzes.upload');
-    Route::post('/{id}/upload', [App\Http\Controllers\PolicyQuizController::class, 'uploadQuestions'])->name('policy.quizzes.upload.questions');
-    Route::get('/{id}/report', [App\Http\Controllers\PolicyQuizController::class, 'report'])->name('policy.quizzes.report');
-    Route::get('/{id}/completion', [App\Http\Controllers\PolicyQuizController::class, 'completionDashboard'])->name('policy.quizzes.completion-dashboard');
 });

@@ -30,8 +30,6 @@
 -->
 @include('recoveries._partials.bento-grid')
 <hr >
-<br>
-<br>
 {{-- Period Selector --}}
 <div class="box box-default">
     <div class="box-body" style="padding:10px 15px">
