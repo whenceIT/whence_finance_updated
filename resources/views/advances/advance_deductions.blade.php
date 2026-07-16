@@ -129,24 +129,31 @@
 
         var currentFormId = null;
 
+        function openDeductModal(formId, advanceName, installmentAmount, remainingAmount) {
+            currentFormId = formId;
+            $('#deductConfirmModal').find('h4').text('Deduct from ' + advanceName + '?');
+            $('#deductConfirmModal').find('p').last().html('Installment Amount: <strong>' + installmentAmount + '</strong><br>Current Remaining Balance: <strong>' + remainingAmount + '</strong>');
+            $('#deductConfirmModal').modal('show');
+        }
+
+        function submitDeduction() {
+            if (currentFormId) {
+                document.getElementById('deduct-form-' + currentFormId).submit();
+            }
+        }
+
         $(document).on('click', '.deduct-btn', function() {
-            alert('Deduct button clicked'); // Debugging line
-            currentFormId = $(this).data('form-id');
+            var formId = $(this).data('form-id');
             var advanceName = $(this).data('advance-name');
             var installmentAmount = $(this).data('installment-amount');
             var remainingAmount = $(this).data('remaining-amount');
-            
-            $('#deductConfirmModal').find('h4').text('Deduct from ' + advanceName + '?');
-            $('#deductConfirmModal').find('p').last().html('Installment Amount: <strong>' + installmentAmount + '</strong><br>Current Remaining Balance: <strong>' + remainingAmount + '</strong>');
-            
-            $('#confirmDeductBtn').off('click').on('click', function(e) {
-                e.preventDefault();
-                if (currentFormId) {
-                    document.getElementById('deduct-form-' + currentFormId).submit();
-                }
-            });
-            
-            $('#deductConfirmModal').modal('show');
+
+            openDeductModal(formId, advanceName, installmentAmount, remainingAmount);
+        });
+
+        $('#confirmDeductBtn').off('click').on('click', function(e) {
+            e.preventDefault();
+            submitDeduction();
         });
     });
 </script>
