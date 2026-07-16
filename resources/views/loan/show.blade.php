@@ -117,6 +117,9 @@
                         </div>
 
 
+                        
+
+
                         <div class="row m-t-20" style="">
                             <div class="col-sm-7 col-md-7">
                                 <table class="table table-striped table-bordered">
@@ -211,6 +214,184 @@
 
                             </div>
                         </div>
+
+
+                                                    @if($loan->loan_product_id == 0)
+
+<div class="box box-primary">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-car"></i> Motor Vehicle Information
+        </h3>
+    </div>
+
+    <div class="box-body">
+
+        <div class="row">
+
+            <div class="col-md-3 text-center">
+
+                <img src="https://placehold.co/350x220?text=Vehicle+Photo"
+                     class="img-responsive img-thumbnail">
+
+                <br><br>
+
+                <span class="label label-success">
+                  {{ $vehicle->status }}
+                </span>
+
+            </div>
+
+            <div class="col-md-9">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <table class="table table-bordered">
+
+                            <tr>
+                                <th width="45%">Vehicle Code</th>
+                                <td>{{ $vehicle->vehicle_code }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Registration No.</th>
+                                <td> {{ $vehicle->registration_number }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Make</th>
+                                <td>{{ $vehicle->make }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Model</th>
+                                <td>{{ $vehicle->model }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Year</th>
+                                <td>{{ $vehicle->year }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Colour</th>
+                                <td>{{ $vehicle->color}}</td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <table class="table table-bordered">
+
+                              <tr>
+                                <th>Client</th>
+                                <td>
+                                    {{ $vehicle->client->first_name}}
+                                    {{ $vehicle->client->last_name}}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Insurance Policy Number</th>
+                                <td>{{ $vehicle->insurance_policy_number }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Engine Number</th>
+                                <td>{{ $vehicle->engine_number }}</td>
+                            </tr>
+
+                            <tr>
+                                <th width="45%">Market Value</th>
+                                <td>K{{ $vehicle->market_value }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Chassis Number</th>
+                                <td>{{ $vehicle->chassis_number }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Mileage</th>
+                                <td>{{ $vehicle->mileage }}</td>
+                            </tr>
+
+                    
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="box box-default">
+
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-camera"></i> Vehicle Photos
+        </h3>
+    </div>
+
+    <div class="box-body">
+
+        <div class="row">
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Front"
+                     class="img-responsive img-thumbnail">
+                <center>Front</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Rear"
+                     class="img-responsive img-thumbnail">
+                <center>Rear</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Left"
+                     class="img-responsive img-thumbnail">
+                <center>Left</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Right"
+                     class="img-responsive img-thumbnail">
+                <center>Right</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Interior"
+                     class="img-responsive img-thumbnail">
+                <center>Interior</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Engine"
+                     class="img-responsive img-thumbnail">
+                <center>Engine</center>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endif
+
                         @if(Sentinel::hasAccess('loans.approve'))
                             <div class="modal fade" id="approve_loan_modal">
                                 <div class="modal-dialog">
@@ -431,6 +612,198 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            @if($loan->loan_product_id == 0)
+
+<div class="box box-primary">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-car"></i> Motor Vehicle Information
+        </h3>
+    </div>
+
+    <div class="box-body">
+
+        <div class="row">
+
+            <div class="col-md-3 text-center">
+
+                <img src="https://placehold.co/350x220?text=Vehicle+Photo"
+                     class="img-responsive img-thumbnail">
+
+                <br><br>
+
+                <span class="label label-success">
+                    IN CUSTODY
+                </span>
+
+            </div>
+
+            <div class="col-md-9">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <table class="table table-bordered">
+
+                            <tr>
+                                <th width="45%">Vehicle Code</th>
+                                <td>MV000254</td>
+                            </tr>
+
+                            <tr>
+                                <th>Registration No.</th>
+                                <td>BAL 4567</td>
+                            </tr>
+
+                            <tr>
+                                <th>Make</th>
+                                <td>Toyota</td>
+                            </tr>
+
+                            <tr>
+                                <th>Model</th>
+                                <td>Hilux</td>
+                            </tr>
+
+                            <tr>
+                                <th>Year</th>
+                                <td>2021</td>
+                            </tr>
+
+                            <tr>
+                                <th>Colour</th>
+                                <td>White</td>
+                            </tr>
+
+                            <tr>
+                                <th>VIN</th>
+                                <td>JTNB11HK123456789</td>
+                            </tr>
+
+                            <tr>
+                                <th>Engine Number</th>
+                                <td>1GD987654</td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <table class="table table-bordered">
+
+                            <tr>
+                                <th width="45%">Market Value</th>
+                                <td>K350,000</td>
+                            </tr>
+
+                            <tr>
+                                <th>Forced Sale Value</th>
+                                <td>K270,000</td>
+                            </tr>
+
+                            <tr>
+                                <th>Mileage</th>
+                                <td>85,340 km</td>
+                            </tr>
+
+                            <tr>
+                                <th>Fuel Level</th>
+                                <td>Half Tank</td>
+                            </tr>
+
+                            <tr>
+                                <th>Keys Received</th>
+                                <td>2</td>
+                            </tr>
+
+                            <tr>
+                                <th>Garage</th>
+                                <td>Whence Main Yard</td>
+                            </tr>
+
+                            <tr>
+                                <th>Parking Bay</th>
+                                <td>B-17</td>
+                            </tr>
+
+                            <tr>
+                                <th>Received On</th>
+                                <td>15 Jul 2026 10:35</td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="box box-default">
+
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-camera"></i> Vehicle Photos
+        </h3>
+    </div>
+
+    <div class="box-body">
+
+        <div class="row">
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Front"
+                     class="img-responsive img-thumbnail">
+                <center>Front</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Rear"
+                     class="img-responsive img-thumbnail">
+                <center>Rear</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Left"
+                     class="img-responsive img-thumbnail">
+                <center>Left</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Right"
+                     class="img-responsive img-thumbnail">
+                <center>Right</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Interior"
+                     class="img-responsive img-thumbnail">
+                <center>Interior</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Engine"
+                     class="img-responsive img-thumbnail">
+                <center>Engine</center>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endif
                             <div class="col-sm-5 col-md-5">
                                 <table class="table table-striped table-bordered">
                                     <tbody>
@@ -1028,13 +1401,6 @@ Verify Code
                         </div>
 
 
-
-
-
-
-
-
-
                         <div class="row m-t-20" style="">
                             <div class="col-sm-8 col-md-8">
                                 <?php
@@ -1097,7 +1463,54 @@ Verify Code
 
 
                                 ?>
-                                <h4 class="">{{ trans_choice('general.current',1) }} {{ trans_choice('general.balance',1) }}
+                         {{-- ============================
+CURRENT BALANCE DASHBOARD
+============================= --}}
+@if($loan->loan_product_id == 0)
+<div class="box box-success">
+
+    <div class="box-body text-center">
+
+        <h5 style="color:#777;letter-spacing:2px;margin-bottom:5px;">
+            CURRENT LOAN BALANCE
+        </h5>
+
+        <h1 style="font-size:48px;font-weight:bold;margin-top:0;color:#00a65a;">
+            K{{ number_format($new_balance,$decimals) }}
+        </h1>
+
+    </div>
+
+</div>
+
+
+
+
+
+          <h4 class="">
+                                    {{ trans_choice('general.timely',1) }} {{ trans_choice('general.repayment',2) }}:
+                                    @if($total_repayments>0)
+                                        <b>{{$timely_repayments*100/$total_repayments}}%</b>
+                                    @else
+                                        <b> 0%</b>
+                                    @endif
+                                </h4>
+                                <h4 class="">
+                                    {{ trans_choice('general.amount',1) }} {{ trans_choice('general.in',1) }} {{ trans_choice('general.arrears',1) }}
+                                    :
+                                    <b>{{number_format($arrears_amount,$decimals)}}</b>
+                                </h4>
+                                <h4 class="">
+                                    {{ trans_choice('general.day',2) }} {{ trans_choice('general.in',1) }} {{ trans_choice('general.arrears',1) }}
+                                    :
+                                    <b>{{$days_in_arrears}}</b>
+                                </h4>
+
+
+
+@else
+
+        <h4 class="">{{ trans_choice('general.current',1) }} {{ trans_choice('general.balance',1) }}
                                     :
                                     <b>{{number_format(($new_balance),$decimals)}}</b>
                                 </h4>
@@ -1119,6 +1532,205 @@ Verify Code
                                     :
                                     <b>{{$days_in_arrears}}</b>
                                 </h4>
+
+
+@endif
+
+{{-- =======================
+    MOTOR VEHICLE SECTION
+======================== --}}
+
+@if($loan->loan_product_id == 0)
+
+<div class="box box-primary">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-car"></i> Motor Vehicle Information
+        </h3>
+    </div>
+
+    <div class="box-body">
+
+        <div class="row">
+
+            <div class="col-md-3 text-center">
+
+                <img src="https://placehold.co/350x220?text=Vehicle+Photo"
+                     class="img-responsive img-thumbnail">
+
+                <br><br>
+
+                <span class="label label-success">
+                    IN CUSTODY
+                </span>
+
+            </div>
+
+            <div class="col-md-9">
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <table class="table table-bordered">
+
+                            <tr>
+                                <th width="45%">Vehicle Code</th>
+                                <td>MV000254</td>
+                            </tr>
+
+                            <tr>
+                                <th>Registration No.</th>
+                                <td>BAL 4567</td>
+                            </tr>
+
+                            <tr>
+                                <th>Make</th>
+                                <td>Toyota</td>
+                            </tr>
+
+                            <tr>
+                                <th>Model</th>
+                                <td>Hilux</td>
+                            </tr>
+
+                            <tr>
+                                <th>Year</th>
+                                <td>2021</td>
+                            </tr>
+
+                            <tr>
+                                <th>Colour</th>
+                                <td>White</td>
+                            </tr>
+
+                            <tr>
+                                <th>VIN</th>
+                                <td>JTNB11HK123456789</td>
+                            </tr>
+
+                            <tr>
+                                <th>Engine Number</th>
+                                <td>1GD987654</td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <table class="table table-bordered">
+
+                            <tr>
+                                <th width="45%">Market Value</th>
+                                <td>K350,000</td>
+                            </tr>
+
+                            <tr>
+                                <th>Forced Sale Value</th>
+                                <td>K270,000</td>
+                            </tr>
+
+                            <tr>
+                                <th>Mileage</th>
+                                <td>85,340 km</td>
+                            </tr>
+
+                            <tr>
+                                <th>Fuel Level</th>
+                                <td>Half Tank</td>
+                            </tr>
+
+                            <tr>
+                                <th>Keys Received</th>
+                                <td>2</td>
+                            </tr>
+
+                            <tr>
+                                <th>Garage</th>
+                                <td>Whence Main Yard</td>
+                            </tr>
+
+                            <tr>
+                                <th>Parking Bay</th>
+                                <td>B-17</td>
+                            </tr>
+
+                            <tr>
+                                <th>Received On</th>
+                                <td>15 Jul 2026 10:35</td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="box box-default">
+
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-camera"></i> Vehicle Photos
+        </h3>
+    </div>
+
+    <div class="box-body">
+
+        <div class="row">
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Front"
+                     class="img-responsive img-thumbnail">
+                <center>Front</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Rear"
+                     class="img-responsive img-thumbnail">
+                <center>Rear</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Left"
+                     class="img-responsive img-thumbnail">
+                <center>Left</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Right"
+                     class="img-responsive img-thumbnail">
+                <center>Right</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Interior"
+                     class="img-responsive img-thumbnail">
+                <center>Interior</center>
+            </div>
+
+            <div class="col-md-2">
+                <img src="https://placehold.co/250x180?text=Engine"
+                     class="img-responsive img-thumbnail">
+                <center>Engine</center>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endif
                                 <table class="pretty displayschedule" id="summarytable">
                                     <thead>
                                     <tr>

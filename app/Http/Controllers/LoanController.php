@@ -1309,6 +1309,8 @@ $amount = $request->query('amount');
                 $loan->phone_number = $request->phone_number;
 		        $loan->save();
 
+             
+
                 $application = ClientAppLoanApplications::where('client_id', $client->id)
     ->where('status', 'pending')
     ->first();
@@ -1317,6 +1319,29 @@ if ($application) {
     $application->status = 'approved';
     $application->save();
 }
+
+
+    if($loan_product->id == 0)
+            {
+
+
+
+ $vehicle = new Vehicle();
+$vehicle->vehicle_code = 'VH' . time();
+$vehicle->client_id = $client->id;
+$vehicle->loan_id = $loan->id;
+$vehicle->make = $request->make;
+$vehicle->model = $request->model;
+$vehicle->year = $request->year;
+$vehicle->registration_number = $request->registration_number;
+$vehicle->market_value = $request->market_value;
+$vehicle->engine_number = $request->engine_number;
+$vehicle->chassis_number = $request->chassis_number;
+$vehicle->insurance_policy_number = $request->insurance_policy_number;
+
+$vehicle->save();
+
+            }
 
             // Broadcast loan created event for real-time updates
             \Illuminate\Support\Facades\Log::info('LoanCreated event firing for loan ID: ' . $loan->id);
@@ -1336,24 +1361,6 @@ if ($application) {
             // Notify Branch Manager for new loan approval
             // Notifix::notifyBmToApproveNewLoan($loan, $client, $request->principal);
 
-            if($loan_product->id == 0)
-            {
-
-            Vehicle::create([
-            'vehicle_code' => 'VH'.time(),
-            'client_id' => $client->id,
-            'loan_id' => $loan->id,
-            'make' => $request->make,
-            'model' => $request->model,
-            'year' => $request->year,
-            'registration_number' => $request->registration_number,
-            'market_value' => $request->market_value,
-            'engine_number' => $request->engine_number,
-            'chassis_number' => $request->chassis_number,
-            'insurance_policy_number' => $request->insurance_policy_number
-        ]);
-
-            }
 
             if (!empty($request->charges)) {
                 //loop through the array
@@ -1601,10 +1608,12 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             $user_id = $data['user']['id'] ?? null;
         }
 
+        $vehicle = Vehicle::with('client')->where('loan_id',$loan->id)->first();
+
 
 
         
-        return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id'));
+        return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id','vehicle'));
     }
 
 
@@ -2677,66 +2686,66 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
 
             $paymentType = $request->payment_type;
 
-    if ($paymentType == 'mobile_money') {
+//     if ($paymentType == 'mobile_money') {
 
-    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+//     $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
 
-    $payload = [
-        'amount' => $request->amount,
-        'phone' => $request->phone,
-        'reason' => 'new loan disbursement',
-        'user_id' => $request->user_id,
-        'operator'=> $request->hidden_operator,
-        'payout_type' => 'withinhere_to_mno',
-        'totalDeducted' => $request->total_deducted
-    ];
+//     $payload = [
+//         'amount' => $request->amount,
+//         'phone' => $request->phone,
+//         'reason' => 'new loan disbursement',
+//         'user_id' => $request->user_id,
+//         'operator'=> $request->hidden_operator,
+//         'payout_type' => 'withinhere_to_mno',
+//         'totalDeducted' => $request->total_deducted
+//     ];
 
-} else {
+// } else {
 
-    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+//     $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
 
-    $payload = [
-        'amount' => $request->amount,
-        'user_id' => $request->user_id,
-        'bankId' => $request->bank_id,
-        'accountNumber' => $request->account_number,
-        'reason' => 'new loan disbursement',
-        'payout_type' => 'withinhere_to_bank',
-        'totalDeducted' => $request->total_deducted
-    ];
-}
+//     $payload = [
+//         'amount' => $request->amount,
+//         'user_id' => $request->user_id,
+//         'bankId' => $request->bank_id,
+//         'accountNumber' => $request->account_number,
+//         'reason' => 'new loan disbursement',
+//         'payout_type' => 'withinhere_to_bank',
+//         'totalDeducted' => $request->total_deducted
+//     ];
+// }
 
 
-try {
+// try {
 
-    $response = Http::post($url, $payload);
+//     $response = Http::post($url, $payload);
 
-    if (!$response->successful()) {
+//     if (!$response->successful()) {
 
-         $body = $response->body();
+//          $body = $response->body();
 
-    Flash::success('API Error: ' . $body);
+//     Flash::success('API Error: ' . $body);
     
-    }
+//     }
 
-    $result = $response->json();
+//     $result = $response->json();
 
-} catch (\Exception $e) {
+// } catch (\Exception $e) {
 
-    Flash::success('Could not connect to payment service.');
+//     Flash::success('Could not connect to payment service.');
 
-    return redirect()->back();
-}
+//     return redirect()->back();
+// }
 
-if (
-    !isset($result['status']) ||
-    $result['status'] !== 'pending'
-) {
+// if (
+//     !isset($result['status']) ||
+//     $result['status'] !== 'pending'
+// ) {
 
-    Flash::success('Transfer request was rejected.');
+//     Flash::success('Transfer request was rejected.');
 
-   return redirect()->back();
-}
+//    return redirect()->back();
+// }
 
 
 
