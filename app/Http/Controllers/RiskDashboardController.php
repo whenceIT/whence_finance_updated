@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\BankDepositLog;
 use App\Models\SetupDebtTransaction;
 use App\Models\Deadline;
+use App\Models\Deposit;
+use App\Models\Expense;
 
 class RiskDashboardController extends Controller
 {
@@ -41,12 +43,23 @@ class RiskDashboardController extends Controller
         $buildingDeadline = Deadline::where('name', 'Building & Infrastructure fee deposits')->first();
         $adminDeadline = Deadline::where('name', 'Administration Department fee deposit')->first();
         $statutoryDeadline = Deadline::where('name', 'Statutory payments deposits')->first();
+
+        // Pending approvals counts
+        $pendingDepositApprovals = Deposit::whereNull('status')
+            ->whereHas('bankDepositLog')
+            ->count();
+
+        $pendingExpenseApprovals = Expense::where(function($q) {
+                $q->where('status', '!=', 'approved')->orWhereNull('status');
+            })->count();
             
         return view('risk.dashboard', compact(
             'collectedSetupDebtToday',
             'collectedBuildingToday',
             'collectedStatutoryToday',
             'collectedAdminToday',
+            'pendingDepositApprovals',
+            'pendingExpenseApprovals',
             'buildingDeadline',
             'adminDeadline',
             'statutoryDeadline'
