@@ -3,9 +3,9 @@
 @section('content')
 @php
 use App\Models\PolicyQuizAttempt;
-use Illuminate\Support\Facades\Auth;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 @endphp
-<div class="content-wrapper">
+<div class="content">
     <section class="content-header">
         <h1>Policy Quizzes</h1>
     </section>
@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\Auth;
                                             @php
                                                 $attempt = $activeAttempts[$quiz->id] ?? null;
                                                 $completed = PolicyQuizAttempt::where('policy_quiz_id', $quiz->id)
-                                                    ->where('user_id', Auth::id())
+                                                    ->where('user_id', Sentinel::getUser()->id)
                                                     ->whereNotNull('completed_at')
                                                     ->exists();
                                             @endphp

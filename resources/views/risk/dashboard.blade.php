@@ -70,7 +70,7 @@
                     </div>
                 </div>
 
-                <div class="bento-card small outline-card"
+                <!-- <div class="bento-card small outline-card"
                      style="{{ ($pendingExpenseApprovals ?? 0) > 0 ? 'border-color:#f5a623;background:linear-gradient(135deg,#fff8ec 0%,#fffdf9 100%);' : '' }}">
                     <div class="card-top">
                         <div class="icon-wrap icon-wrap-light"><i class="fa fa-file-text-o" style="color:#f5a623;"></i></div>
@@ -82,7 +82,7 @@
                         <div class="title" style="color:#555;">Pending Expenses Approvals</div>
                         <div class="value" style="color:#222;">{{ $pendingExpenseApprovals ?? 0 }}</div>
                     </div>
-                </div>
+                </div> -->
 
             </div>
 

@@ -306,10 +306,14 @@ class AdvanceController extends Controller
                 }
                 $advance->save();
 
+                $transactionDate = $advance->expected_repayment_dates
+                    ? Carbon::parse($advance->expected_repayment_dates)
+                    : Carbon::now();
+
                 AdvanceTransaction::create([
                     'advance_id' => $advance->id,
                     'amount_paid' => $installmentAmount,
-                    'last_update_date' => $advance->expected_repayment_dates,
+                    'last_update_date' => $transactionDate,
                 ]);
             }
         }
@@ -445,10 +449,14 @@ class AdvanceController extends Controller
         }
         $advance->save();
 
+        $transactionDate = $advance->expected_repayment_dates
+            ? Carbon::parse($advance->expected_repayment_dates)
+            : Carbon::now();
+
         AdvanceTransaction::create([
             'advance_id' => $advance->id,
             'amount_paid' => $installmentAmount,
-            'last_update_date' => $advance->expected_repayment_dates,
+            'last_update_date' => $transactionDate,
         ]);
 
         return redirect()->back()->with('success', 'Deduction processed successfully.');

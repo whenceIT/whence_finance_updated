@@ -87,74 +87,92 @@
                 <div class="modal-footer" style="padding:8px 16px 16px;border-top:none;justify-content:center;gap:8px;">
                     <button type="button" class="btn btn-default btn-flat btn-xs"
                             style="min-width:74px;" data-dismiss="modal">Cancel</button>
-                    <button type="button" id="confirmDeductBtn"
+                    <button type="button" id="confirmDeductBtnDeduct"
                             class="btn btn-success btn-flat btn-xs"
                             style="min-width:74px;">Deduct</button>
                 </div>
             </div>
         </div>
     </div>
+<script>
+$(function () {
 
-    <script>
-    $(document).ready(function() {
-        $('#data-table').DataTable({
-            dom: 'frtip',
-            "paging": true,
-            "lengthChange": true,
-            "displayLength": 15,
-            "searching": true, 
-            "ordering": true,
-            "info": true,
-            "autoWidth": true,
-            "order": [[0, "desc"]],
-            "columnDefs": [
-                {"orderable": false, "targets": [10]}
-            ],
-            "language": {
-                "lengthMenu": "{{ trans('general.lengthMenu') }}",
-                "zeroRecords": "{{ trans('general.zeroRecords') }}",
-                "info": "{{ trans('general.info') }}",
-                "infoEmpty": "{{ trans('general.infoEmpty') }}",
-                "search": "{{ trans('general.search') }}",
-                "infoFiltered": "{{ trans('general.infoFiltered') }}",
-                "paginate": {
-                    "first": "{{ trans('general.first') }}",
-                    "last": "{{ trans('general.last') }}",
-                    "next": "{{ trans('general.next') }}",
-                    "previous": "{{ trans('general.previous') }}"
-                }
-            },
-            responsive: false
-        });
-
-        var currentFormId = null;
-
-        function openDeductModal(formId, advanceName, installmentAmount, remainingAmount) {
-            currentFormId = formId;
-            $('#deductConfirmModal').find('h4').text('Deduct from ' + advanceName + '?');
-            $('#deductConfirmModal').find('p').last().html('Installment Amount: <strong>' + installmentAmount + '</strong><br>Current Remaining Balance: <strong>' + remainingAmount + '</strong>');
-            $('#deductConfirmModal').modal('show');
-        }
-
-        function submitDeduction() {
-            if (currentFormId) {
-                document.getElementById('deduct-form-' + currentFormId).submit();
+    $('#data-table').DataTable({
+        dom: 'frtip',
+        paging: true,
+        lengthChange: true,
+        displayLength: 15,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: true,
+        order: [[0, "desc"]],
+        columnDefs: [
+            { orderable: false, targets: [10] }
+        ],
+        language: {
+            lengthMenu: "{{ trans('general.lengthMenu') }}",
+            zeroRecords: "{{ trans('general.zeroRecords') }}",
+            info: "{{ trans('general.info') }}",
+            infoEmpty: "{{ trans('general.infoEmpty') }}",
+            search: "{{ trans('general.search') }}",
+            infoFiltered: "{{ trans('general.infoFiltered') }}",
+            paginate: {
+                first: "{{ trans('general.first') }}",
+                last: "{{ trans('general.last') }}",
+                next: "{{ trans('general.next') }}",
+                previous: "{{ trans('general.previous') }}"
             }
+        },
+        responsive: false
+    });
+
+    // Store the selected form instead of just its ID
+    let currentForm = null;
+
+    // Open confirmation modal
+    $(document).on('click', '.deduct-btn', function (e) {
+        e.preventDefault();
+
+        currentForm = $(this).closest('form');
+
+        var advanceName = $(this).attr('data-advance-name');
+        var installmentAmount = $(this).attr('data-installment-amount');
+        var remainingAmount = $(this).attr('data-remaining-amount');
+
+        $('#deductConfirmModalLabel').text('Deduct from ' + advanceName + '?');
+
+        $('#deductConfirmModal .modal-body p').html(
+            'Installment Amount: <strong>' + installmentAmount + '</strong><br>' +
+            'Current Remaining Balance: <strong>' + remainingAmount + '</strong>'
+        );
+
+        $('#deductConfirmModal').modal('show');
+    });
+
+    // Confirm deduction
+    $(document).on('click', '#confirmDeductBtnDeduct', function (e) {
+        e.preventDefault();
+
+        if (!currentForm || currentForm.length === 0) {
+            alert('Unable to locate the deduction form.');
+            return;
         }
 
-        $(document).on('click', '.deduct-btn', function() {
-            var formId = $(this).data('form-id');
-            var advanceName = $(this).data('advance-name');
-            var installmentAmount = $(this).data('installment-amount');
-            var remainingAmount = $(this).data('remaining-amount');
+        $(this).prop('disabled', true).text('Processing...');
 
-            openDeductModal(formId, advanceName, installmentAmount, remainingAmount);
-        });
-
-        $('#confirmDeductBtn').off('click').on('click', function(e) {
-            e.preventDefault();
-            submitDeduction();
-        });
+        currentForm.submit();
     });
+
+    // Reset when modal closes
+    $('#deductConfirmModal').on('hidden.bs.modal', function () {
+        currentForm = null;
+
+        $('#confirmDeductBtnDeduct')
+            .prop('disabled', false)
+            .text('Deduct');
+    });
+
+});
 </script>
 @endsection
