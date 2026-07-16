@@ -13,10 +13,6 @@
         <i class="fa fa-exclamation-triangle text-danger"
            style="font-size: 48px; margin-bottom: 15px;"></i>
 
-           Cash Balance: {{ $cashBalance }}<br>
-Role: {{ $role }}<br>
-
-
         <h4 style="font-weight: bold; margin-bottom: 10px;">
             Insufficient Cash Balance
         </h4>

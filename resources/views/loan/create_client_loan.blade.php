@@ -255,10 +255,10 @@ $todaysDate = date('Y-m-d');
                    class="form-control">
         </div>
 
-        <label class="control-label col-md-2">Forced Sale Value</label>
+        <label class="control-label col-md-2">Comprehensive Insurance Policy No</label>
         <div class="col-md-3">
-            <input type="number"
-                   name="forced_sale_value"
+            <input type="text"
+                   name="insurance_policy_number"
                    class="form-control">
         </div>
     </div>

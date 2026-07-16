@@ -1500,9 +1500,13 @@
                     <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Vehicles Dashboard</a></li>
                     @endif
                   
-                    <!-- Branch Uncollected -->
+
+                     @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/create') }}"><i class="fa fa-circle-o"></i>Loans</a></li>
+                    @endif
+
                     @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicle Loans</a></li>
+                    <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles</a></li>
                     @endif
                 </ul>
             </li>

@@ -8,11 +8,16 @@ use App\Models\VehicleDocument;
 use App\Models\VehiclePhoto;
 use App\Models\Client;
 use App\Models\VehicleInspection;
+use App\Models\VehicleInspectionPhoto;
 use Illuminate\Http\Request;
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 use Illuminate\Support\Facades\Log;
 use App\Models\Loan;
+use App\Models\VehicleCustody;
+use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
+use App\Models\Office;
 
 class VehicleController extends Controller
 {
@@ -149,6 +154,16 @@ public function searchClients(Request $request)
         );
     }
 
+     public function createCustody($vehicleId)
+    {
+        $vehicle = Vehicle::findOrFail($vehicleId);
+
+        return view(
+            'motor_vehicle.create_custody',
+    compact('vehicle')
+        );
+    }
+
     public function storeInsurance(Request $request, $vehicleId)
     {
         $vehicle = Vehicle::findOrFail($vehicleId);
@@ -175,6 +190,40 @@ public function searchClients(Request $request)
         'success',
         'Insurance information added successfully.'
     );
+    }
+
+
+    public function storeCustody(Request $request, $vehicleId)
+    {
+
+    $vehicle = Vehicle::findOrFail($vehicleId);
+
+     $request->validate([
+        'received_at' => 'required|date',
+        'received_by' => 'required',
+        'garage_name' => 'required',
+    ]);
+
+    VehicleCustody::create([
+        'vehicle_id'             => $vehicle->id,
+        'received_at'            => $request->received_at,
+        'received_by'            => $request->received_by,
+        'keys_received'          => $request->keys_received,
+        'key_tag_numbers'        => $request->key_tag_numbers,
+        'garage_name'            => $request->garage_name,
+        'garage_location'        => $request->garage_location,
+        'garage_gps'             => $request->garage_gps,
+        'parking_bay'            => $request->parking_bay,
+        'garage_contact_person'  => $request->garage_contact_person,
+        'garage_contact_phone'   => $request->garage_contact_phone,
+        'remarks'                => $request->remarks,
+        'status'                 => 'in_custody',
+    ]);
+
+    return redirect('/vehicles/'.$vehicle->id)
+        ->with('success', 'Vehicle successfully received into custody.');
+
+
     }
 
 
@@ -410,16 +459,65 @@ public function searchClients(Request $request)
             }
         }
 
-        VehicleInspection::create([
-            'vehicle_id' => $vehicle->id,
-            'inspection_date' => $request->inspection_date,
-            'inspector' => $request->inspector,
-            'mileage' => $request->mileage,
-            'condition_rating' => $request->condition_rating,
-            'result' => $request->result,
-            'notes' => $request->notes,
-            'report_url' => $reportUrl
-        ]);
+$inspection = VehicleInspection::create([
+    'vehicle_id' => $vehicle->id,
+    'inspection_date' => $request->inspection_date,
+    'inspector' => $request->inspector,
+    'inspection_type' => $request->inspection_type,
+    'mileage' => $request->mileage,
+    'condition_rating' => $request->condition_rating,
+    'result' => $request->result,
+    'notes' => $request->notes,
+    'report_url' => $reportUrl,
+]);
+
+if ($request->hasFile('photos')) {
+
+    foreach ($request->file('photos') as $photo) {
+
+        try {
+
+            $s3Client = new S3Client([
+                    'version' => 'latest',
+                    'region'  => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key'    => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+
+            $fileName =
+                'vehicle_inspections/' .
+                $vehicle->id .
+                '/photos/' .
+                time() . '_' .
+                uniqid() . '_' .
+                $photo->getClientOriginalName();
+
+            $result = $s3Client->putObject([
+                'Bucket' => 'wfssystem',
+                'Key' => $fileName,
+                'Body' => fopen($photo->getPathname(), 'r'),
+                'ACL' => 'public-read',
+            ]);
+
+            VehicleInspectionPhoto::create([
+                'vehicle_inspection_id' => $inspection->id,
+                'photo_url' => $result['ObjectURL'],
+            ]);
+
+        } catch (AwsException $e) {
+
+            Log::error($e->getMessage());
+
+        }
+
+    }
+
+}
+
+
 
         return redirect("/vehicles/{$vehicle->id}")
             ->with(
@@ -429,66 +527,175 @@ public function searchClients(Request $request)
     }
 
 
-    public function dashboard()
+
+        public function dashboard(Request $request)
+    {
+
+        // Default dates: beginning of year to today
+        $start_date = $request->start_date ?? Carbon::now()->startOfYear()->format('Y-m-d');
+
+        $end_date = $request->end_date ?? Carbon::now()->format('Y-m-d');
+
+
+        try {
+
+
+            $response = Http::timeout(60)->get(
+                'https://lms2backend.whencefinancesystem.com/motor-vehicle-loans-info',
+                [
+                    'start_date' => $start_date,
+                    'end_date' => $end_date
+                ]
+            );
+
+
+            if (!$response->successful()) {
+
+                return back()->with(
+                    'error',
+                    'Unable to load motor vehicle dashboard data'
+                );
+
+            }
+
+
+            $data = $response->json();
+
+
+
+            return view(
+                'motor_vehicle.dashboard',
+                compact(
+                    'data',
+                    'start_date',
+                    'end_date'
+                )
+            );
+
+
+        } catch (\Exception $e) {
+
+
+            \Log::error(
+                'Motor Vehicle Dashboard Error: '.$e->getMessage()
+            );
+
+
+            return back()->with(
+                'error',
+                'Error loading motor vehicle dashboard'
+            );
+
+
+        }
+
+
+    }
+
+
+   
+
+   public function MotorVehicleLoan(Request $request)
 {
-    $totalVehicles =
-        Vehicle::count();
+    $query = Loan::where('loan_product_id', 0);
 
-    $totalVehicleValue =
-        Vehicle::sum('market_value');
+    // Search (Loan ID or Client Name)
+    if ($request->filled('search')) {
+        $search = $request->search;
 
-    $activeLoans = Loan::where('loan_product_id',0)->where('status','disbursed')->count();
+        $query->where(function ($q) use ($search) {
+            $q->where('id', 'like', "%{$search}%")
+              ->orWhereHas('client', function ($client) use ($search) {
+                    $client->where('first_name', 'like', "%{$search}%")
+                           ->orWhere('last_name', 'like', "%{$search}%");
+              });
+        });
+    }
 
-    $defaultedLoans = 10;
-        // MotorVehicleLoan::where(
-        //     'status',
-        //     'defaulted'
-        // )->count();
+    // Status Filter
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
-        $activeLoansPrincipal = Loan::where('loan_product_id', 0)
-    ->where('status', 'disbursed')
-    ->sum('principal');
+    // Branch Filter
+    if ($request->filled('office')) {
+        $query->where('office_id', $request->office);
+    }
 
-    $vehiclesWithoutPhotos =
-        Vehicle::doesntHave(
-            'photos'
-        )->count();
+    // Date Filter
+    if ($request->filled('date')) {
+        $query->whereDate('created_date', $request->date);
+    }
 
-    $vehiclesWithoutInspection =
-        Vehicle::doesntHave(
-            'inspections'
-        )->count();
+    $recentLoans = $query
+        ->orderBy('created_date', 'desc')
+        ->paginate(20)
+        ->appends($request->all());
 
-    $vehiclesWithoutDocuments =
-        Vehicle::doesntHave(
-            'documents'
-        )->count();
-$recentLoans = Loan::where('loan_product_id', 0)
-    ->orderBy('created_date', 'desc')
-    ->paginate(10);
-
-    $vehicles = Vehicle::with('client')
-    ->latest()
-    ->get();
-
-
+    $offices = Office::orderBy('name')->get();
 
     return view(
-        'motor_vehicle.dashboard',
-        compact(
-            'totalVehicles',
-            'totalVehicleValue',
-            'activeLoans',
-            'defaultedLoans',
-            'vehiclesWithoutPhotos',
-            'vehiclesWithoutInspection',
-            'vehiclesWithoutDocuments',
-            'recentLoans',
-            'vehicles',
-            'activeLoansPrincipal'
-        )
+        'motor_vehicle.motor_vehicle_loans',
+        compact('recentLoans', 'offices')
     );
 }
+
+
+   public function MotorVehicles(Request $request)
+{
+    $query = Vehicle::with('client.office');
+
+    // Search
+    if ($request->filled('search')) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+
+            $q->where('vehicle_code', 'like', "%{$search}%")
+              ->orWhere('registration_number', 'like', "%{$search}%")
+              ->orWhere('make', 'like', "%{$search}%")
+              ->orWhere('model', 'like', "%{$search}%")
+              ->orWhereHas('client', function ($client) use ($search) {
+
+                    $client->where('first_name', 'like', "%{$search}%")
+                           ->orWhere('last_name', 'like', "%{$search}%");
+
+              });
+
+        });
+    }
+
+    // Status Filter
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Branch Filter
+ // Branch Filter
+if ($request->filled('office')) {
+    $query->whereHas('client', function ($q) use ($request) {
+        $q->where('office_id', $request->office);
+    });
+}
+
+    // Registration Date Filter
+    if ($request->filled('date')) {
+        $query->whereDate('created_at', $request->date);
+    }
+
+    $vehicles = $query
+        ->latest()
+        ->paginate(20)
+        ->appends($request->all());
+
+    $offices = Office::orderBy('name')->get();
+
+    return view(
+        'motor_vehicle.motor_vehicles',
+        compact('vehicles', 'offices')
+    );
+}
+
 
 
 }
