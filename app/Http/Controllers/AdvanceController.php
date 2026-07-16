@@ -69,7 +69,6 @@ class AdvanceController extends Controller
         $advance->amount = $validatedData['amount'];
         $advance->installments = $validatedData['installments'];
         $advance->installment_amount = $validatedData['amount'] / $validatedData['installments'];
-        //add here
         $advance->remaining_amount = $validatedData['amount'];
         $advance->purpose = $request->purpose;
         $advance->mode_of_payment = $request->mode_of_payment;
@@ -77,52 +76,40 @@ class AdvanceController extends Controller
         $advance->date_requested = now();
         $advance->save();
 
-        // Notify Branch Manager of pending advance approval
         Notifix::notifyBmToApproveAdvance($advance, $validatedData['amount']);
         Notifix::notifyDailyReminderToRiskManager("submitted advance with id: " . $advance->id, "advance_pending_approval. After working hours");
         GeneralHelper::audit_trail("Create", "Advances", $advance->id);
         Flash::success("Advance submitted successfully");
         return Redirect::route('advances.my_advances');
-
     }
 
     public function showMyAdvances()
     {
         $user = Sentinel::getUser();
 
-        $advances = Advance::where('user_id', $user->id)
-            ->get();
-        $pending_advances = Advance::where('user_id', $user->id)
-            ->whereNot('status', 'approved')
-            ->get();
+        $advances = Advance::where('user_id', $user->id)->get();
+        $pending_advances = Advance::where('user_id', $user->id)->whereNot('status', 'approved')->get();
 
         return view('advances.my_advances', compact('advances', 'pending_advances'));
-
     }
 
     public function submitTopUp(Request $request, $id)
     {
         $request->validate([
-
             'top_up_date' => 'required|date',
             'top_up_amount' => 'required|integer',
             'installments' => 'nullable|integer|min:1|max:3',
         ]);
 
-        $existingTopUp = TopUp::where('advance_id', $id)
-            ->whereIn('status', ['pending', 'approved'])
-            ->first();
+        $existingTopUp = TopUp::where('advance_id', $id)->whereIn('status', ['pending', 'approved'])->first();
 
         if ($existingTopUp) {
-
             return redirect()->back()->with('error', 'A top-up request already exists for this advance.');
-
         }
         $advance = Advance::findOrFail($id);
 
         $user = Sentinel::getUser();
         $office_id = $user->office_id;
-        //dd($user);
 
         TopUp::create([
             'advance_id' => $advance->id,
@@ -147,7 +134,6 @@ class AdvanceController extends Controller
         $topUp = TopUp::findOrFail($id);
         $advance = $topUp->advance;
 
-        //add top-up amount to the advance once approved
         $advance->remaining_amount += $topUp->top_up_amount;
         $advance->amount += $topUp->top_up_amount;
 
@@ -182,41 +168,34 @@ class AdvanceController extends Controller
         $query = TopUp::where('status', 'pending');
 
         if ($user->inRole(1)) {
-            // Admin sees all
         } elseif ($user->inRole(6)) {
             $query->whereIn('office_id', function ($q) use ($user) {
                 $q->select('id')->from('offices')->where('province_id', $user->province_id);
             });
         } elseif ($user->inRole(4)) {
             $query->where('office_id', $user->office_id);
-        } else {
-            // Default behavior
         }
 
         $office_id = Sentinel::getUser()->office_id;
-$office = Office::find($office_id);
+        $office = Office::find($office_id);
 
-if ($office && $office->withinhere_wallet_id == null) {
-    return redirect('/user/verify_wallet');
-}
+        if ($office && $office->withinhere_wallet_id == null) {
+            return redirect('/user/verify_wallet');
+        }
 
-$withinhere_wallet_id = $office->withinhere_wallet_id;
+        $withinhere_wallet_id = $office->withinhere_wallet_id;
 
+        $response = Http::timeout(60)->post(
+            'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+            [
+                'wallet_id' => $withinhere_wallet_id,
+                'start_date' => '2025-01-01',
+                'end_date' => '2025-01-01'
+            ]
+        );
 
-      $response = Http::timeout(60)
-                ->post(
-                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
-                    [
-                        'wallet_id' => $withinhere_wallet_id,
-                        'start_date' => '2025-01-01',
-                        'end_date' => '2025-01-01'
-                    ]
-                );
-
-
-                   if ($response->successful()) {
+        if ($response->successful()) {
             $data = $response->json();
-
             $cashBalance = $data['user']['cash_balance'] ?? null;
         }
 
@@ -230,7 +209,6 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         $advance->status = 'approved';
         $advance->date_approved = now();
         $advance->approved_by_id = Sentinel::getUser()->id;
-        //next payment date
         $nextPaymentDate = Carbon::now()->endOfMonth()->addDay();
         $advance->expected_repayment_dates = $nextPaymentDate;
         $advance->save();
@@ -259,44 +237,35 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         $role = UserRole::where('user_id', $user->id)->first()->role_id;
 
         if ($user->inRole(1)) {
-            // Admin sees all
         } elseif ($user->inRole(6)) {
             $query->whereIn('office_id', function ($q) use ($user) {
                 $q->select('id')->from('offices')->where('province_id', $user->province_id);
             });
         } elseif ($user->inRole(4)) {
             $query->where('office_id', $user->office_id);
-        } else {
-            // Default behavior
         }
-$office_id = Sentinel::getUser()->office_id;
-$office = Office::find($office_id);
+        $office_id = Sentinel::getUser()->office_id;
+        $office = Office::find($office_id);
 
-if ($office && $office->withinhere_wallet_id == null) {
-    return redirect('/user/verify_wallet');
-}
+        if ($office && $office->withinhere_wallet_id == null) {
+            return redirect('/user/verify_wallet');
+        }
 
-$withinhere_wallet_id = $office->withinhere_wallet_id;
+        $withinhere_wallet_id = $office->withinhere_wallet_id;
 
+        $response = Http::timeout(60)->post(
+            'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+            [
+                'wallet_id' => $withinhere_wallet_id,
+                'start_date' => '2025-01-01',
+                'end_date' => '2025-01-01'
+            ]
+        );
 
-      $response = Http::timeout(60)
-                ->post(
-                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
-                    [
-                        'wallet_id' => $withinhere_wallet_id,
-                        'start_date' => '2025-01-01',
-                        'end_date' => '2025-01-01'
-                    ]
-                );
-
-
-                   if ($response->successful()) {
+        if ($response->successful()) {
             $data = $response->json();
-
             $cashBalance = $data['user']['cash_balance'] ?? null;
         }
-
-
 
         $advances = $query->get();
         return view('advances.pending_approvals', compact('advances','cashBalance','role'));
@@ -306,26 +275,21 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
     {
         $user = Sentinel::getUser();
 
-        $query = Advance::where('status', 'approved')
-            ->where('remaining_amount', '>', 0);
+        $query = Advance::where('status', 'approved')->where('remaining_amount', '>', 0);
 
         if ($user->inRole(1)) {
-            // Admin sees all
         } elseif ($user->inRole(6)) {
             $query->whereIn('office_id', function ($q) use ($user) {
                 $q->select('id')->from('offices')->where('province_id', $user->province_id);
             });
         } elseif ($user->inRole(4)) {
             $query->where('office_id', $user->office_id);
-        } else {
-            // Default behavior
         }
 
         $advances = $query->get();
 
         foreach ($advances as $advance) {
             $expectedRepaymentDate = Carbon::parse($advance->expected_repayment_dates);
-
 
             if ($expectedRepaymentDate->isToday() && !$advance->processed_today) {
                 $installmentAmount = $advance->installment_amount;
@@ -339,15 +303,17 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
                 $advance->processed_today = true;
                 if ($advance->remaining_amount <= 0.00) {
                     $advance->status = 'closed';
-
                 }
                 $advance->save();
 
-                //CreateS a new transaction in the advance_transactions table
+                $transactionDate = $advance->expected_repayment_dates
+                    ? Carbon::parse($advance->expected_repayment_dates)
+                    : Carbon::now();
+
                 AdvanceTransaction::create([
                     'advance_id' => $advance->id,
                     'amount_paid' => $installmentAmount,
-                    'last_update_date' => $advance->expected_repayment_dates,
+                    'last_update_date' => $transactionDate,
                 ]);
             }
         }
@@ -376,7 +342,6 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         if (!$advance) {
             return redirect()->back()->with('error', 'Advance not found.');
         }
-        //added closing advance code
         $advance->remaining_amount = $request->input('remaining_amount');
         $advance->amount_paid = $request->input('amount_paid');
         $advance->status = 'closed';
@@ -392,15 +357,12 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         $query = Advance::where('status', 'declined');
 
         if ($user->inRole(1)) {
-            // Admin sees all
         } elseif ($user->inRole(6)) {
             $query->whereIn('office_id', function ($q) use ($user) {
                 $q->select('id')->from('offices')->where('province_id', $user->province_id);
             });
         } elseif ($user->inRole(4)) {
             $query->where('office_id', $user->office_id);
-        } else {
-            // Default behavior
         }
 
         $advances = $query->get();
@@ -413,22 +375,18 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         $query = Advance::where('status', 'closed');
 
         if ($user->inRole(1)) {
-            // Admin sees all
         } elseif ($user->inRole(6)) {
             $query->whereIn('office_id', function ($q) use ($user) {
                 $q->select('id')->from('offices')->where('province_id', $user->province_id);
             });
         } elseif ($user->inRole(4)) {
             $query->where('office_id', $user->office_id);
-        } else {
-            // Default behavior
         }
 
         $closedAdvances = $query->get();
 
         foreach ($closedAdvances as $advance) {
             $advance->status = 'closed';
-
             $advance->save();
         }
 
@@ -437,7 +395,6 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
 
     public function delete($id)
     {
-       
         try {
             $user = Sentinel::getUser();
             $advance = Advance::where('id', $id)->where('user_id', $user->id)->first();
@@ -457,6 +414,51 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         }
     }
 
+    public function showAdvanceDeductions()
+    {
+        $user = Sentinel::getUser();
+        $query = Advance::with('transactions');
 
+        if ($user->inRole(1)) {
+        } elseif ($user->inRole(6)) {
+            $query->whereIn('office_id', function ($q) use ($user) {
+                $q->select('id')->from('offices')->where('province_id', $user->province_id);
+            });
+        } elseif ($user->inRole(4)) {
+            $query->where('office_id', $user->office_id);
+        }
 
+        $advances = $query->get();
+        return view('advances.advance_deductions', compact('advances'));
+    }
+
+    public function processDeduction($id)
+    {
+        $advance = Advance::findOrFail($id);
+        
+        $installmentAmount = $advance->installment_amount;
+        $advance->amount_paid += $installmentAmount;
+
+        if ($advance->amount_paid >= $advance->amount) {
+            $advance->amount_paid = $advance->amount;
+        }
+        $advance->remaining_amount = $advance->amount - $advance->amount_paid;
+
+        if ($advance->remaining_amount <= 0.00) {
+            $advance->status = 'closed';
+        }
+        $advance->save();
+
+        $transactionDate = $advance->expected_repayment_dates
+            ? Carbon::parse($advance->expected_repayment_dates)
+            : Carbon::now();
+
+        AdvanceTransaction::create([
+            'advance_id' => $advance->id,
+            'amount_paid' => $installmentAmount,
+            'last_update_date' => $transactionDate,
+        ]);
+
+        return redirect()->back()->with('success', 'Deduction processed successfully.');
+    }
 }

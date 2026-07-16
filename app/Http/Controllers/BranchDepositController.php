@@ -199,7 +199,7 @@ class BranchDepositController extends Controller
             ->whereMonth('date', $monthNum);
 
         if ($depositTypeId) {
-            $query->where('deposit_type', $depositTypeId);
+            $query->where('deposits.deposit_type', $depositTypeId);
         }
 
         $deposits = $query->orderBy('bank_deposit_log.created_date', 'desc')->get();
@@ -232,7 +232,7 @@ class BranchDepositController extends Controller
             ->whereMonth('date', $monthNum);
 
         if ($depositTypeId) {
-            $query->where('deposit_type', $depositTypeId);
+            $query->where('deposits.deposit_type', $depositTypeId);
         }
 
         $deposits = $query->orderBy('bank_deposit_log.created_date', 'desc')->get();

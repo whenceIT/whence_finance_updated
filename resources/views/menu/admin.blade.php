@@ -602,6 +602,12 @@
                                 </span>   
                             </a></li>
                             @endif
+
+                            @if(Sentinel::hasAccess('reports.client_reports'))
+                            <li><a href="{{ route('advances.advance_deductions') }}">
+                                <i class="fa fa-circle-o"></i> Advance Deductions
+                            </a></li>
+                            @endif
                         </ul>
                     </li>
                     @endif

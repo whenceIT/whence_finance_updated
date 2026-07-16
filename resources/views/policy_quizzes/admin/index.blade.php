@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="content-wrapper">
+<div class="content">
     <section class="content-header">
         <h1>Policy Quizzes Management</h1>
     </section>
@@ -53,7 +53,7 @@
                                                 <td>
                                                     <strong>{{ $quiz->title }}</strong>
                                                     @if($quiz->description)
-                                                        <br><small class="text-muted">{{ Str::limit($quiz->description, 50) }}</small>
+                                                        <br><small class="text-muted">{{ \Illuminate\Support\Str::limit($quiz->description, 50) }}</small>
                                                     @endif
                                                 </td>
                                                 <td>
@@ -124,7 +124,7 @@
                                         <span class="info-box-icon"><i class="fa fa-check"></i></span>
                                         <div class="info-box-content">
                                             <span class="info-box-text">Active Quizzes</span>
-                                            <span class="info-box-number">{{ $quizzes->where('active', true)->where('isOpen')->count() }}</span>
+                                            <span class="info-box-number">{{ $quizzes->where('active', true)->filter(function($q) { return $q->isOpen(); })->count() }}</span>
                                         </div>
                                     </div>
                                 </div>

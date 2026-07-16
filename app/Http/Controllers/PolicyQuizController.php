@@ -408,6 +408,7 @@ class PolicyQuizController extends Controller
 
         return view('policy_quizzes.admin.report', compact(
             'quiz', 
+            'totalUsers',
             'completedAttempts', 
             'pendingUsers', 
             'attempts'

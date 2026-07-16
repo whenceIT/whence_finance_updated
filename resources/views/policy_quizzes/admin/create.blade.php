@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="content-wrapper">
+<div class="content">
     <section class="content-header">
         <h1>Create New Policy Quiz</h1>
     </section>
