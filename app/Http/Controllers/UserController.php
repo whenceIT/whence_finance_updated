@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Advance;
 use App\Helpers\GeneralHelper;
+use App\Helpers\RedirectHelper;
 use App\Models\CustomField;
 use App\Models\CustomFieldMeta;
 use App\Models\Invoice;
@@ -511,6 +512,9 @@ public function save_wallet(Request $request)
     public function dashboard(Request $request)
     {
 
+        
+        //reusable redirector helper
+        RedirectHelper::redirectById();
         $branch_data = [];
         $pendingApproval = false;
         $numbers_status = null;

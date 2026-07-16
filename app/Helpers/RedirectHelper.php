@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class RedirectHelper
 {
@@ -25,24 +26,15 @@ class RedirectHelper
     /**
      * Redirect based on specific role ID
      */
-    public static function redirectByRole($role)
+    public static function redirectById()
     {
-        switch ($role) {
-            case 1: // Admin
-                return redirect()->route('admin.dashboard');
-            case 2: // Branch Manager
-                return redirect()->route('bm.dashboard');
-            case 3: // Loan Officer
-                return redirect()->route('lo.dashboard');
-            case 4: // Provincial Manager
-                return redirect()->route('pm.dashboard');
-            case 5: // Finance
-                return redirect()->route('finance.dashboard');
-            case 6: // Risk
-                return redirect()->route('risk.dashboard');
-            default:
-                return redirect()->route('dashboard');
+        $user = Sentinel::getUser()->id;
+
+        if (in_array($user, (array) config('role.risk', []))) {
+            return redirect()->route('risk.dashboard')->send();
         }
+
+        return null;
     }
 
     /**
