@@ -11,6 +11,10 @@ class AdvanceTransaction extends Model
 
     protected $fillable = ['advance_id', 'amount_paid', 'last_update_date'];
 
+    protected $casts = [
+        'last_update_date' => 'datetime',
+    ];
+
     public function advance()
     {
         return $this->belongsTo(Advance::class);

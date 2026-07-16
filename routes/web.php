@@ -47,6 +47,7 @@ use App\Http\Controllers\FleetController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\RiskController;
+use App\Http\Controllers\RiskDashboardController;
 use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\ApprovalWorkflowController;
 use App\Http\Controllers\AdministrationExpenseController;
@@ -508,6 +509,7 @@ Route::group(['prefix' => 'audits'], function () {
 });
 //route for risk management
 Route::group(['prefix' => 'risk'], function () {
+    Route::get('dashboard', [RiskDashboardController::class, 'index'])->name('risk.dashboard');
     Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
@@ -1421,7 +1423,7 @@ Route::group(['prefix' => 'advance'], function () {
     Route::post('{id}/approve', 'AdvanceController@approve')->name('advances.approve');
     Route::post('{id}/decline', 'AdvanceController@decline')->name('advances.decline');
     Route::get('/pending_approvals', 'AdvanceController@showPendingApprovals')->name('advances.pending_approvals');
-    Route::get('active_advances', 'AdvanceController@showActiveAdvances')->name('advances.active_advances');
+    Route::get('active_advances', 'AdvanceController@showActiveAdvances')->name('advances.active_advances'); //Advance deductions transactions
     Route::get('closed_advances', 'AdvanceController@storeClosedAdvances')->name('advances.closed_advances');
     Route::get('declined_advances', 'AdvanceController@showDeclinedAdvances')->name('advances.declined_advances');
     Route::get('/active_advances/{id}', 'AdvanceController@showDetails')->name('advances.show');
@@ -1438,6 +1440,8 @@ Route::group(['prefix' => 'advance'], function () {
         '/active_advances_province_manager/{id}',
         'AdvanceController@showAdvancesForProvinceManager'
     )->name('advances.active_advances_province_managers');
+    Route::get('advance_deductions', 'AdvanceController@showAdvanceDeductions')->name('advances.advance_deductions');
+    Route::post('deduction/{id}', 'AdvanceController@processDeduction')->name('advances.deduction');
 });
 
 //annual leave
