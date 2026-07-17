@@ -25,19 +25,22 @@ class RiskDashboardController extends Controller
             ->sum('amount');
             
         // Get today's collected building (deposit_type = 3)
-        $collectedBuildingToday = BankDepositLog::where('deposit_type', 3)
-            ->whereDate('created_date', $today)
-            ->sum('amount');
+        $collectedBuildingToday = Deposit::join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
+            ->where('deposits.deposit_type', 3)
+            ->whereDate('bank_deposit_log.created_date', $today)
+            ->sum('deposits.amount');
             
         // Get today's collected statutory (deposit_type = 5)
-        $collectedStatutoryToday = BankDepositLog::where('deposit_type', 5)
-            ->whereDate('created_date', $today)
-            ->sum('amount');
+        $collectedStatutoryToday = Deposit::join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
+            ->where('deposits.deposit_type', 5)
+            ->whereDate('bank_deposit_log.created_date', $today)
+            ->sum('deposits.amount');
             
         // Get today's collected administration (deposit_type = 1)
-        $collectedAdminToday = BankDepositLog::where('deposit_type', 1)
-            ->whereDate('created_date', $today)
-            ->sum('amount');
+        $collectedAdminToday = Deposit::join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
+            ->where('deposits.deposit_type', 1)
+            ->whereDate('bank_deposit_log.created_date', $today)
+            ->sum('deposits.amount');
             
         // Get deadlines for countdown
         $buildingDeadline = Deadline::where('name', 'Building & Infrastructure fee deposits')->first();

@@ -434,25 +434,35 @@ class AdvanceController extends Controller
 
     public function processDeduction($id)
     {
+        // Find the advance record or throw a 404 if not found
         $advance = Advance::findOrFail($id);
         
+        // Get the fixed installment amount for this advance
         $installmentAmount = $advance->installment_amount;
+
+        // Add the installment to the total amount paid so far
         $advance->amount_paid += $installmentAmount;
 
+        // Cap amount_paid at the full advance amount to avoid overpayment
         if ($advance->amount_paid >= $advance->amount) {
             $advance->amount_paid = $advance->amount;
         }
+
+        // Recalculate the remaining balance
         $advance->remaining_amount = $advance->amount - $advance->amount_paid;
 
+        // Close the advance if it has been fully repaid
         if ($advance->remaining_amount <= 0.00) {
             $advance->status = 'closed';
         }
         $advance->save();
 
+        // Use the scheduled repayment date as the transaction date, falling back to now
         $transactionDate = $advance->expected_repayment_dates
             ? Carbon::parse($advance->expected_repayment_dates)
             : Carbon::now();
 
+        // Record the deduction as a transaction entry
         AdvanceTransaction::create([
             'advance_id' => $advance->id,
             'amount_paid' => $installmentAmount,

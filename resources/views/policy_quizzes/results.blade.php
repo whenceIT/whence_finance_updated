@@ -38,7 +38,7 @@
                                     <div class="info-box-content">
                                         <span class="info-box-text">Your Score</span>
                                         <span class="info-box-number" style="font-size: 24px;">
-                                            {{ number_format($attempt->score_percentage, 1) }}%
+                                            {{ number_format($attempt->score_percentage ?? 0, 1) }}%
                                         </span>
                                         <small>Passing threshold: {{ $quiz->passing_threshold }}%</small>
                                     </div>
@@ -53,9 +53,9 @@
                                     <div class="info-box-content">
                                         <span class="info-box-text">Completed On</span>
                                         <span class="info-box-number" style="font-size: 20px;">
-                                            {{ $attempt->completed_at->format('M d, Y') }}
+                                            {{ $attempt->completed_at ? $attempt->completed_at->format('M d, Y') : 'N/A' }}
                                         </span>
-                                        <small>{{ $attempt->completed_at->format('h:i A') }}</small>
+                                        <small>{{ $attempt->completed_at ? $attempt->completed_at->format('h:i A') : '' }}</small>
                                     </div>
                                 </div>
                             </div>
@@ -70,8 +70,8 @@
                                         {{ $answers->where('is_correct', true)->count() }} / {{ $answers->count() }}
                                     </span>
                                     <div class="progress sm">
-                                        <div class="progress-bar progress-bar-green" 
-                                             style="width: {{ $attempt->score_percentage }}%">
+<div class="progress-bar progress-bar-green" 
+                                         style="width: {{ $attempt->score_percentage ?? 0 }}%">
                                         </div>
                                     </div>
                                 </div>

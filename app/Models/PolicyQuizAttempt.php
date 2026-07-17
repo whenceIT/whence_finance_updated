@@ -93,7 +93,9 @@ class PolicyQuizAttempt extends Model
      */
     public function calculateScore()
     {
+        
         $answers = $this->answers;
+
         $totalQuestions = $answers->count();
         
         if ($totalQuestions === 0) {

@@ -31,7 +31,7 @@ class BranchDepositController extends Controller
     public function blockages(Request $request)
     {
         $blockages = \App\Models\Blockage::with('office')->latest()->get();
-        $offices = \App\Models\Office::all();
+        $offices = \App\Models\Office::orderBy('created_at', 'asc')->get();
         $deadline = Deadline::first();
         
         return view('branch-deposits.standalone', compact('blockages', 'offices', 'deadline'));
