@@ -1,8 +1,5 @@
 @extends('layouts.master')
 
-@section('title')
-Quiz - {{ $quiz->title }}
-@endsection
 
 @section('content')
 <div class="content">
@@ -64,11 +61,10 @@ Quiz - {{ $quiz->title }}
                             </div>
                             
                             <div class="text-center" style="margin-top: 20px;">
-                                <button type="submit" class="btn btn-success btn-lg">
-                                    <i class="fa fa-check-circle"></i> Submit Quiz
+                                <button type="submit" id="complete-btn" class="btn btn-success btn-lg">
+                                    <i class="fa fa-check-circle"></i> Complete Quiz
                                 </button>
-                            </div>
-                        </form>
+                            </form>
                     </div>
                     
                     <div class="box-footer">
@@ -84,6 +80,7 @@ Quiz - {{ $quiz->title }}
         </div>
     </section>
 </div>
+@endsection
 
 @section('footer-scripts')
 <script>
@@ -95,7 +92,8 @@ $(document).ready(function() {
     const attemptId = {{ $attempt->id }};
     let timerInterval;
     
-    // Timer
+    $('#complete-btn').toggle(currentQuestionIndex === totalQuestions - 1);
+    
     function updateTimer() {
         remainingSeconds--;
         const mins = Math.floor(remainingSeconds / 60);
@@ -110,12 +108,18 @@ $(document).ready(function() {
     
     timerInterval = setInterval(updateTimer, 1000);
     
-    // Auto-save answer
     $(document).on('change', '.answer-radio', function() {
         const questionIndex = $(this).data('question-index');
         const questionId = $(this).data('question-id');
         const answer = $(this).val();
-        const token = $('input[name="_token"]').val() || $('meta[name="csrf-token"]').attr('content');
+        const token = $('input[name="_token"]').val();
+        
+        if (!token) {
+            console.error('CSRF token not found');
+            return;
+        }
+        
+        console.log('Saving answer:', { questionId, answer, token });
         
         $.ajax({
             url: '/policy-quizzes/' + quizId + '/answer',
@@ -126,15 +130,14 @@ $(document).ready(function() {
                 answer: answer
             },
             success: function(response) {
-                console.log('Answer saved for question', questionIndex + 1);
+                console.log('Answer saved for question', questionIndex + 1, response);
             },
             error: function(xhr) {
-                console.error('Error saving answer');
+                console.error('Error saving answer', xhr.responseText);
             }
         });
     });
     
-    // Navigation
     $('#prev-btn').on('click', function() {
         if(currentQuestionIndex > 0) {
             currentQuestionIndex--;
@@ -153,18 +156,25 @@ $(document).ready(function() {
         $('.question-card').hide();
         $('.question-card').eq(index).show();
         
-        // Update button states
-        $('#prev-btn').prop('disabled', index === 0);
-        $('#next-btn').prop('disabled', index >= totalQuestions - 1);
+        const isLastQuestion = index === totalQuestions - 1;
+        const isFirstQuestion = index === 0;
         
-        // Update progress
+        $('#prev-btn').prop('disabled', isFirstQuestion);
+        $('#next-btn').toggle(!isLastQuestion);
+        $('#complete-btn').toggle(isLastQuestion);
+        
         const percent = ((index + 1) / totalQuestions) * 100;
         $('.progress-bar').css('width', percent + '%').text('Question ' + (index + 1) + ' of ' + totalQuestions);
     }
     
-    // Submit quiz
+    $('#quiz-form').on('submit', function(e) {
+        e.preventDefault();
+        submitQuiz();
+    });
+    
     function submitQuiz() {
-        const token = $('input[name="_token"]').val() || $('meta[name="csrf-token"]').attr('content');
+        const token = $('input[name="_token"]').val();
+        
         $.ajax({
             url: '/policy-quizzes/' + quizId + '/submit',
             method: 'POST',
@@ -175,19 +185,11 @@ $(document).ready(function() {
                 window.location.href = '/policy-quizzes/' + quizId + '/results';
             },
             error: function(xhr) {
-                console.error('Error submitting quiz');
+                console.error('Error submitting quiz', xhr.responseText);
                 alert('Error submitting quiz. Please try again.');
             }
         });
     }
-    
-    // Prevent leaving
-    window.addEventListener('beforeunload', function(e) {
-        if(remainingSeconds > 0) {
-            e.preventDefault();
-            e.returnValue = 'You have an active quiz in progress. Are you sure you want to leave?';
-        }
-    });
 });
 </script>
 @endsection

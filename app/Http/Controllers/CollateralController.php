@@ -217,7 +217,7 @@ class CollateralController extends Controller
         $roleId = $role ? $role->role_id : null;
 
         // Role-based scoping for loans
-        $loansQuery = Loan::whereIn('status', ['disbursed', 'defaulted']);
+        $loansQuery = Loan::query();
         if ($roleId == 1) {
             // Admin — sees ALL loans
         } elseif ($roleId == 4) {
@@ -283,11 +283,11 @@ class CollateralController extends Controller
 
         // Verify the selected loan has an eligible status
         $loan = Loan::find($request->loan_id);
-        if (!$loan || !in_array($loan->status, ['disbursed', 'defaulted'])) {
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['loan_id' => 'The selected loan must be disbursed or defaulted.']);
-        }
+        // if (!$loan || !in_array($loan->status, ['disbursed', 'defaulted'])) {
+        //     return redirect()->back()
+        //         ->withInput()
+        //         ->withErrors(['loan_id' => 'The selected loan must be disbursed or defaulted.']);
+        // }
 
         $collateral = new Collateral();
         $collateral->name              = $request->name;

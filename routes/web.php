@@ -2116,7 +2116,6 @@ Route::group(['prefix' => 'policy-quizzes'], function () {
     Route::get('/', [App\Http\Controllers\PolicyQuizController::class, 'index'])->name('policy.quizzes.index');
     Route::get('/{id}/start', [App\Http\Controllers\PolicyQuizController::class, 'start'])->name('policy.quizzes.start');
     Route::get('/{id}/question/{question}', [App\Http\Controllers\PolicyQuizController::class, 'question'])->name('policy.quizzes.question');
-    Route::get('/{id}/question/{question}/answered', [App\Http\Controllers\PolicyQuizController::class, 'questionAjax'])->name('policy.quizzes.question.ajax');
     Route::post('/{id}/answer', [App\Http\Controllers\PolicyQuizController::class, 'answer'])->name('policy.quizzes.answer');
     Route::post('/{id}/submit', [App\Http\Controllers\PolicyQuizController::class, 'submit'])->name('policy.quizzes.submit');
     Route::get('/{id}/results', [App\Http\Controllers\PolicyQuizController::class, 'results'])->name('policy.quizzes.results');

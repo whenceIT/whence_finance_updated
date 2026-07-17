@@ -63,61 +63,11 @@ class PolicyQuizController extends Controller
             ->with('success', 'Quiz started! You have ' . $quiz->time_limit_minutes . ' minutes to complete.');
     }
 
-    /**
-     * Display a single question (AJAX)
-     */
-    public function questionAjax($id, $questionNum)
-    {
-        $quiz = PolicyQuiz::findOrFail($id);
-        $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
-        
-        if (!$attempt) {
-            return response()->json(['error' => 'No active attempt found'], 404);
-        }
-
-        // Get questions for this attempt (cached in session to maintain order)
-        $questions = session('quiz_questions_' . $attempt->id);
-        if (!$questions) {
-            $questions = $quiz->getActiveQuestions();
-            session(['quiz_questions_' . $attempt->id => $questions]);
-        }
-
-        if ($questionNum < 1 || $questionNum > count($questions)) {
-            return response()->json(['error' => 'Invalid question number'], 400);
-        }
-
-        $currentQuestion = $questions[$questionNum - 1];
-        $totalQuestions = count($questions);
-
-        // Get user's answer for this question if exists
-        $userAnswer = $attempt->answers()->where('question_id', $currentQuestion->id)->first();
-
-        // Get remaining time
-        $remainingSeconds = $attempt->getRemainingTimeSeconds();
-
-        return response()->json([
-            'question' => [
-                'id' => $currentQuestion->id,
-                'text' => $currentQuestion->question_text,
-                'option_a' => $currentQuestion->option_a,
-                'option_b' => $currentQuestion->option_b,
-                'option_c' => $currentQuestion->option_c,
-                'option_d' => $currentQuestion->option_d,
-                'policy_link' => $currentQuestion->policy_link,
-            ],
-            'question_num' => $questionNum,
-            'total_questions' => $totalQuestions,
-            'user_answer' => $userAnswer ? $userAnswer->selected_answer : null,
-            'remaining_seconds' => $remainingSeconds,
-            'is_last_question' => $questionNum >= $totalQuestions,
-            'is_first_question' => $questionNum <= 1,
-        ]);
-    }
 
     /**
      * Display a single question
      */
-    public function question($id, $questionNum)
+    public function question($id, $question)
     {
         $quiz = PolicyQuiz::findOrFail($id);
         $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
@@ -127,31 +77,27 @@ class PolicyQuizController extends Controller
                 ->with('error', 'Please start the quiz before answering questions.');
         }
 
-        // Check if time expired
         if ($attempt->isTimeExpired()) {
             $attempt->calculateScore();
             return redirect()->route('policy.quizzes.results', $id);
         }
 
-        // Get questions for this attempt (cached in session to maintain order)
         $questions = session('quiz_questions_' . $attempt->id);
         if (!$questions) {
             $questions = $quiz->getActiveQuestions();
             session(['quiz_questions_' . $attempt->id => $questions]);
         }
 
-        if ($questionNum < 1 || $questionNum > count($questions)) {
+        if ($question < 1 || $question > count($questions)) {
             return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1]);
         }
 
-        $currentQuestion = $questions[$questionNum - 1];
+        $currentQuestion = $questions[$question - 1];
         $totalQuestions = count($questions);
-        $currentQuestionIndex = $questionNum - 1;
+        $currentQuestionIndex = $question - 1;
 
-        // Get user's answer for this question if exists
         $userAnswer = $attempt->answers()->where('question_id', $currentQuestion->id)->first();
 
-        // Get remaining time
         $remainingSeconds = $attempt->getRemainingTimeSeconds();
 
         return view('policy_quizzes.question', compact(
@@ -183,7 +129,6 @@ class PolicyQuizController extends Controller
             return redirect()->route('policy.quizzes.start', $id);
         }
 
-        // Check if time expired
         if ($attempt->isTimeExpired()) {
             $attempt->calculateScore();
             return redirect()->route('policy.quizzes.results', $id);
@@ -192,7 +137,6 @@ class PolicyQuizController extends Controller
         $question = PolicyQuizQuestion::find($request->question_id);
         $isCorrect = $question->isCorrectAnswer($request->answer);
 
-        // Update or create answer
         PolicyQuizUserAnswer::updateOrCreate(
             [
                 'attempt_id' => $attempt->id,
