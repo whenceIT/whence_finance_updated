@@ -2120,11 +2120,10 @@ $cycle_date = $cycleDate->format('Y-m-d');
 
     public function leaderboard(Request $request)
     {
-        $data = [];
+        dd('Under Maintenance');
         $office = $request->office;
         $startDate = $request->start_date;
         $endDate = $request->end_date;
-        $todaysDate = date('Y-m-d');
 
         $userId = Sentinel::getUser()->id;
         $user = Sentinel::getUser();
@@ -2140,32 +2139,47 @@ $cycle_date = $cycleDate->format('Y-m-d');
             $LoanConsultants = User::with('role')->with('office')->where('office_id', $office)->get();
         }
 
-        $consultantIds = $LoanConsultants->pluck('id')->toArray();
-
-        $sums = LoanTransaction::join('loans', 'loan_transactions.loan_id', '=', 'loans.id')
-            ->whereBetween('loan_transactions.date', [$startDate, $endDate])
-            ->whereIn('loans.loan_officer_id', $consultantIds)
-            ->selectRaw('loans.loan_officer_id,
-                SUM(CASE WHEN loan_transactions.transaction_type = "repayment" AND loan_transactions.payment_apply_to = "full_payment" THEN loan_transactions.credit ELSE 0 END) as full_payment_total,
-                SUM(CASE WHEN loan_transactions.payment_apply_to = "part_payment" THEN loan_transactions.credit ELSE 0 END) as part_payment_total,
-                SUM(CASE WHEN loan_transactions.payment_apply_to = "reloan_payment" THEN loan_transactions.credit ELSE 0 END) as reloan_payments_total')
-            ->groupBy('loans.loan_officer_id')
-            ->get();
-
-        $sumMap = $sums->keyBy('loan_officer_id');
-
+        $data = [];
         foreach ($LoanConsultants as $loanConsultant) {
             if (!empty($loanConsultant->role->role_id)) {
                 if ($loanConsultant->role->role_id !== 2) {
-                    $object = new stdClass();
-                    $sum = $sumMap->get($loanConsultant->id);
-                    $full_payment_total = $sum ? $sum->full_payment_total : 0;
-                    $part_payment_total = $sum ? $sum->part_payment_total : 0;
-                    $reloan_payments_total = $sum ? $sum->reloan_payments_total : 0;
+                    $consultantQuery = http_build_query([
+                        'user_id' => $loanConsultant->id,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                    ]);
 
+                    $consultantUrl = "https://lms2backend.whencefinancesystem.com/my-performance-new?$consultantQuery";
+
+                    $consultantJson = @file_get_contents($consultantUrl);
+                    $consultantApiData = $consultantJson ? json_decode($consultantJson, true) : null;
+
+                    if ($consultantApiData) {
+                        $consultantApiData = array_merge([
+                            'uncollected_without_charges' => 0,
+                            'total_uncollected' => 0,
+                            'total_collected' => 0,
+                            'still_uncollected' => 0,
+                            'given_out' => 0,
+                            'carry_over' => 0,
+                            'pdua' => 0,
+                        ], $consultantApiData);
+                    } else {
+                        $consultantApiData = [
+                            'uncollected_without_charges' => 0,
+                            'total_uncollected' => 0,
+                            'total_collected' => 0,
+                            'still_uncollected' => 0,
+                            'given_out' => 0,
+                            'carry_over' => 0,
+                            'pdua' => 0,
+                        ];
+                    }
+
+                    $object = new stdClass();
                     $object->first_name = $loanConsultant->first_name;
                     $object->last_name = $loanConsultant->last_name;
-                    $object->amount = $full_payment_total + $part_payment_total + $reloan_payments_total;
+                    $object->amount = $consultantApiData['total_collected'] ?? 0;
                     $object->role = $loanConsultant->role;
                     if (!empty($loanConsultant->office)) {
                         $object->office = $loanConsultant->office->name;
@@ -2178,7 +2192,38 @@ $cycle_date = $cycleDate->format('Y-m-d');
             }
         }
 
-        return view('user.leaderboard', compact('office', 'LoanConsultants', 'data', 'startDate', 'endDate'));
+        $mainUrl = "https://lms2backend.whencefinancesystem.com/my-performance-new?" . http_build_query([
+            'user_id' => $userId,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ]);
+
+        $mainJson = @file_get_contents($mainUrl);
+        $apiData = $mainJson ? json_decode($mainJson, true) : null;
+
+        if ($apiData) {
+            $apiData = array_merge([
+                'uncollected_without_charges' => 0,
+                'total_uncollected' => 0,
+                'total_collected' => 0,
+                'still_uncollected' => 0,
+                'given_out' => 0,
+                'carry_over' => 0,
+                'pdua' => 0,
+            ], $apiData);
+        } else {
+            $apiData = [
+                'uncollected_without_charges' => 0,
+                'total_uncollected' => 0,
+                'total_collected' => 0,
+                'still_uncollected' => 0,
+                'given_out' => 0,
+                'carry_over' => 0,
+                'pdua' => 0,
+            ];
+        }
+
+        return view('user.leaderboard', compact('office', 'LoanConsultants', 'data', 'startDate', 'endDate', 'apiData'));
     }
 
     public function leaderboardBKP(Request $request)

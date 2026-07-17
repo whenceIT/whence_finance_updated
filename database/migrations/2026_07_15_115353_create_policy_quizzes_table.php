@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable('setup_depolicy_quizzesbt_transactions')){
+        if (Schema::hasTable('policy_quizzes')){
             Schema::create('policy_quizzes', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('title');
