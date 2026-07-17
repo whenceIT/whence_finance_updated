@@ -491,6 +491,8 @@ Inspection History
 
 <th>Date</th>
 <th>Inspector</th>
+<th>Mileage</th>
+<th>Fuel Level</th>
 <th>Result</th>
 <th>Report</th>
 
@@ -510,6 +512,14 @@ Inspection History
 
 <td>
 {{ $inspection->inspector }}
+</td>
+
+<td>
+{{ $inspection->mileage }}
+</td>
+
+<td>
+{{ $inspection->fuel }}
 </td>
 
 <td>
