@@ -21,6 +21,15 @@
         <h3 class="box-title">
             <i class="fa fa-car"></i> Vehicle Information
         </h3>
+
+        <a
+    href="{{ url('vehicles/'.$vehicle->id.'/edit') }}"
+    class="btn btn-primary btn-xs pull-right"
+>
+
+Add Information
+
+</a>
     </div>
 
     <div class="box-body no-padding">
@@ -35,6 +44,20 @@
                         {{ $vehicle->registration_number }}
                     </span>
                 </td>
+            </tr>
+
+            
+            <tr>
+                <th>Make</th>
+                <td >
+                        {{ $vehicle->make }}
+                </td>
+
+                <th>Model</th>
+                <td>
+                        {{ $vehicle->model }}
+                </td>
+
             </tr>
 
             <tr>
@@ -52,19 +75,43 @@
                 </td>
             </tr>
 
+
+            
+            <tr>
+                <th>Year</th>
+                <td >
+                        {{ $vehicle->year }}
+                </td>
+
+                <th>Color</th>
+                <td>
+                        {{ $vehicle->color }}
+                </td>
+
+            </tr>
+
             <tr>
                 <th>Engine Number</th>
                 <td >
-                    <strong class="text-red">
                         {{ $vehicle->engine_number }}
-                    </strong>
                 </td>
 
                 <th>Chassis Number</th>
                 <td>
-                    <strong class="text-blue">
                         {{ $vehicle->engine_number }}
-                    </strong>
+                </td>
+
+            </tr>
+
+               <tr>
+                <th>Insurance Policy #</th>
+                <td >
+                        {{ $vehicle->insurance_policy_number }}
+                </td>
+
+                <th>Mileage</th>
+                <td>
+                        {{ $vehicle->mileage }}
                 </td>
 
             </tr>
@@ -160,44 +207,48 @@ Receive Vehicle
 
 </div>
 
-<table class="table table-bordered">
+@if($vehicle->custody)
+    <table class="table table-bordered">
 
-<tr>
-    <th>Status</th>
+        <tr>
+            <th>Status</th>
+            <td>
+                <span class="label label-success">
+                    {{ ucfirst($vehicle->custody->status) }}
+                </span>
+            </td>
+        </tr>
 
-    <td>
-        <span class="label label-success">
-            {{ ucfirst($vehicle->custody->status) }}
-        </span>
-    </td>
-</tr>
+        <tr>
+            <th>Received</th>
+            <td>{{ $vehicle->custody->received_at }}</td>
+        </tr>
 
-<tr>
-    <th>Received</th>
-    <td>{{ $vehicle->custody->received_at }}</td>
-</tr>
+        <tr>
+            <th>Received By</th>
+            <td>
+                {{ optional($vehicle->custody->receiver)->first_name }}
+                {{ optional($vehicle->custody->receiver)->last_name }}
+            </td>
+        </tr>
 
-<tr>
-    <th>Received By</th>
-    <td>{{ optional($vehicle->custody->receiver)->first_name }} {{ optional($vehicle->custody->receiver)->last_name }}</td>
-</tr>
+        <tr>
+            <th>Key Received</th>
+            <td>{{ $vehicle->custody->keys_received }}</td>
+        </tr>
 
-<tr>
-    <th>Key Received</th>
-    <td>{{ $vehicle->custody->keys_received }}</td>
-</tr>
+        <tr>
+            <th>Key Tag Numbers</th>
+            <td>{{ $vehicle->custody->key_tag_numbers }}</td>
+        </tr>
 
-<tr>
-    <th>Key Tag Numbers</th>
-    <td>{{ $vehicle->custody->key_tag_numbers }}</td>
-</tr>
+        <tr>
+            <th>Remarks</th>
+            <td>{{ $vehicle->custody->remarks }}</td>
+        </tr>
 
-<tr>
-    <th>Remarks</th>
-    <td>{{ $vehicle->custody->remarks }}</td>
-</tr>
-
-</table>
+    </table>
+@endif
 
 <!-- <a class="btn btn-primary btn-block" href="{{ url('vehicles/'.$vehicle->id.'/custody') }}">
     <i class="fa fa-eye"></i>
@@ -219,6 +270,8 @@ Garage / Storage Facility
 </h3>
 
 </div>
+
+@if($vehicle->custody)
 
 <div class="box-body">
 
@@ -282,6 +335,9 @@ No garage assigned.
 @endif
 
 </div>
+
+@endif
+
 
 </div>
 

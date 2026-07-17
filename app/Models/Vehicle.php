@@ -59,7 +59,7 @@ class Vehicle extends Model
 
     public function photos()
 {
-    return $this->hasMany(VehiclePhoto::class);
+    return $this->hasMany(VehiclePhoto::class,'vehicle_id');
 }
 
 public function custody()

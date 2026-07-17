@@ -99,10 +99,14 @@ public function update(Request $request, $id)
         'year' => $request->year,
         'registration_number' => $request->registration_number,
         'market_value' => $request->market_value,
-        'forced_sale_value' => $request->forced_sale_value
+        'color'=> $request->color,
+        'engine_number' => $request->engine_number,
+        'chassis_number'=> $request->chassis_number,
+        'insurance_policy_number' => $request->insurance_policy_number,
+        'mileage' => $request->mileage,
     ]);
 
-    return redirect('/vehicles')
+    return redirect("/vehicles/{$id}")
         ->with('success', 'Vehicle updated successfully');
 }
 
@@ -459,17 +463,20 @@ public function searchClients(Request $request)
             }
         }
 
-$inspection = VehicleInspection::create([
-    'vehicle_id' => $vehicle->id,
-    'inspection_date' => $request->inspection_date,
-    'inspector' => $request->inspector,
-    'inspection_type' => $request->inspection_type,
-    'mileage' => $request->mileage,
-    'condition_rating' => $request->condition_rating,
-    'result' => $request->result,
-    'notes' => $request->notes,
-    'report_url' => $reportUrl,
-]);
+$inspection = new VehicleInspection();
+
+$inspection->vehicle_id = $vehicle->id;
+$inspection->inspection_date = $request->inspection_date;
+$inspection->inspector = $request->inspector;
+$inspection->inspection_type = $request->inspection_type;
+$inspection->mileage = $request->mileage;
+$inspection->condition_rating = $request->condition_rating;
+$inspection->fuel = $request->fuel_level;
+$inspection->result = $request->result;
+$inspection->notes = $request->notes;
+$inspection->report_url = $reportUrl;
+
+$inspection->save();
 
 if ($request->hasFile('photos')) {
 

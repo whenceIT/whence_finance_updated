@@ -82,7 +82,7 @@
 <label>Mileage</label>
 
 <input
-    type="number"
+    type="text"
     name="mileage"
     class="form-control">
 
@@ -98,11 +98,11 @@
     class="form-control">
 
     <option value="">Select Fuel Level</option>
-    <option>Empty</option>
-    <option>1/4 Tank</option>
-    <option>1/2 Tank</option>
-    <option>3/4 Tank</option>
-    <option>Full Tank</option>
+    <option value="Empty">Empty</option>
+    <option value="1/4 Tank">1/4 Tank</option>
+    <option value="1/2 Tank">1/2 Tank</option>
+    <option value="3/4 Tank">3/4 Tank</option>
+    <option value="Full Tank">Full Tank</option>
 
 </select>
 
@@ -115,7 +115,7 @@
 <select
     name="condition_rating"
     class="form-control">
-    
+
 <option></option>
 <option>Excellent</option>
 <option>Good</option>

@@ -216,14 +216,25 @@
                         </div>
 
 
+
+
                                                     @if($loan->loan_product_id == 0)
 
 <div class="box box-primary">
-    <div class="box-header with-border">
-        <h3 class="box-title">
-            <i class="fa fa-car"></i> Motor Vehicle Information
-        </h3>
+
+<div class="box-header with-border">
+
+    <h3 class="box-title">
+        <i class="fa fa-car"></i> Motor Vehicle Information
+    </h3>
+
+    <div class="box-tools pull-right">
+        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> Add Vehicle Information
+        </a>
     </div>
+
+</div>
 
     <div class="box-body">
 
@@ -231,8 +242,13 @@
 
             <div class="col-md-3 text-center">
 
-                <img src="https://placehold.co/350x220?text=Vehicle+Photo"
-                     class="img-responsive img-thumbnail">
+          @php
+    $frontPhoto = $vehicle->photos->firstWhere('photo_type', 'Front View');
+@endphp
+
+<img src="{{ $frontPhoto ? $frontPhoto->photo_url : 'https://placehold.co/350x220?text=Vehicle+Photo' }}"
+     class="img-responsive img-thumbnail"
+     style="width:100%;height:220px;object-fit:cover;">
 
                 <br><br>
 
@@ -336,59 +352,73 @@
 
 </div>
 
+@php
+    $photos = $vehicle->photos->keyBy('photo_type');
+
+    function vehiclePhoto($photos, $type)
+    {
+        return isset($photos[$type])
+            ? $photos[$type]->photo_url
+            : "https://placehold.co/250x180?text=" . urlencode($type);
+    }
+@endphp
+
 <div class="box box-default">
 
     <div class="box-header with-border">
         <h3 class="box-title">
             <i class="fa fa-camera"></i> Vehicle Photos
         </h3>
+
+
+              <div class="box-tools pull-right">
+        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> Add Vehicle Photos
+        </a>
     </div>
+    
+    </div>
+
+    
 
     <div class="box-body">
 
         <div class="row">
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Front"
-                     class="img-responsive img-thumbnail">
-                <center>Front</center>
-            </div>
+            @foreach([
+                'Front View',
+                'Rear View',
+                'Left Side',
+                'Right Side',
+                'Interior',
+                'Engine'
+            ] as $type)
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Rear"
-                     class="img-responsive img-thumbnail">
-                <center>Rear</center>
-            </div>
+                <div class="col-md-2">
+                    <a href="{{ vehiclePhoto($photos, $type) }}" target="_blank">
+                        <img src="{{ vehiclePhoto($photos, $type) }}"
+                             class="img-responsive img-thumbnail"
+                             style="height:180px;width:100%;object-fit:cover;">
+                    </a>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Left"
-                     class="img-responsive img-thumbnail">
-                <center>Left</center>
-            </div>
+                    <center>
+                        <strong>{{ $type }}</strong>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Right"
-                     class="img-responsive img-thumbnail">
-                <center>Right</center>
-            </div>
+                        @if(isset($photos[$type]) && $photos[$type]->caption)
+                            <br>
+                            <small>{{ $photos[$type]->caption }}</small>
+                        @endif
+                    </center>
+                </div>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Interior"
-                     class="img-responsive img-thumbnail">
-                <center>Interior</center>
-            </div>
-
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Engine"
-                     class="img-responsive img-thumbnail">
-                <center>Engine</center>
-            </div>
+            @endforeach
 
         </div>
 
     </div>
 
 </div>
+
 
 @endif
 
@@ -613,14 +643,25 @@
                                 </table>
                             </div>
 
-                            @if($loan->loan_product_id == 0)
+
+
+                                                    @if($loan->loan_product_id == 0)
 
 <div class="box box-primary">
-    <div class="box-header with-border">
-        <h3 class="box-title">
-            <i class="fa fa-car"></i> Motor Vehicle Information
-        </h3>
+
+<div class="box-header with-border">
+
+    <h3 class="box-title">
+        <i class="fa fa-car"></i> Motor Vehicle Information
+    </h3>
+
+    <div class="box-tools pull-right">
+        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> Add Vehicle Information
+        </a>
     </div>
+
+</div>
 
     <div class="box-body">
 
@@ -628,13 +669,18 @@
 
             <div class="col-md-3 text-center">
 
-                <img src="https://placehold.co/350x220?text=Vehicle+Photo"
-                     class="img-responsive img-thumbnail">
+          @php
+    $frontPhoto = $vehicle->photos->firstWhere('photo_type', 'Front View');
+@endphp
+
+<img src="{{ $frontPhoto ? $frontPhoto->photo_url : 'https://placehold.co/350x220?text=Vehicle+Photo' }}"
+     class="img-responsive img-thumbnail"
+     style="width:100%;height:220px;object-fit:cover;">
 
                 <br><br>
 
                 <span class="label label-success">
-                    IN CUSTODY
+                  {{ $vehicle->status }}
                 </span>
 
             </div>
@@ -649,42 +695,32 @@
 
                             <tr>
                                 <th width="45%">Vehicle Code</th>
-                                <td>MV000254</td>
+                                <td>{{ $vehicle->vehicle_code }}</td>
                             </tr>
 
                             <tr>
                                 <th>Registration No.</th>
-                                <td>BAL 4567</td>
+                                <td> {{ $vehicle->registration_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Make</th>
-                                <td>Toyota</td>
+                                <td>{{ $vehicle->make }}</td>
                             </tr>
 
                             <tr>
                                 <th>Model</th>
-                                <td>Hilux</td>
+                                <td>{{ $vehicle->model }}</td>
                             </tr>
 
                             <tr>
                                 <th>Year</th>
-                                <td>2021</td>
+                                <td>{{ $vehicle->year }}</td>
                             </tr>
 
                             <tr>
                                 <th>Colour</th>
-                                <td>White</td>
-                            </tr>
-
-                            <tr>
-                                <th>VIN</th>
-                                <td>JTNB11HK123456789</td>
-                            </tr>
-
-                            <tr>
-                                <th>Engine Number</th>
-                                <td>1GD987654</td>
+                                <td>{{ $vehicle->color}}</td>
                             </tr>
 
                         </table>
@@ -695,46 +731,40 @@
 
                         <table class="table table-bordered">
 
-                            <tr>
-                                <th width="45%">Market Value</th>
-                                <td>K350,000</td>
+                              <tr>
+                                <th>Client</th>
+                                <td>
+                                    {{ $vehicle->client->first_name}}
+                                    {{ $vehicle->client->last_name}}
+                                </td>
                             </tr>
 
                             <tr>
-                                <th>Forced Sale Value</th>
-                                <td>K270,000</td>
+                                <th>Insurance Policy Number</th>
+                                <td>{{ $vehicle->insurance_policy_number }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Engine Number</th>
+                                <td>{{ $vehicle->engine_number }}</td>
+                            </tr>
+
+                            <tr>
+                                <th width="45%">Market Value</th>
+                                <td>K{{ $vehicle->market_value }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Chassis Number</th>
+                                <td>{{ $vehicle->chassis_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Mileage</th>
-                                <td>85,340 km</td>
+                                <td>{{ $vehicle->mileage }}</td>
                             </tr>
 
-                            <tr>
-                                <th>Fuel Level</th>
-                                <td>Half Tank</td>
-                            </tr>
-
-                            <tr>
-                                <th>Keys Received</th>
-                                <td>2</td>
-                            </tr>
-
-                            <tr>
-                                <th>Garage</th>
-                                <td>Whence Main Yard</td>
-                            </tr>
-
-                            <tr>
-                                <th>Parking Bay</th>
-                                <td>B-17</td>
-                            </tr>
-
-                            <tr>
-                                <th>Received On</th>
-                                <td>15 Jul 2026 10:35</td>
-                            </tr>
-
+                    
                         </table>
 
                     </div>
@@ -749,59 +779,73 @@
 
 </div>
 
+@php
+    $photos = $vehicle->photos->keyBy('photo_type');
+
+    function vehiclePhoto($photos, $type)
+    {
+        return isset($photos[$type])
+            ? $photos[$type]->photo_url
+            : "https://placehold.co/250x180?text=" . urlencode($type);
+    }
+@endphp
+
 <div class="box box-default">
 
     <div class="box-header with-border">
         <h3 class="box-title">
             <i class="fa fa-camera"></i> Vehicle Photos
         </h3>
+
+
+              <div class="box-tools pull-right">
+        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> Add Vehicle Photos
+        </a>
     </div>
+    
+    </div>
+
+    
 
     <div class="box-body">
 
         <div class="row">
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Front"
-                     class="img-responsive img-thumbnail">
-                <center>Front</center>
-            </div>
+            @foreach([
+                'Front View',
+                'Rear View',
+                'Left Side',
+                'Right Side',
+                'Interior',
+                'Engine'
+            ] as $type)
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Rear"
-                     class="img-responsive img-thumbnail">
-                <center>Rear</center>
-            </div>
+                <div class="col-md-2">
+                    <a href="{{ vehiclePhoto($photos, $type) }}" target="_blank">
+                        <img src="{{ vehiclePhoto($photos, $type) }}"
+                             class="img-responsive img-thumbnail"
+                             style="height:180px;width:100%;object-fit:cover;">
+                    </a>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Left"
-                     class="img-responsive img-thumbnail">
-                <center>Left</center>
-            </div>
+                    <center>
+                        <strong>{{ $type }}</strong>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Right"
-                     class="img-responsive img-thumbnail">
-                <center>Right</center>
-            </div>
+                        @if(isset($photos[$type]) && $photos[$type]->caption)
+                            <br>
+                            <small>{{ $photos[$type]->caption }}</small>
+                        @endif
+                    </center>
+                </div>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Interior"
-                     class="img-responsive img-thumbnail">
-                <center>Interior</center>
-            </div>
-
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Engine"
-                     class="img-responsive img-thumbnail">
-                <center>Engine</center>
-            </div>
+            @endforeach
 
         </div>
 
     </div>
 
 </div>
+
 
 @endif
                             <div class="col-sm-5 col-md-5">
@@ -1540,14 +1584,23 @@ CURRENT BALANCE DASHBOARD
     MOTOR VEHICLE SECTION
 ======================== --}}
 
-@if($loan->loan_product_id == 0)
+                                                    @if($loan->loan_product_id == 0)
 
 <div class="box box-primary">
-    <div class="box-header with-border">
-        <h3 class="box-title">
-            <i class="fa fa-car"></i> Motor Vehicle Information
-        </h3>
+
+<div class="box-header with-border">
+
+    <h3 class="box-title">
+        <i class="fa fa-car"></i> Motor Vehicle Information
+    </h3>
+
+    <div class="box-tools pull-right">
+        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> Add Vehicle Information
+        </a>
     </div>
+
+</div>
 
     <div class="box-body">
 
@@ -1555,13 +1608,18 @@ CURRENT BALANCE DASHBOARD
 
             <div class="col-md-3 text-center">
 
-                <img src="https://placehold.co/350x220?text=Vehicle+Photo"
-                     class="img-responsive img-thumbnail">
+          @php
+    $frontPhoto = $vehicle->photos->firstWhere('photo_type', 'Front View');
+@endphp
+
+<img src="{{ $frontPhoto ? $frontPhoto->photo_url : 'https://placehold.co/350x220?text=Vehicle+Photo' }}"
+     class="img-responsive img-thumbnail"
+     style="width:100%;height:220px;object-fit:cover;">
 
                 <br><br>
 
                 <span class="label label-success">
-                    IN CUSTODY
+                  {{ $vehicle->status }}
                 </span>
 
             </div>
@@ -1576,42 +1634,32 @@ CURRENT BALANCE DASHBOARD
 
                             <tr>
                                 <th width="45%">Vehicle Code</th>
-                                <td>MV000254</td>
+                                <td>{{ $vehicle->vehicle_code }}</td>
                             </tr>
 
                             <tr>
                                 <th>Registration No.</th>
-                                <td>BAL 4567</td>
+                                <td> {{ $vehicle->registration_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Make</th>
-                                <td>Toyota</td>
+                                <td>{{ $vehicle->make }}</td>
                             </tr>
 
                             <tr>
                                 <th>Model</th>
-                                <td>Hilux</td>
+                                <td>{{ $vehicle->model }}</td>
                             </tr>
 
                             <tr>
                                 <th>Year</th>
-                                <td>2021</td>
+                                <td>{{ $vehicle->year }}</td>
                             </tr>
 
                             <tr>
                                 <th>Colour</th>
-                                <td>White</td>
-                            </tr>
-
-                            <tr>
-                                <th>VIN</th>
-                                <td>JTNB11HK123456789</td>
-                            </tr>
-
-                            <tr>
-                                <th>Engine Number</th>
-                                <td>1GD987654</td>
+                                <td>{{ $vehicle->color}}</td>
                             </tr>
 
                         </table>
@@ -1622,46 +1670,40 @@ CURRENT BALANCE DASHBOARD
 
                         <table class="table table-bordered">
 
-                            <tr>
-                                <th width="45%">Market Value</th>
-                                <td>K350,000</td>
+                              <tr>
+                                <th>Client</th>
+                                <td>
+                                    {{ $vehicle->client->first_name}}
+                                    {{ $vehicle->client->last_name}}
+                                </td>
                             </tr>
 
                             <tr>
-                                <th>Forced Sale Value</th>
-                                <td>K270,000</td>
+                                <th>Insurance Policy Number</th>
+                                <td>{{ $vehicle->insurance_policy_number }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Engine Number</th>
+                                <td>{{ $vehicle->engine_number }}</td>
+                            </tr>
+
+                            <tr>
+                                <th width="45%">Market Value</th>
+                                <td>K{{ $vehicle->market_value }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Chassis Number</th>
+                                <td>{{ $vehicle->chassis_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Mileage</th>
-                                <td>85,340 km</td>
+                                <td>{{ $vehicle->mileage }}</td>
                             </tr>
 
-                            <tr>
-                                <th>Fuel Level</th>
-                                <td>Half Tank</td>
-                            </tr>
-
-                            <tr>
-                                <th>Keys Received</th>
-                                <td>2</td>
-                            </tr>
-
-                            <tr>
-                                <th>Garage</th>
-                                <td>Whence Main Yard</td>
-                            </tr>
-
-                            <tr>
-                                <th>Parking Bay</th>
-                                <td>B-17</td>
-                            </tr>
-
-                            <tr>
-                                <th>Received On</th>
-                                <td>15 Jul 2026 10:35</td>
-                            </tr>
-
+                    
                         </table>
 
                     </div>
@@ -1676,59 +1718,73 @@ CURRENT BALANCE DASHBOARD
 
 </div>
 
+@php
+    $photos = $vehicle->photos->keyBy('photo_type');
+
+    function vehiclePhoto($photos, $type)
+    {
+        return isset($photos[$type])
+            ? $photos[$type]->photo_url
+            : "https://placehold.co/250x180?text=" . urlencode($type);
+    }
+@endphp
+
 <div class="box box-default">
 
     <div class="box-header with-border">
         <h3 class="box-title">
             <i class="fa fa-camera"></i> Vehicle Photos
         </h3>
+
+
+              <div class="box-tools pull-right">
+        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> Add Vehicle Photos
+        </a>
     </div>
+    
+    </div>
+
+    
 
     <div class="box-body">
 
         <div class="row">
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Front"
-                     class="img-responsive img-thumbnail">
-                <center>Front</center>
-            </div>
+            @foreach([
+                'Front View',
+                'Rear View',
+                'Left Side',
+                'Right Side',
+                'Interior',
+                'Engine'
+            ] as $type)
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Rear"
-                     class="img-responsive img-thumbnail">
-                <center>Rear</center>
-            </div>
+                <div class="col-md-2">
+                    <a href="{{ vehiclePhoto($photos, $type) }}" target="_blank">
+                        <img src="{{ vehiclePhoto($photos, $type) }}"
+                             class="img-responsive img-thumbnail"
+                             style="height:180px;width:100%;object-fit:cover;">
+                    </a>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Left"
-                     class="img-responsive img-thumbnail">
-                <center>Left</center>
-            </div>
+                    <center>
+                        <strong>{{ $type }}</strong>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Right"
-                     class="img-responsive img-thumbnail">
-                <center>Right</center>
-            </div>
+                        @if(isset($photos[$type]) && $photos[$type]->caption)
+                            <br>
+                            <small>{{ $photos[$type]->caption }}</small>
+                        @endif
+                    </center>
+                </div>
 
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Interior"
-                     class="img-responsive img-thumbnail">
-                <center>Interior</center>
-            </div>
-
-            <div class="col-md-2">
-                <img src="https://placehold.co/250x180?text=Engine"
-                     class="img-responsive img-thumbnail">
-                <center>Engine</center>
-            </div>
+            @endforeach
 
         </div>
 
     </div>
 
 </div>
+
 
 @endif
                                 <table class="pretty displayschedule" id="summarytable">

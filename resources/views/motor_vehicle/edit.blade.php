@@ -84,7 +84,7 @@
 
         </div>
 
-        <div class="form-group">
+        <!-- <div class="form-group">
 
             <label>Forced Sale Value</label>
 
@@ -94,7 +94,67 @@
                    class="form-control"
                    value="{{ $vehicle->forced_sale_value }}">
 
+        </div> -->
+
+
+        <div class="form-group">
+
+            <label>Colour</label>
+
+            <input type="text"
+                   name="color"
+                   class="form-control"
+                   value="{{ $vehicle->color }}">
+
         </div>
+
+        
+        <div class="form-group">
+
+            <label>Engine Number</label>
+
+            <input type="text"
+                   name="engine_number"
+                   class="form-control"
+                   value="{{ $vehicle->engine_number }}">
+
+        </div>
+
+               <div class="form-group">
+
+            <label>Chassis Number</label>
+
+            <input type="text"
+                   name="chassis_number"
+                   class="form-control"
+                   value="{{ $vehicle->chassis_number }}">
+
+                   
+
+        <div class="form-group">
+
+            <label>Insurance Policy Number</label>
+
+            <input type="text"
+                   name="insurance_policy_number"
+                   class="form-control"
+                   value="{{ $vehicle->insurance_policy_number }}">
+
+        </div>
+
+
+           <div class="form-group">
+
+            <label>Mileage</label>
+
+            <input type="text"
+                   name="mileage"
+                   class="form-control"
+                   value="{{ $vehicle->mileage }}">
+
+        </div>
+
+
 
         <button type="submit"
                 class="btn btn-success">
