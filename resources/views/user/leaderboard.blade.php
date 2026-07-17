@@ -78,9 +78,22 @@ class="control-label col-md-2"></label>
 </div>
 </div>  
 </form>
-@php
+<?php
+
+function compare($a,$b){
+    return $a->amount < $b->amount;
+}
+usort($data,"compare");
+
+$use = date('Y-');
+$use.'24';
 $number = 0;
-@endphp
+
+$branches = [];
+
+$total = array_sum(array_column($data, 'amount'));
+
+?>
 
 @if(!empty($startDate))
 <div class="box box-primary">
@@ -103,40 +116,79 @@ $number = 0;
 </thead>
 <tfoot>
     <tr style="background-color: #f0f0f0; font-weight: bold;">
-        <td colspan="{{ ($leaderboard_type ?? 'officer') == 'officer' ? 3 : 2 }}" style="text-align: right;">Total Collections</td>
-        <td>{{ number_format($apiData['total_collected'] ?? 0, 2) }}</td>
-    </tr>
-    <tr style="background-color: #f0f0f0; font-weight: bold;">
-        <td colspan="{{ ($leaderboard_type ?? 'officer') == 'officer' ? 3 : 2 }}" style="text-align: right;">Uncollected</td>
-        <td>{{ number_format($apiData['total_uncollected'] ?? 0, 2) }}</td>
-    </tr>
-    <tr style="background-color: #f0f0f0; font-weight: bold;">
-        <td colspan="{{ ($leaderboard_type ?? 'officer') == 'officer' ? 3 : 2 }}" style="text-align: right;">Given Out</td>
-        <td>{{ number_format($apiData['given_out'] ?? 0, 2) }}</td>
-    </tr>
-    <tr style="background-color: #f0f0f0; font-weight: bold;">
-        <td colspan="{{ ($leaderboard_type ?? 'officer') == 'officer' ? 3 : 2 }}" style="text-align: right;">Carry Over</td>
-        <td>{{ number_format($apiData['carry_over'] ?? 0, 2) }}</td>
+        <td colspan="{{ ($leaderboard_type ?? 'officer') == 'officer' ? 3 : 2 }}" style="text-align: right;">Total</td>
+        <td>{{ number_format($total, 2) }}</td>
     </tr>
 </tfoot>
 <tbody>
+@if(($leaderboard_type ?? 'officer') == 'officer')
 @foreach($data as $information)
-    <tr>
+<?php
+$isBranch = 1;
+if(in_array($information->office,$branches)){
+    $isBranch = 2;
+}
+
+if($isBranch == 1){
+    array_push(
+        $branches,$information->office
+    );
+}
+
+?>
+@if($isBranch == 1)
+    <tr style="background-color: #B2D3C2;">
+        @if(($number + 1) == 1)
         <td style="font-weight: bold;">
-            {{++$number}}
-            @if($number == 1)
+            {{$number = $number + 1}}
             <i class="fa fa-trophy" aria-hidden="true" style="color: gold;"></i>
-            @endif
         </td>
-        @if(($leaderboard_type ?? 'officer') == 'officer')
+        @else
+        <td style="font-weight: bold;">
+            {{$number = $number + 1}}
+        </td>
+        @endif
         <td>{{$information->first_name}} {{$information->last_name}}</td>
         <td>{{$information->office}}</td>
+        <td>{{ number_format($information->amount, 2) }}</td>
+
+    </tr>
+    @else
+    <tr>
+        @if(($number + 1) == 1)
+        <td style="font-weight: bold;">
+            {{$number = $number + 1}}
+            <i class="fa fa-trophy" aria-hidden="true" style="color: gold;"></i>
+        </td>
         @else
-        <td>{{$information->office}}</td>
+        <td style="font-weight: bold;">
+            {{$number = $number + 1}}
+        </td>
         @endif
+        <td>{{$information->first_name}} {{$information->last_name}}</td>
+        <td>{{$information->office}}</td>
+        <td>{{ number_format($information->amount, 2) }}</td>
+    </tr>
+    @endif
+@endforeach
+@else
+@foreach($data as $information)
+    <tr>
+        @if(($number + 1) == 1)
+        <td style="font-weight: bold;">
+            {{$number = $number + 1}}
+            <i class="fa fa-trophy" aria-hidden="true" style="color: gold;"></i>
+        </td>
+        @else
+        <td style="font-weight: bold;">
+            {{$number = $number + 1}}
+        </td>
+        @endif
+        <td>{{$information->office}}</td>
         <td>{{ number_format($information->amount, 2) }}</td>
     </tr>
 @endforeach
+@endif
 </tbody>
 </table>
 </div>

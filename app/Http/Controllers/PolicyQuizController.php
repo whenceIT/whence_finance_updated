@@ -122,16 +122,16 @@ class PolicyQuizController extends Controller
         $quiz = PolicyQuiz::findOrFail($id);
         $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
         
-        // if (!$attempt) {
-        //     return redirect()->route('policy.quizzes.start', $id)
-        //         ->with('error', 'Please start the quiz before answering questions.');
-        // }
+        if (!$attempt) {
+            return redirect()->route('policy.quizzes.start', $id)
+                ->with('error', 'Please start the quiz before answering questions.');
+        }
 
-        // // Check if time expired
-        // if ($attempt->isTimeExpired()) {
-        //     $attempt->calculateScore();
-        //     return redirect()->route('policy.quizzes.results', $id);
-        // }
+        // Check if time expired
+        if ($attempt->isTimeExpired()) {
+            $attempt->calculateScore();
+            return redirect()->route('policy.quizzes.results', $id);
+        }
 
         // Get questions for this attempt (cached in session to maintain order)
         $questions = session('quiz_questions_' . $attempt->id);
@@ -146,6 +146,7 @@ class PolicyQuizController extends Controller
 
         $currentQuestion = $questions[$questionNum - 1];
         $totalQuestions = count($questions);
+        $currentQuestionIndex = $questionNum - 1;
 
         // Get user's answer for this question if exists
         $userAnswer = $attempt->answers()->where('question_id', $currentQuestion->id)->first();
@@ -156,8 +157,9 @@ class PolicyQuizController extends Controller
         return view('policy_quizzes.question', compact(
             'quiz',
             'attempt',
+            'questions',
+            'currentQuestionIndex',
             'currentQuestion',
-            'questionNum',
             'totalQuestions',
             'userAnswer',
             'remainingSeconds'
