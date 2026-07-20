@@ -43,8 +43,8 @@
 
                         <div class="form-group">
                             <label style="font-weight:600; font-size:16px;">Amount (ZMW) <span class="text-danger">*</span></label>
-                            <input type="number" id="setup-amount" class="form-control" min="5000" step="0.01" placeholder="5000.00" required inputmode="decimal" style="font-size: 16px; padding: 12px; border-radius: 6px;">
-                            <small class="text-muted">Minimum: K5,000</small>
+                            <input type="number" id="setup-amount" class="form-control" min="500" step="0.01" placeholder="" required inputmode="decimal" style="font-size: 16px; padding: 12px; border-radius: 6px;">
+                            <small class="text-muted">Monthly minimum should total upto: K5,000</small>
                         </div>
 
                         <button type="submit" id="setup-submit-btn" class="glass-submit-btn">
