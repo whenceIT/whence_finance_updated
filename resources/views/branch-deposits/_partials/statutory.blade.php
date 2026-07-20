@@ -181,8 +181,8 @@ $(document).ready(function() {
                 referenceInput.attr('placeholder', '002504072516');
                 break;
             case 'mtn':
-                hint.text('Format: 10 digit number (8704564481)');
-                referenceInput.attr('placeholder', '8704564481');
+                hint.text('Format: 11 digit number (87045644810)');
+                referenceInput.attr('placeholder', '87045644810');
                 break;
             case 'zanaco_cash':
                 hint.text('Format: 16 digit number (0502605703255600)');
@@ -223,7 +223,7 @@ $(document).ready(function() {
                 valid = /^\d{12}$/.test(reference);
                 break;
             case 'mtn':
-                valid = /^\d{10}$/.test(reference);
+                valid = /^\d{10,11}$/.test(reference);
                 break;
             case 'zanaco_cash':
                 valid = /^\d{16}$/.test(reference);
