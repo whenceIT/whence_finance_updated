@@ -20,7 +20,6 @@
             @endif
 
             <div class="row">
-                @if($debtBlocker)
                 <div class="col-md-8 col-sm-12">
                     <form id="setup-debt-deposit-form">
                         <div class="form-group">
@@ -61,7 +60,6 @@
 
                     </form>
                 </div>
-                @endif
                 
                 <div class="col-md-4 col-sm-12">
                     @if($debtBlocker)
@@ -81,7 +79,10 @@
                         <span class="info-box-icon"><i class="fa fa-check-circle"></i></span>
                         <div class="info-box-content">
                             <span class="info-box-text info-box-number">Paid</span>
-                            <span class="info-box-text">You have paid the setup debt.</span>
+                            <span class="info-box-text">
+                              You have already paid the minimum<br>required amount for this month's<br>setup debt. 
+                              If you would like to make<br>an additional payment, you may do so.
+                            </span>
                         </div>
                     </div>
                     @endif

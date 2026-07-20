@@ -5,12 +5,18 @@ use Illuminate\Support\Str;
 @endphp
 
 @section('content')
-<div class="content">
-    <section class="content-header">
-        <h1>Quiz Results</h1>
-    </section>
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('error') }}
+        </div>
+    @endif
+    <div class="content">
+        <section class="content-header">
+            <h1>Quiz Results</h1>
+        </section>
 
-    <section class="content">
+        <section class="content">
         <div class="row">
             <div class="col-md-12">
                 <!-- Results Summary -->

@@ -488,7 +488,7 @@ class RiskController extends Controller
                     'meta'        => $a->meta,
                     'is_read'     => (bool) $a->is_read,
                     'created_at'  => $a->created_at ? $a->created_at->format('d M Y H:i') : '',
-                    'created_by'  => $a->creator ? $a->creator->full_name ?? ($a->creator->first_name . ' ' . $a->creator->last_name) : null,
+                    'created_by'  => $a->creator ? $a->creator->full_name : null,
                 ];
             })->all(),
         ]);

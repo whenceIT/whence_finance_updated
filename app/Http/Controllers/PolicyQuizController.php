@@ -41,6 +41,7 @@ class PolicyQuizController extends Controller
         $quiz = PolicyQuiz::findOrFail($id);
         
         // Check if quiz is open
+
         if (!$quiz->isOpen()) {
             return redirect()->route('policy.quizzes.index')
                 ->with('error', 'This quiz is not currently available.');
@@ -79,7 +80,8 @@ class PolicyQuizController extends Controller
 
         if ($attempt->isTimeExpired()) {
             $attempt->calculateScore();
-            return redirect()->route('policy.quizzes.results', $id);
+            return redirect()->route('policy.quizzes.results', $id)
+                ->with('error', 'Quiz has expired');
         }
 
         $questions = session('quiz_questions_' . $attempt->id);

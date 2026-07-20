@@ -48,7 +48,7 @@ class RiskDashboardController extends Controller
         $statutoryDeadline = Deadline::where('name', 'Statutory payments deposits')->first();
 
         // Pending approvals counts
-        $pendingDepositApprovals = Deposit::whereNull('status')
+        $pendingDepositApprovals = Deposit::withoutGlobalScope('approved')->whereNull('status')
             ->whereHas('bankDepositLog')
             ->count();
 
