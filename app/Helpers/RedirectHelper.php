@@ -122,4 +122,17 @@ class RedirectHelper
         Session::flash('success', $message);
         return redirect()->route($route);
     }
+
+    /**
+     * Get advances without transactions in current month (This Month tab)
+     */
+    public static function getThisMonthAdvances($baseQuery, $currentMonth)
+    {
+        return (clone $baseQuery)
+            ->where('status', 'approved')
+            ->whereDoesntHave('transactions', function ($q) use ($currentMonth) {
+                $q->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$currentMonth]);
+            })
+            ->get();
+    }
 }

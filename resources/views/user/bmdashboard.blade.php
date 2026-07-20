@@ -16,6 +16,8 @@ function totalAmount($transactions) {
 
 @endphp
 
+@include('components.advance-deduction-banner')
+
 <!-- ================= DAILY PERFORMANCE CARD ================= -->
 <div class="card shadow-sm" style="border-radius:12px; overflow:hidden; border:0;">
     <div style="padding:14px 18px; border-bottom:1px solid #f1f1f1; background:#fff;">
@@ -28,12 +30,13 @@ function totalAmount($transactions) {
     </div>
 
     @php
-        $fullPaymentsTotal = totalAmount($branch['transactions']['full_payments'] ?? []);
-        $reloansTotal = totalAmount($branch['transactions']['reloans'] ?? []);
-        $partPaymentsTotal = totalAmount($branch['transactions']['part_payments'] ?? []);
-        $newLoansTotal = totalAmount($branch['transactions']['new_loans'] ?? []);
-        $expensesTotal = totalAmount($branch['transactions']['expenses'] ?? []);
-        $advancesTotal = totalAmount($branch['transactions']['advances'] ?? []);
+        $branchTransactions = $branch['transactions'] ?? [];
+        $fullPaymentsTotal = totalAmount($branchTransactions['full_payments'] ?? []);
+        $reloansTotal = totalAmount($branchTransactions['reloans'] ?? []);
+        $partPaymentsTotal = totalAmount($branchTransactions['part_payments'] ?? []);
+        $newLoansTotal = totalAmount($branchTransactions['new_loans'] ?? []);
+        $expensesTotal = totalAmount($branchTransactions['expenses'] ?? []);
+        $advancesTotal = totalAmount($branchTransactions['advances'] ?? []);
         $grandTotal = $fullPaymentsTotal + $reloansTotal + $partPaymentsTotal + $newLoansTotal + $expensesTotal + $advancesTotal;
     @endphp
 
@@ -156,7 +159,7 @@ function totalAmount($transactions) {
 <div class="box box-success">
     <div class="box-header with-border">
         <h3 class="box-title">
-            <i class="fa fa-building"></i> {{ $branch['office'] ?? $branch['name'] }} Performance
+            <i class="fa fa-building"></i> {{ $branch['office'] ?? ($branch['name'] ?? 'Branch') }} Performance
         </h3>
     </div>
     <div class="box-body">

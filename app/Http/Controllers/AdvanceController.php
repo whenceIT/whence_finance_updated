@@ -18,6 +18,7 @@ use App\Models\TopUp;
 use App\Models\AdvanceTransaction;
 use App\Models\UserRole;
 use App\Models\Notifix;
+use App\Helpers\RedirectHelper;
 use Illuminate\Support\Facades\Http;
 
 class AdvanceController extends Controller
@@ -436,11 +437,7 @@ class AdvanceController extends Controller
         $allAdvances = (clone $baseQuery)->get();
         
         // Get advances without transactions in current month (This Month tab)
-        $thisMonthAdvances = (clone $baseQuery)
-            ->whereDoesntHave('transactions', function ($q) use ($currentMonth) {
-                $q->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$currentMonth]);
-            })
-            ->get();
+        $thisMonthAdvances = RedirectHelper::getThisMonthAdvances($baseQuery, $currentMonth);
 
         return view('advances.advance_deductions', compact('allAdvances', 'thisMonthAdvances'));
     }

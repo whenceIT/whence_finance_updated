@@ -255,13 +255,6 @@ public function bmdashboard(Request $request){
     $end_date   = $request->end_date ?? $cycleEnd->format('Y-m-d');
 
 
-    // try{
-
-
-
-    // }catch{
-
-    // }
 
     $url = "https://lms2backend.whencefinancesystem.com/branch-ledger-summary?branch_id=$office_id";
     $url2 = "https://lms2backend.whencefinancesystem.com/consultants-performance-by-office?office_id=$office_id&start_date=$start_date&end_date=$end_date";
@@ -269,9 +262,9 @@ public function bmdashboard(Request $request){
     $json = @file_get_contents($url);
     $json2 = @file_get_contents($url2);
     $json3 = @file_get_contents($url3);
-    $branch = $json ? json_decode($json, true) : null;
-    $branch_data =  $json3 ? json_decode($json3, true) : null;
-    $data = $json2 ? json_decode($json2, true) : null;
+    $branch = $json ? json_decode($json, true) : [];
+    $branch_data = $json3 ? json_decode($json3, true) : [];
+    $data = $json2 ? json_decode($json2, true) : [];
     $consultants = $data['data'] ?? [];
 
     return view('user.bmdashboard',compact('branch','consultants',  'start_date',
