@@ -151,7 +151,7 @@
                 alert('Please enter a payment reference number.');
                 return;
             }
-            if (isNaN(amount) || amount < 5000) {
+            if (isNaN(amount) || amount < 500) {
                 alert('Amount must be at least K5,000');
                 return;
             }
@@ -338,8 +338,8 @@
                 alert('Please enter a payment reference number.');
                 return;
             }
-            if (isNaN(amount) || amount < 5000) {
-                alert('Amount must be at least K5,000');
+            if (isNaN(amount) || amount < 500) {
+                alert('Amount must be at least K500');
                 return;
             }
 
