@@ -422,7 +422,9 @@ class AdvanceController extends Controller
         
         // Base query with office and user relationships
         $baseQuery = Advance::with(['office', 'user', 'transactions']);
-        
+        $baseQuery2 = Advance::with(['office', 'user', 'transactions'])
+            ->where('office_id', $user->office_id)
+            ->where('created_at', '<', now()->startOfMonth());
         if ($user->inRole(1)) {
             // Admin - all offices
         } elseif ($user->inRole(6)) {
@@ -437,7 +439,7 @@ class AdvanceController extends Controller
         $allAdvances = (clone $baseQuery)->get();
         
         // Get advances without transactions in current month (This Month tab)
-        $thisMonthAdvances = RedirectHelper::getThisMonthAdvances($baseQuery, $currentMonth);
+        $thisMonthAdvances = RedirectHelper::getThisMonthAdvances($baseQuery2, $currentMonth);
 
         return view('advances.advance_deductions', compact('allAdvances', 'thisMonthAdvances'));
     }
