@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class PolicyQuizAttempt extends Model
 {
     use HasFactory;
+    
+    public $timestamps = false;
 
     protected $fillable = [
         'policy_quiz_id',

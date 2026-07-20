@@ -1,5 +1,9 @@
 @extends('layouts.master')
 
+@php
+use Illuminate\Support\Str;
+@endphp
+
 @section('content')
 <div class="content">
     <section class="content-header">

@@ -417,19 +417,32 @@ class AdvanceController extends Controller
     public function showAdvanceDeductions()
     {
         $user = Sentinel::getUser();
-        $query = Advance::with('transactions');
-
+        $currentMonth = now()->format('Y-m');
+        
+        // Base query with office and user relationships
+        $baseQuery = Advance::with(['office', 'user', 'transactions']);
+        
         if ($user->inRole(1)) {
+            // Admin - all offices
         } elseif ($user->inRole(6)) {
-            $query->whereIn('office_id', function ($q) use ($user) {
+            $baseQuery->whereIn('office_id', function ($q) use ($user) {
                 $q->select('id')->from('offices')->where('province_id', $user->province_id);
             });
         } elseif ($user->inRole(4)) {
-            $query->where('office_id', $user->office_id);
+            $baseQuery->where('office_id', $user->office_id);
         }
 
-        $advances = $query->get();
-        return view('advances.advance_deductions', compact('advances'));
+        // Get all advances (Overall tab)
+        $allAdvances = (clone $baseQuery)->get();
+        
+        // Get advances without transactions in current month (This Month tab)
+        $thisMonthAdvances = (clone $baseQuery)
+            ->whereDoesntHave('transactions', function ($q) use ($currentMonth) {
+                $q->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$currentMonth]);
+            })
+            ->get();
+
+        return view('advances.advance_deductions', compact('allAdvances', 'thisMonthAdvances'));
     }
 
     public function processDeduction($id)
