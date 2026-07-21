@@ -36,7 +36,7 @@ class RedirectHelper
             'cscan' => 1,
         ])->first();
 
-        if(!in_array($user, (array) config('role.exec', []))) {
+        if(in_array($user, (array) config('role.exec', []))) {
             return null;
         }
 
