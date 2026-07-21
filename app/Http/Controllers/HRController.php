@@ -551,8 +551,9 @@ public function workforce_analytics()
     {
         $positions = Position::orderBy('name')->get();
         $offices = Office::orderBy('name')->get();
+        $scanedoffices = \App\Models\Office::where('pscan', 1)->orderBy('updated_at', 'desc')->get();
         
-        return view('hr.employee-exports', compact('positions', 'offices'));
+        return view('hr.employee-exports', compact('positions', 'offices', 'scanedoffices'));
     }
 
     public function exportEmployees(Request $request)

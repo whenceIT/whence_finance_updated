@@ -31,7 +31,7 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 
-<div class="col-lg-12" style="width: 100%; display: flex; align-items: center; justify-content: center;">
+<div class="content" style="width: 100%; display: flex; align-items: center; justify-content: center;">
 
         <div style="background: white; border-radius: 12px; overflow: hidden; max-width: 900px; width: 50%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; border: 1px solid #eee; animation: modalContentAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
 
@@ -46,7 +46,7 @@
             </div>
 
             <div id="profileWizardContent" style="padding: 0; background: white; min-height: 350px; max-height: 500px; overflow-y: auto;">
-                <form id="profile-form" action="{{ url('profile_completion') }}" method="POST">
+                <form id="profile-form" action="{{ url('user/profile_completion') }}" method="POST">
                     @csrf
 
                     <div id="profileStep1" class="wizard-step" style="display: block;">
@@ -58,7 +58,7 @@
                                     <label style="font-weight: 600; color: #000041;">Salutation</label>
                                     <select name="salutation" class="form-control" style="padding: 1px; border-radius: 6px; border: 1px solid #ddd;">
                                         <option value="">Select</option>
-                                        <option value="Mr." {{ old('salutation', $user->salutation) == 'Mr.' ? 'selected' : '' }}>Mr.</option>
+                                        <option value="Mr" {{ old('salutation', $user->salutation) == 'Mr.' ? 'selected' : '' }}>Mr.</option>
                                         <option value="Ms." {{ old('salutation', $user->salutation) == 'Ms.' ? 'selected' : '' }}>Ms.</option>
                                         <option value="Mrs." {{ old('salutation', $user->salutation) == 'Mrs.' ? 'selected' : '' }}>Mrs.</option>
                                         <option value="Dr." {{ old('salutation', $user->salutation) == 'Dr.' ? 'selected' : '' }}>Dr.</option>
@@ -241,6 +241,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label style="font-weight: 600; color: #000041;">Health Insurance Number</label>
+                                    <small>e.g NHIMA Number</small>
                                     <input disabled type="text" name="health_insurance_number" class="form-control" value="{{ old('health_insurance_number', $user->health_insurance_number) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
                                 </div>
                             </div>
@@ -353,6 +354,33 @@
         </div>
     </div>
 
+    <div style="
+    width:100%;
+    margin:20px 0;
+    padding:15px 20px;
+    background:#f8f9fa;
+    border:1px solid #dee2e6;
+    border-left:5px solid #007bff;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    font-size:15px;
+    color:#495057;
+    font-weight:500;
+    text-align:center;
+">
+    <i class="fa fa-phone" style="color:#007bff;font-size:18px;"></i>
+    <span>
+        For any inquiries or assistance, please contact the
+        <strong>Management Administrator</strong> at
+        <a href="tel:+260975230170" style="color:#007bff;text-decoration:none;font-weight:600;">
+            +260 975 230 170
+        </a>.
+    </span>
+</div>
+
     <script>
         (function () {
             var currentStep = 1;
@@ -463,12 +491,8 @@
                             return false;
                         }
                     }
-                    if (salaryMode === '') {
-                        toastr.error('Please select salary mode.', 'Validation Error');
-                        return false;
-                    }
-                } else if (currentStep === 6) {
-                    var levelEduSelect = document.querySelector('select[name="level_of_education"]');
+                }else if (currentStep === 6) {
+                    var levelEduSelect = document.querySelector('select[name="level_of_education"]').value.trim();;
                     var yearComp = document.querySelector('input[name="year_completed"]').value.trim();
                     var qual = document.querySelector('input[name="qualification"]').value.trim();
                     var school = document.querySelector('input[name="school_university"]').value.trim();
