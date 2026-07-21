@@ -10,6 +10,20 @@ use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
         <h1>Policy Quizzes</h1>
     </section>
 
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('success') }}
+        </div>
+    @endif
+
     <section class="content">
         <div class="row">
             <div class="col-md-12">
