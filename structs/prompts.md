@@ -47,7 +47,7 @@ SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '2-2706' f
 src/Illuminate/Database/Connection.php:760)
 
 
-
+isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] != 'fully paid'
 
 
  
