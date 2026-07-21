@@ -488,7 +488,7 @@ class RiskController extends Controller
                     'meta'        => $a->meta,
                     'is_read'     => (bool) $a->is_read,
                     'created_at'  => $a->created_at ? $a->created_at->format('d M Y H:i') : '',
-                    'created_by'  => $a->creator ? $a->creator->full_name ?? ($a->creator->first_name . ' ' . $a->creator->last_name) : null,
+                    'created_by'  => $a->creator ? $a->creator->full_name : null,
                 ];
             })->all(),
         ]);
@@ -1718,10 +1718,11 @@ class RiskController extends Controller
         $deposits = $depositQuery->get();
 
         $officeMap = [];
-        foreach ($offices as $office) {
-            $officeMap[$office->id] = [
-                'office_id'   => $office->id,
-                'office_name' => $office->name,
+        foreach ($officeIds as $id) {
+            $office = $offices->firstWhere('id', $id);
+            $officeMap[$id] = [
+                'office_id'   => $id,
+                'office_name' => $office ? $office->name : '—',
                 'total'       => 0,
                 'deposit_count' => 0,
                 'deposits'    => [],
@@ -2036,6 +2037,16 @@ class RiskController extends Controller
         $rows = [];
         foreach ($costs as $cost) {
             $totalPaid = $cost->transactions->sum('amount');
+            
+            // query from deposits where deposit_type = 6 and office = cost->office->id for 13/07/2026
+            $targetDate = '2026-07-13';
+            $depositAmount = \App\Models\BankDepositLog::where('deposit_type', 6)
+                ->where('office_id', $cost->office_id)
+                ->whereDate('created_date', $targetDate)
+                ->sum('amount');
+            
+            // Add deposit amount to total paid
+            $totalPaid += $depositAmount;
             $balance = $cost->amount - $totalPaid;
             
             $rows[] = [
@@ -2047,6 +2058,7 @@ class RiskController extends Controller
                 'description' => $cost->description,
                 'created_at' => $cost->created_at,
                 'transactions' => $cost->transactions,
+                'deposit_amount' => $depositAmount,
             ];
         }
         
@@ -2123,6 +2135,44 @@ class RiskController extends Controller
             'success' => true,
             'message' => 'Transaction recorded successfully',
             'data' => $transaction,
+        ]);
+    }
+    
+    public function getSetupDebtTransactions(Request $request, $id)
+    {
+        $costId = $id;
+        $transactions = \App\Models\SetupDebtTransaction::with('creator')
+            ->where('setup_debt_cost_id', $costId)
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+        
+        // Get deposit from 13/07/2026 for the cost's office
+        if ($costId) {
+            $cost = \App\Models\SetupDebtCost::findOrFail($costId);
+            $targetDate = '2026-07-13';
+            $depositAmount = \App\Models\BankDepositLog::where('deposit_type', 6)
+                ->where('office_id', $cost->office_id)
+                ->whereDate('created_date', $targetDate)
+                ->sum('amount');
+            
+            if ($depositAmount > 0) {
+                // Create a fake transaction for the deposit
+                $depositTransaction = (object) [
+                    'id' => 'deposit_' . $costId,
+                    'amount' => $depositAmount,
+                    'transaction_date' => '2026-07-13',
+                    'notes' => 'Savings Deposit',
+                    'creator' => null,
+                ];
+                $transactions->push($depositTransaction);
+            }
+        }
+        
+        $totalPaid = $transactions->sum('amount');
+        
+        return response()->json([
+            'transactions' => $transactions,
+            'total_paid' => $totalPaid,
         ]);
     }
     

@@ -39,6 +39,7 @@ use App\Http\Controllers\Recoveries\RecoverySpecialistController;
 use App\Http\Controllers\Recoveries\RecoveryReportController;
 use App\Http\Controllers\Recoveries\RecoveryTransactionController;
 use App\Http\Controllers\Recoveries\RecoveryClientController;
+use App\Http\Controllers\Recoveries\DeptSharesController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\DistrictRegionalController;
 use App\Http\Controllers\OfficeController;
@@ -46,6 +47,7 @@ use App\Http\Controllers\FleetController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\RiskController;
+use App\Http\Controllers\RiskDashboardController;
 use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\ApprovalWorkflowController;
 use App\Http\Controllers\AdministrationExpenseController;
@@ -334,7 +336,21 @@ Route::group(['prefix' => 'hr'],function(){
     Route::get('administrative-records/data', 'HRController@administrativeRecordsData');
     Route::post('administrative-records/{id}/approve', 'HRController@approveRecord');
     Route::post('administrative-records/{id}/decline', 'HRController@declineRecord');
+    Route::get('employee-exports', 'HRController@employeeExports')->name('hr.employee-exports');
+    Route::post('employee-exports', 'HRController@exportEmployees')->name('hr.employee-exports.download');
+    Route::get('employee-exports/excel', 'HRController@exportEmployeesToExcel')->name('hr.employee-exports.excel');
+    Route::get('employee-exports/inactive', 'HRController@exportInactiveEmployees')->name('hr.employee-exports.inactive');
+    Route::get('employee-exports/active', 'HRController@exportActiveEmployees')->name('hr.employee-exports.active');
+    Route::get('employee-exports/erp', 'HRController@exportEmployeeERP')->name('hr.employee-exports.erp');
+    Route::get('employee-exports/napsa', 'HRController@exportEmployeeNAPSA')->name('hr.employee-exports.napsa');
+    Route::get('employee-exports/nhima', 'HRController@exportEmployeeNHIMA')->name('hr.employee-exports.nhima');
     Route::get('workforce_analytics','HRController@workforce_analytics');
+});
+
+// Recovery routes
+Route::group(['prefix' => 'recovery'], function () {
+    Route::get('dept-shares', 'Recoveries\DeptSharesController@index')->name('dept.shares');
+    Route::post('dept-shares/store', 'Recoveries\DeptSharesController@store')->name('recovery.dept-shares.store');
 });
 
 // GOA Manager routes
@@ -355,14 +371,16 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
 });
 
 Route::group(['prefix' => 'vehicles'], function () {
-    Route::get('/', 'VehicleController@index');
+    Route::get('/', 'VehicleController@MotorVehicles');
     Route::get('dashboard', 'VehicleController@dashboard');
-    Route::get('create', 'VehicleController@create');
+    Route::get('create', 'VehicleController@MotorVehicleLoan');
     Route::any('store', 'VehicleController@store');
     Route::any('{id}', 'VehicleController@show');
     Route::any('{id}/edit', 'VehicleController@edit');
     Route::any('{id}/update', 'VehicleController@update');
     Route::get('search-clients', 'VehicleController@searchbClients');
+    Route::get('{vehicle}/custody/create','VehicleController@createCustody');
+    Route::any('{vehicle}/custody','VehicleController@storeCustody');
     Route::get('{vehicle}/insurance/create','VehicleController@createInsurance');
     Route::any('{vehicle}/insurance/store','VehicleController@storeInsurance');
     Route::get('{vehicle}/documents/create','VehicleController@createDocuments');
@@ -371,6 +389,8 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::any('{vehicle}/photos/store','VehicleController@storePhotos');
     Route::get('{vehicle}/inspections/create','VehicleController@createInspections');
     Route::any('{vehicle}/inspections/store','VehicleController@storeInspections');
+    Route::get('loans1','VehicleController@MotorVehicleLoan');
+    Route::get('new_route','VehicleController@MotorVehicleLoan');
 });
 
 //route for users
@@ -490,6 +510,7 @@ Route::group(['prefix' => 'audits'], function () {
 });
 //route for risk management
 Route::group(['prefix' => 'risk'], function () {
+    Route::get('dashboard', [RiskDashboardController::class, 'index'])->name('risk.dashboard');
     Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
@@ -516,6 +537,8 @@ Route::group(['prefix' => 'risk'], function () {
     Route::get('audit-report-print/{submissionId}', [RiskController::class, 'printAuditReport'])->name('risk.audit-report-print');
     Route::post('store-audit-submission', [RiskController::class, 'storeAuditSubmission'])->name('risk.store-audit-submission');
     Route::delete('audit-submission/{submissionId}', [RiskController::class, 'deleteAuditSubmission'])->name('risk.delete-audit-submission');
+    Route::get('branch-deposit-transactions', [BranchDepositController::class, 'branchDepositTransactions'])->name('branch-deposit-transactions');
+    Route::get('branch-deposit-transactions/pdf', [BranchDepositController::class, 'branchDepositTransactionsPdf'])->name('branch-deposit-transactions.pdf');
     Route::get('fraud-feed',                    [RiskController::class, 'fraudFeed'])->name('risk.fraud-feed');
     Route::get('fraud-alerts',                  [RiskController::class, 'getFraudAlerts'])->name('risk.fraud-alerts');
     Route::delete('fraud-alert/{id}', [RiskController::class, 'destroyAlert'])->name('risk.fraud-alert.destroy');
@@ -1401,7 +1424,7 @@ Route::group(['prefix' => 'advance'], function () {
     Route::post('{id}/approve', 'AdvanceController@approve')->name('advances.approve');
     Route::post('{id}/decline', 'AdvanceController@decline')->name('advances.decline');
     Route::get('/pending_approvals', 'AdvanceController@showPendingApprovals')->name('advances.pending_approvals');
-    Route::get('active_advances', 'AdvanceController@showActiveAdvances')->name('advances.active_advances');
+    Route::get('active_advances', 'AdvanceController@showActiveAdvances')->name('advances.active_advances'); //Advance deductions transactions
     Route::get('closed_advances', 'AdvanceController@storeClosedAdvances')->name('advances.closed_advances');
     Route::get('declined_advances', 'AdvanceController@showDeclinedAdvances')->name('advances.declined_advances');
     Route::get('/active_advances/{id}', 'AdvanceController@showDetails')->name('advances.show');
@@ -1418,6 +1441,8 @@ Route::group(['prefix' => 'advance'], function () {
         '/active_advances_province_manager/{id}',
         'AdvanceController@showAdvancesForProvinceManager'
     )->name('advances.active_advances_province_managers');
+    Route::get('advance_deductions', 'AdvanceController@showAdvanceDeductions')->name('advances.advance_deductions');
+    Route::post('deduction/{id}', 'AdvanceController@processDeduction')->name('advances.deduction');
 });
 
 //annual leave
@@ -2029,6 +2054,7 @@ Route::group(['prefix' => 'recovery'], function () {
     Route::get('clients-in-dormant', 'Recoveries\RecoveryClientController@dormant_clients')->name('recoveries.dormant-clients');
     Route::get('recovered_clients', 'Recoveries\RecoveryClientController@recovered_clients')->name('client.recovered_clients');
     Route::post('{id}/mark-recovered', 'Recoveries\RecoveryClientController@mark_recovered')->name('client.mark_recovered');
+    Route::post('mark-esc-recovered/{clientId}/{loanId}', 'Recoveries\RecoveryClientController@markEscRecovered')->name('client.mark_esc_recovered');
 
     // Nudge routes
     Route::get('nudge/compose',   'Recoveries\RecoveryNudgeController@compose');
@@ -2084,4 +2110,28 @@ Route::group(['prefix' => 'bank-account-expenses', 'middleware' => 'sentinel'], 
     Route::put('/{expense}', [BankAccountExpenseController::class, 'update'])->name('bank_account_expenses.update');
     Route::delete('/{expense}', [BankAccountExpenseController::class, 'destroy'])->name('bank_account_expenses.destroy');
     Route::get('/dashboard', [BankAccountExpenseController::class, 'getDashboard'])->name('bank_account_expenses.dashboard');
+});
+// Policy Quizzes Routes
+Route::group(['prefix' => 'policy-quizzes'], function () {
+    // User-facing routes
+    Route::get('/', [App\Http\Controllers\PolicyQuizController::class, 'index'])->name('policy.quizzes.index');
+    Route::get('/{id}/start', [App\Http\Controllers\PolicyQuizController::class, 'start'])->name('policy.quizzes.start');
+    Route::get('/{id}/question/{question}', [App\Http\Controllers\PolicyQuizController::class, 'question'])->name('policy.quizzes.question');
+    Route::post('/{id}/answer', [App\Http\Controllers\PolicyQuizController::class, 'answer'])->name('policy.quizzes.answer');
+    Route::post('/{id}/submit', [App\Http\Controllers\PolicyQuizController::class, 'submit'])->name('policy.quizzes.submit');
+    Route::get('/{id}/results', [App\Http\Controllers\PolicyQuizController::class, 'results'])->name('policy.quizzes.results');
+});
+
+// Admin Policy Quiz Routes
+Route::group(['prefix' => 'admin/policy-quizzes'], function () {
+    Route::get('/', [App\Http\Controllers\PolicyQuizController::class, 'adminIndex'])->name('admin.policy-quizzes.index');
+    Route::get('/create', [App\Http\Controllers\PolicyQuizController::class, 'create'])->name('admin.policy-quizzes.create');
+    Route::post('/', [App\Http\Controllers\PolicyQuizController::class, 'store'])->name('admin.policy-quizzes.store');
+    Route::get('/{id}/edit', [App\Http\Controllers\PolicyQuizController::class, 'edit'])->name('admin.policy-quizzes.edit');
+    Route::put('/{id}', [App\Http\Controllers\PolicyQuizController::class, 'update'])->name('admin.policy-quizzes.update');
+    Route::delete('/{id}', [App\Http\Controllers\PolicyQuizController::class, 'destroy'])->name('admin.policy-quizzes.destroy');
+    Route::get('/{id}/upload', [App\Http\Controllers\PolicyQuizController::class, 'upload'])->name('policy.quizzes.upload');
+    Route::post('/{id}/upload', [App\Http\Controllers\PolicyQuizController::class, 'uploadQuestions'])->name('policy.quizzes.upload.questions');
+    Route::get('/{id}/report', [App\Http\Controllers\PolicyQuizController::class, 'report'])->name('policy.quizzes.report');
+    Route::get('/{id}/completion', [App\Http\Controllers\PolicyQuizController::class, 'completionDashboard'])->name('policy.quizzes.completion-dashboard');
 });

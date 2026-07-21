@@ -76,6 +76,7 @@ class User extends EloquentUser
         'nhima',
         'salary_details',
         'daily_learning',
+        'esc_recovered',
     ];
     public function payroll()
     {
@@ -148,5 +149,10 @@ class User extends EloquentUser
     {
         $position = \Illuminate\Support\Facades\DB::table('job_positions')->where('id', $this->position_id)->first();
         return $position ? $position->name : '';
+    }
+
+    public function getFullNameAttribute()
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 }

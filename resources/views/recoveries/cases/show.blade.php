@@ -92,8 +92,8 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
                     <li role="presentation"><a href="#dormant" aria-controls="dormant" role="tab" data-toggle="tab">Dormant</a></li>
                     <li role="presentation"><a href="#resolution" aria-controls="resolution" role="tab" data-toggle="tab">Resolution</a></li>
                 </ul>
-                <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="basic">
+                <div class="tab-content" style="padding: 15px;">
+                    <div role="tabpanel" class="tab-pane active" id="basic" style="display: block;">
                         <dl class="dl-horizontal">
                             <dt>Client:</dt><dd>{{ $clientName }}</dd>
                             <dt>Loan:</dt><dd>{{ $loanRef }}</dd>
@@ -242,11 +242,12 @@ document.querySelectorAll('.nudge-ch').forEach(function(btn) {
 {{-- Include Recovery Payment Modal --}}
 
     @php
-        // Prepare data for the recovery modal
-        $loan = \App\Models\Loan::where('id',$loanRef)->first();
+        $loan = $case->loan;
         $recoveryCases = collect([$case]); // Pass current case as collection
     @endphp
-    @include('loan.repayment.recovery_modal')
+    @if($loan)
+        @include('loan.repayment.recovery_modal')
+    @endif
 
 
 @endsection

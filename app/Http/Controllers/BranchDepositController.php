@@ -31,7 +31,7 @@ class BranchDepositController extends Controller
     public function blockages(Request $request)
     {
         $blockages = \App\Models\Blockage::with('office')->latest()->get();
-        $offices = \App\Models\Office::all();
+        $offices = \App\Models\Office::orderBy('created_at', 'asc')->get();
         $deadline = Deadline::first();
         
         return view('branch-deposits.standalone', compact('blockages', 'offices', 'deadline'));
@@ -179,5 +179,67 @@ class BranchDepositController extends Controller
             'message' => 'Deadline updated successfully',
             'data' => $deadline
         ]);
+    }
+
+    public function branchDepositTransactions(Request $request)
+    {
+        $selectedMonth = $request->get('month', date('Y-m'));
+        $depositTypeId = $request->get('deposit_type_id');
+
+        $parts = explode('-', $selectedMonth);
+        $monthNum = $parts[1] ?? date('m');
+        $year = $parts[0] ?? date('Y');
+
+        $query = Deposit::withoutGlobalScope('approved')
+            ->select('deposits.*')
+            ->join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
+            ->with(['depositTypeInfo', 'office', 'bankDepositLog.user']);
+
+        $query->whereYear('date', $year)
+            ->whereMonth('date', $monthNum);
+
+        if ($depositTypeId) {
+            $query->where('deposits.deposit_type', $depositTypeId);
+        }
+
+        $deposits = $query->orderBy('bank_deposit_log.created_date', 'desc')->get();
+
+        $depositTypes = \App\Models\DepositType::orderBy('name')->get();
+
+        return view('risk.branch-deposit-transactions', compact(
+            'deposits',
+            'depositTypes',
+            'selectedMonth',
+            'depositTypeId'
+        ));
+    }
+
+    public function branchDepositTransactionsPdf(Request $request)
+    {
+        $selectedMonth = $request->get('month', date('Y-m'));
+        $depositTypeId = $request->get('deposit_type_id');
+
+        $parts = explode('-', $selectedMonth);
+        $monthNum = $parts[1] ?? date('m');
+        $year = $parts[0] ?? date('Y');
+
+        $query = Deposit::withoutGlobalScope('approved')
+            ->select('deposits.*')
+            ->join('bank_deposit_log', 'deposits.id', '=', 'bank_deposit_log.deposit_id')
+            ->with(['depositTypeInfo', 'office', 'bankDepositLog.user']);
+
+        $query->whereYear('date', $year)
+            ->whereMonth('date', $monthNum);
+
+        if ($depositTypeId) {
+            $query->where('deposits.deposit_type', $depositTypeId);
+        }
+
+        $deposits = $query->orderBy('bank_deposit_log.created_date', 'desc')->get();
+
+        return view('risk.branch-deposit-transactions-pdf', compact(
+            'deposits',
+            'selectedMonth'
+        ));
     }
 }

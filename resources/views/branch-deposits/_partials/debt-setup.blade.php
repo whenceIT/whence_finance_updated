@@ -20,7 +20,6 @@
             @endif
 
             <div class="row">
-                @if($debtBlocker)
                 <div class="col-md-8 col-sm-12">
                     <form id="setup-debt-deposit-form">
                         <div class="form-group">
@@ -44,8 +43,8 @@
 
                         <div class="form-group">
                             <label style="font-weight:600; font-size:16px;">Amount (ZMW) <span class="text-danger">*</span></label>
-                            <input type="number" id="setup-amount" class="form-control" min="5000" step="0.01" placeholder="5000.00" required inputmode="decimal" style="font-size: 16px; padding: 12px; border-radius: 6px;">
-                            <small class="text-muted">Minimum: K5,000</small>
+                            <input type="number" id="setup-amount" class="form-control" min="500" step="0.01" placeholder="" required inputmode="decimal" style="font-size: 16px; padding: 12px; border-radius: 6px;">
+                            <small class="text-muted">Monthly minimum should total upto: K5,000</small>
                         </div>
 
                         <button type="submit" id="setup-submit-btn" class="glass-submit-btn">
@@ -61,7 +60,6 @@
 
                     </form>
                 </div>
-                @endif
                 
                 <div class="col-md-4 col-sm-12">
                     @if($debtBlocker)
@@ -81,7 +79,10 @@
                         <span class="info-box-icon"><i class="fa fa-check-circle"></i></span>
                         <div class="info-box-content">
                             <span class="info-box-text info-box-number">Paid</span>
-                            <span class="info-box-text">You have paid the setup debt.</span>
+                            <span class="info-box-text">
+                              You have already paid the minimum<br>required amount for this month's<br>setup debt. 
+                              If you would like to make<br>an additional payment, you may do so.
+                            </span>
                         </div>
                     </div>
                     @endif
@@ -150,7 +151,7 @@
                 alert('Please enter a payment reference number.');
                 return;
             }
-            if (isNaN(amount) || amount < 5000) {
+            if (isNaN(amount) || amount < 500) {
                 alert('Amount must be at least K5,000');
                 return;
             }
@@ -337,8 +338,8 @@
                 alert('Please enter a payment reference number.');
                 return;
             }
-            if (isNaN(amount) || amount < 5000) {
-                alert('Amount must be at least K5,000');
+            if (isNaN(amount) || amount < 500) {
+                alert('Amount must be at least K500');
                 return;
             }
 

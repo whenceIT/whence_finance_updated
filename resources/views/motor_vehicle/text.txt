@@ -1,0 +1,741 @@
+@extends('layouts.master')
+
+@section('content')
+
+<section class="content-header">
+    <h1>
+        Motor Vehicle Loans Dashboard
+        <small>Portfolio Overview</small>
+    </h1>
+</section>
+
+<section class="content">
+
+    {{-- KPI CARDS --}}
+    <div class="row">
+
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-aqua">
+                <div class="inner">
+                    <h3>{{ number_format($totalVehicles) }}</h3>
+                    <p>Total Vehicles</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-car"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-green">
+                <div class="inner">
+                    <h3>{{ number_format($activeLoans) }}</h3>
+                    <p>Active Vehicle Loans</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-money"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-yellow">
+                <div class="inner">
+                    <h3>K{{ number_format($totalVehicleValue,2) }}</h3>
+                    <p>Total Vehicle Value</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-line-chart"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-red">
+                <div class="inner">
+                    <h3>K{{ number_format($activeLoansPrincipal,2) }}</h3>
+                    <p>Total Given Out</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-warning"></i>
+                </div>
+            </div>
+        </div>
+
+    
+
+    </div>
+
+    <!-- {{-- PORTFOLIO SUMMARY + ATTENTION --}}
+    <div class="row">
+
+        <div class="col-md-8">
+
+            <div class="box box-primary">
+
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                        Portfolio Summary
+                    </h3>
+                </div>
+
+                <div class="box-body">
+
+                    <table class="table table-bordered">
+
+                        <tr>
+                            <th>Total Vehicles</th>
+                            <td>{{ number_format($totalVehicles) }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Total Vehicle Value</th>
+                            <td>K{{ number_format($totalVehicleValue,2) }}</td>
+                        </tr>
+
+                        @isset($totalForcedSaleValue)
+                        <tr>
+                            <th>Total Forced Sale Value</th>
+                            <td>K{{ number_format($totalForcedSaleValue,2) }}</td>
+                        </tr>
+                        @endisset
+
+                        @isset($outstandingBalance)
+                        <tr>
+                            <th>Total Outstanding Balance</th>
+                            <td>K{{ number_format($outstandingBalance,2) }}</td>
+                        </tr>
+                        @endisset
+
+                        @isset($amountCollected)
+                        <tr>
+                            <th>Total Amount Collected</th>
+                            <td>K{{ number_format($amountCollected,2) }}</td>
+                        </tr>
+                        @endisset
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="box box-danger">
+
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                        Vehicles Requiring Attention
+                    </h3>
+                </div>
+
+                <div class="box-body">
+
+                    <ul class="list-group">
+
+                        <li class="list-group-item">
+                            No Photos
+                            <span class="badge">
+                                {{ $vehiclesWithoutPhotos }}
+                            </span>
+                        </li>
+
+                        <li class="list-group-item">
+                            No Inspection
+                            <span class="badge">
+                                {{ $vehiclesWithoutInspection }}
+                            </span>
+                        </li>
+
+                        <li class="list-group-item">
+                            No Documents
+                            <span class="badge">
+                                {{ $vehiclesWithoutDocuments }}
+                            </span>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div> -->
+
+
+<div class="box box-primary">
+
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-car"></i>
+            Motor Vehicle Loan Portfolio
+        </h3>
+    </div>
+
+    <div class="box-body table-responsive">
+
+        <table class="table table-bordered table-hover">
+
+            <thead style="background:#3c8dbc;color:#fff;">
+            <tr>
+                <th width="40"></th>
+                <th>Level</th>
+                <th>Total Loans</th>
+                <th>Vehicle Value</th>
+                <th>Vehicles</th>
+                <th>Loans Given Out</th>
+                <th>Collections</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            <!-- ================= NATIONAL ================= -->
+
+            <tr style="background:#f5f5f5;font-weight:bold;">
+                <td>
+                    <button class="btn btn-xs btn-primary toggle" data-target="national">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </td>
+
+                <td>National</td>
+                <td>248</td>
+                <td>K18,540,000</td>
+                <td>248</td>
+                <td>K12,750,000</td>
+                <td>K7,940,000</td>
+            </tr>
+
+            <!-- NATIONAL VEHICLES -->
+
+            <tr class="national" style="display:none;">
+                <td></td>
+                <td colspan="6">
+
+                    <h4><i class="fa fa-list"></i> National Vehicle Portfolio</h4>
+
+                    <table class="table table-striped table-bordered">
+
+                        <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Vehicle</th>
+                            <th>Registration</th>
+                            <th>Province</th>
+                            <th>Branch</th>
+                            <th>Consultant</th>
+                            <th>Vehicle Value</th>
+                            <th>Loan</th>
+                            <th>Collections</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr>
+                            <td>John Banda</td>
+                            <td>Toyota Hilux</td>
+                            <td>BAB1234</td>
+                            <td>Lusaka</td>
+                            <td>Cairo Road</td>
+                            <td>Andrew Phiri</td>
+                            <td>K180,000</td>
+                            <td>K120,000</td>
+                            <td>K45,000</td>
+                            <td><span class="label label-success">Active</span></td>
+                        </tr>
+
+                        <tr>
+                            <td>Mary Phiri</td>
+                            <td>Ford Ranger</td>
+                            <td>BAC7788</td>
+                            <td>Copperbelt</td>
+                            <td>Kitwe</td>
+                            <td>Peter Zulu</td>
+                            <td>K240,000</td>
+                            <td>K180,000</td>
+                            <td>K90,000</td>
+                            <td><span class="label label-warning">In Arrears</span></td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </td>
+            </tr>
+
+            <!-- ================= PROVINCE ================= -->
+
+            <tr class="national" style="display:none;background:#eef7ff;font-weight:bold;">
+
+                <td style="padding-left:25px;">
+                    <button class="btn btn-xs btn-info toggle" data-target="lusaka">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </td>
+
+                <td>Lusaka Province</td>
+                <td>120</td>
+                <td>K8,400,000</td>
+                <td>120</td>
+                <td>K5,600,000</td>
+                <td>K3,100,000</td>
+
+            </tr>
+
+            <!-- PROVINCE VEHICLES -->
+
+            <tr class="lusaka" style="display:none;">
+
+                <td></td>
+
+                <td colspan="6">
+
+                    <h4><i class="fa fa-list"></i> Lusaka Province Vehicles</h4>
+
+                    <table class="table table-bordered table-condensed">
+
+                        <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Vehicle</th>
+                            <th>Registration</th>
+                            <th>Branch</th>
+                            <th>Consultant</th>
+                            <th>Loan</th>
+                            <th>Collections</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr>
+                            <td>John Banda</td>
+                            <td>Toyota Hilux</td>
+                            <td>BAB1234</td>
+                            <td>Cairo Road</td>
+                            <td>Andrew Phiri</td>
+                            <td>K120,000</td>
+                            <td>K45,000</td>
+                        </tr>
+
+                        <tr>
+                            <td>Peter Zulu</td>
+                            <td>Isuzu D-Max</td>
+                            <td>BAX2211</td>
+                            <td>Cairo Road</td>
+                            <td>Andrew Phiri</td>
+                            <td>K95,000</td>
+                            <td>K35,000</td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </td>
+
+            </tr>
+
+            <!-- ================= BRANCH ================= -->
+
+            <tr class="lusaka" style="display:none;background:#fff7df;font-weight:bold;">
+
+                <td style="padding-left:45px;">
+
+                    <button class="btn btn-xs btn-warning toggle" data-target="cairo">
+                        <i class="fa fa-plus"></i>
+                    </button>
+
+                </td>
+
+                <td>Cairo Road Branch</td>
+                <td>54</td>
+                <td>K3,900,000</td>
+                <td>54</td>
+                <td>K2,450,000</td>
+                <td>K1,330,000</td>
+
+            </tr>
+
+            <!-- BRANCH VEHICLES -->
+
+            <tr class="cairo" style="display:none;">
+
+                <td></td>
+
+                <td colspan="6">
+
+                    <h4><i class="fa fa-list"></i> Cairo Road Branch Vehicles</h4>
+
+                    <table class="table table-bordered table-condensed">
+
+                        <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Vehicle</th>
+                            <th>Registration</th>
+                            <th>Consultant</th>
+                            <th>Loan</th>
+                            <th>Collections</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr>
+                            <td>John Banda</td>
+                            <td>Toyota Hilux</td>
+                            <td>BAB1234</td>
+                            <td>Andrew Phiri</td>
+                            <td>K120,000</td>
+                            <td>K45,000</td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </td>
+
+            </tr>
+
+            <!-- ================= CONSULTANT ================= -->
+
+            <tr class="cairo" style="display:none;background:#edf8ed;font-weight:bold;">
+
+                <td style="padding-left:65px;"></td>
+
+                <td><i class="fa fa-user"></i> Andrew Phiri</td>
+                <td>22</td>
+                <td>K1,600,000</td>
+                <td>22</td>
+                <td>K980,000</td>
+                <td>K540,000</td>
+
+            </tr>
+
+            <!-- CONSULTANT VEHICLES -->
+
+            <tr class="cairo" style="display:none;">
+
+                <td></td>
+
+                <td colspan="6">
+
+                    <h4><i class="fa fa-list"></i> Andrew Phiri Portfolio</h4>
+
+                    <table class="table table-bordered table-condensed">
+
+                        <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Vehicle</th>
+                            <th>Registration</th>
+                            <th>Vehicle Value</th>
+                            <th>Loan</th>
+                            <th>Collections</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr>
+                            <td>John Banda</td>
+                            <td>Toyota Hilux</td>
+                            <td>BAB1234</td>
+                            <td>K180,000</td>
+                            <td>K120,000</td>
+                            <td>K45,000</td>
+                            <td><span class="label label-success">Active</span></td>
+                        </tr>
+
+                        <tr>
+                            <td>Peter Zulu</td>
+                            <td>Isuzu D-Max</td>
+                            <td>BAX2211</td>
+                            <td>K150,000</td>
+                            <td>K95,000</td>
+                            <td>K35,000</td>
+                            <td><span class="label label-success">Active</span></td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+    {{-- RECENT VEHICLE LOANS --}}
+    <div class="row">
+
+        <div class="col-md-12">
+
+            <div class="box box-success">
+
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                        Motor Vehicle Loans
+                    </h3>
+                </div>
+
+                <div class="box-body table-responsive">
+
+                    <table class="table table-bordered table-striped">
+
+                        <thead>
+
+                        <tr>
+
+                            <th>ID</th>
+                            <th>Client</th>
+                            <th>Office</th>
+                            <th>Principal</th>
+                            <th>Status</th>
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        @forelse($recentLoans as $loan)
+
+                            <tr>
+
+                                <td>
+                               <a href="{{ url('loan/'.$loan->id.'/show') }}">
+                                               {{$loan->id}}</a>
+                                </td>
+
+                                <td>
+                                    {{ optional($loan->client)->first_name }}
+                                    {{ optional($loan->client)->last_name }}
+                                </td>
+
+                                    <td>
+                                    {{ optional($loan->office)->name }}
+                                </td>
+
+
+                                <td>
+                                    K{{ number_format($loan->approved_amount,2) }}
+                                </td>
+
+                                <td>
+
+                                    @if($loan->status == 'active')
+                                        <span class="label label-success">
+                                            Active
+                                        </span>
+                                    @elseif($loan->status == 'defaulted')
+                                        <span class="label label-danger">
+                                            Defaulted
+                                        </span>
+                                    @else
+                                        <span class="label label-warning">
+                                            {{ ucfirst($loan->status) }}
+                                        </span>
+                                    @endif
+
+                                </td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+
+                                <td colspan="6" class="text-center">
+                                    No vehicle loans found.
+                                </td>
+
+                            </tr>
+
+                        @endforelse
+
+                        </tbody>
+
+                    </table>
+
+                       <div class="text-center">
+        {{ $recentLoans->links() }}
+    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {{-- VEHICLE REGISTRY --}}
+    <div class="row">
+
+        <div class="col-md-12">
+
+            <div class="box box-info">
+
+                <div class="box-header with-border">
+
+                    <h3 class="box-title">
+                        Vehicle Registry
+                    </h3>
+
+                </div>
+
+                <div class="box-body table-responsive">
+
+                    <table class="table table-bordered table-striped">
+
+                        <thead>
+
+                        <tr>
+                            <th>ID</th>
+                            <th>Vehicle Code</th>
+                            <th>Owner</th>
+                            <th>Registration</th>
+                            <th>Make</th>
+                            <th>Model</th>
+                            <th>Market Value</th>
+                            <th>Status</th>
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        @forelse($vehicles as $vehicle)
+
+                            <tr>
+                                
+                            <td>
+                                 <a href="{{ url('vehicles/'.$vehicle->id) }}">
+    {{$vehicle->id}}
+    </a>
+                            </td>
+
+                                <td>
+                                   
+                                        {{ $vehicle->vehicle_code }}
+                                
+                                </td>
+
+                                <td>
+                                    {{ optional($vehicle->client)->first_name }}
+                                    {{ optional($vehicle->client)->last_name }}
+                                </td>
+
+                                <td>
+                                    {{ $vehicle->registration_number }}
+                                </td>
+
+                                <td>
+                                    {{ $vehicle->make }}
+                                </td>
+
+                                <td>
+                                    {{ $vehicle->model }}
+                                </td>
+
+                                <td>
+                                    K{{ number_format($vehicle->market_value,2) }}
+                                </td>
+
+                                <td>
+
+                                    @if($vehicle->status == 'available')
+                                        <span class="label label-success">
+                                            Available
+                                        </span>
+                                    @elseif($vehicle->status == 'pledged')
+                                        <span class="label label-warning">
+                                            Pledged
+                                        </span>
+                                    @elseif($vehicle->status == 'repossessed')
+                                        <span class="label label-danger">
+                                            Repossessed
+                                        </span>
+                                    @else
+                                        <span class="label label-default">
+                                            {{ ucfirst($vehicle->status) }}
+                                        </span>
+                                    @endif
+
+                                </td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+
+                                <td colspan="7" class="text-center">
+                                    No vehicles found.
+                                </td>
+
+                            </tr>
+
+                        @endforelse
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@endsection
+
+@section('footer-scripts')
+<script>
+$(function(){
+
+    $('.toggle').click(function(){
+
+        var target=$(this).data('target');
+
+        $('.'+target).toggle();
+
+        var icon=$(this).find('i');
+
+        if(icon.hasClass('fa-plus')){
+            icon.removeClass('fa-plus').addClass('fa-minus');
+        }else{
+            icon.removeClass('fa-minus').addClass('fa-plus');
+        }
+
+    });
+
+});
+</script>
+@endsection

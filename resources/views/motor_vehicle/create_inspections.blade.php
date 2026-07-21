@@ -35,6 +35,24 @@
 
 </div>
 
+
+<div class="form-group">
+
+<label>Inspection Type</label>
+
+<select
+    name="inspection_type"
+    class="form-control"
+    required>
+
+    <option value="receipt">Vehicle Receipt</option>
+    <option value="release">Vehicle Release</option>
+    <option value="routine">Routine Inspection</option>
+
+</select>
+
+</div>
+
 <div class="form-group">
 
 <label>Inspection Date</label>
@@ -64,9 +82,29 @@
 <label>Mileage</label>
 
 <input
-    type="number"
+    type="text"
     name="mileage"
     class="form-control">
+
+</div>
+
+
+<div class="form-group">
+
+<label>Fuel Level</label>
+
+<select
+    name="fuel_level"
+    class="form-control">
+
+    <option value="">Select Fuel Level</option>
+    <option value="Empty">Empty</option>
+    <option value="1/4 Tank">1/4 Tank</option>
+    <option value="1/2 Tank">1/2 Tank</option>
+    <option value="3/4 Tank">3/4 Tank</option>
+    <option value="Full Tank">Full Tank</option>
+
+</select>
 
 </div>
 
@@ -78,8 +116,9 @@
     name="condition_rating"
     class="form-control">
 
+<option></option>
 <option>Excellent</option>
-<option selected>Good</option>
+<option>Good</option>
 <option>Fair</option>
 <option>Poor</option>
 
@@ -103,16 +142,6 @@
 
 </div>
 
-<div class="form-group">
-
-<label>Notes</label>
-
-<textarea
-    name="notes"
-    rows="5"
-    class="form-control"></textarea>
-
-</div>
 
 <div class="form-group">
 
@@ -122,6 +151,38 @@
     type="file"
     name="report_file"
     class="form-control">
+
+</div>
+
+
+<div class="form-group">
+
+<label>General Remarks</label>
+
+<textarea
+    name="notes"
+    rows="5"
+    class="form-control"></textarea>
+
+</div>
+
+
+<div class="form-group">
+
+<label>Supporting Photographs</label>
+
+<input
+    type="file"
+    name="photos[]"
+    multiple
+    accept="image/*"
+    class="form-control">
+
+<p class="help-block">
+
+You may upload multiple images showing damages, mileage, fuel gauge, accessories, engine bay, or any other inspection evidence.
+
+</p>
 
 </div>
 

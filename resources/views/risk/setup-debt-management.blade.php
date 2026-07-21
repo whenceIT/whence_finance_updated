@@ -225,7 +225,28 @@
         </div>
     </div>
 </div>
-
+<style>
+    .shimmer-trans-wrapper {
+        padding: 15px;
+    }
+    .shimmer-trans-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+        align-items: center;
+    }
+    .shimmer-trans-cell {
+        height: 20px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        border-radius: 4px;
+        animation: shimmer-trans 1.5s infinite;
+    }
+    @keyframes shimmer-trans {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
 <!-- View Transactions Modal -->
 <div class="modal fade" id="viewTransactionsModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
@@ -236,8 +257,10 @@
             </div>
             <div class="modal-body">
                 <div id="transactionsContent">
-                    <div class="text-center" style="padding:20px;">
-                        <i class="fa fa-spinner fa-spin fa-2x"></i>
+                    <div class="shimmer-trans-wrapper">
+                        <div class="shimmer-trans-row"><div class="shimmer-trans-cell" style="width:40px;"></div><div class="shimmer-trans-cell"></div><div class="shimmer-trans-cell" style="width:120px;"></div><div class="shimmer-trans-cell" style="width:80px;"></div><div class="shimmer-trans-cell" style="width:100px;"></div><div class="shimmer-trans-cell" style="width:60px;"></div></div>
+                        <div class="shimmer-trans-row"><div class="shimmer-trans-cell" style="width:40px;"></div><div class="shimmer-trans-cell" style="width:80%;"></div><div class="shimmer-trans-cell" style="width:120px;"></div><div class="shimmer-trans-cell" style="width:80px;"></div><div class="shimmer-trans-cell" style="width:100px;"></div><div class="shimmer-trans-cell" style="width:60px;"></div></div>
+                        <div class="shimmer-trans-row"><div class="shimmer-trans-cell" style="width:40px;"></div><div class="shimmer-trans-cell" style="width:80%;"></div><div class="shimmer-trans-cell" style="width:120px;"></div><div class="shimmer-trans-cell" style="width:80px;"></div><div class="shimmer-trans-cell" style="width:100px;"></div><div class="shimmer-trans-cell" style="width:60px;"></div></div>
                     </div>
                 </div>
             </div>

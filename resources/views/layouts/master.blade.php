@@ -1125,6 +1125,37 @@ $office = $userInfo->office;
 
                 @endphp
                 
+                @php
+                    $activeQuiz = null;
+                    if ($user) {
+                        $activeQuiz = \App\Models\PolicyQuiz::where('active', true)
+                            ->where('open_date', '<=', now())
+                            ->where(function($query) {
+                                $query->whereNull('close_date')
+                                    ->orWhere('close_date', '>=', now());
+                            })
+                            ->first();
+                    }
+                    
+                    $hasCompletedQuiz = false;
+                    if ($user && $activeQuiz) {
+                        $hasCompletedQuiz = \App\Models\PolicyQuizAttempt::where('policy_quiz_id', $activeQuiz->id)
+                            ->where('user_id', $user->id)
+                            ->whereNotNull('completed_at')
+                            ->exists();
+                    }
+                @endphp
+                
+                @if($user && $activeQuiz && !$hasCompletedQuiz && !request()->routeIs('policy.quizzes.*'))
+                    <div class="alert alert-info" style="margin-bottom: 0; border-radius: 0; background-color: #e8f4f8; border: 1px solid #b8daff;">
+                        <strong><i class="fa fa-clipboard"></i> Policy Quiz Available!</strong> 
+                        <a href="{{ route('policy.quizzes.start', $activeQuiz->id) }}" class="alert-link" style="font-weight: 500;">
+                            Click here to take the "{{ $activeQuiz->title }}" quiz
+                        </a>
+                        <span class="pull-right" style="font-size: 12px; opacity: 0.7;">(Available for {{ $activeQuiz->time_limit_minutes }} minutes)</span>
+                    </div>
+                @endif
+                
                 @if($showInductionModal && $role !== 11)
                     @include('partials.induction_modal')
                 @elseif(false)
@@ -1178,6 +1209,7 @@ $office = $userInfo->office;
                         });
                     </script>
                 @endif
+                <!-- Add a banner strip here -->
                 @yield('content')
                 <!-- @include('partials.induction_checklist_popup') -->
             </section>
@@ -1667,6 +1699,9 @@ $office = $userInfo->office;
 
         </script>
     @endif
+
+
+    
     @yield('footer-scripts')
     <!-- ChartJS 1.0.1 -->
     <script src="{{ asset('assets/themes/adminlte/js/custom.js') }}">

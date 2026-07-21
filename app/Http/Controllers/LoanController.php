@@ -1309,6 +1309,8 @@ $amount = $request->query('amount');
                 $loan->phone_number = $request->phone_number;
 		        $loan->save();
 
+             
+
                 $application = ClientAppLoanApplications::where('client_id', $client->id)
     ->where('status', 'pending')
     ->first();
@@ -1317,6 +1319,29 @@ if ($application) {
     $application->status = 'approved';
     $application->save();
 }
+
+
+    if($loan_product->id == 0)
+            {
+
+
+
+ $vehicle = new Vehicle();
+$vehicle->vehicle_code = 'VH' . time();
+$vehicle->client_id = $client->id;
+$vehicle->loan_id = $loan->id;
+$vehicle->make = $request->make;
+$vehicle->model = $request->model;
+$vehicle->year = $request->year;
+$vehicle->registration_number = $request->registration_number;
+$vehicle->market_value = $request->market_value;
+$vehicle->engine_number = $request->engine_number;
+$vehicle->chassis_number = $request->chassis_number;
+$vehicle->insurance_policy_number = $request->insurance_policy_number;
+
+$vehicle->save();
+
+            }
 
             // Broadcast loan created event for real-time updates
             \Illuminate\Support\Facades\Log::info('LoanCreated event firing for loan ID: ' . $loan->id);
@@ -1336,21 +1361,6 @@ if ($application) {
             // Notify Branch Manager for new loan approval
             // Notifix::notifyBmToApproveNewLoan($loan, $client, $request->principal);
 
-            if($loan_product->id == 0)
-            {
-
-            Vehicle::create([
-            'vehicle_code' => 'VH'.time(),
-            'client_id' => $client->id,
-            'make' => $request->make,
-            'model' => $request->model,
-            'year' => $request->year,
-            'registration_number' => $request->registration_number,
-            'market_value' => $request->market_value,
-            'forced_sale_value' => $request->forced_sale_value
-        ]);
-
-            }
 
             if (!empty($request->charges)) {
                 //loop through the array
@@ -1399,6 +1409,13 @@ if ($application) {
         // Log audit for creating a new client loan, log client and loan information
             $user = Sentinel::getUser();
             $this->auditorService->logStoreClientLoan($user, request(), $loan, $client);
+            
+            // Check if loan has collateral and redirect to collateral create page
+            if ($request->has('has_collateral') && $request->has_collateral == '1' && $request->has('redirect_to_collateral') && $request->redirect_to_collateral == '1') {
+                Flash::success(trans('general.successfully_saved'));
+                return redirect('collateral/create?loan_id=' . $loan->id);
+            }
+            
             Flash::success(trans('general.successfully_saved'));
             return redirect('loan/' . $loan->id . '/show');
         }
@@ -1591,10 +1608,12 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             $user_id = $data['user']['id'] ?? null;
         }
 
+        $vehicle = Vehicle::with('client')->where('loan_id',$loan->id)->first();
+
 
 
         
-        return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id'));
+        return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id','vehicle'));
     }
 
 
@@ -3611,6 +3630,17 @@ $new_balance = $debit_amount - $credit_amount;
                 $recoveryPayment->outstanding_after = $outstandingAfter;
                 $recoveryPayment->notes = $request->notes;
                 $recoveryPayment->save();
+
+                // Handle dept_share_amount
+                if ($request->filled('dept_share_amount') && $request->dept_share_amount > 0) {
+                    \App\Models\RecoveriesDeptExcalatedShare::create([
+                        'recovery_case_id' => $recoveryCase->id,
+                        'recovery_payment_id' => $recoveryPayment->id,
+                        'dept_share_amount' => $request->dept_share_amount,
+                        'notes' => $request->notes,
+                        'created_by' => Sentinel::getUser()->id,
+                    ]);
+                }
                 
                 // Update recovery case with amount recovered (from case, not form)
                 $recoveryCase->amount_recovered = $previousRecovered + $amount;

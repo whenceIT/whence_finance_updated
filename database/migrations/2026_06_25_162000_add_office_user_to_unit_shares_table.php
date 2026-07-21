@@ -11,6 +11,7 @@ class AddOfficeUserToUnitSharesTable extends Migration
         Schema::table('unit_shares', function (Blueprint $table) {
             $table->unsignedBigInteger('office_id')->nullable()->after('loan_txn_id');
             $table->unsignedBigInteger('user_id')->nullable()->after('office_id');
+            $table->text('notes')->nullable()->after('user_id');
             
             $table->index(['office_id', 'user_id']);
         });
@@ -19,7 +20,7 @@ class AddOfficeUserToUnitSharesTable extends Migration
     public function down()
     {
         Schema::table('unit_shares', function (Blueprint $table) {
-            $table->dropColumn(['office_id', 'user_id']);
+            $table->dropColumn(['office_id', 'user_id', 'notes']);
         });
     }
 }

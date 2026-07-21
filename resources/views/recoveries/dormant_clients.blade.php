@@ -10,19 +10,30 @@
             </h3>
             <div class="box-tools pull-right">
                 <ul class="nav nav-tabs">
+                 
                     <li class="{{ $type == 'dormant' ? 'active' : '' }}">
                         <a href="{{ route('recovery.clients', ['type' => 'dormant']) }}">
-                            <i class="fa fa-users"></i> Dormant Clients
-                        </a>
-                    </li>
-                    <li class="{{ $type == 'recovered' ? 'active' : '' }}">
-                        <a href="{{ route('recovery.clients', ['type' => 'recovered']) }}">
-                            <i class="fa fa-check-circle"></i> Recovered Clients
+                            <i class="fa fa-users"></i> Find Dormant Clients
                         </a>
                     </li>
                     <li class="{{ $type == 'overdue' ? 'active' : '' }}">
                         <a href="{{ route('recovery.clients', ['type' => 'overdue']) }}">
-                            <i class="fa fa-exclamation-triangle"></i> Overdue Loans
+                            <i class="fa fa-exclamation-triangle"></i>Find Defaulted (Escalated) Clients
+                        </a>
+                    </li>
+                    <li class="{{ $type == 'escalated' ? 'active' : '' }}">
+                        <a href="{{ route('recovery.clients', ['type' => 'escalated']) }}">
+                            <i class="fa fa-users"></i> Never Loaned
+                        </a>
+                    </li>
+                    <li class="{{ $type == 'recovered-defults' ? 'active' : '' }}">
+                        <a href="{{ route('recovery.clients', ['type' => 'recovered-defults']) }}" style="background-color: #5cb85c; color: white;">
+                            <i class="fa fa-check-circle"></i> Recovered Defaulted Clients
+                        </a>
+                    </li>   
+                    <li class="{{ $type == 'recovered' ? 'active' : '' }}">
+                        <a href="{{ route('recovery.clients', ['type' => 'recovered']) }}" style="background-color: #5cb85c; color: white;">
+                            <i class="fa fa-check-circle"></i> Recovered Dormant Clients
                         </a>
                     </li>
                 </ul>
@@ -39,16 +50,32 @@
                         @endif
                     </form>
                 </div>
+                <div class="col-md-6 text-right">
+                    <button type="button" onclick="window.print()" class="btn btn-info btn-sm">
+                        <i class="fa fa-print"></i> Print to PDF
+                    </button>
+                </div>
             </div>
             
             @if($type == 'dormant')
-                <div class="alert alert-info">
+                <div class="alert alert-warning">
                     <i class="fa fa-info-circle"></i> 
-                    <strong>Dormant clients</strong> are active clients who either:
-                    <ul style="margin-bottom: 0; margin-top: 5px;">
-                        <li>Have never taken a loan, OR</li>
-                        <li>Haven't taken a loan in the last 3 months</li>
-                    </ul>
+                    Search for <strong>Dormant clients</strong> who haven't taken a loan in the last 3 months, and mark them as recovered to start unit share deduction in their next 3 loans
+                </div>
+            @elseif($type == 'escalated')
+                <div class="alert alert-warning">
+                    <i class="fa fa-exclamation-triangle"></i> 
+                    <strong>Never Loaned Clients</strong> are active clients who have never taken a loan.
+                </div>
+            @elseif($type == 'overdue')
+                <div class="alert alert-warning">
+                    <i class="fa fa-exclamation-triangle"></i> 
+                    <strong>Clients</strong> who have defaulted their last loans (Escalated Clients)
+                </div>
+            @elseif($type == 'recovered-defults')
+                <div class="alert alert-success">
+                    <i class="fa fa-check-circle"></i> 
+                    <strong>Recovered Defaulted Clients</strong> are clients whose loans have been marked as recovered (esc_recovered = 1).
                 </div>
             @endif
 
@@ -61,11 +88,23 @@
                                 No Recovered Clients Found
                             @elseif($type === 'overdue')
                                 No Clients with Overdue Loans Found
+                            @elseif($type === 'escalated')
+                                No Never Loaned Clients Found
+                            @elseif($type === 'recovered-defults')
+                                No Recovered Defaulted Clients Found
                             @else
                                 No Dormant Clients Found
                             @endif
                         </h4>
-                        <p class="text-muted">All clients are up to date.</p>
+                        <p class="text-muted">
+                            @if($type === 'escalated')
+                                All clients have taken at least one loan.
+                            @elseif($type === 'recovered-defults')
+                                No loans have been marked as recovered yet.
+                            @else
+                                All clients are up to date.
+                            @endif
+                        </p>
                     </div>
                 @else
                     <div class="box-body table-responsive">
@@ -78,7 +117,7 @@
                                     <th>Office</th>
                                     <th>Loan Officer</th>
                                     
-                                    @if($type === 'overdue')
+                                    @if($type === 'overdue' || $type === 'recovered-defults')
                                         <th>Loan ID</th>
                                         <th>Loan Amount</th>
                                         <th>First Repayment Date</th>
@@ -89,7 +128,8 @@
                                     @endif
                                     
                                     <th>Total Shared Loans</th>
-                                    <th>Action</th>
+                                    <th>Has Never Taken Loan</th>
+                                    <th class="action-column">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -115,6 +155,18 @@
                                             @else
                                                 <td colspan="4">No overdue loan</td>
                                             @endif
+                                        @elseif($type === 'recovered-defults')
+                                            @php
+                                                $recoveredLoan = $client->loans->where('esc_recovered', 1)->first();
+                                            @endphp
+                                            @if($recoveredLoan)
+                                                <td><a href="{{ url('loan/' . $recoveredLoan->id . '/show') }}">{{ $recoveredLoan->id }}</a></td>
+                                                <td>K{{ number_format($recoveredLoan->principal ?? 0, 2) }}</td>
+                                                <td>{{ $recoveredLoan->first_repayment_date ? \Carbon\Carbon::parse($recoveredLoan->first_repayment_date)->format('d M Y') : 'N/A' }}</td>
+                                                <td><span class="badge bg-green">Recovered</span></td>
+                                            @else
+                                                <td colspan="4">No recovered loan</td>
+                                            @endif
                                         @else
                                             @php
                                                 $lastLoan = $client->loans->first();
@@ -122,19 +174,44 @@
                                             <td>{{ $lastLoan ? $lastLoan->created_at->format('d M Y') : 'Never' }}</td>
                                             <td>{{ $lastLoan ? \Carbon\Carbon::now()->diffInDays($lastLoan->created_at) . ' days' : 'N/A' }}</td>
                                         @endif
-                                        
-                                        <td><span class="badge bg-gray">{{ $client->loans->where('shared', 1)->count() }}</span></td>
-                                        <td>
-                                            <a href="{{ url('client/' . $client->id . '/show') }}" class="btn btn-xs btn-primary">
-                                                <i class="fa fa-eye"></i> View
-                                            </a>
                                             
-                                            @if($type === 'dormant')
-                                                <button class="btn btn-xs btn-success" onclick="markRecovered({{ $client->id }})">
-                                                    <i class="fa fa-check"></i> Mark Recovered
-                                                </button>
-                                            @endif
-                                        </td>
+                                            <td><span class="badge bg-gray">{{ $client->loans->where('shared', 1)->count() }}</span></td>
+                                            <td>
+                                                @php
+                                                    $hasNeverTakenLoan = $client->loans->isEmpty();
+                                                @endphp
+                                                @if($type === 'escalated')
+                                                    <span class="badge bg-green">Yes</span>
+                                                @elseif($type === 'dormant')
+                                                    @if($hasNeverTakenLoan)
+                                                        <span class="badge bg-yellow">No (Never Loaned)</span>
+                                                    @else
+                                                        <span class="badge bg-red">No</span>
+                                                    @endif
+                                                @endif
+                                            </td>
+                                            <td class="action-column">
+                                                <a href="{{ url('client/' . $client->id . '/show') }}" class="btn btn-xs btn-primary">
+                                                    <i class="fa fa-eye"></i> View
+                                                </a>
+                                                
+@if($type === 'overdue' || $type === 'recovered-defults')
+                                                 @php
+                                                     $loanToMark = $type === 'overdue' ? $client->loans->where('status', 'disbursed')->whereNotNull('first_repayment_date')->where('first_repayment_date', '<', \Carbon\Carbon::now()->toDateString())->first() : $client->loans->where('esc_recovered', 1)->first();
+                                                 @endphp
+                                                 @if($loanToMark && $loanToMark->esc_recovered != 1)
+                                                     <button class="btn btn-xs btn-success" onclick="markEscRecovered({{ $client->id }}, {{ $loanToMark->id }})">
+                                                         <i class="fa fa-check"></i> Mark Recovered
+                                                     </button>
+                                                 @elseif($loanToMark && $loanToMark->esc_recovered == 1)
+                                                     <span class="badge bg-green">Recovered</span>
+                                                 @endif
+                                             @elseif($type === 'dormant')
+                                                 <button class="btn btn-xs btn-success" onclick="markRecovered({{ $client->id }})">
+                                                     <i class="fa fa-check"></i> Mark Recovered
+                                                 </button>
+                                             @endif
+                                            </td>
                                     </tr>
                                     @endforeach
                             </tbody>
@@ -154,6 +231,130 @@
     color: white !important;
     border-color: #667eea !important;
 }
+</style>
+
+<style media="print">
+    @page {
+        size: landscape;
+        margin: 20mm;
+    }
+    
+    body {
+        background: white !important;
+    }
+    
+    .box {
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+    
+    .box-header {
+        background: #f5f5f5;
+        border-bottom: 2px solid #ddd;
+    }
+    
+    .box-header h3 {
+        color: #333;
+    }
+    
+    .box-body {
+        padding: 15px;
+    }
+    
+    .table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    
+    .table th, .table td {
+        border: 1px solid #ddd !important;
+        padding: 8px;
+        text-align: left;
+    }
+    
+    .table th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
+    
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
+    }
+    
+    .table-bordered {
+        border: 1px solid #ddd;
+    }
+    
+    .table-bordered th, .table-bordered td {
+        border: 1px solid #ddd;
+    }
+    
+    .nav-tabs {
+        display: none;
+    }
+    
+    .box-tools {
+        display: none;
+    }
+    
+    .alert {
+        page-break-inside: avoid;
+    }
+    
+    button {
+        display: none;
+    }
+    
+    .pagination, .dataTables_info, .dataTables_filter, .dataTables_length {
+        display: none;
+    }
+    
+    .content {
+        padding: 0;
+    }
+    
+    .content-header {
+        display: none;
+    }
+    
+    .row {
+        margin: 0;
+    }
+    
+    .col-md-6, .col-md-12 {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .btn-xs {
+        display: none;
+    }
+    
+    .action-column {
+        display: none !important;
+    }
+    
+    #clients-container {
+        padding: 0;
+    }
+    
+    #clients-table-container {
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+    
+    #clients-table-container > *:not(.box-body) {
+        display: none !important;
+    }
+    
+    #clients-table-container .box-body {
+        padding: 15px;
+        border: none;
+    }
+    
+    .table-responsive {
+        overflow: visible;
+    }
 </style>
 <script>
     $(document).ready(function() {
@@ -224,6 +425,31 @@
                 if (response.success) {
                     alert('Client marked as recovered!');
                     window.location.href = '{{ route('recovery.clients', ['type' => 'dormant']) }}';
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    }
+
+    function markEscRecovered(clientId, loanId) {
+        if (!confirm('Mark this loan as recovered?')) {
+            return;
+        }
+
+        $.ajax({
+            url: '{{ route('client.mark_esc_recovered', ['clientId' => '__CLIENT_ID__', 'loanId' => '__LOAN_ID__']) }}'.replace('__CLIENT_ID__', clientId).replace('__LOAN_ID__', loanId),
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Loan marked as recovered!');
+                    window.location.href = '{{ route('recovery.clients', ['type' => 'recovered-defults']) }}';
                 } else {
                     alert('Error: ' + response.message);
                 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Recoveries;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Client;
+use App\Models\User;
 use App\Models\Office;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Carbon\Carbon;
@@ -33,7 +34,11 @@ class RecoveryClientController extends Controller
             $search = request()->get('search', '');
    
 
-            if ($type === 'recovered') {
+            if ($type === 'escalated') {
+                $clientQuery = Client::where('status', 'active')
+                    ->whereDoesntHave('loans')
+                    ->with(['office', 'staff']);
+            } elseif ($type === 'recovered') {
                 $clientQuery = Client::where('status', 'active')
                     ->where('is_dormant_recovery', 1)
                     ->with(['loans' => function ($query) {
@@ -51,6 +56,14 @@ class RecoveryClientController extends Controller
                             ->whereNotNull('first_repayment_date')
                             ->where('first_repayment_date', '<', Carbon::now()->toDateString())
                             ->latest('first_repayment_date');
+                    }, 'office', 'staff']);
+            } elseif ($type === 'recovered-defults') {
+                $clientQuery = Client::where('status', 'active')
+                    ->whereHas('loans', function ($query) {
+                        $query->where('loans.esc_recovered', 1);
+                    })
+                    ->with(['loans' => function ($query) {
+                        $query->where('loans.esc_recovered', 1);
                     }, 'office', 'staff']);
             } else {
                 
@@ -92,11 +105,15 @@ class RecoveryClientController extends Controller
             if ($type === 'dormant') {
                 $filteredClients = $allClients->filter(function ($client) use ($threeMonthsAgo) {
                     if ($client->loans->isEmpty()) {
-                        return true;
+                        return false;
                     }
                     $lastLoan = $client->loans->first();
                     return $lastLoan && $lastLoan->created_at < $threeMonthsAgo;
                 });
+            } elseif ($type === 'escalated') {
+                $filteredClients = $allClients;
+            } elseif ($type === 'recovered-defults') {
+                $filteredClients = $allClients;
             } else {
                 $filteredClients = $allClients;
             }
@@ -122,5 +139,19 @@ class RecoveryClientController extends Controller
         $client->save();
 
         return response()->json(['success' => true, 'message' => 'Client marked as recovered!']);
+    }
+
+    public function markEscRecovered($clientId, $loanId)
+    {
+        $loan = \App\Models\Loan::find($loanId);
+        
+        if (!$loan) {
+            return response()->json(['success' => false, 'message' => 'Loan not found']);
+        }
+        
+        $loan->esc_recovered = 1;
+        $loan->save();
+
+        return response()->json(['success' => true, 'message' => 'Loan marked as recovered!']);
     }
 }

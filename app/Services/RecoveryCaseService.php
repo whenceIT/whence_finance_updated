@@ -64,36 +64,47 @@ class RecoveryCaseService
         return $case->fresh();
     }
 
-    /**
-     * Record a payment against a recovery case.
-     */
-    public function recordPayment(RecoveryCase $case, array $data): RecoveryPayment
-    {
-        return DB::transaction(function () use ($case, $data) {
-            $data['recovery_case_id'] = $case->id;
-            $data['recorded_by']      = $data['recorded_by'] ?? optional(\Sentinel::getUser())->id;
-            $data['receipt_number']   = RecoveryPayment::generateReceiptNumber();
+/**
+      * Record a payment against a recovery case.
+      */
+     public function recordPayment(RecoveryCase $case, array $data): RecoveryPayment
+     {
+         return DB::transaction(function () use ($case, $data) {
+             $data['recovery_case_id'] = $case->id;
+             $data['recorded_by']      = $data['recorded_by'] ?? optional(\Sentinel::getUser())->id;
+             $data['receipt_number']   = RecoveryPayment::generateReceiptNumber();
 
-            $payment = RecoveryPayment::createWithAttribution($case, $data);
+             $payment = RecoveryPayment::createWithAttribution($case, $data);
 
-            // Update the case's running total
-            $newTotal = (float)$case->amount_recovered + (float)$data['amount'];
-            $case->update(['amount_recovered' => $newTotal]);
+             // Handle dept_share_amount
+             if (isset($data['dept_share_amount']) && $data['dept_share_amount'] > 0) {
+                 \App\Models\RecoveriesDeptExcalatedShare::create([
+                     'recovery_case_id' => $case->id,
+                     'recovery_payment_id' => $payment->id,
+                     'dept_share_amount' => $data['dept_share_amount'],
+                     'notes' => $data['notes'] ?? null,
+                     'created_by' => optional(\Sentinel::getUser())->id,
+                 ]);
+             }
 
-            // Auto-close if fully paid
-            if ($newTotal >= (float)$case->loan_outstanding_amount) {
-                $this->updateStatus($case, 'closed', 'Loan fully recovered. Case closed.');
-            }
+             // Update the case's running total
+             $newTotal = (float)$case->amount_recovered + (float)$data['amount'];
+             $case->update(['amount_recovered' => $newTotal]);
 
-            $this->logActivity($case, [
-                'activity_type'  => 'payment_received',
-                'description'    => "Payment of K" . number_format($data['amount'], 2) . " received.",
-                'amount_collected' => $data['amount'],
-            ]);
+             // Auto-close if fully paid
+             if ($newTotal >= (float)$case->loan_outstanding_amount) {
+                 $this->updateStatus($case, 'closed', 'Loan fully recovered. Case closed.');
+             }
 
-            return $payment;
-        });
-    }
+             $this->logActivity($case, [
+                 'activity_type'  => 'payment_received',
+                 'description'    => "Payment of K" . number_format($data['amount'], 2) . " received.",
+                 'amount_collected' => $data['amount'],
+             ]);
+
+             return $payment;
+         });
+     }
 
     /**
      * Assign a case to a specialist and log the handover.
