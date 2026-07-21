@@ -48,12 +48,17 @@
                     </a>
                 </div>
                   
-                <!-- Search Field with Animated Placeholder -->
-                <div class="search-container" style="margin-left: 20px; position: relative; display: flex; align-items: center;">
+<!-- Search Field with Animated Placeholder (Desktop - opens modal) -->
+                <div class="search-container desktop-search" style="margin-left: 20px; position: relative; display: flex; align-items: center;">
                     <i class="fa fa-search" style="color: rgba(255,255,255,0.7); font-size: 16px; margin-right: 8px;"></i>
-                    <input type="text" id="learning-search" class="form-control" placeholder=" " style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 10px; border-radius: 4px; font-size: 14px; width: 350px; outline: none;">
+                    <input type="text" id="learning-search" name="q" class="form-control search-input-click" placeholder="Search topics and resources..." readonly style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 10px; border-radius: 4px; font-size: 14px; width: 550px; outline: none; cursor: pointer;">
                 </div>
 
+                <!-- Search Button (Mobile) -->
+                <button class="mobile-search-btn" id="mobile-search-toggle" type="button" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 4px; font-size: 14px; display: none; align-items: center; gap: 8px;">
+                    <i class="fa fa-search"></i>
+                </button>
+                
                 @if(($user && $user->istrainer == 1) || ($role && in_array($role->id, ['1'])))
                 <!-- Navigation -->
                 <div class="dropdown">
@@ -324,6 +329,44 @@
         </div>
     </div>
 
+    <!-- Search Modal (Mobile & Desktop) -->
+    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 1;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" style="font-weight: 600;">
+                        <i class="fa fa-search" style="margin-right: 10px;"></i> Search Learning Library
+                    </h4>
+                </div>
+                <div class="modal-body" style="padding: 0;">
+                    <div style="padding: 20px;">
+                        <form action="{{ route('learning.search') }}" method="GET" id="modal-search-form" style="display: flex; gap: 10px;">
+                            <div style="flex: 1; position: relative;">
+                                <i class="fa fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                                <input type="text" name="q" id="modal-search-input" class="form-control" placeholder="Search topics, videos, audio, books, documents..." style="width: 100%; padding: 12px 20px 12px 40px; font-size: 15px; border: 2px solid var(--border-color); border-radius: 50px;" autofocus>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="border-radius: 50px; padding: 6px 12px; font-weight: 600;">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </form>
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); display: none;" id="search-suggestions">
+                            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">Quick search suggestions:</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <span class="search-suggestion" data-query="video" style="padding: 6px 12px; background: #f0f0f0; border-radius: 20px; font-size: 12px; cursor: pointer;">Videos</span>
+                                <span class="search-suggestion" data-query="audio" style="padding: 6px 12px; background: #f0f0f0; border-radius: 20px; font-size: 12px; cursor: pointer;">Audio</span>
+                                <span class="search-suggestion" data-query="book" style="padding: 6px 12px; background: #f0f0f0; border-radius: 20px; font-size: 12px; cursor: pointer;">Books</span>
+                                <span class="search-suggestion" data-query="document" style="padding: 6px 12px; background: #f0f0f0; border-radius: 20px; font-size: 12px; cursor: pointer;">Documents</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Cookie Consent Modal -->
     <div class="cookie-modal-overlay" id="cookieConsentModal">
         <div class="cookie-modal">
@@ -461,23 +504,34 @@
             }
 
             // Animated Search Placeholder
-            (function animateSearchPlaceholder() {
+            (function setupSearch() {
                 var placeholders = [
-                    'Search courses, topics, or students...',
-                    'Find your learning path...',
-                    'Explore new knowledge...',
-                    'What would you like to learn today?'
+                    'Search topics and resources...',
+                    'Find videos, audio, books...',
+                    'Search your learning library...',
+                    'What would you like to learn?'
                 ];
                 var $searchInput = $('#learning-search');
+                var $modalSearchInput = $('#modal-search-input');
                 var index = 0;
-                
+
                 function updatePlaceholder() {
-                    $searchInput.attr('placeholder', placeholders[index]);
-                    index = (index + 1) % placeholders.length;
+                    if (!$searchInput.attr('readonly') || $searchInput.val()) {
+                        $searchInput.attr('placeholder', placeholders[index]);
+                        index = (index + 1) % placeholders.length;
+                    }
                 }
-                
+
                 setInterval(updatePlaceholder, 4000);
                 updatePlaceholder();
+
+                // Preserve search query from URL after page reload
+                var urlParams = new URLSearchParams(window.location.search);
+                var searchQuery = urlParams.get('q');
+                if (searchQuery) {
+                    $searchInput.val(searchQuery);
+                    $modalSearchInput.val(searchQuery);
+                }
             })();
 
             // Toggle sidebar on button click
@@ -1282,6 +1336,62 @@
             localStorage.removeItem(TOUR_KEY);
             location.reload();
         };
+
+        // Mobile Search Modal Handler
+        $(document).ready(function() {
+            var $mobileSearchBtn = $('#mobile-search-toggle');
+            var $searchModal = $('#searchModal');
+            var $modalSearchInput = $('#modal-search-input');
+
+            // Show search modal on mobile button click or when desktop search input is clicked
+            $mobileSearchBtn.on('click', function() {
+                $searchModal.modal('show');
+                setTimeout(function() {
+                    $modalSearchInput.focus();
+                }, 500);
+            });
+
+            // Also allow clicking desktop search input to open modal
+            $('#learning-search').on('click', function() {
+                $searchModal.modal('show');
+                setTimeout(function() {
+                    var currentVal = $('#learning-search').val();
+                    if (currentVal) {
+                        $modalSearchInput.val(currentVal);
+                    }
+                    $modalSearchInput.focus();
+                }, 500);
+            });
+
+            // Handle search suggestions click
+            $('.search-suggestion').on('click', function() {
+                var query = $(this).data('query');
+                $modalSearchInput.val(query);
+                $('#modal-search-form').submit();
+            });
+
+            // Show suggestions when modal opens
+            $searchModal.on('shown.bs.modal', function() {
+                $('#search-suggestions').show();
+            });
+
+            // Responsive search display
+            function handleSearchResponsive() {
+                if ($(window).width() <= 768) {
+                    $('.desktop-search').hide();
+                    $mobileSearchBtn.show();
+                } else {
+                    $('.desktop-search').show();
+                    $mobileSearchBtn.hide();
+                }
+            }
+
+            // Initial check
+            handleSearchResponsive();
+
+            // Check on resize
+            $(window).on('resize', handleSearchResponsive);
+        });
 
         // Initialize tour on page load
         $(document).ready(function() {
