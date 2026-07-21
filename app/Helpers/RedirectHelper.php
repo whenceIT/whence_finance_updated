@@ -36,11 +36,11 @@ class RedirectHelper
             'cscan' => 1,
         ])->first();
 
-        if ($office && $user->has_completed_profile == 0 && $user?->office?->province_id == $office->province_id) {
-            return redirect()->route('user.profile.complete')->send();
+        if(!in_array($user, (array) config('role.exec', []))) {
+            if ($office && $user->has_completed_profile == 0 && $user?->office?->province_id == $office->province_id) {
+                return redirect()->route('user.profile.complete')->send();
+            }
         }
-
-
 
         if (in_array($user, (array) config('role.risk', []))) {
             return redirect()->route('risk.dashboard')->send();
