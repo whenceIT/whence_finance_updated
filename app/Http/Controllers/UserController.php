@@ -507,7 +507,7 @@ public function save_wallet(Request $request)
 
         
         //reusable redirector helper
-        RedirectHelper::redirectById();
+        RedirectHelper::redirecttoDashboard();
         $branch_data = [];
         $pendingApproval = false;
         $numbers_status = null;
@@ -2817,12 +2817,16 @@ $cycle_date = $cycleDate->format('Y-m-d');
 
     public function showProfileCompletion()
     {
+        
         $user = Sentinel::getUser();
+        $offices = \App\Models\Office::where('pscan', 0)->get();
         return view('user.profile_completion', compact('user'));
     }
 
     public function profile_completion(Request $request)
     {
+        try {
+            
         $user = Sentinel::getUser();
 
         $createdDate = $user->created_at
@@ -2853,6 +2857,8 @@ $cycle_date = $cycleDate->format('Y-m-d');
             'salary_mode' => $request->salary_mode,
             'bank_name' => $request->bank_name,
             'bank_account_number' => $request->bank_account_number,
+            'mobile_money_number' => $request->mobile_money_number,
+            'receiver_name' => $request->receiver_name,
             'marital_status' => $request->marital_status,
             'health_details' => $request->health_details,
             'health_insurance_provider' => $request->health_insurance_provider,
@@ -2873,11 +2879,34 @@ $cycle_date = $cycleDate->format('Y-m-d');
             'has_completed_profile' => true,
         ]);
 
-        GeneralHelper::audit_trail($user->fname . " completed their profile Completion", "Users", $user->id);
+        // GeneralHelper::audit_trail($user->fname . " completed their profile Completion", "Users", $user->id);
         Flash::success("Profile completed successfully");
-        return redirect('dashboard');
+        return redirect()->back();
+        } catch (\Throwable $th) {
+            dd($th);
+        }
     }
 
+    public function promptUserProfile(Request $request)
+    {
+        $request->validate([
+            'office_id' => 'required|exists:offices,id'
+        ]);
+        
+        $office = Office::where('cscan', 1)->first();
+        if($office){
+            $office->cscan = 0;
+            $office->save();
+        }
+
+        Office::where('id', $request->office_id)->update([
+            'pscan' => 1,
+            'cscan' => 1
+        ]);
+
+        Flash::success("Office scan preference updated successfully");
+        return redirect()->back();
+    }
 
     //manage permissions
     public function indexPermission()

@@ -66,6 +66,64 @@
     </div>
 </section>
 
+
+<!-- Add a section here -->
+<div class="box box-primary" style="margin-top: 20px;">
+    <div class="box-header with-border">
+        <h3 class="box-title">Prompt User Profile</h3>
+    </div>
+    <div class="box-body">
+        <form action="{{ url('user/prompt-user-profile') }}" method="POST">
+            @csrf
+            <div class="form-group">
+                <label for="office_id" style="font-weight: 600; color: #000041;">Select Office</label>
+                <select name="office_id" id="office_id" class="form-control" required>
+                    <option value="">Select Office</option>
+                    @foreach($offices as $office)
+                        <option value="{{ $office->id }}">{{ $office->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Save</button>
+        </form>
+    </div>
+    <!-- Here display a list of Office where pscan = 1 order by updated_at desc -->
+    @if(isset($scanedoffices) && $scanedoffices->count() > 0)
+        <div class="box box-primary" style="margin-top: 20px;">
+            <div class="box-header with-border">
+                <h3 class="box-title">Offices with Prompt User Profile Enabled</h3>
+            </div>
+            <div class="box-body">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Office Name</th>
+                            <th>Updated At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($scanedoffices as $office)
+                            <tr>
+                                <td>{{ $office->name }}</td>
+                                <td>{{ $office->updated_at->format('Y-m-d H:i:s') }}</td>
+                                <td>
+                                    @if($office->pscan == 1 && $office->cscan == 0)
+                                        <i class="fa fa-check-circle" style="color:#27ae60;font-size:18px;"></i>
+                                    @else
+                                        <i class="fa fa-location" style="color:#c0392b;font-size:18px;"></i>&nbsp;Current
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+</div>
+
+
 <script>
 $('#period').on('change', function() {
     var period = $(this).val();
