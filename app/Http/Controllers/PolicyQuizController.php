@@ -195,13 +195,12 @@ class PolicyQuizController extends Controller
         $quiz = PolicyQuiz::findOrFail($id);
         $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
             ->where('user_id', Sentinel::getUser()->id)
-            ->whereNotNull('completed_at')
             ->latest()
             ->first();
 
         if (!$attempt) {
             return redirect()->route('policy.quizzes.index')
-                ->with('error', 'Quiz results not found. Please complete the quiz first.');
+                ->with('error', 'Quiz results not found or quiz expired timeout.');
         }
 
         $answers = $attempt->answers()->with('question')->get();

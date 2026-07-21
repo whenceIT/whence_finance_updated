@@ -179,7 +179,7 @@ use Illuminate\Support\Str;
                     </div>
                 </div>
                 @else
-                <div class="box box-success">
+                <!-- <div class="box box-success">
                     <div class="box-header with-border">
                         <h3 class="box-title">
                             <i class="fa fa-check-circle"></i> 
@@ -192,7 +192,7 @@ use Illuminate\Support\Str;
                             Congratulations! You answered all questions correctly.
                         </div>
                     </div>
-                </div>
+                </div> -->
                 @endif
                 
                 <!-- All Answers Summary -->
