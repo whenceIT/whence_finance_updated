@@ -1118,7 +1118,7 @@ $office = $userInfo->office;
                             $showInductionModal = true;
                         } else {
                             // Policy Check
-                            $showPolicyModal = !\App\Models\InductionChecklist::hasCompletedPolicies($user->id);
+                            $showPolicyModal = \App\Models\InductionChecklist::hasCompletedPolicies($user->id);
                         }
                     }
 
@@ -1706,10 +1706,6 @@ $office = $userInfo->office;
     <!-- ChartJS 1.0.1 -->
     <script src="{{ asset('assets/themes/adminlte/js/custom.js') }}">
     </script>
-
-    @if($role !== 11)
-        <!-- include('partials.profile_completion_wizard') -->
-    @endif
 
 
     <!-- Floating SMS Button -->

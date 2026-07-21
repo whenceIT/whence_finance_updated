@@ -2817,6 +2817,7 @@ $cycle_date = $cycleDate->format('Y-m-d');
 
     public function showProfileCompletion()
     {
+        
         $user = Sentinel::getUser();
         return view('user.profile_completion', compact('user'));
     }
@@ -2853,6 +2854,8 @@ $cycle_date = $cycleDate->format('Y-m-d');
             'salary_mode' => $request->salary_mode,
             'bank_name' => $request->bank_name,
             'bank_account_number' => $request->bank_account_number,
+            'mobile_money_number' => $request->mobile_money_number,
+            'receiver_name' => $request->receiver_name,
             'marital_status' => $request->marital_status,
             'health_details' => $request->health_details,
             'health_insurance_provider' => $request->health_insurance_provider,

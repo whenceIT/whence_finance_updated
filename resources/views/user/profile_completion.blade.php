@@ -31,7 +31,7 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 
-<div id="profileWizardModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,20,0.7); z-index: 100000; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
+<div class="col-lg-12" style="width: 100%; display: flex; align-items: center; justify-content: center;">
 
         <div style="background: white; border-radius: 12px; overflow: hidden; max-width: 900px; width: 50%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; border: 1px solid #eee; animation: modalContentAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
 
@@ -207,15 +207,33 @@
                                 </div>
                                 <div class="form-group">
                                     <label style="font-weight: 600; color: #000041;">Salary Mode *</label>
-                                    <input type="text" disabled name="salary_mode" class="form-control" value="{{ old('salary_mode', $user->salary_mode) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    <select name="salary_mode" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                        <option value="">Select Salary Mode</option>
+                                        <option value="Bank" {{ old('salary_mode', $user->salary_mode) == 'Bank' ? 'selected' : '' }}>Bank</option>
+                                        <option value="Airtel Money" {{ old('salary_mode', $user->salary_mode) == 'Airtel Money' ? 'selected' : '' }}>Airtel Money</option>
+                                        <option value="MTN Money" {{ old('salary_mode', $user->salary_mode) == 'MTN Money' ? 'selected' : '' }}>MTN Money</option>
+                                        <option value="Zamtel" {{ old('salary_mode', $user->salary_mode) == 'Zamtel' ? 'selected' : '' }}>Zamtel</option>
+                                    </select>
                                 </div>
-                                <div class="form-group">
-                                    <label style="font-weight: 600; color: #000041;">Bank Name (optional)</label>
-                                    <input type="text" name="bank_name" class="form-control" value="{{ old('bank_name', $user->bank_name) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <div id="bankFields">
+                                    <div class="form-group">
+                                        <label style="font-weight: 600; color: #000041;">Bank Name (optional)</label>
+                                        <input type="text" name="bank_name" class="form-control" value="{{ old('bank_name', $user->bank_name) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label style="font-weight: 600; color: #000041;">Bank Account Number (optional)</label>
+                                        <input type="text" name="bank_account_number" class="form-control" value="{{ old('bank_account_number', $user->bank_account_number) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label style="font-weight: 600; color: #000041;">Bank Account Number (optional)</label>
-                                    <input type="text" name="bank_account_number" class="form-control" value="{{ old('bank_account_number', $user->bank_account_number) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                <div id="mobileMoneyFields" style="display: none;">
+                                    <div class="form-group">
+                                        <label style="font-weight: 600; color: #000041;">Mobile Number</label>
+                                        <input type="tel" name="mobile_money_number" class="form-control" value="{{ old('mobile_money_number', $user->mobile_money_number) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label style="font-weight: 600; color: #000041;">Receiver Name</label>
+                                        <input type="text" name="receiver_name" class="form-control" value="{{ old('receiver_name', $user->receiver_name) }}" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label style="font-weight: 600; color: #000041;">Health Insurance Provider</label>
@@ -417,10 +435,38 @@
                         return false;
                     }
                 } else if (currentStep === 5) {
-                    var salaryMode = document.querySelector('input[name="salary_mode"]').value.trim();
-                    var bankName = document.querySelector('input[name="bank_name"]').value.trim();
-                    var bankAccount = document.querySelector('input[name="bank_account_number"]').value.trim();
-                    var healthInsNum = document.querySelector('input[name="health_insurance_number"]').value.trim();
+                    var salaryMode = document.querySelector('select[name="salary_mode"]').value.trim();
+                    if (!salaryMode) {
+                        toastr.error('Please select a salary mode.', 'Validation Error');
+                        return false;
+                    }
+                    if (salaryMode === 'Bank') {
+                        var bankName = document.querySelector('input[name="bank_name"]').value.trim();
+                        var bankAccount = document.querySelector('input[name="bank_account_number"]').value.trim();
+                        if (!bankName) {
+                            toastr.error('Please enter bank name.', 'Validation Error');
+                            return false;
+                        }
+                        if (!bankAccount) {
+                            toastr.error('Please enter bank account number.', 'Validation Error');
+                            return false;
+                        }
+                    } else if (salaryMode === 'Airtel Money' || salaryMode === 'MTN Money' || salaryMode === 'Zamtel') {
+                        var mobileMoneyNumber = document.querySelector('input[name="mobile_money_number"]').value.trim();
+                        var receiverName = document.querySelector('input[name="receiver_name"]').value.trim();
+                        if (!mobileMoneyNumber) {
+                            toastr.error('Please enter mobile money number.', 'Validation Error');
+                            return false;
+                        }
+                        if (!receiverName) {
+                            toastr.error('Please enter receiver name.', 'Validation Error');
+                            return false;
+                        }
+                    }
+                    if (salaryMode === '') {
+                        toastr.error('Please select salary mode.', 'Validation Error');
+                        return false;
+                    }
                 } else if (currentStep === 6) {
                     var levelEduSelect = document.querySelector('select[name="level_of_education"]');
                     var yearComp = document.querySelector('input[name="year_completed"]').value.trim();
@@ -431,6 +477,22 @@
                     var toDate = document.querySelector('input[name="internal_to_date"]').value.trim();
                 }
                 return true;
+            }
+
+            function toggleBankFields() {
+                var salaryMode = document.querySelector('select[name="salary_mode"]');
+                var bankFields = document.getElementById('bankFields');
+                var mobileMoneyFields = document.getElementById('mobileMoneyFields');
+                if (salaryMode && bankFields && mobileMoneyFields) {
+                    var val = salaryMode.value;
+                    if (val === 'Airtel Money' || val === 'MTN Money' || val === 'Zamtel') {
+                        bankFields.style.display = 'none';
+                        mobileMoneyFields.style.display = 'block';
+                    } else {
+                        bankFields.style.display = 'block';
+                        mobileMoneyFields.style.display = 'none';
+                    }
+                }
             }
 
             function updateWizard() {
@@ -477,7 +539,7 @@
             });
 
             btnSkip.addEventListener('click', function () {
-                document.getElementById('profileWizardModal').style.display = 'none';
+                window.location.href = '{{ url("dashboard") }}';
             });
 
             btnFinish.addEventListener('click', function () {
@@ -491,17 +553,17 @@
             document.addEventListener('DOMContentLoaded', function () {
                 if (typeof $ !== 'undefined' && $.fn.select2) {
                     $('#profileWizardContent .select2').select2({
-                        dropdownParent: $('#profileWizardModal'),
                         width: '100%',
                         theme: 'default',
                         minimumResultsForSearch: Infinity,
                         dropdownAutoWidth: false,
                         width: 'resolve'
-                    }).on('select2:open', function() {
-                        $('#profileWizardContent').css('overflow', 'visible');
-                    }).on('select2:close', function() {
-                        $('#profileWizardContent').css('overflow', 'auto');
                     });
+                }
+                var salaryModeSelect = document.querySelector('select[name="salary_mode"]');
+                if (salaryModeSelect) {
+                    salaryModeSelect.addEventListener('change', toggleBankFields);
+                    toggleBankFields();
                 }
                 updateWizard();
             });
