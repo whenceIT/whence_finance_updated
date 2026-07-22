@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GeneralUpload;
+use App\Models\GeneralTopic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
@@ -11,6 +12,46 @@ use Sentinel;
 
 class GeneralUploadsController extends Controller
 {
+    /**
+     * Search general topics and uploads.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+        $limit = 50;
+
+        if (empty($query)) {
+            return view('learning.search-results', [
+                'query' => '',
+                'topics' => collect([]),
+                'uploads' => collect([]),
+            ]);
+        }
+
+        // Search GeneralTopics
+        $topics = GeneralTopic::where('name', 'LIKE', "%{$query}%")
+            ->orWhere('description', 'LIKE', "%{$query}%")
+            ->with('uploads')
+            ->limit($limit)
+            ->get();
+
+        // Search GeneralUploads
+        $uploads = GeneralUpload::where('name', 'LIKE', "%{$query}%")
+            ->orWhere('path', 'LIKE', "%{$query}%")
+            ->with('positions')
+            ->limit($limit)
+            ->get();
+
+        return view('learning.search-results', [
+            'query' => $query,
+            'topics' => $topics,
+            'uploads' => $uploads,
+        ]);
+    }
+
     /**
      * S3 Configuration
      */

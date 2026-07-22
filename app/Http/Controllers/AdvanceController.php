@@ -18,6 +18,7 @@ use App\Models\TopUp;
 use App\Models\AdvanceTransaction;
 use App\Models\UserRole;
 use App\Models\Notifix;
+use App\Helpers\RedirectHelper;
 use Illuminate\Support\Facades\Http;
 
 class AdvanceController extends Controller
@@ -417,19 +418,30 @@ class AdvanceController extends Controller
     public function showAdvanceDeductions()
     {
         $user = Sentinel::getUser();
-        $query = Advance::with('transactions');
-
+        $currentMonth = now()->format('Y-m');
+        
+        // Base query with office and user relationships
+        $baseQuery = Advance::with(['office', 'user', 'transactions']);
+        $baseQuery2 = Advance::with(['office', 'user', 'transactions'])
+            ->where('office_id', $user->office_id)
+            ->where('created_at', '<', now()->startOfMonth());
         if ($user->inRole(1)) {
+            // Admin - all offices
         } elseif ($user->inRole(6)) {
-            $query->whereIn('office_id', function ($q) use ($user) {
+            $baseQuery->whereIn('office_id', function ($q) use ($user) {
                 $q->select('id')->from('offices')->where('province_id', $user->province_id);
             });
         } elseif ($user->inRole(4)) {
-            $query->where('office_id', $user->office_id);
+            $baseQuery->where('office_id', $user->office_id);
         }
 
-        $advances = $query->get();
-        return view('advances.advance_deductions', compact('advances'));
+        // Get all advances (Overall tab)
+        $allAdvances = (clone $baseQuery)->get();
+        
+        // Get advances without transactions in current month (This Month tab)
+        $thisMonthAdvances = RedirectHelper::getThisMonthAdvances($baseQuery2, $currentMonth);
+
+        return view('advances.advance_deductions', compact('allAdvances', 'thisMonthAdvances'));
     }
 
     public function processDeduction($id)

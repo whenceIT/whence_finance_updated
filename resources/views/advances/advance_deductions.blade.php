@@ -9,65 +9,152 @@
         <div class="box-header with-border">
             <h3 class="box-title">Advance Deductions</h3>
         </div>
-        <div class="box-body table-responsive">
-            @if ($advances->isEmpty())
-                <p>No advance deductions found.</p>
-            @else
-                <table class="table table-bordered table-hover table-striped" id="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Branch</th>
-                            <th>Amount</th>
-                            <th>Installments</th>
-                            <th>Installment Amount</th>
-                            <th>Amount Paid</th>
-                            <th>Balance</th>
-                            <th>Status</th>
-                            <th>For</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($advances as $advance)
-                            <tr>
-                                <td>{{ $advance->id }}</td>
-                                <td>{{ $advance->first_name }} {{ $advance->last_name }}</td>
-                                <td>{{ $advance->office->name ?? 'N/A' }}</td>
-                                <td>{{ number_format($advance->amount, 2) }}</td>
-                                <td>{{ $advance->installments }}</td>
-                                <td>{{ number_format($advance->installment_amount, 2) }}</td>
-                                <td>{{ number_format($advance->amount_paid ?? 0, 2) }}</td>
-                                <td>{{ number_format($advance->remaining_amount, 2) }}</td>
-                                <td>
-                                    <span class="label label-{{ $advance->status == 'pending' ? 'warning' : ($advance->status == 'approved' ? 'success' : 'default') }}">
-                                        {{ ucfirst($advance->status) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {{ $advance->created_at->format('Y-m-d') }}
-                                </td>
-                                <td>
-                                    <form method="POST" action="{{ route('advances.deduction', $advance->id) }}" id="deduct-form-{{ $advance->id }}" style="display: inline;">
-                                        @csrf
-                                        <button type="button" class="btn btn-success btn-xs deduct-btn" 
-                                                data-form-id="{{ $advance->id }}" 
-                                                data-advance-name="{{ $advance->first_name }} {{ $advance->last_name }}"
-                                                data-installment-amount="{{ number_format($advance->installment_amount, 2) }}"
-                                                data-remaining-amount="{{ number_format($advance->remaining_amount, 2) }}">
-                                            <i class="fa fa-minus"></i> Deduct
-                                        </button>
-                                    </form>
-                                    <a href="{{ route('advances.show', $advance->id) }}" class="btn btn-info btn-xs">
-                                        <i class="fa fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
+        
+        <!-- Tabs -->
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active">
+                    <a href="#tab_this_month" data-toggle="tab">
+                        This Month Deductions 
+                        <span class="badge bg-blue">{{ $thisMonthAdvances->count() }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#tab_overall" data-toggle="tab">
+                        Overall 
+                        <span class="badge bg-green">{{ $allAdvances->count() }}</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <!-- This Month Deductions Tab -->
+                <div class="tab-pane active" id="tab_this_month">
+                    <div class="box-body table-responsive">
+                        @if ($thisMonthAdvances->isEmpty())
+                            <p class="text-muted text-center">No pending deductions for this month.</p>
+                        @else
+                            <table class="table table-bordered table-hover table-striped" id="data-table-this-month">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Branch</th>
+                                        <th>Amount</th>
+                                        <th>Installments</th>
+                                        <th>Installment Amount</th>
+                                        <th>Amount Paid</th>
+                                        <th>Balance</th>
+                                        <th>Status</th>
+                                        <th>For</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($thisMonthAdvances as $advance)
+                                        <tr>
+                                            <td>{{ $advance->id }}</td>
+                                            <td>{{ $advance->user->first_name ?? 'N/A' }} {{ $advance->user->last_name ?? '' }}</td>
+                                            <td>{{ $advance->office->name ?? 'N/A' }}</td>
+                                            <td>{{ number_format($advance->amount, 2) }}</td>
+                                            <td>{{ $advance->installments }}</td>
+                                            <td>{{ number_format($advance->installment_amount, 2) }}</td>
+                                            <td>{{ number_format($advance->amount_paid ?? 0, 2) }}</td>
+                                            <td>{{ number_format($advance->remaining_amount, 2) }}</td>
+                                            <td>
+                                                <span class="label label-{{ $advance->status == 'pending' ? 'warning' : ($advance->status == 'approved' ? 'success' : 'default') }}">
+                                                    {{ ucfirst($advance->status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{ $advance->created_at->format('Y-m-d') }}
+                                            </td>
+                                            <td>
+                                                <form method="POST" action="{{ route('advances.deduction', $advance->id) }}" id="deduct-form-{{ $advance->id }}" style="display: inline;">
+                                                    @csrf
+                                                    <button type="button" class="btn btn-success btn-xs deduct-btn" 
+                                                            data-form-id="{{ $advance->id }}" 
+                                                            data-advance-name="{{ $advance->user->first_name ?? 'N/A' }} {{ $advance->user->last_name ?? '' }}"
+                                                            data-installment-amount="{{ number_format($advance->installment_amount, 2) }}"
+                                                            data-remaining-amount="{{ number_format($advance->remaining_amount, 2) }}">
+                                                        <i class="fa fa-minus"></i> Deduct
+                                                    </button>
+                                                </form>
+                                                <a href="{{ route('advances.show', $advance->id) }}" class="btn btn-info btn-xs">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @endif
+                    </div>
+                </div>
+                
+                <!-- Overall Tab -->
+                <div class="tab-pane" id="tab_overall">
+                    <div class="box-body table-responsive">
+                        @if ($allAdvances->isEmpty())
+                            <p class="text-muted text-center">No advance deductions found.</p>
+                        @else
+                            <table class="table table-bordered table-hover table-striped" id="data-table-overall">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Branch</th>
+                                        <th>Amount</th>
+                                        <th>Installments</th>
+                                        <th>Installment Amount</th>
+                                        <th>Amount Paid</th>
+                                        <th>Balance</th>
+                                        <th>Status</th>
+                                        <th>For</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($allAdvances as $advance)
+                                        <tr>
+                                            <td>{{ $advance->id }}</td>
+                                            <td>{{ $advance->user->first_name ?? 'N/A' }} {{ $advance->user->last_name ?? '' }}</td>
+                                            <td>{{ $advance->office->name ?? 'N/A' }}</td>
+                                            <td>{{ number_format($advance->amount, 2) }}</td>
+                                            <td>{{ $advance->installments }}</td>
+                                            <td>{{ number_format($advance->installment_amount, 2) }}</td>
+                                            <td>{{ number_format($advance->amount_paid ?? 0, 2) }}</td>
+                                            <td>{{ number_format($advance->remaining_amount, 2) }}</td>
+                                            <td>
+                                                <span class="label label-{{ $advance->status == 'pending' ? 'warning' : ($advance->status == 'approved' ? 'success' : 'default') }}">
+                                                    {{ ucfirst($advance->status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{ $advance->created_at->format('Y-m-d') }}
+                                            </td>
+                                            <td>
+                                                <form method="POST" action="{{ route('advances.deduction', $advance->id) }}" id="deduct-form-{{ $advance->id }}" style="display: inline;">
+                                                    @csrf
+                                                    <button type="button" class="btn btn-success btn-xs deduct-btn" 
+                                                            data-form-id="{{ $advance->id }}" 
+                                                            data-advance-name="{{ $advance->user->first_name ?? 'N/A' }} {{ $advance->user->last_name ?? '' }}"
+                                                            data-installment-amount="{{ number_format($advance->installment_amount, 2) }}"
+                                                            data-remaining-amount="{{ number_format($advance->remaining_amount, 2) }}">
+                                                        <i class="fa fa-minus"></i> Deduct
+                                                    </button>
+                                                </form>
+                                                <a href="{{ route('advances.show', $advance->id) }}" class="btn btn-info btn-xs">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -96,8 +183,8 @@
     </div>
 <script>
 $(function () {
-
-    $('#data-table').DataTable({
+    // Initialize DataTables for both tabs
+    $('#data-table-this-month').DataTable({
         dom: 'frtip',
         paging: true,
         lengthChange: true,
@@ -107,9 +194,35 @@ $(function () {
         info: true,
         autoWidth: true,
         order: [[0, "desc"]],
-        columnDefs: [
-            { orderable: false, targets: [10] }
-        ],
+        columnDefs: [{ orderable: false, targets: [10] }],
+        language: {
+            lengthMenu: "{{ trans('general.lengthMenu') }}",
+            zeroRecords: "{{ trans('general.zeroRecords') }}",
+            info: "{{ trans('general.info') }}",
+            infoEmpty: "{{ trans('general.infoEmpty') }}",
+            search: "{{ trans('general.search') }}",
+            infoFiltered: "{{ trans('general.infoFiltered') }}",
+            paginate: {
+                first: "{{ trans('general.first') }}",
+                last: "{{ trans('general.last') }}",
+                next: "{{ trans('general.next') }}",
+                previous: "{{ trans('general.previous') }}"
+            }
+        },
+        responsive: false
+    });
+
+    $('#data-table-overall').DataTable({
+        dom: 'frtip',
+        paging: true,
+        lengthChange: true,
+        displayLength: 15,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: true,
+        order: [[0, "desc"]],
+        columnDefs: [{ orderable: false, targets: [10] }],
         language: {
             lengthMenu: "{{ trans('general.lengthMenu') }}",
             zeroRecords: "{{ trans('general.zeroRecords') }}",

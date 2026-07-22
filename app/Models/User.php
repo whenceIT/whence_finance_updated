@@ -58,6 +58,8 @@ class User extends EloquentUser
         'salary_mode',
         'bank_name',
         'bank_account_number',
+        'mobile_money_number',
+        'receiver_name',
         'marital_status',
         'health_details',
         'health_insurance_provider',
@@ -149,5 +151,10 @@ class User extends EloquentUser
     {
         $position = \Illuminate\Support\Facades\DB::table('job_positions')->where('id', $this->position_id)->first();
         return $position ? $position->name : '';
+    }
+
+    public function getFullNameAttribute()
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 }

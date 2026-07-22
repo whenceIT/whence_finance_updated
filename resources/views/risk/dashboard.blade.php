@@ -8,6 +8,31 @@
                 <h1>Risk Dashboard</h1>
                 <p class="page-subtitle">Live overview of collections, approvals and upcoming deadlines</p>
             </div>
+
+            <!-- Real Time Alerts -->
+            <a href="{{ route('risk.fraud-feed') }}" class="ff-stats-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0 10px;border-bottom:1px solid #eee;margin-bottom:12px;font-size:12px;background:#fff; text-decoration: none; color: inherit;">
+                <span class="ff-stat-item" title="Total alerts in window">
+                    <i class="fa fa-list" style="color:#555;"></i>&nbsp;
+                    <strong style="color:#222;">0</strong>&nbsp;total
+                </span>
+                <span class="ff-stat-item" title="Critical alerts">
+                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c0392b;margin-right:3px;"></span>
+                    <strong style="color:#c0392b;">0</strong>&nbsp;critical
+                </span>
+                <span class="ff-stat-item" title="Warning alerts">
+                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f39c12;margin-right:3px;"></span>
+                    <strong style="color:#f39c12;">0</strong>&nbsp;warning
+                </span>
+                <span class="ff-stat-item" title="Info alerts">
+                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3498db;margin-right:3px;"></span>
+                    <strong style="color:#3498db;">0</strong>&nbsp;info
+                </span>
+                <span class="ff-stat-item" title="Unread alerts"
+                      style="margin-left:auto;color:#888;">
+                    <i class="fa fa-envelope-o"></i>&nbsp;
+                    <strong>0</strong>&nbsp;unread
+                </span>
+            </a>
         </div>
     </div>
 
@@ -56,8 +81,8 @@
                     </div>
                 </div>
 
-                <div class="bento-card small outline-card"
-                     style="{{ ($pendingDepositApprovals ?? 0) > 0 ? 'border-color:#f5a623;background:linear-gradient(135deg,#fff8ec 0%,#fffdf9 100%);' : '' }}">
+                <a href="{{ route('approvals.deposit-approvals') }}" class="bento-card small outline-card"
+                     style="{{ ($pendingDepositApprovals ?? 0) > 0 ? 'border-color:#f5a623;background:linear-gradient(135deg,#fff8ec 0%,#fffdf9 100%);' : '' }}; text-decoration: none;">
                     <div class="card-top">
                         <div class="icon-wrap icon-wrap-light"><i class="fa fa-inbox" style="color:#f5a623;"></i></div>
                         @if(($pendingDepositApprovals ?? 0) > 0)
@@ -68,7 +93,7 @@
                         <div class="title" style="color:#555;">Pending Deposit Approvals</div>
                         <div class="value" style="color:#222;">{{ $pendingDepositApprovals ?? 0 }}</div>
                     </div>
-                </div>
+                </a>
 
                 <!-- <div class="bento-card small outline-card"
                      style="{{ ($pendingExpenseApprovals ?? 0) > 0 ? 'border-color:#f5a623;background:linear-gradient(135deg,#fff8ec 0%,#fffdf9 100%);' : '' }}">
@@ -379,4 +404,7 @@
     </style>
 
 </div>
+
+@include('components.client-search-bottom-sheet')
+
 @endsection

@@ -39,25 +39,35 @@ class PolicyQuizController extends Controller
     public function start($id)
     {
         $quiz = PolicyQuiz::findOrFail($id);
-        
-        // Check if quiz is open
+        $user = Sentinel::getUser()->id;
+
         if (!$quiz->isOpen()) {
             return redirect()->route('policy.quizzes.index')
                 ->with('error', 'This quiz is not currently available.');
         }
 
-        // Check for existing active attempt
-        $existingAttempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
+        $existingAttempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
+            ->where('user_id', $user)
+            ->first();
+
         if ($existingAttempt) {
+            if ($existingAttempt->completed_at) {
+                return redirect()->route('policy.quizzes.results', $id)
+                    ->with('error', 'You have already completed this quiz.');
+            }
             return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1]);
         }
 
-        // Create new attempt
-        $attempt = PolicyQuizAttempt::create([
-            'policy_quiz_id' => $quiz->id,
-            'user_id' => Sentinel::getUser()->id,
-            'started_at' => now(),
-        ]);
+        try {
+            $attempt = PolicyQuizAttempt::create([
+                'policy_quiz_id' => $quiz->id,
+                'user_id' => $user,
+                'started_at' => now(),
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('policy.quizzes.index')
+                ->with('error', 'Unable to start quiz. You may have already taken this quiz.');
+        }
 
         return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1])
             ->with('success', 'Quiz started! You have ' . $quiz->time_limit_minutes . ' minutes to complete.');
@@ -79,7 +89,8 @@ class PolicyQuizController extends Controller
 
         if ($attempt->isTimeExpired()) {
             $attempt->calculateScore();
-            return redirect()->route('policy.quizzes.results', $id);
+            return redirect()->route('policy.quizzes.results', $id)
+                ->with('error', 'Quiz has expired');
         }
 
         $questions = session('quiz_questions_' . $attempt->id);
@@ -184,13 +195,12 @@ class PolicyQuizController extends Controller
         $quiz = PolicyQuiz::findOrFail($id);
         $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
             ->where('user_id', Sentinel::getUser()->id)
-            ->whereNotNull('completed_at')
             ->latest()
             ->first();
 
         if (!$attempt) {
             return redirect()->route('policy.quizzes.index')
-                ->with('error', 'Quiz results not found. Please complete the quiz first.');
+                ->with('error', 'Quiz results not found or quiz expired timeout.');
         }
 
         $answers = $attempt->answers()->with('question')->get();

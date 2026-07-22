@@ -26,6 +26,8 @@ class Office extends Model
         'province_id',
         'district_id',
         'district_regional_id',
+        'pscan',
+        'pscand',
     ];
 
     public function parent()

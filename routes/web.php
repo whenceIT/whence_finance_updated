@@ -201,6 +201,7 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
         return $pdf->download('test.pdf');
     })->name('learning.test-pdf');
     Route::get('/', [LearningController::class, 'index'])->name('learning.dashboard');
+    Route::get('/search', [GeneralUploadsController::class, 'search'])->name('learning.search');
     Route::get('/courses', [LearningController::class, 'courses'])->name('learning.courses');
     Route::get('/calendar', [LearningController::class, 'calendar'])->name('learning.calendar');
     Route::get('/progress', [LearningController::class, 'progress'])->name('learning.progress');
@@ -304,7 +305,7 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      Route::post('/topic/{topicId}/increment-view', [TrainingMaterialController::class, 'incrementTopicView'])->name('learning.training-materials.increment-topic-view');
  });
 
- // General Uploads Management Routes
+// General Uploads Management Routes
     Route::group(['prefix' => 'learning/general-uploads', 'middleware' => 'sentinel'], function () {
         Route::get('/', [GeneralUploadsController::class, 'index'])->name('learning.general-uploads.index');
         Route::get('/watch-and-learning', [GeneralUploadsController::class, 'watchAndLearning'])->name('learning.watch-and-learning');
@@ -435,8 +436,9 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('edit_my_details', 'UserController@edit_my_details');
     Route::get('profile', 'UserController@profile');
     Route::post('update_profile', 'UserController@profile_update');
-    Route::get('profile_completion', 'UserController@showProfileCompletion');
+    Route::get('profile_completion', 'UserController@showProfileCompletion')->name('user.profile.complete');
     Route::post('profile_completion', 'UserController@profile_completion');
+    Route::post('prompt-user-profile', 'UserController@promptUserProfile');
     Route::get('{user}/staff_info', 'UserController@user_info');
     Route::get('search', 'UserController@search');
     Route::any('{user}/{collection_type}/collections_stats', 'UserController@collections_stats');

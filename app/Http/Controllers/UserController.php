@@ -255,13 +255,6 @@ public function bmdashboard(Request $request){
     $end_date   = $request->end_date ?? $cycleEnd->format('Y-m-d');
 
 
-    // try{
-
-
-
-    // }catch{
-
-    // }
 
     $url = "https://lms2backend.whencefinancesystem.com/branch-ledger-summary?branch_id=$office_id";
     $url2 = "https://lms2backend.whencefinancesystem.com/consultants-performance-by-office?office_id=$office_id&start_date=$start_date&end_date=$end_date";
@@ -269,9 +262,9 @@ public function bmdashboard(Request $request){
     $json = @file_get_contents($url);
     $json2 = @file_get_contents($url2);
     $json3 = @file_get_contents($url3);
-    $branch = $json ? json_decode($json, true) : null;
-    $branch_data =  $json3 ? json_decode($json3, true) : null;
-    $data = $json2 ? json_decode($json2, true) : null;
+    $branch = $json ? json_decode($json, true) : [];
+    $branch_data = $json3 ? json_decode($json3, true) : [];
+    $data = $json2 ? json_decode($json2, true) : [];
     $consultants = $data['data'] ?? [];
 
     return view('user.bmdashboard',compact('branch','consultants',  'start_date',
@@ -514,7 +507,7 @@ public function save_wallet(Request $request)
 
         
         //reusable redirector helper
-        RedirectHelper::redirectById();
+        RedirectHelper::redirecttoDashboard();
         $branch_data = [];
         $pendingApproval = false;
         $numbers_status = null;
@@ -2824,12 +2817,16 @@ $cycle_date = $cycleDate->format('Y-m-d');
 
     public function showProfileCompletion()
     {
+        
         $user = Sentinel::getUser();
+        $offices = \App\Models\Office::where('pscan', 0)->get();
         return view('user.profile_completion', compact('user'));
     }
 
     public function profile_completion(Request $request)
     {
+        try {
+            
         $user = Sentinel::getUser();
 
         $createdDate = $user->created_at
@@ -2860,6 +2857,8 @@ $cycle_date = $cycleDate->format('Y-m-d');
             'salary_mode' => $request->salary_mode,
             'bank_name' => $request->bank_name,
             'bank_account_number' => $request->bank_account_number,
+            'mobile_money_number' => $request->mobile_money_number,
+            'receiver_name' => $request->receiver_name,
             'marital_status' => $request->marital_status,
             'health_details' => $request->health_details,
             'health_insurance_provider' => $request->health_insurance_provider,
@@ -2880,11 +2879,34 @@ $cycle_date = $cycleDate->format('Y-m-d');
             'has_completed_profile' => true,
         ]);
 
-        GeneralHelper::audit_trail($user->fname . " completed their profile Completion", "Users", $user->id);
+        // GeneralHelper::audit_trail($user->fname . " completed their profile Completion", "Users", $user->id);
         Flash::success("Profile completed successfully");
-        return redirect('dashboard');
+        return redirect()->back();
+        } catch (\Throwable $th) {
+            dd($th);
+        }
     }
 
+    public function promptUserProfile(Request $request)
+    {
+        $request->validate([
+            'office_id' => 'required|exists:offices,id'
+        ]);
+        
+        $office = Office::where('cscan', 1)->first();
+        if($office){
+            $office->cscan = 0;
+            $office->save();
+        }
+
+        Office::where('id', $request->office_id)->update([
+            'pscan' => 1,
+            'cscan' => 1
+        ]);
+
+        Flash::success("Office scan preference updated successfully");
+        return redirect()->back();
+    }
 
     //manage permissions
     public function indexPermission()

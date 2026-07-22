@@ -5,6 +5,7 @@ namespace App\Helpers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
+use App\Models\Office;
 
 class RedirectHelper
 {
@@ -26,9 +27,22 @@ class RedirectHelper
     /**
      * Redirect based on specific role ID
      */
-    public static function redirectById()
+    public static function redirecttoDashboard()
     {
-        $user = Sentinel::getUser()->id;
+        $user = Sentinel::getUser();
+
+        $office = Office::where([
+            'pscan' => 1,
+            'cscan' => 1,
+        ])->first();
+
+        if(in_array($user, (array) config('role.exec', []))) {
+            return null;
+        }
+
+        if ($office && $user->has_completed_profile == 0 && $user?->office?->province_id == $office->province_id) {
+            return redirect()->route('user.profile.complete')->send();
+        }
 
         if (in_array($user, (array) config('role.risk', []))) {
             return redirect()->route('risk.dashboard')->send();
@@ -121,5 +135,18 @@ class RedirectHelper
     {
         Session::flash('success', $message);
         return redirect()->route($route);
+    }
+
+    /**
+     * Get advances without transactions in current month (This Month tab)
+     */
+    public static function getThisMonthAdvances($baseQuery, $currentMonth)
+    {
+        return (clone $baseQuery)
+            ->where('status', 'approved')
+            ->whereDoesntHave('transactions', function ($q) use ($currentMonth) {
+                $q->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$currentMonth]);
+            })
+            ->get();
     }
 }

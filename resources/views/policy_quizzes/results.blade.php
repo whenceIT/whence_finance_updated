@@ -1,12 +1,22 @@
 @extends('layouts.master')
 
-@section('content')
-<div class="content">
-    <section class="content-header">
-        <h1>Quiz Results</h1>
-    </section>
+@php
+use Illuminate\Support\Str;
+@endphp
 
-    <section class="content">
+@section('content')
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('error') }}
+        </div>
+    @endif
+    <div class="content">
+        <section class="content-header">
+            <h1>Quiz Results</h1>
+        </section>
+
+        <section class="content">
         <div class="row">
             <div class="col-md-12">
                 <!-- Results Summary -->
@@ -169,7 +179,7 @@
                     </div>
                 </div>
                 @else
-                <div class="box box-success">
+                <!-- <div class="box box-success">
                     <div class="box-header with-border">
                         <h3 class="box-title">
                             <i class="fa fa-check-circle"></i> 
@@ -182,7 +192,7 @@
                             Congratulations! You answered all questions correctly.
                         </div>
                     </div>
-                </div>
+                </div> -->
                 @endif
                 
                 <!-- All Answers Summary -->

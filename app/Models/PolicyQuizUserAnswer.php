@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class PolicyQuizUserAnswer extends Model
 {
     use HasFactory;
+    
+    public $timestamps = false;
 
     protected $fillable = [
         'attempt_id',
         'question_id',
         'selected_answer',
-        'is_correct'
+        'is_correct',
+        'answered_at'
     ];
 
     protected $casts = [
