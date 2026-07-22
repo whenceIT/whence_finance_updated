@@ -404,4 +404,7 @@
     </style>
 
 </div>
+
+@include('components.client-search-bottom-sheet')
+
 @endsection
