@@ -69,15 +69,14 @@
                 <br>
                 <hr>
                 <!-- Payment D -->
-                @if(true)
+                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] != 'fully paid')
                     @include('branch-deposits._partials.statutory', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.statutory', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
                 @endif
                 <br>
                 <hr>
-                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid'  && $status[2]['status'] === 'fully paid' 
-                || in_array(Sentinel::getUser()->office_id, [62, 68]))
+                @if(true)
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
