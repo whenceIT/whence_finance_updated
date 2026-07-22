@@ -100,6 +100,123 @@
 
 <section class="content">
 
+<!-- ================= INSURANCE REMINDERS ================= -->
+
+<div class="box box-danger">
+
+    <div class="box-header with-border">
+
+        <h3 class="box-title">
+            <i class="fa fa-bell"></i>
+            Insurance Expiry Reminders
+        </h3>
+
+    </div>
+
+    <div class="box-body">
+
+        @if($insuranceReminders->count())
+
+            <table class="table table-bordered table-hover">
+
+                <thead>
+
+                    <tr>
+                        <th>Registration</th>
+                        <th>Owner</th>
+                        <th>Insurer</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                @foreach($insuranceReminders as $insurance)
+
+                    @php
+                        $daysRemaining = \Carbon\Carbon::today()->diffInDays(
+                            \Carbon\Carbon::parse($insurance->expiry_date),
+                            false
+                        );
+                    @endphp
+
+                    <tr>
+
+                        <td>{{ optional($insurance->vehicle)->registration_number }}</td>
+
+                        <td>
+                            {{ optional(optional($insurance->vehicle)->client)->first_name }}
+                            {{ optional(optional($insurance->vehicle)->client)->last_name }}
+                        </td>
+
+                        <td>{{ $insurance->insurer_name }}</td>
+
+                        <td>{{ $insurance->expiry_date }}</td>
+
+                        <td>
+
+                            @if($daysRemaining < 0)
+
+                                <span class="label label-danger">
+                                    Expired {{ abs($daysRemaining) }} day(s) ago
+                                </span>
+
+                            @elseif($daysRemaining == 0)
+
+                                <span class="label label-danger">
+                                    Expires Today
+                                </span>
+
+                            @elseif($daysRemaining <= 7)
+
+                                <span class="label label-warning">
+                                    Expires in {{ $daysRemaining }} day(s)
+                                </span>
+
+                            @else
+
+                                <span class="label label-info">
+                                    Expires in {{ $daysRemaining }} day(s)
+                                </span>
+
+                            @endif
+
+                        </td>
+
+                        <td>
+
+                            <a href="{{ url('vehicles/'.$insurance->vehicle_id) }}"
+                               class="btn btn-xs btn-primary">
+
+                                View Vehicle
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                @endforeach
+
+                </tbody>
+
+            </table>
+
+        @else
+
+            <div class="alert alert-success">
+                No insurance policies require attention.
+            </div>
+
+        @endif
+
+    </div>
+
+</div>
+
 
 <!-- ================= NATIONAL SUMMARY ================= -->
 
@@ -216,6 +333,9 @@ Total Collections
 
 
 </div>
+
+
+
 
 
 

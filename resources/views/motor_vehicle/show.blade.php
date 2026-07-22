@@ -8,6 +8,91 @@
 
 <section class="content">
 
+<div class="box box-primary">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-info-circle"></i> Vehicle Status
+        </h3>
+
+        @if($vehicle->status != 'sold')
+            <button class="btn btn-danger pull-right"
+                    data-toggle="modal"
+                    data-target="#sellVehicleModal">
+                <i class="fa fa-money"></i>
+                Sell Car
+            </button>
+        @endif
+    </div>
+
+    <div class="box-body">
+
+        <ul class="nav nav-pills">
+
+            <li class="{{ $vehicle->status == 'available' ? 'active' : '' }}">
+                <a href="javascript:void(0)">
+                    Available
+                </a>
+            </li>
+
+            <li class="{{ $vehicle->status == 'in_custody' ? 'active' : '' }}">
+                <a href="javascript:void(0)">
+                    In Custody
+                </a>
+            </li>
+
+            <li class="{{ $vehicle->status == 'sold' ? 'active' : '' }}">
+                <a href="javascript:void(0)">
+                    Sold
+                </a>
+            </li>
+
+        </ul>
+
+        <hr>
+
+        <div class="row">
+
+            <div class="col-md-4">
+                <strong>Status</strong><br>
+
+                @if($vehicle->status=="sold")
+                    <span class="label label-danger">
+                        SOLD
+                    </span>
+                @elseif($vehicle->status=="in_custody")
+                    <span class="label label-warning">
+                        IN CUSTODY
+                    </span>
+                @else
+                    <span class="label label-success">
+                        AVAILABLE
+                    </span>
+                @endif
+            </div>
+
+            <div class="col-md-4">
+                <strong>Sale Value</strong><br>
+
+                @if($vehicle->forced_sale_value)
+                    <span class="text-green">
+                        K{{ number_format($vehicle->forced_sale_value,2) }}
+                    </span>
+                @else
+                    -
+                @endif
+            </div>
+
+            <div class="col-md-4">
+                <strong>Date Sold</strong><br>
+
+                {{ $vehicle->sold_at ?? '-' }}
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
 <div class="box">
 
 <div class="box-body">
@@ -628,5 +713,79 @@ No inspections recorded.
 </div>
 
 </section>
+
+
+<div class="modal fade" id="sellVehicleModal">
+
+    <div class="modal-dialog">
+
+        <form method="POST"
+              action="{{ url('vehicles/'.$vehicle->id.'/sell') }}">
+
+            {{ csrf_field() }}
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <button type="button"
+                            class="close"
+                            data-dismiss="modal">
+
+                        &times;
+
+                    </button>
+
+                    <h4 class="modal-title">
+                        Sell Vehicle
+                    </h4>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+
+                        <label>Sale Value</label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="sale_value"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-default"
+                        data-dismiss="modal">
+
+                        Cancel
+
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger">
+
+                        Sell Car
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
 
 @endsection
