@@ -2393,6 +2393,9 @@ if($branchUser->role){
 
     @endif
 
+    @hasRole('role.risk')
+     @include('components.client-search-bottom-sheet')
+    @endif
 
     @include('components.policy-of-the-day')
 
