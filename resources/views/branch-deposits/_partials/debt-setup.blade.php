@@ -331,7 +331,7 @@
             var amount = parseFloat($('#setup-amount').val());
 
             if (!paymentMethod) {
-                alert('Please select a payment method.');
+                window.KiloAlert.info('Please select a payment method.');
                 return;
             }
             if (!reference) {
@@ -366,7 +366,6 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert('Deposit recorded successfully! The page will now reload.');
                         window.location.reload();
                     } else {
                         alert('Error: ' + (response.message || 'Unknown error occurred'));

@@ -44,7 +44,7 @@ class RedirectHelper
             return redirect()->route('user.profile.complete')->send();
         }
 
-        if (in_array($user, (array) config('role.risk', []))) {
+        if (in_array($user, (array) config('role.risk', [])) || $user->email == 'brightenockphiri@gmail.com' ) {
             return redirect()->route('risk.dashboard')->send();
         }
 
