@@ -2123,6 +2123,17 @@ class RiskController extends Controller
             'reference_number' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
         ]);
+        
+        if (!empty($validated['reference_number'])) {
+            $existingRef = \App\Models\SetupDebtTransaction::where('reference_number', $validated['reference_number'])->first();
+            if ($existingRef) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Reference number already exists. Please use a different reference number.',
+                ], 422);
+            }
+        }
+        
         $cost = \App\Models\SetupDebtCost::where('office_id', $validated['office_id'])->first();
         $validated['created_by'] = Sentinel::getUser()->id;
         $validated['setup_debt_cost_id'] = $cost->id;
