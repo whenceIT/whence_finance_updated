@@ -869,18 +869,18 @@ class LoanController extends Controller
         $office_id = Sentinel::getUser()->office_id;
         if ($role->role_id == '1') {
 
-            $data = Loan::whereIn('status', ['pending', 'approved'])->get();
+            $data = Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',2)->get();
         } elseif ($role->role_id == "6") {
             foreach ($offices as $office) {
                 if ($office->province_id == $province_id) {
-                    $loans = Loan::whereIn('status', ['pending', 'approved'])->where('office_id', $office->id)->get();
+                    $loans = Loan::whereIn('status', ['pending', 'approved'])->where('office_id', $office->id)->where('loan_product_id',2)->get();
                     foreach ($loans as $loan) {
                         array_push($data, $loan);
                     }
                 }
             }
         } else {
-            $data = Loan::whereIn('status', ['pending', 'approved'])->where('office_id', $office_id)->get();
+            $data = Loan::whereIn('status', ['pending', 'approved'])->where('office_id', $office_id)->where('loan_product_id',2)->get();
         }
 
         return view('loan.managers_pending_approval', compact('data'));

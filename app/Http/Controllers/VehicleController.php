@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use App\Models\Office;
 use Laracasts\Flash\Flash;
+use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class VehicleController extends Controller
 {
@@ -780,7 +781,21 @@ public function sales(Request $request)
     );
 }
 
+  public function loans_pending_approval()
+    {
+        if (!Sentinel::hasAccess('expenses')) {
+            Flash::warning("Permission Denied");
+            return redirect()->back();
+        }
 
+          $data = [];
+ 
+
+            $data = Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->get();
+   
+
+        return view('motor_vehicle.loans_pending_approval', compact('data'));
+    }
 
 
 
