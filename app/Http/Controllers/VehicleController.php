@@ -18,6 +18,7 @@ use App\Models\VehicleCustody;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use App\Models\Office;
+use Laracasts\Flash\Flash;
 
 class VehicleController extends Controller
 {
@@ -535,69 +536,64 @@ if ($request->hasFile('photos')) {
 
 
 
-        public function dashboard(Request $request)
-    {
+     public function dashboard(Request $request)
+{
+    // Default dates: beginning of year to today
+    $start_date = $request->start_date ?? Carbon::now()->startOfYear()->format('Y-m-d');
+    $end_date = $request->end_date ?? Carbon::now()->format('Y-m-d');
 
-        // Default dates: beginning of year to today
-        $start_date = $request->start_date ?? Carbon::now()->startOfYear()->format('Y-m-d');
+    $today = Carbon::today();
+    $thirtyDays = Carbon::today()->copy()->addDays(30);
 
-        $end_date = $request->end_date ?? Carbon::now()->format('Y-m-d');
+    $insuranceReminders = VehicleInsurance::with('vehicle.client')
+        ->whereDate('expiry_date', '<=', $thirtyDays)
+        ->orderBy('expiry_date', 'asc')
+        ->get();
 
+    try {
 
-        try {
+        $response = Http::timeout(60)->get(
+            'https://lms2backend.whencefinancesystem.com/motor-vehicle-loans-info',
+            [
+                'start_date' => $start_date,
+                'end_date'   => $end_date
+            ]
+        );
 
-
-            $response = Http::timeout(60)->get(
-                'https://lms2backend.whencefinancesystem.com/motor-vehicle-loans-info',
-                [
-                    'start_date' => $start_date,
-                    'end_date' => $end_date
-                ]
-            );
-
-
-            if (!$response->successful()) {
-
-                return back()->with(
-                    'error',
-                    'Unable to load motor vehicle dashboard data'
-                );
-
-            }
-
-
-            $data = $response->json();
-
-
-
-            return view(
-                'motor_vehicle.dashboard',
-                compact(
-                    'data',
-                    'start_date',
-                    'end_date'
-                )
-            );
-
-
-        } catch (\Exception $e) {
-
-
-            \Log::error(
-                'Motor Vehicle Dashboard Error: '.$e->getMessage()
-            );
-
+        if (!$response->successful()) {
 
             return back()->with(
                 'error',
-                'Error loading motor vehicle dashboard'
+                'Unable to load motor vehicle dashboard data'
             );
-
 
         }
 
+        $data = $response->json();
+
+        return view(
+            'motor_vehicle.dashboard',
+            compact(
+                'data',
+                'start_date',
+                'end_date',
+                'insuranceReminders'
+            )
+        );
+
+    } catch (\Exception $e) {
+
+        \Log::error(
+            'Motor Vehicle Dashboard Error: ' . $e->getMessage()
+        );
+
+        return back()->with(
+            'error',
+            'Error loading motor vehicle dashboard'
+        );
 
     }
+}
 
 
    
@@ -702,6 +698,89 @@ if ($request->filled('office')) {
         compact('vehicles', 'offices')
     );
 }
+
+
+
+public function sellVehicle(Request $request, Vehicle $vehicle)
+{
+    $request->validate([
+        'sale_value' => 'required|numeric|min:0'
+    ]);
+
+    $vehicle->forced_sale_value = $request->sale_value;
+    $vehicle->status = 'sold';
+    $vehicle->sold_at = date('Y-m-d H:i:s');
+
+    $vehicle->save();
+
+    Flash::success("Vehicle marked as sold.");
+
+    return redirect()->back();
+}
+
+public function sales(Request $request)
+{
+    $query = Vehicle::with('client')
+        ->where('status', 'sold');
+
+    // Sold date filter
+    if ($request->filled('start_date')) {
+        $query->whereDate('sold_at', '>=', $request->start_date);
+    }
+
+    if ($request->filled('end_date')) {
+        $query->whereDate('sold_at', '<=', $request->end_date);
+    }
+
+    // Registration search
+    if ($request->filled('registration')) {
+        $query->where('registration_number', 'LIKE', '%' . $request->registration . '%');
+    }
+
+    // Vehicle search
+    if ($request->filled('vehicle')) {
+        $query->where(function ($q) use ($request) {
+            $q->where('make', 'LIKE', '%' . $request->vehicle . '%')
+              ->orWhere('model', 'LIKE', '%' . $request->vehicle . '%');
+        });
+    }
+
+    // Branch
+    if ($request->filled('branch')) {
+        $query->whereHas('client', function ($q) use ($request) {
+            $q->where('office_id', $request->branch);
+        });
+    }
+
+    $vehicles = $query
+        ->orderBy('sold_at', 'desc')
+        ->paginate(20);
+
+    $vehicles->appends($request->all());
+
+    $summary = clone $query;
+
+    $carsSold = $summary->count();
+
+    $totalSales = $summary->sum('forced_sale_value');
+
+    $averageSale = $carsSold ? $totalSales / $carsSold : 0;
+
+    $highestSale = $summary->max('forced_sale_value');
+
+    return view(
+        'motor_vehicle.sales',
+        compact(
+            'vehicles',
+            'carsSold',
+            'totalSales',
+            'averageSale',
+            'highestSale'
+        )
+    );
+}
+
+
 
 
 

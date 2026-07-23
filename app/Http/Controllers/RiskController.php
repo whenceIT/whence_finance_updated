@@ -2123,6 +2123,7 @@ class RiskController extends Controller
             'reference_number' => 'nullable|string|max:100|unique:setup_debt_transactions',
             'notes' => 'nullable|string',
         ]);
+        
         $cost = \App\Models\SetupDebtCost::where('office_id', $validated['office_id'])->first();
         $validated['created_by'] = Sentinel::getUser()->id;
         $validated['setup_debt_cost_id'] = $cost->id;

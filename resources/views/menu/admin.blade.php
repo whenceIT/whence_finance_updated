@@ -1514,6 +1514,10 @@
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles</a></li>
                     @endif
+
+                       @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/sales') }}"><i class="fa fa-circle-o"></i>Vehicle Sales</a></li>
+                    @endif
                 </ul>
             </li>
 
