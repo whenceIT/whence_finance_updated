@@ -2943,6 +2943,13 @@ public static function new_new_loan_total_balance($id)
         return collect();
     }
 
+       public static function get_filtered_offices_new()
+    {
+   
+        return \App\Models\Office::all();
+        return collect();
+    }
+
     public static function get_filtered_staffs($office_id = null)
     {
         $user = Sentinel::getUser();

@@ -197,6 +197,33 @@ class LoanController extends Controller
     }
 
 
+public function search(Request $request)
+{
+    $users = \App\Models\User::where(function ($q) use ($request) {
+            $q->where('first_name', 'like', '%' . $request->search . '%')
+              ->orWhere('last_name', 'like', '%' . $request->search . '%');
+        })
+        ->get();
+
+    $results = [];
+
+    foreach ($users as $user) {
+
+        if (!Sentinel::findUserById($user->id)->inRole('client')) {
+
+            $results[] = [
+                'id' => $user->id,
+                'text' => $user->first_name . ' ' . $user->last_name
+            ];
+        }
+    }
+
+    return response()->json([
+        'results' => $results
+    ]);
+}
+
+
     public function reloan_approvals()
     {
 
@@ -1307,6 +1334,11 @@ $amount = $request->query('amount');
                 $loan->month = $date[1];
                 $loan->year = $date[0];
                 $loan->phone_number = $request->phone_number;
+                if($loan_product->id == 0)
+                {
+                    $loan->referrer = $request->referrer;
+                    $loan->referrer_branch = $request->office_id;
+                }
 		        $loan->save();
 
              
