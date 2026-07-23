@@ -310,9 +310,9 @@ if ($office->withinhere_wallet_id) {
         $cashBalance = null;
     }
 
-} else {
-    $walletWarning = 'Please verify withinhere wallet';
-}
+    } else {
+        $walletWarning = 'Please verify withinhere wallet';
+    }
 
         $ledgerEntriesByOffice[$office->name] = [
             'office' => $office,

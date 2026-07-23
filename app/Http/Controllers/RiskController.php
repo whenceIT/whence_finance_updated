@@ -2120,7 +2120,7 @@ class RiskController extends Controller
             'office_id' => 'required|exists:offices,id',
             'amount' => 'required|numeric|min:0',
             'transaction_date' => 'nullable|date',
-            'reference_number' => 'nullable|string|max:100',
+            'reference_number' => 'nullable|string|max:100|unique:setup_debt_transactions',
             'notes' => 'nullable|string',
         ]);
         $cost = \App\Models\SetupDebtCost::where('office_id', $validated['office_id'])->first();
