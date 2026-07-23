@@ -144,15 +144,15 @@
             var amount = parseFloat($('#setup-amount').val());
 
             if (!paymentMethod) {
-                alert('Please select a payment method.');
+                window.KiloAlert.error('Please select a payment method.');
                 return;
             }
             if (!reference) {
-                alert('Please enter a payment reference number.');
+                window.KiloAlert.error('Please enter a payment reference number.');
                 return;
             }
             if (isNaN(amount) || amount < 500) {
-                alert('Amount must be at least K5,000');
+                window.KiloAlert.error('Amount must be at least K5,000');
                 return;
             }
 
@@ -179,10 +179,10 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert('Deposit recorded successfully! The page will now reload.');
+                        window.KiloAlert.success('Deposit recorded successfully! The page will now reload.');
                         window.location.reload();
                     } else {
-                        alert('Error: ' + (response.message || 'Unknown error occurred'));
+                        window.KiloAlert.error('Error: ' + (response.message || 'Unknown error occurred'));
                         submitBtn.prop('disabled', false).removeClass('disabled');
                         $('.submit-btn-content').show();
                         $('.submit-btn-loading').hide();
@@ -196,7 +196,7 @@
                         var errors = Object.values(xhr.responseJSON.errors).flat();
                         errorMsg += ' ' + errors.join(', ');
                     }
-                    alert(errorMsg);
+                    window.KiloAlert.error(errorMsg);
                     submitBtn.prop('disabled', false).removeClass('disabled');
                     $('.submit-btn-content').show();
                     $('.submit-btn-loading').hide();
