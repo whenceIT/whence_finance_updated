@@ -16,16 +16,57 @@ class ProvincialLedgerController extends Controller
         if (!$user) {
             return redirect()->route('login');
         }
-        $userEmail = $user->email;
         $province_id = $user && $user->office ? $user->office->province_id : null;
         $office_id = $user->office_id ?? null;
-        $provinces = Province::all();
+        $query = ProvincialTransaction::query();
         $isAdmin = $user && $user->role && $user->role->role_id == 1;
         $selectedProvinceId = $isAdmin ? $request->query('province_id') : null;
 
+        if ($isAdmin) {
+            $provinces = Province::all();
+            if ($selectedProvinceId) {
+                $query->where('province_id', $selectedProvinceId);
+            }
+        } else {
+            if ($user->role && $user->role->role_id == 6) {
+                $query->where('province_id', $province_id);
+            }
+            if ($user->role && ($user->role->role_id == 4 || $user->role->role_id == 12)) {
+                $query->where('office_id', $office_id);
+            }
+            $provinces = $province_id ? Province::where('id', $user->office->province_id)->get() : Province::all();
+        }
+
+        $query->where('status', 'approved');
+        $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
+        $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
+        $netBalance = $totalIncome - $totalExpenses;
+        
+        $recentTransactions = (clone $query)->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->with('province')
+            ->get();
+            
+        $incomeByProvince = (clone $query)->where('type', 'income')
+            ->select(DB::raw('province_id, SUM(amount) as total'))
+            ->groupBy('province_id')
+            ->with('province')
+            ->get();
+            
+        $expenseByProvince = (clone $query)->where('type', 'expense')
+            ->select(DB::raw('province_id, SUM(amount) as total'))
+            ->groupBy('province_id')
+            ->with('province')
+            ->get();
+
         return view('provincial-ledger.dashboard', compact(
             'provinces',
-            'userEmail',
+            'totalIncome',
+            'totalExpenses',
+            'netBalance',
+            'recentTransactions',
+            'incomeByProvince',
+            'expenseByProvince',
             'isAdmin',
             'selectedProvinceId'
         ));
