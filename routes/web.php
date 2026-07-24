@@ -895,6 +895,7 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('{trans_id}/delete_pending_transaction_fp_pp', 'LoanController@delete_pending_transactions_fp_pp');
     Route::get('create', 'LoanController@create');
     Route::get('create_client_loan/{client}/{loan_product}', 'LoanController@create_client_loan');
+    Route::get('/users/search', 'LoanController@search')->name('users.search');
     Route::get('create_group_loan/{group}/{loan_product}', 'LoanController@create_group_loan');
     Route::post('create_client_loan/{client}/{loan_product}/store', 'LoanController@store_client_loan');
     Route::post('create_group_loan/{group}/{loan_product}/store', 'LoanController@store_group_loan');

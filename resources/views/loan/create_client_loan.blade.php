@@ -122,9 +122,19 @@ $todaysDate = date('Y-m-d');
 
                 <div class="form-group">
                     <label for="interest_rate" class="control-label col-md-2">{{trans_choice('general.interest',1)}} {{trans_choice('general.rate',1)}}</label>
+
+                    
+                @if($loan_product->id == 0)
                     <div class="col-md-2">
+                        <input type="number" name="interest_rate" class="form-control" min="20" max="35" value="{{$loan_product->default_interest_rate}}" required id="interest_rate">
+                    </div>
+
+                @else
+  <div class="col-md-2">
                         <input type="number" name="interest_rate" class="form-control" min="40" max="40" value="{{$loan_product->default_interest_rate}}" required id="interest_rate">
                     </div>
+
+                @endif
                     <label for="interest_rate_type" class="control-label col-md-2 text-left">% {{trans_choice('general.per',1)}}
                         @if($loan_product->interest_rate_type=="month") {{trans_choice('general.month',1)}} @endif
                         @if($loan_product->interest_rate_type=="year") {{trans_choice('general.year',1)}} @endif
@@ -180,7 +190,55 @@ $todaysDate = date('Y-m-d');
                     </div>
                 </div>
 
-                <div class="form-group">
+
+                @if($loan_product->id == 0)
+<div class="form-group">
+
+    <label class="control-label col-md-2">Vetted by</label>
+    <div class="col-md-3" style="position: relative;">
+        <input type="text" 
+               id="vetted_by_search" 
+               class="form-control" 
+               placeholder="Search employee...">
+
+        <input type="hidden" name="vetted_by" id="vetted_by">
+
+        <div id="vetted_results" 
+             style="
+                position:absolute;
+                background:white;
+                border:1px solid #ddd;
+                width:100%;
+                z-index:9999;
+             ">
+        </div>
+    </div>
+
+
+    <label class="control-label col-md-2">Verified by</label>
+    <div class="col-md-3" style="position: relative;">
+        <input type="text" 
+               id="verified_by_search" 
+               class="form-control" 
+               placeholder="Search employee...">
+
+        <input type="hidden" name="verified_by" id="verified_by">
+
+        <div id="verified_results" 
+             style="
+                position:absolute;
+                background:white;
+                border:1px solid #ddd;
+                width:100%;
+                z-index:9999;
+             ">
+        </div>
+    </div>
+
+</div>
+                @else
+
+                   <div class="form-group">
                     <label class="control-label col-md-2">Vetted by</label>
                     <div class="col-md-3">
                         <select name="vetted_by" class="form-control select2" required>
@@ -205,6 +263,10 @@ $todaysDate = date('Y-m-d');
                         </select>
                     </div>
                 </div>
+
+                @endif
+
+             
             </div>
 
             
@@ -261,6 +323,47 @@ $todaysDate = date('Y-m-d');
                    name="insurance_policy_number"
                    class="form-control">
         </div>
+    </div>
+
+       <div class="form-group">
+
+
+   <label class="control-label col-md-2">Referrer</label>
+<div class="col-md-3" style="position: relative;">
+
+    <input type="text" 
+           id="referrer_search" 
+           class="form-control" 
+           placeholder="Search referrer...">
+
+    <input type="hidden" name="referrer" id="referrer">
+
+    <div id="referrer_results" 
+         style="
+            position:absolute;
+            background:white;
+            border:1px solid #ddd;
+            width:100%;
+            z-index:9999;
+         ">
+    </div>
+
+</div>
+      
+          <label for="office_id"
+                           class="control-label col-md-2">Referrer Branch</label>
+                    <div class="col-md-3">
+                        <select name="office_id" class="form-control select2" id="office_id" required>
+                            <option></option>
+                            @php
+                                $offices = \App\Helpers\GeneralHelper::get_filtered_offices_new();
+                            @endphp
+                            @foreach($offices as $key)
+                                <option value="{{$key->id}}">{{$key->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
     </div>
 </div>
 
@@ -395,7 +498,88 @@ $todaysDate = date('Y-m-d');
 @endsection
 
 @section('footer-scripts')
+
     <script>
+function setupEmployeeSearch(input, hidden, results) {
+
+    $(input).on('keyup', function () {
+
+        let search = $(this).val();
+
+        if(search.length < 2){
+            $(results).html('');
+            return;
+        }
+
+        $.ajax({
+            url: "{{ route('users.search') }}",
+            type: "GET",
+            data: {
+                search: search
+            },
+            success: function(data){
+
+                let html = '';
+
+                data.results.forEach(function(user){
+
+                    html += `
+                        <div class="autocomplete-item"
+                             style="
+                                padding:8px;
+                                cursor:pointer;
+                                background:#fff;
+                                border-bottom:1px solid #eee;
+                             "
+                             onmouseover="this.style.background='#f5f5f5'"
+                             onmouseout="this.style.background='#fff'"
+                             data-id="${user.id}"
+                             data-name="${user.text}">
+                            ${user.text}
+                        </div>
+                    `;
+
+                });
+
+                $(results).html(html);
+
+            }
+        });
+
+    });
+
+
+    $(document).on('click', results + ' .autocomplete-item', function(){
+
+        $(input).val($(this).data('name'));
+        $(hidden).val($(this).data('id'));
+
+        $(results).html('');
+
+    });
+
+}
+
+
+setupEmployeeSearch(
+    '#vetted_by_search',
+    '#vetted_by',
+    '#vetted_results'
+);
+
+
+setupEmployeeSearch(
+    '#verified_by_search',
+    '#verified_by',
+    '#verified_results'
+);
+
+setupEmployeeSearch(
+    '#referrer_search',
+    '#referrer',
+    '#referrer_results'
+);
+
         $('#currency_id').change(function (e) {
             var id = $('#currency_id').val();
             var url = "{!!  url('loan/product')  !!}/" + id + "/get_currency_charges";
