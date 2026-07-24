@@ -1,6 +1,9 @@
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+    $highThresholdOffices = [11, 18, 15, 34, 43, 46, 45, 49, 51, 52, 53, 54, 55, 57, 59, 61, 64, 62, 60, 65];
+    $officeId = $blockerUser->office_id ?? 0;
+    $minAmount = in_array($officeId, $highThresholdOffices) ? 10000 : 5000;
 @endphp
 
 <div class="">
@@ -13,7 +16,7 @@
         <div class="">
             @if($debtBlocker)
             <p class="text-muted" style="margin-bottom:20px;">
-                Record payments towards your K5,000 monthly setup debt requirement. 
+                Record payments towards your K{{ number_format($minAmount, 0) }} monthly setup debt requirement. 
                 This will reduce your outstanding balance and may unblock loan operations.
             </p>
             @else
@@ -43,8 +46,8 @@
 
                         <div class="form-group">
                             <label style="font-weight:600; font-size:16px;">Amount (ZMW) <span class="text-danger">*</span></label>
-                            <input type="number" id="setup-amount" class="form-control" min="500" step="0.01" placeholder="" required inputmode="decimal" style="font-size: 16px; padding: 12px; border-radius: 6px;">
-                            <small class="text-muted">Monthly minimum should total upto: K5,000</small>
+                            <input type="number" id="setup-amount" class="form-control" min="{{ $minAmount }}" step="0.01" placeholder="" required inputmode="decimal" style="font-size: 16px; padding: 12px; border-radius: 6px;">
+                            <small class="text-muted">Monthly minimum should total upto: K{{ number_format($minAmount, 0) }}</small>
                         </div>
 
                         <button type="submit" id="setup-submit-btn" class="glass-submit-btn">
@@ -67,7 +70,7 @@
                         <span class="info-box-icon"><i class="fa fa-exclamation-triangle"></i></span>
                         <div class="info-box-content">
                             <span class="info-box-text">Required Minimum</span>
-                            <span class="info-box-number">K5,000</span>
+                            <span class="info-box-number">K{{ number_format($minAmount, 0) }}</span>
                         </div>
                     </div>
                     
@@ -94,6 +97,8 @@
 
 <script>
     $(document).ready(function() {
+        var minAmount = {{ $minAmount }};
+        
         // Payment method hint updates
         function updateSetupReferenceHint(method) {
             var hintEl = $('#setup-format-hint');
@@ -151,8 +156,8 @@
                 window.KiloAlert.error('Please enter a payment reference number.');
                 return;
             }
-            if (isNaN(amount) || amount < 500) {
-                window.KiloAlert.error('Amount must be at least K5,000');
+            if (isNaN(amount) || amount < minAmount) {
+                window.KiloAlert.error('Amount must be at least K' + minAmount.toLocaleString());
                 return;
             }
 
