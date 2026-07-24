@@ -336,15 +336,17 @@ public function bmdashboard(Request $request){
             $branches = [];
         }
 
-        $targets_met = TargetsMet::where('date', [$today])
-            ->get()
-            ->groupBy(function ($item) {
-                return $item->user_id . '_' . $item->date;
-            })
-            ->map(function ($group) {
-                return $group->sortByDesc('target_level')->first();
-            })
-            ->values();
+
+$targets_met = TargetsMet::whereDate('date', $today)
+    ->get()
+    ->groupBy(function ($item) {
+        return $item->user_id . '_' . $item->date;
+    })
+    ->map(function ($group) {
+        return $group->sortByDesc('target_level')->first();
+    })
+    ->values()
+    ->groupBy('office_name');
 
         return view('user.poadashboard', compact(
             'provinces',
