@@ -31,9 +31,9 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 
-<div class="content" style="width: 100%; display: flex; align-items: center; justify-content: center;">
+<div class="content" style="width: 100%; display: flex; align-items: center; justify-content: center; padding:0%; margin:0%; background: #f1f8e9; animation: modalFadeIn 0.3s ease forwards;">
 
-        <div style="background: white; border-radius: 12px; overflow: hidden; max-width: 900px; width: 50%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; border: 1px solid #eee; animation: modalContentAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+        <div style="background: white; border-radius: 12px; overflow: hidden; max-width: 900px; width: 200%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; border: 1px solid #eee; animation: modalContentAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
 
             <div style="padding: 10px 15px; border-bottom: 3px solid #00a04a; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;">
                 <div style="display: flex; align-items: center; gap: 15px;">

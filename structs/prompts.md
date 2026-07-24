@@ -20,8 +20,7 @@ Custom option to have two fields (This Month (default - when page loads)):
 
 @dd((bool)$user->has_completed_profile, (bool)$user->has_seen_induction, $showPolicyModal)
 
-isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid'  && $status[2]['status'] === 'fully paid' 
-                || in_array(Sentinel::getUser()->office_id, [62, 68])
+
 
 
             <!-- <x-debt-blocker/> -->
