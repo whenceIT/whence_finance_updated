@@ -39,13 +39,27 @@ if ($office) {
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body plt-modal">
+                <div class="plt-form-row" style="margin-bottom: 16px;">
+                    <div class="plt-form-group" style="flex: 0 0 auto;">
+                        <button type="button" class="plt-btn plt-btn-primary" id="pltDepositBtn" onclick="setTransactionType('deposit')" style="background: #27ae60; border-color: #27ae60;">
+                            <i class="fa fa-arrow-down"></i> Deposit
+                        </button>
+                    </div>
+                    <div class="plt-form-group" style="flex: 0 0 auto;">
+                        <button type="button" class="plt-btn plt-btn-primary" id="pltWithdrawalBtn" onclick="setTransactionType('withdrawal')" style="background: #e74c3c; border-color: #e74c3c;">
+                            <i class="fa fa-arrow-up"></i> Withdrawal
+                        </button>
+                    </div>
+                </div>
                 <input type="hidden" id="pltEditId" value="">
                 <input type="hidden" id="pltUserProvince" value="{{ $officeProvince ? $officeProvince->id : '' }}">
                 <input type="hidden" id="pltUserOffice" value="{{ is_object($office) ? $office->id : ($office ?: ($user->office_id ?? '')) }}">
                 <div class="plt-form-row">
                     <div class="plt-form-group">
                         <label for="pltType">Type</label>
-                        <select id="pltType" disabled>
+                        <select id="pltType">
+                            <option value="deposit">Deposit</option>
+                            <option value="withdrawal">Withdrawal</option>
                             <option value="income">Income</option>
                             <option value="expense">Expense</option>
                         </select>
@@ -132,7 +146,7 @@ if ($office) {
 <script>
 (function() {
     var modal = $('#pltTransactionModal');
-    var currentType = 'income';
+    var currentType = 'deposit';
 
     function resetModal(type) {
         currentType = type;
@@ -144,9 +158,29 @@ if ($office) {
         modal.find('#pltContribution').val('');
         modal.find('#pltTransactionDate').val(new Date().toISOString().split('T')[0]);
         modal.find('#pltReferenceNumber').val('');
-        modal.find('#pltRecordedAt').val(new Date().toISOString().slice(0, 16));
         modal.find('#pltDescription').val('');
         modal.find('#pltFile').val('');
+        updateTypeButtons();
+    }
+
+    window.setTransactionType = function(type) {
+        currentType = type;
+        modal.find('#pltType').val(type);
+        updateTypeButtons();
+    };
+
+    function updateTypeButtons() {
+        var type = currentType;
+        if (type === 'deposit') {
+            $('#pltDepositBtn').css('background', '#27ae60').css('border-color', '#27ae60');
+            $('#pltWithdrawalBtn').css('background', '#e74c3c').css('border-color', '#e74c3c');
+        } else if (type === 'withdrawal') {
+            $('#pltDepositBtn').css('background', '#e74c3c').css('border-color', '#e74c3c');
+            $('#pltWithdrawalBtn').css('background', '#27ae60').css('border-color', '#27ae60');
+        } else {
+            $('#pltDepositBtn').css('background', '#3c8dbc').css('border-color', '#3c8dbc');
+            $('#pltWithdrawalBtn').css('background', '#3c8dbc').css('border-color', '#3c8dbc');
+        }
     }
 
     window.openTransactionModal = function(type) {
@@ -167,11 +201,6 @@ if ($office) {
         formData.append('transaction_date', $('#pltTransactionDate').val());
         formData.append('reference_number', $('#pltReferenceNumber').val());
         formData.append('recorded_at', $('#pltRecordedAt').val());
-        
-        // var fileInput = $('#pltFile')[0];
-        // if (fileInput.files && fileInput.files[0]) {
-        //     formData.append('file', fileInput.files[0]);
-        // }
 
         $.ajax({
             url: '{{ route("api.provincial-ledger.store") }}',
