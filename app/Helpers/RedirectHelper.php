@@ -40,7 +40,7 @@ class RedirectHelper
             return null;
         }
 
-        if ($office && $user->has_completed_profile == 0 && $user?->office?->province_id == $office->province_id) {
+        if ($office && $user->has_completed_profile == 0) {
             return redirect()->route('user.profile.complete')->send();
         }
 
