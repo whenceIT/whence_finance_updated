@@ -28,6 +28,7 @@
                             <option value="Salaries deposits" {{ old('name', $deadlineName) == 'Salaries deposits' ? 'selected' : '' }}>Salaries deposits</option>
                             <option value="Statutory payments deposits" {{ old('name', $deadlineName) == 'Statutory payments deposits' ? 'selected' : '' }}>Statutory payments deposits</option>
                             <option value="Savings deposits" {{ old('name', $deadlineName) == 'Savings deposits' ? 'selected' : '' }}>Savings deposits</option>
+                            <option value="Debt Setup Cost" {{ old('name', $deadlineName) == 'Debt Setup Cost' ? 'selected' : '' }}>Debt Setup Cost</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -351,6 +352,6 @@ $(document).ready(function() {
 </script>
 
 @include('components.deposit-deadline-modal')
-@include('components.setup-debt-reminder')
+<!-- @include('components.setup-debt-reminder') -->
 
 @endsection

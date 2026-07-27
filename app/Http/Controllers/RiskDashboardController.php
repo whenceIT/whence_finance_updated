@@ -46,6 +46,7 @@ class RiskDashboardController extends Controller
         $buildingDeadline = Deadline::where('name', 'Building & Infrastructure fee deposits')->first();
         $adminDeadline = Deadline::where('name', 'Administration Department fee deposit')->first();
         $statutoryDeadline = Deadline::where('name', 'Statutory payments deposits')->first();
+        $debtSetupDeadline = Deadline::where('name', 'Debt Setup Cost')->first();
 
         // Pending approvals counts
         $pendingDepositApprovals = Deposit::withoutGlobalScope('approved')->whereNull('status')
@@ -65,7 +66,8 @@ class RiskDashboardController extends Controller
             'pendingExpenseApprovals',
             'buildingDeadline',
             'adminDeadline',
-            'statutoryDeadline'
+            'statutoryDeadline',
+            'debtSetupDeadline'
         ));
     }
 }
