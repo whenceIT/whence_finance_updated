@@ -91,21 +91,24 @@
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                    <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
-                    <li><a href="{{ route('goa.fleet-management') }}"><i class="fa fa-circle-o"></i> Fleet Management</a></li>
-                    <li><a href="{{ route('goa.vacancies-and-staffing') }}"><i class="fa fa-circle-o"></i> Vacancies & Staffing</a></li>
+  <li><a href="{{ route('ledger.executive') }}"><i class="fa fa-circle-o"></i>Executive Ledger</a></li>
+    <li><a href="{{ url('user/poadashboard') }}"><i class="fa fa-circle-o"></i>POA Dashboard</a></li>
+    <li><a href="{{ url('loan/client_app_dashboard') }}"><i class="fa fa-circle-o"></i>Clients App Dashboard</a></li>
+                    <li><a href="{{ url('recovery/overview') }}"><i class="fa fa-circle-o"></i>Recovery Dashboard</a></li>
+                    <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i>GOA Dashboard</a></li>
+                    <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Motor Vehicles Dashboard</a></li>
                 </ul>
             </li>
             @endif
 
             <!-- Check the config/role.php with predefined users accounts ids -->
-            @hasRole('role.exec', 'role.poa' )
+            <!-- @hasRole('role.exec', 'role.poa' )
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/poadashboard') }}">
                     <i class="fa fa-dashboard"></i> <span>POA Dashboard</span>
                 </a>
 	        </li>
-             @endif
+             @endif -->
 
          @if($role == 4 || $role == 6)
             <li class="@if(Request::is('dashboard')) active @endif">

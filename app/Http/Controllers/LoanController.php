@@ -832,101 +832,68 @@ public function search(Request $request)
          return view('loan.client_app_loan_applications', compact('data',));
 
     }
-
-
 public function client_app_dashboard(Request $request)
-    {
-     
+{
+    $client_app_users = ClientAppUsers::with('client')->get();
+    $client_app_loan_applications = ClientAppLoanApplications::with('client')->get();
+    $client_app_transactions = LoanTransaction::where('client_app','Yes')->get();
 
-  
-$client_app_users = ClientAppUsers::with('client')->get();
-$client_app_loan_applications = ClientAppLoanApplications::with('client')->get();
+    $provinceClientCounts = [];
+    $provinceClientUsers = [];
+    $provinceClientTransactions = [];
 
-$provinces = Province::get();
-$offices = Office::get();
-$users = User::get();
+    // Applications
+    try {
+        $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-applications');
 
-$provinceClientCounts = [];
+        if ($response->successful()) {
+            $provinceClientCounts = $response->json()['data'] ?? [];
+        }
+    } catch (\Exception $e) {
+        \Log::error('Client App Applications API Error: ' . $e->getMessage());
+    }
 
-foreach ($provinces as $province) {
+    // Users
+    try {
+        $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-users');
 
-    $provinceClientCounts[] = [
-        'id' => $province->id,
-        'province' => $province->name,
-
-        'client_count' => $client_app_users->filter(function ($user) use ($province) {
-            return optional(optional(optional($user->client)->office)->province)->id == $province->id;
-        })->count(),
-
-        'offices' => $offices
-            ->where('province_id', $province->id)
-            ->map(function ($office) use ($client_app_users, $users, $client_app_loan_applications) {
-
-                return [
-                    'id' => $office->id,
-                    'name' => $office->name,
-
-                    // Branch client count
-                    'client_count' => $client_app_users->filter(function ($user) use ($office) {
-                        return optional($user->client)->office_id == $office->id;
-                    })->count(),
-
-
-                    // Loan consultants
-                    'loan_consultants' => $users
-                        ->where('office_id', $office->id)
-                        ->map(function ($consultant) use ($client_app_users, $client_app_loan_applications) {
-
-                            return [
-                                'id' => $consultant->id,
-                                'name' => $consultant->first_name . ' ' . $consultant->last_name,
-
-
-                                // Consultant client count
-                                'client_count' => $client_app_users->filter(function ($user) use ($consultant) {
-                                    return optional($user->client)->staff_id == $consultant->id;
-                                })->count(),
-
-
-                                // Consultant loan applications
-                                'loan_applications' => $client_app_loan_applications
-                                    ->filter(function ($application) use ($consultant) {
-                                        return optional($application->client)->staff_id == $consultant->id;
-                                    })
-                                    ->map(function ($application) {
-                                        return [
-                                            'id' => $application->id,
-                                            'amount' => $application->amount,
-                                            'status' => $application->status,
-                                            'created_at' => $application->created_at,
-                                        ];
-                                    })
-                                    ->values(),
-                            ];
-
-                        })
-                        ->values(),
-                ];
-
-            })
-            ->values(),
-    ];
-}
-
-
-
-
-        return view(
-            'loan.client_app_dashboard',
-            compact(
-                'client_app_users',
-                'client_app_loan_applications',
-                'provinceClientCounts'
-            )
-        );
+        if ($response->successful()) {
+            $provinceClientUsers = $response->json()['data'] ?? [];
+        }
+    } catch (\Exception $e) {
+        \Log::error('Client App Users API Error: ' . $e->getMessage());
     }
 
 
+    // Transactions
+try {
+
+    $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-transactions');
+
+    if ($response->successful()) {
+
+        $provinceClientTransactions = $response->json()['data'] ?? [];
+
+    }
+
+} catch (\Exception $e) {
+
+    \Log::error('Client App Transactions API Error: ' . $e->getMessage());
+
+}
+
+    return view(
+        'loan.client_app_dashboard',
+        compact(
+            'client_app_users',
+            'client_app_loan_applications',
+            'provinceClientCounts',
+            'provinceClientUsers',
+            'provinceClientTransactions',
+            'client_app_transactions'
+        )
+    );
+}
 
 
 
