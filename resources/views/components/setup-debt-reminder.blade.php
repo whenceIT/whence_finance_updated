@@ -1,5 +1,8 @@
+@php
+    $debtSetupDeadline = \App\Models\Deadline::where('name', 'Debt Setup Cost')->first();
+@endphp
 
-<!-- Setup Debt Reminder Widget -->
+@if($debtSetupDeadline)
 <div id="setupDebtReminderWidget" style="display: none;">
     <div class="debt-reminder-widget">
         <div class="widget-header">
@@ -24,7 +27,7 @@
                 </div>
             </div>
             <p class="widget-message" id="debt-message">
-                Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong id="debt-deadline-date">July 5, 2026</strong>
+                Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong id="debt-deadline-date">{{ $debtSetupDeadline->countdown_date->format('F j, Y') }}</strong>
             </p>
     
             @if(!in_array($blockerUser->id, config('role.risk', [])))
@@ -163,7 +166,6 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     
-    /* Urgent state (last day) */
     .debt-reminder-widget.urgent {
         background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         animation: pulseDebt 2s infinite;
@@ -178,7 +180,6 @@
         }
     }
     
-    /* Mobile responsive */
     @media (max-width: 768px) {
         #setupDebtReminderWidget {
             bottom: 10px;
@@ -191,7 +192,6 @@
         }
     }
     
-    /* Stack widgets on mobile */
     @media (max-width: 768px) {
         #depositDeadlineWidget {
             bottom: auto;
@@ -215,13 +215,11 @@
 
 <script>
     $(document).ready(function() {
-        // Deadline date: July 5, 2026 at 23:59:59
-        const debtDeadline = new Date('2026-07-05T23:59:59').getTime();
+        const deadlineDate = '{{ $debtSetupDeadline->countdown_date }}';
+        const debtDeadline = new Date(deadlineDate).getTime();
         
-        // Always show the widget regardless of deadline status
         $('#setupDebtReminderWidget').fadeIn(300);
         
-        // Update countdown every second
         const debtCountdownInterval = setInterval(function() {
             const now = new Date().getTime();
             const distance = debtDeadline - now;
@@ -244,23 +242,26 @@
             $('#debt-hours').text(hours);
             $('#debt-minutes').text(minutes);
             
-            // Update message based on urgency
+            const formattedDate = deadlineDate.split('T')[0];
+            const dateObj = new Date(deadlineDate);
+            const dateStr = dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            
             if (days === 0) {
-                $('#debt-message').html('⚠️ <strong style="font-size: 16px;">URGENT: Less than 24 hours!</strong><br>Record your <strong>K5,000 minimum</strong> setup debt payment before <strong>July 5, 2026</strong>');
+                $('#debt-message').html('⚠️ <strong style="font-size: 16px;">URGENT: Less than 24 hours!</strong><br>Record your <strong>K5,000 minimum</strong> setup debt payment before <strong>' + dateStr + '</strong>');
                 $('.debt-reminder-widget').addClass('urgent');
             } else if (days === 1) {
-                $('#debt-message').html('You have <strong>1 day</strong> left!<br>Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong>July 5, 2026</strong>');
+                $('#debt-message').html('You have <strong>1 day</strong> left!<br>Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong>' + dateStr + '</strong>');
                 $('.debt-reminder-widget').addClass('urgent');
             } else if (days <= 3) {
-                $('#debt-message').html('You have <strong>' + days + ' days</strong> left!<br>Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong>July 5, 2026</strong>');
+                $('#debt-message').html('You have <strong>' + days + ' days</strong> left!<br>Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong>' + dateStr + '</strong>');
             } else {
-                $('#debt-message').html('Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong>July 5, 2026</strong>');
+                $('#debt-message').html('Record your <strong style="font-size: 16px;">K5,000 minimum</strong> setup debt payment before <strong>' + dateStr + '</strong>');
             }
         }, 1000);
         
-        // Handle close button
         $('#closeDebtWidget').on('click', function() {
             $('#setupDebtReminderWidget').fadeOut(300);
         });
     });
 </script>
+@endif

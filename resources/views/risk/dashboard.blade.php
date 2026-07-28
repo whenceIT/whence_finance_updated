@@ -161,6 +161,20 @@
                             </div>
                         </div>
 
+                        <div class="bento-card countdown-card" id="debt-setup-countdown">
+                            <div class="card-top">
+                                <div class="icon-wrap icon-wrap-dark"><i class="fa fa-clock-o"></i></div>
+                            </div>
+                            <div class="card-bottom">
+                                <div class="title">Debt Setup Cost</div>
+                                <div class="countdown" data-deadline="{{ $debtSetupDeadline->countdown_date ?? '' }}">
+                                    <div class="countdown-unit"><span class="countdown-days">--</span><small>days</small></div>
+                                    <div class="countdown-unit"><span class="countdown-hours">--</span><small>hrs</small></div>
+                                    <div class="countdown-unit"><span class="countdown-mins">--</span><small>min</small></div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
