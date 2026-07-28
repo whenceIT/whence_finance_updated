@@ -61,6 +61,7 @@ use App\Models\Province;
 use App\Models\Notifix;
 use App\Services\NotifixService;
 use App\Models\ClientAppLoanApplications;
+use App\Models\ClientAppUsers;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\Hash;
 
@@ -831,6 +832,100 @@ public function search(Request $request)
          return view('loan.client_app_loan_applications', compact('data',));
 
     }
+
+
+public function client_app_dashboard(Request $request)
+    {
+     
+
+  
+$client_app_users = ClientAppUsers::with('client')->get();
+$client_app_loan_applications = ClientAppLoanApplications::with('client')->get();
+
+$provinces = Province::get();
+$offices = Office::get();
+$users = User::get();
+
+$provinceClientCounts = [];
+
+foreach ($provinces as $province) {
+
+    $provinceClientCounts[] = [
+        'id' => $province->id,
+        'province' => $province->name,
+
+        'client_count' => $client_app_users->filter(function ($user) use ($province) {
+            return optional(optional(optional($user->client)->office)->province)->id == $province->id;
+        })->count(),
+
+        'offices' => $offices
+            ->where('province_id', $province->id)
+            ->map(function ($office) use ($client_app_users, $users, $client_app_loan_applications) {
+
+                return [
+                    'id' => $office->id,
+                    'name' => $office->name,
+
+                    // Branch client count
+                    'client_count' => $client_app_users->filter(function ($user) use ($office) {
+                        return optional($user->client)->office_id == $office->id;
+                    })->count(),
+
+
+                    // Loan consultants
+                    'loan_consultants' => $users
+                        ->where('office_id', $office->id)
+                        ->map(function ($consultant) use ($client_app_users, $client_app_loan_applications) {
+
+                            return [
+                                'id' => $consultant->id,
+                                'name' => $consultant->first_name . ' ' . $consultant->last_name,
+
+
+                                // Consultant client count
+                                'client_count' => $client_app_users->filter(function ($user) use ($consultant) {
+                                    return optional($user->client)->staff_id == $consultant->id;
+                                })->count(),
+
+
+                                // Consultant loan applications
+                                'loan_applications' => $client_app_loan_applications
+                                    ->filter(function ($application) use ($consultant) {
+                                        return optional($application->client)->staff_id == $consultant->id;
+                                    })
+                                    ->map(function ($application) {
+                                        return [
+                                            'id' => $application->id,
+                                            'amount' => $application->amount,
+                                            'status' => $application->status,
+                                            'created_at' => $application->created_at,
+                                        ];
+                                    })
+                                    ->values(),
+                            ];
+
+                        })
+                        ->values(),
+                ];
+
+            })
+            ->values(),
+    ];
+}
+
+
+
+
+        return view(
+            'loan.client_app_dashboard',
+            compact(
+                'client_app_users',
+                'client_app_loan_applications',
+                'provinceClientCounts'
+            )
+        );
+    }
+
 
 
 
@@ -2716,6 +2811,11 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
                 return redirect()->back();
             }
 
+
+        if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
+
+     
+
             $paymentType = $request->payment_type;
 
     if ($paymentType == 'mobile_money') {
@@ -2778,6 +2878,8 @@ if (
 
    return redirect()->back();
 }
+
+   }
 
 
 

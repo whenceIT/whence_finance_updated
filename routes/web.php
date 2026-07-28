@@ -874,6 +874,10 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('recovery_case_decline/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseDecline');
     Route::get('pending_client_app_applications','LoanController@pending_client_app_applications');
     Route::get('{id}/decline_client_application','LoanController@decline_client_application');
+        Route::get('client_app_dashboard', [
+        'as'   => 'client_app_dashboard',
+        'uses' => 'LoanController@client_app_dashboard'
+    ]);
     //waiver changes
     Route::get('/waiver_approvals', 'LoanController@showWaiver')->name('loan.waiver_approvals');
     Route::get('loan/waiver-approvals', 'LoanController@showWaiver')->name('waiver.approvals');
