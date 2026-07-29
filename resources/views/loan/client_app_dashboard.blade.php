@@ -15,6 +15,83 @@ Client App Dashboard
     </h1>
 </section>
 
+<div class="box box-primary">
+
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-filter"></i>
+            Filter Dashboard
+        </h3>
+    </div>
+
+    <div class="box-body">
+
+        <form method="GET" action="{{ url()->current() }}">
+
+            <div class="row">
+
+                <div class="col-md-4 col-sm-6">
+
+                    <div class="form-group" style="width:100%;">
+                        <label>
+                            <i class="fa fa-calendar"></i>
+                            Start Date
+                        </label>
+
+                        <input
+                            type="date"
+                            name="start_date"
+                            class="form-control"
+                            value="{{ request('start_date', '2026-01-01') }}">
+                    </div>
+
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+
+                    <div class="form-group" style="width:100%;">
+                        <label>
+                            <i class="fa fa-calendar"></i>
+                            End Date
+                        </label>
+
+                        <input
+                            type="date"
+                            name="end_date"
+                            class="form-control"
+                            value="{{ request('end_date', \Carbon\Carbon::today()->format('Y-m-d')) }}">
+                    </div>
+
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+
+                    <label>&nbsp;</label>
+
+                    <div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-search"></i>
+                            Apply Filter
+                        </button>
+
+                        <a href="{{ url()->current() }}" class="btn btn-default">
+                            <i class="fa fa-refresh"></i>
+                            Reset
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
 <section class="content">
 
 <div class="row">

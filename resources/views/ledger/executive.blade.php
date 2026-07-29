@@ -9,6 +9,9 @@
     <!-- Header -->
     <div style="margin-bottom:20px;">
     <h2>Executive Ledger</h2>
+    @foreach($branches as $wallet)
+<p>{{$wallet}}</p>
+    @endforeach
 <small>Institution-wide cash movement tracking</small>
     </div>
 
@@ -111,7 +114,7 @@
     <div class="col-md-3">
         <div class="small-box bg-green">
             <div class="inner">
-                <h3 id="totalCollections">0</h3>
+               <h3 id="totalCollections" class="fit-text">0</h3>
                 <p>Total Collections</p>
             </div>
         </div>
@@ -120,7 +123,7 @@
     <div class="col-md-3">
         <div class="small-box bg-red">
             <div class="inner">
-                <h3 id="totalTransfers">0</h3>
+                <h3 id="totalTransfers" class="fit-text">0</h3>
                 <p>Total Transfers</p>
             </div>
         </div>
@@ -129,7 +132,7 @@
     <div class="col-md-3">
         <div class="small-box bg-yellow">
             <div class="inner">
-                <h3 id="totalFees">0</h3>
+              <h3 id="totalFees" class="fit-text">0</h3>
                 <p>Total Fees</p>
             </div>
         </div>
@@ -138,7 +141,7 @@
     <div class="col-md-3">
     <div class="small-box bg-blue">
         <div class="inner">
-            <h3 id="transactionCount">0</h3>
+            <h3 id="transactionCount" class="fit-text">0</h3>
             <p>Transactions</p>
         </div>
     </div>
@@ -220,6 +223,34 @@
     let allTransactions = [];
 let currentPage = 1;
 const pageSize = 30;
+
+function fitText(el) {
+
+    if (!el) return;
+
+    // Start large
+    let size = 38;
+
+    el.style.fontSize = size + 'px';
+    el.style.whiteSpace = 'nowrap';
+
+    // Shrink until it fits
+    while (el.scrollWidth > el.clientWidth && size > 14) {
+        size--;
+        el.style.fontSize = size + 'px';
+    }
+}
+
+function fitAllNumbers() {
+
+    document.querySelectorAll('.fit-text').forEach(function(el) {
+        fitText(el);
+    });
+
+}
+
+// Run when page loads
+document.addEventListener('DOMContentLoaded', fitAllNumbers)
 
 
 
@@ -466,6 +497,8 @@ $('#loadLedger').click(function () {
     $('#transactionCount').html(
         allTransactions.length
     );
+
+    fitAllNumbers();
 },
 
         error: function (xhr) {
