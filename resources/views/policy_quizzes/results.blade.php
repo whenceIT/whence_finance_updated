@@ -97,9 +97,9 @@ use Illuminate\Support\Str;
                                 
                                 @if(!$attempt->passed)
                                     @if($quiz->isOpen())
-                                        <a href="{{ route('policy.quizzes.start', $quiz->id) }}" 
+                                        <a href="{{ route('policy.quizzes.start', $quiz->id) }}?retake=1" 
                                            class="btn btn-warning btn-lg" 
-                                           onclick="return confirm('Are you sure you want to retake this quiz? Your previous attempt will be recorded but you can try again.');">
+                                           onclick="return confirm('Are you sure you want to retake this quiz? Your previous attempt will be replaced.');">
                                             <i class="fa fa-redo"></i> Retake Quiz
                                         </a>
                                     @endif
