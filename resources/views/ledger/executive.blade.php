@@ -9,9 +9,6 @@
     <!-- Header -->
     <div style="margin-bottom:20px;">
     <h2>Executive Ledger</h2>
-    @foreach($branches as $wallet)
-<p>{{$wallet}}</p>
-    @endforeach
 <small>Institution-wide cash movement tracking</small>
     </div>
 
