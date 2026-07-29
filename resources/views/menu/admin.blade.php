@@ -1,5 +1,6 @@
 <?php
-    use App\Models\AppraisalForm;
+if (!Sentinel::check()) return;
+use App\Models\AppraisalForm;
     use App\Models\Ticket;
 
     $userInfo = \App\Helpers\GeneralHelper::get_user_info();
@@ -11,6 +12,7 @@
             ->whereNotIn('status', ['resolved', 'closed'])
             ->orderBy('created_at', 'desc')
             ->get();
+            
     $office_id = Sentinel::getUser()->office_id;
 
     // Collateral count based on role

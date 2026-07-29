@@ -103,7 +103,7 @@ $deposits = \DB::table('deposits as d')
     <small class="text-muted format-hint">Enter Payment Reference Number</small>
     <input type="text" class="form-control reference" placeholder="Enter reference number" required {{ $disabled ?? false ? 'readonly' : '' }}>
     <br>
-    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="100" step="0.01" required {{ $disabled ?? false ? 'readonly' : '' }}>
+    <input type="number" class="form-control amount" placeholder="Enter amount to add" min="5000" step="0.01" required {{ $disabled ?? false ? 'readonly' : '' }}>
     <br>
     <button class="btn btn-primary complete-btn-4" style="min-width: 100px;" {{ $disabled ?? false ? 'disabled' : '' }}>
         <span class="btn-text">Save Deposit</span>

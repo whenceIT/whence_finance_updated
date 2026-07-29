@@ -69,8 +69,9 @@ class PolicyQuizAttempt extends Model
         }
 
         $timeLimitMinutes = $this->quiz->time_limit_minutes ?? 10;
-        $expiryTime = $this->started_at->addMinutes($timeLimitMinutes);
-        
+        $expiryTime = clone $this->started_at;
+        $expiryTime = $expiryTime->addMinutes($timeLimitMinutes);
+
         return now() > $expiryTime;
     }
 
@@ -84,9 +85,10 @@ class PolicyQuizAttempt extends Model
         }
 
         $timeLimitMinutes = $this->quiz->time_limit_minutes ?? 10;
-        $expiryTime = $this->started_at->addMinutes($timeLimitMinutes);
+        $expiryTime = clone $this->started_at;
+        $expiryTime = $expiryTime->addMinutes($timeLimitMinutes);
         $remaining = $expiryTime->diffInSeconds(now());
-        
+
         return max(0, $remaining);
     }
 

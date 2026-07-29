@@ -46,16 +46,28 @@ class PolicyQuizController extends Controller
                 ->with('error', 'This quiz is not currently available.');
         }
 
+        $questions = $quiz->getActiveQuestions();
+        if ($questions->isEmpty()) {
+            return redirect()->route('policy.quizzes.index')
+                ->with('error', 'This quiz has no questions available.');
+        }
+
         $existingAttempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
             ->where('user_id', $user)
             ->first();
 
         if ($existingAttempt) {
             if ($existingAttempt->completed_at) {
-                return redirect()->route('policy.quizzes.results', $id)
-                    ->with('error', 'You have already completed this quiz.');
+                if (request('retake')) {
+                    $existingAttempt->delete();
+                    session()->forget('quiz_questions_' . $existingAttempt->id);
+                } else {
+                    return redirect()->route('policy.quizzes.results', $id)
+                        ->with('error', 'You have already completed this quiz.');
+                }
+            } else {
+                return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1]);
             }
-            return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1]);
         }
 
         try {
@@ -80,8 +92,12 @@ class PolicyQuizController extends Controller
     public function question($id, $question)
     {
         $quiz = PolicyQuiz::findOrFail($id);
-        $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
-        
+        $user = Sentinel::getUser()->id;
+        $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
+            ->where('user_id', $user)
+            ->whereNull('completed_at')
+            ->first();
+
         if (!$attempt) {
             return redirect()->route('policy.quizzes.start', $id)
                 ->with('error', 'Please start the quiz before answering questions.');
@@ -97,6 +113,12 @@ class PolicyQuizController extends Controller
         if (!$questions) {
             $questions = $quiz->getActiveQuestions();
             session(['quiz_questions_' . $attempt->id => $questions]);
+        }
+
+        if ($questions->isEmpty()) {
+            $attempt->calculateScore();
+            return redirect()->route('policy.quizzes.results', $id)
+                ->with('error', 'This quiz has no questions available.');
         }
 
         if ($question < 1 || $question > count($questions)) {
@@ -134,8 +156,11 @@ class PolicyQuizController extends Controller
         ]);
 
         $quiz = PolicyQuiz::findOrFail($id);
-        $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
-        
+        $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
+            ->where('user_id', Sentinel::getUser()->id)
+            ->whereNull('completed_at')
+            ->first();
+
         if (!$attempt) {
             return redirect()->route('policy.quizzes.start', $id);
         }
@@ -170,14 +195,17 @@ class PolicyQuizController extends Controller
     {
         try {
             $quiz = PolicyQuiz::findOrFail($id);
-            $attempt = $quiz->getUserAttempt(Sentinel::getUser()->id);
-            
+            $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
+                ->where('user_id', Sentinel::getUser()->id)
+                ->whereNull('completed_at')
+                ->first();
+
             if (!$attempt) {
                 return redirect()->route('policy.quizzes.index');
             }
 
             $attempt->calculateScore();
-            
+
             // Clear session cache
             session()->forget('quiz_questions_' . $attempt->id);
 

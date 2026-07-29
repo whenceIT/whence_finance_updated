@@ -1,11 +1,46 @@
 @extends('layouts.master')
 
+@php
+use Illuminate\Support\Str;
+@endphp
 
 @section('content')
 <div class="content">
     <section class="content">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-3">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Questions</h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <div id="question-nav">
+                            @foreach($questions as $index => $question)
+                                <a href="javascript:void(0)" 
+                                   class="question-nav-item" 
+                                   data-question-index="{{ $index }}"
+                                   style="display: block; padding: 10px 15px; border-bottom: 1px solid #eee; text-decoration: none; color: #333;">
+                                    <span class="badge bg-{{ $attempt->answers()->where('question_id', $question->id)->exists() ? 'green' : 'red' }}" 
+                                          style="margin-right: 5px;">
+                                        {{ $index + 1 }}
+                                    </span>
+                                    {{ Str::limit($question->question_text, 40) }}
+                                </a>
+                            @endforeach
+                            <a href="javascript:void(0)" 
+                               class="question-nav-item" 
+                               data-question-index="summary"
+                               style="display: block; padding: 10px 15px; border-bottom: 1px solid #eee; text-decoration: none; color: #333;">
+                                <span class="badge bg-blue" style="margin-right: 5px;">
+                                    <i class="fa fa-check"></i>
+                                </span>
+                                Summary
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
 
                 @if(session('error'))
                     <div class="alert alert-danger alert-dismissible">
@@ -86,18 +121,18 @@
                                     
                                     <div id="answers-summary">
                                         @foreach($questions as $index => $question)
-                                            <!-- <div class="answer-summary" style="margin-bottom: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+                                            <div class="answer-summary" style="margin-bottom: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
                                                 <strong>{{ $index + 1 }}.</strong> 
                                                 {{ $question->question_text }}
                                                 <br>
                                                 <small>Your answer: 
                                                     @if($attempt->answers()->where('question_id', $question->id)->exists())
-                                                        {{ $attempt->answers()->where('question_id', $question->id)->first()->selected_answer }}
+                                                        <span class="label label-success">{{ $attempt->answers()->where('question_id', $question->id)->first()->selected_answer }}</span>
                                                     @else
-                                                        <span style="color: #999;">Not answered</span>
+                                                        <span class="label label-danger">Not answered</span>
                                                     @endif
                                                 </small>
-                                            </div> -->
+                                            </div>
                                         @endforeach
                                     </div>
                                 </div>
@@ -118,6 +153,9 @@
                             <button type="button" id="next-btn" class="btn btn-primary btn-lg">
                                 Next <i class="fa fa-arrow-right"></i>
                             </button>
+                            <a href="{{ route('policy.quizzes.index') }}" class="btn btn-warning btn-lg" id="save-exit-btn">
+                                <i class="fa fa-sign-out"></i> Save & Exit
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -135,16 +173,15 @@ $(document).ready(function() {
     const totalQuestions = {{ $totalQuestions }};
     let remainingSeconds = {{ $remainingSeconds }};
     let timerInterval;
+    let hasUnsavedChanges = false;
     
-    function saveAnswer(questionId, letter, index) {
+    window.saveAnswer = function(questionId, letter, index) {
         const token = $('input[name="_token"]').val();
         
         if (!token) {
             console.error('CSRF token not found');
             return;
         }
-        
-        console.log('Saving answer:', { questionId, answer: letter, index });
         
         $.ajax({
             url: '/policy-quizzes/' + quizId + '/answer',
@@ -155,14 +192,14 @@ $(document).ready(function() {
                 answer: letter
             },
             success: function(response) {
-                console.log('Answer saved for question', index + 1, response);
+                hasUnsavedChanges = false;
+                updateQuestionNav(index);
             },
             error: function(xhr) {
                 console.error('Error saving answer', xhr.responseText);
-                alert('Error saving answer. Please try again.');
             }
         });
-    }
+    };
     
     function submitAnswer(index) {
         const questionCard = $('.question-card[data-question-index="' + index + '"]');
@@ -171,16 +208,17 @@ $(document).ready(function() {
         if (checkedRadio.length) {
             const questionId = checkedRadio.data('question-id');
             const letter = checkedRadio.data('letter');
-            saveAnswer(questionId, letter, index);
+            window.saveAnswer(questionId, letter, index);
         }
     }
     
     $(document).on('change', '.answer-radio', function() {
+        hasUnsavedChanges = true;
         const questionId = $(this).data('question-id');
         const letter = $(this).data('letter');
         const index = $(this).data('question-index');
         
-        saveAnswer(questionId, letter, index);
+        window.saveAnswer(questionId, letter, index);
     });
     
     function updateTimer() {
@@ -237,11 +275,47 @@ $(document).ready(function() {
         $('.progress-bar').css('width', percent + '%').text('Question ' + (index < totalQuestions ? index + 1 : 'Summary') + ' of ' + (totalQuestions + 1));
         
         $('input[name="current_question_index"]').val(index);
+        
+        updateQuestionNav(index);
     }
+    
+    function updateQuestionNav(activeIndex) {
+        $('#question-nav .question-nav-item').each(function() {
+            const idx = $(this).data('question-index');
+            if (idx === 'summary') {
+                return;
+            }
+            $(this).css('background-color', '');
+            if (parseInt(idx) === activeIndex) {
+                $(this).css('background-color', '#e8f4f8');
+            }
+        });
+    }
+    
+    $('#question-nav').on('click', '.question-nav-item', function(e) {
+        e.preventDefault();
+        const idx = $(this).data('question-index');
+        
+        if (idx === 'summary') {
+            if (currentQuestionIndex < totalQuestions) {
+                submitAnswer(currentQuestionIndex);
+            }
+            currentQuestionIndex = totalQuestions;
+        } else {
+            if (currentQuestionIndex < totalQuestions) {
+                submitAnswer(currentQuestionIndex);
+            }
+            currentQuestionIndex = parseInt(idx);
+        }
+        
+        showQuestion(currentQuestionIndex);
+    });
     
     $('#quiz-form').on('submit', function(e) {
         e.preventDefault();
-        submitQuiz();
+        if (confirm('Are you sure you want to complete the quiz? Your answers will be submitted.')) {
+            submitQuiz();
+        }
     });
     
     function submitQuiz() {
@@ -275,15 +349,32 @@ $(document).ready(function() {
         });
     }
     
+    $('#save-exit-btn').on('click', function(e) {
+        if (hasUnsavedChanges) {
+            if (!confirm('You have unsaved changes. Are you sure you want to exit?')) {
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+    
+    $(window).on('beforeunload', function() {
+        if (hasUnsavedChanges) {
+            return 'You have unsaved changes. Are you sure you want to leave?';
+        }
+    });
+    
     $('.answer-radio:checked').each(function() {
         const questionId = $(this).data('question-id');
         const letter = $(this).data('letter');
         const index = $(this).data('question-index');
-        saveAnswer(questionId, letter, index);
+        window.saveAnswer(questionId, letter, index);
     });
     
     if (currentQuestionIndex === totalQuestions) {
         showQuestion(totalQuestions);
+    } else {
+        updateQuestionNav(currentQuestionIndex);
     }
 });
 </script>
