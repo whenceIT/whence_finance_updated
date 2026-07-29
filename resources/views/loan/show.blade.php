@@ -668,119 +668,120 @@
         <i class="fa fa-car"></i> Motor Vehicle Information
     </h3>
 
-    <div class="box-tools pull-right">
-        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
-            <i class="fa fa-plus"></i> Add Vehicle Information
-        </a>
-    </div>
+<div class="box-tools pull-right">
+    <a href="{{ url('vehicles/' . ($vehicle?->id ?? '')) }}" class="btn btn-primary btn-sm">
+        <i class="fa fa-plus"></i> Add Vehicle Information
+    </a>
+</div>
 
 </div>
 
-    <div class="box-body">
+<div class="box-body">
 
-        <div class="row">
+    <div class="row">
 
-            <div class="col-md-3 text-center">
+        <div class="col-md-3 text-center">
 
-          @php
-    $frontPhoto = $vehicle->photos->firstWhere('photo_type', 'Front View');
-@endphp
+            @php
+                $frontPhoto = optional($vehicle)->photos?->firstWhere('photo_type', 'Front View');
+            @endphp
 
-<img src="{{ $frontPhoto ? $frontPhoto->photo_url : 'https://placehold.co/350x220?text=Vehicle+Photo' }}"
-     class="img-responsive img-thumbnail"
-     style="width:100%;height:220px;object-fit:cover;">
+            <img src="{{ $frontPhoto ? $frontPhoto->photo_url : 'https://placehold.co/350x220?text=Vehicle+Photo' }}"
+                 class="img-responsive img-thumbnail"
+                 style="width:100%;height:220px;object-fit:cover;">
 
-                <br><br>
+            <br><br>
 
-                <span class="label label-success">
-                  {{ $vehicle->status }}
-                </span>
+            <span class="label label-success">
+                {{ optional($vehicle)->status }}
+            </span>
 
-            </div>
+        </div>
 
-            <div class="col-md-9">
+        <div class="col-md-9">
 
-                <div class="row">
+            <div class="row">
 
-                    <div class="col-md-6">
+                <div class="col-md-6">
 
-                        <table class="table table-bordered">
+                    <table class="table table-bordered">
 
-                            <tr>
-                                <th width="45%">Vehicle Code</th>
-                                <td>{{ $vehicle->vehicle_code }}</td>
-                            </tr>
+                        <tr>
+                            <th width="45%">Vehicle Code</th>
+                            <td>{{ optional($vehicle)->vehicle_code }}</td>
+                        </tr>
 
-                            <tr>
-                                <th>Registration No.</th>
-                                <td> {{ $vehicle->registration_number }}</td>
-                            </tr>
+                        <tr>
+                            <th>Registration No.</th>
+                            <td>{{ optional($vehicle)->registration_number }}</td>
+                        </tr>
 
-                            <tr>
-                                <th>Make</th>
-                                <td>{{ $vehicle->make }}</td>
-                            </tr>
+                        <tr>
+                            <th>Make</th>
+                            <td>{{ optional($vehicle)->make }}</td>
+                        </tr>
 
-                            <tr>
-                                <th>Model</th>
-                                <td>{{ $vehicle->model }}</td>
-                            </tr>
+                        <tr>
+                            <th>Model</th>
+                            <td>{{ optional($vehicle)->model }}</td>
+                        </tr>
 
-                            <tr>
-                                <th>Year</th>
-                                <td>{{ $vehicle->year }}</td>
-                            </tr>
+                        <tr>
+                            <th>Year</th>
+                            <td>{{ optional($vehicle)->year }}</td>
+                        </tr>
 
-                            <tr>
-                                <th>Colour</th>
-                                <td>{{ $vehicle->color}}</td>
-                            </tr>
+                        <tr>
+                            <th>Colour</th>
+                            <td>{{ optional($vehicle)->color }}</td>
+                        </tr>
 
-                        </table>
+                    </table>
 
-                    </div>
+                </div>
 
-                    <div class="col-md-6">
+                <div class="col-md-6">
 
-                        <table class="table table-bordered">
+                    <table class="table table-bordered">
 
-                              <tr>
-                                <th>Client</th>
-                                <td>
-                                    {{ $vehicle->client->first_name}}
-                                    {{ $vehicle->client->last_name}}
-                                </td>
-                            </tr>
+                        <tr>
+                            <th>Client</th>
+                            <td>
+                                {{ optional(optional($vehicle)->client)->first_name }}
+                                {{ optional(optional($vehicle)->client)->last_name }}
+                            </td>
+                        </tr>
 
-                            <tr>
-                                <th>Insurance Policy Number</th>
-                                <td>{{ $vehicle->insurance_policy_number }}</td>
-                            </tr>
+                        <tr>
+                            <th>Insurance Policy Number</th>
+                            <td>{{ optional($vehicle)->insurance_policy_number }}</td>
+                        </tr>
 
-                            <tr>
-                                <th>Engine Number</th>
-                                <td>{{ $vehicle->engine_number }}</td>
-                            </tr>
+                        <tr>
+                            <th>Engine Number</th>
+                            <td>{{ optional($vehicle)->engine_number }}</td>
+                        </tr>
 
-                            <tr>
-                                <th width="45%">Market Value</th>
-                                <td>K{{ $vehicle->market_value }}</td>
-                            </tr>
+                        <tr>
+                            <th width="45%">Market Value</th>
+                            <td>
+                                @if(optional($vehicle)->market_value)
+                                    K{{ optional($vehicle)->market_value }}
+                                @endif
+                            </td>
+                        </tr>
 
-                            <tr>
-                                <th>Chassis Number</th>
-                                <td>{{ $vehicle->chassis_number }}</td>
-                            </tr>
+                        <tr>
+                            <th>Chassis Number</th>
+                            <td>{{ optional($vehicle)->chassis_number }}</td>
+                        </tr>
 
-                            <tr>
-                                <th>Mileage</th>
-                                <td>{{ $vehicle->mileage }}</td>
-                            </tr>
+                        <tr>
+                            <th>Mileage</th>
+                            <td>{{ optional($vehicle)->mileage }}</td>
+                        </tr>
 
-                    
-                        </table>
-
-                    </div>
+                    </table>
 
                 </div>
 
@@ -792,8 +793,12 @@
 
 </div>
 
+</div>
+
 @php
-    $photos = $vehicle->photos->keyBy('photo_type');
+    $photos = optional($vehicle)->photos
+        ? optional($vehicle)->photos->keyBy('photo_type')
+        : collect();
 
     function vehiclePhoto($photos, $type)
     {
@@ -810,16 +815,13 @@
             <i class="fa fa-camera"></i> Vehicle Photos
         </h3>
 
+        <div class="box-tools pull-right">
+            <a href="{{ url('vehicles/' . optional($vehicle)->id) }}" class="btn btn-primary btn-sm">
+                <i class="fa fa-plus"></i> Add Vehicle Photos
+            </a>
+        </div>
 
-              <div class="box-tools pull-right">
-        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
-            <i class="fa fa-plus"></i> Add Vehicle Photos
-        </a>
     </div>
-    
-    </div>
-
-    
 
     <div class="box-body">
 
@@ -844,7 +846,7 @@
                     <center>
                         <strong>{{ $type }}</strong>
 
-                        @if(isset($photos[$type]) && $photos[$type]->caption)
+                        @if(isset($photos[$type]) && !empty($photos[$type]->caption))
                             <br>
                             <small>{{ $photos[$type]->caption }}</small>
                         @endif

@@ -61,6 +61,7 @@ use App\Models\Province;
 use App\Models\Notifix;
 use App\Services\NotifixService;
 use App\Models\ClientAppLoanApplications;
+use App\Models\ClientAppUsers;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\Hash;
 
@@ -831,7 +832,68 @@ public function search(Request $request)
          return view('loan.client_app_loan_applications', compact('data',));
 
     }
+public function client_app_dashboard(Request $request)
+{
+    $client_app_users = ClientAppUsers::with('client')->get();
+    $client_app_loan_applications = ClientAppLoanApplications::with('client')->get();
+    $client_app_transactions = LoanTransaction::where('client_app','Yes')->get();
 
+    $provinceClientCounts = [];
+    $provinceClientUsers = [];
+    $provinceClientTransactions = [];
+
+    // Applications
+    try {
+        $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-applications');
+
+        if ($response->successful()) {
+            $provinceClientCounts = $response->json()['data'] ?? [];
+        }
+    } catch (\Exception $e) {
+        \Log::error('Client App Applications API Error: ' . $e->getMessage());
+    }
+
+    // Users
+    try {
+        $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-users');
+
+        if ($response->successful()) {
+            $provinceClientUsers = $response->json()['data'] ?? [];
+        }
+    } catch (\Exception $e) {
+        \Log::error('Client App Users API Error: ' . $e->getMessage());
+    }
+
+
+    // Transactions
+try {
+
+    $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-transactions');
+
+    if ($response->successful()) {
+
+        $provinceClientTransactions = $response->json()['data'] ?? [];
+
+    }
+
+} catch (\Exception $e) {
+
+    \Log::error('Client App Transactions API Error: ' . $e->getMessage());
+
+}
+
+    return view(
+        'loan.client_app_dashboard',
+        compact(
+            'client_app_users',
+            'client_app_loan_applications',
+            'provinceClientCounts',
+            'provinceClientUsers',
+            'provinceClientTransactions',
+            'client_app_transactions'
+        )
+    );
+}
 
 
 
@@ -2716,6 +2778,11 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
                 return redirect()->back();
             }
 
+
+        if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
+
+     
+
             $paymentType = $request->payment_type;
 
     if ($paymentType == 'mobile_money') {
@@ -2778,6 +2845,8 @@ if (
 
    return redirect()->back();
 }
+
+   }
 
 
 
