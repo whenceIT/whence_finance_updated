@@ -1186,7 +1186,7 @@ $office = $userInfo->office;
     $user = Sentinel::getUser();
 @endphp
 
-@if (
+@elseif (
     $user
     && $user->role->role_id != 11
     && $user->salary_details == 0
