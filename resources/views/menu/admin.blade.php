@@ -1,7 +1,13 @@
 <?php
-if (!Sentinel::check()) return;
+
+use Illuminate\Support\Facades\Redirect;
 use App\Models\AppraisalForm;
-    use App\Models\Ticket;
+use App\Models\Ticket;
+
+if (!Sentinel::check()) {
+    redirect()->route('login')->send();
+    exit;
+}
 
     $userInfo = \App\Helpers\GeneralHelper::get_user_info();
     $user = $userInfo->user;
