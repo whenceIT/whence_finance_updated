@@ -166,6 +166,12 @@ function totalAmount($transactions) {
         <!-- KPI CARDS -->
      <div class="row" style="margin-bottom:20px;">
 
+       <div class="text-center" style="margin-bottom: 20px;">
+            <button type="button" class="btn btn-success" id="toggleView">
+                <i class="fa fa-book"></i> Ledger
+            </button>
+        </div>
+
     <div class="col-md-3">
         <div class="small-box" style="background:#4e73df; color:#fff;">
             <div class="inner">
@@ -237,6 +243,101 @@ function totalAmount($transactions) {
             </div>
         </div>
     </div>
+
+      {{-- LEDGER VIEW --}}
+        <div id="ledgerView" style="display: none;">
+
+            {{-- TOGGLE SWITCH --}}
+            <div class="ledger-toggle text-center">
+                <div class="toggle-wrapper">
+                    <div class="toggle-slider"></div>
+
+                    <button class="toggle-btn active" data-target="collections">
+                        Cycle Opening Uncollected
+                    </button>
+                    <button class="toggle-btn" data-target="disbursements">
+                        Total Cycle Collected
+                    </button>
+                    <button class="toggle-btn" data-target="adjustments">
+                        Total Cycle Given Out
+                    </button>
+                </div>
+            </div>
+
+            {{-- LEDGER SECTIONS --}}
+
+            {{-- Collections --}}
+            <div class="ledger-section" id="collections">
+                <p class="text-muted text-center">Cycle Opening Uncollected</p>
+                    <p class="text-muted text-center" style="margin-top: 8px;">
+            <i class="fa fa-info-circle"></i>
+These are the balances of all branch loans as of  {{ date("jS M, Y", strtotime($start_date)) }}. Please note that any charges do not increase branch uncollected balance, while loans with interest waivers reduce the uncollected amount accordingly.
+        </p>
+
+                <div class="table-responsive" style="margin-top: 20px;">
+                    <table class="table table-bordered table-striped" id="cycleOpeningTable">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Client Name</th>
+                                <th>Amount Due</th>
+                                <th>Balance</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Disbursements --}}
+            <div class="ledger-section" id="disbursements" style="display:none;">
+                <p class="text-muted text-center">Total Cycle Collected</p>
+
+                <div class="table-responsive" style="margin-top: 20px;">
+                    <table class="table table-bordered table-striped" id="totalCollectedTable">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Client Name</th>
+                                <th>Transaction Type</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Adjustments --}}
+            <div class="ledger-section" id="adjustments" style="display:none;">
+                <p class="text-muted text-center">Total Cycle Given Out</p>
+
+                <div class="table-responsive" style="margin-top: 20px;">
+                    <table class="table table-bordered table-striped" id="givenOutTable">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Client Name</th>
+                                <th>Transaction Type</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+
+
 
 </div>
 
@@ -344,6 +445,177 @@ $(function () {
             icon.css('transform', 'rotate(0deg)');
         }
     });
+});
+
+           $(document).ready(function () {
+
+    var showingLedger = false;
+
+    $('#toggleView').on('click', function () {
+
+        if (!showingLedger) {
+            $('#summaryView').hide();
+            $('#ledgerView').show();
+            $(this).html('<i class="fa fa-bar-chart"></i> Summary');
+
+            // Fetch initial collections table
+            fetchCycleOpeningTable();
+
+        } else {
+            $('#ledgerView').hide();
+            $('#summaryView').show();
+            $(this).html('<i class="fa fa-book"></i> Ledger');
+        }
+
+        showingLedger = !showingLedger;
+    });
+
+    $('.toggle-btn').on('click', function () {
+
+        var target = $(this).data('target');
+
+        // Toggle active button
+        $('.toggle-btn').removeClass('active');
+        $(this).addClass('active');
+
+        // Move slider
+        $('.toggle-wrapper').attr('data-active', target);
+
+        // Show correct section
+        $('.ledger-section').hide();
+        $('#' + target).fadeIn(200);
+
+        // Fetch data for specific section
+        if(target === 'collections') {
+            fetchCycleOpeningTable();
+        }
+        if(target === 'disbursements') {
+            fetchTotalCollectedTable();
+        }
+        if(target === 'adjustments') {
+            fetchGivenOutTable();
+        }
+    });
+
+    // --- FETCH FUNCTIONS ---
+
+   function fetchCycleOpeningTable() {
+    var $tableBody = $('#cycleOpeningTable tbody');
+    $tableBody.html('<tr><td colspan="5" class="text-center">Loading...</td></tr>');
+
+    $.ajax({
+        url: 'https://lms2backend.whencefinancesystem.com/branch-cycle-opening-uncollected-table',
+        method: 'GET',
+        data: {
+            office_id: '{{ $office_id }}',
+            start_date: '{{ $start_date }}',
+            end_date: '{{ $end_date }}'
+        },
+        success: function(response) {
+            $tableBody.empty();
+
+            if (!response.loans_uncollected || response.loans_uncollected.length === 0) {
+                $tableBody.html('<tr><td colspan="5" class="text-center">No uncollected loans</td></tr>');
+                return;
+            }
+
+            response.loans_uncollected.forEach(function(loan) {
+                $tableBody.append(`
+                    <tr>
+                        <td>${loan.loan_id}</td>
+                        <td>${loan.client_name}</td>
+                        <td>${Number(loan.amount_due).toLocaleString()}</td>
+                        <td>${Number(loan.balance).toLocaleString()}</td>
+                        <td>${loan.due_date ? new Date(loan.due_date).toISOString().slice(0, 10) : '-'}</td>
+
+                    </tr>
+                `);
+            });
+        },
+        error: function(err) {
+            $tableBody.html('<tr><td colspan="5" class="text-center text-danger">Failed to load data</td></tr>');
+            console.error(err);
+        }
+    });
+}
+
+function fetchTotalCollectedTable() {
+    var $tableBody = $('#totalCollectedTable tbody');
+    $tableBody.html('<tr><td colspan="4" class="text-center">Loading...</td></tr>');
+
+    $.ajax({
+        url: 'https://lms2backend.whencefinancesystem.com/branch-total-collected-table',
+        method: 'GET',
+        data: {
+            office_id: '{{ $office_id }}',
+            start_date: '{{ $start_date }}',
+            end_date: '{{ $end_date }}'
+        },
+        success: function(response) {
+            $tableBody.empty();
+
+            if (!response.collected_transactions || response.collected_transactions.length === 0) {
+                $tableBody.html('<tr><td colspan="4" class="text-center">No collected transactions</td></tr>');
+                return;
+            }
+
+            response.collected_transactions.forEach(function(tx) {
+                $tableBody.append(`
+                    <tr>
+                        <td>${tx.loan_id}</td>
+                        <td>${tx.client_name}</td>
+                        <td>${tx.transaction_type}</td>
+                        <td>${Number(tx.amount).toLocaleString()}</td>
+                    </tr>
+                `);
+            });
+        },
+        error: function(err) {
+            $tableBody.html('<tr><td colspan="4" class="text-center text-danger">Failed to load data</td></tr>');
+            console.error(err);
+        }
+    });
+}
+
+function fetchGivenOutTable() {
+    var $tableBody = $('#givenOutTable tbody');
+    $tableBody.html('<tr><td colspan="4" class="text-center">Loading...</td></tr>');
+
+    $.ajax({
+        url: 'https://lms2backend.whencefinancesystem.com/branch-given-out-table',
+        method: 'GET',
+        data: {
+            office_id: '{{ $office_id }}',
+            start_date: '{{ $start_date }}',
+            end_date: '{{ $end_date }}'
+        },
+        success: function(response) {
+            $tableBody.empty();
+
+            if (!response.given_out_breakdown || response.given_out_breakdown.length === 0) {
+                $tableBody.html('<tr><td colspan="4" class="text-center">No given out transactions</td></tr>');
+                return;
+            }
+
+            response.given_out_breakdown.forEach(function(tx) {
+                $tableBody.append(`
+                    <tr>
+                        <td>${tx.loan_id !== null ? tx.loan_id : '-'}</td>
+                        <td>${tx.client_name}</td>
+                        <td>${tx.transaction_type}</td>
+                        <td>${Number(tx.amount).toLocaleString()}</td>
+                    </tr>
+                `);
+            });
+        },
+        error: function(err) {
+            $tableBody.html('<tr><td colspan="4" class="text-center text-danger">Failed to load data</td></tr>');
+            console.error(err);
+        }
+    });
+}
+
+
 });
 </script>
 @endsection
