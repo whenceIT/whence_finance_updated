@@ -1,7 +1,15 @@
 @php
-    $blockages = \App\Models\Blockage::where('office_id', Sentinel::getUser()->office_id)->get();
-    $status = $blockages->isNotEmpty();
-    $blockage = $blockages->first();
+    $user = Sentinel::getUser();
+
+    $blockages = collect();
+    $status = false;
+    $blockage = null;
+
+    if ($user) {
+        $blockages = \App\Models\Blockage::where('office_id', $user->office_id)->get();
+        $status = $blockages->isNotEmpty();
+        $blockage = $blockages->first();
+    }
 @endphp
 @if($status && request()->path() != 'user/branch_deposits')
 <!-- Deposit Payment Blocker Modal -->
