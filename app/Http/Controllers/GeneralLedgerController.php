@@ -458,10 +458,10 @@ public function getExecutiveLedger(Request $request)
 
         $offices = Office::whereNotNull('withinhere_wallet_id')->get();
 
-        // collect wallet IDs
+        // Collect wallet IDs
         $walletIds = $offices->pluck('withinhere_wallet_id')->toArray();
 
-        // SINGLE API CALL (NEW)
+        // Fetch executive ledger
         $response = Http::post(
             'https://withinheremobileapi.com/api/v1/lmsuser/executive_ledger',
             [
@@ -487,14 +487,30 @@ public function getExecutiveLedger(Request $request)
             ], 500);
         }
 
-        $allTransactions = [];
+        // Fetch company dashboard summary for total balance
+        $summaryResponse = Http::withHeaders([
+            'x-user-email' => 'chikwetihenry@gmail.com'
+        ])->get(
+            'https://withinheremobileapi.com/api/v1/business-dashboard/company/CMP-35230338/summary'
+        );
+
         $totalBalance = 0;
+
+        if (
+            $summaryResponse->successful() &&
+            isset($summaryResponse->json()['data']['summary']['total_balance'])
+        ) {
+            $totalBalance = (float) $summaryResponse->json()['data']['summary']['total_balance'];
+        }
+
+        $allTransactions = [];
 
         foreach ($data['data'] as $wallet) {
 
-            $office = $offices->firstWhere('withinhere_wallet_id', $wallet['wallet_id']);
-
-            $totalBalance += (float) ($wallet['cash_balance'] ?? 0);
+            $office = $offices->firstWhere(
+                'withinhere_wallet_id',
+                $wallet['wallet_id']
+            );
 
             if (!empty($wallet['transactions'])) {
 
@@ -505,7 +521,7 @@ public function getExecutiveLedger(Request $request)
             }
         }
 
-        // sort by date
+        // Sort by newest first
         usort($allTransactions, function ($a, $b) {
             return strtotime($b['created_at']) - strtotime($a['created_at']);
         });
@@ -526,8 +542,7 @@ public function getExecutiveLedger(Request $request)
             'message' => $e->getMessage()
         ], 500);
     }
-}
-    
+} 
 
         
 

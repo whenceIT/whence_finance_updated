@@ -1182,7 +1182,17 @@ $office = $userInfo->office;
                             }
                         });
                     </script>
-                @elseif(Sentinel::getUser()->role->role_id != 11 && Sentinel::getUser() && Sentinel::getUser()->salary_details == 0 && !request()->routeIs('user.payroll.details') && Sentinel::getUser()->id != 2 && Sentinel::getUser()->id != 3)
+           @php
+    $user = Sentinel::getUser();
+@endphp
+
+@if (
+    $user
+    && $user->role->role_id != 11
+    && $user->salary_details == 0
+    && !request()->routeIs('user.payroll.details')
+    && !in_array($user->id, [2, 3])
+)
                     <!-- Payroll Details Required Modal -->
                     <!-- <div id="payrollModal"
                         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
