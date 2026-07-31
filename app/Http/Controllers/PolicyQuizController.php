@@ -40,8 +40,9 @@ class PolicyQuizController extends Controller
     {
         $quiz = PolicyQuiz::findOrFail($id);
         $user = Sentinel::getUser()->id;
+        $isRetake = request('retake');
 
-        if (!$quiz->isOpen()) {
+        if (!$isRetake && !$quiz->isOpen()) {
             return redirect()->route('policy.quizzes.index')
                 ->with('error', 'This quiz is not currently available.');
         }
@@ -58,9 +59,10 @@ class PolicyQuizController extends Controller
 
         if ($existingAttempt) {
             if ($existingAttempt->completed_at) {
-                if (request('retake')) {
+                if ($isRetake) {
                     $existingAttempt->delete();
                     session()->forget('quiz_questions_' . $existingAttempt->id);
+                    session(['policy_quiz_retake_' . $id => true]);
                 } else {
                     return redirect()->route('policy.quizzes.results', $id)
                         ->with('error', 'You have already completed this quiz.');
@@ -103,10 +105,16 @@ class PolicyQuizController extends Controller
                 ->with('error', 'Please start the quiz before answering questions.');
         }
 
-        if ($attempt->isTimeExpired()) {
+        $isRetake = session('policy_quiz_retake_' . $id);
+
+        if (!$isRetake && $attempt->isTimeExpired()) {
             $attempt->calculateScore();
             return redirect()->route('policy.quizzes.results', $id)
                 ->with('error', 'Quiz has expired');
+        }
+
+        if ($isRetake) {
+            session()->forget('policy_quiz_retake_' . $id);
         }
 
         $questions = session('quiz_questions_' . $attempt->id);
