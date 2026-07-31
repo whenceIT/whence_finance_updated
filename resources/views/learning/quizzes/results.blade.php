@@ -81,6 +81,11 @@ $breadcrumb = [
         <a href="{{ url('learning/course/' . $quiz->topic->trainingMaterial->id . '/classroom') }}" class="btn btn-primary btn-lg">
             <i class="fa fa-arrow-left"></i> Back to Classroom
         </a>
+        @if(!$passed)
+        <button type="button" class="btn btn-warning btn-lg" onclick="retakeQuiz({{ $quiz->id }})">
+            <i class="fa fa-redo"></i> Retake Quiz
+        </button>
+        @endif
     </div>
 </div>
 
@@ -154,4 +159,31 @@ $breadcrumb = [
     background: #fff3cd !important;
 }
 </style>
+<script>
+function retakeQuiz(quizId) {
+    if (!confirm('Are you sure you want to retake this quiz? Your previous attempt will be deleted.')) {
+        return;
+    }
+    const token = document.querySelector('meta[name="csrf-token"]')?.content || $('input[name="_token"]').val();
+    fetch('/quiz/' + quizId + '/retake', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            alert(data.message || 'Failed to reset quiz attempt.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+}
+</script>
 @endsection
