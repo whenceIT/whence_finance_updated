@@ -268,7 +268,7 @@ public function bmdashboard(Request $request){
     $consultants = $data['data'] ?? [];
 
     return view('user.bmdashboard',compact('branch','consultants',  'start_date',
-        'end_date','branch_data'));
+        'end_date','branch_data','office_id'));
 }
 
 
