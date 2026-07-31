@@ -62,7 +62,6 @@ class PolicyQuizController extends Controller
                 if ($isRetake) {
                     $existingAttempt->delete();
                     session()->forget('quiz_questions_' . $existingAttempt->id);
-                    session(['policy_quiz_retake_' . $id => true]);
                 } else {
                     return redirect()->route('policy.quizzes.results', $id)
                         ->with('error', 'You have already completed this quiz.');
@@ -83,7 +82,7 @@ class PolicyQuizController extends Controller
                 ->with('error', 'Unable to start quiz. You may have already taken this quiz.');
         }
 
-        return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1])
+        return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1, 'is_retake' => $isRetake ? 1 : 0])
             ->with('success', 'Quiz started! You have ' . $quiz->time_limit_minutes . ' minutes to complete.');
     }
 
@@ -91,7 +90,7 @@ class PolicyQuizController extends Controller
     /**
      * Display a single question
      */
-    public function question($id, $question)
+    public function question($id, $question, $is_retake = null)
     {
         $quiz = PolicyQuiz::findOrFail($id);
         $user = Sentinel::getUser()->id;
@@ -105,16 +104,10 @@ class PolicyQuizController extends Controller
                 ->with('error', 'Please start the quiz before answering questions.');
         }
 
-        $isRetake = session('policy_quiz_retake_' . $id);
-
-        if (!$isRetake && $attempt->isTimeExpired()) {
+        if (!$is_retake && $attempt->isTimeExpired()) {
             $attempt->calculateScore();
             return redirect()->route('policy.quizzes.results', $id)
                 ->with('error', 'Quiz has expired');
-        }
-
-        if ($isRetake) {
-            session()->forget('policy_quiz_retake_' . $id);
         }
 
         $questions = session('quiz_questions_' . $attempt->id);
@@ -130,7 +123,7 @@ class PolicyQuizController extends Controller
         }
 
         if ($question < 1 || $question > count($questions)) {
-            return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1]);
+            return redirect()->route('policy.quizzes.question', ['id' => $id, 'question' => 1, 'is_retake' => $is_retake]);
         }
 
         $currentQuestion = $questions[$question - 1];
