@@ -561,14 +561,18 @@ data-target="#branch{{$index}}{{$b}}"
 {{ number_format($branch['number_of_loans']) }}
 </td>
 
-
 <td>
-{{ number_format($branch['expected_collections']) }}
+{{ number_format($branch['number_of_vehicles']) }}
 </td>
 
 
 <td>
-{{ number_format($branch['expected_interest']) }}
+K{{ number_format($branch['expected_collections']) }}
+</td>
+
+
+<td>
+K{{ number_format($branch['expected_interest']) }}
 </td>
 
 
