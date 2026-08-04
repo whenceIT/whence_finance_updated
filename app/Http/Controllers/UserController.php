@@ -145,6 +145,13 @@ class UserController extends Controller
     }
 
     public function pmdashboard(Request $request){
+
+ $position_id = Sentinel::getUser()->position_id;
+    
+           if ($position_id == '9') {
+                return redirect('/vehicles/dashboard');
+            }
+
    
              $province_id = Sentinel::getUser()->province_id;
 
@@ -579,6 +586,8 @@ public function save_wallet(Request $request)
         $newBranchLoans = null;
         $someData = [];
 
+        
+
         if ($role->role_id == '1') {
 
 
@@ -601,6 +610,8 @@ public function save_wallet(Request $request)
             if ($position_id == 17) {
                 return redirect('/user/poadashboard');
             }
+
+         
 
             $allLoans = Loan::with('transactions')->where('created_date', '>', $afterDate)->get();
             foreach ($allLoans as $loans) {
@@ -941,7 +952,14 @@ $cycle_date = $cycleDate->format('Y-m-d');
             $end = null;
         }
 
+           
+
         if ($role->role_id == '6') {
+
+       
+
+
+        
 
              $branchStaffCount = User::where('office_id', $userBranch)->where('status','Active')->count();
        $existing_payroll_count = Payroll::where('office_id', $userBranch)
