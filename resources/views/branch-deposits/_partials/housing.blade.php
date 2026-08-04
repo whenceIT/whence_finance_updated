@@ -218,7 +218,7 @@ $(document).ready(function() {
                 valid = /^\d{12}$/.test(reference);
                 break;
             case 'mtn':
-                valid = /^\d{10}$/.test(reference);
+                valid = /^\d{10,11}$/.test(reference);
                 break;
             case 'zanaco_cash':
                 valid = /^\d{16}$/.test(reference);

@@ -244,21 +244,23 @@ class BranchDepositController extends Controller
         if ($depositTypeId === 'setup_debt') {
             $allTransactions = $mappedSetupDebts;
         } elseif (!$depositTypeId) {
-            $allTransactions = $deposits->merge($mappedSetupDebts);
+            $allTransactions = collect($deposits->all())->merge($mappedSetupDebts);
         }
 
-        $allTransactions = collect($allTransactions->all())
-            ->sortByDesc(function ($item) {
-                $date = $item->bankDepositLog->created_date ?? '';
-                if ($date instanceof \Carbon\Carbon) {
-                    return $date->timestamp;
-                }
-                if (is_string($date)) {
-                    return strtotime($date);
-                }
-                return $date;
-            })
-            ->values();
+        if ($allTransactions instanceof \Illuminate\Database\Eloquent\Collection) {
+            $allTransactions = $allTransactions->toBase();
+        }
+
+        $allTransactions = $allTransactions->sortByDesc(function ($item) {
+            $date = $item->bankDepositLog->created_date ?? '';
+            if ($date instanceof \Carbon\Carbon) {
+                return $date->timestamp;
+            }
+            if (is_string($date)) {
+                return strtotime($date);
+            }
+            return $date;
+        })->values();
 
         $depositTypes = \App\Models\DepositType::orderBy('name')->get();
 
