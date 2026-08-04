@@ -247,10 +247,18 @@ class BranchDepositController extends Controller
             $allTransactions = $deposits->merge($mappedSetupDebts);
         }
 
-        $allTransactions = $allTransactions->sortByDesc(function ($item) {
-            $date = $item->bankDepositLog->created_date ?? '';
-            return $date;
-        })->values();
+        $allTransactions = collect($allTransactions->all())
+            ->sortByDesc(function ($item) {
+                $date = $item->bankDepositLog->created_date ?? '';
+                if ($date instanceof \Carbon\Carbon) {
+                    return $date->timestamp;
+                }
+                if (is_string($date)) {
+                    return strtotime($date);
+                }
+                return $date;
+            })
+            ->values();
 
         $depositTypes = \App\Models\DepositType::orderBy('name')->get();
 
