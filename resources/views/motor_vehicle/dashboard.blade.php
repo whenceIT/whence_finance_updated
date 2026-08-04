@@ -383,9 +383,21 @@ Vehicles
 Vehicle Value
 </th>
 
+
+<th>
+Expected Collections
+</th>
+
+
+<th>
+Expected Interest
+</th>
+
 <th>
 Collections
 </th>
+
+
 
 </tr>
 
@@ -429,6 +441,14 @@ class="bg-info"
 
 <td>
 K {{ number_format($province['total_vehicle_value'],2) }}
+</td>
+
+<td>
+K {{ number_format($province['expected_collections'],2) }}
+</td>
+
+<td>
+K {{ number_format($province['expected_interest'],2) }}
 </td>
 
 
@@ -486,6 +506,16 @@ Vehicles
 </th>
 
 <th>
+Expected Collections
+</th>
+
+
+<th>
+Expected Interest
+</th>
+
+
+<th>
 Value
 </th>
 
@@ -531,9 +561,18 @@ data-target="#branch{{$index}}{{$b}}"
 {{ number_format($branch['number_of_loans']) }}
 </td>
 
-
 <td>
 {{ number_format($branch['number_of_vehicles']) }}
+</td>
+
+
+<td>
+K{{ number_format($branch['expected_collections']) }}
+</td>
+
+
+<td>
+K{{ number_format($branch['expected_interest']) }}
 </td>
 
 
@@ -602,12 +641,23 @@ Loans
 Vehicles
 </th>
 
+
+
 <th>
 Vehicle Value
 </th>
 
 <th>
 Collections
+</th>
+
+<th>
+Expected Collections
+</th>
+
+
+<th>
+Expected Interest
 </th>
 
 </tr>
@@ -650,6 +700,14 @@ K {{ number_format($consultant['total_vehicle_value'],2) }}
 
 <td>
 K {{ number_format($consultant['total_collections'],2) }}
+</td>
+
+<td>
+K {{ number_format($consultant['expected_collections'],2) }}
+</td>
+
+<td>
+K {{ number_format($consultant['expected_interest'],2) }}
 </td>
 
 
@@ -721,6 +779,8 @@ Collections
 <th>Amount</th>
 <th>Status</th>
 <th>Date</th>
+<th>Due Date</th>
+<th>Days in Default </th>
 
 </tr>
 
@@ -757,6 +817,14 @@ K {{ number_format($loan['principal'] ?? 0,2) }}
 
 <td>
 {{ $loan['created_at'] }}
+</td>
+
+<td>
+ {{$loan['due_date']}} 
+</td>
+
+<td>
+   {{$loan['days_in_default']}}
 </td>
 
 
