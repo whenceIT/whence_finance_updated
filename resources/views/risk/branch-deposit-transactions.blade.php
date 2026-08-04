@@ -64,15 +64,42 @@ use Illuminate\Support\Str;
                 </tr>
             </thead>
             <tbody>
-                @dd($allTransactions)
                 @forelse($allTransactions as $deposit)
                     <tr>
                         <td>{{ $deposit->bankDepositLog->created_date ? date('Y-m-d', strtotime($deposit->bankDepositLog->created_date)) : 'N/A' }}</td>
-                        <td>{{ $deposit->office?->name ?? 'wait...' }}</td>
+                        <td>{{ $deposit->office?->name ?? $deposit }}</td>
                         <td>{{ number_format($deposit->amount, 2) }}</td>
                         <td>{{ $deposit->depositTypeInfo->name ?? 'N/A' }}</td>
                         <td>{{ $deposit->bankDepositLog->reference_number ?? 'N/A' }}</td>
-                        <td>{{ $deposit->bankDepositLog->deposit_method ?? 'N/A' }}</td>
+                        <td>
+                            @php
+                                $method = $deposit->bankDepositLog->deposit_method ?? null;
+                                if (!$method) {
+                                    $ref = $deposit->bankDepositLog->reference_number ?? '';
+                                    $ref = strtoupper($ref);
+                                    if (Str::startsWith($ref, 'MP')) {
+                                        $method = 'Airtel Money';
+                                    } elseif (Str::startsWith($ref, 'APCZM')) {
+                                        $method = 'Airtel App';
+                                    } elseif (ctype_digit($ref) && strlen($ref) === 12) {
+                                        $method = 'Zanaco Express';
+                                    } elseif (ctype_digit($ref) && strlen($ref) === 11) {
+                                        $method = 'MTN Mobile Money';
+                                    } elseif (ctype_digit($ref) && strlen($ref) === 16) {
+                                        $method = 'Zanaco Cash';
+                                    } elseif (ctype_digit($ref) && strlen($ref) === 17) {
+                                        $method = 'WithinHere';
+                                    } elseif (Str::startsWith($ref, 'FJB')) {
+                                        $method = 'Bank Transfer';
+                                    } elseif (Str::startsWith($ref, '002')) {
+                                        $method = 'Zanaco Online Transfer';
+                                    } else {
+                                        $method = 'N/A';
+                                    }
+                                }
+                            @endphp
+                            {{ $method }}
+                        </td>
                         <td>
                             @if($deposit->bankDepositLog && $deposit->bankDepositLog->user)
                                 {{ $deposit->bankDepositLog->user->first_name ?? '' }} {{ $deposit->bankDepositLog->user->last_name ?? '' }}
