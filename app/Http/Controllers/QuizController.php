@@ -271,6 +271,29 @@ class QuizController extends Controller
     }
 
     /**
+     * Retake quiz - delete previous attempts and redirect to take page.
+     */
+    public function retake(Request $request, $quizId)
+    {
+        if (!Sentinel::check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $user = Sentinel::getUser();
+        $quiz = Quiz::findOrFail($quizId);
+
+        QuizAttempt::where('quiz_id', $quizId)
+            ->where('user_id', $user->id)
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Quiz attempt reset. You can now retake the quiz.',
+            'redirect' => route('learning.quizzes.take', ['quizId' => $quizId]),
+        ]);
+    }
+
+    /**
      * Submit quiz answers.
      */
     public function submit(Request $request, $quizId)

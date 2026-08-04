@@ -297,8 +297,9 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
      
      // Quiz taking routes for students
      Route::get('/quiz/{quizId}/take', [QuizController::class, 'take'])->name('learning.quizzes.take');
-     Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
-     Route::post('/quiz/{quizId}/submit-preview', [QuizController::class, 'submitPreview'])->name('learning.quizzes.submit-preview');
+Route::post('/quiz/{quizId}/submit', [QuizController::class, 'submit'])->name('learning.quizzes.submit');
+      Route::post('/quiz/{quizId}/submit-preview', [QuizController::class, 'submitPreview'])->name('learning.quizzes.submit-preview');
+      Route::post('/quiz/{quizId}/retake', [QuizController::class, 'retake'])->name('learning.quizzes.retake');
      
       // Topics management route for trainers
      Route::get('/{materialId}/topics', [TrainingMaterialController::class, 'topics'])->name('learning.training-materials.topics');
@@ -2126,7 +2127,7 @@ Route::group(['prefix' => 'policy-quizzes'], function () {
     // User-facing routes
     Route::get('/', [App\Http\Controllers\PolicyQuizController::class, 'index'])->name('policy.quizzes.index');
     Route::get('/{id}/start', [App\Http\Controllers\PolicyQuizController::class, 'start'])->name('policy.quizzes.start');
-    Route::get('/{id}/question/{question}', [App\Http\Controllers\PolicyQuizController::class, 'question'])->name('policy.quizzes.question');
+    Route::get('/{id}/question/{question}/{is_retake?}', [App\Http\Controllers\PolicyQuizController::class, 'question'])->name('policy.quizzes.question');
     Route::post('/{id}/answer', [App\Http\Controllers\PolicyQuizController::class, 'answer'])->name('policy.quizzes.answer');
     Route::post('/{id}/submit', [App\Http\Controllers\PolicyQuizController::class, 'submit'])->name('policy.quizzes.submit');
     Route::get('/{id}/results', [App\Http\Controllers\PolicyQuizController::class, 'results'])->name('policy.quizzes.results');
