@@ -67,7 +67,7 @@ use Illuminate\Support\Str;
                 @forelse($allTransactions as $deposit)
                     <tr>
                         <td>{{ $deposit->bankDepositLog->created_date ? date('Y-m-d', strtotime($deposit->bankDepositLog->created_date)) : 'N/A' }}</td>
-                        <td>{{ $deposit->office?->name ?? $deposit['office']['name'] }}</td>
+                        <td>{{ $deposit->office?->name ?? \App\Models\Office::officeName($deposit[office]) }}</td>
                         <td>{{ number_format($deposit->amount, 2) }}</td>
                         <td>{{ $deposit->depositTypeInfo->name ?? 'N/A' }}</td>
                         <td>{{ $deposit->bankDepositLog->reference_number ?? 'N/A' }}</td>
