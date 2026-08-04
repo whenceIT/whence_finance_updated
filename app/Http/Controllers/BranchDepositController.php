@@ -232,7 +232,7 @@ class BranchDepositController extends Controller
             $bankDepositLog = new \stdClass();
             $bankDepositLog->created_date = $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : 'N/A';
             $bankDepositLog->reference_number = $tx->reference_number ?? 'N/A';
-            $bankDepositLog->deposit_method = 'Manual';
+            $bankDepositLog->deposit_method = '';
             $bankDepositLog->user = $tx->creator;
             $record->bankDepositLog = $bankDepositLog;
 
