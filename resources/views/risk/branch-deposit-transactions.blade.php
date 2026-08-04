@@ -35,6 +35,7 @@
             @foreach($depositTypes as $type)
                 <option value="{{ $type->id }}" {{ $depositTypeId == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
             @endforeach
+            <option value="setup_debt" {{ $depositTypeId == 'setup_debt' ? 'selected' : '' }}>Setup Debt</option>
         </select>
 
         <button type="button" id="applyFilters" class="btn btn-primary btn-sm" style="border-radius:4px;">
@@ -59,10 +60,10 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($deposits as $deposit)
+                @forelse($allTransactions as $deposit)
                     <tr>
                         <td>{{ $deposit->bankDepositLog->created_date ? date('Y-m-d', strtotime($deposit->bankDepositLog->created_date)) : 'N/A' }}</td>
-                        <td>{{ App\Models\Office::find($deposit->office)?->name ?? 'N/A' }}</td>
+                        <td>{{ $deposit->office?->name ?? 'N/A' }}</td>
                         <td>{{ number_format($deposit->amount, 2) }}</td>
                         <td>{{ $deposit->depositTypeInfo->name ?? 'N/A' }}</td>
                         <td>{{ $deposit->bankDepositLog->reference_number ?? 'N/A' }}</td>

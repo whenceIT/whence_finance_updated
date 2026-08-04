@@ -120,6 +120,7 @@
                                 <option value="Salaries deposits">Salaries deposits</option>
                                 <option value="Statutory payments deposits">Statutory payments deposits</option>
                                 <option value="Savings deposits">Savings deposits</option>
+                                <option value="Branch Setup Debt">Branch Setup Debt</option>
                             </select>
                         </div>
                         <div>

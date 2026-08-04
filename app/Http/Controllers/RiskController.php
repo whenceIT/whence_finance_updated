@@ -2135,8 +2135,14 @@ class RiskController extends Controller
         }
         
         $cost = \App\Models\SetupDebtCost::where('office_id', $validated['office_id'])->first();
-        
-        
+
+        if (!$cost) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your branch is not listed on the offices with setup debt',
+            ], 422);
+        }
+
         $validated['created_by'] = Sentinel::getUser()->id;
         $validated['setup_debt_cost_id'] = $cost->id;
         $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
