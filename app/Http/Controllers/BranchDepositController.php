@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Deposit;
 use App\Models\Deadline;
 use App\Models\Office;
+use App\Models\SetupDebtTransaction;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
 class BranchDepositController extends Controller
@@ -198,16 +199,74 @@ class BranchDepositController extends Controller
         $query->whereYear('date', $year)
             ->whereMonth('date', $monthNum);
 
-        if ($depositTypeId) {
+        if ($depositTypeId && $depositTypeId !== 'setup_debt') {
             $query->where('deposits.deposit_type', $depositTypeId);
         }
 
         $deposits = $query->orderBy('bank_deposit_log.created_date', 'desc')->get();
 
+        $setupDebtQuery = SetupDebtTransaction::with(['office', 'creator']);
+
+        if ($depositTypeId === 'setup_debt') {
+            $setupDebtQuery->whereYear('transaction_date', $year)
+                ->whereMonth('transaction_date', $monthNum);
+        } elseif (!$depositTypeId) {
+            $setupDebtQuery->whereYear('transaction_date', $year)
+                ->whereMonth('transaction_date', $monthNum);
+        }
+
+        $setupDebtTransactions = $setupDebtQuery->orderBy('transaction_date', 'desc')->get();
+
+        $mappedSetupDebts = $setupDebtTransactions->map(function ($tx) {
+            $record = new \stdClass();
+            $record->id = 'setup_debt_' . $tx->id;
+            $record->type = 'setup_debt';
+            $record->amount = $tx->amount;
+
+            $record->office = $tx->office;
+
+            $depositTypeInfo = new \stdClass();
+            $depositTypeInfo->name = 'Setup Debt';
+            $record->depositTypeInfo = $depositTypeInfo;
+
+            $bankDepositLog = new \stdClass();
+            $bankDepositLog->created_date = $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : 'N/A';
+            $bankDepositLog->reference_number = $tx->reference_number ?? 'N/A';
+            $bankDepositLog->deposit_method = '';
+            $bankDepositLog->user = $tx->creator;
+            $record->bankDepositLog = $bankDepositLog;
+
+            return $record;
+        });
+
+        $allTransactions = $deposits;
+
+        if ($depositTypeId === 'setup_debt') {
+            $allTransactions = $mappedSetupDebts;
+        } elseif (!$depositTypeId) {
+            $allTransactions = collect($deposits->all())->merge($mappedSetupDebts);
+        }
+
+        if ($allTransactions instanceof \Illuminate\Database\Eloquent\Collection) {
+            $allTransactions = $allTransactions->toBase();
+        }
+
+        $allTransactions = $allTransactions->sortByDesc(function ($item) {
+            $date = $item->bankDepositLog->created_date ?? '';
+            if ($date instanceof \Carbon\Carbon) {
+                return $date->timestamp;
+            }
+            if (is_string($date)) {
+                return strtotime($date);
+            }
+            return $date;
+        })->values();
+
         $depositTypes = \App\Models\DepositType::orderBy('name')->get();
 
         return view('risk.branch-deposit-transactions', compact(
             'deposits',
+            'allTransactions',
             'depositTypes',
             'selectedMonth',
             'depositTypeId'

@@ -47,8 +47,6 @@
                 <!-- Payment A -->
                 @if($debtBlocker)
                     @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth])
-                @else
-                    @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth, 'disabled'=>true] )
                 @endif
                 <br>
                 <hr>

@@ -1,5 +1,9 @@
 @extends('layouts.master')
 
+@php
+use Illuminate\Support\Str;
+@endphp
+
 @section('title')
     Branch Deposit Transactions
 @endsection
@@ -35,6 +39,7 @@
             @foreach($depositTypes as $type)
                 <option value="{{ $type->id }}" {{ $depositTypeId == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
             @endforeach
+            <option value="setup_debt" {{ $depositTypeId == 'setup_debt' ? 'selected' : '' }}>Setup Debt</option>
         </select>
 
         <button type="button" id="applyFilters" class="btn btn-primary btn-sm" style="border-radius:4px;">
@@ -59,14 +64,42 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($deposits as $deposit)
+                @forelse($allTransactions as $deposit)
                     <tr>
                         <td>{{ $deposit->bankDepositLog->created_date ? date('Y-m-d', strtotime($deposit->bankDepositLog->created_date)) : 'N/A' }}</td>
-                        <td>{{ App\Models\Office::find($deposit->office)?->name ?? 'N/A' }}</td>
+                        <td>{{ $deposit->office?->name ?? \App\Models\Office::officeName($deposit['office'])?->name }}</td>
                         <td>{{ number_format($deposit->amount, 2) }}</td>
                         <td>{{ $deposit->depositTypeInfo->name ?? 'N/A' }}</td>
                         <td>{{ $deposit->bankDepositLog->reference_number ?? 'N/A' }}</td>
-                        <td>{{ $deposit->bankDepositLog->deposit_method ?? 'N/A' }}</td>
+                        <td>
+                            @php
+                                $method = $deposit->bankDepositLog->deposit_method ?? null;
+                                if (!$method) {
+                                    $ref = $deposit->bankDepositLog->reference_number ?? '';
+                                    $ref = strtoupper($ref);
+                                    if (Str::startsWith($ref, 'MP')) {
+                                        $method = 'Airtel Money';
+                                    } elseif (Str::startsWith($ref, 'APCZM')) {
+                                        $method = 'Airtel App';
+                                    } elseif (ctype_digit($ref) && strlen($ref) === 12) {
+                                        $method = 'Zanaco Express';
+                                    } elseif (ctype_digit($ref) && strlen($ref) === 11) {
+                                        $method = 'MTN Mobile Money';
+                                    } elseif (ctype_digit($ref) && strlen($ref) === 16) {
+                                        $method = 'Zanaco Cash';
+                                    } elseif (ctype_digit($ref) && strlen($ref) === 17) {
+                                        $method = 'WithinHere';
+                                    } elseif (Str::startsWith($ref, 'FJB')) {
+                                        $method = 'Bank Transfer';
+                                    } elseif (Str::startsWith($ref, '002')) {
+                                        $method = 'Zanaco Online Transfer';
+                                    } else {
+                                        $method = 'N/A';
+                                    }
+                                }
+                            @endphp
+                            {{ $method }}
+                        </td>
                         <td>
                             @if($deposit->bankDepositLog && $deposit->bankDepositLog->user)
                                 {{ $deposit->bankDepositLog->user->first_name ?? '' }} {{ $deposit->bankDepositLog->user->last_name ?? '' }}
