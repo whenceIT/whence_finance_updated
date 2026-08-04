@@ -2135,6 +2135,8 @@ class RiskController extends Controller
         }
         
         $cost = \App\Models\SetupDebtCost::where('office_id', $validated['office_id'])->first();
+        
+        
         $validated['created_by'] = Sentinel::getUser()->id;
         $validated['setup_debt_cost_id'] = $cost->id;
         $validated['transaction_date'] = $request->transaction_date ?? Carbon::now();
