@@ -3,7 +3,7 @@
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
     $highThresholdOffices = [11, 18, 15, 34, 43, 46, 45, 49, 51, 52, 53, 54, 55, 57, 59, 61, 64, 62, 60, 65];
     $officeId = $blockerUser->office_id ?? 0;
-    $minAmount = in_array($officeId, $highThresholdOffices) ? 10000 : 5000;
+    $minAmount = in_array($officeId, $highThresholdOffices) ? 5000 : 5000;
 @endphp
 
 <div class="">
