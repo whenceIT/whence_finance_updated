@@ -64,6 +64,7 @@ use App\Models\ClientAppLoanApplications;
 use App\Models\ClientAppUsers;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 
 class LoanController extends Controller
@@ -832,11 +833,33 @@ public function search(Request $request)
          return view('loan.client_app_loan_applications', compact('data',));
 
     }
+
+
+
 public function client_app_dashboard(Request $request)
 {
-    $client_app_users = ClientAppUsers::with('client')->get();
-    $client_app_loan_applications = ClientAppLoanApplications::with('client')->get();
-    $client_app_transactions = LoanTransaction::where('client_app','Yes')->get();
+    // Default dates
+    $start_date = $request->start_date ?? Carbon::now()->startOfYear()->format('Y-m-d');
+    $end_date = $request->end_date ?? Carbon::today()->format('Y-m-d');
+
+    // Local data
+    $client_app_users = ClientAppUsers::with('client')
+        ->whereBetween('created_at', [
+            $start_date . ' 00:00:00',
+            $end_date . ' 23:59:59'
+        ])
+        ->get();
+
+    $client_app_loan_applications = ClientAppLoanApplications::with('client')
+        ->whereBetween('date', [
+            $start_date . ' 00:00:00',
+            $end_date . ' 23:59:59'
+        ])
+        ->get();
+
+    $client_app_transactions = LoanTransaction::where('client_app', 'Yes')
+        ->whereBetween('date', [$start_date, $end_date])
+        ->get();
 
     $provinceClientCounts = [];
     $provinceClientUsers = [];
@@ -844,7 +867,13 @@ public function client_app_dashboard(Request $request)
 
     // Applications
     try {
-        $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-applications');
+        $response = Http::get(
+            'https://lms2backend.whencefinancesystem.com/client-app-applications',
+            [
+                'start_date' => $start_date,
+                'end_date'   => $end_date,
+            ]
+        );
 
         if ($response->successful()) {
             $provinceClientCounts = $response->json()['data'] ?? [];
@@ -855,7 +884,13 @@ public function client_app_dashboard(Request $request)
 
     // Users
     try {
-        $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-users');
+        $response = Http::get(
+            'https://lms2backend.whencefinancesystem.com/client-app-users',
+            [
+                'start_date' => $start_date,
+                'end_date'   => $end_date,
+            ]
+        );
 
         if ($response->successful()) {
             $provinceClientUsers = $response->json()['data'] ?? [];
@@ -864,23 +899,22 @@ public function client_app_dashboard(Request $request)
         \Log::error('Client App Users API Error: ' . $e->getMessage());
     }
 
-
     // Transactions
-try {
+    try {
+        $response = Http::get(
+            'https://lms2backend.whencefinancesystem.com/client-app-transactions',
+            [
+                'start_date' => $start_date,
+                'end_date'   => $end_date,
+            ]
+        );
 
-    $response = Http::get('https://lms2backend.whencefinancesystem.com/client-app-transactions');
-
-    if ($response->successful()) {
-
-        $provinceClientTransactions = $response->json()['data'] ?? [];
-
+        if ($response->successful()) {
+            $provinceClientTransactions = $response->json()['data'] ?? [];
+        }
+    } catch (\Exception $e) {
+        \Log::error('Client App Transactions API Error: ' . $e->getMessage());
     }
-
-} catch (\Exception $e) {
-
-    \Log::error('Client App Transactions API Error: ' . $e->getMessage());
-
-}
 
     return view(
         'loan.client_app_dashboard',
@@ -890,11 +924,12 @@ try {
             'provinceClientCounts',
             'provinceClientUsers',
             'provinceClientTransactions',
-            'client_app_transactions'
+            'client_app_transactions',
+            'start_date',
+            'end_date'
         )
     );
 }
-
 
 
     public function top_up_approvals()

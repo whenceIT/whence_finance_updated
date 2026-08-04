@@ -368,6 +368,160 @@ $todaysDate = date('Y-m-d');
 </div>
 
 @endif
+
+@if($loan_product->id == 0)
+
+<div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
+    <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">
+        Vehicle Details
+    </h4>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Make</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="make"
+                   class="form-control">
+        </div>
+
+        <label class="control-label col-md-2">Model</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="model"
+                   class="form-control">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Year</label>
+        <div class="col-md-3">
+            <input type="number"
+                   name="year"
+                   class="form-control">
+        </div>
+
+        <label class="control-label col-md-2">Registration Number</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="registration_number"
+                   class="form-control">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Market Value</label>
+        <div class="col-md-3">
+            <input type="number"
+                   name="market_value"
+                   class="form-control">
+        </div>
+
+        <label class="control-label col-md-2">Comprehensive Insurance Policy No</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="insurance_policy_number"
+                   class="form-control">
+        </div>
+    </div>
+
+       <div class="form-group">
+
+
+   <label class="control-label col-md-2">Referrer</label>
+<div class="col-md-3" style="position: relative;">
+
+    <input type="text" 
+           id="referrer_search" 
+           class="form-control" 
+           placeholder="Search referrer...">
+
+    <input type="hidden" name="referrer" id="referrer">
+
+    <div id="referrer_results" 
+         style="
+            position:absolute;
+            background:white;
+            border:1px solid #ddd;
+            width:100%;
+            z-index:9999;
+         ">
+    </div>
+
+</div>
+      
+          <label for="office_id"
+                           class="control-label col-md-2">Referrer Branch</label>
+                    <div class="col-md-3">
+                        <select name="office_id" class="form-control select2" id="office_id" required>
+                            <option></option>
+                            @php
+                                $offices = \App\Helpers\GeneralHelper::get_filtered_offices_new();
+                            @endphp
+                            @foreach($offices as $key)
+                                <option value="{{$key->id}}">{{$key->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+    </div>
+</div>
+
+@endif
+
+
+@if($loan_product->id == 1)
+
+<div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
+    <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">
+ Client Bank Details
+    </h4>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Account Number</label>
+        <div class="col-md-3">
+            <input type="number"
+                   name="account_number"
+                   class="form-control">
+        </div>
+
+        <label class="control-label col-md-2">Bank Name</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="bank_name"
+                   class="form-control">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Branch Name</label>
+        <div class="col-md-3">
+            <input type="test"
+                   name="branch_name"
+                   class="form-control">
+        </div>
+
+        <label class="control-label col-md-2">Branch Code</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="branch_code"
+                   class="form-control">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-md-2">Sort Code</label>
+        <div class="col-md-3">
+            <input type="text"
+                   name="sort_code"
+                   class="form-control">
+        </div>
+
+    </div>
+
+    
+</div>
+
+@endif
            
                {{-- Cycle --}}
                <!-- <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
