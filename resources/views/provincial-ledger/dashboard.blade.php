@@ -163,7 +163,7 @@
                         </div>
                         <div class="col-md-4 text-md-right" id="entity-badges" style="margin-top: 10px;"></div>
                     </div>
-                    <div class="row" style="margin-top: 16px;">
+                    <!-- <div class="row" style="margin-top: 16px;">
                         <div class="col-md-6">
                             <button type="button" class="btn btn-success btn-lg" onclick="openTransactionModal('deposit')" style="width: 100%; font-size: 16px; font-weight: 600; border-radius: 10px; padding: 12px;">
                                 <i class="fa fa-arrow-down"></i> Deposit
@@ -174,7 +174,7 @@
                                 <i class="fa fa-arrow-up"></i> Withdrawal
                             </button>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
