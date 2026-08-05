@@ -45,9 +45,7 @@
             </section>
             <div class="box-body" id="depositsContainer">
                 <!-- Payment A -->
-                @if($debtBlocker)
                     @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth])
-                @endif
                 <br>
                 <hr>
                 <!-- Payment B -->
