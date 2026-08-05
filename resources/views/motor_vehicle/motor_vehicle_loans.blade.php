@@ -142,7 +142,7 @@
 
 
                                 <td>
-                                    K{{ number_format($loan->approved_amount,2) }}
+                                    K{{ number_format($loan->principal,2) }}
                                 </td>
 
                                    <td>
