@@ -25,7 +25,7 @@ class PolicyQuizController extends Controller
             ->get();
 
         // Check for any active attempts
-        $activeAttempts = PolicyQuizAttempt::where('user_id', Sentinel::getUser()->id)
+        $activeAttempts = PolicyQuizAttempt::where('user_id', Sentinel::getUser()?->id)
             ->whereNull('completed_at')
             ->get()
             ->keyBy('policy_quiz_id');
@@ -39,7 +39,7 @@ class PolicyQuizController extends Controller
     public function start($id)
     {
         $quiz = PolicyQuiz::findOrFail($id);
-        $user = Sentinel::getUser()->id;
+        $user = Sentinel::getUser()?->id;
         $isRetake = request('retake');
 
         if (!$isRetake && !$quiz->isOpen()) {
@@ -93,7 +93,7 @@ class PolicyQuizController extends Controller
     public function question($id, $question, $is_retake = null)
     {
         $quiz = PolicyQuiz::findOrFail($id);
-        $user = Sentinel::getUser()->id;
+        $user = Sentinel::getUser()?->id;
         $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
             ->where('user_id', $user)
             ->whereNull('completed_at')
@@ -158,7 +158,7 @@ class PolicyQuizController extends Controller
 
         $quiz = PolicyQuiz::findOrFail($id);
         $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
-            ->where('user_id', Sentinel::getUser()->id)
+            ->where('user_id', Sentinel::getUser()?->id)
             ->whereNull('completed_at')
             ->first();
 
@@ -197,7 +197,7 @@ class PolicyQuizController extends Controller
         try {
             $quiz = PolicyQuiz::findOrFail($id);
             $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
-                ->where('user_id', Sentinel::getUser()->id)
+                ->where('user_id', Sentinel::getUser()?->id)
                 ->whereNull('completed_at')
                 ->first();
 
@@ -223,7 +223,7 @@ class PolicyQuizController extends Controller
     {
         $quiz = PolicyQuiz::findOrFail($id);
         $attempt = PolicyQuizAttempt::where('policy_quiz_id', $id)
-            ->where('user_id', Sentinel::getUser()->id)
+            ->where('user_id', Sentinel::getUser()?->id)
             ->latest()
             ->first();
 
@@ -282,7 +282,7 @@ class PolicyQuizController extends Controller
             'max_questions' => $request->max_questions,
             'open_date' => $request->open_date,
             'close_date' => $request->close_date,
-            'created_by' => Sentinel::getUser()->id,
+            'created_by' => Sentinel::getUser()?->id,
         ]);
 
         return redirect()->route('admin.policy-quizzes.index')
