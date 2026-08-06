@@ -868,7 +868,7 @@ class ReportController extends Controller
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $office_id = $request->office_id;
-        $loan_product = $request->loan_product;
+        $loan_product =  $request->loan_product ?? 'all';
         $loan = $request->id;
         $data = [];
         $targets_met = [];
@@ -888,7 +888,7 @@ class ReportController extends Controller
         if (!empty($start_date)) {
             if ($office_id != 0) {
 
-            if($loan_product != 5 ){
+            if($loan_product == 'all' ){
                 $data = LoanTransaction::where(
                     'transaction_type',
                     'repayment'
@@ -1042,7 +1042,7 @@ $targets_met = TargetsMet::whereBetween('date', [$start_date, $end_date])
 
             } else {
 
-             if($loan_product != 5 ){
+             if($loan_product == 'all' ){
 
               $data = LoanTransaction::where(
                     'transaction_type',

@@ -79,20 +79,26 @@
                     </div>
                 </div>
 
-                    <div class="form-group">
-                    <label for="loan_product"
-                           class="control-label col-md-2">Loan Product</label>
-                    <div class="col-md-3">
-                        <select name="loan_product" class="form-control select2" id="loan_product" required>
-                           <option value="5" @if($loan_product == "5") selected @endif>{{trans_choice('general.all',1)}}</option>
-                        @foreach(\App\Models\LoanProduct::get() as $key)
-                            <option value="{{$key->id}}"  @if($loan_product==$key->id) selected @endif>
-                                {{$key->name}}
-                            </option>
-                        @endforeach
-                        </select>
-                    </div>
-                </div>
+ <div class="form-group">
+    <label for="loan_product"
+           class="control-label col-md-2">Loan Product</label>
+
+    <div class="col-md-3">
+        <select name="loan_product" class="form-control select2" id="loan_product" required>
+
+            <option value="all" @if($loan_product == "all") selected @endif>
+                {{ trans_choice('general.all',1) }}
+            </option>
+
+            @foreach(\App\Models\LoanProduct::get() as $key)
+                <option value="{{$key->id}}" @if($loan_product == $key->id) selected @endif>
+                    {{$key->name}}
+                </option>
+            @endforeach
+
+        </select>
+    </div>
+</div>
 
                 <div class="form-group">
                     <label for=""
