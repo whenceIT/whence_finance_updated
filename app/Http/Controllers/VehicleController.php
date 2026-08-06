@@ -798,5 +798,47 @@ public function sales(Request $request)
     }
 
 
+     public function analytics_dashboard(Request $request)
+{
+
+
+$start =
+$request->start_date ??
+date('Y-01-01');
+
+
+$end =
+$request->end_date ??
+date('Y-m-d');
+
+
+
+$response = Http::get(
+'https://lms2backend.whencefinancesystem.com/motor-vehicle-loans-analytics',
+[
+'start_date'=>$start,
+'end_date'=>$end
+]
+);
+
+
+
+$data=$response->json();
+
+
+
+return view(
+'motor_vehicle.analytics_dashboard',
+compact(
+'data',
+'start',
+'end'
+)
+);
+
+
+}
+
+
 
 }

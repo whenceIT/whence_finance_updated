@@ -6,6 +6,13 @@
 
     <h1>
         Motor Vehicle Loan Portfolio Dashboard
+
+        <a href="{{ url('/vehicles/analytics_dashboard') }}" 
+           class="btn btn-primary pull-right">
+            <i class="fa fa-bar-chart"></i>
+            Analytics Dashboard
+        </a>
+
     </h1>
 
 </section>

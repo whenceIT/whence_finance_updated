@@ -377,6 +377,7 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('loans_pending_approval', 'VehicleController@loans_pending_approval');
     Route::get('dashboard', 'VehicleController@dashboard');
     Route::get('create', 'VehicleController@MotorVehicleLoan');
+    Route::get('analytics_dashboard', 'VehicleController@analytics_dashboard');
     Route::any('store', 'VehicleController@store');
     Route::any('{id}', 'VehicleController@show');
     Route::any('{id}/edit', 'VehicleController@edit');
