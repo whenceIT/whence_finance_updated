@@ -58,7 +58,6 @@
                     <div class="col-md-3">
                         <select name="office_id" class="form-control select2" id="office_id" required>
                             <option value="0" @if($office_id == "0") selected @endif>{{trans_choice('general.all',1)}}</option>
-
                             @if($role == 4)
                                 @foreach(\App\Models\Office::where('id', Sentinel::getUser()->office->id)->get() as $key)
                                     <option value="{{$key->id}}"  @if($office_id==$key->id) selected @endif>{{$key->name}}</option>
@@ -79,6 +78,28 @@
                         </select>
                     </div>
                 </div>
+
+ <div class="form-group">
+    <label for="loan_product"
+           class="control-label col-md-2">Loan Product</label>
+
+    <div class="col-md-3">
+        <select name="loan_product" class="form-control select2" id="loan_product" required>
+
+            <option value="all" @if($loan_product == "all") selected @endif>
+                {{ trans_choice('general.all',1) }}
+            </option>
+
+            @foreach(\App\Models\LoanProduct::get() as $key)
+                <option value="{{$key->id}}" @if($loan_product == $key->id) selected @endif>
+                    {{$key->name}}
+                </option>
+            @endforeach
+
+        </select>
+    </div>
+</div>
+
                 <div class="form-group">
                     <label for=""
                            class="control-label col-md-2"></label>
