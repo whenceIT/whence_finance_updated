@@ -1395,7 +1395,13 @@ $amount = $request->query('amount');
                 $loan->client_type = "client";
                 $loan->loan_product_id = $loan_product->id;
                 $loan->client_id = $client->id;
-                $loan->office_id = $client->office_id;
+                if($loan_product->id == 0)
+                {
+                     $loan->office_id = 89;
+                }else
+                {
+                     $loan->office_id = $client->office_id;
+                }
                 $loan->fund_id = $request->fund_id;
                 $loan->decimals = $loan_product->decimals;
                 $loan->loan_officer_id = $request->loan_officer_id;
@@ -2814,7 +2820,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             }
 
 
-        if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
+if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
 
      
 
