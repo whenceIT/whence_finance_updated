@@ -669,10 +669,12 @@
     </h3>
 
 <div class="box-tools pull-right">
-    <a href="{{ url('vehicles/' . ($vehicle?->id ?? '')) }}" class="btn btn-primary btn-sm">
-        <i class="fa fa-plus"></i> Add Vehicle Information
-    </a>
-</div>
+        @if($vehicle)
+            <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+                <i class="fa fa-plus"></i> Add Vehicle Information
+            </a>
+        @endif
+    </div>
 
 </div>
 

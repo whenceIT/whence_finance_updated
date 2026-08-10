@@ -79,6 +79,10 @@
                                                 <td>{{ $quiz->passing_threshold }}%</td>
                                                 <td>
                                                     <div class="btn-group">
+                                                        <a href="{{ route('policy.quizzes.start', $quiz->id) }}?retake=1" 
+                                                           class="btn btn-xs btn-dark" title="Take Quiz">
+                                                            <i class="fa fa-play"></i>
+                                                        </a>
                                                         <a href="{{ route('admin.policy-quizzes.edit', $quiz->id) }}" 
                                                            class="btn btn-xs btn-primary" title="Edit">
                                                             <i class="fa fa-edit"></i>
