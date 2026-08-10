@@ -290,12 +290,12 @@ Vehicles
 <div class="inner">
 
 <h3>
-K {{ number_format($data['national']['total_vehicle_value'],2) }}
+K {{ number_format($data['national']['total_loan_portfolion'],2) }}
 </h3>
 
 
 <p>
-Vehicle Portfolio Value
+Total Portfolio Value
 </p>
 
 </div>
@@ -340,6 +340,457 @@ Total Collections
 
 
 </div>
+
+<!-- ================= LOAN CONSULTANTS ================= -->
+
+<div class="box box-primary">
+
+    <div class="box-header bg-blue">
+
+        <h3 class="box-title text-white">
+            <i class="fa fa-users"></i>
+            Loan Consultant Performance
+        </h3>
+
+    </div>
+
+
+    <div class="box-body table-responsive">
+
+
+        <table class="table table-bordered table-hover">
+
+
+            <thead class="bg-primary">
+
+                <tr>
+
+                    <th>
+                        Loan Consultant
+                    </th>
+
+                    <th>
+                        Branch
+                    </th>
+
+                    <th>
+                        Province
+                    </th>
+
+                    <th>
+                        Loans
+                    </th>
+
+                    <th>
+                        Vehicles
+                    </th>
+
+                    <th>
+                        Given Out
+                    </th>
+
+                    <th>
+                        Expected Collections
+                    </th>
+
+                    <th>
+                        Expected Interest
+                    </th>
+
+                    <th>
+                        Collections
+                    </th>
+
+                    <th>
+                        Uncollected
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+
+                @foreach($consultantData['consultants'] as $index => $consultant)
+
+
+                    <tr
+                        style="cursor:pointer"
+                        data-toggle="collapse"
+                        data-target="#consultant{{$index}}"
+                        class="bg-info"
+                    >
+
+
+                        <td>
+
+                            <i class="fa fa-plus-circle"></i>
+
+                            <strong>
+                                {{ $consultant['consultant_name'] }}
+                            </strong>
+
+                        </td>
+
+
+                        <td>
+                            {{ $consultant['branch_name'] }}
+                        </td>
+
+
+                        <td>
+                            {{ $consultant['province_name'] }}
+                        </td>
+
+
+                        <td>
+                            {{ number_format($consultant['number_of_loans']) }}
+                        </td>
+
+
+                        <td>
+                            {{ number_format($consultant['number_of_vehicles']) }}
+                        </td>
+
+
+                        <td>
+                            K {{ number_format($consultant['given_out'] ?? 0, 2) }}
+                        </td>
+
+
+                        <td>
+                            K {{ number_format($consultant['expected_collections'] ?? 0, 2) }}
+                        </td>
+
+
+                        <td>
+                            K {{ number_format($consultant['expected_interest'] ?? 0, 2) }}
+                        </td>
+
+
+                        <td>
+                            K {{ number_format($consultant['total_collections'] ?? 0, 2) }}
+                        </td>
+
+
+                        <td>
+                            K {{ number_format($consultant['total_uncollected'] ?? 0, 2) }}
+                        </td>
+
+
+                    </tr>
+
+
+
+                    <!-- ================= CONSULTANT DETAILS ================= -->
+
+                    <tr id="consultant{{$index}}" class="collapse">
+
+                        <td colspan="10">
+
+
+                            <div class="box box-success">
+
+
+                                <div class="box-header">
+
+                                    <h4>
+
+                                        <i class="fa fa-user"></i>
+
+                                        {{ $consultant['consultant_name'] }}
+
+                                        - Loans & Vehicles
+
+                                    </h4>
+
+                                </div>
+
+
+                                <div class="box-body table-responsive">
+
+
+                                    <table class="table table-bordered table-striped">
+
+
+                                        <thead>
+
+                                            <tr>
+
+                                                <th>
+                                                    Loan ID
+                                                </th>
+
+                                                <th>
+                                                    Referrer
+                                                </th>
+
+                                                <th>
+                                                    Client
+                                                </th>
+
+                                                <th>
+                                                    Given Out
+                                                </th>
+
+                                                <th>
+                                                    Expected Interest
+                                                </th>
+
+                                                <th>
+                                                    Expected Collections
+                                                </th>
+
+                                                <th>
+                                                    Collections
+                                                </th>
+
+                                                <th>
+                                                    Uncollected
+                                                </th>
+
+                                                <th>
+                                                    Status
+                                                </th>
+
+                                                <th>
+                                                    Date
+                                                </th>
+
+                                                <th>
+                                                    Due Date
+                                                </th>
+
+                                                <th>
+                                                    Days in Default
+                                                </th>
+
+                                                <th>
+                                                    Vehicles
+                                                </th>
+
+                                            </tr>
+
+                                        </thead>
+
+
+                                        <tbody>
+
+
+                                            @foreach($consultant['loans_list'] as $loan)
+
+
+                                                <tr>
+
+                                                    <td>
+                                                        {{ $loan['loan_id'] }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        {{ $loan['referrer_name'] ?? '' }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        {{ $loan['client_name'] ?? '' }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        K {{ number_format($loan['given_out'] ?? 0, 2) }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        K {{ number_format($loan['expected_interest'] ?? 0, 2) }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        K {{ number_format($loan['expected_collections'] ?? 0, 2) }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        K {{ number_format($loan['total_collections'] ?? 0, 2) }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        K {{ number_format($loan['total_uncollected'] ?? 0, 2) }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        {{ $loan['status'] ?? '' }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        {{ $loan['date'] ?? '' }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        {{ $loan['due_date'] ?? '' }}
+                                                    </td>
+
+
+                                                    <td>
+                                                        {{ $loan['days_in_default'] ?? 0 }}
+                                                    </td>
+
+
+                                                    <td>
+
+                                                        @if(!empty($loan['vehicles']))
+
+                                                            <button
+                                                                class="btn btn-warning btn-xs"
+                                                                data-toggle="collapse"
+                                                                data-target="#vehicle{{$index}}{{$loan['loan_id']}}"
+                                                            >
+
+                                                                <i class="fa fa-car"></i>
+
+                                                                {{ count($loan['vehicles']) }}
+
+                                                            </button>
+
+                                                        @else
+
+                                                            0
+
+                                                        @endif
+
+                                                    </td>
+
+
+                                                </tr>
+
+
+                                                <!-- ================= VEHICLES FOR LOAN ================= -->
+
+                                                @if(!empty($loan['vehicles']))
+
+                                                    <tr
+                                                        id="vehicle{{$index}}{{$loan['loan_id']}}"
+                                                        class="collapse"
+                                                    >
+
+                                                        <td colspan="13">
+
+
+                                                            <table class="table table-bordered table-condensed">
+
+
+                                                                <thead>
+
+                                                                    <tr>
+
+                                                                        <th>
+                                                                            Registration
+                                                                        </th>
+
+                                                                        <th>
+                                                                            Model
+                                                                        </th>
+
+                                                                        <th>
+                                                                            Market Value
+                                                                        </th>
+
+                                                                        <th>
+                                                                            Loan ID
+                                                                        </th>
+
+                                                                    </tr>
+
+                                                                </thead>
+
+
+                                                                <tbody>
+
+
+                                                                    @foreach($loan['vehicles'] as $vehicle)
+
+
+                                                                        <tr>
+
+                                                                            <td>
+                                                                                {{ $vehicle['registration_number'] ?? '' }}
+                                                                            </td>
+
+
+                                                                            <td>
+                                                                                {{ $vehicle['model'] ?? '' }}
+                                                                            </td>
+
+
+                                                                            <td>
+                                                                                K {{ number_format($vehicle['market_value'] ?? 0, 2) }}
+                                                                            </td>
+
+
+                                                                            <td>
+                                                                                {{ $vehicle['loan_id'] ?? '' }}
+                                                                            </td>
+
+                                                                        </tr>
+
+
+                                                                    @endforeach
+
+
+                                                                </tbody>
+
+
+                                                            </table>
+
+
+                                                        </td>
+
+                                                    </tr>
+
+                                                @endif
+
+
+                                            @endforeach
+
+
+                                        </tbody>
+
+
+                                    </table>
+
+
+                                </div>
+
+
+                            </div>
+
+
+                        </td>
+
+                    </tr>
+
+
+                @endforeach
+
+
+            </tbody>
+
+
+        </table>
+
+
+    </div>
+
+</div>
+
 
 
 
@@ -640,6 +1091,7 @@ Loan Consultants
 Consultant
 </th>
 
+
 <th>
 Loans
 </th>
@@ -688,6 +1140,7 @@ Expected Interest
 </strong>
 
 </td>
+
 
 
 <td>
@@ -782,6 +1235,9 @@ Collections
 <tr>
 
 <th>ID</th>
+<th>
+    Referrer Name
+</th>
 <th>Client</th>
 <th>Amount</th>
 <th>Status</th>
@@ -804,6 +1260,11 @@ Collections
 
 <td>
 {{ $loan['id'] }}
+</td>
+
+
+<td>
+{{ $loan['referrer_name'] }}
 </td>
 
 
