@@ -45,8 +45,10 @@
             </section>
             <div class="box-body" id="depositsContainer">
                 <!-- Payment A -->
-                @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth])
-                <br>
+                 @if($debtBlocker)
+                    @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth])
+                 @endif
+                 <br>
                 <hr>
                 <!-- Payment B -->
                 @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid'))
