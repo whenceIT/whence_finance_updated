@@ -9,6 +9,7 @@
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
+
 @endphp
 <x-kilo-alert/>
 <div class="row">
@@ -51,7 +52,7 @@
                  <br>
                 <hr>
                 <!-- Payment B -->
-                @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid'))
+                @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid') || $blockerUser->office_id == 6)
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth, 'disabled'=>true] )
