@@ -375,7 +375,7 @@ Province Performance
 <tr>
 
 <th>
-Province
+Province of Origin
 </th>
 
 <th>
@@ -501,7 +501,7 @@ Branches
 <tr>
 
 <th>
-Branch
+Branch of Origin
 </th>
 
 <th>
