@@ -535,9 +535,7 @@ if ($request->hasFile('photos')) {
             );
     }
 
-
-
-     public function dashboard(Request $request)
+public function dashboard(Request $request)
 {
     // Default dates: beginning of year to today
     $start_date = $request->start_date ?? Carbon::now()->startOfYear()->format('Y-m-d');
@@ -553,6 +551,12 @@ if ($request->hasFile('photos')) {
 
     try {
 
+        /*
+        |--------------------------------------------------------------------------
+        | Motor Vehicle Loan Information
+        |--------------------------------------------------------------------------
+        */
+
         $response = Http::timeout(60)->get(
             'https://lms2backend.whencefinancesystem.com/motor-vehicle-loans-info',
             [
@@ -560,6 +564,7 @@ if ($request->hasFile('photos')) {
                 'end_date'   => $end_date
             ]
         );
+
 
         if (!$response->successful()) {
 
@@ -570,22 +575,72 @@ if ($request->hasFile('photos')) {
 
         }
 
+
         $data = $response->json();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Motor Vehicle Loan Consultant Information
+        |--------------------------------------------------------------------------
+        */
+
+        $consultantResponse = Http::timeout(60)->get(
+            'https://lms2backend.whencefinancesystem.com/mv-loan-consultant-info',
+            [
+                'start_date' => $start_date,
+                'end_date'   => $end_date
+            ]
+        );
+
+
+        if (!$consultantResponse->successful()) {
+
+            \Log::error(
+                'MV Consultant Endpoint Error: ' .
+                $consultantResponse->body()
+            );
+
+            $consultantData = [
+                'success' => false,
+                'consultants' => [],
+                'national' => []
+            ];
+
+        } else {
+
+            $consultantData = $consultantResponse->json();
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Make sure consultants always exists
+        |--------------------------------------------------------------------------
+        */
+
+        $consultants = $consultantData['consultants'] ?? [];
+
 
         return view(
             'motor_vehicle.dashboard',
             compact(
                 'data',
+                'consultantData',
+                'consultants',
                 'start_date',
                 'end_date',
                 'insuranceReminders'
             )
         );
 
+
     } catch (\Exception $e) {
 
         \Log::error(
-            'Motor Vehicle Dashboard Error: ' . $e->getMessage()
+            'Motor Vehicle Dashboard Error: ' .
+            $e->getMessage()
         );
 
         return back()->with(
@@ -595,8 +650,6 @@ if ($request->hasFile('photos')) {
 
     }
 }
-
-
    
 
    public function MotorVehicleLoan(Request $request)
