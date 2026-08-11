@@ -399,6 +399,11 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('sales', 'VehicleController@sales');
 });
 
+
+Route::group(['prefix' => 'payrollloans'], function () {
+    Route::get('dashboard', 'PayrollloanController@dashboard');
+});
+
 //route for users
 Route::group(['prefix' => 'user'], function () {
     Route::get('data', 'UserController@index');

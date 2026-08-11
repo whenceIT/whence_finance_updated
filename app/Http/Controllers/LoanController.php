@@ -1442,6 +1442,17 @@ $amount = $request->query('amount');
                     $loan->referrer = $request->referrer;
                     $loan->referrer_branch = $request->office_id;
                 }
+
+                  if($loan_product->id == 1)
+                {
+                    $loan->bank_account_number = $request->account_number;
+                    $loan->bank_name = $request->bank_name;
+                    $loan->branch_name = $request->branch_name;
+                    $loan->branch_code = $request->branch_code;
+                    $loan->sort_code = $request->sort_code;
+                }
+
+
 		        $loan->save();
 
              
