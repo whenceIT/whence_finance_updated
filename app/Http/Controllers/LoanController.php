@@ -42,6 +42,8 @@ use App\Models\WaiverTransactionUnapproved;
 use App\Models\ChargeTransactionUnapproved;
 use Illuminate\Support\Facades\DB;
 use PDF;
+use App\Exports\ExportReport;
+use Excel;
 use App\Models\Office;
 use App\Models\PaymentType;
 use App\Models\UserRole;
@@ -121,11 +123,67 @@ class LoanController extends Controller
                         })
                         ->orWhere('id', 'like', "%{$query}%");
                 })
-                ->with('repayment_schedules')
+                ->with(['repayment_schedules', 'transactions', 'office', 'client', 'group', 'loan_officer', 'vetted_by_field', 'verified_by_field', 'loan_product'])
+                ->take(500)
                 ->get();
         }
 
         return view('loan.data', compact('loans', 'query'));
+    }
+
+    public function export_excel(Request $request)
+    {
+        set_time_limit(0);
+        ini_set('max_execution_time', 300);
+        $query = $request->input('query');
+        $loans = [];
+
+        if ($query) {
+            $loans = Loan::where('status', 'disbursed')
+                ->where(function ($q) use ($query) {
+                    $q->whereHas('client', function ($q) use ($query) {
+                        $q->where('first_name', 'like', "%{$query}%")
+                            ->orWhere('last_name', 'like', "%{$query}%");
+                    })
+                        ->orWhereHas('office', function ($q) use ($query) {
+                            $q->where('name', 'like', "%{$query}%");
+                        })
+                        ->orWhere('id', 'like', "%{$query}%");
+                })
+                ->with(['transactions', 'office', 'client', 'group', 'loan_officer', 'vetted_by_field', 'verified_by_field', 'loan_product'])
+                ->take(500)
+                ->get();
+        }
+
+        return Excel::download(new ExportReport('loan.active_loans_excel', compact('loans', 'query')), trans_choice('general.active', 1) . ' ' . trans_choice('general.loan', 2) . '.xlsx');
+    }
+
+    public function export_pdf(Request $request)
+    {
+        set_time_limit(0);
+        ini_set('max_execution_time', 300);
+        $query = $request->input('query');
+        $loans = [];
+
+        if ($query) {
+            $loans = Loan::where('status', 'disbursed')
+                ->where(function ($q) use ($query) {
+                    $q->whereHas('client', function ($q) use ($query) {
+                        $q->where('first_name', 'like', "%{$query}%")
+                            ->orWhere('last_name', 'like', "%{$query}%");
+                    })
+                        ->orWhereHas('office', function ($q) use ($query) {
+                            $q->where('name', 'like', "%{$query}%");
+                        })
+                        ->orWhere('id', 'like', "%{$query}%");
+                })
+                ->with(['transactions', 'office', 'client', 'group', 'loan_officer', 'vetted_by_field', 'verified_by_field', 'loan_product'])
+                ->take(500)
+                ->get();
+        }
+
+        $pdf = PDF::loadView('loan.active_loans_pdf', compact('loans', 'query'));
+        return $pdf->download(trans_choice('general.active', 1) . ' ' . trans_choice('general.loan', 2) . '.pdf');
     }
 
     public function my_index()

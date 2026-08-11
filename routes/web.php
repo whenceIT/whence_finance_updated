@@ -860,6 +860,8 @@ Route::group(['prefix' => 'charge'], function () {
 //route for loans
 Route::group(['prefix' => 'loan'], function () {
     Route::get('data', 'LoanController@index')->name('loan.data');
+    Route::get('data/excel', 'LoanController@export_excel')->name('loan.data.excel');
+    Route::get('data/pdf', 'LoanController@export_pdf')->name('loan.data.pdf');
     Route::get('my_loans', 'LoanController@my_index');
     Route::get('my_app_loans', 'LoanController@my_index_approved');
     Route::any('branch_uncollected', 'LoanController@branch_uncollected');
