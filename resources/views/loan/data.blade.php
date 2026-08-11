@@ -13,6 +13,14 @@
                         {{ trans_choice('general.add', 1) }} {{ trans_choice('general.loan', 1) }}
                     </a>
                 @endif
+                @if(isset($loans) && count($loans) > 0)
+                    <a href="{{ route('loan.data.excel', ['query' => $query ?? '']) }}" class="btn btn-success btn-sm" target="_blank">
+                        <i class="icon-file-excel"></i> {{ trans_choice('general.download', 1) }} {{ trans_choice('general.to', 1) }} {{ trans_choice('general.excel', 1) }}
+                    </a>
+                    <a href="{{ route('loan.data.pdf', ['query' => $query ?? '']) }}" class="btn btn-danger btn-sm" target="_blank">
+                        <i class="icon-file-pdf"></i> {{ trans_choice('general.download', 1) }} {{ trans_choice('general.to', 1) }} {{ trans_choice('general.pdf', 1) }}
+                    </a>
+                @endif
             </div>
             <form id="search-form" action="{{ route('loan.data') }}" method="GET"
                 style="display: flex; justify-content: center;">
