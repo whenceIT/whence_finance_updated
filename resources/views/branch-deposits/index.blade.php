@@ -75,8 +75,7 @@
                 @endif
                 <br>
                 <hr>
-                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] == 'fully paid' 
-                || in_array($blockerUser->office_id, [62, 68, 79, 80])
+                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] == 'fully paid' || in_array($blockerUser->office_id, [62, 68, 79, 80]))
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
@@ -84,7 +83,7 @@
                 <br>
                 <hr>
                 @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid'  && $status[2]['status'] === 'fully paid'
-                || in_array($blockerUser->office_id, [62, 68, 79, 80])
+                || in_array($blockerUser->office_id, [62, 68, 79, 80]))
                     @include('branch-deposits._partials.savings', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.savings', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
@@ -92,7 +91,7 @@
                 <br>
                 <hr>
                 @if($status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] === 'fully paid' 
-                || in_array($blockerUser->office_id, [62, 68, 79, 80])
+                || in_array($blockerUser->office_id, [62, 68, 79, 80]))
                     @include('branch-deposits._partials.housing', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.housing', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
