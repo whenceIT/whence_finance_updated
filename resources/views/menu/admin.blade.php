@@ -105,6 +105,7 @@ if (!Sentinel::check()) {
                     <li><a href="{{ url('recovery/overview') }}"><i class="fa fa-circle-o"></i>Recovery Dashboard</a></li>
                     <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i>GOA Dashboard</a></li>
                     <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Motor Vehicles Dashboard</a></li>
+                    <li><a href="{{ url('payrollloans/dashboard') }}"><i class="fa fa-circle-o"></i>Payroll Loans Dashboard</a></li>
                 </ul>
             </li>
             @endif
