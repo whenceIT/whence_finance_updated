@@ -52,7 +52,8 @@
                  <br>
                 <hr>
                 <!-- Payment B -->
-                @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid') )
+                @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid')
+                || in_array($blockerUser->office_id, [49]) )
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth, 'disabled'=>true] )
