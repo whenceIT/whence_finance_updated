@@ -76,7 +76,7 @@ class AlertService
                 'title'        => 'After-hours system login detected',
                 'description'  => sprintf(
                     'User "%s" logged in outside business hours (06:00–19:00) at %s.',
-                    $log->user->name ?? ('User #' . $log->user_id),
+                    trim(($log->user->first_name ?? '') . ' ' . ($log->user->last_name ?? '')) ?: ('User #' . $log->user_id),
                     $log->created_at
                 ),
                 'reference_id' => $log->user_id,
@@ -126,7 +126,7 @@ class AlertService
                     $names
                 ),
                 'reference_id' => $clients->first()->id ?? null,
-                'meta'         => ['nrc_number' => $row->nrc_number, 'count' => $clients->count()],
+                'meta'         => ['nrc_number' => $row->nrc_number, 'count' => $clients->count(), 'client_id' => $clients->first()->id ?? null, 'client_name' => trim(($clients->first()->first_name ?? '') . ' ' . ($clients->first()->last_name ?? ''))],
             ])) {
                 $created++;
                 $made++;
@@ -181,7 +181,7 @@ class AlertService
                     implode(', ', $missing)
                 ),
                 'reference_id' => $client->id,
-                'meta'         => ['client_id' => $client->id, 'missing' => $missing],
+                'meta'         => ['client_id' => $client->id, 'client_name' => trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')), 'missing' => $missing],
             ])) {
                 $created++;
                 $made++;
@@ -247,7 +247,7 @@ class AlertService
                     $client->date_blacklisted ?? 'unknown date'
                 ),
                 'reference_id' => $client->id,
-                'meta'         => ['client_id' => $client->id, 'blacklisted_date' => $client->date_blacklisted],
+                'meta'         => ['client_id' => $client->id, 'client_name' => trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')), 'blacklisted_date' => $client->date_blacklisted],
             ])) {
                 $created++;
                 $made++;
@@ -295,6 +295,8 @@ class AlertService
                     'amount'          => $tx->amount ?? 0,
                     'type'            => $tx->transaction_type,
                     'reversed_by'     => $tx->created_by_id,
+                    'client_id'       => $tx->loan->client->id ?? null,
+                    'client_name'     => $clientName,
                 ],
             ])) {
                 $created++;
@@ -344,7 +346,7 @@ class AlertService
                     $tx->office->name ?? 'Unknown'
                 ),
                 'reference_id' => $tx->loan_id,
-                'meta'         => ['transaction_id' => $tx->id, 'time' => $time],
+                'meta'         => ['transaction_id' => $tx->id, 'time' => $time, 'client_id' => $tx->loan->client->id ?? null, 'client_name' => $clientName],
             ])) {
                 $created++;
                 $made++;

@@ -14,7 +14,7 @@ $(document).ready(function() {
                     var groupedAudits = {};
                     var today = new Date();
                     var yesterday = new Date(today);
-                    yesterday.setDate(yesterday.getDate() - 1);
+                    yesterday.setDate(yesterday.getDate() - 1); 
 
                     data.audits.forEach(function(audit) {
                         var auditDate = new Date(audit.created_at);
