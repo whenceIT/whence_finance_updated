@@ -317,8 +317,8 @@
                        escHtml(a.title) + '</div>' +
 
                /* description */
-               '  <div style="font-size:12px;color:#555;line-height:1.6;margin-bottom:8px;">' +
-                       escHtml(a.description) + '</div>' +
+                '  <div style="font-size:12px;color:#555;line-height:1.6;margin-bottom:8px;">' +
+                        linkifyClientDesc(a.description, a.meta) + '</div>' +
 
                /* meta footer inside card */
                '  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
@@ -353,6 +353,20 @@
         var d = document.createElement('div');
         d.appendChild(document.createTextNode(s || ''));
         return d.innerHTML;
+    }
+
+    function linkifyClientDesc(desc, meta) {
+        if (!desc) return '';
+        var safe = escHtml(desc);
+        if (!meta || !meta.client_id || !meta.client_name) return safe;
+        var name = meta.client_name;
+        var url  = 'http://localhost:8000/client/' + meta.client_id + '/show';
+        var linked = '<a href="' + url + '" target="_blank" style="color:#c0392b;text-decoration:underline;font-weight:600;">' + escHtml(name) + '</a>';
+        var idx = safe.indexOf(escHtml(name));
+        if (idx >= 0) {
+            return safe.substring(0, idx) + linked + safe.substring(idx + escHtml(name).length);
+        }
+        return safe;
     }
 
     /* ── Quick badge helpers ─────────────────────────────────────────────── */

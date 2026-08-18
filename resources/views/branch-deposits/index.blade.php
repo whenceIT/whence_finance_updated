@@ -52,7 +52,8 @@
                  <br>
                 <hr>
                 <!-- Payment B -->
-                @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid') )
+                @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid')
+                || in_array($blockerUser->office_id, [49, 46]) )
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.building', ['selectedMonth' => $selectedMonth, 'disabled'=>true] )
@@ -60,7 +61,8 @@
                 <br>
                 <hr>
                 <!-- Payment C -->
-                @if(isset($status[0]) && isset($status[1]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] != 'fully paid')
+                @if(isset($status[0]) && isset($status[1]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] != 'fully paid'
+                || in_array($blockerUser->office_id, [49, 46]))
                     @include('branch-deposits._partials.administration', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.administration', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
@@ -68,15 +70,15 @@
                 <br>
                 <hr>
                 <!-- Payment D -->
-                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] != 'fully paid')
+                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] != 'fully paid'
+                || in_array($blockerUser->office_id, [49, 46]))
                     @include('branch-deposits._partials.statutory', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.statutory', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
                 @endif
                 <br>
                 <hr>
-                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] == 'fully paid' 
-                || in_array($blockerUser->office_id, [62, 68, 79, 80])
+                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] == 'fully paid' || in_array($blockerUser->office_id, [62, 68, 79, 80]))
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
@@ -84,7 +86,7 @@
                 <br>
                 <hr>
                 @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid'  && $status[2]['status'] === 'fully paid'
-                || in_array($blockerUser->office_id, [62, 68, 79, 80])
+                || in_array($blockerUser->office_id, [62, 68, 79, 80]))
                     @include('branch-deposits._partials.savings', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.savings', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
@@ -92,7 +94,7 @@
                 <br>
                 <hr>
                 @if($status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] === 'fully paid' 
-                || in_array($blockerUser->office_id, [62, 68, 79, 80])
+                || in_array($blockerUser->office_id, [62, 68, 79, 80]))
                     @include('branch-deposits._partials.housing', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.housing', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
