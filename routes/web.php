@@ -54,6 +54,7 @@ use App\Http\Controllers\AdministrationExpenseController;
 use App\Http\Controllers\BankAccountExpenseController;
 use App\Http\Controllers\SmsController;
 use Firebase\JWT\Key;
+use App\Http\Controllers\CashParameterController;
 
 Route::model('client', 'App\Models\Client');
 Route::model('user', 'App\Models\User');
@@ -265,6 +266,16 @@ Route::group(['prefix' => 'course-categories', 'middleware' => 'sentinel'], func
     Route::delete('/{id}', [CourseCategoryController::class, 'destroy'])->name('course-categories.destroy');
     Route::post('/{id}/toggle-status', [CourseCategoryController::class, 'toggleStatus'])->name('course-categories.toggle-status');
 });
+
+
+Route::get('/cash/parameters', [CashParameterController::class, 'index'])
+    ->name('cash.parameters.index');
+
+Route::get('/cash/parameters/{id}/edit', [CashParameterController::class, 'edit'])
+    ->name('cash.parameters.edit');
+
+Route::put('/cash/parameters/{id}', [CashParameterController::class, 'update'])
+    ->name('cash.parameters.update');
 
  // Training Materials Management Routes
  Route::group(['prefix' => 'learning/training-materials', 'middleware' => 'sentinel'], function () {
