@@ -111,6 +111,30 @@
                         {!! $errors->first('condition', '<span class="help-block">:message</span>') !!}
                     </div>
                 </div>
+
+                <div class="form-group{{ $errors->has('stage') ? ' has-error' : '' }}">
+                    <label class="control-label col-md-2">Stage</label>
+                    <div class="col-md-4">
+                        <select name="stage" class="form-control" required>
+                            <option value="">Select stage</option>
+                            @foreach($stageOptions as $value => $label)
+                                <option value="{{ $value }}"{{ old('stage') == $value ? ' selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        {!! $errors->first('stage', '<span class="help-block">:message</span>') !!}
+                    </div>
+                </div>
+
+                <div class="form-group{{ $errors->has('stage_icon') ? ' has-error' : '' }}">
+                    <label class="control-label col-md-2">Stage Icon (SVG)</label>
+                    <div class="col-md-8">
+                        <textarea name="stage_icon" class="form-control" rows="3" placeholder="<svg>...</svg>">{{ old('stage_icon') }}</textarea>
+                        {!! $errors->first('stage_icon', '<span class="help-block">:message</span>') !!}
+                    </div>
+                </div>
+            </div>
+                </div>
+
             </div>
             <div class="box-footer">
                 <button type="submit" class="btn btn-primary" id="save-collateral-btn">

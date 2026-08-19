@@ -31,6 +31,9 @@ class CollateralController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+        if ($request->filled('stage')) {
+            $query->where('stage', $request->stage);
+        }
         if ($request->filled('condition')) {
             $query->where('condition', $request->condition);
         }
@@ -102,6 +105,10 @@ class CollateralController extends Controller
         // --- Filters ---
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        if ($request->filled('stage')) {
+            $query->where('stage', $request->stage);
         }
 
         if ($request->filled('condition')) {
@@ -244,6 +251,12 @@ class CollateralController extends Controller
         $loans = $loansQuery->get();
         $collateralTypes = CollateralType::all();
 
+        $stageOptions = [
+            'pledged' => 'Pledged collateral',
+            'brought_in' => 'Brought in collateral',
+            'seized' => 'Seized collateral',
+        ];
+
         // Get loan_id from query parameter if provided
         $loanId = $request->query('loan_id');
 
@@ -255,7 +268,7 @@ class CollateralController extends Controller
             }
         }
 
-        return view('collateral.create', compact('loans', 'collateralTypes', 'loanId'));
+        return view('collateral.create', compact('loans', 'collateralTypes', 'loanId', 'stageOptions'));
     }
 
     /**
@@ -279,6 +292,8 @@ class CollateralController extends Controller
             'date_purchased' => 'required',
             'status'         => 'required',
             'condition'      => 'required',
+            'stage'          => 'required|in:pledged,brought_in,seized',
+            'stage_icon'     => 'nullable|string',
         ]);
 
         // Verify the selected loan has an eligible status
@@ -304,6 +319,9 @@ class CollateralController extends Controller
         $collateral->province_id = $loan->office->province_id; //for Province analytics level
         $collateral->district_id = $loan->office->district_id; //for District analytics level
         $collateral->office_id = $loan->office->id; //for Office analytics level
+
+        $collateral->stage = $request->stage;
+        $collateral->stage_icon = $request->stage_icon;
 
         $collateral->save();
 
@@ -343,6 +361,13 @@ class CollateralController extends Controller
             'statusChanges.approved_by',
         ]);
 
+        $loanPrincipal = DB::table('loans')->where('id', $collateral->loan_id)->value('principal');
+        $loanInterest = $loanPrincipal * 0.40;
+        $loanBalance = \App\Helpers\GeneralHelper::new_new_loan_total_balance($collateral->loan_id);
+        $loanPenalty = \App\Models\LoanTransaction::where('loan_id', $collateral->loan_id)
+            ->where('transaction_type', 'specified_due_date_fee')
+            ->sum('amount');
+
         AuditTrail::create([
             'user_id'    => Sentinel::getUser()->id,
             'action'     => 'collateral_viewed',
@@ -351,7 +376,7 @@ class CollateralController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return view('collateral.show', compact('collateral'));
+        return view('collateral.show', compact('collateral', 'loanPrincipal', 'loanInterest', 'loanBalance', 'loanPenalty'));
     }
 
     /**
@@ -369,7 +394,13 @@ class CollateralController extends Controller
 
         $collateralTypes = CollateralType::all();
 
-        return view('collateral.edit', compact('collateral', 'collateralTypes'));
+        $stageOptions = [
+            'pledged' => 'Pledged collateral',
+            'brought_in' => 'Brought in collateral',
+            'seized' => 'Seized collateral',
+        ];
+
+        return view('collateral.edit', compact('collateral', 'collateralTypes', 'stageOptions'));
     }
 
     /**
@@ -391,12 +422,16 @@ class CollateralController extends Controller
             'condition'     => 'required',
             'description'   => 'nullable',
             'date_resold'   => 'nullable|date',
+            'stage'         => 'nullable|in:pledged,brought_in,seized',
+            'stage_icon'    => 'nullable|string',
         ]);
 
         $collateral->current_worth = $request->current_worth;
         $collateral->condition     = $request->condition;
         $collateral->description   = $request->description;
         $collateral->date_resold   = $request->date_resold;
+        $collateral->stage         = $request->stage;
+        $collateral->stage_icon    = $request->stage_icon;
         $collateral->save();
 
         AuditTrail::create([

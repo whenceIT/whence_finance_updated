@@ -34,6 +34,14 @@ $role = Sentinel::getUser()->roles()->first()->id;
                     </select>
                 </div>
                 <div class="form-group" style="margin-right: 10px;">
+                    <select name="stage" class="form-control input-sm">
+                        <option value="">All Stages</option>
+                        <option value="pledged"{{ request('stage') == 'pledged' ? ' selected' : '' }}>Pledged collateral</option>
+                        <option value="brought_in"{{ request('stage') == 'brought_in' ? ' selected' : '' }}>Brought in collateral</option>
+                        <option value="seized"{{ request('stage') == 'seized' ? ' selected' : '' }}>Seized collateral</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-right: 10px;">
                     <select name="collateral_type_id" class="form-control input-sm">
                         <option value="">All Types</option>
                         @foreach($collateralTypes as $type)
@@ -75,6 +83,7 @@ $role = Sentinel::getUser()->roles()->first()->id;
             <form method="post" action="{{ route('collateral.export') }}" style="margin-bottom: 15px;">
                 {{ csrf_field() }}
                 <input type="hidden" name="status" value="{{ request('status') }}">
+                <input type="hidden" name="stage" value="{{ request('stage') }}">
                 <input type="hidden" name="office_id" value="{{ request('office_id') }}">
                 <input type="hidden" name="province_id" value="{{ request('province_id') }}">
                 <input type="hidden" name="collateral_type_id" value="{{ request('collateral_type_id') }}">
@@ -87,34 +96,41 @@ $role = Sentinel::getUser()->roles()->first()->id;
             <div class="table-responsive">
                 <table class="table table-bordered table-striped">
                     <thead>
-                             <tr>
-                                 <th>Name</th>
-                                 <th>Loan</th>
-                                 <th>Type</th>
-                                 <th>Status</th>
-                                 <th>Condition</th>
-                                 <th>Purchased</th>
-                                 <th>Current Worth</th>
-                                 <th>Sold Price</th>
-                                 <th>Penalty</th>
-                                 <th>Office</th>
-                                 <th>Actions</th>
-                             </tr>
+                              <tr>
+                                  <th>Name</th>
+                                  <th>Loan</th>
+                                  <th>Type</th>
+                                  <th>Status</th>
+                                  <th>Condition</th>
+                                  <th>Stage</th>
+                                  <th>Purchased</th>
+                                  <th>Current Worth</th>
+                                  <th>Sold Price</th>
+                                  <th>Penalty</th>
+                                  <th>Office</th>
+                                  <th>Actions</th>
+                              </tr>
                     </thead>
                     <tbody>
                         @forelse($collateral as $item)
-                             <tr>
-                                 <td>{{ $item->name }}</td>
-                                 <td>{{ optional($item->loan)->id }}</td>
-                                 <td>{{ optional($item->type)->name }}</td>
-                                 <td>{{ ucfirst($item->status) }}</td>
-                                 <td>{{ ucfirst($item->condition) }}</td>
-                                 <td>{{ optional($item->date_purchased)->format('Y-m-d') }}</td>
-                                 <td>{{ number_format($item->current_worth, 2) }}</td>
-                                 <td>{{ number_format($item->sold_price ?? 0, 2) }}</td>
-                                 <td>{{ number_format($item->penalty ?? 0, 2) }}</td>
-                                 <td>{{ $item->loan?->office?->name }}</td>
-                                 <td>
+                              <tr>
+                                  <td>{{ $item->name }}</td>
+                                  <td>{{ optional($item->loan)->id }}</td>
+                                  <td>{{ optional($item->type)->name }}</td>
+                                  <td>{{ ucfirst($item->status) }}</td>
+                                  <td>{{ ucfirst($item->condition) }}</td>
+                                  <td>
+                                      @if($item->stage_icon)
+                                          {!! $item->stage_icon !!}
+                                      @endif
+                                      {{ ucfirst(str_replace('_', ' ', $item->stage)) }}
+                                  </td>
+                                  <td>{{ optional($item->date_purchased)->format('Y-m-d') }}</td>
+                                  <td>{{ number_format($item->current_worth, 2) }}</td>
+                                  <td>{{ number_format($item->sold_price ?? 0, 2) }}</td>
+                                  <td>{{ number_format($item->penalty ?? 0, 2) }}</td>
+                                  <td>{{ $item->loan?->office?->name }}</td>
+                                  <td>
                                   
                                      <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
                                      @if((Sentinel::getUser()->id == $item->created_by_id) || $role == 1)
@@ -129,8 +145,8 @@ $role = Sentinel::getUser()->roles()->first()->id;
                                  </td>
                             </tr>
                          @empty
-                             <tr>
-                                 <td colspan="11" class="text-center">No collateral found at this
+                              <tr>
+                                  <td colspan="12" class="text-center">No collateral found at this
                                  @if($role == 3)
                                      Loan Consultant
                                  @elseif($role == 4)

@@ -24,6 +24,14 @@
                     </select>
                 </div>
                 <div class="form-group" style="margin-right: 10px;">
+                    <select name="stage" class="form-control input-sm">
+                        <option value="">All Stages</option>
+                        <option value="pledged"{{ request('stage') == 'pledged' ? ' selected' : '' }}>Pledged collateral</option>
+                        <option value="brought_in"{{ request('stage') == 'brought_in' ? ' selected' : '' }}>Brought in collateral</option>
+                        <option value="seized"{{ request('stage') == 'seized' ? ' selected' : '' }}>Seized collateral</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-right: 10px;">
                     <input type="date" name="date_purchased_from" class="form-control input-sm" value="{{ request('date_purchased_from') }}">
                 </div>
                 <div class="form-group" style="margin-right: 10px;">

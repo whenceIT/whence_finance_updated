@@ -49,7 +49,7 @@
                 <!-- Payment A -->
                 @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth])
                 
-                 <br>
+                <br>
                 <hr>
                 <!-- Payment B -->
                 @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid')

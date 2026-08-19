@@ -25,6 +25,8 @@ class Collateral extends Model
         'province_id',
         'district_id',
         'office_id',
+        'stage',
+        'stage_icon',
     ];
 
     protected $casts = [
