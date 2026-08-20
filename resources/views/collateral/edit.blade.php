@@ -25,6 +25,10 @@
                         <input type="number" step="0.01" name="current_worth" class="form-control" value="{{ old('current_worth', $collateral->current_worth) }}" required>
                         {!! $errors->first('current_worth', '<span class="help-block">:message</span>') !!}
                     </div>
+                    <label class="control-label col-md-2">Approved Value</label>
+                    <div class="col-md-2">
+                        <input type="number" step="0.01" name="approved_value" class="form-control" value="{{ old('approved_value', $collateral->approved_value ?? $collateral->current_worth) }}">
+                    </div>
                     <label class="control-label col-md-2">Condition</label>
                     <div class="col-md-2">
                         <select name="condition" class="form-control" required>

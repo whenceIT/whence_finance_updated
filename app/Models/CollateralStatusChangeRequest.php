@@ -17,9 +17,15 @@ class CollateralStatusChangeRequest extends Model
         'reason',
         'sold_price',
         'penalty',
+        'disposal_costs',
+        'stage',
         'approval_status',
         'request_date',
         'approval_date',
+    ];
+
+    protected $casts = [
+        'disposal_costs' => 'array',
     ];
 
     public function collateral()

@@ -49,14 +49,7 @@ $role = Sentinel::getUser()->roles()->first()->id;
                         @endforeach
                     </select>
                 </div>
-                <div class="form-group" style="margin-right: 10px;">
-                    <select name="office_id" class="form-control input-sm">
-                        <option value="">All Offices</option>
-                        @foreach($offices as $office)
-                            <option value="{{ $office->id }}"{{ request('office_id') == $office->id ? ' selected' : '' }}>{{ $office->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @if($role == 1 || $role == 6 || $role == 12)
                 <div class="form-group" style="margin-right: 10px;">
                     <select name="province_id" class="form-control input-sm">
                         <option value="">All Provinces</option>
@@ -65,6 +58,17 @@ $role = Sentinel::getUser()->roles()->first()->id;
                         @endforeach
                     </select>
                 </div>
+                @endif
+                @if($role == 1 || $role == 12)
+                <div class="form-group" style="margin-right: 10px;">
+                    <select name="office_id" class="form-control input-sm">
+                        <option value="">All Offices</option>
+                        @foreach($offices as $office)
+                            <option value="{{ $office->id }}"{{ request('office_id') == $office->id ? ' selected' : '' }}>{{ $office->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
                 <div class="form-group" style="margin-right: 10px; min-width: 180px;">
                     <select name="loan_id" class="form-control input-sm">
                         <option value="">All Loans</option>
@@ -94,21 +98,21 @@ $role = Sentinel::getUser()->roles()->first()->id;
             </form>
 
             <div class="table-responsive">
-                <table class="table table-bordered table-striped">
+                <table id="collateral-table" class="table table-bordered table-striped dataTable">
                     <thead>
                               <tr>
                                   <th>Name</th>
-                                  <th>Loan</th>
+                                  <th>Loan ID</th>
                                   <th>Type</th>
                                   <th>Status</th>
                                   <th>Condition</th>
                                   <th>Stage</th>
                                   <th>Purchased</th>
                                   <th>Current Worth</th>
-                                  <th>Sold Price</th>
-                                  <th>Penalty</th>
-                                  <th>Office</th>
-                                  <th>Actions</th>
+                                   <th>Sold Price<br><small style="font-weight:normal;">Approved collateral value</small></th>
+                                   <th>Disposal Costs</th>
+                                   <th>Office</th>
+                                   <th>Actions</th>
                               </tr>
                     </thead>
                     <tbody>
@@ -117,7 +121,15 @@ $role = Sentinel::getUser()->roles()->first()->id;
                                   <td>{{ $item->name }}</td>
                                   <td>{{ optional($item->loan)->id }}</td>
                                   <td>{{ optional($item->type)->name }}</td>
-                                  <td>{{ ucfirst($item->status) }}</td>
+                                  <td class="{{ match($item->status) {
+                                          'sold' => 'bg-green',
+                                          'active' => 'bg-light',
+                                          'defaulted' => 'bg-warning',
+                                          'repossessed' => 'bg-info',
+                                          default => ''
+                                      } }}">
+                                      {{ ucfirst($item->status) }}
+                                  </td>
                                   <td>{{ ucfirst($item->condition) }}</td>
                                   <td>
                                       @if($item->stage_icon)
@@ -127,9 +139,19 @@ $role = Sentinel::getUser()->roles()->first()->id;
                                   </td>
                                   <td>{{ optional($item->date_purchased)->format('Y-m-d') }}</td>
                                   <td>{{ number_format($item->current_worth, 2) }}</td>
-                                  <td>{{ number_format($item->sold_price ?? 0, 2) }}</td>
-                                  <td>{{ number_format($item->penalty ?? 0, 2) }}</td>
-                                  <td>{{ $item->loan?->office?->name }}</td>
+                                   <td>{{ number_format($item->sold_price ?? 0, 2) }}</td>
+                                   <td>
+                                       @php
+                                           $disposalTotal = 0;
+                                           if ($item->disposal_costs && is_array($item->disposal_costs)) {
+                                               foreach ($item->disposal_costs as $cost) {
+                                                   $disposalTotal += (float) ($cost['amount'] ?? 0);
+                                               }
+                                           }
+                                       @endphp
+                                       {{ number_format($disposalTotal, 2) }}
+                                   </td>
+                                   <td>{{ $item->loan?->office?->name }}</td>
                                   <td>
                                   
                                      <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
@@ -164,9 +186,42 @@ $role = Sentinel::getUser()->roles()->first()->id;
                     </tbody>
                 </table>
             </div>
-            <div class="text-center">
-                {{ $collateral->links() }}
-            </div>
         </div>
     </div>
+@endsection
+
+@section('footer-scripts')
+<script>
+$(function () {
+    $('#collateral-table').DataTable({
+        dom: 'frtip',
+        paging: true,
+        lengthChange: true,
+        displayLength: 15,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
+        order: [[0, "asc"]],
+        columnDefs: [
+            { orderable: false, targets: [11] }
+        ],
+        language: {
+            lengthMenu: "{{ trans('general.lengthMenu') }}",
+            zeroRecords: "{{ trans('general.zeroRecords') }}",
+            info: "{{ trans('general.info') }}",
+            infoEmpty: "{{ trans('general.infoEmpty') }}",
+            search: "{{ trans('general.search') }}",
+            infoFiltered: "{{ trans('general.infoFiltered') }}",
+            paginate: {
+                first: "{{ trans('general.first') }}",
+                last: "{{ trans('general.last') }}",
+                next: "{{ trans('general.next') }}",
+                previous: "{{ trans('general.previous') }}"
+            }
+        },
+        responsive: false
+    });
+});
+</script>
 @endsection

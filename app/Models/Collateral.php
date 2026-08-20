@@ -13,8 +13,10 @@ class Collateral extends Model
         'description',
         'initial_price',
         'current_worth',
+        'approved_value',
         'sold_price',
         'penalty',
+        'disposal_costs',
         'loan_id',
         'collateral_type_id',
         'created_by_id',
@@ -27,6 +29,7 @@ class Collateral extends Model
         'office_id',
         'stage',
         'stage_icon',
+        'new_approval_status',
     ];
 
     protected $casts = [
@@ -34,8 +37,10 @@ class Collateral extends Model
         'date_resold'    => 'date',
         'initial_price'  => 'decimal:2',
         'current_worth'  => 'decimal:2',
+        'approved_value' => 'decimal:2',
         'sold_price'     => 'decimal:2',
         'penalty'        => 'decimal:2',
+        'disposal_costs' => 'array',
     ];
 
     public function type()

@@ -153,12 +153,13 @@ class CollateralController extends Controller
             $query->whereDate('date_resold', '<=', $request->date_resold_to);
         }
 
-        // --- Search (partial match on name and description) ---
+        // --- Search (partial match on name, description, or loan_id) ---
         if ($request->filled('search')) {
             $term = $request->search;
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', '%' . $term . '%')
-                  ->orWhere('description', 'like', '%' . $term . '%');
+                  ->orWhere('description', 'like', '%' . $term . '%')
+                  ->orWhere('loan_id', 'like', '%' . $term . '%');
             });
         }
 
@@ -257,6 +258,11 @@ class CollateralController extends Controller
             'seized' => 'Seized collateral',
         ];
 
+        $loanBalances = [];
+        foreach ($loans as $loan) {
+            $loanBalances[$loan->id] = \App\Helpers\GeneralHelper::new_new_loan_total_balance($loan->id);
+        }
+
         // Get loan_id from query parameter if provided
         $loanId = $request->query('loan_id');
 
@@ -265,10 +271,11 @@ class CollateralController extends Controller
             $loan = Loan::find($loanId);
             if ($loan) {
                 $loans->prepend($loan);
+                $loanBalances[$loan->id] = \App\Helpers\GeneralHelper::new_new_loan_total_balance($loan->id);
             }
         }
 
-        return view('collateral.create', compact('loans', 'collateralTypes', 'loanId', 'stageOptions'));
+        return view('collateral.create', compact('loans', 'collateralTypes', 'loanId', 'stageOptions', 'loanBalances'));
     }
 
     /**
@@ -308,6 +315,7 @@ class CollateralController extends Controller
         $collateral->name              = $request->name;
         $collateral->initial_price     = $request->initial_price;
         $collateral->current_worth     = $request->current_worth;
+        $collateral->approved_value    = $request->approved_value ?? $request->current_worth;
         $collateral->loan_id           = $request->loan_id;
         $collateral->date_purchased    = $request->date_purchased;
         $collateral->status            = $request->status;
@@ -315,6 +323,7 @@ class CollateralController extends Controller
         $collateral->description       = $request->description;
         $collateral->collateral_type_id = $request->collateral_type_id;
         $collateral->created_by_id     = Sentinel::getUser()->id;
+        $collateral->new_approval_status = 0;
 
         $collateral->province_id = $loan->office->province_id; //for Province analytics level
         $collateral->district_id = $loan->office->district_id; //for District analytics level
@@ -368,6 +377,10 @@ class CollateralController extends Controller
             ->where('transaction_type', 'specified_due_date_fee')
             ->sum('amount');
 
+        $hasPendingStatusChange = $collateral->statusChanges()
+            ->where('approval_status', 'pending')
+            ->exists();
+
         AuditTrail::create([
             'user_id'    => Sentinel::getUser()->id,
             'action'     => 'collateral_viewed',
@@ -376,7 +389,7 @@ class CollateralController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return view('collateral.show', compact('collateral', 'loanPrincipal', 'loanInterest', 'loanBalance', 'loanPenalty'));
+        return view('collateral.show', compact('collateral', 'loanPrincipal', 'loanInterest', 'loanBalance', 'loanPenalty', 'hasPendingStatusChange'));
     }
 
     /**
@@ -427,6 +440,7 @@ class CollateralController extends Controller
         ]);
 
         $collateral->current_worth = $request->current_worth;
+        $collateral->approved_value = $request->approved_value ?? $collateral->approved_value ?? $request->current_worth;
         $collateral->condition     = $request->condition;
         $collateral->description   = $request->description;
         $collateral->date_resold   = $request->date_resold;

@@ -2020,6 +2020,8 @@ Route::post('collateral/report/export', 'CollateralController@exportCsv')->name(
 Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('collateral.approvals.queue');
     Route::post('collateral/approvals/{collateral_status_change_request}/approve', 'CollateralApprovalController@approve')->name('collateral.approvals.approve');
     Route::post('collateral/approvals/{collateral_status_change_request}/reject', 'CollateralApprovalController@reject')->name('collateral.approvals.reject');
+    Route::post('collateral/approvals/new/{collateral}/approve', 'CollateralApprovalController@approveNewCollateral')->name('collateral.approvals.new.approve');
+    Route::post('collateral/approvals/new/{collateral}/decline', 'CollateralApprovalController@declineNewCollateral')->name('collateral.approvals.new.decline');
 
     // Deposit Approvals
     Route::get('approvals/deposit-approvals', 'ApprovalWorkflowController@depositApprovals')->name('approvals.deposit-approvals');
@@ -2038,6 +2040,7 @@ Route::put('collateral/{collateral}', 'CollateralController@update')->name('coll
 Route::delete('collateral/{collateral}', 'CollateralController@destroy')->name('collateral.destroy');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
 Route::post('collateral/{collateral}/request-status-change', 'CollateralApprovalController@requestChange')->name('collateral.request_change');
+Route::post('collateral/{collateral}/sell', 'CollateralApprovalController@sell')->name('collateral.sell');
 Route::post('collateral/{collateral}/change-status', 'CollateralApprovalController@directChange')->name('collateral.direct_change');
 
 // ============================================
