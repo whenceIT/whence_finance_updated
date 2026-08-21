@@ -288,7 +288,6 @@
 $(document).ready(function() {
 
    console.log('{{!!$debtBlocker!!}}');
-   console.log('{{!!$status!!}}');
     // Handle month filter change
     $('#monthFilter').on('change', function() {
         var selectedMonth = $(this).val();
