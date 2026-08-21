@@ -98,9 +98,6 @@
     .cd-badge-defaulted { background: #fdeceb; color: #c0392b; }
     .cd-badge-repossessed { background: #fff4e0; color: #b7791f; }
     .cd-badge-default   { background: #eef0f4; color: #5a6472; }
-    .cd-stage-pled      { background: #e8f0fe; color: #1a56c4; }
-    .cd-stage-brought   { background: #fff4e0; color: #b7791f; }
-    .cd-stage-seized    { background: #fdeceb; color: #c0392b; }
 
     .cd-finance {
         background: #fff;
@@ -225,22 +222,21 @@
             <div class="subtitle">{{ $collateral->name }}</div>
             @php
                 $statusMeaning = match($collateral->status) {
-                    'active' => 'Loan is currently being processed and on track.',
-                    'defaulted' => 'Loan is overdue and in default, collateral is seized.',
-                    'repossessed' => 'Collateral is now owned by the institution.',
-                    default => '',
-                };
-                $stageMeaning = match($collateral->stage) {
-                    'pledged' => 'Collateral is held as security for the loan.',
-                    'brought_in' => 'Collateral has been physically handed over to the institution.',
-                    'seized' => 'Collateral has been taken into custody due to default.',
+                    'pledged' => 'Collateral attached to an active loan.',
+                    'seizure_pending' => 'Initiated by Branch Manager, awaiting approval and handover.',
+                    'seized_inventory' => 'Physically taken and in central inventory, awaiting evaluation.',
+                    'valuation_completed' => 'Independent valuation recorded, not yet sold.',
+                    'listed_for_sale' => 'Asset is being marketed.',
+                    'sold' => 'Asset sold and proceeds received.',
+                    'written_off' => 'Asset unsaleable and removed from inventory.',
+                    'released' => 'Asset returned to borrower.',
                     default => '',
                 };
             @endphp
-            @if($statusMeaning || $stageMeaning)
+            @if($statusMeaning)
             <div class="current-status-summary" style="margin-top: 0; padding: 5px 18px; border: 0px solid #e2e8f0; font-size: 13.5px; color: #4a4b4c; line-height: 1.1; display: flex; align-items: flex-start; gap: 12px;">
                 <i class="fa fa-lightbulb-o" style="color: #000000; font-size: 16px; margin-top: 2px; flex-shrink: 0;"></i>
-                <span class="current-status-summary-text"></span>
+                <span class="current-status-summary-text">{{ $statusMeaning }}</span>
             </div>
             @endif
         </div>
@@ -252,7 +248,7 @@
 
     <div class="cd-header">
         <div></div>
-        @if($collateral->status != 'sold' && ($collateral->new_approval_status == 1 || $role == 1))
+        @if(!in_array($collateral->status, ['sold', 'written_off', 'released']) && ($collateral->new_approval_status == 1 || $role == 1))
         <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#sellCollateralModal">
             <i class="fa fa-tag" aria-hidden="true"></i> Sell Collateral
         </button>
@@ -280,45 +276,64 @@
                     </div>
                     <div class="cd-field">
                         <span class="cd-label">Loan</span>
-                        <span class="cd-value">{{ optional($collateral->loan)->id }}</span>
+                        <span class="cd-value">
+                            @if($collateral->loan)
+                                {{ $collateral->loan->id }}
+                            @else
+                                <span style="color: #c0392b; font-weight: 600;">Unassigned</span>
+                            @endif
+                        </span>
                     </div>
                     <div class="cd-field">
                         <span class="cd-label">Client</span>
-                        <span class="cd-value"><b>{{ optional($collateral->loan->client)->first_name }} {{ optional($collateral->loan->client)->last_name }}</b></span>
+                        <span class="cd-value">
+                            @if($collateral->loan && $collateral->loan->client)
+                                <b>{{ $collateral->loan->client->first_name }} {{ $collateral->loan->client->last_name }}</b>
+                            @else
+                                <span style="color: #b3b9c4;">No client</span>
+                            @endif
+                        </span>
                     </div>
                     <div class="cd-field">
                         <span class="cd-label">Office</span>
-                        <span class="cd-value">{{ optional($collateral->loan->office)->name }}</span>
+                        <span class="cd-value">
+                            @if($collateral->loan && $collateral->loan->office)
+                                {{ $collateral->loan->office->name }}
+                            @else
+                                <span style="color: #b3b9c4;">No office</span>
+                            @endif
+                        </span>
                     </div>
                     <div class="cd-field">
                         <span class="cd-label">Status</span>
                         <span class="cd-value">
-                            @php $statusClass = 'cd-badge-' . strtolower($collateral->status ?? 'default'); @endphp
-                            <span class="cd-badge {{ $statusClass }}">{{ ucfirst($collateral->status) }}</span>
+                            @php $statusClass = match($collateral->status) {
+                                'pledged' => 'cd-badge-active',
+                                'seizure_pending' => 'cd-badge-defaulted',
+                                'seized_inventory' => 'cd-badge-repossessed',
+                                'valuation_completed' => 'cd-badge-sold',
+                                'listed_for_sale' => 'cd-badge-sold',
+                                'sold' => 'cd-badge-sold',
+                                'written_off' => 'cd-badge-default',
+                                'released' => 'cd-badge-active',
+                                default => 'cd-badge-default',
+                            }; @endphp
+                            <span class="cd-badge {{ $statusClass }}">{{ match($collateral->status) {
+                                'pledged' => 'Pledged',
+                                'seizure_pending' => 'Seizure Pending',
+                                'seized_inventory' => 'Seized/Inventory',
+                                'valuation_completed' => 'Valuation Completed',
+                                'listed_for_sale' => 'Listed for Sale',
+                                'sold' => 'Sold',
+                                'written_off' => 'Written Off',
+                                'released' => 'Released',
+                                default => ucfirst($collateral->status)
+                            } }}</span>
                         </span>
                     </div>
                     <div class="cd-field">
                         <span class="cd-label">Condition</span>
                         <span class="cd-value">{{ ucfirst($collateral->condition) }}</span>
-                    </div>
-                    <div class="cd-field">
-                        <span class="cd-label">Stage</span>
-                        <span class="cd-value">
-                            @if($collateral->stage_icon)
-                                {!! $collateral->stage_icon !!}
-                            @endif
-                            @php
-                                $stageClass = match($collateral->stage) {
-                                    'pledged' => 'cd-stage-pled',
-                                    'brought_in' => 'cd-stage-brought',
-                                    'seized' => 'cd-stage-seized',
-                                    default => 'cd-stage-default',
-                                };
-                            @endphp
-                            <span class="cd-badge {{ $stageClass }}">
-                                {{ ucfirst(str_replace('_', ' ', $collateral->stage)) }}
-                            </span>
-                        </span>
                     </div>
                 </div>
                 <div>
@@ -338,6 +353,34 @@
                     <div class="cd-field">
                         <span class="cd-label">Date Resold</span>
                         <span class="cd-value">{{ optional($collateral->date_resold)->format('Y-m-d') }}</span>
+                    </div>
+                    <div class="cd-field">
+                        <span class="cd-label">Pledged At</span>
+                        <span class="cd-value">{{ optional($collateral->pledged_at)->format('Y-m-d') }}</span>
+                    </div>
+                    <div class="cd-field">
+                        <span class="cd-label">Seized At</span>
+                        <span class="cd-value">{{ optional($collateral->seized_at)->format('Y-m-d') }}</span>
+                    </div>
+                    <div class="cd-field">
+                        <span class="cd-label">Valuated At</span>
+                        <span class="cd-value">{{ optional($collateral->valuated_at)->format('Y-m-d') }}</span>
+                    </div>
+                    <div class="cd-field">
+                        <span class="cd-label">Listed At</span>
+                        <span class="cd-value">{{ optional($collateral->listed_at)->format('Y-m-d') }}</span>
+                    </div>
+                    <div class="cd-field">
+                        <span class="cd-label">Sold At</span>
+                        <span class="cd-value">{{ optional($collateral->sold_at)->format('Y-m-d') }}</span>
+                    </div>
+                    <div class="cd-field">
+                        <span class="cd-label">Written Off At</span>
+                        <span class="cd-value">{{ optional($collateral->written_off_at)->format('Y-m-d') }}</span>
+                    </div>
+                    <div class="cd-field">
+                        <span class="cd-label">Released At</span>
+                        <span class="cd-value">{{ optional($collateral->released_at)->format('Y-m-d') }}</span>
                     </div>
                     <div class="cd-field">
                         <span class="cd-label">Created By</span>
@@ -440,8 +483,36 @@
         </div>
     </div>
 
+    @if(is_null($collateral->loan_id) && isset($loans) && $loans->count() > 0)
+    <div class="cd-panel" style="margin-top: 20px; border-left: 4px solid #f39c12;">
+        <div class="cd-panel-header" style="background: #fffaf0;">
+            <h3><i class="fa fa-exclamation-triangle" style="color: #f39c12;"></i> Assign Loan</h3>
+        </div>
+        <div class="cd-panel-body">
+            <form method="post" action="{{ route('collateral.assign.loan', $collateral) }}">
+                {{ csrf_field() }}
+                <div class="form-group">
+                    <label>Select Loan</label>
+                    <select name="loan_id" class="form-control select2" required>
+                        <option value="">Select loan</option>
+                        @foreach($loans as $loan)
+                            @php $client = optional($loan->client); @endphp
+                            <option value="{{ $loan->id }}">
+                                #{{ $loan->id }} | K{{ number_format($loan->principal, 2) }} - {{ $client->first_name ?? 'Unknown' }} {{ $client->last_name ?? '' }} ({{ ucfirst($loan->status) }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-warning btn-sm">
+                    <i class="fa fa-link"></i> Assign Loan
+                </button>
+            </form>
+        </div>
+    </div>
+    @endif
+
     <!-- Loan Financials -->
-    @if($collateral->status != 'sold')
+    @if(!in_array($collateral->status, ['sold', 'written_off', 'released']))
     <div class="cd-finance">
         <div class="cd-finance-header">
             <h3>Loan Financials</h3>
@@ -475,7 +546,7 @@
     </div>
     @endif
     
-    @if($collateral->status != 'sold')
+    @if(!in_array($collateral->status, ['sold', 'written_off', 'released']))
     @if(!$hasPendingStatusChange)
     <!-- Request Status Change -->
     <div class="cd-panel">
@@ -490,19 +561,16 @@
             {{ csrf_field() }}
             <div class="cd-panel-body cd-form">
                 <div class="form-group">
-                    <label>New Status <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Active: Loan is currently being processed and on track.&#10;Defaulted: Loan is overdue and in default, collateral is seized.&#10;Repossessed: Collateral is now owned by the institution." style="color:#8a94a6;margin-left:4px;cursor:help;"></i></label>
+                    <label>New Status <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Pledged: Collateral attached to an active loan.&#10;Seizure Pending: Initiated by Branch Manager, awaiting approval and handover.&#10;Seized/Inventory: Physically taken and in central inventory, awaiting evaluation.&#10;Valuation Completed: Independent valuation recorded, not yet sold.&#10;Listed for Sale: Asset is being marketed.&#10;Sold: Asset sold and proceeds received.&#10;Written Off: Asset unsaleable and removed from inventory.&#10;Released: Asset returned to borrower." style="color:#8a94a6;margin-left:4px;cursor:help;"></i></label>
                     <select name="new_status" class="form-control" required>
-                        <option value="active"{{ $collateral->status == 'active' ? ' selected' : '' }}>Active</option>
-                        <option value="defaulted"{{ $collateral->status == 'defaulted' ? ' selected' : '' }}>Defaulted</option>
-                        <option value="repossessed"{{ $collateral->status == 'repossessed' ? ' selected' : '' }}>Repossessed</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Stage <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Pledged: Collateral is held as security for the loan.&#10;Brought In: Collateral has been physically handed over to the institution.&#10;Seized: Collateral has been taken into custody due to default." style="color:#8a94a6;margin-left:4px;cursor:help;"></i></label>
-                    <select name="new_stage" class="form-control" required>
-                        <option value="pledged"{{ $collateral->stage == 'pledged' ? ' selected' : '' }}>Pledged</option>
-                        <option value="brought_in"{{ $collateral->stage == 'brought_in' ? ' selected' : '' }}>Brought In</option>
-                        <option value="seized"{{ $collateral->stage == 'seized' ? ' selected' : '' }}>Seized</option>
+                        <option value="pledged"{{ $collateral->status == 'pledged' ? ' selected' : '' }}>Pledged</option>
+                        <option value="seizure_pending"{{ $collateral->status == 'seizure_pending' ? ' selected' : '' }}>Seizure Pending</option>
+                        <option value="seized_inventory"{{ $collateral->status == 'seized_inventory' ? ' selected' : '' }}>Seized/Inventory</option>
+                        <option value="valuation_completed"{{ $collateral->status == 'valuation_completed' ? ' selected' : '' }}>Valuation Completed</option>
+                        <option value="listed_for_sale"{{ $collateral->status == 'listed_for_sale' ? ' selected' : '' }}>Listed for Sale</option>
+                        <option value="sold"{{ $collateral->status == 'sold' ? ' selected' : '' }}>Sold</option>
+                        <option value="written_off"{{ $collateral->status == 'written_off' ? ' selected' : '' }}>Written Off</option>
+                        <option value="released"{{ $collateral->status == 'released' ? ' selected' : '' }}>Released</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -529,9 +597,14 @@
                 <div class="form-group">
                     <label>New Status</label>
                     <select name="new_status" class="form-control" required>
-                        <option value="active">Active</option>
-                        <option value="defaulted">Defaulted</option>
-                        <option value="repossessed">Repossessed</option>
+                        <option value="pledged">Pledged</option>
+                        <option value="seizure_pending">Seizure Pending</option>
+                        <option value="seized_inventory">Seized/Inventory</option>
+                        <option value="valuation_completed">Valuation Completed</option>
+                        <option value="listed_for_sale">Listed for Sale</option>
+                        <option value="sold">Sold</option>
+                        <option value="written_off">Written Off</option>
+                        <option value="released">Released</option>
                     </select>
                 </div>
             </div>
@@ -859,34 +932,23 @@ $(document).ready(function() {
 $(document).ready(function() {
     function updateStatusMeaning() {
         var status = $('select[name="new_status"]').val();
-        var stage = $('select[name="new_stage"]').val();
         var $summaries = $('.current-status-summary-text');
         var meanings = {
-            active: {
-                pledged: 'The loan is currently being processed and on track, and the collateral is held as security.',
-                brought_in: 'The loan is currently being processed and on track, and the collateral has been physically handed over to the institution.',
-                seized: 'The loan is currently being processed and on track, and the collateral has been taken into custody.'
-            },
-            defaulted: {
-                pledged: 'The loan is overdue and in default. The collateral, which was held as security, has been seized.',
-                brought_in: 'The loan is overdue and in default. The collateral, which was physically handed over, remains in institution custody.',
-                seized: 'The loan is overdue and in default. The collateral has been taken into custody by the institution.'
-            },
-            repossessed: {
-                pledged: 'The collateral is now owned by the institution and is held as security for the defaulted loan.',
-                brought_in: 'The collateral is now owned by the institution after being physically handed over.',
-                seized: 'The collateral is now fully owned by the institution after being seized due to default.'
-            }
+            'pledged': 'Collateral attached to an active loan.',
+            'seizure_pending': 'Initiated by Branch Manager, awaiting approval and handover.',
+            'seized_inventory': 'Physically taken and in central inventory, awaiting evaluation.',
+            'valuation_completed': 'Independent valuation recorded, not yet sold.',
+            'listed_for_sale': 'Asset is being marketed.',
+            'sold': 'Asset sold and proceeds received.',
+            'written_off': 'Asset unsaleable and removed from inventory.',
+            'released': 'Asset returned to borrower.'
         };
 
-        var text = '';
-        if (status && stage && meanings[status] && meanings[status][stage]) {
-            text = meanings[status][stage];
-        }
+        var text = meanings[status] || '';
         $summaries.text(text);
     }
 
-    $('select[name="new_status"], select[name="new_stage"]').on('change', updateStatusMeaning);
+    $('select[name="new_status"]').on('change', updateStatusMeaning);
     updateStatusMeaning();
 });
 </script>

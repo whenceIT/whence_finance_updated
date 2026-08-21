@@ -15,7 +15,20 @@
                 <div class="form-group">
                     <label class="control-label col-md-2">Status</label>
                     <div class="col-md-8">
-                        <input type="text" readonly class="form-control" value="{{ ucfirst($collateral->status) }}">
+                        @php
+                            $statusLabel = match($collateral->status) {
+                                'pledged' => 'Pledged',
+                                'seizure_pending' => 'Seizure Pending',
+                                'seized_inventory' => 'Seized/Inventory',
+                                'valuation_completed' => 'Valuation Completed',
+                                'listed_for_sale' => 'Listed for Sale',
+                                'sold' => 'Sold',
+                                'written_off' => 'Written Off',
+                                'released' => 'Released',
+                                default => ucfirst($collateral->status),
+                            };
+                        @endphp
+                        <input type="text" readonly class="form-control" value="{{ $statusLabel }}">
                     </div>
                 </div>
 
@@ -49,24 +62,51 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label class="control-label col-md-2">Lifecycle Dates</label>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>Pledged At</label>
+                                <input type="date" name="pledged_at" class="form-control" value="{{ old('pledged_at', optional($collateral->pledged_at)->format('Y-m-d')) }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Seized At</label>
+                                <input type="date" name="seized_at" class="form-control" value="{{ old('seized_at', optional($collateral->seized_at)->format('Y-m-d')) }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Valuated At</label>
+                                <input type="date" name="valuated_at" class="form-control" value="{{ old('valuated_at', optional($collateral->valuated_at)->format('Y-m-d')) }}">
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col-md-4">
+                                <label>Listed At</label>
+                                <input type="date" name="listed_at" class="form-control" value="{{ old('listed_at', optional($collateral->listed_at)->format('Y-m-d')) }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Sold At</label>
+                                <input type="date" name="sold_at" class="form-control" value="{{ old('sold_at', optional($collateral->sold_at)->format('Y-m-d')) }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Written Off At</label>
+                                <input type="date" name="written_off_at" class="form-control" value="{{ old('written_off_at', optional($collateral->written_off_at)->format('Y-m-d')) }}">
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col-md-4">
+                                <label>Released At</label>
+                                <input type="date" name="released_at" class="form-control" value="{{ old('released_at', optional($collateral->released_at)->format('Y-m-d')) }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group{{ $errors->has('description') ? ' has-error' : '' }}">
                     <label class="control-label col-md-2">Description</label>
                     <div class="col-md-8">
                         <textarea name="description" class="form-control">{{ old('description', $collateral->description) }}</textarea>
                         {!! $errors->first('description', '<span class="help-block">:message</span>') !!}
-                    </div>
-                </div>
-
-                <div class="form-group{{ $errors->has('stage') ? ' has-error' : '' }}">
-                    <label class="control-label col-md-2">Stage</label>
-                    <div class="col-md-4">
-                        <select name="stage" class="form-control">
-                            <option value="">Select stage</option>
-                            @foreach($stageOptions as $value => $label)
-                                <option value="{{ $value }}"{{ old('stage', $collateral->stage) == $value ? ' selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        {!! $errors->first('stage', '<span class="help-block">:message</span>') !!}
                     </div>
                 </div>
 

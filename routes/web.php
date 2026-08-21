@@ -2042,6 +2042,7 @@ Route::put('collateral/{collateral}', 'CollateralController@update')->name('coll
 Route::post('collateral/{collateral}/request-status-change', 'CollateralApprovalController@requestChange')->name('collateral.request_change');
 Route::post('collateral/{collateral}/sell', 'CollateralApprovalController@sell')->name('collateral.sell');
 Route::post('collateral/{collateral}/change-status', 'CollateralApprovalController@directChange')->name('collateral.direct_change');
+Route::post('collateral/{collateral}/assign-loan', 'CollateralController@assignLoan')->name('collateral.assign.loan');
 
 // ============================================
 // RECOVERY MODULE ROUTES

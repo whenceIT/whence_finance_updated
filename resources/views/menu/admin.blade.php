@@ -373,8 +373,13 @@ if (!Sentinel::check()) {
                                      </li>
                             @endif
                             <li>
-                                <a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approval Queue</a>
+                                <a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approvals</a>
                             </li>
+                            <li class="divider"></li>
+                            <li><a href="{{ route('collateral.index', ['status' => 'pledged']) }}"><i class="fa fa-circle-o"></i> Pledged</a></li>
+                            <li><a href="{{ route('collateral.index', ['status' => 'seized_inventory']) }}"><i class="fa fa-circle-o"></i> Repossessed</a></li>
+                            <li><a href="{{ route('collateral.index', ['status' => 'released']) }}"><i class="fa fa-circle-o"></i> Released to Customer</a></li>
+                            <li><a href="{{ route('collateral.index', ['status' => 'sold']) }}"><i class="fa fa-circle-o"></i> Disposals</a></li>
                         </ul>
                     </li> 
 

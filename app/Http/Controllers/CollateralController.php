@@ -31,9 +31,6 @@ class CollateralController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        if ($request->filled('stage')) {
-            $query->where('stage', $request->stage);
-        }
         if ($request->filled('condition')) {
             $query->where('condition', $request->condition);
         }
@@ -107,10 +104,6 @@ class CollateralController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('stage')) {
-            $query->where('stage', $request->stage);
-        }
-
         if ($request->filled('condition')) {
             $query->where('condition', $request->condition);
         }
@@ -166,8 +159,9 @@ class CollateralController extends Controller
         // --- Sorting ---
         $allowedSortColumns = ['name', 'initial_price', 'current_worth', 'status', 'condition', 'date_purchased'];
         $sortBy  = in_array($request->sortBy, $allowedSortColumns) ? $request->sortBy : 'created_at';
-        $sortDir = $request->sortDir === 'desc' ? 'desc' : 'asc';
+        $sortDir = $request->sort === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortDir);
+
 
         // --- Paginate ---
         $collateral = $query->paginate(15)->appends($request->except('page'));
@@ -297,9 +291,9 @@ class CollateralController extends Controller
             'current_worth'  => 'required',
             'loan_id'        => 'required',
             'date_purchased' => 'required',
-            'status'         => 'required',
+            'pledged_at'     => 'nullable|date',
+            'status'         => 'required|in:pledged,seizure_pending,seized_inventory,valuation_completed,listed_for_sale,sold,written_off,released',
             'condition'      => 'required',
-            'stage'          => 'required|in:pledged,brought_in,seized',
             'stage_icon'     => 'nullable|string',
         ]);
 
@@ -318,6 +312,7 @@ class CollateralController extends Controller
         $collateral->approved_value    = $request->approved_value ?? $request->current_worth;
         $collateral->loan_id           = $request->loan_id;
         $collateral->date_purchased    = $request->date_purchased;
+        $collateral->pledged_at        = $request->pledged_at;
         $collateral->status            = $request->status;
         $collateral->condition         = $request->condition;
         $collateral->description       = $request->description;
@@ -329,7 +324,6 @@ class CollateralController extends Controller
         $collateral->district_id = $loan->office->district_id; //for District analytics level
         $collateral->office_id = $loan->office->id; //for Office analytics level
 
-        $collateral->stage = $request->stage;
         $collateral->stage_icon = $request->stage_icon;
 
         $collateral->save();
@@ -353,16 +347,39 @@ class CollateralController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    private function getEligibleLoans()
+    {
+        $user = Sentinel::getUser();
+        $userId = $user->id;
+        $role = UserRole::where('user_id', $userId)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        $loansQuery = Loan::query();
+        if ($roleId == 1) {
+            // Admin — sees ALL loans
+        } elseif ($roleId == 4) {
+            $loansQuery->where('office_id', $user->office_id);
+        } elseif ($roleId == 12) {
+            $userOffice = $user->office;
+            $districtId = $userOffice ? $userOffice->district_id : null;
+            $loansQuery->whereHas('office', function ($q) use ($districtId) {
+                $q->where('district_id', $districtId);
+            });
+        } elseif ($roleId == 6) {
+            $provinceId = $user->province_id;
+            $loansQuery->whereHas('office', function ($q) use ($provinceId) {
+                $q->where('province_id', $provinceId);
+            });
+        } else {
+            $loansQuery->where('loan_officer_id', $user->id);
+        }
+
+        return $loansQuery->get();
+    }
+
     public function show(Collateral $collateral, Request $request)
     {
-        // if (!Sentinel::hasAccess('collateral.view')) {
-        //     Flash::warning("Permission Denied");
-        //     return redirect()->back();
-        // }
-
         $collateral->load([
-            'loan.client',
-            'loan.office',
             'type',
             'created_by',
             'auditTrail',
@@ -370,16 +387,29 @@ class CollateralController extends Controller
             'statusChanges.approved_by',
         ]);
 
-        $loanPrincipal = DB::table('loans')->where('id', $collateral->loan_id)->value('principal');
-        $loanInterest = $loanPrincipal * 0.40;
-        $loanBalance = \App\Helpers\GeneralHelper::new_new_loan_total_balance($collateral->loan_id);
-        $loanPenalty = \App\Models\LoanTransaction::where('loan_id', $collateral->loan_id)
-            ->where('transaction_type', 'specified_due_date_fee')
-            ->sum('amount');
+        if ($collateral->loan_id) {
+            $collateral->load([
+                'loan.client',
+                'loan.office',
+            ]);
+            $loanPrincipal = DB::table('loans')->where('id', $collateral->loan_id)->value('principal');
+            $loanInterest = $loanPrincipal * 0.40;
+            $loanBalance = \App\Helpers\GeneralHelper::new_new_loan_total_balance($collateral->loan_id);
+            $loanPenalty = \App\Models\LoanTransaction::where('loan_id', $collateral->loan_id)
+                ->where('transaction_type', 'specified_due_date_fee')
+                ->sum('amount');
+        } else {
+            $loanPrincipal = 0;
+            $loanInterest = 0;
+            $loanBalance = 0;
+            $loanPenalty = 0;
+        }
 
         $hasPendingStatusChange = $collateral->statusChanges()
             ->where('approval_status', 'pending')
             ->exists();
+
+        $loans = $collateral->loan_id ? null : $this->getEligibleLoans();
 
         AuditTrail::create([
             'user_id'    => Sentinel::getUser()->id,
@@ -389,7 +419,31 @@ class CollateralController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return view('collateral.show', compact('collateral', 'loanPrincipal', 'loanInterest', 'loanBalance', 'loanPenalty', 'hasPendingStatusChange'));
+        return view('collateral.show', compact('collateral', 'loanPrincipal', 'loanInterest', 'loanBalance', 'loanPenalty', 'hasPendingStatusChange', 'loans'));
+    }
+
+    /**
+     * Assign a loan to the specified collateral item.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Collateral  $collateral
+     * @return \Illuminate\Http\Response
+     */
+    public function assignLoan(Request $request, Collateral $collateral)
+    {
+        $request->validate([
+            'loan_id' => 'required|exists:loans,id',
+        ]);
+
+        $loan = Loan::find($request->loan_id);
+        $collateral->loan_id = $loan->id;
+        $collateral->province_id = $loan->office->province_id;
+        $collateral->district_id = $loan->office->district_id;
+        $collateral->office_id = $loan->office->id;
+        $collateral->save();
+
+        Flash::success('Loan assigned successfully');
+        return redirect()->route('collateral.show', $collateral);
     }
 
     /**
@@ -435,7 +489,13 @@ class CollateralController extends Controller
             'condition'     => 'required',
             'description'   => 'nullable',
             'date_resold'   => 'nullable|date',
-            'stage'         => 'nullable|in:pledged,brought_in,seized',
+            'pledged_at'    => 'nullable|date',
+            'seized_at'     => 'nullable|date',
+            'valuated_at'   => 'nullable|date',
+            'listed_at'     => 'nullable|date',
+            'sold_at'       => 'nullable|date',
+            'written_off_at'=> 'nullable|date',
+            'released_at'   => 'nullable|date',
             'stage_icon'    => 'nullable|string',
         ]);
 
@@ -444,7 +504,13 @@ class CollateralController extends Controller
         $collateral->condition     = $request->condition;
         $collateral->description   = $request->description;
         $collateral->date_resold   = $request->date_resold;
-        $collateral->stage         = $request->stage;
+        $collateral->pledged_at    = $request->pledged_at;
+        $collateral->seized_at     = $request->seized_at;
+        $collateral->valuated_at   = $request->valuated_at;
+        $collateral->listed_at     = $request->listed_at;
+        $collateral->sold_at       = $request->sold_at;
+        $collateral->written_off_at= $request->written_off_at;
+        $collateral->released_at   = $request->released_at;
         $collateral->stage_icon    = $request->stage_icon;
         $collateral->save();
 
@@ -524,6 +590,30 @@ class CollateralController extends Controller
         $collateralTypes = CollateralType::all();
         $loanStatuses = ['disbursed', 'defaulted', 'pending', 'approved', 'declined', 'written_off'];
 
+        $perPage = 10;
+        $statusKeys = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+
+        $statusData = [];
+        foreach ($statusKeys as $statusKey) {
+            $statusQuery = Collateral::with(['loan.office', 'type'])
+                ->where('status', $statusKey);
+            if ($request->filled('collateral_type_id')) {
+                $statusQuery->where('collateral_type_id', $request->collateral_type_id);
+            }
+            if ($request->filled('loan_status')) {
+                $statusQuery->whereHas('loan', function ($q) use ($request) {
+                    $q->where('status', $request->loan_status);
+                });
+            }
+            if ($request->filled('date_purchased_from')) {
+                $statusQuery->whereDate('date_purchased', '>=', $request->date_purchased_from);
+            }
+            if ($request->filled('date_purchased_to')) {
+                $statusQuery->whereDate('date_purchased', '<=', $request->date_purchased_to);
+            }
+            $statusData[$statusKey] = $statusQuery->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        }
+
         return view('collateral.analytics_executive', compact(
             'statuses',
             'typeExposure',
@@ -531,7 +621,8 @@ class CollateralController extends Controller
             'chartValues',
             'emptyState',
             'collateralTypes',
-            'loanStatuses'
+            'loanStatuses',
+            'statusData'
         ));
     }
 
@@ -563,7 +654,25 @@ class CollateralController extends Controller
         $provinceOptions = Province::where('id', $provinceId)->get();
         $offices = Office::where('province_id', $provinceId)->get();
         $collateralTypes = CollateralType::all();
-        $statusOptions = ['active', 'sold', 'defaulted', 'repossessed'];
+        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+
+        $perPage = 10;
+        $statusData = [];
+        foreach ($statusOptions as $statusKey) {
+            $statusQuery = Collateral::with(['loan.office', 'type'])
+                ->where('province_id', $provinceId)
+                ->where('status', $statusKey);
+            if ($request->filled('collateral_type_id')) {
+                $statusQuery->where('collateral_type_id', $request->collateral_type_id);
+            }
+            if ($request->filled('date_purchased_from')) {
+                $statusQuery->whereDate('date_purchased', '>=', $request->date_purchased_from);
+            }
+            if ($request->filled('date_purchased_to')) {
+                $statusQuery->whereDate('date_purchased', '<=', $request->date_purchased_to);
+            }
+            $statusData[$statusKey] = $statusQuery->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        }
 
         return view('collateral.analytics_provincial', compact(
             'statusTotals',
@@ -575,6 +684,7 @@ class CollateralController extends Controller
             'collateralTypes',
             'provinceId',
             'statusOptions',
+            'statusData',
         ));
     }
 
@@ -608,7 +718,27 @@ class CollateralController extends Controller
         $districtOptions = ($isExecutive || $isProvincial) ? District::all() : District::where('id', $districtId)->get();
         $offices = Office::where('district_id', $districtId)->get();
         $collateralTypes = CollateralType::all();
-        $statusOptions = ['active', 'sold', 'defaulted', 'repossessed'];
+        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+
+        $perPage = 10;
+        $statusData = [];
+        foreach ($statusOptions as $statusKey) {
+            $statusQuery = Collateral::with(['loan.office', 'type'])
+                ->with('loan.office', function ($q) use ($districtId) {
+                    $q->where('district_id', $districtId);
+                })
+                ->where('status', $statusKey);
+            if ($request->filled('collateral_type_id')) {
+                $statusQuery->where('collateral_type_id', $request->collateral_type_id);
+            }
+            if ($request->filled('date_purchased_from')) {
+                $statusQuery->whereDate('date_purchased', '>=', $request->date_purchased_from);
+            }
+            if ($request->filled('date_purchased_to')) {
+                $statusQuery->whereDate('date_purchased', '<=', $request->date_purchased_to);
+            }
+            $statusData[$statusKey] = $statusQuery->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        }
 
         return view('collateral.analytics_district', compact(
             'statusTotals',
@@ -620,6 +750,7 @@ class CollateralController extends Controller
             'collateralTypes',
             'districtId',
             'statusOptions',
+            'statusData',
             'isExecutive',
             'isProvincial'
         ));
@@ -653,8 +784,26 @@ class CollateralController extends Controller
 
         $collateralTypes = CollateralType::all();
         $conditionOptions = ['new', 'good', 'fair', 'poor'];
-        $statusOptions = ['active', 'sold', 'defaulted', 'repossessed'];
+        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
         $office = \App\Models\Office::find($officeId);
+
+        $perPage = 10;
+        $statusData = [];
+        foreach ($statusOptions as $statusKey) {
+            $statusQuery = Collateral::with(['loan.office', 'type'])
+                ->where('office_id', $officeId)
+                ->where('status', $statusKey);
+            if ($request->filled('collateral_type_id')) {
+                $statusQuery->where('collateral_type_id', $request->collateral_type_id);
+            }
+            if ($request->filled('date_purchased_from')) {
+                $statusQuery->whereDate('date_purchased', '>=', $request->date_purchased_from);
+            }
+            if ($request->filled('date_purchased_to')) {
+                $statusQuery->whereDate('date_purchased', '<=', $request->date_purchased_to);
+            }
+            $statusData[$statusKey] = $statusQuery->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        }
 
         return view('collateral.analytics_branch', compact(
             'statusTotals',
@@ -664,7 +813,8 @@ class CollateralController extends Controller
             'conditionOptions',
             'statusOptions',
             'officeId',
-            'office'
+            'office',
+            'statusData'
         ));
     }
 
@@ -739,6 +889,30 @@ class CollateralController extends Controller
         $collateralTypes = CollateralType::all();
         $loanStatuses = ['disbursed', 'defaulted', 'pending', 'approved', 'declined', 'written_off'];
 
+        $perPage = 10;
+        $statusKeys = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+        $statusData = [];
+        foreach ($statusKeys as $statusKey) {
+            $statusQuery = Collateral::with(['loan.office', 'type'])
+                ->where('created_by_id', $userId)
+                ->where('status', $statusKey);
+            if ($request->filled('collateral_type_id')) {
+                $statusQuery->where('collateral_type_id', $request->collateral_type_id);
+            }
+            if ($request->filled('loan_status')) {
+                $statusQuery->whereHas('loan', function ($q) use ($request) {
+                    $q->where('status', $request->loan_status);
+                });
+            }
+            if ($request->filled('date_purchased_from')) {
+                $statusQuery->whereDate('date_purchased', '>=', $request->date_purchased_from);
+            }
+            if ($request->filled('date_purchased_to')) {
+                $statusQuery->whereDate('date_purchased', '<=', $request->date_purchased_to);
+            }
+            $statusData[$statusKey] = $statusQuery->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        }
+
         return view('collateral.my_analytics', compact(
             'statuses',
             'typeExposure',
@@ -746,7 +920,8 @@ class CollateralController extends Controller
             'chartValues',
             'emptyState',
             'collateralTypes',
-            'loanStatuses'
+            'loanStatuses',
+            'statusData'
         ));
     }
 }
