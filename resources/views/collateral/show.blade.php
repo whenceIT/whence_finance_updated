@@ -238,10 +238,10 @@
                 };
             @endphp
             @if($statusMeaning || $stageMeaning)
-        <div class="current-status-summary" style="margin-top: 0; padding: 5px 18px; border: 0px solid #e2e8f0; font-size: 13.5px; color: #4a4b4c; line-height: 1.1; display: flex; align-items: flex-start; gap: 12px;">
-            <i class="fa fa-lightbulb-o" style="color: #000000; font-size: 16px; margin-top: 2px; flex-shrink: 0;"></i>
-            <span class="current-status-summary-text"></span>
-        </div>
+            <div class="current-status-summary" style="margin-top: 0; padding: 5px 18px; border: 0px solid #e2e8f0; font-size: 13.5px; color: #4a4b4c; line-height: 1.1; display: flex; align-items: flex-start; gap: 12px;">
+                <i class="fa fa-lightbulb-o" style="color: #000000; font-size: 16px; margin-top: 2px; flex-shrink: 0;"></i>
+                <span class="current-status-summary-text"></span>
+            </div>
             @endif
         </div>
         <button onclick="window.history.back()" class="btn btn-default btn-sm">
