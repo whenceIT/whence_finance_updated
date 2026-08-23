@@ -9,7 +9,6 @@ return new class extends Migration
     public function up()
     {
         Schema::table('collaterals', function (Blueprint $table) {
-            $table->unique('loan_id');
             $table->unique('serial_num');
         });
     }
@@ -17,7 +16,6 @@ return new class extends Migration
     public function down()
     {
         Schema::table('collaterals', function (Blueprint $table) {
-            $table->dropUnique(['loan_id']);
             $table->dropUnique(['serial_num']);
         });
     }
