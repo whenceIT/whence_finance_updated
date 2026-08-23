@@ -287,9 +287,10 @@ class CollateralController extends Controller
 
         $request->validate([
             'name'           => 'required',
+            'serial_num'     => 'required|string|max:255|unique:collaterals,serial_num',
             'initial_price'  => 'required',
             'current_worth'  => 'required',
-            'loan_id'        => 'required',
+            'loan_id'        => 'required|integer|unique:collaterals,loan_id',
             'date_purchased' => 'required',
             'pledged_at'     => 'nullable|date',
             'status'         => 'required|in:pledged,seizure_pending,seized_inventory,valuation_completed,listed_for_sale,sold,written_off,released',
@@ -307,13 +308,14 @@ class CollateralController extends Controller
 
         $collateral = new Collateral();
         $collateral->name              = $request->name;
+        $collateral->serial_num        = $request->serial_num;
         $collateral->initial_price     = $request->initial_price;
         $collateral->current_worth     = $request->current_worth;
         $collateral->approved_value    = $request->approved_value ?? $request->current_worth;
         $collateral->loan_id           = $request->loan_id;
         $collateral->date_purchased    = $request->date_purchased;
         $collateral->pledged_at        = $request->pledged_at;
-        $collateral->status            = $request->status;
+        $collateral->status            = 'pledged';
         $collateral->condition         = $request->condition;
         $collateral->description       = $request->description;
         $collateral->collateral_type_id = $request->collateral_type_id;
@@ -496,22 +498,25 @@ class CollateralController extends Controller
             'sold_at'       => 'nullable|date',
             'written_off_at'=> 'nullable|date',
             'released_at'   => 'nullable|date',
+            'serial_num'    => 'required|string|max:255|unique:collaterals,serial_num,' . $collateral->id,
+            'loan_id'       => 'required|integer|unique:collaterals,loan_id,' . $collateral->id,
             'stage_icon'    => 'nullable|string',
         ]);
 
-        $collateral->current_worth = $request->current_worth;
-        $collateral->approved_value = $request->approved_value ?? $collateral->approved_value ?? $request->current_worth;
-        $collateral->condition     = $request->condition;
-        $collateral->description   = $request->description;
-        $collateral->date_resold   = $request->date_resold;
-        $collateral->pledged_at    = $request->pledged_at;
-        $collateral->seized_at     = $request->seized_at;
-        $collateral->valuated_at   = $request->valuated_at;
-        $collateral->listed_at     = $request->listed_at;
-        $collateral->sold_at       = $request->sold_at;
-        $collateral->written_off_at= $request->written_off_at;
-        $collateral->released_at   = $request->released_at;
-        $collateral->stage_icon    = $request->stage_icon;
+        $collateral->serial_num      = $request->serial_num;
+        $collateral->current_worth   = $request->current_worth;
+        $collateral->approved_value  = $request->approved_value ?? $collateral->approved_value ?? $request->current_worth;
+        $collateral->condition       = $request->condition;
+        $collateral->description     = $request->description;
+        $collateral->date_resold     = $request->date_resold;
+        $collateral->pledged_at      = $request->pledged_at;
+        $collateral->seized_at       = $request->seized_at;
+        $collateral->valuated_at     = $request->valuated_at;
+        $collateral->listed_at       = $request->listed_at;
+        $collateral->sold_at         = $request->sold_at;
+        $collateral->written_off_at  = $request->written_off_at;
+        $collateral->released_at     = $request->released_at;
+        $collateral->stage_icon      = $request->stage_icon;
         $collateral->save();
 
         AuditTrail::create([

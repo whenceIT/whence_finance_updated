@@ -553,6 +553,7 @@
     @endif
     
     @if(!in_array($collateral->status, ['sold', 'written_off', 'released']))
+    @if(!$hasPendingStatusChange)
     <!-- Request Status Change -->
     <div class="cd-panel">
         <div class="cd-panel-header">
@@ -568,28 +569,14 @@
                 <div class="form-group">
                     <label>New Status <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Pledged: Collateral attached to an active loan.&#10;Seizure Pending: Initiated by Branch Manager, awaiting approval and handover.&#10;Seized/Inventory: Physically taken and in central inventory, awaiting evaluation.&#10;Valuation Completed: Independent valuation recorded, not yet sold.&#10;Listed for Sale: Asset is being marketed.&#10;Sold: Asset sold and proceeds received.&#10;Written Off: Asset unsaleable and removed from inventory.&#10;Released: Asset returned to borrower." style="color:#8a94a6;margin-left:4px;cursor:help;"></i></label>
                     <select name="new_status" class="form-control" required>
-                        @php
-                            $allowedStatuses = match($role) {
-                                1 => ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'],
-                                3, 4 => ['pledged','seizure_pending'],
-                                default => [],
-                            };
-                        @endphp
-                        @foreach($allowedStatuses as $statusKey)
-                            <option value="{{ $statusKey }}"{{ $collateral->status == $statusKey ? ' selected' : '' }}>
-                                {{ match($statusKey) {
-                                    'pledged' => 'Pledged',
-                                    'seizure_pending' => 'Seizure Pending',
-                                    'seized_inventory' => 'Seized/Inventory',
-                                    'valuation_completed' => 'Valuation Completed',
-                                    'listed_for_sale' => 'Listed for Sale',
-                                    'sold' => 'Sold',
-                                    'written_off' => 'Written Off',
-                                    'released' => 'Released',
-                                    default => ucfirst($statusKey),
-                                } }}
-                            </option>
-                        @endforeach
+                        <option value="pledged"{{ $collateral->status == 'pledged' ? ' selected' : '' }}>Pledged</option>
+                        <option value="seizure_pending"{{ $collateral->status == 'seizure_pending' ? ' selected' : '' }}>Seizure Pending</option>
+                        <option value="seized_inventory"{{ $collateral->status == 'seized_inventory' ? ' selected' : '' }}>Seized/Inventory</option>
+                        <option value="valuation_completed"{{ $collateral->status == 'valuation_completed' ? ' selected' : '' }}>Valuation Completed</option>
+                        <option value="listed_for_sale"{{ $collateral->status == 'listed_for_sale' ? ' selected' : '' }}>Listed for Sale</option>
+                        <option value="sold"{{ $collateral->status == 'sold' ? ' selected' : '' }}>Sold</option>
+                        <option value="written_off"{{ $collateral->status == 'written_off' ? ' selected' : '' }}>Written Off</option>
+                        <option value="released"{{ $collateral->status == 'released' ? ' selected' : '' }}>Released</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -602,7 +589,8 @@
             </div>
         </form>
     </div>
-
+    @endif
+    
     @if($role == 20)
     <!-- Change Status Directly -->
     <div class="cd-panel cd-warning-panel">

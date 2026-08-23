@@ -32,6 +32,14 @@
                     </div>
                 </div>
 
+                <div class="form-group{{ $errors->has('serial_num') ? ' has-error' : '' }}">
+                    <label class="control-label col-md-2">Serial Number</label>
+                    <div class="col-md-8">
+                        <input type="text" name="serial_num" class="form-control" value="{{ old('serial_num', $collateral->serial_num) }}" required>
+                        {!! $errors->first('serial_num', '<span class="help-block">:message</span>') !!}
+                    </div>
+                </div>
+
                 <div class="form-group{{ $errors->has('current_worth') ? ' has-error' : '' }}">
                     <label class="control-label col-md-2">Current Worth</label>
                     <div class="col-md-4">

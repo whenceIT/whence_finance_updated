@@ -10,6 +10,7 @@ class Collateral extends Model
 
     protected $fillable = [
         'name',
+        'serial_num',
         'description',
         'initial_price',
         'current_worth',

@@ -72,27 +72,35 @@ class CollateralApprovalController extends Controller
                 ->withErrors(['new_status' => 'The selected status must be different from the current status.']);
         }
 
-        CollateralStatusChangeRequest::create([
-            'collateral_id'   => $collateral->id,
-            'requested_by_id' => Sentinel::getUser()->id,
-            'old_status'      => $collateral->status,
-            'new_status'      => $request->new_status,
-            'reason'          => $request->reason,
-            'sold_price'      => 0,
-            'penalty'         => 0,
-            'approval_status' => 'pending',
-            'request_date'    => Carbon::now(),
-        ]);
+        $collateral->status = $request->new_status;
+        $now = Carbon::now();
+        if ($request->new_status === 'pledged') {
+            $collateral->pledged_at = $now;
+        } elseif ($request->new_status === 'seized_inventory') {
+            $collateral->seized_at = $now;
+        } elseif ($request->new_status === 'valuation_completed') {
+            $collateral->valuated_at = $now;
+        } elseif ($request->new_status === 'listed_for_sale') {
+            $collateral->listed_at = $now;
+        } elseif ($request->new_status === 'sold') {
+            $collateral->sold_at = $now;
+            $collateral->date_resold = $now;
+        } elseif ($request->new_status === 'written_off') {
+            $collateral->written_off_at = $now;
+        } elseif ($request->new_status === 'released') {
+            $collateral->released_at = $now;
+        }
+        $collateral->save();
 
         AuditTrail::create([
             'user_id'    => Sentinel::getUser()->id,
-            'action'     => 'status_change_requested',
+            'action'     => 'collateral_status_changed',
             'table_name' => 'collateral',
             'record_id'  => $collateral->id,
             'ip_address' => $request->ip(),
         ]);
 
-        Flash::success('Status change request submitted successfully.');
+        Flash::success('Status changed successfully.');
         return redirect()->route('collateral.show', $collateral);
     }
 
