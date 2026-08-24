@@ -12,6 +12,8 @@ use App\Models\Office;
 use App\Models\Province;
 use App\Models\District;
 use App\Models\UserRole;
+use App\Models\PlatformSetting;
+use App\Models\User;
 use Carbon\Carbon;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Http\Request;
@@ -550,6 +552,52 @@ class CollateralController extends Controller
 
         Flash::success('Collateral deleted successfully.');
         return redirect()->route('collateral.index');
+    }
+
+    public function setup(Request $request)
+    {
+        $users = User::where('status', 'Active')
+            ->with('position')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+
+        $supervisor = PlatformSetting::where('key', 'collateral_supervisor')->first();
+        $valuator = PlatformSetting::where('key', 'collateral_valuator')->first();
+
+        $supervisorId = $supervisor ? $supervisor->value : null;
+        $valuatorId = $valuator ? $valuator->value : null;
+
+        return view('collateral.setup', compact('users', 'supervisorId', 'valuatorId'));
+    }
+
+    public function setupUpdate(Request $request)
+    {
+        $request->validate([
+            'supervisor_id' => 'nullable|exists:users,id',
+            'valuator_id'   => 'nullable|exists:users,id',
+        ]);
+
+        PlatformSetting::updateOrCreate(
+            ['key' => 'collateral_supervisor'],
+            ['value' => $request->supervisor_id]
+        );
+
+        PlatformSetting::updateOrCreate(
+            ['key' => 'collateral_valuator'],
+            ['value' => $request->valuator_id]
+        );
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'collateral_workflow_setup_updated',
+            'table_name' => 'platform_settings',
+            'record_id'  => 0,
+            'ip_address' => $request->ip(),
+        ]);
+
+        Flash::success('Collateral workflow setup updated successfully.');
+        return redirect()->route('collateral.setup');
     }
 
     public function analyticsExecutive(Request $request)

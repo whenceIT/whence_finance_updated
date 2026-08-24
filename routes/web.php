@@ -2034,7 +2034,10 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
     // Setup Debt Approvals
     Route::post('approvals/setup-debt/{id}/{status}', 'ApprovalWorkflowController@approveDeclineSetupDebt')->name('approvals.setup-debt.action');
 
-    Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
+    Route::get('collateral/setup', 'CollateralController@setup')->name('collateral.setup');
+    Route::post('collateral/setup', 'CollateralController@setupUpdate')->name('collateral.setup.update');
+
+Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
 Route::delete('collateral/{collateral}', 'CollateralController@destroy')->name('collateral.destroy');

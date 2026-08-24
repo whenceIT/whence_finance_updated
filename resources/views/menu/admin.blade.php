@@ -336,7 +336,7 @@ if (!Sentinel::check()) {
                     </li>
                     @endif
 
-                        <li class="treeview @if(Request::routeIs('collateral.*')) active menu-open @endif" style="padding-left: 10px;">
+                    <li class="treeview @if(Request::routeIs('collateral.*')) active menu-open @endif" style="padding-left: 10px;">
                         <a href="#">
                             <i class="fa fa-shield"></i> <span>Collateral</span>
                             <span class="pull-right-container">
@@ -375,6 +375,11 @@ if (!Sentinel::check()) {
                             <li>
                                 <a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approvals</a>
                             </li>
+                            @if($role == 1)
+                                <li>
+                                    <a href="{{ route('collateral.setup') }}"><i class="fa fa-circle-o"></i> Setup</a>
+                                </li>
+                            @endif
                             <li class="divider"></li>
                             <li><a href="{{ route('collateral.index', ['status' => 'pledged']) }}"><i class="fa fa-circle-o"></i> Pledged</a></li>
                             <li><a href="{{ route('collateral.index', ['status' => 'seized_inventory']) }}"><i class="fa fa-circle-o"></i> Repossessed</a></li>

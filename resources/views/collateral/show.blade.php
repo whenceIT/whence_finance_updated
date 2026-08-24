@@ -489,7 +489,7 @@
         </div>
     </div>
 
-    @if(is_null($collateral->loan_id) && isset($loans) && $loans->count() > 0)
+    @if($loans && $loans->count() > 0)
     <div class="cd-panel" style="margin-top: 20px; border-left: 4px solid #f39c12;">
         <div class="cd-panel-header" style="background: #fffaf0;">
             <h3><i class="fa fa-exclamation-triangle" style="color: #f39c12;"></i> Assign Loan</h3>
