@@ -102,6 +102,10 @@ class CollateralController extends Controller
         }
 
         // --- Filters ---
+        if ($request->filled('key') && $request->key === 'admin') {
+            $query->whereIn('status', ['seized_inventory', 'valuation_completed', 'listed_for_sale', 'written_off']);
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -199,7 +203,40 @@ class CollateralController extends Controller
         }
         $loans = $loansQuery->get();
 
-        return view('collateral.index', compact('collateral', 'collateralTypes', 'offices', 'provinces', 'loans'));
+        // --- Stats for admin disposal view ---
+        $adminStatuses = ['seized_inventory', 'valuation_completed', 'listed_for_sale', 'written_off'];
+        $disposalStats = [];
+        $totalCount = 0;
+        $totalWorth = 0;
+
+        if ($request->filled('key') && $request->key === 'admin') {
+            foreach ($adminStatuses as $st) {
+                $count = Collateral::where('status', $st);
+                if ($roleId == 4) {
+                    $count->where('office_id', $user->office_id);
+                } elseif ($roleId == 12) {
+                    $count->where('district_id', $user->office ? $user->office->district_id : null);
+                } elseif ($roleId == 6) {
+                    $count->where('province_id', $user->office ? $user->office->province_id : null);
+                }
+                $count = $count->count();
+                $sum = Collateral::where('status', $st);
+                if ($roleId == 4) {
+                    $sum->where('office_id', $user->office_id);
+                } elseif ($roleId == 12) {
+                    $sum->where('district_id', $user->office ? $user->office->district_id : null);
+                } elseif ($roleId == 6) {
+                    $sum->where('province_id', $user->office ? $user->office->province_id : null);
+                }
+                $sum = $sum->sum('current_worth');
+                $disposalStats[$st]['count'] = $count;
+                $disposalStats[$st]['sum'] = $sum;
+                $totalCount += $count;
+                $totalWorth += $sum;
+            }
+        }
+
+        return view('collateral.index', compact('collateral', 'collateralTypes', 'offices', 'provinces', 'loans', 'disposalStats', 'totalCount', 'totalWorth'));
     }
 
     /**
@@ -295,7 +332,6 @@ class CollateralController extends Controller
             'loan_id'        => 'required|integer|unique:collaterals,loan_id',
             'date_purchased' => 'required',
             'pledged_at'     => 'nullable|date',
-            'status'         => 'required|in:pledged,seizure_pending,seized_inventory,valuation_completed,listed_for_sale,sold,written_off,released',
             'condition'      => 'required',
             'stage_icon'     => 'nullable|string',
         ]);
@@ -600,6 +636,33 @@ class CollateralController extends Controller
         return redirect()->route('collateral.setup');
     }
 
+    public function requestRelease(Request $request, Collateral $collateral)
+    {
+        if (in_array($collateral->status, ['sold', 'written_off', 'released', 'release_pending'])) {
+            Flash::warning('This collateral cannot be released at its current status.');
+            return redirect()->route('collateral.show', $collateral);
+        }
+
+        $request->validate([
+            'reason' => 'nullable|string',
+        ]);
+
+        $collateral->status = 'release_pending';
+        $collateral->release_requested_at = Carbon::now();
+        $collateral->save();
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'collateral_release_requested',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        Flash::success('Release request submitted. Status changed to Release Pending.');
+        return redirect()->route('collateral.show', $collateral);
+    }
+
     public function analyticsExecutive(Request $request)
     {
         // if (!Sentinel::hasAccess('collateral.analytics.executive')) {
@@ -644,7 +707,7 @@ class CollateralController extends Controller
         $loanStatuses = ['disbursed', 'defaulted', 'pending', 'approved', 'declined', 'written_off'];
 
         $perPage = 10;
-        $statusKeys = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+        $statusKeys = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released','release_pending'];
 
         $statusData = [];
         foreach ($statusKeys as $statusKey) {
@@ -707,7 +770,7 @@ class CollateralController extends Controller
         $provinceOptions = Province::where('id', $provinceId)->get();
         $offices = Office::where('province_id', $provinceId)->get();
         $collateralTypes = CollateralType::all();
-        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released','release_pending'];
 
         $perPage = 10;
         $statusData = [];
@@ -771,7 +834,7 @@ class CollateralController extends Controller
         $districtOptions = ($isExecutive || $isProvincial) ? District::all() : District::where('id', $districtId)->get();
         $offices = Office::where('district_id', $districtId)->get();
         $collateralTypes = CollateralType::all();
-        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released','release_pending'];
 
         $perPage = 10;
         $statusData = [];
@@ -837,7 +900,7 @@ class CollateralController extends Controller
 
         $collateralTypes = CollateralType::all();
         $conditionOptions = ['new', 'good', 'fair', 'poor'];
-        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+        $statusOptions = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released','release_pending'];
         $office = \App\Models\Office::find($officeId);
 
         $perPage = 10;
@@ -943,7 +1006,7 @@ class CollateralController extends Controller
         $loanStatuses = ['disbursed', 'defaulted', 'pending', 'approved', 'declined', 'written_off'];
 
         $perPage = 10;
-        $statusKeys = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'];
+        $statusKeys = ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released','release_pending'];
         $statusData = [];
         foreach ($statusKeys as $statusKey) {
             $statusQuery = Collateral::with(['loan.office', 'type'])

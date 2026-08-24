@@ -38,6 +38,7 @@ class Collateral extends Model
         'sold_at',
         'written_off_at',
         'released_at',
+        'release_requested_at',
     ];
 
     protected $casts = [
@@ -50,6 +51,7 @@ class Collateral extends Model
         'sold_at'        => 'date',
         'written_off_at' => 'date',
         'released_at'    => 'date',
+        'release_requested_at' => 'date',
         'initial_price'  => 'decimal:2',
         'current_worth'  => 'decimal:2',
         'approved_value' => 'decimal:2',

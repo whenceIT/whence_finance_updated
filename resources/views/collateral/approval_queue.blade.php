@@ -8,11 +8,6 @@
         <div class="box-body">
             <ul class="nav nav-tabs" role="tablist">
                 <li role="presentation" class="active">
-                    <a href="#pending-new-tab" aria-controls="pending-new-tab" role="tab" data-toggle="tab">
-                        Pending New Collateral <span class="badge">{{ $newCollaterals->count() }}</span>
-                    </a>
-                </li>
-                <li role="presentation">
                     <a href="#seizure-pending-tab" aria-controls="seizure-pending-tab" role="tab" data-toggle="tab">
                         Seizure Pending <span class="badge">{{ $seizurePending->count() }}</span>
                     </a>
@@ -22,59 +17,19 @@
                         Pending Write Off <span class="badge">{{ $pendingWrittenOff->count() }}</span>
                     </a>
                 </li>
+                @if(in_array($roleId, [1, 4, 6]))
+                <li role="presentation">
+                    <a href="#release-pending-tab" aria-controls="release-pending-tab" role="tab" data-toggle="tab">
+                        Release Pending <span class="badge">{{ $releasePending->count() }}</span>
+                    </a>
+                </li>
+                @endif
             </ul>
 
             <div class="tab-content" style="margin-top: 20px;">
-                <!-- Pending New Collateral Tab -->
-                <div role="tabpanel" class="tab-pane active" id="pending-new-tab">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Loan</th>
-                                <th>Client</th>
-                                <th>Current Worth</th>
-                                <th>Approved Value</th>
-                                <th>Condition</th>
-                                <th>Created By</th>
-                                <th>Created At</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @forelse($newCollaterals as $collateral)
-                                <tr>
-                                    <td>{{ $collateral->name }}</td>
-                                    <td>{{ optional($collateral->loan)->id }}</td>
-                                    <td>{{ optional(optional($collateral->loan)->client)->first_name ?? 'N/A' }} {{ optional(optional($collateral->loan)->client)->last_name ?? '' }}</td>
-                                    <td>{{ number_format($collateral->current_worth, 2) }}</td>
-                                    <td>{{ number_format($collateral->approved_value ?? $collateral->current_worth, 2) }}</td>
-                                    <td>{{ ucfirst($collateral->condition) }}</td>
-                                    <td>{{ optional($collateral->created_by)->first_name }} {{ optional($collateral->created_by)->last_name }}</td>
-                                    <td>{{ $collateral->created_at->format('Y-m-d H:i') }}</td>
-                                    <td>
-                                        <a href="{{ route('collateral.show', $collateral) }}" class="btn btn-xs btn-primary">View</a>
-                                        <form method="post" action="{{ route('collateral.approvals.new.approve', $collateral) }}" style="display: inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-xs">Approve</button>
-                                        </form>
-                                        <form method="post" action="{{ route('collateral.approvals.new.decline', $collateral) }}" style="display: inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-danger btn-xs">Decline</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr><td colspan="9" class="text-center">No pending new collateral approvals.</td></tr>
-                            @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
 
                 <!-- Seizure Pending Tab -->
-                <div role="tabpanel" class="tab-pane" id="seizure-pending-tab">
+                <div role="tabpanel" class="tab-pane active" id="seizure-pending-tab">
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
                             <thead>
@@ -160,6 +115,54 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Release Pending Tab -->
+                @if(in_array($roleId, [1, 4, 6]))
+                <div role="tabpanel" class="tab-pane" id="release-pending-tab">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Loan</th>
+                                <th>Client</th>
+                                <th>Current Worth</th>
+                                <th>Condition</th>
+                                <th>Created By</th>
+                                <th>Release Requested At</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse($releasePending as $collateral)
+                                <tr>
+                                    <td>{{ $collateral->name }}</td>
+                                    <td>{{ optional($collateral->loan)->id }}</td>
+                                    <td>{{ optional(optional($collateral->loan)->client)->first_name ?? 'N/A' }} {{ optional(optional($collateral->loan)->client)->last_name ?? '' }}</td>
+                                    <td>{{ number_format($collateral->current_worth, 2) }}</td>
+                                    <td>{{ ucfirst($collateral->condition) }}</td>
+                                    <td>{{ optional($collateral->created_by)->first_name }} {{ optional($collateral->created_by)->last_name }}</td>
+                                    <td>{{ optional($collateral->release_requested_at?->format('Y-m-d H:i')) }}</td>
+                                    <td>
+                                        <a href="{{ route('collateral.show', $collateral) }}" class="btn btn-xs btn-primary">View</a>
+                                        <form method="post" action="{{ route('collateral.approvals.approve_release', $collateral) }}" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-xs">Approve Release</button>
+                                        </form>
+                                        <form method="post" action="{{ route('collateral.approvals.decline_release', $collateral) }}" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger btn-xs">Decline</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="8" class="text-center">No release pending approvals.</td></tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>

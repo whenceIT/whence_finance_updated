@@ -2023,6 +2023,8 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
     Route::post('collateral/approvals/new/{collateral}/approve', 'CollateralApprovalController@approveNewCollateral')->name('collateral.approvals.new.approve');
     Route::post('collateral/approvals/new/{collateral}/decline', 'CollateralApprovalController@declineNewCollateral')->name('collateral.approvals.new.decline');
 
+    Route::post('collateral/approvals/release/{collateral}/approve', 'CollateralApprovalController@approveRelease')->name('collateral.approvals.approve_release');
+    Route::post('collateral/approvals/release/{collateral}/decline', 'CollateralApprovalController@declineRelease')->name('collateral.approvals.decline_release');
     // Deposit Approvals
     Route::get('approvals/deposit-approvals', 'ApprovalWorkflowController@depositApprovals')->name('approvals.deposit-approvals');
     Route::post('approvals/deposit-approvals/{id}/{status}', 'ApprovalWorkflowController@approveDecline')->name('approvals.deposit-approvals.action');
@@ -2047,6 +2049,7 @@ Route::post('collateral/{collateral}/workflow-next', 'CollateralApprovalControll
 Route::post('collateral/{collateral}/sell', 'CollateralApprovalController@sell')->name('collateral.sell');
 Route::post('collateral/{collateral}/change-status', 'CollateralApprovalController@directChange')->name('collateral.direct_change');
 Route::post('collateral/{collateral}/assign-loan', 'CollateralController@assignLoan')->name('collateral.assign.loan');
+Route::post('collateral/{collateral}/request-release', 'CollateralController@requestRelease')->name('collateral.request_release');
 
 // ============================================
 // RECOVERY MODULE ROUTES

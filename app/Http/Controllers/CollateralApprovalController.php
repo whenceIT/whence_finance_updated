@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditTrail;
 use App\Models\Collateral;
 use App\Models\CollateralStatusChangeRequest;
+use App\Models\UserRole;
 use Carbon\Carbon;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Illuminate\Http\Request;
@@ -51,7 +52,24 @@ class CollateralApprovalController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('collateral.approval_queue', compact('requests', 'loanBalances', 'newCollaterals', 'seizurePending', 'pendingWrittenOff'));
+        $user = Sentinel::getUser();
+        $userId = $user ? $user->id : null;
+        $userRole = $userId ? UserRole::where('user_id', $userId)->first() : null;
+        $roleId = $userRole ? $userRole->role_id : null;
+
+        $releasePendingQuery = Collateral::with(['loan', 'created_by'])
+            ->where('status', 'release_pending')
+            ->orderBy('created_at', 'desc');
+
+        if ($roleId == 4) {
+            $releasePendingQuery->where('office_id', $user->office_id);
+        } elseif ($roleId == 6) {
+            $releasePendingQuery->where('province_id', optional($user->office)->province_id);
+        }
+
+        $releasePending = $releasePendingQuery->get();
+
+        return view('collateral.approval_queue', compact('requests', 'loanBalances', 'newCollaterals', 'seizurePending', 'pendingWrittenOff', 'releasePending', 'roleId'));
     }
 
     public function requestChange(Request $request, Collateral $collateral)
@@ -62,7 +80,7 @@ class CollateralApprovalController extends Controller
         // }
 
         $request->validate([
-            'new_status' => 'required|in:pledged,seizure_pending,seized_inventory,valuation_completed,listed_for_sale,sold,written_off,released',
+            'new_status' => 'required|in:pledged,seizure_pending,seized_inventory,valuation_completed,listed_for_sale,sold,written_off,released,release_pending',
             'reason'     => 'required|string',
         ]);
 
@@ -131,6 +149,10 @@ class CollateralApprovalController extends Controller
                 'next' => 'written_off',
                 'roles' => [1],
             ],
+            'release_pending' => [
+                'next' => 'released',
+                'roles' => [1],
+            ],
         ];
 
         $current = $collateral->status;
@@ -157,6 +179,8 @@ class CollateralApprovalController extends Controller
             $collateral->written_off_at = $now;
         } elseif ($step['next'] === 'seizure_pending') {
             $collateral->seized_at = null;
+        } elseif ($step['next'] === 'released') {
+            $collateral->released_at = $now;
         }
         $collateral->save();
 
@@ -250,8 +274,10 @@ class CollateralApprovalController extends Controller
             $collateral->valuated_at = $now;
         } elseif ($collateral_status_change_request->new_status === 'listed_for_sale') {
             $collateral->listed_at = $now;
-        } elseif ($collateral_status_change_request->new_status === 'pledged') {
+         } elseif ($collateral_status_change_request->new_status === 'pledged') {
             $collateral->pledged_at = $now;
+        } elseif ($collateral_status_change_request->new_status === 'release_pending') {
+            $collateral->release_requested_at = $now;
         }
         $collateral->save();
 
@@ -306,7 +332,7 @@ class CollateralApprovalController extends Controller
         // }
 
         $request->validate([
-            'new_status' => 'required|in:pledged,seizure_pending,seized_inventory,valuation_completed,listed_for_sale,sold,written_off,released',
+            'new_status' => 'required|in:pledged,seizure_pending,seized_inventory,valuation_completed,listed_for_sale,sold,written_off,released,release_pending',
         ]);
 
         $allowedTransitions = [
@@ -315,6 +341,7 @@ class CollateralApprovalController extends Controller
             'seized_inventory' => ['valuation_completed'],
             'valuation_completed' => ['listed_for_sale'],
             'listed_for_sale' => ['written_off'],
+            'release_pending' => ['released'],
         ];
 
         $current = $collateral->status;
@@ -341,6 +368,8 @@ class CollateralApprovalController extends Controller
         } elseif ($request->new_status === 'sold') {
             $collateral->sold_at = $now;
             $collateral->date_resold = $now;
+        } elseif ($request->new_status === 'release_pending') {
+            $collateral->release_requested_at = $now;
         }
         $collateral->save();
 
@@ -414,6 +443,46 @@ class CollateralApprovalController extends Controller
         ]);
 
         Flash::success('New collateral declined successfully.');
+        return redirect()->route('collateral.approvals.queue');
+    }
+
+    public function approveRelease(Request $request, Collateral $collateral)
+    {
+        if ($collateral->status !== 'release_pending') {
+            Flash::warning('This collateral is not pending release.');
+            return redirect()->route('collateral.approvals.queue');
+        }
+
+        $collateral->status = 'released';
+        $collateral->released_at = Carbon::now();
+        $collateral->save();
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'release_approved',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        Flash::success('Release approved. Status changed to Released.');
+        return redirect()->route('collateral.approvals.queue');
+    }
+
+    public function declineRelease(Request $request, Collateral $collateral)
+    {
+        $collateral->status = 'listed_for_sale';
+        $collateral->save();
+
+        AuditTrail::create([
+            'user_id'    => Sentinel::getUser()->id,
+            'action'     => 'release_declined',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        Flash::success('Release declined. Status reverted to Listed for Sale.');
         return redirect()->route('collateral.approvals.queue');
     }
 }

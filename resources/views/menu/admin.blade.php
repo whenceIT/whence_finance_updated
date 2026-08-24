@@ -99,9 +99,9 @@ if (!Sentinel::check()) {
                     </span>
                 </a>
                 <ul class="treeview-menu">
-  <li><a href="{{ route('ledger.executive') }}"><i class="fa fa-circle-o"></i>Executive Ledger</a></li>
-    <li><a href="{{ url('user/poadashboard') }}"><i class="fa fa-circle-o"></i>POA Dashboard</a></li>
-    <li><a href="{{ url('loan/client_app_dashboard') }}"><i class="fa fa-circle-o"></i>Clients App Dashboard</a></li>
+                    <li><a href="{{ route('ledger.executive') }}"><i class="fa fa-circle-o"></i>Executive Ledger</a></li>
+                    <li><a href="{{ url('user/poadashboard') }}"><i class="fa fa-circle-o"></i>POA Dashboard</a></li>
+                    <li><a href="{{ url('loan/client_app_dashboard') }}"><i class="fa fa-circle-o"></i>Clients App Dashboard</a></li>
                     <li><a href="{{ url('recovery/overview') }}"><i class="fa fa-circle-o"></i>Recovery Dashboard</a></li>
                     <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i>GOA Dashboard</a></li>
                     <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Motor Vehicles Dashboard</a></li>
@@ -119,14 +119,13 @@ if (!Sentinel::check()) {
 	        </li>
              @endif -->
 
-         @if($role == 4 || $role == 6)
+            @if($role == 4 || $role == 6)
             <li class="@if(Request::is('dashboard')) active @endif">
                 <a href="{{ url('user/verify_wallet') }}">
                     <i class="fa fa-check-circle"></i> <span>Withinhere Wallet</span>
                 </a>
 	        </li>
-
-               @endif
+            @endif
 
              
             @hasRole('role.exec', 'role.goa')
@@ -154,6 +153,29 @@ if (!Sentinel::check()) {
                     <i class="fa fa-line-chart"></i> <span>Manager Performance</span>
                 </a>
 	        </li>
+            @endif
+
+            <!-- Collateral Management -->
+            @if(Sentinel::getUser()->isCollateralSupervisor() || Sentinel::getUser()->isCollateralValuator() || $role == 1)
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-folder"></i> <span>Collateral Management</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i> Inventory/ Disposals</a></li>
+                        <li><a href="{{ route('collateral.index', ['key' => 'sales']) }}"><i class="fa fa-circle-o"></i> Sales and Listings</a></li>
+                        <li><a href="{{ route('collateral.index', ['key' => 'valuation']) }}"><i class="fa fa-circle-o"></i> Valuation Pending</a></li>
+
+                        @if($role == 1)
+                            <li>
+                                <a href="{{ route('collateral.setup') }}"><i class="fa fa-circle-o"></i> Setup</a>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
             @endif
 
 
@@ -372,21 +394,11 @@ if (!Sentinel::check()) {
                                 <li><a href="{{ route('collateral.analytics.branch') }}"><i class="fa fa-circle-o"></i> Branch Analytics</a>
                                      </li>
                             @endif
-                            <li>
-                                <a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approvals</a>
-                            </li>
-                            @if($role == 1)
-                                <li>
-                                    <a href="{{ route('collateral.setup') }}"><i class="fa fa-circle-o"></i> Setup</a>
-                                </li>
-                            @endif
-                            <li class="divider"></li>
-                            <li><a href="{{ route('collateral.index', ['status' => 'pledged']) }}"><i class="fa fa-circle-o"></i> Pledged</a></li>
-                            <li><a href="{{ route('collateral.index', ['status' => 'seized_inventory']) }}"><i class="fa fa-circle-o"></i> Repossessed</a></li>
-                            <li><a href="{{ route('collateral.index', ['status' => 'released']) }}"><i class="fa fa-circle-o"></i> Released to Customer</a></li>
-                            <li><a href="{{ route('collateral.index', ['status' => 'sold']) }}"><i class="fa fa-circle-o"></i> Disposals</a></li>
+                            <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approvals</a></li>
+
                         </ul>
-                    </li> 
+                    </li>
+
 
                     <!-- Loan Applications -->
                     @if(Sentinel::hasAccess('loans.create'))
