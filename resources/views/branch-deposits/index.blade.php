@@ -71,7 +71,7 @@
                 <hr>
                 <!-- Payment D -->
                 @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] != 'fully paid'
-                || in_array($blockerUser->office_id, [49, 46]))
+                || in_array($blockerUser->office_id, [49, 46, 54]))
                     @include('branch-deposits._partials.statutory', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.statutory', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
