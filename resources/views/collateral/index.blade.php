@@ -3,14 +3,16 @@
 @section('content')
 <?php
 $role = Sentinel::getUser()->roles()->first()->id;
+$userPosition = Sentinel::getUser()->position_name;
 ?>
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">Collateral</h3>
+            @if($userPosition)
+                <small class="text-muted" style="margin-left: 10px;">({{ $userPosition }})</small>
+            @endif
             <div class="box-tools pull-right">
-                @if(Sentinel::hasAccess('collateral.create'))
                     <a href="{{ route('collateral.create') }}" class="btn btn-success btn-sm">Add Collateral</a>
-                @endif
             </div>
         </div>
         <div class="box-body">
@@ -95,8 +97,9 @@ $role = Sentinel::getUser()->roles()->first()->id;
                                    <th>Purchased</th>
                                   <th>Current Worth</th>
                                    <th>Sold Price<br><small style="font-weight:normal;">Approved collateral value</small></th>
-                                   <th>Disposal Costs</th>
-                                   <th>Office</th>
+                                <th>Disposal Costs</th>
+                                <th>Created By</th>
+                                <th>Office</th>
                                    <th>Actions</th>
                               </tr>
                     </thead>
@@ -144,7 +147,12 @@ $role = Sentinel::getUser()->roles()->first()->id;
                                        @endphp
                                        {{ number_format($disposalTotal, 2) }}
                                    </td>
-                                   <td>{{ $item->loan?->office?->name }}</td>
+                                    <td>
+                                        {{ optional($item->created_by)->first_name }} {{ optional($item->created_by)->last_name }}
+                                        <br>
+                                        <small>{{ optional($item->created_by)->position_name }}</small>
+                                    </td>
+                                    <td>{{ $item->loan?->office?->name }}</td>
                                   <td>
                                      <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
                                       @if((Sentinel::getUser()->id == $item->created_by_id) || $role == 1)
@@ -159,7 +167,7 @@ $role = Sentinel::getUser()->roles()->first()->id;
                              </tr>
                          @empty
                                <tr>
-                                   <td colspan="12" class="text-center">No collateral found at this
+                                    <td colspan="13" class="text-center">No collateral found at this
                                   @if($role == 3)
                                       Loan Consultant
                                   @elseif($role == 4)

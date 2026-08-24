@@ -75,7 +75,7 @@ class CollateralController extends Controller
         $roleId = $role ? $role->role_id : null;
 
         // Base query with required eager-loads
-        $query = Collateral::with(['loan.client', 'loan.office', 'type']);
+        $query = Collateral::with(['loan.client', 'loan.office', 'type', 'created_by']);
 
         // --- Role-based scope ---
         if ($roleId == 1) {

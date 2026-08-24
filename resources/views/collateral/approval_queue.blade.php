@@ -19,7 +19,7 @@
                 </li>
                 <li role="presentation">
                     <a href="#pending-written-off-tab" aria-controls="pending-written-off-tab" role="tab" data-toggle="tab">
-                        Pending Written Off <span class="badge">{{ $pendingWrittenOff->count() }}</span>
+                        Pending Write Off <span class="badge">{{ $pendingWrittenOff->count() }}</span>
                     </a>
                 </li>
             </ul>
@@ -119,7 +119,7 @@
                     </div>
                 </div>
 
-                <!-- Pending Written Off Tab -->
+                <!-- Pending Write Off Tab -->
                 <div role="tabpanel" class="tab-pane" id="pending-written-off-tab">
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
@@ -147,18 +147,14 @@
                                     <td>{{ $collateral->created_at->format('Y-m-d H:i') }}</td>
                                     <td>
                                         <a href="{{ route('collateral.show', $collateral) }}" class="btn btn-xs btn-primary">View</a>
-                                        <form method="post" action="{{ route('collateral.approvals.new.approve', $collateral) }}" style="display: inline;">
+                                        <form method="post" action="{{ route('collateral.workflow.next', $collateral) }}" style="display: inline;">
                                             @csrf
-                                            <button type="submit" class="btn btn-success btn-xs">Approve</button>
-                                        </form>
-                                        <form method="post" action="{{ route('collateral.approvals.new.decline', $collateral) }}" style="display: inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-danger btn-xs">Decline</button>
+                                            <button type="submit" class="btn btn-warning btn-xs">Write Off</button>
                                         </form>
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="8" class="text-center">No pending written off approvals.</td></tr>
+                                <tr><td colspan="8" class="text-center">No pending write-off approvals.</td></tr>
                             @endforelse
                             </tbody>
                         </table>

@@ -47,7 +47,7 @@ class CollateralApprovalController extends Controller
             ->get();
 
         $pendingWrittenOff = Collateral::with(['loan', 'created_by'])
-            ->where('status', 'written_off')
+            ->where('status', 'listed_for_sale')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -104,6 +104,74 @@ class CollateralApprovalController extends Controller
         return redirect()->route('collateral.show', $collateral);
     }
 
+    public function workflowNext(Request $request, Collateral $collateral)
+    {
+        $user = Sentinel::getUser();
+        $role = \App\Models\UserRole::where('user_id', $user->id)->first();
+        $roleId = $role ? $role->role_id : null;
+
+        $workflow = [
+            'pledged' => [
+                'next' => 'seizure_pending',
+                'roles' => [3, 4],
+            ],
+            'seizure_pending' => [
+                'next' => 'seized_inventory',
+                'roles' => [1],
+            ],
+            'seized_inventory' => [
+                'next' => 'valuation_completed',
+                'roles' => [1],
+            ],
+            'valuation_completed' => [
+                'next' => 'listed_for_sale',
+                'roles' => [1],
+            ],
+            'listed_for_sale' => [
+                'next' => 'written_off',
+                'roles' => [1],
+            ],
+        ];
+
+        $current = $collateral->status;
+        if (!isset($workflow[$current])) {
+            Flash::warning('No next workflow step available.');
+            return redirect()->route('collateral.show', $collateral);
+        }
+
+        $step = $workflow[$current];
+        if (!in_array($roleId, $step['roles'])) {
+            Flash::warning('Permission Denied');
+            return redirect()->route('collateral.show', $collateral);
+        }
+
+        $collateral->status = $step['next'];
+        $now = Carbon::now();
+        if ($step['next'] === 'seized_inventory') {
+            $collateral->seized_at = $now;
+        } elseif ($step['next'] === 'valuation_completed') {
+            $collateral->valuated_at = $now;
+        } elseif ($step['next'] === 'listed_for_sale') {
+            $collateral->listed_at = $now;
+        } elseif ($step['next'] === 'written_off') {
+            $collateral->written_off_at = $now;
+        } elseif ($step['next'] === 'seizure_pending') {
+            $collateral->seized_at = null;
+        }
+        $collateral->save();
+
+        AuditTrail::create([
+            'user_id'    => $user->id,
+            'action'     => 'collateral_workflow_advanced',
+            'table_name' => 'collateral',
+            'record_id'  => $collateral->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        Flash::success('Status advanced to ' . ucfirst(str_replace('_', ' ', $step['next'])) . ' successfully.');
+        return redirect()->route('collateral.show', $collateral);
+    }
+
     public function sell(Request $request, Collateral $collateral)
     {
         // if (!Sentinel::hasAccess('collateral.update')) {
@@ -116,7 +184,7 @@ class CollateralApprovalController extends Controller
             'disposal_costs' => 'nullable|array',
             'disposal_costs.*.name' => 'nullable|string|max:255',
             'disposal_costs.*.amount' => 'nullable|numeric|min:0',
-            'reason'         => 'required|string',
+            'reason'         => 'nullable|string',
         ]);
 
         if ($collateral->status === 'sold' || $collateral->status === 'written_off' || $collateral->status === 'released') {
@@ -133,35 +201,22 @@ class CollateralApprovalController extends Controller
                 ->withErrors(['sold_price' => 'The disposal value must be equal to or greater than the recorded collateral value of ' . number_format($approvedValue, 2) . '.']);
         }
 
-        $disposalCostsTotal = 0;
-        if ($request->filled('disposal_costs') && is_array($request->disposal_costs)) {
-            foreach ($request->disposal_costs as $item) {
-                $disposalCostsTotal += (float) ($item['amount'] ?? 0);
-            }
-        }
-
-        CollateralStatusChangeRequest::create([
-            'collateral_id'   => $collateral->id,
-            'requested_by_id' => Sentinel::getUser()->id,
-            'old_status'      => $collateral->status,
-            'new_status'      => 'sold',
-            'reason'          => $request->reason,
-            'sold_price'      => $request->sold_price,
-            'penalty'         => 0,
-            'disposal_costs'  => $request->disposal_costs ?? [],
-            'approval_status' => 'pending',
-            'request_date'    => Carbon::now(),
-        ]);
+        $collateral->status = 'sold';
+        $collateral->sold_price = $request->sold_price;
+        $collateral->disposal_costs = $request->disposal_costs ?? [];
+        $collateral->date_resold = Carbon::now();
+        $collateral->sold_at = Carbon::now();
+        $collateral->save();
 
         AuditTrail::create([
             'user_id'    => Sentinel::getUser()->id,
-            'action'     => 'collateral_sell_requested',
+            'action'     => 'collateral_sold',
             'table_name' => 'collateral',
             'record_id'  => $collateral->id,
             'ip_address' => $request->ip(),
         ]);
 
-        Flash::success('Sell request submitted successfully.');
+        Flash::success('Collateral sold successfully. Status changed to Sold.');
         return redirect()->route('collateral.show', $collateral);
     }
 
@@ -178,12 +233,25 @@ class CollateralApprovalController extends Controller
             return redirect()->back();
         }
 
-        $collateral->status = 'sold';
+        $collateral->status = $collateral_status_change_request->new_status;
+        $now = Carbon::now();
         if ($collateral_status_change_request->new_status === 'sold') {
             $collateral->sold_price = $collateral_status_change_request->sold_price;
             $collateral->disposal_costs = $collateral_status_change_request->disposal_costs;
-            $collateral->date_resold = Carbon::now();
-            $collateral->sold_at = Carbon::now();
+            $collateral->date_resold = $now;
+            $collateral->sold_at = $now;
+        } elseif ($collateral_status_change_request->new_status === 'written_off') {
+            $collateral->written_off_at = $now;
+        } elseif ($collateral_status_change_request->new_status === 'released') {
+            $collateral->released_at = $now;
+        } elseif ($collateral_status_change_request->new_status === 'seized_inventory') {
+            $collateral->seized_at = $now;
+        } elseif ($collateral_status_change_request->new_status === 'valuation_completed') {
+            $collateral->valuated_at = $now;
+        } elseif ($collateral_status_change_request->new_status === 'listed_for_sale') {
+            $collateral->listed_at = $now;
+        } elseif ($collateral_status_change_request->new_status === 'pledged') {
+            $collateral->pledged_at = $now;
         }
         $collateral->save();
 
@@ -241,23 +309,38 @@ class CollateralApprovalController extends Controller
             'new_status' => 'required|in:pledged,seizure_pending,seized_inventory,valuation_completed,listed_for_sale,sold,written_off,released',
         ]);
 
+        $allowedTransitions = [
+            'pledged' => ['seizure_pending'],
+            'seizure_pending' => ['seized_inventory'],
+            'seized_inventory' => ['valuation_completed'],
+            'valuation_completed' => ['listed_for_sale'],
+            'listed_for_sale' => ['written_off'],
+        ];
+
+        $current = $collateral->status;
+        if (!isset($allowedTransitions[$current]) || !in_array($request->new_status, $allowedTransitions[$current])) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['new_status' => 'Invalid status transition from ' . ucfirst($current) . '.']);
+        }
+
         $collateral->status = $request->new_status;
         $now = Carbon::now();
-        if ($request->new_status === 'pledged') {
-            $collateral->pledged_at = $now;
-        } elseif ($request->new_status === 'seized_inventory') {
+        if ($request->new_status === 'seized_inventory') {
             $collateral->seized_at = $now;
         } elseif ($request->new_status === 'valuation_completed') {
             $collateral->valuated_at = $now;
         } elseif ($request->new_status === 'listed_for_sale') {
             $collateral->listed_at = $now;
+        } elseif ($request->new_status === 'written_off') {
+            $collateral->written_off_at = $now;
+        } elseif ($request->new_status === 'pledged') {
+            $collateral->pledged_at = $now;
+        } elseif ($request->new_status === 'released') {
+            $collateral->released_at = $now;
         } elseif ($request->new_status === 'sold') {
             $collateral->sold_at = $now;
             $collateral->date_resold = $now;
-        } elseif ($request->new_status === 'written_off') {
-            $collateral->written_off_at = $now;
-        } elseif ($request->new_status === 'released') {
-            $collateral->released_at = $now;
         }
         $collateral->save();
 
@@ -279,6 +362,23 @@ class CollateralApprovalController extends Controller
         //     Flash::warning('Permission Denied');
         //     return redirect()->back();
         // }
+
+        if ($collateral->status === 'seizure_pending') {
+            $collateral->status = 'seized_inventory';
+            $collateral->seized_at = Carbon::now();
+            $collateral->save();
+
+            AuditTrail::create([
+                'user_id'    => Sentinel::getUser()->id,
+                'action'     => 'seizure_approved',
+                'table_name' => 'collateral',
+                'record_id'  => $collateral->id,
+                'ip_address' => $request->ip(),
+            ]);
+
+            Flash::success('Seizure approved. Status changed to Seized/Inventory.');
+            return redirect()->route('collateral.approvals.queue');
+        }
 
         $collateral->new_approval_status = 1;
         $collateral->save();

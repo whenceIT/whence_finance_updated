@@ -248,7 +248,7 @@
 
     <div class="cd-header">
         <div></div>
-        @if(!in_array($collateral->status, ['sold', 'written_off', 'released']) && ($collateral->new_approval_status == 1 || $role == 1))
+        @if($collateral->status == 'listed_for_sale')
         <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#sellCollateralModal">
             <i class="fa fa-tag" aria-hidden="true"></i> Sell Collateral
         </button>
@@ -562,45 +562,81 @@
             <i class="fa fa-lightbulb-o" style="color: #fefefe; font-size: 16px; margin-top: 2px; flex-shrink: 0;"></i>
             <span class="current-status-summary-text"></span>
         </div>
-        <form method="post" action="{{ route('collateral.request_change', $collateral) }}">
+        @php
+            $workflow = [
+                'pledged' => [
+                    'next' => 'seizure_pending',
+                    'label' => 'Request Seizure',
+                    'roles' => [3, 4],
+                ],
+                'seizure_pending' => [
+                    'next' => 'seized_inventory',
+                    'label' => 'Approve Seizure',
+                    'roles' => [1],
+                ],
+                'seized_inventory' => [
+                    'next' => 'valuation_completed',
+                    'label' => 'Mark as Valuation Completed',
+                    'roles' => [1],
+                ],
+                'valuation_completed' => [
+                    'next' => 'listed_for_sale',
+                    'label' => 'List for Sale',
+                    'roles' => [1],
+                ],
+                'listed_for_sale' => [
+                    'next' => 'written_off',
+                    'label' => 'Write Off',
+                    'roles' => [1],
+                ],
+            ];
+            $currentWorkflow = $workflow[$collateral->status] ?? null;
+            $canAdvance = $currentWorkflow && in_array($role, $currentWorkflow['roles']);
+        @endphp
+        @if($canAdvance)
+        <form method="post" action="{{ route('collateral.workflow.next', $collateral) }}" style="display: inline;">
             {{ csrf_field() }}
             <div class="cd-panel-body cd-form">
                 <div class="form-group">
-                    <label>New Status <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Pledged: Collateral attached to an active loan.&#10;Seizure Pending: Initiated by Branch Manager, awaiting approval and handover.&#10;Seized/Inventory: Physically taken and in central inventory, awaiting evaluation.&#10;Valuation Completed: Independent valuation recorded, not yet sold.&#10;Listed for Sale: Asset is being marketed.&#10;Sold: Asset sold and proceeds received.&#10;Written Off: Asset unsaleable and removed from inventory.&#10;Released: Asset returned to borrower." style="color:#8a94a6;margin-left:4px;cursor:help;"></i></label>
-                    <select name="new_status" class="form-control" required>
-                        @php
-                            $allowedStatuses = match($role) {
-                                1 => ['pledged','seizure_pending','seized_inventory','valuation_completed','listed_for_sale','sold','written_off','released'],
-                                3, 4 => ['pledged','seizure_pending'],
-                                default => [],
-                            };
-                        @endphp
-                        @foreach($allowedStatuses as $statusKey)
-                            <option value="{{ $statusKey }}"{{ $collateral->status == $statusKey ? ' selected' : '' }}>
-                                {{ match($statusKey) {
-                                    'pledged' => 'Pledged',
-                                    'seizure_pending' => 'Seizure Pending',
-                                    'seized_inventory' => 'Seized/Inventory',
-                                    'valuation_completed' => 'Valuation Completed',
-                                    'listed_for_sale' => 'Listed for Sale',
-                                    'sold' => 'Sold',
-                                    'written_off' => 'Written Off',
-                                    'released' => 'Released',
-                                    default => ucfirst($statusKey),
-                                } }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <label>Next Step</label>
+                    <p class="form-control-static" style="margin-top: 7px;">
+                        Current: <strong>{{ match($collateral->status) {
+                            'pledged' => 'Pledged',
+                            'seizure_pending' => 'Seizure Pending',
+                            'seized_inventory' => 'Seized/Inventory',
+                            'valuation_completed' => 'Valuation Completed',
+                            'listed_for_sale' => 'Listed for Sale',
+                            'sold' => 'Sold',
+                            'written_off' => 'Written Off',
+                            'released' => 'Released',
+                            default => ucfirst($collateral->status),
+                        } }}</strong>
+                        → <strong>{{ match($currentWorkflow['next']) {
+                            'seizure_pending' => 'Seizure Pending',
+                            'seized_inventory' => 'Seized/Inventory',
+                            'valuation_completed' => 'Valuation Completed',
+                            'listed_for_sale' => 'Listed for Sale',
+                            'written_off' => 'Written Off',
+                            default => ucfirst($currentWorkflow['next']),
+                        } }}</strong>
+                    </p>
                 </div>
                 <div class="form-group">
-                    <label>Reason</label>
+                    <label>Reason <span style="color: #c0392b;">*</span></label>
                     <textarea name="reason" class="form-control" rows="3" required>{{ old('reason') }}</textarea>
                 </div>
             </div>
             <div class="cd-panel-footer">
-                <button type="submit" class="btn btn-primary">Submit Request</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-arrow-right"></i> {{ $currentWorkflow['label'] }}
+                </button>
             </div>
         </form>
+        @else
+        <div class="cd-panel-body">
+            <p style="color: #8a94a6; font-style: italic;">No workflow action available for your role at this stage.</p>
+        </div>
+        @endif
     </div>
 
     @if($role == 20)
