@@ -6,15 +6,39 @@ $role = Sentinel::getUser()->roles()->first()->id;
 $userPosition = Sentinel::getUser()->position_name;
 ?>
         <div class="box box-primary">
-        <div class="box-header with-border" @if(request('key') === 'admin') style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" @endif>
-            <h3 class="box-title"@if(request('key') === 'admin') style="color: #fff;"@endif>Collateral</h3>
+        @php
+            $headerStyle = '';
+            $headerTextColor = '';
+            if (request('key') === 'admin') {
+                $headerStyle = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);';
+                $headerTextColor = 'color: #fff;';
+            } elseif (request('key') === 'sales') {
+                $headerStyle = 'background: linear-gradient(135deg, #28a745 0%, #20c997 100%);';
+                $headerTextColor = 'color: #fff;';
+            } elseif (request('key') === 'valuation') {
+                $headerStyle = 'background: linear-gradient(135deg, #17a2b8 0%, #0078d4 100%);';
+                $headerTextColor = 'color: #fff;';
+            }
+        @endphp
+        <div class="box-header with-border" @if($headerStyle) style="{{ $headerStyle }}" @endif>
+            <h3 class="box-title"@if($headerTextColor) style="{{ $headerTextColor }}"@endif>Collateral</h3>
             @if($userPosition)
-                <small class="text-muted" style="margin-left: 10px;"@if(request('key') === 'admin') style="color: #e0e0e0; margin-left: 10px;"@endif>({{ $userPosition }})</small>
+                <small class="text-muted" style="margin-left: 10px;"@if($headerTextColor) style="color: #e0e0e0; margin-left: 10px;"@endif>({{ $userPosition }})</small>
             @endif
             @if(request('key') === 'admin')
                 <div style="margin-top: 10px;">
                     <h4 style="margin: 0; font-weight: 600; color: #fff;">Manage Institution Disposal Assets</h4>
                     <p style="margin: 0; font-size: 12px; color: #e0e0e0;">collateral loans that are currently seized by the institution from defaulted loans and ran away clients</p>
+                </div>
+            @elseif(request('key') === 'sales')
+                <div style="margin-top: 10px;">
+                    <h4 style="margin: 0; font-weight: 600; color: #fff;">Sales and Listings</h4>
+                    <p style="margin: 0; font-size: 12px; color: #e0e0e0;">collateral in the valuation completed, listed for sale, and sold stages</p>
+                </div>
+            @elseif(request('key') === 'valuation')
+                <div style="margin-top: 10px;">
+                    <h4 style="margin: 0; font-weight: 600; color: #fff;">Valuation Pending</h4>
+                    <p style="margin: 0; font-size: 12px; color: #e0e0e0;">collateral currently awaiting valuation</p>
                 </div>
             @endif
             @if($role == 3 || $role == 4)
@@ -32,6 +56,13 @@ $userPosition = Sentinel::getUser()->position_name;
                         <option value="valuation_completed"{{ request('status') == 'valuation_completed' ? ' selected' : '' }}>Valuation Completed</option>
                         <option value="listed_for_sale"{{ request('status') == 'listed_for_sale' ? ' selected' : '' }}>Listed for Sale</option>
                         <option value="written_off"{{ request('status') == 'written_off' ? ' selected' : '' }}>Written Off</option>
+                    @elseif(request('key') === 'sales')
+                        <option value="">All Statuses</option>
+                        <option value="valuation_completed"{{ request('status') == 'valuation_completed' ? ' selected' : '' }}>Valuation Completed</option>
+                        <option value="listed_for_sale"{{ request('status') == 'listed_for_sale' ? ' selected' : '' }}>Listed for Sale</option>
+                        <option value="sold"{{ request('status') == 'sold' ? ' selected' : '' }}>Sold</option>
+                    @elseif(request('key') === 'valuation')
+                        <option value="seized_inventory"{{ request('status') == 'seized_inventory' ? ' selected' : '' }}>Seized/Inventory</option>
                     @else
                         <option value="">All Statuses</option>
                         <option value="pledged"{{ request('status') == 'pledged' ? ' selected' : '' }}>Pledged</option>

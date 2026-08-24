@@ -165,6 +165,7 @@ if (!Sentinel::check()) {
                         </span>
                     </a>
                     <ul class="treeview-menu">
+                        <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approvals</a></li>
                         <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i> Inventory/ Disposals</a></li>
                         <li><a href="{{ route('collateral.index', ['key' => 'sales']) }}"><i class="fa fa-circle-o"></i> Sales and Listings</a></li>
                         <li><a href="{{ route('collateral.index', ['key' => 'valuation']) }}"><i class="fa fa-circle-o"></i> Valuation Pending</a></li>

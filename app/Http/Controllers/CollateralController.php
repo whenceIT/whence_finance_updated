@@ -102,8 +102,14 @@ class CollateralController extends Controller
         }
 
         // --- Filters ---
-        if ($request->filled('key') && $request->key === 'admin') {
-            $query->whereIn('status', ['seized_inventory', 'valuation_completed', 'listed_for_sale', 'written_off']);
+        if ($request->filled('key')) {
+            if ($request->key === 'admin') {
+                $query->whereIn('status', ['seized_inventory', 'valuation_completed', 'listed_for_sale', 'written_off']);
+            } elseif ($request->key === 'sales') {
+                $query->whereIn('status', ['valuation_completed', 'listed_for_sale', 'sold']);
+            } elseif ($request->key === 'valuation') {
+                $query->where('status', 'seized_inventory');
+            }
         }
 
         if ($request->filled('status')) {
