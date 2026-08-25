@@ -165,12 +165,18 @@ if (!Sentinel::check()) {
                         </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approvals</a></li>
-                        <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i> Inventory/ Disposals</a></li>
-                        <li><a href="{{ route('collateral.index', ['key' => 'sales']) }}"><i class="fa fa-circle-o"></i> Sales and Listings</a></li>
-                        <li><a href="{{ route('collateral.index', ['key' => 'valuation']) }}"><i class="fa fa-circle-o"></i> Valuation Pending</a></li>
 
-                        @if($role == 1)
+                        <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i> Inventory/ Disposals</a></li>
+                        @if(Sentinel::getUser()->isCollateralValuator())
+                        <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Seizure Pending</a></li>
+                        @endif
+                        @if(Sentinel::getUser()->isCollateralSupervisor())
+                        <li><a href="{{ route('collateral.index', ['key' => 'sales']) }}"><i class="fa fa-circle-o"></i> Sales and Listings</a></li>
+                        @endif       
+                        @if(Sentinel::getUser()->isCollateralValuator())
+                        <li><a href="{{ route('collateral.index', ['key' => 'valuation']) }}"><i class="fa fa-circle-o"></i> Valuation Pending</a></li>
+                        @endif
+                        @hasRole('role.exec')
                             <li>
                                 <a href="{{ route('collateral.setup') }}"><i class="fa fa-circle-o"></i> Setup</a>
                             </li>
@@ -359,6 +365,7 @@ if (!Sentinel::check()) {
                     </li>
                     @endif
 
+                    @if(in_array($role, [3,4,6,1]))
                     <li class="treeview @if(Request::routeIs('collateral.*')) active menu-open @endif" style="padding-left: 10px;">
                         <a href="#">
                             <i class="fa fa-shield"></i> <span>Collateral</span>
@@ -370,15 +377,15 @@ if (!Sentinel::check()) {
                             <li>
                                 <a href="{{ route('collateral.index') }}"><i class="fa fa-circle-o"></i> View Collateral <span class="label label-success pull-right">{{ $collateralCount }}</span></a>
                             </li>
-                            
+                            <li>
+                                <a href="{{ route('collateral.create') }}"><i class="fa fa-circle-o"></i> Add Collateral</a>
+                            </li>
                             @if($role == 3)
                             <li>
                                 <a href="{{ route('collateral.my') }}"><i class="fa fa-circle-o"></i> My Analytics</a>
                             </li>
                             @endif
-                            <li><a href="{{ route('collateral.create') }}"><i class="fa fa-circle-o"></i> Add Collateral</a>
 
-                            </li>
                             @if($role == 1)
                                 <li><a href="{{ route('collateral.analytics.executive') }}"><i class="fa fa-circle-o"></i> Executive Analytics</a>
                                      </li>
@@ -395,12 +402,13 @@ if (!Sentinel::check()) {
                                 <li><a href="{{ route('collateral.analytics.branch') }}"><i class="fa fa-circle-o"></i> Branch Analytics</a>
                                      </li>
                             @endif
-                            <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Approvals</a></li>
-
+                            @if($role == 4)
+                            <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i>Collateral Approvals</a></li>
+                            @endif
                         </ul>
                     </li>
-
-
+                    @endif
+                    
                     <!-- Loan Applications -->
                     @if(Sentinel::hasAccess('loans.create'))
                         <li style="padding-left: 10px;">

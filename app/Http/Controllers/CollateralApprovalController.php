@@ -182,6 +182,15 @@ class CollateralApprovalController extends Controller
         } elseif ($step['next'] === 'released') {
             $collateral->released_at = $now;
         }
+
+        if ($current === 'seized_inventory' && $step['next'] === 'valuation_completed') {
+            if ($request->has('current_worth')) {
+                $collateral->current_worth = $request->current_worth;
+            }
+            if ($request->has('disposal_costs')) {
+                $collateral->disposal_costs = $request->disposal_costs;
+            }
+        }
         $collateral->save();
 
         AuditTrail::create([

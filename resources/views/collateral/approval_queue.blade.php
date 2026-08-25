@@ -1,24 +1,34 @@
 @extends('layouts.master')
 @section('title', 'Collateral Approval Queue')
 @section('content')
+    @php
+        $isValuator = Sentinel::getUser()->isCollateralValuator();
+        $showWriteOff = in_array($roleId, [1]);
+        $showRelease = in_array($roleId, [4]);
+        $activeTab = $isValuator ? 'seizure-pending-tab' : ($showWriteOff ? 'pending-written-off-tab' : ($showRelease ? 'release-pending-tab' : ''));
+    @endphp
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">Collateral Approval Queue</h3>
         </div>
         <div class="box-body">
             <ul class="nav nav-tabs" role="tablist">
-                <li role="presentation" class="active">
+                @if($isValuator)
+                <li role="presentation" class="@if($activeTab === 'seizure-pending-tab') active @endif">
                     <a href="#seizure-pending-tab" aria-controls="seizure-pending-tab" role="tab" data-toggle="tab">
                         Seizure Pending <span class="badge">{{ $seizurePending->count() }}</span>
                     </a>
                 </li>
-                <li role="presentation">
+                @endif
+                @hasRole('role.exec')
+                <li role="presentation" class="@if($activeTab === 'pending-written-off-tab') active @endif">
                     <a href="#pending-written-off-tab" aria-controls="pending-written-off-tab" role="tab" data-toggle="tab">
                         Pending Write Off <span class="badge">{{ $pendingWrittenOff->count() }}</span>
                     </a>
                 </li>
-                @if(in_array($roleId, [1, 4, 6]))
-                <li role="presentation">
+                @endif
+                @if($showRelease)
+                <li role="presentation" class="@if($activeTab === 'release-pending-tab') active @endif">
                     <a href="#release-pending-tab" aria-controls="release-pending-tab" role="tab" data-toggle="tab">
                         Release Pending <span class="badge">{{ $releasePending->count() }}</span>
                     </a>
@@ -29,7 +39,8 @@
             <div class="tab-content" style="margin-top: 20px;">
 
                 <!-- Seizure Pending Tab -->
-                <div role="tabpanel" class="tab-pane active" id="seizure-pending-tab">
+                @if($isValuator)
+                <div role="tabpanel" class="tab-pane @if($activeTab === 'seizure-pending-tab') active @endif" id="seizure-pending-tab">
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
                             <thead>
@@ -73,9 +84,11 @@
                         </table>
                     </div>
                 </div>
+                @endif
 
                 <!-- Pending Write Off Tab -->
-                <div role="tabpanel" class="tab-pane" id="pending-written-off-tab">
+                @if($showWriteOff)
+                <div role="tabpanel" class="tab-pane @if($activeTab === 'pending-written-off-tab') active @endif" id="pending-written-off-tab">
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
                             <thead>
@@ -115,10 +128,11 @@
                         </table>
                     </div>
                 </div>
+                @endif
 
                 <!-- Release Pending Tab -->
-                @if(in_array($roleId, [1, 4, 6]))
-                <div role="tabpanel" class="tab-pane" id="release-pending-tab">
+                @if($showRelease)
+                <div role="tabpanel" class="tab-pane @if($activeTab === 'release-pending-tab') active @endif" id="release-pending-tab">
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
                             <thead>

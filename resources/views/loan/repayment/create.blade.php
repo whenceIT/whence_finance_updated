@@ -57,7 +57,9 @@
                                class="form-control"
                                value="{{$balance}}"
                                required id="amount"
-                               max="{{$balance}}"
+                                @if($loan->loan_product_id != 0)
+                                max="{{ $balance }}"
+                                @endif
                                >
                     </div>
                 </div>

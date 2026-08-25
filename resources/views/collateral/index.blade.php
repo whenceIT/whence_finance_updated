@@ -182,18 +182,18 @@ $userPosition = Sentinel::getUser()->position_name;
                 <table class="table table-bordered table-striped">
                     <thead>
                               <tr>
-                                  <th>Name</th>
-                                  <th>Loan ID</th>
-                                  <th>Type</th>
-                                  <th>Status</th>
-                                   <th>Condition</th>
-                                   <th>Purchased</th>
-                                  <th>Current Worth<br><small style="font-weight:normal;">Approved collateral value</small></th>
-                                   <th>Sold Price</th>
+                                <th>Name</th>
+                                <th>Loan ID</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Condition</th>
+                                <th>Purchased</th>
+                                <th>Current Worth<br><small style="font-weight:normal;">Approved collateral value</small></th>
+                                <th>Sold Price</th>
                                 <th>Disposal Costs</th>
                                 <th>Created By</th>
                                 <th>Office</th>
-                                   <th>Actions</th>
+                                <th>Actions</th>
                               </tr>
                     </thead>
                     <tbody>
@@ -250,7 +250,7 @@ $userPosition = Sentinel::getUser()->position_name;
                                     <td>{{ $item->loan?->office?->name }}</td>
                                   <td>
                                      <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
-                                      @if((Sentinel::getUser()->id == $item->created_by_id) || $role == 1)
+                                      @if($role == 1 || (Sentinel::getUser()->id == $item->created_by_id && $item->status === 'pledged') || ($role == 4 && in_array($item->status, ['pledged', 'seizure_pending'])))
                                           <a href="{{ route('collateral.edit', $item) }}" class="btn btn-xs btn-warning">Edit</a>
                                           <form action="{{ route('collateral.destroy', $item) }}" method="POST" style="display:inline;">
                                               @csrf

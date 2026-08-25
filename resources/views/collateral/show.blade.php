@@ -1,11 +1,13 @@
 @extends('layouts.master')
 @section('content')
-<?php
+@php
     $userInfo = \App\Helpers\GeneralHelper::get_user_info();
     $user = $userInfo->user;
     $role = $userInfo->role;
-?>
 
+    $isValuator = Sentinel::getUser()->isCollateralValuator();
+    $isSupervisor = Sentinel::getUser()->isCollateralSupervisor();
+@endphp
 <style>
     .cd-wrap { max-width: 1100px; margin: 0 auto; }
 
@@ -248,7 +250,7 @@
 
     <div class="cd-header">
         <div></div>
-        @if($collateral->status == 'listed_for_sale')
+        @if($isSupervisor && $collateral->status == 'listed_for_sale')
         <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#sellCollateralModal">
             <i class="fa fa-tag" aria-hidden="true"></i> Sell Collateral
         </button>
@@ -637,6 +639,35 @@
                         <label>Reason <span style="color: #c0392b;">*</span></label>
                         <textarea name="reason" class="form-control" rows="3" required>{{ old('reason') }}</textarea>
                     </div>
+                    @if($collateral->status === 'seized_inventory')
+                        <div class="form-group">
+                            <label>Current Worth <small class="text-muted">(Leave empty to keep current value: {{ number_format($collateral->current_worth, 2) }})</small></label>
+                            <input type="number" name="current_worth" class="form-control" step="0.01" min="0" value="{{ old('current_worth', $collateral->current_worth) }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Disposal Costs</label>
+                            <div id="workflow-disposal-costs-container">
+                                @if($collateral->disposal_costs && is_array($collateral->disposal_costs))
+                                    @foreach($collateral->disposal_costs as $index => $cost)
+                                        <div class="disposal-cost-item" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                                            <input type="text" name="disposal_costs[{{ $index }}][name]" class="form-control disposal-cost-name" placeholder="Cost item (e.g. Security)" style="flex: 2;" value="{{ $cost['name'] ?? '' }}">
+                                            <input type="number" name="disposal_costs[{{ $index }}][amount]" class="form-control disposal-cost-amount" placeholder="Amount" step="0.01" min="0" style="flex: 1;" value="{{ $cost['amount'] ?? 0 }}">
+                                            <button type="button" class="btn btn-danger btn-sm remove-cost-btn">&times;</button>
+                                        </div>
+                                    @endforeach
+                                @endif
+                                <div class="disposal-cost-item" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                                    <input type="text" name="disposal_costs[{{ $collateral->disposal_costs ? count($collateral->disposal_costs) : 0 }}][name]" class="form-control disposal-cost-name" placeholder="Cost item (e.g. Security)" style="flex: 2;">
+                                    <input type="number" name="disposal_costs[{{ $collateral->disposal_costs ? count($collateral->disposal_costs) : 0 }}][amount]" class="form-control disposal-cost-amount" placeholder="Amount" step="0.01" min="0" style="flex: 1;">
+                                    <button type="button" class="btn btn-danger btn-sm remove-cost-btn">&times;</button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-default btn-sm" id="workflow-add-cost-btn" style="margin-top: 5px;">
+                                <i class="fa fa-plus"></i> Add Cost Item
+                            </button>
+                            <small class="form-help-text">Expenses incurred during collateral disposal</small>
+                        </div>
+                    @endif
                 </div>
             </form>
             <div class="cd-panel-footer" style="display: flex; gap: 10px; align-items: center;">
@@ -861,6 +892,16 @@ $(document).ready(function() {
     $(document).on('click', '.remove-cost-btn', function() {
         $(this).closest('.disposal-cost-item').remove();
         updateSellAnalysis();
+    });
+
+    $('#workflow-add-cost-btn').on('click', function() {
+        var index = $('#workflow-disposal-costs-container .disposal-cost-item').length;
+        var html = '<div class="disposal-cost-item" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">' +
+            '<input type="text" name="disposal_costs[' + index + '][name]" class="form-control disposal-cost-name" placeholder="Cost item (e.g. Security)" style="flex: 2;">' +
+            '<input type="number" name="disposal_costs[' + index + '][amount]" class="form-control disposal-cost-amount" placeholder="Amount" step="0.01" min="0" style="flex: 1;">' +
+            '<button type="button" class="btn btn-danger btn-sm remove-cost-btn">&times;</button>' +
+            '</div>';
+        $('#workflow-disposal-costs-container').append(html);
     });
 
     $('#sell-preview-btn').on('click', function(e) {
