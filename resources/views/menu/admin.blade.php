@@ -106,6 +106,7 @@ if (!Sentinel::check()) {
                     <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i>GOA Dashboard</a></li>
                     <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Motor Vehicles Dashboard</a></li>
                     <li><a href="{{ url('payrollloans/dashboard') }}"><i class="fa fa-circle-o"></i>Payroll Loans Dashboard</a></li>
+                    <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Collateral Assets Dashboard</a></li>
                 </ul>
             </li>
             @endif
@@ -156,7 +157,7 @@ if (!Sentinel::check()) {
             @endif
 
             <!-- Collateral Management -->
-            @if(Sentinel::getUser()->isCollateralSupervisor() || Sentinel::getUser()->isCollateralValuator() || $role == 1)
+            @if(Sentinel::getUser()->isCollateralSupervisor() || Sentinel::getUser()->isCollateralValuator())
                 <li class="treeview">
                     <a href="#">
                         <i class="fa fa-folder"></i> <span>Collateral Management</span>
@@ -165,8 +166,6 @@ if (!Sentinel::check()) {
                         </span>
                     </a>
                     <ul class="treeview-menu">
-
-                        <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i> Inventory/ Disposals</a></li>
                         @if(Sentinel::getUser()->isCollateralValuator())
                         <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i> Seizure Pending</a></li>
                         @endif

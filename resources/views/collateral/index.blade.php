@@ -55,6 +55,7 @@ $userPosition = Sentinel::getUser()->position_name;
                         <option value="seized_inventory"{{ request('status') == 'seized_inventory' ? ' selected' : '' }}>Seized/Inventory</option>
                         <option value="valuation_completed"{{ request('status') == 'valuation_completed' ? ' selected' : '' }}>Valuation Completed</option>
                         <option value="listed_for_sale"{{ request('status') == 'listed_for_sale' ? ' selected' : '' }}>Listed for Sale</option>
+                        <option value="sold"{{ request('status') == 'sold' ? ' selected' : '' }}>Sold</option>
                         <option value="written_off"{{ request('status') == 'written_off' ? ' selected' : '' }}>Written Off</option>
                     @elseif(request('key') === 'sales')
                         <option value="">All Statuses</option>
@@ -141,37 +142,39 @@ $userPosition = Sentinel::getUser()->position_name;
                         'seized_inventory' => 'Seized/Inventory',
                         'valuation_completed' => 'Valuation Completed',
                         'listed_for_sale' => 'Listed for Sale',
+                        'sold' => 'Sold',
                         'written_off' => 'Written Off',
                     ];
                 @endphp
                 @foreach($statLabels as $statusKey => $label)
                     <div class="col-md-2 col-sm-3 col-xs-6">
-                        <div class="small-box" style="background: #f8f9fa; border: 1px solid #dee2e6;">
-                            <div class="inner">
-                                <h4 style="margin: 0; font-weight: 600; color: #495057;">{{ number_format($disposalStats[$statusKey]['count']) }}</h4>
-                                <p style="margin: 4px 0 0; font-size: 12px; color: #6c757d;">Count</p>
-                                <h4 style="margin: 8px 0 0; font-weight: 600; color: #495057;">{{ number_format($disposalStats[$statusKey]['sum'], 2) }}</h4>
-                                <p style="margin: 4px 0 0; font-size: 12px; color: #6c757d;">Current Worth</p>
+                        <div class="stat-card"
+                             style="background: #fff; border: 1px solid #e9ecef; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s; height: 100%;">
+                            <div class="inner" style="padding: 16px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <i class="fa fa-tag" style="font-size: 14px; color: #6c757d; margin-right: 6px;"></i>
+                                    <span style="font-size: 9px; color: #6c757d; text-transform: uppercase; letter-spacing: 0.05em;">{{ $label }}</span>
+                                </div>
+                                <h4 style="margin: 0; font-weight: 600; color: #495057; font-size: 24px;">{{ number_format($disposalStats[$statusKey]['count']) }}</h4>
+                                <p style="margin: 4px 0 0; font-size: 11px; color: #6c757d;">Count</p>
+                                <h4 style="margin: 8px 0 0; font-weight: 600; color: #495057; font-size: 18px;">{{ number_format($disposalStats[$statusKey]['sum'], 2) }}</h4>
+                                <p style="margin: 4px 0 0; font-size: 11px; color: #6c757d;">Current Worth</p>
                             </div>
-                            <div class="icon">
-                                <i class="fa fa-tag" style="color: #6c757d;"></i>
-                            </div>
-                            <a href="{{ route('collateral.index', array_merge(request()->all(), ['status' => $statusKey])) }}" class="small-box-footer" style="font-size: 12px;">
-                                {{ $label }}
-                            </a>
                         </div>
                     </div>
                 @endforeach
                 <div class="col-md-2 col-sm-3 col-xs-6">
-                    <div class="small-box" style="background: #667eea; border: 1px solid #764ba2;">
-                        <div class="inner">
-                            <h4 style="margin: 0; font-weight: 600; color: #fff;">{{ number_format($totalCount) }}</h4>
-                            <p style="margin: 4px 0 0; font-size: 12px; color: #e0e0e0;">Total Count</p>
-                            <h4 style="margin: 8px 0 0; font-weight: 600; color: #fff;">{{ number_format($totalWorth, 2) }}</h4>
-                            <p style="margin: 4px 0 0; font-size: 12px; color: #e0e0e0;">Total Worth</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fa fa-cube" style="color: #e0e0e0;"></i>
+                    <div class="stat-card"
+                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s; height: 100%;">
+                        <div class="inner" style="padding: 16px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <i class="fa fa-chart-pie" style="font-size: 14px; color: #e0e0e0; margin-right: 6px;"></i>
+                                <span style="font-size: 12px; color: #e0e0e0; text-transform: uppercase; letter-spacing: 0.05em;">Total</span>
+                            </div>
+                            <h4 style="margin: 0; font-weight: 600; color: #fff; font-size: 24px;">{{ number_format($totalCount) }}</h4>
+                            <p style="margin: 4px 0 0; font-size: 11px; color: #e0e0e0;">Count</p>
+                            <h4 style="margin: 8px 0 0; font-weight: 600; color: #fff; font-size: 18px;">{{ number_format($totalWorth, 2) }}</h4>
+                            <p style="margin: 4px 0 0; font-size: 11px; color: #e0e0e0;">Total Worth</p>
                         </div>
                     </div>
                 </div>

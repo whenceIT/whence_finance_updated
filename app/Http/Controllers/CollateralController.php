@@ -210,7 +210,7 @@ class CollateralController extends Controller
         $loans = $loansQuery->get();
 
         // --- Stats for admin disposal view ---
-        $adminStatuses = ['seized_inventory', 'valuation_completed', 'listed_for_sale', 'written_off'];
+        $adminStatuses = ['seized_inventory', 'valuation_completed', 'listed_for_sale', 'sold', 'written_off'];
         $disposalStats = [];
         $totalCount = 0;
         $totalWorth = 0;
