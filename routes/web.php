@@ -52,9 +52,11 @@ use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\ApprovalWorkflowController;
 use App\Http\Controllers\AdministrationExpenseController;
 use App\Http\Controllers\BankAccountExpenseController;
+use App\Http\Controllers\CashHealthController;
 use App\Http\Controllers\SmsController;
 use Firebase\JWT\Key;
 use App\Http\Controllers\CashParameterController;
+
 
 Route::model('client', 'App\Models\Client');
 Route::model('user', 'App\Models\User');
@@ -240,6 +242,26 @@ Route::group(['prefix' => 'learning', 'middleware' => 'sentinel'], function () {
     Route::get('/settings/courses/{id}/details', [LearningSettingController::class, 'getCourseDetails'])->name('learning.settings.courses.details');
     Route::get('/settings/courses/resource-preview', [LearningSettingController::class, 'resourcePreview'])->name('learning.settings.courses.resource-preview');
 Route::post('/settings/set-content-push-mode', [PlatformController::class, 'setContentPushMode'])->name('learning.settings.set-content-push-mode');
+});
+
+
+Route::group(['prefix' => 'cash_health'], function () {
+
+    Route::get(
+        '/show/{id}',
+        'CashHealthController@show'
+    )->name('cash_health.show');
+
+    Route::get(
+        'district/{district}',
+        'CashHealthController@district'
+    )->name('cash_health.district');
+
+        Route::get(
+        'province/{province}',
+        'CashHealthController@province'
+    )->name('cash_health.province');
+
 });
 
 Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {
@@ -1513,6 +1535,8 @@ Route::post(
 )->name('executive-ledger.data'); 
 });
 
+
+
 Route::group(['prefix' => 'performance_metrics'], function () {
     Route::get('/', [PerformanceMetricsController::class, 'index'])->name('performance_metrics.index');
     Route::get('/targets', [PerformanceMetricsController::class, 'targets'])->name('performance_metrics.targets');
@@ -1525,6 +1549,9 @@ Route::group(['prefix' => 'performance_metrics'], function () {
         'lowPerformance'
     ])->name('performance_metrics.low_performance');
     Route::get('/defaulted', [PerformanceMetricsController::class, 'defaulted'])->name('performance_metrics.defaulted');
+
+       Route::get('/hello/{office}', [CashHealthController::class, 'show'])
+    ->name('cash-health.show');
 });
 
 //resignation routes
