@@ -39,6 +39,36 @@ Route::prefix('api/provincial-ledger')->group(function () {
     Route::delete('/{id}', [\App\Http\Controllers\ProvincialLedgerApiController::class, 'destroy'])->name('api.provincial-ledger.destroy');
 });
 
+Route::get('/loan-vetted-by/{loanId}', function ($loanId) {
+    $loan = \App\Models\Loan::find($loanId);
+    if (!$loan || !$loan->vetted_by) {
+        return response()->json([
+            'success' => false,
+            'data' => null,
+            'veted_by' => $loan->vetted_by,
+            'message'=> 'first'
+        ]);
+    }
+    $user = \App\Models\User::find($loan->vetted_by);
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'data' => null,
+            'veted_by' => $loan->vetted_by,
+            'message'=> 'second'
+        ]);
+    }
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'id'         => $user->id,
+            'first_name' => $user->first_name,
+            'last_name'  => $user->last_name,
+            'name'       => $user->first_name . ' ' . $user->last_name,
+        ],
+    ]);
+});
+
 Route::get('/provinces', function () {
     return response()->json([
         'success' => true,

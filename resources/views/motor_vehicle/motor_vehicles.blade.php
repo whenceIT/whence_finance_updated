@@ -115,6 +115,7 @@
 
                         <tr>
                             <th>ID</th>
+                            <th>Image</th>
                             <th>Vehicle Code</th>
                             <th>Owner</th>
                             <th>Registration</th>
@@ -140,10 +141,22 @@
                             </td>
 
                                 <td>
-                                   
-                                        {{ $vehicle->vehicle_code }}
-                                
+                                    @if($vehicle && $vehicle->photos->isNotEmpty())
+                                        <img src="{{ $vehicle->photos->first()->photo_url }}"
+                                             class="vehicle-photo-thumb"
+                                             data-photos='@json($vehicle->photos->pluck("photo_url"))'
+                                             style="height: 50px; width: auto; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                                             alt="Vehicle photo">
+                                    @else
+                                        <span class="text-muted">No photo</span>
+                                    @endif
                                 </td>
+
+                                <td>
+                                    
+                                         {{ $vehicle->vehicle_code }}
+                                 
+                                 </td>
 
                                 <td>
                                     {{ optional($vehicle->client)->first_name }}
@@ -210,8 +223,94 @@
 
             </div>
 
-        </div>
-
     </div>
 
-@endsection 
+</div>
+
+<div class="modal fade" id="vehiclePhotoModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width: auto; max-width: 90%;">
+        <div class="modal-content" style="background: transparent; box-shadow: none; border: none;">
+            <div class="modal-body" style="padding: 0; position: relative;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; top: -30px; right: 0; color: #fff; font-size: 30px; z-index: 10;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <img id="vehicleModalImage" src="" alt="Vehicle photo" style="width: 100%; max-height: 75vh; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;">
+                <button type="button" class="btn btn-default btn-lg" id="vehicleModalPrev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.8;">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+                <button type="button" class="btn btn-default btn-lg" id="vehicleModalNext" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); opacity: 0.8;">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+                <div id="vehicleModalThumbs" style="display: flex; justify-content: center; gap: 8px; margin-top: 12px; overflow-x: auto; padding: 8px 0;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const modal = document.getElementById('vehiclePhotoModal');
+    const modalImg = document.getElementById('vehicleModalImage');
+    const prevBtn = document.getElementById('vehicleModalPrev');
+    const nextBtn = document.getElementById('vehicleModalNext');
+    const thumbsContainer = document.getElementById('vehicleModalThumbs');
+    let photos = [];
+    let currentIndex = 0;
+
+    function updateImage(index) {
+        if (!photos.length) return;
+        currentIndex = (index + photos.length) % photos.length;
+        modalImg.style.transition = 'opacity 0.25s ease';
+        modalImg.style.opacity = '0';
+        setTimeout(() => {
+            modalImg.src = photos[currentIndex];
+            modalImg.onload = () => {
+                modalImg.style.opacity = '1';
+            };
+        }, 250);
+        updateThumbs();
+    }
+
+    function updateThumbs() {
+        thumbsContainer.innerHTML = '';
+        photos.forEach((url, idx) => {
+            const thumb = document.createElement('img');
+            thumb.src = url;
+            thumb.style.height = '50px';
+            thumb.style.width = 'auto';
+            thumb.style.objectFit = 'cover';
+            thumb.style.borderRadius = '4px';
+            thumb.style.cursor = 'pointer';
+            thumb.style.opacity = idx === currentIndex ? '1' : '0.5';
+            thumb.style.transition = 'opacity 0.2s';
+            thumb.onclick = () => updateImage(idx);
+            thumbsContainer.appendChild(thumb);
+        });
+    }
+
+    prevBtn.onclick = () => updateImage(currentIndex - 1);
+    nextBtn.onclick = () => updateImage(currentIndex + 1);
+
+    document.querySelectorAll('.vehicle-photo-thumb').forEach(img => {
+        img.addEventListener('click', function() {
+            try {
+                photos = JSON.parse(this.getAttribute('data-photos') || '[]');
+            } catch (e) {
+                photos = [];
+            }
+            if (!photos.length) return;
+            currentIndex = 0;
+            updateImage(0);
+            $(modal).modal('show');
+        });
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (!$(modal).data('bs.modal')?.isShown) return;
+        if (e.key === 'ArrowLeft') updateImage(currentIndex - 1);
+        if (e.key === 'ArrowRight') updateImage(currentIndex + 1);
+    });
+})();
+</script>
+
+@endsection

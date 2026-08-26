@@ -733,6 +733,7 @@ $userInfo = \App\Helpers\GeneralHelper::get_user_info();
 $user = $userInfo->user;
 $role = $userInfo->role;
 $office = $userInfo->office;
+$pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class)->getPendingForCurrentUser();
 ?>
 <div class="modal fade" id="announcementModal" role="dialog">
     <div class="modal-dialog" role="document">
@@ -754,6 +755,8 @@ $office = $userInfo->office;
         </div>
     </div>
 </div>
+
+@include('components.approve-custody-modal')
 
 <style>
     #announcementModal {
@@ -967,12 +970,19 @@ $office = $userInfo->office;
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
                     <!-- Add a Notification  -->
-                    <a href="#" onclick="toggleNotificationDropdown(event); return false;"
-                        style="margin-top:2px; margin-right: 90px; color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
-                        <i class="fa fa-bell" style="font-size: 18px;"></i>
-                        <span id="notificationBadgeDesk"
-                            style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
-                    </a>
+                <a href="#" onclick="toggleNotificationDropdown(event); return false;"
+                    style="margin-top:2px; margin-right: 90px; color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                    <i class="fa fa-bell" style="font-size: 18px;"></i>
+                    <span id="notificationBadgeDesk"
+                        style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
+                </a>
+                <a href="#" id="custodyApprovalIndicator" onclick="return false;"
+                    style="margin-top:2px; margin-right: 20px; color: #ffffff; position: absolute; right: 120px; display: none; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,193,7,0.9); text-decoration: none; border: none; cursor: pointer;"
+                    title="Pending Vehicle Custody Approval">
+                    <i class="fa fa-car" style="font-size: 18px;"></i>
+                    <span id="custodyApprovalBadge"
+                        style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
+                </a>
                     <ul class="nav navbar-nav">
                         @if($user)
                             <!-- User Account: style can be found in dropdown.less -->
@@ -1356,11 +1366,10 @@ $office = $userInfo->office;
                 .catch(err => {
                     // Silently fail - announcement is not critical
                     console.log("Announcement service unavailable");
-                });
-
+            });
         });
-    </script>
 
+    </script>
 
     @if ($role && in_array($role, ['1', '6', '4']))
         <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -2014,6 +2023,129 @@ $office = $userInfo->office;
     @include('components.notification')
 
     @include('components.deposit-payment-blocker')
+
+
+  
+    @if($pendingCollateralApprovals->isNotEmpty())
+    <div class="modal fade" id="approveCollateralModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h4 class="modal-title text-white">Approve Collateral</h4>
+                </div>
+                <div class="modal-body">
+                    <p id="approve-collateral-message">Approve Collateral: Accept and approve that Loan Collateral <strong id="approve-collateral-name"></strong> was inspected, vetted and valuated by you. Vetted Valuation: <strong id="approve-collateral-valuation"></strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="decline-collateral-btn">Decline</button>
+                    <button type="button" class="btn btn-primary" id="accept-collateral-btn">Accept</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if($pendingCollateralApprovals->isNotEmpty())
+    <script>
+        var pendingCollaterals = @json($pendingCollateralApprovals->map(function($c) {
+            return ['id' => $c->id, 'name' => $c->name ?? 'unknown', 'vetted_valuation' => $c->vetted_valuation ?? 0];
+        }));
+        var currentPendingIndex = 0;
+
+        function showApproveCollateralModal() {
+            if (currentPendingIndex < pendingCollaterals.length) {
+                var item = pendingCollaterals[currentPendingIndex];
+                $('#approve-collateral-name').text(item.name);
+                $('#approve-collateral-valuation').text(item.vetted_valuation);
+                $('#approveCollateralModal').modal('show');
+            } else {
+                currentPendingIndex = 0;
+                location.reload();
+            }
+        }
+
+        $(document).ready(function() {
+            $('#accept-collateral-btn').click(function() {
+                if (!pendingCollaterals[currentPendingIndex]) return;
+                var collateralId = pendingCollaterals[currentPendingIndex].id;
+                $.post('/collateral/' + collateralId + '/vetted-approve', {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                }, function(response) {
+                    currentPendingIndex++;
+                    showApproveCollateralModal();
+                }).fail(function() {
+                    currentPendingIndex++;
+                    showApproveCollateralModal();
+                });
+            });
+
+            $('#decline-collateral-btn').click(function() {
+                if (!pendingCollaterals[currentPendingIndex]) return;
+                var collateralId = pendingCollaterals[currentPendingIndex].id;
+                $.post('/collateral/' + collateralId + '/vetted-decline', {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                }, function(response) {
+                    currentPendingIndex++;
+                    showApproveCollateralModal();
+                }).fail(function() {
+                    currentPendingIndex++;
+                    showApproveCollateralModal();
+                });
+            });
+
+            showApproveCollateralModal();
+        });
+    </script>
+    @endif
+    <!-- Vehicle Custody Approval Check -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($user)
+        // Handle custody approval indicator click
+        const custodyIndicator = document.getElementById('custodyApprovalIndicator');
+        if (custodyIndicator) {
+            custodyIndicator.addEventListener('click', function(e) {
+                e.preventDefault();
+                fetch('/vehicle-custody/pending-approval')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.data && data.data.length > 0) {
+                            if (typeof showApproveCustodyModal === 'function') {
+                                showApproveCustodyModal(data.data[0]);
+                            }
+                        }
+                    });
+            });
+        }
+
+        // Auto-show modal on page load if there are pending approvals
+        fetch('/vehicle-custody/pending-approval')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.length > 0) {
+                    // Update badge
+                    const badge = document.getElementById('custodyApprovalBadge');
+                    const indicator = document.getElementById('custodyApprovalIndicator');
+                    if (badge && indicator) {
+                        badge.textContent = data.data.length;
+                        badge.style.display = 'inline';
+                        indicator.style.display = 'flex';
+                    }
+                    
+                    // Show modal for the first pending approval after a short delay
+                    setTimeout(function() {
+                        if (typeof showApproveCustodyModal === 'function') {
+                            showApproveCustodyModal(data.data[0]);
+                        }
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error checking custody approvals:', error);
+            });
+        @endif
+    });
+    </script>
 
 </body>
 

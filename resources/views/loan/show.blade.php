@@ -242,7 +242,7 @@
     </h3>
 
     <div class="box-tools pull-right">
-        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+        <a href="{{ url('vehicles/'.optional($vehicle)->id.'') }}" class="btn btn-primary btn-sm">
             <i class="fa fa-plus"></i> Add Vehicle Information
         </a>
     </div>
@@ -256,7 +256,7 @@
             <div class="col-md-3 text-center">
 
           @php
-    $frontPhoto = $vehicle->photos->firstWhere('photo_type', 'Front View');
+    $frontPhoto = optional($vehicle)->photos ? optional($vehicle)->photos->firstWhere('photo_type', 'Front View') : null;
 @endphp
 
 <img src="{{ $frontPhoto ? $frontPhoto->photo_url : 'https://placehold.co/350x220?text=Vehicle+Photo' }}"
@@ -266,7 +266,7 @@
                 <br><br>
 
                 <span class="label label-success">
-                  {{ $vehicle->status }}
+                  {{ optional($vehicle)->status }}
                 </span>
 
             </div>
@@ -281,32 +281,32 @@
 
                             <tr>
                                 <th width="45%">Vehicle Code</th>
-                                <td>{{ $vehicle->vehicle_code }}</td>
+                                <td>{{ optional($vehicle)->vehicle_code }}</td>
                             </tr>
 
                             <tr>
                                 <th>Registration No.</th>
-                                <td> {{ $vehicle->registration_number }}</td>
+                                <td> {{ optional($vehicle)->registration_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Make</th>
-                                <td>{{ $vehicle->make }}</td>
+                                <td>{{ optional($vehicle)->make }}</td>
                             </tr>
 
                             <tr>
                                 <th>Model</th>
-                                <td>{{ $vehicle->model }}</td>
+                                <td>{{ optional($vehicle)->model }}</td>
                             </tr>
 
                             <tr>
                                 <th>Year</th>
-                                <td>{{ $vehicle->year }}</td>
+                                <td>{{ optional($vehicle)->year }}</td>
                             </tr>
 
                             <tr>
                                 <th>Colour</th>
-                                <td>{{ $vehicle->color}}</td>
+                                <td>{{ optional($vehicle)->color}}</td>
                             </tr>
 
                         </table>
@@ -320,34 +320,34 @@
                               <tr>
                                 <th>Client</th>
                                 <td>
-                                    {{ $vehicle->client->first_name}}
-                                    {{ $vehicle->client->last_name}}
+                                    {{ optional(optional($vehicle)->client)->first_name }}
+                                    {{ optional(optional($vehicle)->client)->last_name }}
                                 </td>
                             </tr>
 
                             <tr>
                                 <th>Insurance Policy Number</th>
-                                <td>{{ $vehicle->insurance_policy_number }}</td>
+                                <td>{{ optional($vehicle)->insurance_policy_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Engine Number</th>
-                                <td>{{ $vehicle->engine_number }}</td>
+                                <td>{{ optional($vehicle)->engine_number }}</td>
                             </tr>
 
                             <tr>
                                 <th width="45%">Market Value</th>
-                                <td>K{{ $vehicle->market_value }}</td>
+                                <td>K{{ optional($vehicle)->market_value }}</td>
                             </tr>
 
                             <tr>
                                 <th>Chassis Number</th>
-                                <td>{{ $vehicle->chassis_number }}</td>
+                                <td>{{ optional($vehicle)->chassis_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Mileage</th>
-                                <td>{{ $vehicle->mileage }}</td>
+                                <td>{{ optional($vehicle)->mileage }}</td>
                             </tr>
 
                     
@@ -366,7 +366,7 @@
 </div>
 
 @php
-    $photos = $vehicle->photos->keyBy('photo_type');
+    $photos = optional($vehicle)->photos ? optional($vehicle)->photos->keyBy('photo_type') : collect([]);
 
     function vehiclePhoto($photos, $type)
     {
@@ -385,7 +385,7 @@
 
 
               <div class="box-tools pull-right">
-        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+        <a href="{{ url('vehicles/'.optional($vehicle)->id.'') }}" class="btn btn-primary btn-sm">
             <i class="fa fa-plus"></i> Add Vehicle Photos
         </a>
     </div>
@@ -670,9 +670,9 @@
 
 <div class="box-tools pull-right">
         @if($vehicle)
-            <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
-                <i class="fa fa-plus"></i> Add Vehicle Information
-            </a>
+        <a href="{{ url('vehicles/'.optional($vehicle)->id.'') }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> Add Vehicle Information
+        </a>
         @endif
     </div>
 
@@ -746,16 +746,16 @@
 
                     <table class="table table-bordered">
 
-                        <tr>
-                            <th>Client</th>
-                            <td>
-                                {{ optional(optional($vehicle)->client)->first_name }}
-                                {{ optional(optional($vehicle)->client)->last_name }}
-                            </td>
-                        </tr>
+                              <tr>
+                                <th>Client</th>
+                                <td>
+                                    {{ optional(optional($vehicle)->client)->first_name }}
+                                    {{ optional(optional($vehicle)->client)->last_name }}
+                                </td>
+                            </tr>
 
-                        <tr>
-                            <th>Insurance Policy Number</th>
+                            <tr>
+                                <th>Insurance Policy Number</th>
                             <td>{{ optional($vehicle)->insurance_policy_number }}</td>
                         </tr>
 
@@ -817,11 +817,11 @@
             <i class="fa fa-camera"></i> Vehicle Photos
         </h3>
 
-        <div class="box-tools pull-right">
-            <a href="{{ url('vehicles/' . optional($vehicle)->id) }}" class="btn btn-primary btn-sm">
-                <i class="fa fa-plus"></i> Add Vehicle Photos
-            </a>
-        </div>
+              <div class="box-tools pull-right">
+        <a href="{{ url('vehicles/'.optional($vehicle)->id.'') }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> Add Vehicle Photos
+        </a>
+    </div>
 
     </div>
 
@@ -1612,7 +1612,7 @@ CURRENT BALANCE DASHBOARD
     </h3>
 
     <div class="box-tools pull-right">
-        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+        <a href="{{ url('vehicles/'.optional($vehicle)->id.'') }}" class="btn btn-primary btn-sm">
             <i class="fa fa-plus"></i> Add Vehicle Information
         </a>
     </div>
@@ -1626,7 +1626,7 @@ CURRENT BALANCE DASHBOARD
             <div class="col-md-3 text-center">
 
           @php
-    $frontPhoto = $vehicle->photos->firstWhere('photo_type', 'Front View');
+    $frontPhoto = optional($vehicle)->photos ? optional($vehicle)->photos->firstWhere('photo_type', 'Front View') : null;
 @endphp
 
 <img src="{{ $frontPhoto ? $frontPhoto->photo_url : 'https://placehold.co/350x220?text=Vehicle+Photo' }}"
@@ -1636,7 +1636,7 @@ CURRENT BALANCE DASHBOARD
                 <br><br>
 
                 <span class="label label-success">
-                  {{ $vehicle->status }}
+                  {{ optional($vehicle)->status }}
                 </span>
 
             </div>
@@ -1651,32 +1651,32 @@ CURRENT BALANCE DASHBOARD
 
                             <tr>
                                 <th width="45%">Vehicle Code</th>
-                                <td>{{ $vehicle->vehicle_code }}</td>
+                                <td>{{ optional($vehicle)->vehicle_code }}</td>
                             </tr>
 
                             <tr>
                                 <th>Registration No.</th>
-                                <td> {{ $vehicle->registration_number }}</td>
+                                <td> {{ optional($vehicle)->registration_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Make</th>
-                                <td>{{ $vehicle->make }}</td>
+                                <td>{{ optional($vehicle)->make }}</td>
                             </tr>
 
                             <tr>
                                 <th>Model</th>
-                                <td>{{ $vehicle->model }}</td>
+                                <td>{{ optional($vehicle)->model }}</td>
                             </tr>
 
                             <tr>
                                 <th>Year</th>
-                                <td>{{ $vehicle->year }}</td>
+                                <td>{{ optional($vehicle)->year }}</td>
                             </tr>
 
                             <tr>
                                 <th>Colour</th>
-                                <td>{{ $vehicle->color}}</td>
+                                <td>{{ optional($vehicle)->color}}</td>
                             </tr>
 
                         </table>
@@ -1690,34 +1690,34 @@ CURRENT BALANCE DASHBOARD
                               <tr>
                                 <th>Client</th>
                                 <td>
-                                    {{ $vehicle->client->first_name}}
-                                    {{ $vehicle->client->last_name}}
+                                    {{ optional(optional($vehicle)->client)->first_name }}
+                                    {{ optional(optional($vehicle)->client)->last_name }}
                                 </td>
                             </tr>
 
                             <tr>
                                 <th>Insurance Policy Number</th>
-                                <td>{{ $vehicle->insurance_policy_number }}</td>
+                                <td>{{ optional($vehicle)->insurance_policy_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Engine Number</th>
-                                <td>{{ $vehicle->engine_number }}</td>
+                                <td>{{ optional($vehicle)->engine_number }}</td>
                             </tr>
 
                             <tr>
                                 <th width="45%">Market Value</th>
-                                <td>K{{ $vehicle->market_value }}</td>
+                                <td>K{{ optional($vehicle)->market_value }}</td>
                             </tr>
 
                             <tr>
                                 <th>Chassis Number</th>
-                                <td>{{ $vehicle->chassis_number }}</td>
+                                <td>{{ optional($vehicle)->chassis_number }}</td>
                             </tr>
 
                             <tr>
                                 <th>Mileage</th>
-                                <td>{{ $vehicle->mileage }}</td>
+                                <td>{{ optional($vehicle)->mileage }}</td>
                             </tr>
 
                     
@@ -1736,7 +1736,7 @@ CURRENT BALANCE DASHBOARD
 </div>
 
 @php
-    $photos = $vehicle->photos->keyBy('photo_type');
+    $photos = optional($vehicle)->photos ? optional($vehicle)->photos->keyBy('photo_type') : collect([]);
 
     function vehiclePhoto($photos, $type)
     {
@@ -1755,7 +1755,7 @@ CURRENT BALANCE DASHBOARD
 
 
               <div class="box-tools pull-right">
-        <a href="{{ url('vehicles/'.$vehicle->id.'') }}" class="btn btn-primary btn-sm">
+        <a href="{{ url('vehicles/'.optional($vehicle)->id.'') }}" class="btn btn-primary btn-sm">
             <i class="fa fa-plus"></i> Add Vehicle Photos
         </a>
     </div>

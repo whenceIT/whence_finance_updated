@@ -49,7 +49,7 @@
                 <!-- Payment A -->
                 @include('branch-deposits._partials.debt-setup', ['selectedMonth' => $selectedMonth])
                 
-                 <br>
+                <br>
                 <hr>
                 <!-- Payment B -->
                 @if(!$debtBlocker && isset($status[0]) && ($status[0]['status'] === 'unpaid' || $status[0]['status'] === 'partially paid')
@@ -78,7 +78,7 @@
                 @endif
                 <br>
                 <hr>
-                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] == 'fully paid' || in_array($blockerUser->office_id, [62, 68, 79, 80]))
+                @if(isset($status[0]) && isset($status[1]) && isset($status[2]) && $status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] == 'fully paid' || in_array($blockerUser->office_id, [62, 68, 79, 80, 38]))
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.salaries', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
@@ -287,7 +287,8 @@
 <script>
 $(document).ready(function() {
 
-console.log('{{!!$debtBlocker!!}}');
+   console.log('{{!!$debtBlocker!!}}');
+   console.log('Status array:', @json($status));
     // Handle month filter change
     $('#monthFilter').on('change', function() {
         var selectedMonth = $(this).val();

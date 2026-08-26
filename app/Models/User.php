@@ -157,4 +157,16 @@ class User extends EloquentUser
     {
         return trim($this->first_name . ' ' . $this->last_name);
     }
+
+    public function isCollateralSupervisor()
+    {
+        $setting = PlatformSetting::where('key', 'collateral_supervisor')->first();
+        return $setting && $setting->value == $this->id;
+    }
+
+    public function isCollateralValuator()
+    {
+        $setting = PlatformSetting::where('key', 'collateral_valuator')->first();
+        return $setting && $setting->value == $this->id;
+    }
 }

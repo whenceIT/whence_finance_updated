@@ -10,11 +10,14 @@ class Collateral extends Model
 
     protected $fillable = [
         'name',
+        'serial_num',
         'description',
         'initial_price',
         'current_worth',
+        'approved_value',
         'sold_price',
         'penalty',
+        'disposal_costs',
         'loan_id',
         'collateral_type_id',
         'created_by_id',
@@ -25,15 +28,46 @@ class Collateral extends Model
         'province_id',
         'district_id',
         'office_id',
+        'stage',
+        'stage_icon',
+        'new_approval_status',
+        'pledged_at',
+        'seized_at',
+        'valuated_at',
+        'listed_at',
+        'sold_at',
+        'written_off_at',
+        'released_at',
+        'release_requested_at',
+        'vetted_valuation',
+        'vetted_valuation_cost',
+        'vetted_valuation_by',
+        'vetted_valuation_status',
+        'vvc_items',
     ];
 
     protected $casts = [
         'date_purchased' => 'date',
         'date_resold'    => 'date',
+        'pledged_at'     => 'date',
+        'seized_at'      => 'date',
+        'valuated_at'    => 'date',
+        'listed_at'      => 'date',
+        'sold_at'        => 'date',
+        'written_off_at' => 'date',
+        'released_at'    => 'date',
+        'release_requested_at' => 'date',
         'initial_price'  => 'decimal:2',
         'current_worth'  => 'decimal:2',
+        'approved_value' => 'decimal:2',
         'sold_price'     => 'decimal:2',
         'penalty'        => 'decimal:2',
+        'disposal_costs' => 'array',
+        'vetted_valuation'      => 'decimal:2',
+        'vetted_valuation_cost' => 'decimal:2',
+        'vetted_valuation_by'   => 'integer',
+        'vetted_valuation_status' => 'integer',
+        'vvc_items'             => 'array',
     ];
 
     public function type()
@@ -44,6 +78,11 @@ class Collateral extends Model
     public function loan()
     {
         return $this->hasOne(Loan::class, 'id', 'loan_id');
+    }
+
+    public function vettedBy()
+    {
+        return $this->hasOne(User::class, 'id', 'vetted_valuation_by');
     }
 
     public function created_by()

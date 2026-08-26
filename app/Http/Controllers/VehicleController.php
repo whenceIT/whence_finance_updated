@@ -166,7 +166,7 @@ public function searchClients(Request $request)
 
         return view(
             'motor_vehicle.create_custody',
-    compact('vehicle')
+            compact('vehicle')
         );
     }
 
@@ -224,6 +224,7 @@ public function searchClients(Request $request)
         'garage_contact_phone'   => $request->garage_contact_phone,
         'remarks'                => $request->remarks,
         'status'                 => 'in_custody',
+        'custody_approved'       => 0,
     ]);
 
     return redirect('/vehicles/'.$vehicle->id)
@@ -232,6 +233,45 @@ public function searchClients(Request $request)
 
     }
 
+    public function approveCustody(Request $request, $custodyId)
+    {
+        $custody = VehicleCustody::findOrFail($custodyId);
+        
+        $user = auth()->user();
+        if (!$user || $custody->received_by != $user->id) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Unauthorized'
+            ], 403);
+        }
+
+        $custody->custody_approved = 1;
+        $custody->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Custody approved successfully'
+        ]);
+    }
+
+    public function getPendingCustodyApprovals(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
+
+        $service = new \App\Services\VehicleCustodyApprovalService();
+        $pending = $service->getPendingApprovalsForUser($user->id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $pending
+        ]);
+    }
 
     public function createDocuments($vehicleId)
     {
@@ -400,6 +440,16 @@ public function searchClients(Request $request)
         }
     }
 
+    public function destroyPhoto(Request $request, Vehicle $vehicle, VehiclePhoto $photo)
+    {
+        if ($photo->vehicle_id !== $vehicle->id) {
+            return back()->with('error', 'Photo not found for this vehicle.');
+        }
+
+        $photo->delete();
+
+        return back()->with('success', 'Photo deleted successfully.');
+    }
 
      public function createInspections($vehicleId)
     {
@@ -755,22 +805,32 @@ if ($request->filled('office')) {
 
 
 
-public function sellVehicle(Request $request, Vehicle $vehicle)
-{
-    $request->validate([
-        'sale_value' => 'required|numeric|min:0'
-    ]);
+    public function sellVehicle(Request $request, Vehicle $vehicle)
+    {
+        $request->validate([
+            'sale_value' => 'required|numeric|min:0',
+            'buyer_fullname' => 'required|string|max:255',
+            'buyer_phone' => 'required|string|max:50',
+            'buyer_nrc_number' => 'required|string|max:50',
+            'buyer_sex' => 'required|in:Male,Female',
+            'buyer_location' => 'required|string|max:255'
+        ]);
 
-    $vehicle->forced_sale_value = $request->sale_value;
-    $vehicle->status = 'sold';
-    $vehicle->sold_at = date('Y-m-d H:i:s');
+        $vehicle->forced_sale_value = $request->sale_value;
+        $vehicle->status = 'sold';
+        $vehicle->sold_at = date('Y-m-d H:i:s');
+        $vehicle->buyer_fullname = $request->buyer_fullname;
+        $vehicle->buyer_phone = $request->buyer_phone;
+        $vehicle->buyer_nrc_number = $request->buyer_nrc_number;
+        $vehicle->buyer_sex = $request->buyer_sex;
+        $vehicle->buyer_location = $request->buyer_location;
 
-    $vehicle->save();
+        $vehicle->save();
 
-    Flash::success("Vehicle marked as sold.");
+        Flash::success("Vehicle marked as sold.");
 
-    return redirect()->back();
-}
+        return redirect()->back();
+    }
 
 public function sales(Request $request)
 {
