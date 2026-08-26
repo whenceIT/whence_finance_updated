@@ -22,6 +22,7 @@ class VehicleCustody extends Model
         'garage_contact_phone',
         'remarks',
         'status',
+        'custody_approved',
     ];
 
     protected $casts = [
