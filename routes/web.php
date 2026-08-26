@@ -402,12 +402,15 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::any('{vehicle}/documents/store','VehicleController@storeDocuments');
     Route::get('{vehicle}/photos/create','VehicleController@createPhotos');
     Route::any('{vehicle}/photos/store','VehicleController@storePhotos');
+    Route::delete('{vehicle}/photos/{photo}/destroy','VehicleController@destroyPhoto');
     Route::get('{vehicle}/inspections/create','VehicleController@createInspections');
     Route::any('{vehicle}/inspections/store','VehicleController@storeInspections');
     Route::get('loans1','VehicleController@MotorVehicleLoan');
     Route::get('new_route','VehicleController@MotorVehicleLoan');
     Route::post('{vehicle}/sell','VehicleController@sellVehicle');
     Route::get('sales', 'VehicleController@sales');
+    Route::post('vehicle-custody/{custody}/approve','VehicleController@approveCustody');
+    Route::get('vehicle-custody/pending-approval','VehicleController@getPendingCustodyApprovals');
 });
 
 

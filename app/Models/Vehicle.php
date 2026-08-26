@@ -24,7 +24,13 @@ class Vehicle extends Model
         'transmission',
         'market_value',
         'forced_sale_value',
-        'status'
+        'status',
+        'sold_at',
+        'buyer_fullname',
+        'buyer_phone',
+        'buyer_nrc_number',
+        'buyer_sex',
+        'buyer_location'
     ];
 
     public function client()
