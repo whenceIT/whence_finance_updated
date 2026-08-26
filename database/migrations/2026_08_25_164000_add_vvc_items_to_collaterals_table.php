@@ -3,21 +3,20 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up()
     {
         Schema::table('collaterals', function (Blueprint $table) {
-            $table->unique('serial_num');
+            $table->json('vvc_items')->nullable()->after('vetted_valuation_cost');
         });
     }
 
     public function down()
     {
         Schema::table('collaterals', function (Blueprint $table) {
-            $table->dropUnique(['serial_num']);
+            $table->dropColumn('vvc_items');
         });
     }
 };

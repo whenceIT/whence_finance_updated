@@ -733,6 +733,7 @@ $userInfo = \App\Helpers\GeneralHelper::get_user_info();
 $user = $userInfo->user;
 $role = $userInfo->role;
 $office = $userInfo->office;
+$pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class)->getPendingForCurrentUser();
 ?>
 <div class="modal fade" id="announcementModal" role="dialog">
     <div class="modal-dialog" role="document">
@@ -1356,11 +1357,10 @@ $office = $userInfo->office;
                 .catch(err => {
                     // Silently fail - announcement is not critical
                     console.log("Announcement service unavailable");
-                });
-
+            });
         });
-    </script>
 
+    </script>
 
     @if ($role && in_array($role, ['1', '6', '4']))
         <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -2014,6 +2014,80 @@ $office = $userInfo->office;
     @include('components.notification')
 
     @include('components.deposit-payment-blocker')
+
+
+  
+    @if($pendingCollateralApprovals->isNotEmpty())
+    <div class="modal fade" id="approveCollateralModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h4 class="modal-title text-white">Approve Collateral</h4>
+                </div>
+                <div class="modal-body">
+                    <p id="approve-collateral-message">Approve Collateral: Accept and approve that Loan Collateral <strong id="approve-collateral-name"></strong> was inspected, vetted and valuated by you. Vetted Valuation: <strong id="approve-collateral-valuation"></strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="decline-collateral-btn">Decline</button>
+                    <button type="button" class="btn btn-primary" id="accept-collateral-btn">Accept</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if($pendingCollateralApprovals->isNotEmpty())
+    <script>
+        var pendingCollaterals = @json($pendingCollateralApprovals->map(function($c) {
+            return ['id' => $c->id, 'name' => $c->name ?? 'unknown', 'vetted_valuation' => $c->vetted_valuation ?? 0];
+        }));
+        var currentPendingIndex = 0;
+
+        function showApproveCollateralModal() {
+            if (currentPendingIndex < pendingCollaterals.length) {
+                var item = pendingCollaterals[currentPendingIndex];
+                $('#approve-collateral-name').text(item.name);
+                $('#approve-collateral-valuation').text(item.vetted_valuation);
+                $('#approveCollateralModal').modal('show');
+            } else {
+                currentPendingIndex = 0;
+                location.reload();
+            }
+        }
+
+        $(document).ready(function() {
+            $('#accept-collateral-btn').click(function() {
+                if (!pendingCollaterals[currentPendingIndex]) return;
+                var collateralId = pendingCollaterals[currentPendingIndex].id;
+                $.post('/collateral/' + collateralId + '/vetted-approve', {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                }, function(response) {
+                    currentPendingIndex++;
+                    showApproveCollateralModal();
+                }).fail(function() {
+                    currentPendingIndex++;
+                    showApproveCollateralModal();
+                });
+            });
+
+            $('#decline-collateral-btn').click(function() {
+                if (!pendingCollaterals[currentPendingIndex]) return;
+                var collateralId = pendingCollaterals[currentPendingIndex].id;
+                $.post('/collateral/' + collateralId + '/vetted-decline', {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                }, function(response) {
+                    currentPendingIndex++;
+                    showApproveCollateralModal();
+                }).fail(function() {
+                    currentPendingIndex++;
+                    showApproveCollateralModal();
+                });
+            });
+
+            showApproveCollateralModal();
+        });
+    </script>
+    @endif
 
 </body>
 

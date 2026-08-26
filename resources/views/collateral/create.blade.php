@@ -104,7 +104,7 @@
                 <div class="form-group{{ $errors->has('serial_num') ? ' has-error' : '' }}">
                     <label class="control-label col-md-2">Serial Number</label>
                     <div class="col-md-8">
-                        <input type="text" name="serial_num" class="form-control" value="{{ old('serial_num') }}" required>
+                        <input type="text" name="serial_num" class="form-control" value="{{ old('serial_num') }}">
                         {!! $errors->first('serial_num', '<span class="help-block">:message</span>') !!}
                     </div>
                 </div>
@@ -114,6 +114,32 @@
                     <div class="col-md-8">
                         <textarea name="description" class="form-control">{{ old('description') }}</textarea>
                         {!! $errors->first('description', '<span class="help-block">:message</span>') !!}
+                    </div>
+                </div>
+
+                <div class="form-group{{ $errors->has('date_purchased') ? ' has-error' : '' }}">
+                    <label class="control-label col-md-2">Date Purchased</label>
+                    <div class="col-md-4">
+                        <input type="date" name="date_purchased" class="form-control" value="{{ old('date_purchased') }}" required>
+                        {!! $errors->first('date_purchased', '<span class="help-block">:message</span>') !!}
+                    </div>
+                    <label class="control-label col-md-2">Date Pledged</label>
+                    <div class="col-md-2">
+                        <input type="date" name="pledged_at" class="form-control" value="{{ old('pledged_at') }}">
+                        {!! $errors->first('pledged_at', '<span class="help-block">:message</span>') !!}
+                    </div>
+                </div>
+
+                 <div class="form-group{{ $errors->has('condition') ? ' has-error' : '' }}">
+                    <label class="control-label col-md-2">Condition</label>
+                    <div class="col-md-4">
+                        <select name="condition" class="form-control" required>
+                            <option value="new"{{ old('condition') == 'new' ? ' selected' : '' }}>New</option>
+                            <option value="good"{{ old('condition') == 'good' ? ' selected' : '' }}>Good</option>
+                            <option value="fair"{{ old('condition') == 'fair' ? ' selected' : '' }}>Fair</option>
+                            <option value="poor"{{ old('condition') == 'poor' ? ' selected' : '' }}>Poor</option>
+                        </select>
+                        {!! $errors->first('condition', '<span class="help-block">:message</span>') !!}
                     </div>
                 </div>
 
@@ -132,32 +158,49 @@
                     </div>
                 </div>
 
-                <div class="form-group{{ $errors->has('date_purchased') ? ' has-error' : '' }}">
-                    <label class="control-label col-md-2">Date Purchased</label>
+                <div class="form-group{{ $errors->has('vetted_valuation') ? ' has-error' : '' }}">
+                    <label class="control-label col-md-2">Vetted Valuation</label>
                     <div class="col-md-4">
-                        <input type="date" name="date_purchased" class="form-control" value="{{ old('date_purchased') }}" required>
-                        {!! $errors->first('date_purchased', '<span class="help-block">:message</span>') !!}
-                    </div>
-                    <label class="control-label col-md-2">Date Pledged</label>
-                    <div class="col-md-2">
-                        <input type="date" name="pledged_at" class="form-control" value="{{ old('pledged_at') }}">
-                        {!! $errors->first('pledged_at', '<span class="help-block">:message</span>') !!}
+                        <input type="number" step="0.01" name="vetted_valuation" class="form-control" value="{{ old('vetted_valuation') }}">
+                        <small class="form-help-text">Amount determined after staff vetted the collateral</small>
+                        {!! $errors->first('vetted_valuation', '<span class="help-block">:message</span>') !!}
                     </div>
                 </div>
 
-                <div class="form-group{{ $errors->has('condition') ? ' has-error' : '' }}">
-                    <label class="control-label col-md-2">Condition</label>
+                <div class="form-group" id="vvc-items-group">
+                    <label class="control-label col-md-2">Vetted By</label>
                     <div class="col-md-4">
-                        <select name="condition" class="form-control" required>
-                            <option value="new"{{ old('condition') == 'new' ? ' selected' : '' }}>New</option>
-                            <option value="good"{{ old('condition') == 'good' ? ' selected' : '' }}>Good</option>
-                            <option value="fair"{{ old('condition') == 'fair' ? ' selected' : '' }}>Fair</option>
-                            <option value="poor"{{ old('condition') == 'poor' ? ' selected' : '' }}>Poor</option>
+                        <select name="vetted_valuation_by" id="vetted-valuation-by" class="form-control select2" style="width: 100%;">
+                            <option value="">Select user</option>
                         </select>
-                        {!! $errors->first('condition', '<span class="help-block">:message</span>') !!}
+                        <small class="form-help-text">User who vetted the selected loan</small>
                     </div>
                 </div>
-            </div>
+                </div>
+
+                <div class="form-group" id="vvc-items-group">
+                    <label class="control-label col-md-2">Vetted Valuation Cost</label>
+                    <div class="col-md-10">
+                        @if(old('vvc_items'))
+                            @foreach(old('vvc_items', []) as $idx => $item)
+                                <div class="vvc-item-row" style="margin-bottom: 8px; display: flex; gap: 8px; align-items: center;">
+                                    <input type="text" name="vvc_items[{{$idx}}][name]" class="form-control vvc-name" value="{{ $item['name'] ?? '' }}" style="width: 50%;" placeholder="Description">
+                                    <input type="number" step="0.01" name="vvc_items[{{$idx}}][amount]" class="form-control vvc-amount" value="{{ $item['amount'] ?? '' }}" style="width: 30%;" placeholder="Amount">
+                                    <button type="button" class="btn btn-danger btn-xs remove-vvc-item"><i class="fa fa-minus"></i></button>
+                                </div>
+                            @endforeach
+                         @endif
+                        <div id="vvc-items-list"></div>
+                        <button type="button" class="btn btn-success btn-xs" id="add-vvc-item" style="margin-top: 8px;"><i class="fa fa-plus"></i> Add Cost Item</button>
+                        <div style="margin-top: 8px; font-weight: 600;">
+                            Total: <span id="vvc-total">0.00</span>
+                        </div>
+                        <input type="hidden" name="vetted_valuation_cost" id="vetted_valuation_cost_input" value="">
+                        <small class="form-help-text">Cost spent to acquire the collateral (leave empty if no amount was spent)</small>
+                        {!! $errors->first('vetted_valuation_cost', '<span class="help-block">:message</span>') !!}
+                    </div>
+                </div>
+             </div>
             <div class="box-footer">
                 <button type="submit" class="btn btn-primary" id="save-collateral-btn">
                     <span class="spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i> </span>
@@ -199,7 +242,7 @@
 
                 if (netProceeds >= loanBalance) {
                     $('#create-analysis-verdict').html('<span class="label label-success">Covers Loan Balance</span>');
-                    $('#save-collateral-btn').prop('disabled', false);
+                    // $('#save-collateral-btn').prop('disabled', false);
                 } else {
                     var shortfall = loanBalance - netProceeds;
                     $('#create-analysis-verdict').html('<span class="label label-danger">Below Loan Balance</span><div class="alert alert-danger" style="margin-top: 10px;">Net proceeds are <strong>' + netProceeds.toFixed(2) + '</strong>, but the loan balance is <strong>' + loanBalance.toFixed(2) + '</strong>. You need <strong>' + shortfall.toFixed(2) + '</strong> more to cover the loan balance.</div>');
@@ -215,6 +258,106 @@
                 $('#createAnalysisBody').slideToggle();
                 $('#createAnalysisIcon').toggleClass('fa-chevron-down').toggleClass('fa-chevron-up');
             });
+
+            var vvcIndex = @json(count(old('vvc_items', [])));
+            var vvcTemplate = '<div class="vvc-item-row" style="margin-bottom: 8px; display: flex; gap: 8px; align-items: center;">' +
+                '<input type="text" name="vvc_items[__idx__][name]" class="form-control vvc-name" value="" style="width: 50%;" placeholder="Description">' +
+                '<input type="number" step="0.01" name="vvc_items[__idx__][amount]" class="form-control vvc-amount" value="" style="width: 30%;" placeholder="Amount">' +
+                '<button type="button" class="btn btn-danger btn-xs remove-vvc-item"><i class="fa fa-minus"></i></button>' +
+                '</div>';
+
+            $('#add-vvc-item').click(function() {
+                var row = $(vvcTemplate.replace(/__idx__/g, vvcIndex));
+                $('#vvc-items-list').append(row);
+                vvcIndex++;
+                updateVvcTotal();
+            });
+
+            $(document).on('click', '.remove-vvc-item', function() {
+                $(this).closest('.vvc-item-row').remove();
+                updateVvcTotal();
+            });
+
+            $(document).on('input', '.vvc-amount', function() {
+                updateVvcTotal();
+            });
+
+            function updateVvcTotal() {
+                var total = 0;
+                $('.vvc-amount').each(function() {
+                    var val = parseFloat($(this).val()) || 0;
+                    total += val;
+                });
+                $('#vvc-total').text(total.toFixed(2));
+                $('#vetted_valuation_cost_input').val(total.toFixed(2));
+            }
+
+            updateVvcTotal();
+
+            function updateVettedByDisplay() {
+                var loanId = $('select[name="loan_id"]').val();
+                if (loanId) {
+                    $.ajax({
+                        url: '/api/loan-vetted-by/' + loanId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success && response.data) {
+                                var userId = response.data.id;
+                                var userName = response.data.first_name + ' ' + response.data.last_name;
+                                $('#vetted-valuation-by').empty();
+                                $('#vetted-valuation-by').append('<option value="' + userId + '">' + userName + '</option>');
+                                $('#vetted-valuation-by').val(userId).trigger('change');
+                                $('#vetted-valuation-by').prop('disabled', true);
+                            } else {
+                                $('#vetted-valuation-by').empty();
+                                $('#vetted-valuation-by').append('<option value="">Select user</option>');
+                                $('#vetted-valuation-by').val('').trigger('change');
+                                $('#vetted-valuation-by').prop('disabled', false);
+                            }
+                        },
+                        error: function() {
+                            $('#vetted-valuation-by').empty();
+                            $('#vetted-valuation-by').append('<option value="">Select user</option>');
+                            $('#vetted-valuation-by').val('').trigger('change');
+                            $('#vetted-valuation-by').prop('disabled', false);
+                        }
+                    });
+                } else {
+                    $('#vetted-valuation-by').empty();
+                    $('#vetted-valuation-by').append('<option value="">Select user</option>');
+                    $('#vetted-valuation-by').val('').trigger('change');
+                    $('#vetted-valuation-by').prop('disabled', false);
+                }
+            }
+
+            $('select[name="loan_id"]').on('change', function() {
+                updateVettedByDisplay();
+            });
+
+            $('#vetted-valuation-by').select2({
+                placeholder: 'Search for a user...',
+                minimumInputLength: 2,
+                width: '100%',
+                ajax: {
+                    url: '/loan/users/search',
+                    dataType: 'json',
+                    delay: 250,
+                    cache: true,
+                    data: function(params) {
+                        return {
+                            search: params.term
+                        };
+                    },
+                    processResults: function(data) {
+                        return {
+                            results: data.results
+                        };
+                    }
+                }
+            });
+
+            updateVettedByDisplay();
 
             $('#save-collateral-btn').click(function(e) {
                 var loanBalance = getLoanBalance();

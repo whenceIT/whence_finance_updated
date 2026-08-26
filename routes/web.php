@@ -2050,6 +2050,8 @@ Route::post('collateral/{collateral}/sell', 'CollateralApprovalController@sell')
 Route::post('collateral/{collateral}/change-status', 'CollateralApprovalController@directChange')->name('collateral.direct_change');
 Route::post('collateral/{collateral}/assign-loan', 'CollateralController@assignLoan')->name('collateral.assign.loan');
 Route::post('collateral/{collateral}/request-release', 'CollateralController@requestRelease')->name('collateral.request_release');
+Route::post('collateral/{collateral}/vetted-approve', 'CollateralController@approve')->name('collateral.vetted.approve');
+Route::post('collateral/{collateral}/vetted-decline', 'CollateralController@decline')->name('collateral.vetted.decline');
 
 // ============================================
 // RECOVERY MODULE ROUTES

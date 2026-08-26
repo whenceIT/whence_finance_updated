@@ -39,6 +39,11 @@ class Collateral extends Model
         'written_off_at',
         'released_at',
         'release_requested_at',
+        'vetted_valuation',
+        'vetted_valuation_cost',
+        'vetted_valuation_by',
+        'vetted_valuation_status',
+        'vvc_items',
     ];
 
     protected $casts = [
@@ -58,6 +63,11 @@ class Collateral extends Model
         'sold_price'     => 'decimal:2',
         'penalty'        => 'decimal:2',
         'disposal_costs' => 'array',
+        'vetted_valuation'      => 'decimal:2',
+        'vetted_valuation_cost' => 'decimal:2',
+        'vetted_valuation_by'   => 'integer',
+        'vetted_valuation_status' => 'integer',
+        'vvc_items'             => 'array',
     ];
 
     public function type()
@@ -68,6 +78,11 @@ class Collateral extends Model
     public function loan()
     {
         return $this->hasOne(Loan::class, 'id', 'loan_id');
+    }
+
+    public function vettedBy()
+    {
+        return $this->hasOne(User::class, 'id', 'vetted_valuation_by');
     }
 
     public function created_by()

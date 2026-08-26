@@ -104,7 +104,7 @@ class CollateralController extends Controller
         // --- Filters ---
         if ($request->filled('key')) {
             if ($request->key === 'admin') {
-                $query->whereIn('status', ['seized_inventory', 'valuation_completed', 'listed_for_sale', 'written_off']);
+                $query->whereIn('status', ['pledged', 'seizure_pending', 'seized_inventory', 'valuation_completed', 'listed_for_sale', 'written_off']);
             } elseif ($request->key === 'sales') {
                 $query->whereIn('status', ['valuation_completed', 'listed_for_sale', 'sold']);
             } elseif ($request->key === 'valuation') {
@@ -210,7 +210,7 @@ class CollateralController extends Controller
         $loans = $loansQuery->get();
 
         // --- Stats for admin disposal view ---
-        $adminStatuses = ['seized_inventory', 'valuation_completed', 'listed_for_sale', 'sold', 'written_off'];
+        $adminStatuses = ['pledged', 'seizure_pending', 'seized_inventory', 'valuation_completed', 'listed_for_sale', 'sold', 'written_off'];
         $disposalStats = [];
         $totalCount = 0;
         $totalWorth = 0;
@@ -288,7 +288,7 @@ class CollateralController extends Controller
             // Default: scope to own office
             $loansQuery->where('loan_officer_id', $user->id);
         }
-        $loans = $loansQuery->get();
+        $loans = $loansQuery->with('vetted_by_field')->get();
         $collateralTypes = CollateralType::all();
 
         $stageOptions = [
@@ -307,7 +307,7 @@ class CollateralController extends Controller
 
         // If loan_id is provided and not in the loans collection, add it
         if ($loanId && !$loans->contains('id', $loanId)) {
-            $loan = Loan::find($loanId);
+            $loan = Loan::with('vetted_by_field')->find($loanId);
             if ($loan) {
                 $loans->prepend($loan);
                 $loanBalances[$loan->id] = \App\Helpers\GeneralHelper::new_new_loan_total_balance($loan->id);
@@ -332,7 +332,7 @@ class CollateralController extends Controller
 
         $request->validate([
             'name'           => 'required',
-            'serial_num'     => 'required|string|max:255|unique:collaterals,serial_num',
+            'serial_num'     => 'nullable|string|max:255|unique:collaterals,serial_num',
             'initial_price'  => 'required',
             'current_worth'  => 'required',
             'loan_id'        => 'required|integer|unique:collaterals,loan_id',
@@ -340,6 +340,13 @@ class CollateralController extends Controller
             'pledged_at'     => 'nullable|date',
             'condition'      => 'required',
             'stage_icon'     => 'nullable|string',
+            'vetted_valuation'      => 'nullable|numeric|min:0',
+            'vetted_valuation_cost' => 'nullable|numeric|min:0',
+            'vetted_valuation_by'    => 'nullable|integer|exists:users,id',
+            'vetted_valuation_status' => 'nullable|integer|in:0,1',
+            'vvc_items'             => 'nullable|array',
+            'vvc_items.*.name'   => 'nullable|string|max:255',
+            'vvc_items.*.amount' => 'nullable|numeric|min:0',
         ]);
 
         // Verify the selected loan has an eligible status
@@ -371,6 +378,11 @@ class CollateralController extends Controller
         $collateral->office_id = $loan->office->id; //for Office analytics level
 
         $collateral->stage_icon = $request->stage_icon;
+        $collateral->vetted_valuation = $request->vetted_valuation;
+        $collateral->vetted_valuation_by = $loan->vetted_by ?? null;
+        $vvcItems = $request->vvc_items ?: [];
+        $collateral->vvc_items = $vvcItems;
+        $collateral->vetted_valuation_cost = collect($vvcItems)->sum('amount') ?: ($request->vetted_valuation_cost ?? 0);
 
         $collateral->save();
 
@@ -384,6 +396,24 @@ class CollateralController extends Controller
 
         Flash::success('Successfully saved');
         return redirect()->route('collateral.index');
+    }
+
+    public function approve(Request $request, $collateralId)
+    {
+        $collateral = Collateral::findOrFail($collateralId);
+        $collateral->vetted_valuation_status = 1;
+        $collateral->save();
+
+        return response()->json(['success' => true, 'message' => 'Collateral approved']);
+    }
+
+    public function decline(Request $request, $collateralId)
+    {
+        $collateral = Collateral::findOrFail($collateralId);
+        $collateral->vetted_valuation_by = null;
+        $collateral->save();
+
+        return response()->json(['success' => true, 'message' => 'Collateral declined']);
     }
 
     /**
@@ -513,6 +543,8 @@ class CollateralController extends Controller
             'seized' => 'Seized collateral',
         ];
 
+        $collateral->load(['loan.vetted_by_field']);
+
         return view('collateral.edit', compact('collateral', 'collateralTypes', 'stageOptions'));
     }
 
@@ -545,7 +577,16 @@ class CollateralController extends Controller
             'serial_num'    => 'required|string|max:255|unique:collaterals,serial_num,' . $collateral->id,
             'loan_id'       => 'required|integer|unique:collaterals,loan_id,' . $collateral->id,
             'stage_icon'    => 'nullable|string',
+            'vetted_valuation'      => 'nullable|numeric|min:0',
+            'vetted_valuation_cost' => 'nullable|numeric|min:0',
+            'vetted_valuation_by'    => 'nullable|integer|exists:users,id',
+            'vetted_valuation_status' => 'nullable|integer|in:0,1',
+            'vvc_items'             => 'nullable|array',
+            'vvc_items.*.name'   => 'nullable|string|max:255',
+            'vvc_items.*.amount' => 'nullable|numeric|min:0',
         ]);
+
+        $loan = Loan::find($request->loan_id ?? $collateral->loan_id);
 
         $collateral->serial_num      = $request->serial_num;
         $collateral->current_worth   = $request->current_worth;
@@ -561,6 +602,12 @@ class CollateralController extends Controller
         $collateral->written_off_at  = $request->written_off_at;
         $collateral->released_at     = $request->released_at;
         $collateral->stage_icon      = $request->stage_icon;
+        $collateral->vetted_valuation = $request->vetted_valuation;
+        $collateral->vetted_valuation_by = $request->vetted_valuation_by ?: ($loan->vetted_by ?? $collateral->vetted_valuation_by);
+        $vvcItems = $request->vvc_items ?: [];
+        $collateral->vvc_items = $vvcItems;
+        $collateral->vetted_valuation_cost = collect($vvcItems)->sum('amount') ?: ($request->vetted_valuation_cost ?? 0);
+
         $collateral->save();
 
         AuditTrail::create([

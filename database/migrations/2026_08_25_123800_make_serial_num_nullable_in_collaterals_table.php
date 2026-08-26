@@ -9,15 +9,11 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('collaterals', function (Blueprint $table) {
-            $table->unique('serial_num');
-        });
+        DB::statement('ALTER TABLE collaterals MODIFY serial_num VARCHAR(255) NULL');
     }
 
     public function down()
     {
-        Schema::table('collaterals', function (Blueprint $table) {
-            $table->dropUnique(['serial_num']);
-        });
+        DB::statement('ALTER TABLE collaterals MODIFY serial_num VARCHAR(255) NOT NULL');
     }
 };

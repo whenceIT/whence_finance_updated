@@ -49,9 +49,12 @@ $userPosition = Sentinel::getUser()->position_name;
         </div>
         <div class="box-body">
             <form method="get" action="{{ route('collateral.index') }}" class="form-inline" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+                <input type="hidden" name="key" value="{{ request('key') }}">
                 <select name="status" class="form-control input-sm" style="width: 140px;">
                     @if(request('key') === 'admin')
                         <option value="">All Statuses</option>
+                        <option value="pledged"{{ request('status') == 'pledged' ? ' selected' : '' }}>Pledged</option>
+                        <option value="seizure_pending"{{ request('status') == 'seizure_pending' ? ' selected' : '' }}>Seizure Pending</option>
                         <option value="seized_inventory"{{ request('status') == 'seized_inventory' ? ' selected' : '' }}>Seized/Inventory</option>
                         <option value="valuation_completed"{{ request('status') == 'valuation_completed' ? ' selected' : '' }}>Valuation Completed</option>
                         <option value="listed_for_sale"{{ request('status') == 'listed_for_sale' ? ' selected' : '' }}>Listed for Sale</option>
@@ -118,7 +121,7 @@ $userPosition = Sentinel::getUser()->position_name;
                 </select>
                 <input type="text" name="search" class="form-control input-sm" placeholder="Search..." value="{{ request('search') }}" style="width: 150px;">
                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-                <a href="{{ route('collateral.index') }}" class="btn btn-default btn-sm">Reset</a>
+                <a href="{{ route('collateral.index', request('key') ? ['key' => request('key')] : []) }}" class="btn btn-default btn-sm">Reset</a>
             </form>
 
             <form method="post" action="{{ route('collateral.export') }}" style="margin-bottom: 15px; text-align: center;">
@@ -139,6 +142,8 @@ $userPosition = Sentinel::getUser()->position_name;
             <div class="row" style="margin-bottom: 20px;">
                 @php
                     $statLabels = [
+                        'pledged' => 'Pledged',
+                        'seizure_pending' => 'Seizure Pending',
                         'seized_inventory' => 'Seized/Inventory',
                         'valuation_completed' => 'Valuation Completed',
                         'listed_for_sale' => 'Listed for Sale',
@@ -253,7 +258,7 @@ $userPosition = Sentinel::getUser()->position_name;
                                     <td>{{ $item->loan?->office?->name }}</td>
                                   <td>
                                      <a href="{{ route('collateral.show', $item) }}" class="btn btn-xs btn-primary">View</a>
-                                      @if($role == 1 || (Sentinel::getUser()->id == $item->created_by_id && $item->status === 'pledged') || ($role == 4 && in_array($item->status, ['pledged', 'seizure_pending'])))
+                                      @if(request('key') !== 'admin' && ($role == 1 || (Sentinel::getUser()->id == $item->created_by_id && $item->status === 'pledged') || ($role == 4 && in_array($item->status, ['pledged', 'seizure_pending']))))
                                           <a href="{{ route('collateral.edit', $item) }}" class="btn btn-xs btn-warning">Edit</a>
                                           <form action="{{ route('collateral.destroy', $item) }}" method="POST" style="display:inline;">
                                               @csrf
