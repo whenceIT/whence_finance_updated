@@ -402,7 +402,8 @@ class CollateralController extends Controller
 
     public function approve(Request $request, $collateralId)
     {
-        $collateral = Collateral::findOrFail($collateralId);
+        $id = $collateralId instanceof Collateral ? $collateralId->id : $collateralId;
+        $collateral = Collateral::where('id', $id)->firstOrFail();
         $collateral->vetted_valuation_status = 1;
         $collateral->save();
 
@@ -411,7 +412,8 @@ class CollateralController extends Controller
 
     public function decline(Request $request, $collateralId)
     {
-        $collateral = Collateral::findOrFail($collateralId);
+        $id = $collateralId instanceof Collateral ? $collateralId->id : $collateralId;
+        $collateral = Collateral::where('id', $id)->firstOrFail();
         $collateral->vetted_valuation_by = null;
         $collateral->save();
 
