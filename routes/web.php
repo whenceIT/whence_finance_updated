@@ -2080,12 +2080,17 @@ Route::post('collateral/{collateral}/sell', 'CollateralApprovalController@sell')
 Route::post('collateral/{collateral}/change-status', 'CollateralApprovalController@directChange')->name('collateral.direct_change');
 Route::post('collateral/{collateral}/assign-loan', 'CollateralController@assignLoan')->name('collateral.assign.loan');
 Route::post('collateral/{collateral}/request-release', 'CollateralController@requestRelease')->name('collateral.request_release');
-Route::post('collateral/{collateral}/vetted-approve', 'CollateralController@approve')->name('collateral.vetted.approve');
-Route::post('collateral/{collateral}/vetted-decline', 'CollateralController@decline')->name('collateral.vetted.decline');
+    Route::post('collateral/{collateral}/vetted-approve', 'CollateralController@approve')->name('collateral.vetted.approve');
+    Route::post('collateral/{collateral}/vetted-decline', 'CollateralController@decline')->name('collateral.vetted.decline');
 
-// ============================================
-// RECOVERY MODULE ROUTES
-// ============================================
+    // collateral reports
+    Route::get('collateral/reports', 'CollateralReportController@index')->name('collateral.reports.index');
+    Route::get('collateral/reports/{type}', 'CollateralReportController@form')->name('collateral.reports.form');
+    Route::post('collateral/reports/{type}/generate', 'CollateralReportController@generate')->name('collateral.reports.generate');
+
+    // ============================================
+    // RECOVERY MODULE ROUTES
+    // ============================================
 Route::group(['prefix' => 'recovery'], function () {
 
     Route::get('overview', 'Recoveries\RecoveryDashboardController@overview');
