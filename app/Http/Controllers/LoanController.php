@@ -300,6 +300,9 @@ public function search(Request $request)
          $userId = Sentinel::getUser()->id;
         $office_id = Sentinel::getUser()->office_id;
           $roleNew = UserRole::where('user_id', $userId)->first();
+           $offices = Office::get();
+              $province_id = Sentinel::getUser()->province_id;
+            $province_transactions = [];
 
 
 
@@ -317,10 +320,27 @@ public function search(Request $request)
 // }
       }
 
-        if (Sentinel::hasAccess('settings')) {
+
+        if ($roleNew->role_id == "6") {
+
+            foreach ($offices as $office) {
+                if ($office->province_id == $province_id) {
+                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)->with('loan')->get();
+                    foreach ($transactions as $transaction) {
+                        array_push($province_transactions, $transaction);
+                    }
+                }
+            }
+            $data = $province_transactions;
+
+        } else {
+
+           if (Sentinel::hasAccess('settings')) {
             $data = LoanTransactionsPending::get();
         } else {
             $data = LoanTransactionsPending::where('office_id', $office_id)->get();
+        }
+
         }
 
         return view('loan.reloan_approvals', compact('data'));
