@@ -31,7 +31,7 @@
         <div class="col-md-12">
             <div class="panel">
                 <div class="panel-heading">
-		            <h6 class="panel-title">{{$loan->loan_product->name}}(#{{$loan->id}})
+ 		            <h6 class="panel-title">{{ optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->name ?? 'N/A' }}(#{{$loan->id}})
                         @if($loan->defaulted == 'yes')
                         <span style="color: red;">(Defaulted)</span>
                         @endif
@@ -1466,7 +1466,7 @@ Verify Code
                             <div class="col-sm-8 col-md-8">
                                 <?php
                                 $loan_allocation = \App\Helpers\GeneralHelper::loan_items($loan->id);
-                                $decimals = $loan->loan_product->decimals;
+                                $decimals = optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals;
                                 $timely_repayments = 0;
                                 $total_repayments = 0;
                                 $days_in_arrears = 0;
@@ -1938,19 +1938,19 @@ CURRENT BALANCE DASHBOARD
                                     <tr>
                                         <th class="table-bold-loan">{{trans_choice('general.proposed',1)}} {{trans_choice('general.amount',1)}}</th>
                                         <td>
-                                            <span class="padded-td">{{ number_format($loan->applied_amount,$loan->loan_product->decimals) }}</span>
+                                            <span class="padded-td">{{ number_format($loan->applied_amount,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals) }}</span>
                                         </td>
                                     </tr>
                                     <tr>
                                         <th class="table-bold-loan">{{trans_choice('general.approved',1)}} {{trans_choice('general.amount',1)}}</th>
                                         <td>
-                                            <span class="padded-td">{{ number_format($loan->approved_amount,$loan->loan_product->decimals) }}</span>
+                                            <span class="padded-td">{{ number_format($loan->approved_amount,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals) }}</span>
                                         </td>
                                     </tr>
                                     <tr>
                                         <th class="table-bold-loan"> {{trans_choice('general.disbursed',1)}} {{trans_choice('general.amount',1)}}</th>
                                         <td>
-                                            <span class="padded-td">{{ number_format($loan->principal,$loan->loan_product->decimals) }}</span>
+                                            <span class="padded-td">{{ number_format($loan->principal,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals) }}</span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -2274,6 +2274,11 @@ CURRENT BALANCE DASHBOARD
                     @if(Sentinel::hasAccess('loans.view'))
                         <li class="active"><a href="#account_details" data-toggle="tab"
                                               aria-expanded="false">{{trans_choice('general.account',1)}} {{trans_choice('general.detail',2)}}</a>
+                         </li>
+                     @endif
+                    @if($loan->loan_product_id == 1)
+                        <li class=""><a href="#payroll_schedule" data-toggle="tab"
+                                        aria-expanded="false">{{trans_choice('general.payroll',1)}} {{trans_choice('general.schedule',1)}}</a>
                         </li>
                     @endif
                     @if($loan->status=="disbursed" || $loan->status=="closed" || $loan->status=="written_off" || $loan->status=="rescheduled" )
@@ -2320,13 +2325,13 @@ CURRENT BALANCE DASHBOARD
                             <tr>
                                 <td>{{trans_choice('general.repayment',1)}} {{trans_choice('general.strategy',1)}}</td>
                                 <td>
-                                    @if($loan->loan_product->loan_transaction_strategy=="penalty_fees_interest_principal")
+                                    @if(optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->loan_transaction_strategy=="penalty_fees_interest_principal")
                                         {{trans_choice('general.penalty_fees_interest_principal',1)}}
                                     @endif
-                                    @if($loan->loan_product->loan_transaction_strategy=="principal_interest_penalty_fees")
+                                    @if(optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->loan_transaction_strategy=="principal_interest_penalty_fees")
                                         {{trans_choice('general.principal_interest_penalty_fees',1)}}
                                     @endif
-                                    @if($loan->loan_product->loan_transaction_strategy=="interest_principal_penalty_fees")
+                                    @if(optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->loan_transaction_strategy=="interest_principal_penalty_fees")
                                         {{trans_choice('general.interest_principal_penalty_fees',1)}}
                                     @endif
                                 </td>
@@ -2478,6 +2483,55 @@ CURRENT BALANCE DASHBOARD
                             </tr>
                         </table>
                     </div>
+                    @if($loan->loan_product_id == 1)
+                    <div class="tab-pane" id="payroll_schedule">
+                        @php
+                            $schedule = DB::table('payroll_loan_schedules')
+                                ->where('loan_amount', $loan->principal)
+                                ->first();
+                            $tenure = $loan->loan_term;
+                            $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+                            $totalRepayment = $monthlyAmount ? ($monthlyAmount * $tenure) : null;
+                            $totalPaid = DB::table('loan_transactions')
+                                ->where('loan_id', $loan->id)
+                                ->where('transaction_type', 'repayment')
+                                ->sum('credit');
+                            $paidPercentage = $totalRepayment ? min(100, round(($totalPaid / $totalRepayment) * 100)) : 0;
+                        @endphp
+                        @if($monthlyAmount)
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{{trans_choice('general.loan',1)}} {{trans_choice('general.amount',1)}}</th>
+                                        <th>Tenure</th>
+                                        <th>{{trans_choice('general.monthly',1)}} {{trans_choice('general.amount',1)}}</th>
+                                        <th>{{trans_choice('general.total',1)}} {{trans_choice('general.repayment',1)}}</th>
+                                        <th>{{trans_choice('general.paid',1)}} {{trans_choice('general.amount',1)}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>K{{ number_format($loan->principal, 2) }}</td>
+                                        <td>{{ $tenure }} Months</td>
+                                        <td>K{{ number_format($monthlyAmount, 2) }}</td>
+                                        <td>K{{ number_format($totalRepayment, 2) }}</td>
+                                        <td>K{{ number_format($totalPaid, 2) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="progress" style="height: 20px; margin-top: 15px;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ $paidPercentage }}%;" aria-valuenow="{{ $paidPercentage }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ $paidPercentage }}%
+                                </div>
+                            </div>
+                            <p style="margin-top: 10px;">
+                                {{ trans_choice('general.paid',1) }}: K{{ number_format($totalPaid, 2) }} / {{ trans_choice('general.total',1) }}: K{{ number_format($totalRepayment, 2) }}
+                            </p>
+                        @else
+                            <p>No schedule found for this loan amount and tenure.</p>
+                        @endif
+                    </div>
+                    @endif
                     @if(Sentinel::hasAccess('loans.documents.view'))
                         <div class="tab-pane" id="documents">
                             <div class="row">
@@ -2788,19 +2842,19 @@ CURRENT BALANCE DASHBOARD
 
                                                 <td><span style="color: #eb2442;"></span></td>
                                                 <td>&nbsp;</td>
-                                                <td class="lefthighlightcolheader">{{number_format($loan->principal,$loan->loan_product->decimals)}}</td>
+                                                <td class="lefthighlightcolheader">{{number_format($loan->principal,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</td>
                                                 <td></td>
-                                                <td class="righthighlightcolheader">{{number_format($loan->principal,$loan->loan_product->decimals)}}</td>
+                                                <td class="righthighlightcolheader">{{number_format($loan->principal,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</td>
 
                                                 <td class="lefthighlightcolheader">
 
 
                                                 </td>
-                                                <td>{{number_format($disbursement_charges,$loan->loan_product->decimals)}}</td>
+                                                <td>{{number_format($disbursement_charges,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</td>
                                                 <td class="righthighlightcolheader"></td>
 
                                                 <td></td>
-                                                <td>{{number_format($disbursement_charges,$loan->loan_product->decimals)}}</td>
+                                                <td>{{number_format($disbursement_charges,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</td>
                                                 <td></td>
                                             </tr>
                                             @foreach($loan->repayment_schedules as $key)
@@ -2849,34 +2903,34 @@ CURRENT BALANCE DASHBOARD
                                                     <td class="lefthighlightcolheader"></td>
                                                     <td>
                                                         @if( ($key->principal_waived +$key->principal_written_off)>0)
-                                                            <span style="color: #eb2442;"><s>{{number_format($key->principal_waived +$key->principal_written_off,$loan->loan_product->decimals)}}</s></span>
+                                                            <span style="color: #eb2442;"><s>{{number_format($key->principal_waived +$key->principal_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</s></span>
                                                         @endif
-                                                        {{number_format($key->principal- $key->principal_waived - $key->principal_written_off,$loan->loan_product->decimals)}}
+                                                        {{number_format($key->principal- $key->principal_waived - $key->principal_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}
                                                     </td>
-                                                    <td class="righthighlightcolheader">{{number_format($principal_balance,$loan->loan_product->decimals)}}</td>
+                                                    <td class="righthighlightcolheader">{{number_format($principal_balance,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</td>
 
                                                     <td class="lefthighlightcolheader">
                                                         @if( ($key->interest_waived +$key->interest_written_off)>0)
-                                                            <span style="color: #eb2442;"><s>{{number_format($key->interest_waived +$key->interest_written_off,$loan->loan_product->decimals)}}</s></span>
+                                                            <span style="color: #eb2442;"><s>{{number_format($key->interest_waived +$key->interest_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</s></span>
                                                         @endif
-                                                        {{number_format($key->interest- $key->interest_waived - $key->interest_written_off,$loan->loan_product->decimals)}}
+                                                        {{number_format($key->interest- $key->interest_waived - $key->interest_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}
                                                     </td>
                                                     <td>
                                                         @if( ($key->fees_waived +$key->fees_written_off)>0)
-                                                            <span style="color: #eb2442;"><s>{{number_format($key->fees_waived +$key->fees_written_off,$loan->loan_product->decimals)}}</s></span>
+                                                            <span style="color: #eb2442;"><s>{{number_format($key->fees_waived +$key->fees_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</s></span>
                                                         @endif
-                                                        {{number_format($key->fees- $key->fees_waived - $key->fees_written_off,$loan->loan_product->decimals)}}
+                                                        {{number_format($key->fees- $key->fees_waived - $key->fees_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}
                                                     </td>
                                                     <td class="righthighlightcolheader">
                                                         @if( ($key->penalty_waived +$key->penalty_written_off)>0)
-                                                            <span style="color: #eb2442;"><s>{{number_format($key->penalty_waived +$key->penalty_written_off,$loan->loan_product->decimals)}}</s></span>
+                                                            <span style="color: #eb2442;"><s>{{number_format($key->penalty_waived +$key->penalty_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</s></span>
                                                         @endif
-                                                        {{number_format($key->penalty- $key->penalty_waived - $key->penalty_written_off,$loan->loan_product->decimals)}}
+                                                        {{number_format($key->penalty- $key->penalty_waived - $key->penalty_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}
                                                     </td>
 
-                                                    <td>{{number_format($key->principal- $key->principal_waived - $key->principal_written_off + $key->interest- $key->interest_waived - $key->interest_written_off + $key->penalty- $key->penalty_waived - $key->penalty_written_off + $key->fees- $key->fees_waived - $key->fees_written_off,$loan->loan_product->decimals)}}</td>
-                                                    <td>{{number_format($key->principal_paid + $key->interest_paid + $key->penalty_paid + $key->fees_paid,$loan->loan_product->decimals)}}</td>
-                                                    <td>{{number_format($key->principal- $key->principal_waived - $key->principal_written_off + $key->interest- $key->interest_waived - $key->interest_written_off + $key->penalty- $key->penalty_waived - $key->penalty_written_off + $key->fees- $key->fees_waived - $key->fees_written_off-($key->principal_paid + $key->interest_paid + $key->penalty_paid + $key->fees_paid),$loan->loan_product->decimals)}}</td>
+                                                    <td>{{number_format($key->principal- $key->principal_waived - $key->principal_written_off + $key->interest- $key->interest_waived - $key->interest_written_off + $key->penalty- $key->penalty_waived - $key->penalty_written_off + $key->fees- $key->fees_waived - $key->fees_written_off,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</td>
+                                                    <td>{{number_format($key->principal_paid + $key->interest_paid + $key->penalty_paid + $key->fees_paid,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</td>
+                                                    <td>{{number_format($key->principal- $key->principal_waived - $key->principal_written_off + $key->interest- $key->interest_waived - $key->interest_written_off + $key->penalty- $key->penalty_waived - $key->penalty_written_off + $key->fees- $key->fees_waived - $key->fees_written_off-($key->principal_paid + $key->interest_paid + $key->penalty_paid + $key->fees_paid),optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</td>
                                                 </tr>
                                                 <?php
                                                 $count++;
@@ -2889,17 +2943,17 @@ CURRENT BALANCE DASHBOARD
                                                 <th></th>
                                                 <th></th>
 
-                                                <th class="lefthighlightcolheader"> {{number_format($loan->principal,$loan->loan_product->decimals)}}</th>
-                                                <th> {{number_format($total_principal,$loan->loan_product->decimals)}}</th>
+                                                <th class="lefthighlightcolheader"> {{number_format($loan->principal,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</th>
+                                                <th> {{number_format($total_principal,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</th>
                                                 <th class="righthighlightcolheader">&nbsp;</th>
 
-                                                <th class="lefthighlightcolheader">{{number_format($total_interest,$loan->loan_product->decimals)}}</th>
-                                                <th>{{number_format($total_fees,$loan->loan_product->decimals)}}</th>
-                                                <th class="righthighlightcolheader">{{number_format($total_penalties,$loan->loan_product->decimals)}}</th>
+                                                <th class="lefthighlightcolheader">{{number_format($total_interest,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</th>
+                                                <th>{{number_format($total_fees,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</th>
+                                                <th class="righthighlightcolheader">{{number_format($total_penalties,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</th>
 
-                                                <th>{{number_format($total_due,$loan->loan_product->decimals)}}</th>
-                                                <th>{{number_format($total_paid,$loan->loan_product->decimals)}}</th>
-                                                <th>{{number_format($total_outstanding-$total_paid,$loan->loan_product->decimals)}}</th>
+                                                <th>{{number_format($total_due,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</th>
+                                                <th>{{number_format($total_paid,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</th>
+                                                <th>{{number_format($total_outstanding-$total_paid,optional(\App\Helpers\GeneralHelper::loan_product($loan->loan_product_id))->decimals)}}</th>
                                             </tr>
                                             </tfoot>
                                         </table>

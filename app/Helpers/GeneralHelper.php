@@ -18,6 +18,7 @@ use App\Models\GlAccount;
 use App\Models\GlJournalEntry;
 use App\Models\JournalEntry;
 use App\Models\Loan;
+use App\Models\LoanProduct;
 use App\Models\User;
 use App\Models\LoanRepayment;
 use App\Models\LoanRepaymentSchedule;
@@ -49,6 +50,32 @@ class GeneralHelper
     public static function get_active_theme_directory($sep = '.')
     {
         return 'themes' . $sep . Setting::where('setting_key', 'active_theme')->first()->setting_value;
+    }
+
+    public static function loan_product($loan_product_id)
+    {
+        if (empty($loan_product_id)) {
+            return null;
+        }
+        return LoanProduct::find($loan_product_id);
+    }
+
+    public static function payroll_loan_schedule($loan_amount, $tenure_months)
+    {
+        if (empty($loan_amount) || empty($tenure_months)) {
+            return null;
+        }
+        $column = 'months_' . $tenure_months;
+        $schedule = DB::table('payroll_loan_schedules')
+            ->where('loan_amount', $loan_amount)
+            ->first();
+        if (!$schedule) {
+            return null;
+        }
+        if (!property_exists($schedule, $column)) {
+            return null;
+        }
+        return $schedule->$column;
     }
 
     /*
@@ -403,51 +430,12 @@ public static function new_new_loan_total_balance($id)
     {
         if (empty($date)) {
             $loan = Loan::find($id);
-            $someInfo = [];
-            $principal = 0;
-            $principal_paid = 0;
-            $principal_written_off = 0;
-            $fees = 0;
-            $fees_paid = 0;
-            $penalty = 0;
-            $penalty_paid = 0;
-            $penalty_written_off = 0;
-            $interest_waived = 0;
-            $penalty_waived = 0;
-            $fees_waived = 0;
-            $fees_written_off = 0;
-            $principal_waived = 0;
-            $interest = 0;
-            $interest_paid = 0;
-            $interest_written_off = 0;
-            if (!empty($loan)) {
-                foreach ($loan->repayment_schedules as $schedule) {
-                    $principal = $principal + $schedule->principal;
-                    $interest = $interest + $schedule->interest;
-                    $penalty = $penalty + $schedule->penalty;
-                    $fees = $fees + $schedule->fees;
-                    $principal_paid = $principal_paid + $schedule->principal_paid;
-                    $interest_paid = $interest_paid + $schedule->interest_paid;
-                    $penalty_paid = $penalty_paid + $schedule->penalty_paid;
-                    $fees_paid = $fees_paid + $schedule->fees_paid;
-                    $principal_waived = $principal_waived + $schedule->principal_waived;
-                    $interest_waived = $interest_waived + $schedule->interest_waived;
-                    $penalty_waived = $penalty_waived + $schedule->penalty_waived;
-                    $fees_waived = $fees_waived + $schedule->fees_waived;
-                    $principal_written_off = $principal_written_off + $schedule->principal_written_off;
-                    $interest_written_off = $interest_written_off + $schedule->interest_written_off;
-                    $penalty_written_off = $penalty_written_off + $schedule->penalty_written_off;
-                    $fees_written_off = $fees_written_off + $schedule->fees_written_off;
-
-                }
-                return (($principal - $principal_paid - $principal_waived - $principal_written_off) + ($interest - $interest_paid - $interest_waived - $interest_written_off) + ($fees - $fees_paid - $fees_waived - $fees_written_off) + ($penalty - $penalty_paid - $penalty_waived - $penalty_written_off));
-
-            } else {
-                return 0;
-            }
-
+            $items = GeneralHelper::loan_items($id);
+            return ($items['principal'] - $items['principal_paid'] - $items['principal_waived'] - $items['principal_written_off'])
+                + ($items['interest'] - $items['interest_paid'] - $items['interest_waived'] - $items['interest_written_off'])
+                + ($items['fees'] - $items['fees_paid'] - $items['fees_waived'] - $items['fees_written_off'])
+                + ($items['penalty'] - $items['penalty_paid'] - $items['penalty_waived'] - $items['penalty_written_off']);
         }
-
     }
 
     public static function loan_arrears($id, $date)
@@ -1748,7 +1736,7 @@ public static function new_new_loan_total_balance($id)
             $interest = $interest + $schedule->interest;
             $penalty = $penalty + $schedule->penalty;
             $fees = $fees + $schedule->fees;
-            $principal_paid = $principal_paid + $principal_paid;
+            $principal_paid = $principal_paid + $schedule->principal_paid;
             $interest_paid = $interest_paid + $schedule->interest_paid;
             $penalty_paid = $penalty_paid + $schedule->penalty_paid;
             $fees_paid = $fees_paid + $schedule->fees_paid;
