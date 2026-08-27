@@ -94,7 +94,7 @@
                 <br>
                 <hr>
                 @if($status[0]['status'] === 'fully paid' && $status[1]['status'] === 'fully paid' && $status[2]['status'] === 'fully paid' 
-                || in_array($blockerUser->office_id, [62, 68, 79, 80]))
+                || in_array($blockerUser->office_id, [62, 65, 68, 79, 80]))
                     @include('branch-deposits._partials.housing', ['selectedMonth' => $selectedMonth])
                 @else
                     @include('branch-deposits._partials.housing', ['selectedMonth' => $selectedMonth, 'disabled'=>true])
