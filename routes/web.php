@@ -466,6 +466,10 @@ Route::group(['prefix' => 'user'], function () {
     Route::any('verify_wallet','UserController@verify_wallet');
     Route::any('wallet_verification','UserController@wallet_verification');
     Route::any('save_wallet','UserController@save_wallet');
+    Route::post('office/update', [
+    UserController::class,
+    'updateSetup'
+])->name('office.setup.update');
     // Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
@@ -2069,6 +2073,11 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
     Route::get('collateral/setup', 'CollateralController@setup')->name('collateral.setup');
     Route::post('collateral/setup', 'CollateralController@setupUpdate')->name('collateral.setup.update');
 
+    // collateral reports (registered before collateral/{collateral} to avoid route shadowing)
+    Route::get('collateral/reports', 'CollateralReportController@index')->name('collateral.reports.index');
+    Route::get('collateral/reports/{type}', 'CollateralReportController@form')->name('collateral.reports.form');
+    Route::post('collateral/reports/{type}/generate', 'CollateralReportController@generate')->name('collateral.reports.generate');
+
 Route::get('collateral/{collateral}', 'CollateralController@show')->name('collateral.show');
 Route::get('collateral/{collateral}/edit', 'CollateralController@edit')->name('collateral.edit');
 Route::put('collateral/{collateral}', 'CollateralController@update')->name('collateral.update');
@@ -2082,11 +2091,6 @@ Route::post('collateral/{collateral}/assign-loan', 'CollateralController@assignL
 Route::post('collateral/{collateral}/request-release', 'CollateralController@requestRelease')->name('collateral.request_release');
     Route::post('collateral/{collateral}/vetted-approve', 'CollateralController@approve')->name('collateral.vetted.approve');
     Route::post('collateral/{collateral}/vetted-decline', 'CollateralController@decline')->name('collateral.vetted.decline');
-
-    // collateral reports
-    Route::get('collateral/reports', 'CollateralReportController@index')->name('collateral.reports.index');
-    Route::get('collateral/reports/{type}', 'CollateralReportController@form')->name('collateral.reports.form');
-    Route::post('collateral/reports/{type}/generate', 'CollateralReportController@generate')->name('collateral.reports.generate');
 
     // ============================================
     // RECOVERY MODULE ROUTES

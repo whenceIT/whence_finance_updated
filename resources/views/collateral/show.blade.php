@@ -969,6 +969,22 @@ $(document).ready(function() {
                     </div>
 
                     <div class="form-group">
+                        <label>Buyer Details</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="text" name="buyer_name" class="form-control" placeholder="Buyer full name" value="{{ old('buyer_name', $collateral->buyer_name) }}">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="buyer_phone" class="form-control" placeholder="Buyer phone" value="{{ old('buyer_phone', $collateral->buyer_phone) }}">
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <input type="text" name="buyer_nrc" class="form-control" placeholder="Buyer NRC / ID number" value="{{ old('buyer_nrc', $collateral->buyer_nrc) }}">
+                        </div>
+                        <small class="form-help-text">Captured for conflict-of-interest auditing against employee records.</small>
+                    </div>
+
+                    <div class="form-group">
                         <label>Reason</label>
                         <textarea name="reason" class="form-control" rows="3" required></textarea>
                     </div>

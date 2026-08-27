@@ -1282,7 +1282,8 @@
     ">
 
 
-        {{-- COVER --}}
+        <!-- {{-- COVER --}}  -->
+         <!-- REMOVE THIS -->
 
         <div style="
             background:#fff;
@@ -1401,7 +1402,7 @@
         </div>
 
 
-
+  <!-- REMOVE THIS -->
         {{-- OFFICE OVERVIEW --}}
 
         <div style="

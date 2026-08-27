@@ -414,6 +414,85 @@ These are the balances of all branch loans as of  {{ date("jS M, Y", strtotime($
 @endif
 @endsection
 
+
+@if($office && is_null($office->workstations) && is_null($office->recruited))
+
+<div class="modal fade" id="officeSetupModal"
+     tabindex="-1"
+     role="dialog"
+     data-backdrop="static"
+     data-keyboard="false">
+
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <i class="fa fa-building"></i>
+                    Branch Information
+                </h4>
+            </div>
+
+            <div class="modal-body">
+
+                <p>
+                    Please provide the following information about your branch.
+                </p>
+
+                <div class="form-group">
+                    <label>
+                        How many workstations are assigned to your branch?
+                    </label>
+
+                    <input
+                        type="number"
+                        id="workstations"
+                        class="form-control"
+                        min="0"
+                        step="1"
+                        placeholder="Enter number of workstations"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Has your branch recruited loan consultants?
+                    </label>
+
+                    <select id="recruited" class="form-control">
+                        <option value="">-- Select --</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+
+                <div id="officeSetupError"
+                     class="alert alert-danger"
+                     style="display:none;">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="saveOfficeInformation">
+
+                    <i class="fa fa-save"></i>
+                    Save Information
+
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@endif
+
 @section('footer-scripts')
 <style>
 .small-box { border-radius: 10px; }
@@ -617,5 +696,112 @@ function fetchGivenOutTable() {
 
 
 });
+
+
+$(document).ready(function () {
+
+    // The modal only exists when both office fields are NULL,
+    // so if it exists, show it.
+    if ($('#officeSetupModal').length) {
+        $('#officeSetupModal').modal('show');
+    }
+
+
+    $('#saveOfficeInformation').on('click', function () {
+
+        const workstations = $('#workstations').val();
+        const recruited = $('#recruited').val();
+
+        $('#officeSetupError').hide().text('');
+
+
+        if (workstations === '') {
+
+            $('#officeSetupError')
+                .text('Please enter the number of workstations.')
+                .show();
+
+            return;
+        }
+
+
+        if (parseInt(workstations) < 0) {
+
+            $('#officeSetupError')
+                .text('The number of workstations cannot be negative.')
+                .show();
+
+            return;
+        }
+
+
+        if (recruited === '') {
+
+            $('#officeSetupError')
+                .text('Please indicate whether the branch has recruited.')
+                .show();
+
+            return;
+        }
+
+
+        const button = $(this);
+
+        button.prop('disabled', true);
+
+        button.html(
+            '<i class="fa fa-spinner fa-spin"></i> Saving...'
+        );
+
+
+        $.ajax({
+
+            url: "{{ route('office.setup.update') }}",
+
+            method: "POST",
+
+            data: {
+                _token: "{{ csrf_token() }}",
+                workstations: workstations,
+                recruited: recruited
+            },
+
+            success: function (response) {
+
+                $('#officeSetupModal').modal('hide');
+
+                location.reload();
+
+            },
+
+            error: function (xhr) {
+
+                let message =
+                    'Unable to save branch information.';
+
+                if (
+                    xhr.responseJSON &&
+                    xhr.responseJSON.message
+                ) {
+                    message = xhr.responseJSON.message;
+                }
+
+                $('#officeSetupError')
+                    .text(message)
+                    .show();
+
+                button.prop('disabled', false);
+
+                button.html(
+                    '<i class="fa fa-save"></i> Save Information'
+                );
+            }
+
+        });
+
+    });
+
+});
+
 </script>
 @endsection

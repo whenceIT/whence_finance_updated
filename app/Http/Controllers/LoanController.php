@@ -1835,6 +1835,8 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
         $vehicle = Vehicle::with('client')->where('loan_id',$loan->id)->first();
 
 
+       // $cashBalance = 30000;
+       // $user_id = 1;
         return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id','vehicle'));
     }
 

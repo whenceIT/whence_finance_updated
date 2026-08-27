@@ -45,6 +45,11 @@ class CollateralService
             'description' => 'Identifies managers and LCs with the highest seizure rates and where collateral values fall short of the indicated loan valuation.',
             'icon'        => 'fa-user-secret',
         ],
+        'conflict_of_interest' => [
+            'label'       => 'Conflict of Interest Audit Log',
+            'description' => 'Cross-references buyer details captured at sale with employee records to flag potential conflicts of interest.',
+            'icon'        => 'fa-user-shield',
+        ],
     ];
 
     public function getReports(): array
@@ -72,6 +77,7 @@ class CollateralService
             'trend_asset_sell'        => $this->trendAssetSell($filters),
             'trend_branch_performance'=> $this->trendBranchPerformance($filters),
             'trend_manager_performance'=> $this->trendManagerPerformance($filters),
+            'conflict_of_interest'     => $this->conflictOfInterest($filters),
             default                   => throw new \InvalidArgumentException('Unknown report type: ' . $type),
         };
     }
@@ -126,7 +132,7 @@ class CollateralService
         $query = Collateral::query()->with(['type', 'loan.office']);
         $this->applyCommonFilters($query, $f);
 
-        $dateColumn = $f['age_basis'] === 'seized' ? 'seized_at' : 'created_at';
+        $dateColumn = ($f['age_basis'] ?? 'created') === 'seized' ? 'seized_at' : 'created_at';
         $query->whereBetween($dateColumn, [$from, $to]);
 
         $items = $query->get();
@@ -148,7 +154,7 @@ class CollateralService
 
         $byProvince = $items->groupBy('province_id')->map(function ($group) {
             return [
-                'label' => Province::find($group->first()->province_id)->name ?? 'Unknown',
+                'label' => optional(Province::find($group->first()->province_id))->name ?? 'Unknown',
                 'count' => $group->count(),
                 'value' => $group->sum(fn ($i) => $this->effectiveValue($i)),
             ];
@@ -156,7 +162,7 @@ class CollateralService
 
         $byDistrict = $items->groupBy('district_id')->map(function ($group) {
             return [
-                'label' => District::find($group->first()->district_id)->name ?? 'Unknown',
+                'label' => optional(District::find($group->first()->district_id))->name ?? 'Unknown',
                 'count' => $group->count(),
                 'value' => $group->sum(fn ($i) => $this->effectiveValue($i)),
             ];
@@ -379,5 +385,97 @@ class CollateralService
         })->values()->sortByDesc('seizure_rate')->values();
 
         return compact('byUser');
+    }
+
+    public function conflictOfInterest(array $f): array
+    {
+        [$from, $to] = $this->dateRange($f);
+
+        $query = Collateral::query()->with(['type', 'loan.office', 'created_by'])
+            ->where('status', 'sold')
+            ->whereNotNull('buyer_name')
+            ->where('buyer_name', '<>', '')
+            ->whereBetween('sold_at', [$from, $to]);
+        $this->applyCommonFilters($query, $f);
+
+        $items = $query->get();
+
+        $users = User::select('id', 'first_name', 'last_name', 'phone', 'email')
+            ->get()
+            ->map(function ($u) {
+                $u->full_name = trim($u->first_name . ' ' . $u->last_name);
+                $u->phone_norm = preg_replace('/\D/', '', (string) $u->phone);
+                return $u;
+            });
+
+        $flags = collect();
+        $phoneMatches = 0;
+        $nameMatches = 0;
+
+        foreach ($items as $item) {
+            $buyerPhone = preg_replace('/\D/', '', (string) $item->buyer_phone);
+            $buyerName = trim((string) $item->buyer_name);
+            $buyerNameLower = strtolower($buyerName);
+
+            $matchedUser = null;
+            $matchType = null;
+
+            if ($buyerPhone !== '') {
+                $byPhone = $users->first(function ($u) use ($buyerPhone) {
+                    return $u->phone_norm !== '' && $u->phone_norm === $buyerPhone;
+                });
+                if ($byPhone) {
+                    $matchedUser = $byPhone;
+                    $matchType = 'phone';
+                }
+            }
+
+            if (!$matchedUser && $buyerNameLower !== '') {
+                $byName = $users->first(function ($u) use ($buyerNameLower) {
+                    $emp = strtolower($u->full_name);
+                    if ($emp === '') {
+                        return false;
+                    }
+                    return $emp === $buyerNameLower
+                        || str_contains($emp, $buyerNameLower)
+                        || str_contains($buyerNameLower, $emp);
+                });
+                if ($byName) {
+                    $matchedUser = $byName;
+                    $matchType = 'name';
+                }
+            }
+
+            if ($matchedUser) {
+                if ($matchType === 'phone') {
+                    $phoneMatches++;
+                } else {
+                    $nameMatches++;
+                }
+                $flags->push([
+                    'collateral_id'   => $item->id,
+                    'collateral_name' => $item->name,
+                    'buyer_name'      => $item->buyer_name,
+                    'buyer_phone'     => $item->buyer_phone,
+                    'buyer_nrc'       => $item->buyer_nrc,
+                    'sold_price'      => $item->sold_price,
+                    'sold_at'         => optional($item->sold_at)->format('Y-m-d'),
+                    'office'          => optional(optional($item->loan)->office)->name ?? 'Unknown',
+                    'sold_by'         => optional($item->created_by)->first_name . ' ' . optional($item->created_by)->last_name,
+                    'matched_employee'=> $matchedUser->full_name,
+                    'matched_position'=> $matchedUser->position_name ?? '',
+                    'match_type'      => $matchType,
+                ]);
+            }
+        }
+
+        $summary = [
+            'sold_with_buyer' => $items->count(),
+            'flagged'          => $flags->count(),
+            'phone_matches'    => $phoneMatches,
+            'name_matches'     => $nameMatches,
+        ];
+
+        return compact('summary', 'flags');
     }
 }

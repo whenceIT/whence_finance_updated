@@ -63,6 +63,7 @@ class CollateralReportController extends Controller
             'trend_asset_sell'          => 'collateral.reports.trend_asset_sell',
             'trend_branch_performance'  => 'collateral.reports.trend_branch_performance',
             'trend_manager_performance' => 'collateral.reports.trend_manager_performance',
+            'conflict_of_interest'      => 'collateral.reports.conflict_of_interest',
         ];
 
         return view($viewMap[$type], array_merge(compact('type', 'report', 'filters'), $data));
