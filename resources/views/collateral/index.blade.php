@@ -46,6 +46,12 @@ $userPosition = Sentinel::getUser()->position_name;
                     <a href="{{ route('collateral.create') }}" class="btn btn-success btn-sm">Add Collateral</a>
             </div>
             @endif
+
+            @if($role == 1)
+            <div class="box-tools pull-right" style="margin-right: 8px;">
+                <button type="button" class="btn btn-info btn-sm" id="open-reports-modal"><i class="fa fa-bar-chart"></i> Show Reports</button>
+            </div>
+            @endif
         </div>
         <div class="box-body">
             <form method="get" action="{{ route('collateral.index') }}" class="form-inline" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
@@ -293,4 +299,6 @@ $userPosition = Sentinel::getUser()->position_name;
             </div>
         </div>
     </div>
-@endsection
+
+    @include('collateral.reports._report_modal')
+ @endsection

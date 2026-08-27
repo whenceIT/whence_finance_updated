@@ -104,7 +104,7 @@
                 <div class="form-group{{ $errors->has('category') ? ' has-error' : '' }}">
                     <label class="control-label col-md-2">Category</label>
                     <div class="col-md-8">
-                        <select name="category" class="form-control select2">
+                        <select name="category" class="form-control select2" required>
                             <option value="">Select category</option>
                             @foreach(\App\Models\Collateral::categoryOptions() as $catKey => $catLabel)
                                 <option value="{{ $catKey }}"{{ old('category') == $catKey ? ' selected' : '' }}>{{ $catLabel }}</option>
@@ -259,7 +259,7 @@
                 } else {
                     var shortfall = loanBalance - netProceeds;
                     $('#create-analysis-verdict').html('<span class="label label-danger">Below Loan Balance</span><div class="alert alert-danger" style="margin-top: 10px;">Net proceeds are <strong>' + netProceeds.toFixed(2) + '</strong>, but the loan balance is <strong>' + loanBalance.toFixed(2) + '</strong>. You need <strong>' + shortfall.toFixed(2) + '</strong> more to cover the loan balance.</div>');
-                    $('#save-collateral-btn').prop('disabled', true);
+                    // $('#save-collateral-btn').prop('disabled', true);
                 }
             }
 

@@ -218,6 +218,9 @@ class CollateralApprovalController extends Controller
             'disposal_costs.*.name' => 'nullable|string|max:255',
             'disposal_costs.*.amount' => 'nullable|numeric|min:0',
             'reason'         => 'nullable|string',
+            'buyer_name'     => 'nullable|string|max:255',
+            'buyer_phone'    => 'nullable|string|max:50',
+            'buyer_nrc'      => 'nullable|string|max:50',
         ]);
 
         if ($collateral->status === 'sold' || $collateral->status === 'written_off' || $collateral->status === 'released') {
@@ -237,6 +240,9 @@ class CollateralApprovalController extends Controller
         $collateral->status = 'sold';
         $collateral->sold_price = $request->sold_price;
         $collateral->disposal_costs = $request->disposal_costs ?? [];
+        $collateral->buyer_name = $request->buyer_name;
+        $collateral->buyer_phone = $request->buyer_phone;
+        $collateral->buyer_nrc = $request->buyer_nrc;
         $collateral->date_resold = Carbon::now();
         $collateral->sold_at = Carbon::now();
         $collateral->save();
