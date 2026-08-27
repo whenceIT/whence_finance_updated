@@ -8,8 +8,29 @@ class Collateral extends Model
 {
     protected $table = 'collaterals';
 
+    public const CATEGORIES = [
+        'electronics'   => 'Electronics',
+        'furniture'     => 'Furniture',
+        'appliances'    => 'Appliances',
+        'vehicles'      => 'Vehicles',
+        'jewelry'       => 'Jewelry & Gold',
+        'real_estate'   => 'Real Estate',
+        'machinery'     => 'Machinery & Equipment',
+        'agriculture'   => 'Agriculture & Livestock',
+        'construction'  => 'Construction Material',
+        'clothing'      => 'Clothing & Textiles',
+        'tools'         => 'Tools',
+        'other'         => 'Other',
+    ];
+
+    public static function categoryOptions(): array
+    {
+        return self::CATEGORIES;
+    }
+
     protected $fillable = [
         'name',
+        'category',
         'serial_num',
         'description',
         'initial_price',

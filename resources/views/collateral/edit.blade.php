@@ -40,6 +40,19 @@
                     </div>
                 </div>
 
+                <div class="form-group{{ $errors->has('category') ? ' has-error' : '' }}">
+                    <label class="control-label col-md-2">Category</label>
+                    <div class="col-md-8">
+                        <select name="category" class="form-control select2">
+                            <option value="">Select category</option>
+                            @foreach(\App\Models\Collateral::categoryOptions() as $catKey => $catLabel)
+                                <option value="{{ $catKey }}"{{ old('category', $collateral->category) == $catKey ? ' selected' : '' }}>{{ $catLabel }}</option>
+                            @endforeach
+                        </select>
+                        {!! $errors->first('category', '<span class="help-block">:message</span>') !!}
+                    </div>
+                </div>
+
                 <div class="form-group{{ $errors->has('approved_value') ? ' has-error' : '' }}">
                     <label class="control-label col-md-2">Approved Value</label>
                     <div class="col-md-4">
