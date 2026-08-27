@@ -1814,29 +1814,27 @@ if ($office && $office->withinhere_wallet_id == null) {
 $withinhere_wallet_id = $office->withinhere_wallet_id;
 
 
-    //   $response = Http::timeout(60)
-    //             ->post(
-    //                 'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
-    //                 [
-    //                     'wallet_id' => $withinhere_wallet_id,
-    //                     'start_date' => '2025-01-01',
-    //                     'end_date' => '2025-01-01'
-    //                 ]
-    //             );
+      $response = Http::timeout(60)
+                ->post(
+                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                    [
+                        'wallet_id' => $withinhere_wallet_id,
+                        'start_date' => '2025-01-01',
+                        'end_date' => '2025-01-01'
+                    ]
+                );
 
 
-    //                if ($response->successful()) {
-    //         $data = $response->json();
+                   if ($response->successful()) {
+            $data = $response->json();
 
-    //         $cashBalance = $data['user']['cash_balance'] ?? null;
-    //         $user_id = $data['user']['id'] ?? null;
-    //     }
+            $cashBalance = $data['user']['cash_balance'] ?? null;
+            $user_id = $data['user']['id'] ?? null;
+        }
 
         $vehicle = Vehicle::with('client')->where('loan_id',$loan->id)->first();
 
 
-        $cashBalance = 30000;
-        $user_id = 1;
         return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id','vehicle'));
     }
 
