@@ -480,4 +480,173 @@ class CashHealthController extends Controller
         )
     );
 }
+
+
+public function national(Request $request)
+{
+    $apiUrl = 'https://lms2backend.whencefinancesystem.com';
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CURRENT CYCLE
+    |--------------------------------------------------------------------------
+    |
+    | National cycles in your example start on the 27th.
+    |
+    */
+
+    $today = Carbon::today();
+
+    if ($today->day >= 27) {
+
+        $currentCycleStart = $today
+            ->copy()
+            ->startOfMonth()
+            ->day(27);
+
+    } else {
+
+        $currentCycleStart = $today
+            ->copy()
+            ->subMonth()
+            ->startOfMonth()
+            ->day(27);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELECTED CYCLE
+    |--------------------------------------------------------------------------
+    */
+
+    $cycleStart = $request->query(
+        'cycle_start',
+        $currentCycleStart->format('Y-m-d')
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATE DATE
+    |--------------------------------------------------------------------------
+    */
+
+    try {
+
+        $selectedCycleStart = Carbon::createFromFormat(
+            'Y-m-d',
+            $cycleStart
+        );
+
+    } catch (\Exception $e) {
+
+        abort(
+            400,
+            'Invalid cycle start date.'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CALCULATE CYCLE END
+    |--------------------------------------------------------------------------
+    */
+
+    $cycleEnd = $selectedCycleStart
+        ->copy()
+        ->addMonth()
+        ->subDay();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CALL NATIONAL API
+    |--------------------------------------------------------------------------
+    */
+
+    $response = Http::timeout(20)
+        ->get(
+            $apiUrl . '/cash-health/national',
+            [
+                'cycle_start' => $cycleStart
+            ]
+        );
+
+
+    if (!$response->successful()) {
+
+        abort(
+            $response->status(),
+            'Unable to retrieve National Cash Health data.'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | NATIONAL DATA
+    |--------------------------------------------------------------------------
+    */
+
+    $nationalHealth = $response->json();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AVAILABLE CYCLES
+    |--------------------------------------------------------------------------
+    |
+    | Show the previous 12 cycles in the selector.
+    |
+    */
+
+    $availableCycles = [];
+
+    $cycle = $currentCycleStart->copy();
+
+    for ($i = 0; $i < 12; $i++) {
+
+        $start = $cycle->copy();
+
+        $end = $start
+            ->copy()
+            ->addMonth()
+            ->subDay();
+
+        $availableCycles[] = [
+
+            'start' => $start->format('Y-m-d'),
+
+            'end' => $end->format('Y-m-d'),
+
+        ];
+
+        $cycle->subMonth();
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RETURN VIEW
+    |--------------------------------------------------------------------------
+    */
+
+    return view(
+        'cash-health.national',
+        compact(
+            'nationalHealth',
+            'cycleStart',
+            'cycleEnd',
+            'availableCycles'
+        )
+    );
+}
+
+
+
+
+
 }
