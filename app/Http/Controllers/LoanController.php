@@ -1814,29 +1814,29 @@ if ($office && $office->withinhere_wallet_id == null) {
 $withinhere_wallet_id = $office->withinhere_wallet_id;
 
 
-      $response = Http::timeout(60)
-                ->post(
-                    'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
-                    [
-                        'wallet_id' => $withinhere_wallet_id,
-                        'start_date' => '2025-01-01',
-                        'end_date' => '2025-01-01'
-                    ]
-                );
+    //   $response = Http::timeout(60)
+    //             ->post(
+    //                 'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+    //                 [
+    //                     'wallet_id' => $withinhere_wallet_id,
+    //                     'start_date' => '2025-01-01',
+    //                     'end_date' => '2025-01-01'
+    //                 ]
+    //             );
 
 
-                   if ($response->successful()) {
-            $data = $response->json();
+    //                if ($response->successful()) {
+    //         $data = $response->json();
 
-            $cashBalance = $data['user']['cash_balance'] ?? null;
-            $user_id = $data['user']['id'] ?? null;
-        }
+    //         $cashBalance = $data['user']['cash_balance'] ?? null;
+    //         $user_id = $data['user']['id'] ?? null;
+    //     }
 
         $vehicle = Vehicle::with('client')->where('loan_id',$loan->id)->first();
 
 
-
-        
+        $cashBalance = 30000;
+        $user_id = 1;
         return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id','vehicle'));
     }
 
@@ -3170,19 +3170,45 @@ if (
             $loan_transaction->month = $date[1];
             $loan_transaction->debit = $loan->principal;
             $loan_transaction->save();
-            //add interest transaction
-            $loan_transaction = new LoanTransaction();
-            $loan_transaction->created_by_id = Sentinel::getUser()->id;
-            $loan_transaction->office_id = $loan->office_id;
-            $loan_transaction->loan_id = $loan->id;
-            $loan_transaction->transaction_type = "interest_initial";
-            $loan_transaction->date = $request->disbursement_date;
-            $date = explode('-', $request->disbursement_date);
-            $loan_transaction->year = $date[0];
-            $loan_transaction->month = $date[1];
-            $loan_transaction->debit = $total_interest;
-            $loan_transaction->save();
 
+
+            //add interest transaction, 
+            // if its payday loan then use amortization schedule to calculate interest
+            if($loan->loan_product_id == 1){
+                $schedule = DB::table('payroll_loan_schedules')
+                    ->where('loan_amount', $loan->principal)
+                    ->first();
+                $tenure = $loan->loan_term;
+                $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+                if ($monthlyAmount) {
+                    $totalRepayment = $monthlyAmount * $tenure;
+                    $total_interest = $totalRepayment - $loan->principal;
+
+                    $loan_transaction = new LoanTransaction();
+                    $loan_transaction->created_by_id = Sentinel::getUser()->id;
+                    $loan_transaction->office_id = $loan->office_id;
+                    $loan_transaction->loan_id = $loan->id;
+                    $loan_transaction->transaction_type = "interest_initial";
+                    $loan_transaction->date = $request->disbursement_date;
+                    $date = explode('-', $request->disbursement_date);
+                    $loan_transaction->year = $date[0];
+                    $loan_transaction->month = $date[1];
+                    $loan_transaction->debit = $total_interest;
+                    $loan_transaction->save();
+                }
+            }else{
+                $loan_transaction = new LoanTransaction();
+                $loan_transaction->created_by_id = Sentinel::getUser()->id;
+                $loan_transaction->office_id = $loan->office_id;
+                $loan_transaction->loan_id = $loan->id;
+                $loan_transaction->transaction_type = "interest_initial";
+                $loan_transaction->date = $request->disbursement_date;
+                $date = explode('-', $request->disbursement_date);
+                $loan_transaction->year = $date[0];
+                $loan_transaction->month = $date[1];
+                $loan_transaction->debit = $total_interest;
+                $loan_transaction->save();
+            }
 
 
             //check for  fees

@@ -116,8 +116,8 @@ $userPosition = Sentinel::getUser()->position_name;
                     @endforeach
                 </select>
                 <select name="sort" class="form-control input-sm" style="width: 120px;">
-                    <option value="desc"{{ request('sort') == 'desc' ? ' selected' : '' }}>Latest (3→1)</option>
-                    <option value="asc"{{ request('sort') == 'asc' ? ' selected' : '' }}>Older (1→3)</option>
+                    <option value="desc"{{ request('sort') == 'desc' ? ' selected' : '' }}>Latest</option>
+                    <option value="asc"{{ request('sort') == 'asc' ? ' selected' : '' }}>Older</option>
                 </select>
                 <input type="text" name="search" class="form-control input-sm" placeholder="Search..." value="{{ request('search') }}" style="width: 150px;">
                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>

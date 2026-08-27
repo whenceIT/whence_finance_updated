@@ -9,7 +9,6 @@ class AddBuyerDetailsToVehiclesTable extends Migration
     public function up()
     {
         Schema::table('vehicles', function (Blueprint $table) {
-            $table->dateTime('sold_at')->nullable()->after('status');
             $table->string('buyer_fullname')->nullable()->after('sold_at');
             $table->string('buyer_phone')->nullable()->after('buyer_fullname');
             $table->string('buyer_nrc_number')->nullable()->after('buyer_phone');
