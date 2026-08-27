@@ -325,7 +325,7 @@ public function search(Request $request)
 
             foreach ($offices as $office) {
                 if ($office->province_id == $province_id) {
-                    $transactions = LoanTransactionUnapproved::where('office_id', $office->id)->with('loan')->get();
+                    $transactions = LoanTransactionsPending::where('office_id', $office->id)->with('loan')->get();
                     foreach ($transactions as $transaction) {
                         array_push($province_transactions, $transaction);
                     }
