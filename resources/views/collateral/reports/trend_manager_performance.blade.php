@@ -5,6 +5,7 @@
         <div class="box-header with-border">
             <h3 class="box-title">{{ $report['label'] }}</h3>
             <div class="box-tools pull-right">
+                <button type="button" class="btn btn-info btn-sm" id="open-reports-modal"><i class="fa fa-bar-chart"></i> Generate Reports</button>
                 <a href="{{ route('collateral.reports.form', $type) }}" class="btn btn-default btn-sm">Adjust Filters</a>
                 <a href="{{ route('collateral.reports.index') }}" class="btn btn-default btn-sm">All Reports</a>
             </div>
@@ -48,4 +49,6 @@
             <p class="text-muted"><small>Valuation Shortfall shows the total amount by which actual vetted valuations fell short of the indicated (approved/current) loan collateral value &mdash; useful for targeting retraining.</small></p>
         </div>
     </div>
+
+    @include('collateral.reports._report_modal')
 @stop

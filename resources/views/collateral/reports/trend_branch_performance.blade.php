@@ -5,6 +5,7 @@
         <div class="box-header with-border">
             <h3 class="box-title">{{ $report['label'] }}</h3>
             <div class="box-tools pull-right">
+                <button type="button" class="btn btn-info btn-sm" id="open-reports-modal"><i class="fa fa-bar-chart"></i> Generate Reports</button>
                 <a href="{{ route('collateral.reports.form', $type) }}" class="btn btn-default btn-sm">Adjust Filters</a>
                 <a href="{{ route('collateral.reports.index') }}" class="btn btn-default btn-sm">All Reports</a>
             </div>
@@ -52,4 +53,6 @@
             <p class="text-muted"><small>Seizure Volume counts collateral that reached any post-seizure stage. Sales source breakdown shows how the collateral was generated (branch staff, collateral supervisor, or Withinhere).</small></p>
         </div>
     </div>
+
+    @include('collateral.reports._report_modal')
 @stop

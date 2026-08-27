@@ -4,6 +4,9 @@
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">Generate Report &mdash; {{ $report['label'] }}</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-info btn-sm" id="open-reports-modal"><i class="fa fa-bar-chart"></i> Show Reports</button>
+            </div>
         </div>
         <div class="box-body">
             <p class="text-muted">{{ $report['description'] }}</p>
@@ -108,4 +111,6 @@
             </form>
         </div>
     </div>
+
+    @include('collateral.reports._report_modal')
 @stop

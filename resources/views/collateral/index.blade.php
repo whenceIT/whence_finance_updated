@@ -49,7 +49,7 @@ $userPosition = Sentinel::getUser()->position_name;
 
             @if($role == 1)
             <div class="box-tools pull-right" style="margin-right: 8px;">
-                <button type="button" class="btn btn-info btn-sm" id="open-reports-modal"><i class="fa fa-bar-chart"></i> Generate Reports</button>
+                <button type="button" class="btn btn-info btn-sm" id="open-reports-modal"><i class="fa fa-bar-chart"></i> Show Reports</button>
             </div>
             @endif
         </div>
@@ -300,47 +300,5 @@ $userPosition = Sentinel::getUser()->position_name;
         </div>
     </div>
 
-    @php
-        $reportList = app(\App\Services\CollateralService::class)->getReports();
-    @endphp
-
-    <div id="reportsBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1040;"></div>
-    <div id="reportsModal" style="display:none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 1050; background: #fff; border-top-left-radius: 14px; border-top-right-radius: 14px; box-shadow: 0 -4px 24px rgba(0,0,0,0.2); max-height: 70vh; overflow-y: auto;">
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eef0f4;">
-            <div>
-                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #2c3e50;">Generate Collateral Report</h3>
-                <small style="color: #6b7280;">Select a report to configure and generate</small>
-            </div>
-            <button type="button" class="btn btn-sm btn-default" id="close-reports-modal"><i class="fa fa-times"></i></button>
-        </div>
-        <div class="row" style="padding: 16px 20px;">
-            @foreach($reportList as $key => $r)
-                <div class="col-md-4 col-sm-6 col-xs-12" style="margin-bottom: 14px;">
-                    <a href="{{ route('collateral.reports.form', $key) }}" style="display: block; text-decoration: none; background: #f7f9fc; border: 1px solid #e6e9ef; border-radius: 10px; padding: 16px; height: 100%; transition: all 0.2s;">
-                        <div style="font-size: 22px; color: #667eea; margin-bottom: 8px;"><i class="fa {{ $r['icon'] }}"></i></div>
-                        <h4 style="margin: 0 0 6px; font-size: 14px; font-weight: 700; color: #2c3e50;">{{ $r['label'] }}</h4>
-                        <p style="font-size: 12px; color: #6b7280; margin: 0;">{{ $r['description'] }}</p>
-                    </a>
-                </div>
-            @endforeach
-        </div>
-    </div>
-
-    <script>
-        $(document).ready(function() {
-            var $modal = $('#reportsModal');
-            var $backdrop = $('#reportsBackdrop');
-            function openReportsModal() {
-                $backdrop.fadeIn(150);
-                $modal.css('transform', 'translateY(100%)').show().animate({ transform: 'translateY(0)' }, 250);
-            }
-            function closeReportsModal() {
-                $modal.animate({ transform: 'translateY(100%)' }, 200, function() { $modal.hide(); });
-                $backdrop.fadeOut(200);
-            }
-            $('#open-reports-modal').on('click', openReportsModal);
-            $('#close-reports-modal').on('click', closeReportsModal);
-            $backdrop.on('click', closeReportsModal);
-        });
-    </script>
+    @include('collateral.reports._report_modal')
  @endsection
