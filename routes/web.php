@@ -466,6 +466,10 @@ Route::group(['prefix' => 'user'], function () {
     Route::any('verify_wallet','UserController@verify_wallet');
     Route::any('wallet_verification','UserController@wallet_verification');
     Route::any('save_wallet','UserController@save_wallet');
+    Route::post('office/update', [
+    UserController::class,
+    'updateSetup'
+])->name('office.setup.update');
     // Route::post('create_client_user','UserController@create_client_account');
     Route::get('{user}/edit', 'UserController@edit');
     Route::get('{user}/show', 'UserController@show');
