@@ -8,6 +8,7 @@ class CreateCollateralWorkflowLogsTable extends Migration
 {
     public function up()
     {
+         Schema::dropIfExists('collateral_workflow_logs');
         Schema::create('collateral_workflow_logs', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedBigInteger('collateral_id');
@@ -17,8 +18,6 @@ class CreateCollateralWorkflowLogsTable extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->timestamps();
 
-            $table->foreign('collateral_id')->references('id')->on('collaterals')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 
