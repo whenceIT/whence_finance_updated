@@ -193,318 +193,14 @@
     {{-- SUMMARY CARDS --}}
     {{-- ========================================================= --}}
 
-    <div style="
-        display:grid;
-        grid-template-columns:repeat(4,1fr);
-        gap:18px;
-        margin-bottom:24px;
-    ">
-
-
-        {{-- OVERALL SCORE --}}
-
-        <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
-        ">
-
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
-            ">
-                OVERALL SCORE
-            </div>
-
-
-            <div style="
-                font-size:38px;
-                font-weight:700;
-                margin-top:8px;
-                color:#202633;
-            ">
-
-                {{ number_format(
-                    $scores['overall'] ?? 0,
-                    0
-                ) }}
-
-            </div>
-
-
-            <span style="
-                display:inline-block;
-                margin-top:8px;
-                padding:5px 10px;
-                border-radius:20px;
-                background:{{ $statusBackground }};
-                color:{{ $statusColor }};
-                font-size:10px;
-                font-weight:700;
-            ">
-
-                {{ $status }}
-
-            </span>
-
-        </div>
-
-
-
-        {{-- RESIDUAL CASH --}}
-
-        <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
-        ">
-
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
-            ">
-                RESIDUAL CASH
-            </div>
-
-
-            <div style="
-                font-size:27px;
-                font-weight:700;
-                margin-top:12px;
-                color:{{ ($financials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#202633' }};
-            ">
-
-                K{{ number_format(
-                    $financials['residual_cash'] ?? 0,
-                    2
-                ) }}
-
-            </div>
-
-        </div>
-
-
-
-        {{-- NET CASH --}}
-
-        <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
-        ">
-
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
-            ">
-                NET CASH POSITION
-            </div>
-
-
-            <div style="
-                font-size:27px;
-                font-weight:700;
-                margin-top:12px;
-                color:{{ ($financials['net_cash_position'] ?? 0) < 0 ? '#dc2626' : '#202633' }};
-            ">
-
-                K{{ number_format(
-                    $financials['net_cash_position'] ?? 0,
-                    2
-                ) }}
-
-            </div>
-
-        </div>
-
-
-
-        {{-- OFFICES --}}
-
-        <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
-        ">
-
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
-            ">
-                OFFICES
-            </div>
-
-
-            <div style="
-                font-size:28px;
-                font-weight:700;
-                margin-top:12px;
-                color:#202633;
-            ">
-
-                {{ $nationalHealth['office_count'] ?? 0 }}
-
-            </div>
-
-        </div>
-
-    </div>
-
+    
 
 
     {{-- ========================================================= --}}
     {{-- NATIONAL SCORE --}}
     {{-- ========================================================= --}}
 
-    <div style="
-        background:#fff;
-        border:1px solid #e6e9ef;
-        border-radius:14px;
-        padding:25px;
-        margin-bottom:24px;
-    ">
 
-
-        <div style="
-            font-size:16px;
-            font-weight:700;
-            color:#202633;
-            margin-bottom:20px;
-        ">
-            National Score
-        </div>
-
-
-        @php
-
-            $scoreRows = [
-
-                [
-                    'name' => 'Disbursement',
-                    'value' => $scores['disbursement'] ?? 0
-                ],
-
-                [
-                    'name' => 'Collection Quality',
-                    'value' => $scores['collection'] ?? 0
-                ],
-
-                [
-                    'name' => 'Residual Cash',
-                    'value' => $scores['residual_cash'] ?? 0
-                ],
-
-            ];
-
-        @endphp
-
-
-        @foreach($scoreRows as $score)
-
-            <div style="
-                margin-bottom:18px;
-            ">
-
-
-                <div style="
-                    display:flex;
-                    justify-content:space-between;
-                    margin-bottom:7px;
-                ">
-
-                    <span style="
-                        font-size:13px;
-                        color:#4b5563;
-                    ">
-                        {{ $score['name'] }}
-                    </span>
-
-
-                    <strong style="
-                        font-size:13px;
-                        color:#202633;
-                    ">
-
-                        {{ number_format(
-                            $score['value'],
-                            0
-                        ) }}
-
-                    </strong>
-
-                </div>
-
-
-                <div style="
-                    width:100%;
-                    height:8px;
-                    background:#edf0f4;
-                    border-radius:10px;
-                    overflow:hidden;
-                ">
-
-                    <div style="
-                        width:{{ min(100,max(0,$score['value'])) }}%;
-                        height:100%;
-                        background:{{ $statusColor }};
-                        border-radius:10px;
-                    "></div>
-
-                </div>
-
-            </div>
-
-        @endforeach
-
-
-
-        {{-- REASON --}}
-
-        @if(!empty($nationalHealth['reason']))
-
-            <div style="
-                margin-top:22px;
-                padding:14px 16px;
-                border-radius:10px;
-                background:#f7f8fa;
-                color:#4b5563;
-                font-size:13px;
-                line-height:1.6;
-            ">
-
-
-                <strong style="
-                    color:#202633;
-                ">
-                    Why this score?
-                </strong>
-
-
-                <div style="
-                    margin-top:4px;
-                ">
-
-                    {{ $nationalHealth['reason'] }}
-
-                </div>
-
-            </div>
-
-        @endif
-
-    </div>
 
 
 
@@ -512,187 +208,13 @@
     {{-- NATIONAL FINANCIAL POSITION --}}
     {{-- ========================================================= --}}
 
-    <div style="
-        background:#fff;
-        border:1px solid #e6e9ef;
-        border-radius:14px;
-        padding:25px;
-        margin-bottom:24px;
-    ">
-
-
-        <div style="
-            font-size:16px;
-            font-weight:700;
-            color:#202633;
-            margin-bottom:20px;
-        ">
-            National Cash Position
-        </div>
-
-
-        <div style="
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:14px;
-        ">
-
-
-            @php
-
-                $nationalMetrics = [
-
-                    'Minimum Loan Target' =>
-                        $financials['minimum_loan_target'] ?? 0,
-
-                    'Maximum Expected Repayment' =>
-                        $financials['maximum_expected_repayment'] ?? 0,
-
-                    'Mandatory Fixed Cost' =>
-                        $financials['mandatory_fixed_cost'] ?? 0,
-
-                    'Salaries' =>
-                        $financials['salaries'] ?? 0,
-
-                    'Defaults' =>
-                        $financials['defaults'] ?? 0,
-
-                    'Irregular Cost Reserve' =>
-                        $financials['irregular_cost_reserve'] ?? 0,
-
-                    'Average Monthly Irregular Reserve' =>
-                        $financials['averageMonthlyIrregularCostReserve'] ?? 0,
-
-                    'Salary Advance Reserve' =>
-                        $financials['salary_advance_reserve'] ?? 0,
-
-                    'Net Cash Position' =>
-                        $financials['net_cash_position'] ?? 0,
-
-                    'Residual Cash' =>
-                        $financials['residual_cash'] ?? 0,
-
-                ];
-
-            @endphp
-
-
-            @foreach($nationalMetrics as $label => $value)
-
-                <div style="
-                    border:1px solid #e7eaf0;
-                    border-radius:10px;
-                    padding:16px;
-                ">
-
-
-                    <div style="
-                        font-size:10px;
-                        color:#8a93a3;
-                        margin-bottom:7px;
-                    ">
-                        {{ $label }}
-                    </div>
-
-
-                    <div style="
-                        font-size:17px;
-                        font-weight:700;
-                        color:{{ $value < 0 ? '#dc2626' : '#202633' }};
-                    ">
-
-                        K{{ number_format(
-                            $value,
-                            2
-                        ) }}
-
-                    </div>
-
-                </div>
-
-            @endforeach
-
-        </div>
-
-    </div>
-
 
 
     {{-- ========================================================= --}}
     {{-- RESERVE BREAKDOWN --}}
     {{-- ========================================================= --}}
 
-    <div style="
-        background:#fff;
-        border:1px solid #e6e9ef;
-        border-radius:14px;
-        padding:25px;
-        margin-bottom:24px;
-    ">
-
-
-        <div style="
-            font-size:16px;
-            font-weight:700;
-            color:#202633;
-            margin-bottom:20px;
-        ">
-            Reserve Breakdown
-        </div>
-
-
-        <div style="
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:14px;
-        ">
-
-
-            @foreach(($nationalHealth['reserve_breakdown'] ?? []) as $label => $value)
-
-                <div style="
-                    border:1px solid #e7eaf0;
-                    border-radius:10px;
-                    padding:15px;
-                ">
-
-
-                    <div style="
-                        font-size:11px;
-                        color:#8a93a3;
-                        margin-bottom:6px;
-                        text-transform:capitalize;
-                    ">
-
-                        {{ str_replace(
-                            '_',
-                            ' ',
-                            $label
-                        ) }}
-
-                    </div>
-
-
-                    <div style="
-                        font-size:16px;
-                        font-weight:700;
-                        color:#202633;
-                    ">
-
-                        K{{ number_format(
-                            $value,
-                            2
-                        ) }}
-
-                    </div>
-
-                </div>
-
-            @endforeach
-
-        </div>
-
-    </div>
+  
 
 
 
@@ -821,6 +343,16 @@
                         STATUS
                     </th>
 
+                    <th style="
+    text-align:center;
+    padding:12px 15px;
+    font-size:10px;
+    color:#8a93a3;
+    letter-spacing:.8px;
+">
+    DETAILS
+</th>
+
                 </tr>
 
             </thead>
@@ -914,8 +446,8 @@
                             color:#202633;
                         ">
 
-                            Office
-                            {{ $office['office_id'] }}
+                           
+                             {{ $offices[$office['office_id']]->name ?? 'Unknown Office' }}
 
                         </td>
 
@@ -970,6 +502,28 @@
                             </span>
 
                         </td>
+
+                        <td style="
+    padding:16px;
+    text-align:center;
+">
+    <a
+        href="{{ route('cash_health.show', ['id' => $office['office_id']]) }}"
+        onclick="event.stopPropagation();"
+        style="
+            display:inline-block;
+            padding:6px 12px;
+            background:#202633;
+            color:#fff;
+            border-radius:6px;
+            text-decoration:none;
+            font-size:11px;
+            font-weight:600;
+        "
+    >
+        View
+    </a>
+</td>
 
                     </tr>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use App\Models\Office;
 
 class CashHealthController extends Controller
 {
@@ -22,6 +23,8 @@ class CashHealthController extends Controller
         | 25th -> 24th
         |
         */
+
+       $officeName = Office::where('id', $id)->value('name');
 
         $today = Carbon::today();
 
@@ -118,7 +121,7 @@ class CashHealthController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $response = Http::timeout(10)
+        $response = Http::timeout(120)
             ->get(
                 $apiUrl . '/cash-health/'.
             $id,
@@ -197,10 +200,57 @@ class CashHealthController extends Controller
                 'cycleStart',
                 'cycleEnd',
                 'availableCycles',
-                'id'
+                'id',
+                'officeName'
             )
         );
     }
+
+
+public function contributionHistory($id)
+{
+    $apiUrl = 'https://lms2backend.whencefinancesystem.com';
+
+    try {
+
+        $response = Http::timeout(10)
+            ->get(
+                $apiUrl . '/cash-health/' . $id . '/contributions/'
+            );
+
+        if (!$response->successful()) {
+
+            \Log::error('Cash health contribution API failed', [
+                'office_id' => $id,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return response()->json([
+                'error' => 'Unable to retrieve contribution history',
+                'status' => $response->status(),
+            ], $response->status());
+        }
+
+        return response()->json(
+            $response->json()
+        );
+
+    } catch (\Throwable $e) {
+
+        \Log::error('Cash health contribution exception', [
+            'office_id' => $id,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return response()->json([
+            'error' => 'Unable to retrieve contribution history',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+}
 
       public function district(Request $request, $district)
     {
@@ -487,6 +537,7 @@ public function national(Request $request)
     $apiUrl = 'https://lms2backend.whencefinancesystem.com';
 
 
+    $offices = Office::get()->keyBy('id');
     /*
     |--------------------------------------------------------------------------
     | CURRENT CYCLE
@@ -498,12 +549,12 @@ public function national(Request $request)
 
     $today = Carbon::today();
 
-    if ($today->day >= 27) {
+    if ($today->day >= 25) {
 
         $currentCycleStart = $today
             ->copy()
             ->startOfMonth()
-            ->day(27);
+            ->day(25);
 
     } else {
 
@@ -511,7 +562,7 @@ public function national(Request $request)
             ->copy()
             ->subMonth()
             ->startOfMonth()
-            ->day(27);
+            ->day(25);
     }
 
 
@@ -567,7 +618,7 @@ public function national(Request $request)
     |--------------------------------------------------------------------------
     */
 
-    $response = Http::timeout(20)
+    $response = Http::timeout(60)
         ->get(
             $apiUrl . '/cash-health/national',
             [
@@ -640,7 +691,8 @@ public function national(Request $request)
             'nationalHealth',
             'cycleStart',
             'cycleEnd',
-            'availableCycles'
+            'availableCycles',
+            'offices'
         )
     );
 }

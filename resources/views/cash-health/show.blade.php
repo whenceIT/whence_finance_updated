@@ -2,10 +2,14 @@
 
 @section('title', 'Cash Health')
 
-@section('content_header')
-@stop
 
 @section('content')
+<div style="
+    padding:30px;
+    background:#f6f8fb;
+    min-height:100vh;
+">
+
 
 @php
 
@@ -14,7 +18,9 @@
     $scores = $cashHealth['scores'] ?? [];
     $financials = $cashHealth['financials'] ?? [];
     $loans = $cashHealth['loans'] ?? [];
-    $reasons = $cashHealth['reasons'] ?? [];
+    $reason = $cashHealth['reason'] ?? [];
+    $disbursed = $cashHealth['disbursed'] ?? [];
+  
 
     $overallScore = (float) ($scores['overall'] ?? 0);
     $disbursementScore = (float) ($scores['disbursement'] ?? 0);
@@ -22,6 +28,8 @@
     $residualCashScore = (float) ($scores['residual_cash'] ?? 0);
     $monthsOfCover = (float) ($scores['months_of_cover'] ?? 0);
     $fullPaymentRatio = (float) ($scores['full_payment_ratio'] ?? 0);
+    $actualDisbursed =  (float) ($cashHealth['disbursed'] ?? 0);
+    $collections = (float) ($cashHealth['collected'] ?? 0);
 
     $status = strtolower($scores['status'] ?? 'unknown');
 
@@ -89,20 +97,64 @@
         return 'K' . number_format((float) $value, 0);
     };
 
+    $contributionEndpoint = route(
+    'cash_health.contribution',
+    ['id' => $id]
+);
+
 @endphp
 
 
-<div style="
-    max-width:1450px;
-    margin:0 auto;
-    padding:10px 10px 50px;
-    font-family:Arial, Helvetica, sans-serif;
-">
+
 
 
     {{-- ========================================================= --}}
     {{-- HEADER                                                    --}}
     {{-- ========================================================= --}}
+
+
+    
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-end;
+        margin-bottom:28px;
+    ">
+
+
+
+        <div>
+
+            <div style="
+                font-size:11px;
+                font-weight:700;
+                letter-spacing:1.5px;
+                color:#7b8494;
+                margin-bottom:5px;
+            ">
+                CASH MANAGEMENT
+            </div>
+
+            <h1 style="
+                font-size:30px;
+                font-weight:700;
+                margin:0;
+                color:#202633;
+            ">
+                Branch Cash Health
+            </h1>
+
+            <div style="
+                color:#697386;
+                margin-top:5px;
+                font-size:14px;
+            ">
+                {{ $officeName}}
+            </div>
+
+        </div>
+
+
 
  <div style="
     text-align:right;
@@ -165,8 +217,8 @@
 
 
     <div style="
-        margin-top:7px;
-        font-size:12px;
+        margin-top:6px;
+        font-size:11px;
         color:#8a92a0;
     ">
 
@@ -187,7 +239,7 @@
 
 </div>
 
-
+    </div>
 
     {{-- ========================================================= --}}
     {{-- OVERALL HEALTH                                            --}}
@@ -223,7 +275,7 @@
                 background:{{ $statusConfig['iconBg'] }};
                 color:{{ $statusConfig['color'] }};
             ">
-                <i class="fas {{ $statusConfig['icon'] }}"></i>
+                <i class="fa {{ $statusConfig['icon'] }}"></i>
             </div>
 
 
@@ -251,7 +303,7 @@
                     font-size:13px;
                     opacity:.75;
                 ">
-                    {{ $statusConfig['description'] }}
+                    {{ $reason}}
                 </div>
 
             </div>
@@ -449,7 +501,7 @@
                     margin-top:3px;
                 ">
                     {{ $money(
-                        $financials['actual_disbursed'] ?? 0
+                       $actualDisbursed
                     ) }}
                 </div>
 
@@ -587,7 +639,7 @@
                         letter-spacing:1px;
                         color:#9aa2af;
                     ">
-                        DEFAULTS
+                        COLLECTIONS
                     </div>
 
                     <div style="
@@ -597,13 +649,26 @@
                         margin-top:3px;
                     ">
                         {{ $money(
-                            $financials['defaults'] ?? 0
+                            $collections
                         ) }}
                     </div>
 
+                       <!-- <div style="
+                    font-size:12px;
+                    color:#8a92a0;
+                    margin-top:4px;
+                ">
+                    Defaults:
+                    <strong>
+                      {{ $money(
+                            $financials['defaults'] ?? 0
+                        ) }}
+                    </strong>
+                </div> -->
+
                 </div>
 
-
+<!-- 
                 <div style="
                     text-align:right;
                 ">
@@ -629,7 +694,7 @@
                         ) }}%
                     </div>
 
-                </div>
+                </div> -->
 
             </div>
 
@@ -762,7 +827,7 @@
                     ) }}
                 </div>
 
-                <div style="
+                <!-- <div style="
                     font-size:12px;
                     color:#8a92a0;
                     margin-top:4px;
@@ -771,7 +836,7 @@
                         {{ number_format($monthsOfCover,1) }}
                     </strong>
                     months of cover
-                </div>
+                </div> -->
 
             </div>
 
@@ -785,7 +850,7 @@
     {{-- WHAT IS DRIVING THE SCORE                                 --}}
     {{-- ========================================================= --}}
 
-    <div style="
+    <!-- <div style="
         margin-bottom:17px;
     ">
 
@@ -868,7 +933,7 @@
                         Actual disbursement is
                         <strong style="color:#303744;">
                             {{ $money(
-                                $financials['actual_disbursed'] ?? 0
+                                     $actualDisbursed ?? 0
                             ) }}
                         </strong>
 
@@ -1032,7 +1097,7 @@
 
         </div>
 
-    </div>
+    </div> -->
 
 
 
@@ -1086,7 +1151,7 @@
                 font-size:15px;
                 margin-bottom:18px;
             ">
-                <i class="fas fa-arrow-circle-down"></i>
+                <i class="fa fa-arrow-circle-down"></i>
             </div>
 
             <div style="
@@ -1104,7 +1169,7 @@
                 margin-top:5px;
                 color:#252c38;
             ">
-                {{ $money($loans['given_out'] ?? 0) }}
+                {{ $money($actualDisbursed  ?? 0) }}
             </div>
 
             <div style="
@@ -1133,7 +1198,7 @@
                 font-size:15px;
                 margin-bottom:18px;
             ">
-                <i class="fas fa-money-bill-wave"></i>
+                <i class="fa fa-money-bill-wave"></i>
             </div>
 
             <div style="
@@ -1170,7 +1235,7 @@
 
         {{-- CASH REQUIREMENT --}}
 
-        <div style="
+        <!-- <div style="
             background:#fff;
             border:1px solid #e7eaf0;
             border-radius:15px;
@@ -1213,7 +1278,7 @@
                 Expected requirement
             </div>
 
-        </div>
+        </div> -->
 
 
 
@@ -1270,6 +1335,117 @@
     </div>
 
 
+    {{-- ========================================================= --}}
+{{-- VALUE-ADDED CONTRIBUTION                                  --}}
+{{-- ========================================================= --}}
+
+<div style="
+    margin-top:40px;
+    margin-bottom:17px;
+">
+
+    <h2 style="
+        font-size:18px;
+        font-weight:700;
+        margin:0;
+        color:#202633;
+    ">
+        Value-Added Contribution
+    </h2>
+
+    <p style="
+        margin:5px 0 0;
+        color:#7c8492;
+        font-size:13px;
+    ">
+        The branch's actual cash-flow contribution to the institution
+        across each cash cycle.
+    </p>
+
+</div>
+
+
+<div style="
+    background:#fff;
+    border:1px solid #e7eaf0;
+    border-radius:16px;
+    padding:25px;
+    margin-bottom:40px;
+">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        margin-bottom:25px;
+    ">
+
+        <div>
+
+            <div style="
+                font-size:10px;
+                font-weight:700;
+                letter-spacing:1px;
+                color:#929aa7;
+            ">
+                CONTRIBUTION BY CYCLE
+            </div>
+
+            <div style="
+                font-size:13px;
+                color:#7c8492;
+                margin-top:5px;
+            ">
+                Actual collections minus actual disbursements
+                and branch operating costs.
+            </div>
+
+        </div>
+
+
+        <div style="
+            text-align:right;
+        ">
+
+            <div style="
+                font-size:9px;
+                font-weight:700;
+                letter-spacing:1px;
+                color:#929aa7;
+            ">
+                12-CYCLE CONTRIBUTION
+            </div>
+
+            <div
+                id="totalContribution"
+                style="
+                    font-size:24px;
+                    font-weight:750;
+                    margin-top:4px;
+                    color:#202633;
+                "
+            >
+                K0
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div style="
+        position:relative;
+        height:360px;
+        width:100%;
+    ">
+
+        <canvas id="contributionChart"></canvas>
+
+    </div>
+
+</div>
+
+
 
     {{-- ========================================================= --}}
     {{-- COVER + OFFICE                                            --}}
@@ -1282,9 +1458,8 @@
     ">
 
 
-        <!-- {{-- COVER --}}  -->
-         <!-- REMOVE THIS -->
-
+     
+<!-- 
         <div style="
             background:#fff;
             border:1px solid #e7eaf0;
@@ -1399,12 +1574,12 @@
 
             </div>
 
-        </div>
+        </div> -->
 
 
   <!-- REMOVE THIS -->
         {{-- OFFICE OVERVIEW --}}
-
+<!-- 
         <div style="
             background:#fff;
             border:1px solid #e7eaf0;
@@ -1483,10 +1658,304 @@
 
             </div>
 
-        </div>
+        </div> -->
 
     </div>
 
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const endpoint =
+        @json($contributionEndpoint);
+
+    fetch(endpoint)
+
+        .then(response => {
+
+            if (!response.ok) {
+                throw new Error(
+                    'Unable to load contribution data.'
+                );
+            }
+
+            return response.json();
+        })
+
+        .then(data => {
+
+            const cycles = data.cycles || [];
+
+const labels = cycles.map((cycle, index) => {
+
+
+    const startDate =
+        cycle?.cycle?.start_date;
+
+    const endDate =
+        cycle?.cycle?.end_date;
+
+    if (!startDate || !endDate) {
+
+        console.error(
+            `Missing dates for cycle ${index}`,
+            cycle
+        );
+
+        return 'Invalid date';
+    }
+
+
+    // Convert YYYY-MM-DD manually
+    const startParts =
+        startDate.split('-');
+
+    const endParts =
+        endDate.split('-');
+
+
+    const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+    ];
+
+
+    return (
+        `${startParts[2]} ` +
+        `${months[Number(startParts[1]) - 1]} ` +
+        `– ` +
+        `${endParts[2]} ` +
+        `${months[Number(endParts[1]) - 1]}`
+    );
+
+});
+
+
+
+
+            const contributions =
+                cycles.map(cycle =>
+                    Number(cycle.contribution || 0)
+                );
+
+
+            const cumulative =
+                cycles.map(cycle =>
+                    Number(
+                        cycle.cumulative_contribution || 0
+                    )
+                );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL CONTRIBUTION
+            |--------------------------------------------------------------------------
+            */
+
+            const totalContribution =
+                Number(
+                    data.total_contribution || 0
+                );
+
+
+            const totalElement =
+                document.getElementById(
+                    'totalContribution'
+                );
+
+
+            totalElement.textContent =
+                'K' +
+                totalContribution.toLocaleString(
+                    'en-US',
+                    {
+                        maximumFractionDigits: 0
+                    }
+                );
+
+
+            totalElement.style.color =
+                totalContribution >= 0
+                    ? '#168550'
+                    : '#c53d3d';
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | GRAPH
+            |--------------------------------------------------------------------------
+            */
+
+            const ctx =
+                document
+                    .getElementById(
+                        'contributionChart'
+                    )
+                    .getContext('2d');
+
+
+            new Chart(ctx, {
+
+                type: 'bar',
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+                            label:
+                                'Contribution',
+
+                            data:
+                                contributions,
+
+                            borderWidth: 0,
+
+                            borderRadius: 5,
+
+                            barPercentage: 0.65,
+
+                            categoryPercentage: 0.75
+                        }
+
+                    ]
+
+                },
+
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        },
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label:
+                                    function(context) {
+
+                                        const value =
+                                            Number(
+                                                context.raw
+                                            );
+
+                                        return ' K' +
+                                            value.toLocaleString(
+                                                'en-US',
+                                                {
+                                                    maximumFractionDigits: 0
+                                                }
+                                            );
+                                    }
+
+                            }
+
+                        }
+
+                    },
+
+
+                    scales: {
+
+                        x: {
+
+                            grid: {
+                                display: false
+                            },
+
+                            ticks: {
+
+                                color: '#8a93a1',
+
+                                font: {
+                                    size: 10
+                                },
+
+                                maxRotation: 45,
+
+                                minRotation: 45
+                            }
+
+                        },
+
+
+                        y: {
+
+                            beginAtZero: false,
+
+                            grid: {
+
+                                color: '#edf0f3'
+                            },
+
+                            ticks: {
+
+                                color: '#8a93a1',
+
+                                font: {
+                                    size: 10
+                                },
+
+                                callback:
+                                    function(value) {
+
+                                        return 'K' +
+                                            Number(
+                                                value
+                                            ).toLocaleString(
+                                                'en-US'
+                                            );
+                                    }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            });
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                'Contribution history error:',
+                error
+            );
+
+        });
+
+});
+
+</script>
 
 @stop
