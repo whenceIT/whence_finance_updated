@@ -11,16 +11,13 @@ class RecreateCollateralWorkflowLogsTable extends Migration
         Schema::dropIfExists('collateral_workflow_logs');
 
         Schema::create('collateral_workflow_logs', function (Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('collateral_id');
             $table->string('from_status');
             $table->string('to_status');
             $table->text('reason')->nullable();
             $table->unsignedInteger('user_id')->nullable();
             $table->timestamps();
-
-            $table->foreign('collateral_id')->references('id')->on('collaterals')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 
