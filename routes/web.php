@@ -262,6 +262,18 @@ Route::group(['prefix' => 'cash_health'], function () {
         'CashHealthController@province'
     )->name('cash_health.province');
 
+       Route::get(
+        'national',
+        'CashHealthController@national'
+    )->name('cash_health.national');
+
+
+    Route::get(
+        'contribution/{id}',
+        'CashHealthController@contributionHistory'
+    )->name('cash_health.contribution');
+
+
 });
 
 Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {

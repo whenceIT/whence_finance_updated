@@ -99,6 +99,7 @@ if (!Sentinel::check()) {
                     </span>
                 </a>
                 <ul class="treeview-menu">
+                    <li><a href="{{ route('cash_health.national') }}"><i class="fa fa-circle-o"></i>Executive Cash Health Module</a></li>
                     <li><a href="{{ route('ledger.executive') }}"><i class="fa fa-circle-o"></i>Executive Ledger</a></li>
                     <li><a href="{{ url('user/poadashboard') }}"><i class="fa fa-circle-o"></i>POA Dashboard</a></li>
                     <li><a href="{{ url('loan/client_app_dashboard') }}"><i class="fa fa-circle-o"></i>Clients App Dashboard</a></li>

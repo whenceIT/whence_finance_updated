@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use App\Models\Office;
 
 class CashHealthController extends Controller
 {
@@ -22,6 +23,8 @@ class CashHealthController extends Controller
         | 25th -> 24th
         |
         */
+
+       $officeName = Office::where('id', $id)->value('name');
 
         $today = Carbon::today();
 
@@ -118,7 +121,7 @@ class CashHealthController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $response = Http::timeout(10)
+        $response = Http::timeout(120)
             ->get(
                 $apiUrl . '/cash-health/'.
             $id,
@@ -197,10 +200,57 @@ class CashHealthController extends Controller
                 'cycleStart',
                 'cycleEnd',
                 'availableCycles',
-                'id'
+                'id',
+                'officeName'
             )
         );
     }
+
+
+public function contributionHistory($id)
+{
+    $apiUrl = 'https://lms2backend.whencefinancesystem.com';
+
+    try {
+
+        $response = Http::timeout(10)
+            ->get(
+                $apiUrl . '/cash-health/' . $id . '/contributions/'
+            );
+
+        if (!$response->successful()) {
+
+            \Log::error('Cash health contribution API failed', [
+                'office_id' => $id,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return response()->json([
+                'error' => 'Unable to retrieve contribution history',
+                'status' => $response->status(),
+            ], $response->status());
+        }
+
+        return response()->json(
+            $response->json()
+        );
+
+    } catch (\Throwable $e) {
+
+        \Log::error('Cash health contribution exception', [
+            'office_id' => $id,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return response()->json([
+            'error' => 'Unable to retrieve contribution history',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+}
 
       public function district(Request $request, $district)
     {
@@ -480,4 +530,175 @@ class CashHealthController extends Controller
         )
     );
 }
+
+
+public function national(Request $request)
+{
+    $apiUrl = 'https://lms2backend.whencefinancesystem.com';
+
+
+    $offices = Office::get()->keyBy('id');
+    /*
+    |--------------------------------------------------------------------------
+    | CURRENT CYCLE
+    |--------------------------------------------------------------------------
+    |
+    | National cycles in your example start on the 27th.
+    |
+    */
+
+    $today = Carbon::today();
+
+    if ($today->day >= 25) {
+
+        $currentCycleStart = $today
+            ->copy()
+            ->startOfMonth()
+            ->day(25);
+
+    } else {
+
+        $currentCycleStart = $today
+            ->copy()
+            ->subMonth()
+            ->startOfMonth()
+            ->day(25);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELECTED CYCLE
+    |--------------------------------------------------------------------------
+    */
+
+    $cycleStart = $request->query(
+        'cycle_start',
+        $currentCycleStart->format('Y-m-d')
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATE DATE
+    |--------------------------------------------------------------------------
+    */
+
+    try {
+
+        $selectedCycleStart = Carbon::createFromFormat(
+            'Y-m-d',
+            $cycleStart
+        );
+
+    } catch (\Exception $e) {
+
+        abort(
+            400,
+            'Invalid cycle start date.'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CALCULATE CYCLE END
+    |--------------------------------------------------------------------------
+    */
+
+    $cycleEnd = $selectedCycleStart
+        ->copy()
+        ->addMonth()
+        ->subDay();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CALL NATIONAL API
+    |--------------------------------------------------------------------------
+    */
+
+    $response = Http::timeout(60)
+        ->get(
+            $apiUrl . '/cash-health/national',
+            [
+                'cycle_start' => $cycleStart
+            ]
+        );
+
+
+    if (!$response->successful()) {
+
+        abort(
+            $response->status(),
+            'Unable to retrieve National Cash Health data.'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | NATIONAL DATA
+    |--------------------------------------------------------------------------
+    */
+
+    $nationalHealth = $response->json();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AVAILABLE CYCLES
+    |--------------------------------------------------------------------------
+    |
+    | Show the previous 12 cycles in the selector.
+    |
+    */
+
+    $availableCycles = [];
+
+    $cycle = $currentCycleStart->copy();
+
+    for ($i = 0; $i < 12; $i++) {
+
+        $start = $cycle->copy();
+
+        $end = $start
+            ->copy()
+            ->addMonth()
+            ->subDay();
+
+        $availableCycles[] = [
+
+            'start' => $start->format('Y-m-d'),
+
+            'end' => $end->format('Y-m-d'),
+
+        ];
+
+        $cycle->subMonth();
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RETURN VIEW
+    |--------------------------------------------------------------------------
+    */
+
+    return view(
+        'cash-health.national',
+        compact(
+            'nationalHealth',
+            'cycleStart',
+            'cycleEnd',
+            'availableCycles',
+            'offices'
+        )
+    );
+}
+
+
+
+
+
 }
