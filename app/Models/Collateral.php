@@ -129,4 +129,9 @@ class Collateral extends Model
         return $this->hasMany(AuditTrail::class, 'user_id', 'created_by_id')
                     ->where('module', 'collateral');
     }
+
+    public function workflowLogs()
+    {
+        return $this->hasMany(CollateralWorkflowLog::class, 'collateral_id', 'id');
+    }
 }

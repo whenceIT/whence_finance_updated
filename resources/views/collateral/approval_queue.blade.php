@@ -117,6 +117,7 @@
                                         <a href="{{ route('collateral.show', $collateral) }}" class="btn btn-xs btn-primary">View</a>
                                         <form method="post" action="{{ route('collateral.workflow.next', $collateral) }}" style="display: inline;">
                                             @csrf
+                                            <input type="text" name="reason" class="form-control input-sm" placeholder="Reason for write off" required style="width: 200px; display: inline-block;">
                                             <button type="submit" class="btn btn-warning btn-xs">Write Off</button>
                                         </form>
                                     </td>

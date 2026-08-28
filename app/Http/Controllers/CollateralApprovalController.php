@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditTrail;
 use App\Models\Collateral;
 use App\Models\CollateralStatusChangeRequest;
+use App\Models\CollateralWorkflowLog;
 use App\Models\UserRole;
 use Carbon\Carbon;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -166,6 +167,18 @@ class CollateralApprovalController extends Controller
             Flash::warning('Permission Denied');
             return redirect()->route('collateral.show', $collateral);
         }
+
+        $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        CollateralWorkflowLog::create([
+            'collateral_id' => $collateral->id,
+            'from_status'   => $current,
+            'to_status'     => $step['next'],
+            'reason'        => $request->reason,
+            'user_id'       => $user->id,
+        ]);
 
         $collateral->status = $step['next'];
         $now = Carbon::now();
