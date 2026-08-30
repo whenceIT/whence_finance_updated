@@ -696,6 +696,42 @@
             </div>
         @endif
     </div>
+    @endif
+
+    @if($role == 1)
+    <!-- Workflow History -->
+    <div class="cd-panel">
+        <div class="cd-panel-header">
+            <h3>Workflow History</h3>
+        </div>
+        <div class="cd-panel-body" style="padding: 0; overflow-x: auto;">
+            <table class="cd-table">
+                <thead>
+                    <tr>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Reason</th>
+                        <th>User</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($collateral->workflowLogs as $log)
+                        <tr>
+                            <td>{{ ucfirst(str_replace('_', ' ', $log->from_status)) }}</td>
+                            <td>{{ ucfirst(str_replace('_', ' ', $log->to_status)) }}</td>
+                            <td>{{ $log->reason }}</td>
+                            <td>{{ optional($log->user)->first_name }} {{ optional($log->user)->last_name }}</td>
+                            <td>{{ optional($log->created_at)->format('Y-m-d H:i') }}</td>
+                        </tr>
+                    @empty
+                        <tr class="cd-empty-row"><td colspan="5">No workflow records found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
 
     @if($role == 20)
     <!-- Change Status Directly -->
@@ -761,6 +797,7 @@
     </div>
     @endif
 
+    @if($role == 1)
     <!-- Status Change History -->
     <div class="cd-panel">
         <div class="cd-panel-header">

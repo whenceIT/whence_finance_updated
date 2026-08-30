@@ -396,6 +396,8 @@ These are the balances of all branch loans as of  {{ date("jS M, Y", strtotime($
     </div>
 </div>
 
+ <!-- Short cut tools to: Loans, Collateral, Clients -->
+@include('components.dashboard-shortcuts')
 </section>
 
 @include('components.policy-of-the-day')

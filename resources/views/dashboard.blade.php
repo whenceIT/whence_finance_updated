@@ -663,7 +663,12 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
                 <!--second row-->
                 <?php
                     $tots = ($collected_amounts[12] / $cycle_opening_uncollected_amounts[12])
-                                                                                                                                                                                                        ?>
+                ?>
+
+
+                <!-- Short cut tools to: Loans, Collateral, Clients -->
+                @include('components.dashboard-shortcuts')
+
 
                 <div style="margin-bottom:30px; margin-top:30px;">
                     <p
@@ -813,8 +818,8 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
                 <canvas id='target_graph'></canvas>
 
             @endif
-
         </div>
+
 
         <div id='coua' style="display:none">
             <div class="box box-primary">
@@ -2219,11 +2224,9 @@ if($branchUser->role){
 
 
             <canvas id='companygraph'></canvas>
+            
 
             <div class="row" style="padding-top: 20px;">
-
-
-
                 <div class="col-md-6">
                     <div class="box box-primary">
                         <div class="box-header with-border">
@@ -2399,6 +2402,7 @@ if($branchUser->role){
 
     @include('components.policy-of-the-day')
 
+    
     @include('components.training-hub-bento')
 
      @php

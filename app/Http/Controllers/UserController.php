@@ -18,6 +18,7 @@ use App\Models\Loan;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\Client;
+use App\Models\Collateral;
 use App\Models\Policy;
 use App\Models\UserPolicyResponse;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -1054,8 +1055,36 @@ $cycle_date = $cycleDate->format('Y-m-d');
         } else {
             $branchUsers = User::where('office_id', $userBranch)->with('loan')->with('role')->get();
         }
+
+        if ($role->role_id == '1') {
+            $loanCount = Loan::where('status', 'disbursed')->count();
+            $clientCount = Client::where('status', 'active')->count();
+            $collateralCount = Collateral::where('status', 'pledged')->count();
+        } elseif ($role->role_id == '3') {
+            $loanCount = Loan::where('status', 'disbursed')->where('loan_officer_id', $userId)->count();
+            $clientCount = Client::where('status', 'active')->where('office_id', $userBranch)->count();
+            $collateralCount = Collateral::where('status', 'pledged')->whereIn('loan_id', Loan::where('loan_officer_id', $userId)->pluck('id'))->count();
+        } elseif ($role->role_id == '4') {
+            $loanCount = Loan::where('status', 'disbursed')->where('office_id', $userBranch)->count();
+            $clientCount = Client::where('status', 'active')->where('office_id', $userBranch)->count();
+            $collateralCount = Collateral::where('status', 'pledged')->whereIn('loan_id', Loan::where('office_id', $userBranch)->pluck('id'))->count();
+        } elseif ($role->role_id == '12') {
+            $loanCount = Loan::where('status', 'disbursed')->whereIn('office_id', $officeIds)->count();
+            $clientCount = Client::where('status', 'active')->whereIn('office_id', $officeIds)->count();
+            $collateralCount = Collateral::where('status', 'pledged')->whereIn('loan_id', Loan::whereIn('office_id', $officeIds)->pluck('id'))->count();
+        } elseif ($role->role_id == '6') {
+            $provinceOfficeIds = Office::where('province_id', $userProvince)->pluck('id')->toArray();
+            $loanCount = Loan::where('status', 'disbursed')->whereIn('office_id', $provinceOfficeIds)->count();
+            $clientCount = Client::where('status', 'active')->whereIn('office_id', $provinceOfficeIds)->count();
+            $collateralCount = Collateral::where('status', 'pledged')->whereIn('loan_id', Loan::whereIn('office_id', $provinceOfficeIds)->pluck('id'))->count();
+        } else {
+            $loanCount = 0;
+            $clientCount = 0;
+            $collateralCount = 0;
+        }
+
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'pendingApproval', 'true_date', 'numbers_status', 'branch_data', 'province_data'));
+            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'pendingApproval', 'true_date', 'numbers_status', 'branch_data', 'province_data', 'loanCount', 'clientCount', 'collateralCount'));
         } else {
 
 

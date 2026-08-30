@@ -76,13 +76,13 @@ public function edit($id)
     }
 
 
-public function show($id)
-{
+    public function show($id)
+    {
         $vehicle = Vehicle::with('client')
             ->findOrFail($id);
 
         return view('motor_vehicle.show', compact('vehicle'));
-}
+    }
 
 
 public function update(Request $request, $id)
