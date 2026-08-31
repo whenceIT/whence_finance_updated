@@ -370,7 +370,7 @@ public function updateSetup(Request $request)
                 ? ($provinceResponse->json()['data'] ?? [])
                 : [];
 
-                dd($provinces);
+        
 
             // ✅ FETCH BRANCHES
             $branchResponse = Http::timeout(60)->get('https://lms2backend.whencefinancesystem.com/branch-performance-all', [
