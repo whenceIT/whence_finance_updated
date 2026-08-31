@@ -384,9 +384,7 @@ public function updateSetup(Request $request)
 
         } catch (\Exception $e) {
 
-            // 👤 Fail gracefully
-            $provinces = [];
-            $branches = [];
+          
         }
 
 
