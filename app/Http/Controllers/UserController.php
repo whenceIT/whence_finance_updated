@@ -360,15 +360,28 @@ public function updateSetup(Request $request)
 
         try {
 
-            // ✅ FETCH PROVINCES
-            $provinceResponse = Http::timeout(60)->get('https://lms2backend.whencefinancesystem.com/province-performance-all', [
-                'start_date' => $start_date,
-                'end_date' => $end_date
-            ]);
+            // // ✅ FETCH PROVINCES
+            // $provinceResponse = Http::timeout(200)->get('https://lms2backend.whencefinancesystem.com/province-performance-all', [
+            //     'start_date' => $start_date,
+            //     'end_date' => $end_date
+            // ]);
 
-            $provinces = $provinceResponse->successful()
-                ? ($provinceResponse->json()['data'] ?? [])
-                : [];
+            // $provinces = $provinceResponse->successful()
+            //     ? ($provinceResponse->json()['data'] ?? [])
+            //     : [];
+
+            $provinceResponse = Http::timeout(60)->get(
+    'https://lms2backend.whencefinancesystem.com/province-performance-all',
+    [
+        'start_date' => $start_date,
+        'end_date' => $end_date
+    ]
+);
+
+dd(
+    $provinceResponse->status(),
+    $provinceResponse->body()
+);
 
             // ✅ FETCH BRANCHES
             $branchResponse = Http::timeout(60)->get('https://lms2backend.whencefinancesystem.com/branch-performance-all', [
