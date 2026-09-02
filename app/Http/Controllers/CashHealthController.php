@@ -644,6 +644,9 @@ public function national(Request $request)
 
     $nationalHealth = $response->json();
 
+    $nationalHealth['provinces'] =
+    $nationalHealth['provinces'] ?? [];
+
 
     /*
     |--------------------------------------------------------------------------
