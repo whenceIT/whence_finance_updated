@@ -1555,7 +1555,7 @@ if (!Sentinel::check()) {
                                  <!-- ============================================
                  MOTOR VECHICLE SECTION
             ============================================ -->
-            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/dormant_loans') ) active menu-open @endif">
+            <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/dormant_loans') || Request::is('motor-vehicle-loans*') || Request::is('clients/*/edit-kyc') || Request::is('vehicles/ownership-verification') || Request::is('vehicles/*/ownership-verification') || Request::is('vehicles/movements') || Request::is('vehicles/*/movements') || Request::is('vehicles/roll-calls') || Request::is('vehicles/*/roll-calls') || Request::is('vehicles/custody-register') || Request::is('vehicles/*/custody-register') ) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-car"></i> <span>Motor Vehicle Loans</span>
                     <span class="pull-right-container">
@@ -1584,6 +1584,34 @@ if (!Sentinel::check()) {
 
                        @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles/sales') }}"><i class="fa fa-circle-o"></i>Vehicle Sales</a></li>
+                    @endif
+
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>Loan Lifecycle</a></li>
+                    @endif
+
+                    @if(Sentinel::hasAccess('settings'))
+                    <li><a href="{{ url('loan/product/data') }}"><i class="fa fa-circle-o"></i>Loan Products</a></li>
+                    @endif
+
+                    @if(Sentinel::hasAccess('settings'))
+                    <li><a href="{{ url('motor-vehicle-loans/approval-matrices') }}"><i class="fa fa-circle-o"></i>Approval Matrices</a></li>
+                    @endif
+
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/ownership-verification') }}"><i class="fa fa-circle-o"></i>Ownership Verification</a></li>
+                    @endif
+
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/custody-register') }}"><i class="fa fa-circle-o"></i>Custody Register</a></li>
+                    @endif
+
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/movements') }}"><i class="fa fa-circle-o"></i>Vehicle Movements</a></li>
+                    @endif
+
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/roll-calls') }}"><i class="fa fa-circle-o"></i>Roll Calls</a></li>
                     @endif
 
 

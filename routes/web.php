@@ -447,6 +447,41 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('vehicle-custody/pending-approval','VehicleController@getPendingCustodyApprovals');
 });
 
+Route::group(['prefix' => 'motor-vehicle-loans'], function () {
+    Route::get('/', 'MotorVehicleLoanLifecycleController@index')->name('motor-vehicle-loans.index');
+    Route::get('product-configurations', 'MotorVehicleLoanLifecycleController@productConfigurations')->name('motor-vehicle.product-configurations');
+    Route::get('product-configurations/create', 'MotorVehicleLoanLifecycleController@createProductConfiguration')->name('motor-vehicle.product-configurations.create');
+    Route::post('product-configurations', 'MotorVehicleLoanLifecycleController@storeProductConfiguration')->name('motor-vehicle.product-configurations.store');
+    Route::get('approval-matrices', 'MotorVehicleLoanLifecycleController@approvalMatrices')->name('motor-vehicle.approval-matrices');
+    Route::post('approval-matrices', 'MotorVehicleLoanLifecycleController@storeApprovalMatrix')->name('motor-vehicle.approval-matrices.store');
+    Route::get('{id}', 'MotorVehicleLoanLifecycleController@show')->name('motor-vehicle-loans.show');
+    Route::get('{id}/edit-master-record', 'MotorVehicleLoanLifecycleController@editMasterRecord')->name('motor-vehicle-loans.edit-master-record');
+    Route::post('{id}/update-master-record', 'MotorVehicleLoanLifecycleController@updateMasterRecord')->name('motor-vehicle-loans.update-master-record');
+    Route::post('{id}/transition-stage', 'MotorVehicleLoanLifecycleController@transitionStage')->name('motor-vehicle-loans.transition-stage');
+    Route::get('{id}/audit-trail', 'MotorVehicleLoanLifecycleController@auditTrail')->name('motor-vehicle-loans.audit-trail');
+    Route::get('{id}/compliance-screening', 'MotorVehicleLoanLifecycleController@complianceScreening')->name('motor-vehicle-loans.compliance-screening');
+    Route::post('{id}/store-compliance-screening', 'MotorVehicleLoanLifecycleController@storeComplianceScreening')->name('motor-vehicle-loans.store-compliance-screening');
+});
+
+Route::group(['prefix' => 'clients'], function () {
+    Route::get('{client}/edit-kyc', 'MotorVehicleLoanLifecycleController@editKyc')->name('clients.edit-kyc');
+    Route::post('{client}/update-kyc', 'MotorVehicleLoanLifecycleController@updateKyc')->name('clients.update-kyc');
+});
+
+Route::group(['prefix' => 'vehicles'], function () {
+    Route::get('ownership-verification', 'MotorVehicleLoanLifecycleController@ownershipVerification')->name('vehicles.ownership-verification');
+    Route::get('{vehicle}/ownership-verification', 'MotorVehicleLoanLifecycleController@ownershipVerification')->name('vehicles.ownership-verification.show');
+    Route::post('{vehicle}/store-ownership-verification', 'MotorVehicleLoanLifecycleController@storeOwnershipVerification')->name('vehicles.store-ownership-verification');
+    Route::get('movements', 'MotorVehicleLoanLifecycleController@movements')->name('vehicles.movements');
+    Route::get('{vehicle}/movements', 'MotorVehicleLoanLifecycleController@movements')->name('vehicles.movements.show');
+    Route::post('{vehicle}/movements', 'MotorVehicleLoanLifecycleController@storeMovement')->name('vehicles.movements.store');
+    Route::get('roll-calls', 'MotorVehicleLoanLifecycleController@rollCalls')->name('vehicles.roll-calls');
+    Route::get('{vehicle}/roll-calls', 'MotorVehicleLoanLifecycleController@rollCalls')->name('vehicles.roll-calls.show');
+    Route::post('{vehicle}/roll-calls', 'MotorVehicleLoanLifecycleController@storeRollCall')->name('vehicles.roll-calls.store');
+    Route::get('custody-register', 'MotorVehicleLoanLifecycleController@custodyRegister')->name('vehicles.custody-register');
+    Route::get('{vehicle}/custody-register', 'MotorVehicleLoanLifecycleController@custodyRegister')->name('vehicles.custody-register.show');
+    Route::post('{vehicle}/store-intake', 'MotorVehicleLoanLifecycleController@storeIntake')->name('vehicles.store-intake');
+}); 
 
 Route::group(['prefix' => 'payrollloans'], function () {
     Route::get('dashboard', 'PayrollloanController@dashboard');

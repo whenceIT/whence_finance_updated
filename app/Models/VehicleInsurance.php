@@ -14,7 +14,10 @@ class VehicleInsurance extends Model
         'policy_number',
         'start_date',
         'expiry_date',
-        'insured_value'
+        'insured_value',
+        'premium',
+        'cover_type',
+        'insurance_company_id'
     ];
 
     public function vehicle()
