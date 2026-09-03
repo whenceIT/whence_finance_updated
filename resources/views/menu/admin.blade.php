@@ -20,6 +20,7 @@ if (!Sentinel::check()) {
             ->get();
             
     $office_id = Sentinel::getUser()->office_id;
+    $province_id = $user->office->province_id;
 
     // Collateral count based on role
     $userId = $user->id;
@@ -89,6 +90,38 @@ if (!Sentinel::check()) {
                     <i class="fa fa-dashboard"></i> <span>{{trans_choice('general.dashboard',1)}}</span>
                 </a>
 	        </li>
+
+
+
+                   @if(Sentinel::hasAccess('expenses'))
+               <li class="treeview @if(Request::is('executive_dashboard*')) active menu-open @endif">
+                <a href="#">
+                    <i class="fa fa-dashboard"></i> <span>Cash Health Module</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                           @if($role == 1)
+<li><a href="{{ route('cash_health.national') }}"><i class="fa fa-circle-o"></i>Executive Cash Health Module</a></li>
+                           @endif
+
+                            @if($role == 4)
+<li>
+    <a href="{{ url('cash_health/show/' . $office_id) }}">
+        <i class="fa fa-circle-o"></i>Branch Cash Health
+    </a>
+</li>
+                           @endif
+
+
+                            @if($role == 6)
+<li><a href="{{ url('cash_health/province/' . $province_id) }}"><i class="fa fa-circle-o"></i>Provincal Cash Health</a></li>
+                           @endif
+                </ul>
+            </li>
+            @endif
+
 
             @if(Sentinel::hasAccess('settings'))
                <li class="treeview @if(Request::is('executive_dashboard*')) active menu-open @endif">

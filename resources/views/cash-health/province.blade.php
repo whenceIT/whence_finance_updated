@@ -180,7 +180,7 @@
                 color:#8a93a3;
                 letter-spacing:1px;
             ">
-                OVERALL SCORE
+                CASH HEALTH SCORE
             </div>
 
             <div style="
@@ -328,7 +328,7 @@
             color:#202633;
             margin-bottom:20px;
         ">
-            Provincial Score
+            Provincial Cash Health Score
         </div>
 
 
@@ -438,7 +438,7 @@
     {{-- PROVINCIAL FINANCIAL POSITION --}}
     {{-- ========================================================= --}}
 
-    <div style="
+    <!-- <div style="
         background:#fff;
         border:1px solid #e6e9ef;
         border-radius:14px;
@@ -530,14 +530,14 @@
 
         </div>
 
-    </div>
+    </div> -->
 
 
     {{-- ========================================================= --}}
     {{-- RESERVE BREAKDOWN --}}
     {{-- ========================================================= --}}
 
-    <div style="
+    <!-- <div style="
         background:#fff;
         border:1px solid #e6e9ef;
         border-radius:14px;
@@ -592,136 +592,165 @@
 
         </div>
 
-    </div>
+    </div> -->
 
 
     {{-- ========================================================= --}}
     {{-- OFFICE TABLE --}}
     {{-- ========================================================= --}}
 
+<div style="
+    background:#fff;
+    border:1px solid #e6e9ef;
+    border-radius:14px;
+    overflow:hidden;
+">
+
     <div style="
-        background:#fff;
-        border:1px solid #e6e9ef;
-        border-radius:14px;
-        overflow:hidden;
+        padding:20px 22px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        border-bottom:1px solid #edf0f4;
     ">
 
-        <div style="
-            padding:20px 22px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            border-bottom:1px solid #edf0f4;
-        ">
+        <div>
 
-            <div>
-
-                <div style="
-                    font-size:16px;
-                    font-weight:700;
-                    color:#202633;
-                ">
-                    Office Cash Health
-                </div>
-
-                <div style="
-                    font-size:12px;
-                    color:#8a93a3;
-                    margin-top:3px;
-                ">
-                    Click an office to view its financial details
-                </div>
-
+            <div style="
+                font-size:16px;
+                font-weight:700;
+                color:#202633;
+            ">
+                Province Cash Health
             </div>
-
 
             <div style="
                 font-size:12px;
-                color:#697386;
+                color:#8a93a3;
+                margin-top:3px;
             ">
-                {{ count($provinceHealth['offices'] ?? []) }}
-                offices
+                Click a district to view its offices
             </div>
 
         </div>
 
 
-        <table style="
-            width:100%;
-            border-collapse:collapse;
+        @php
+
+            $districts =
+                $provinceHealth['districts'] ?? [];
+
+            $totalOffices =
+                collect($districts)
+                    ->sum(function ($district) {
+
+                        return count(
+                            $district['offices'] ?? []
+                        );
+
+                    });
+
+        @endphp
+
+
+        <div style="
+            font-size:12px;
+            color:#697386;
         ">
 
-            <thead>
+            {{ $totalOffices }} offices
 
-                <tr style="
-                    background:#fafbfc;
+        </div>
+
+    </div>
+
+
+    <table style="
+        width:100%;
+        border-collapse:collapse;
+    ">
+
+        <thead>
+
+            <tr style="
+                background:#fafbfc;
+            ">
+
+                <th style="width:45px;"></th>
+
+                <th style="
+                    text-align:left;
+                    padding:12px 15px;
+                    font-size:10px;
+                    color:#8a93a3;
+                    letter-spacing:.8px;
                 ">
+                    DISTRICT / OFFICE
+                </th>
 
-                    <th style="width:45px;"></th>
+                <th style="
+                    text-align:right;
+                    padding:12px 15px;
+                    font-size:10px;
+                    color:#8a93a3;
+                    letter-spacing:.8px;
+                ">
+                    CASH HEALTH SCORE
+                </th>
 
-                    <th style="
-                        text-align:left;
-                        padding:12px 15px;
-                        font-size:10px;
-                        color:#8a93a3;
-                        letter-spacing:.8px;
-                    ">
-                        OFFICE
-                    </th>
+                <th style="
+                    text-align:right;
+                    padding:12px 15px;
+                    font-size:10px;
+                    color:#8a93a3;
+                    letter-spacing:.8px;
+                ">
+                    RESIDUAL CASH
+                </th>
 
-                    <th style="
-                        text-align:right;
-                        padding:12px 15px;
-                        font-size:10px;
-                        color:#8a93a3;
-                        letter-spacing:.8px;
-                    ">
-                        SCORE
-                    </th>
+                <th style="
+                    text-align:center;
+                    padding:12px 15px;
+                    font-size:10px;
+                    color:#8a93a3;
+                    letter-spacing:.8px;
+                ">
+                    STATUS
+                </th>
 
-                    <th style="
-                        text-align:right;
-                        padding:12px 15px;
-                        font-size:10px;
-                        color:#8a93a3;
-                        letter-spacing:.8px;
-                    ">
-                        RESIDUAL CASH
-                    </th>
+            </tr>
 
-                    <th style="
-                        text-align:center;
-                        padding:12px 15px;
-                        font-size:10px;
-                        color:#8a93a3;
-                        letter-spacing:.8px;
-                    ">
-                        STATUS
-                    </th>
-
-                </tr>
-
-            </thead>
+        </thead>
 
 
-            <tbody>
+        <tbody>
 
-                @foreach(($provinceHealth['offices'] ?? []) as $office)
+            @foreach($districts as $district)
 
-                    @php
+                @php
 
-                        $officeScores =
-                            $office['scores'] ?? [];
+                    $districtId =
+                        $district['district_id']
+                        ?? 'unknown';
 
-                        $officeFinancials =
-                            $office['financials'] ?? [];
+                    $districtName =
+                        $district['district_name']
+                        ?? 'Unknown District';
 
-                        $officeStatus =
-                            strtoupper(
-                                $officeScores['status'] ?? 'RED'
-                            );
+                    $districtScores =
+                        $district['scores'] ?? [];
 
-                        $officeStatusColor = match($officeStatus) {
+                    $districtFinancials =
+                        $district['financials'] ?? [];
+
+                    $districtStatus =
+                        strtoupper(
+                            $districtScores['status']
+                            ?? 'RED'
+                        );
+
+                    $districtStatusColor =
+                        match($districtStatus) {
 
                             'GREEN' => '#15803d',
 
@@ -731,7 +760,8 @@
 
                         };
 
-                        $officeStatusBackground = match($officeStatus) {
+                    $districtStatusBackground =
+                        match($districtStatus) {
 
                             'GREEN' => '#dcfce7',
 
@@ -741,327 +771,672 @@
 
                         };
 
-                        $officeKey =
-                            'province_office_' .
-                            $office['office_id'];
+                    $districtKey =
+                        'province_district_' .
+                        $districtId;
 
-                    @endphp
+                @endphp
 
 
-                    {{-- OFFICE ROW --}}
+                {{-- DISTRICT ROW --}}
 
-                    <tr
-                        onclick="toggleProvinceOffice('{{ $officeKey }}')"
+                <tr
+                    onclick="
+                        toggleProvinceOffice(
+                            '{{ $districtKey }}'
+                        )
+                    "
+                    style="
+                        border-top:1px solid #edf0f4;
+                        cursor:pointer;
+                        background:#f8fafc;
+                    "
+                >
+
+                    <td style="
+                        padding:16px;
+                        text-align:center;
+                    ">
+
+                        <span
+                            id="{{ $districtKey }}_arrow"
+                            style="
+                                display:inline-block;
+                                color:#8a93a3;
+                                transition:.2s;
+                            "
+                        >
+                            ▶
+                        </span>
+
+                    </td>
+
+
+                    <td style="
+                        padding:16px;
+                        font-weight:700;
+                        font-size:13px;
+                        color:#202633;
+                    ">
+
+                        {{ $districtName }}
+
+                        <span style="
+                            font-size:11px;
+                            font-weight:500;
+                            color:#8a93a3;
+                            margin-left:8px;
+                        ">
+
+                            {{ count(
+                                $district['offices'] ?? []
+                            ) }}
+
+                            offices
+
+                        </span>
+
+                    </td>
+
+
+                    <td style="
+                        padding:16px;
+                        text-align:right;
+                        font-weight:700;
+                        color:#202633;
+                    ">
+
+                        {{ number_format(
+                            $districtScores['overall'] ?? 0,
+                            0
+                        ) }}
+
+                    </td>
+
+
+                    <td style="
+                        padding:16px;
+                        text-align:right;
+                        color:{{
+                            ($districtFinancials['residual_cash'] ?? 0) < 0
+                                ? '#dc2626'
+                                : '#343b48'
+                        }};
+                    ">
+
+                        K{{ number_format(
+                            $districtFinancials['residual_cash'] ?? 0,
+                            2
+                        ) }}
+
+                    </td>
+
+
+                    <td style="
+                        padding:16px;
+                        text-align:center;
+                    ">
+
+                        <span style="
+                            display:inline-block;
+                            padding:5px 10px;
+                            border-radius:20px;
+                            background:{{
+                                $districtStatusBackground
+                            }};
+                            color:{{
+                                $districtStatusColor
+                            }};
+                            font-size:10px;
+                            font-weight:700;
+                        ">
+
+                            {{ $districtStatus }}
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+
+                {{-- EXPANDED DISTRICT / OFFICES --}}
+
+                <tr
+                    id="{{ $districtKey }}"
+                    style="display:none;"
+                >
+
+                    <td
+                        colspan="5"
                         style="
-                            border-top:1px solid #edf0f4;
-                            cursor:pointer;
+                            padding:0;
+                            background:#fafbfc;
                         "
                     >
 
-                        <td style="
-                            padding:16px;
-                            text-align:center;
+                        <div style="
+                            padding:10px 25px 15px 55px;
+                            border-top:1px solid #edf0f4;
                         ">
 
-                            <span
-                                id="{{ $officeKey }}_arrow"
-                                style="
-                                    display:inline-block;
-                                    color:#8a93a3;
-                                    transition:.2s;
-                                "
-                            >
-                                ▶
-                            </span>
 
-                        </td>
+                            @foreach(
+                                ($district['offices'] ?? [])
+                                as $office
+                            )
 
+                                @php
 
-                        <td style="
-                            padding:16px;
-                            font-weight:600;
-                            font-size:13px;
-                            color:#202633;
-                        ">
+                                    $officeScores =
+                                        $office['scores'] ?? [];
 
-                            Office {{ $office['office_id'] }}
+                                    $officeFinancials =
+                                        $office['financials'] ?? [];
 
-                        </td>
+                                    $officeStatus =
+                                        strtoupper(
+                                            $officeScores['status']
+                                            ?? 'RED'
+                                        );
 
+                                    $officeStatusColor =
+                                        match($officeStatus) {
 
-                        <td style="
-                            padding:16px;
-                            text-align:right;
-                            font-weight:700;
-                            color:#202633;
-                        ">
+                                            'GREEN' =>
+                                                '#15803d',
 
-                            {{ number_format(
-                                $officeScores['overall'] ?? 0,
-                                0
-                            ) }}
+                                            'AMBER' =>
+                                                '#b45309',
 
-                        </td>
+                                            default =>
+                                                '#dc2626'
 
+                                        };
 
-                        <td style="
-                            padding:16px;
-                            text-align:right;
-                            color:{{ ($officeFinancials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#343b48' }};
-                        ">
+                                    $officeStatusBackground =
+                                        match($officeStatus) {
 
-                            K{{ number_format(
-                                $officeFinancials['residual_cash'] ?? 0,
-                                2
-                            ) }}
+                                            'GREEN' =>
+                                                '#dcfce7',
 
-                        </td>
+                                            'AMBER' =>
+                                                '#fef3c7',
 
+                                            default =>
+                                                '#fee2e2'
 
-                        <td style="
-                            padding:16px;
-                            text-align:center;
-                        ">
+                                        };
 
-                            <span style="
-                                display:inline-block;
-                                padding:5px 10px;
-                                border-radius:20px;
-                                background:{{ $officeStatusBackground }};
-                                color:{{ $officeStatusColor }};
-                                font-size:10px;
-                                font-weight:700;
-                            ">
+                                    $officeKey =
+                                        'province_office_' .
+                                        $office['office_id'];
 
-                                {{ $officeStatus }}
-
-                            </span>
-
-                        </td>
-
-                    </tr>
+                                @endphp
 
 
-                    {{-- EXPANDED OFFICE --}}
+                                {{-- OFFICE ROW --}}
 
-                    <tr
-                        id="{{ $officeKey }}"
-                        style="display:none;"
-                    >
-
-                        <td
-                            colspan="5"
-                            style="
-                                padding:0;
-                                background:#fafbfc;
-                            "
-                        >
-
-                            <div style="
-                                padding:24px 55px;
-                                border-top:1px solid #edf0f4;
-                            ">
+                                <div style="
+                                    background:#fff;
+                                    border:1px solid #e7eaf0;
+                                    border-radius:10px;
+                                    margin:8px 0;
+                                    overflow:hidden;
+                                ">
 
 
-                                {{-- REASON --}}
+                                    <div
+                                        onclick="
+                                            toggleProvinceOffice(
+                                                '{{ $officeKey }}'
+                                            )
+                                        "
+                                        style="
+                                            display:grid;
+                                            grid-template-columns:
+                                                45px
+                                                1fr
+                                                120px
+                                                160px
+                                                120px;
+                                            align-items:center;
+                                            cursor:pointer;
+                                            min-height:60px;
+                                        "
+                                    >
 
-                                @if(!empty($office['reason']))
+                                        <div style="
+                                            text-align:center;
+                                        ">
 
-                                    <div style="
-                                        padding:13px 15px;
-                                        background:#fff;
-                                        border:1px solid #e7eaf0;
-                                        border-radius:10px;
-                                        margin-bottom:20px;
-                                        font-size:13px;
-                                        color:#4b5563;
-                                        line-height:1.6;
-                                    ">
+                                            <span
+                                                id="{{ $officeKey }}_arrow"
+                                                style="
+                                                    display:inline-block;
+                                                    color:#8a93a3;
+                                                    transition:.2s;
+                                                "
+                                            >
+                                                ▶
+                                            </span>
 
-                                        <strong style="
+                                        </div>
+
+
+                                        <div style="
+                                            font-weight:600;
+                                            font-size:13px;
                                             color:#202633;
                                         ">
-                                            Why this score?
-                                        </strong>
 
-                                        <div style="
-                                            margin-top:4px;
-                                        ">
-                                            {{ $office['reason'] }}
+                                    {{ $office['office_name'] ?? 'Office ' . $office['office_id'] }}
+
                                         </div>
 
-                                    </div>
 
-                                @endif
+                                        <div style="
+                                            text-align:right;
+                                            font-weight:700;
+                                            color:#202633;
+                                        ">
+
+                                            {{ number_format(
+                                                $officeScores['overall'] ?? 0,
+                                                0
+                                            ) }}
+
+                                        </div>
 
 
-                                {{-- FINANCIALS --}}
+                                        <div style="
+                                            text-align:right;
+                                            color:{{
+                                                ($officeFinancials['residual_cash'] ?? 0) < 0
+                                                    ? '#dc2626'
+                                                    : '#343b48'
+                                            }};
+                                        ">
 
-                                <div style="
-                                    display:grid;
-                                    grid-template-columns:repeat(4,1fr);
-                                    gap:12px;
-                                    margin-bottom:20px;
-                                ">
-
-                                    @php
-
-                                        $branchMetrics = [
-
-                                            'Maximum Repayment' =>
-                                                $officeFinancials['maximum_expected_repayment'] ?? 0,
-
-                                            'Fixed Costs' =>
-                                                $officeFinancials['mandatory_fixed_cost'] ?? 0,
-
-                                            'Salaries' =>
-                                                $officeFinancials['salaries'] ?? 0,
-
-                                            'Defaults' =>
-                                                $officeFinancials['defaults'] ?? 0,
-
-                                            'Irregular Reserve' =>
-                                                $officeFinancials['irregular_cost_reserve'] ?? 0,
-
-                                            'Salary Advances' =>
-                                                $officeFinancials['salary_advance_reserve'] ?? 0,
-
-                                            'Net Cash' =>
-                                                $officeFinancials['net_cash_position'] ?? 0,
-
-                                            'Residual Cash' =>
+                                            K{{ number_format(
                                                 $officeFinancials['residual_cash'] ?? 0,
+                                                2
+                                            ) }}
 
-                                        ];
+                                        </div>
 
-                                    @endphp
-
-
-                                    @foreach($branchMetrics as $label => $value)
 
                                         <div style="
-                                            background:#fff;
-                                            border:1px solid #e7eaf0;
-                                            border-radius:10px;
-                                            padding:14px;
+                                            text-align:center;
                                         ">
 
-                                            <div style="
+                                            <span style="
+                                                display:inline-block;
+                                                padding:5px 10px;
+                                                border-radius:20px;
+                                                background:{{
+                                                    $officeStatusBackground
+                                                }};
+                                                color:{{
+                                                    $officeStatusColor
+                                                }};
                                                 font-size:10px;
-                                                color:#8a93a3;
-                                                margin-bottom:6px;
+                                                font-weight:700;
                                             ">
-                                                {{ $label }}
-                                            </div>
+
+                                                {{ $officeStatus }}
+
+                                            </span>
+
+                                        </div>
+
+                                        
+                                    <div style="
+                                        padding:14px;
+                                        text-align:center;
+                                    ">
+
+                                        <a
+                                            href="{{ route('cash_health.show', ['id' => $office['office_id']]) }}"
+                                            onclick="event.stopPropagation();"
+                                            style="
+                                                display:inline-block;
+                                                padding:5px 10px;
+                                                background:#202633;
+                                                color:#fff;
+                                                border-radius:6px;
+                                                text-decoration:none;
+                                                font-size:10px;
+                                                font-weight:600;
+                                            "
+                                        >
+                                            View
+                                        </a>
+
+                                    </div>
+
+                                    </div>
+
+
+                                    {{-- EXPANDED OFFICE DETAILS --}}
+
+                                    <div
+                                        id="{{ $officeKey }}"
+                                        style="
+                                            display:none;
+                                            border-top:1px solid #edf0f4;
+                                            background:#fafbfc;
+                                        "
+                                    >
+
+                                        <div style="
+                                            padding:24px 30px;
+                                        ">
+
+
+                                            {{-- REASON --}}
+
+                                            @if(!empty($office['reason']))
+
+                                                <div style="
+                                                    padding:13px 15px;
+                                                    background:#fff;
+                                                    border:1px solid #e7eaf0;
+                                                    border-radius:10px;
+                                                    margin-bottom:20px;
+                                                    font-size:13px;
+                                                    color:#4b5563;
+                                                    line-height:1.6;
+                                                ">
+
+                                                    <strong style="
+                                                        color:#202633;
+                                                    ">
+                                                        Why this score?
+                                                    </strong>
+
+                                                    <div style="
+                                                        margin-top:4px;
+                                                    ">
+
+                                                        {{
+                                                            $office['reason']
+                                                        }}
+
+                                                    </div>
+
+                                                </div>
+
+                                            @endif
+
+
+                                            {{-- FINANCIALS --}}
 
                                             <div style="
-                                                font-size:15px;
-                                                font-weight:700;
-                                                color:{{ $value < 0 ? '#dc2626' : '#202633' }};
+                                                display:grid;
+                                                grid-template-columns:
+                                                    repeat(4,1fr);
+                                                gap:12px;
+                                                margin-bottom:20px;
                                             ">
-                                                K{{ number_format($value,2) }}
+
+                                                @php
+
+                                                    $branchMetrics = [
+
+                                                        'Maximum Repayment' =>
+                                                            $officeFinancials[
+                                                                'maximum_expected_repayment'
+                                                            ] ?? 0,
+
+                                                        'Fixed Costs' =>
+                                                            $officeFinancials[
+                                                                'mandatory_fixed_cost'
+                                                            ] ?? 0,
+
+                                                        'Salaries' =>
+                                                            $officeFinancials[
+                                                                'salaries'
+                                                            ] ?? 0,
+
+                                                        'Defaults' =>
+                                                            $officeFinancials[
+                                                                'defaults'
+                                                            ] ?? 0,
+
+                                                        'Irregular Reserve' =>
+                                                            $officeFinancials[
+                                                                'irregular_cost_reserve'
+                                                            ] ?? 0,
+
+                                                        'Salary Advances' =>
+                                                            $officeFinancials[
+                                                                'salary_advance_reserve'
+                                                            ] ?? 0,
+
+                                                        'Net Cash' =>
+                                                            $officeFinancials[
+                                                                'net_cash_position'
+                                                            ] ?? 0,
+
+                                                        'Residual Cash' =>
+                                                            $officeFinancials[
+                                                                'residual_cash'
+                                                            ] ?? 0,
+
+                                                    ];
+
+                                                @endphp
+
+
+                                                @foreach(
+                                                    $branchMetrics
+                                                    as $label => $value
+                                                )
+
+                                                    <div style="
+                                                        background:#fff;
+                                                        border:1px solid #e7eaf0;
+                                                        border-radius:10px;
+                                                        padding:14px;
+                                                    ">
+
+                                                        <div style="
+                                                            font-size:10px;
+                                                            color:#8a93a3;
+                                                            margin-bottom:6px;
+                                                        ">
+
+                                                            {{ $label }}
+
+                                                        </div>
+
+
+                                                        <div style="
+                                                            font-size:15px;
+                                                            font-weight:700;
+                                                            color:{{
+                                                                $value < 0
+                                                                    ? '#dc2626'
+                                                                    : '#202633'
+                                                            }};
+                                                        ">
+
+                                                            K{{
+                                                                number_format(
+                                                                    $value,
+                                                                    2
+                                                                )
+                                                            }}
+
+                                                        </div>
+
+                                                    </div>
+
+                                                @endforeach
+
+                                            </div>
+
+
+                                            {{-- OFFICE SCORES --}}
+
+                                            <div style="
+                                                display:flex;
+                                                gap:12px;
+                                            ">
+
+
+                                                <div style="
+                                                    flex:1;
+                                                    background:#fff;
+                                                    border:1px solid #e7eaf0;
+                                                    border-radius:10px;
+                                                    padding:14px;
+                                                ">
+
+                                                    <div style="
+                                                        font-size:10px;
+                                                        color:#8a93a3;
+                                                    ">
+                                                        DISBURSEMENT
+                                                    </div>
+
+                                                    <strong style="
+                                                        font-size:18px;
+                                                    ">
+
+                                                        {{
+                                                            $officeScores[
+                                                                'disbursement'
+                                                            ] ?? 0
+                                                        }}
+
+                                                    </strong>
+
+                                                </div>
+
+
+                                                <div style="
+                                                    flex:1;
+                                                    background:#fff;
+                                                    border:1px solid #e7eaf0;
+                                                    border-radius:10px;
+                                                    padding:14px;
+                                                ">
+
+                                                    <div style="
+                                                        font-size:10px;
+                                                        color:#8a93a3;
+                                                    ">
+                                                        COLLECTION QUALITY
+                                                    </div>
+
+                                                    <strong style="
+                                                        font-size:18px;
+                                                    ">
+
+                                                        {{
+                                                            $officeScores[
+                                                                'collection'
+                                                            ] ?? 0
+                                                        }}
+
+                                                    </strong>
+
+                                                </div>
+
+
+                                                <div style="
+                                                    flex:1;
+                                                    background:#fff;
+                                                    border:1px solid #e7eaf0;
+                                                    border-radius:10px;
+                                                    padding:14px;
+                                                ">
+
+                                                    <div style="
+                                                        font-size:10px;
+                                                        color:#8a93a3;
+                                                    ">
+                                                        RESIDUAL CASH
+                                                    </div>
+
+                                                    <strong style="
+                                                        font-size:18px;
+                                                    ">
+
+                                                        {{
+                                                            $officeScores[
+                                                                'residual_cash'
+                                                            ] ?? 0
+                                                        }}
+
+                                                    </strong>
+
+                                                </div>
+
+
+                                            </div>
+
+
+                                            {{-- VIEW OFFICE --}}
+
+                                            <div style="
+                                                margin-top:18px;
+                                                text-align:right;
+                                            ">
+
+                                                <a
+                                                    href="{{
+                                                        route(
+                                                            'cash_health.show',
+                                                            [
+                                                                'id' =>
+                                                                    $office['office_id']
+                                                            ]
+                                                        )
+                                                    }}"
+                                                    onclick="
+                                                        event.stopPropagation();
+                                                    "
+                                                    style="
+                                                        display:inline-block;
+                                                        padding:8px 14px;
+                                                        background:#202633;
+                                                        color:#fff;
+                                                        border-radius:7px;
+                                                        text-decoration:none;
+                                                        font-size:11px;
+                                                        font-weight:600;
+                                                    "
+                                                >
+                                                    View Office Details
+                                                </a>
+
                                             </div>
 
                                         </div>
 
-                                    @endforeach
-
-                                </div>
-
-
-                                {{-- OFFICE SCORES --}}
-
-                                <div style="
-                                    display:flex;
-                                    gap:12px;
-                                ">
-
-                                    <div style="
-                                        flex:1;
-                                        background:#fff;
-                                        border:1px solid #e7eaf0;
-                                        border-radius:10px;
-                                        padding:14px;
-                                    ">
-
-                                        <div style="
-                                            font-size:10px;
-                                            color:#8a93a3;
-                                        ">
-                                            DISBURSEMENT
-                                        </div>
-
-                                        <strong style="
-                                            font-size:18px;
-                                        ">
-                                            {{ $officeScores['disbursement'] ?? 0 }}
-                                        </strong>
-
-                                    </div>
-
-
-                                    <div style="
-                                        flex:1;
-                                        background:#fff;
-                                        border:1px solid #e7eaf0;
-                                        border-radius:10px;
-                                        padding:14px;
-                                    ">
-
-                                        <div style="
-                                            font-size:10px;
-                                            color:#8a93a3;
-                                        ">
-                                            COLLECTION QUALITY
-                                        </div>
-
-                                        <strong style="
-                                            font-size:18px;
-                                        ">
-                                            {{ $officeScores['collection'] ?? 0 }}
-                                        </strong>
-
-                                    </div>
-
-
-                                    <div style="
-                                        flex:1;
-                                        background:#fff;
-                                        border:1px solid #e7eaf0;
-                                        border-radius:10px;
-                                        padding:14px;
-                                    ">
-
-                                        <div style="
-                                            font-size:10px;
-                                            color:#8a93a3;
-                                        ">
-                                            RESIDUAL CASH
-                                        </div>
-
-                                        <strong style="
-                                            font-size:18px;
-                                        ">
-                                            {{ $officeScores['residual_cash'] ?? 0 }}
-                                        </strong>
-
                                     </div>
 
                                 </div>
 
-                            </div>
+                            @endforeach
 
-                        </td>
+                        </div>
 
-                    </tr>
+                    </td>
 
-                @endforeach
+                </tr>
 
-            </tbody>
+            @endforeach
 
-        </table>
+        </tbody>
 
-    </div>
+    </table>
+
+</div>
+
 
 </div>
 @endsection
@@ -1069,31 +1444,65 @@
 @section('footer-scripts')
 <script>
 
-function toggleProvinceOffice(id)
-{
-    const row = document.getElementById(id);
-    const arrow = document.getElementById(
-        id + '_arrow'
-    );
+function toggleProvinceOffice(id) {
+
+    const row =
+        document.getElementById(id);
+
+    const arrow =
+        document.getElementById(
+            id + '_arrow'
+        );
+
+    if (!row) {
+        return;
+    }
 
     if (
         row.style.display === 'none' ||
         row.style.display === ''
     ) {
 
-        row.style.display = 'table-row';
+        /*
+         * The district expanded row is a <tr>,
+         * while the office expanded section is a <div>.
+         */
 
-        arrow.style.transform =
-            'rotate(90deg)';
+        if (row.tagName === 'TR') {
+
+            row.style.display =
+                'table-row';
+
+        } else {
+
+            row.style.display =
+                'block';
+
+        }
+
+        if (arrow) {
+
+            arrow.style.transform =
+                'rotate(90deg)';
+
+        }
 
     } else {
 
-        row.style.display = 'none';
+        row.style.display =
+            'none';
 
-        arrow.style.transform =
-            'rotate(0deg)';
+        if (arrow) {
+
+            arrow.style.transform =
+                'rotate(0deg)';
+
+        }
+
     }
+
 }
+
 
 </script>
 @endsection

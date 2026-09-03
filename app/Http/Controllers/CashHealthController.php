@@ -213,7 +213,7 @@ public function contributionHistory($id)
 
     try {
 
-        $response = Http::timeout(10)
+        $response = Http::timeout(60)
             ->get(
                 $apiUrl . '/cash-health/' . $id . '/contributions/'
             );
@@ -263,6 +263,9 @@ public function contributionHistory($id)
         |--------------------------------------------------------------------------
         */
 
+        
+        $offices = Office::get()->keyBy('id');
+
         $today = Carbon::today();
 
         if ($today->day >= 25) {
@@ -300,7 +303,7 @@ public function contributionHistory($id)
         |--------------------------------------------------------------------------
         */
 
-        $response = Http::timeout(15)
+        $response = Http::timeout(60)
             ->get(
                 $apiUrl . '/cash-health/district/' . $district,
                 [
@@ -372,7 +375,8 @@ public function contributionHistory($id)
                 'districtHealth',
                 'cycleStart',
                 'cycleEnd',
-                'availableCycles'
+                'availableCycles',
+                'offices'
             )
         );
     }
@@ -381,6 +385,7 @@ public function contributionHistory($id)
 {
     $apiUrl = 'https://lms2backend.whencefinancesystem.com';
 
+    $offices = Office::get()->keyBy('id');
 
     /*
     |--------------------------------------------------------------------------
@@ -526,7 +531,8 @@ public function contributionHistory($id)
             'provinceHealth',
             'cycleStart',
             'cycleEnd',
-            'availableCycles'
+            'availableCycles',
+            'offices'
         )
     );
 }

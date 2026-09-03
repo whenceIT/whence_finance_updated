@@ -162,7 +162,7 @@
                 color:#8a93a3;
                 letter-spacing:1px;
             ">
-                OVERALL SCORE
+                DISTRICT CASH HEALTH SCORE
             </div>
 
             <div style="
@@ -300,7 +300,7 @@
             color:#202633;
             margin-bottom:20px;
         ">
-            District Score
+            District Cash Health Score
         </div>
 
 
@@ -486,7 +486,7 @@
                         letter-spacing:.8px;
                         color:#8a93a3;
                     ">
-                        SCORE
+                        CASH HEALTH SCORE
                     </th>
 
                     <th style="
@@ -584,7 +584,7 @@
                                 font-size:13px;
                                 color:#202633;
                             ">
-                                Office {{ $office['office_id'] }}
+                                {{ $offices[$office['office_id']]->name ?? 'Unknown Office' }}
                             </div>
 
                         </td>
@@ -635,6 +635,32 @@
                             </span>
 
                         </td>
+
+
+                                    <td style="
+                                        padding:14px;
+                                        text-align:center;
+                                    ">
+
+                                        <a
+                                            href="{{ route('cash_health.show', ['id' => $office['office_id']]) }}"
+                                            onclick="event.stopPropagation();"
+                                            style="
+                                                display:inline-block;
+                                                padding:5px 10px;
+                                                background:#202633;
+                                                color:#fff;
+                                                border-radius:6px;
+                                                text-decoration:none;
+                                                font-size:10px;
+                                                font-weight:600;
+                                            "
+                                        >
+                                            View
+                                        </a>
+
+</td>
+
 
                     </tr>
 
