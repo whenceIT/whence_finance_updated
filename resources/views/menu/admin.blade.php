@@ -12,6 +12,7 @@ if (!Sentinel::check()) {
     $userInfo = \App\Helpers\GeneralHelper::get_user_info();
     $user = $userInfo->user;
     $role = $userInfo->role;
+    $other_role = $userInfo->other_role;
     $office = $userInfo->office;
     $assignedTickets = \App\Models\Ticket::with(['openedBy', 'assignedTo', 'closedBy', 'issueCategory'])
             ->where('assigned_to', $user->id)
@@ -21,6 +22,8 @@ if (!Sentinel::check()) {
             
     $office_id = Sentinel::getUser()->office_id;
     $province_id = $user->office->province_id;
+    $my_office = $user->office;
+    $my_district = $my_office->district_id;
 
     // Collateral count based on role
     $userId = $user->id;
@@ -115,7 +118,12 @@ if (!Sentinel::check()) {
                            @endif
 
 
-                            @if($role == 6)
+                                @if($other_role == 12)
+<li><a href="{{ url('cash_health/district/' . $my_district) }}"><i class="fa fa-circle-o"></i>District Cash Health</a></li>
+                           @endif
+
+
+                        @if($role == 6)
 <li><a href="{{ url('cash_health/province/' . $province_id) }}"><i class="fa fa-circle-o"></i>Provincal Cash Health</a></li>
                            @endif
                 </ul>

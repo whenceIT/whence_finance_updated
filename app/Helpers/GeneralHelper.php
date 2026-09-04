@@ -2833,14 +2833,16 @@ public static function new_new_loan_total_balance($id)
                'user' => $user ?? '',
                 'role' => $user->role ? $user->role->role_id : null,
                 'office' => $user->office ? $user->office->id : null,
-                'province_id' => $user->province_id ?? null
+                'province_id' => $user->province_id ?? null,
+                'other_role' => $user->other_role ?? null,
             ];
         }
         return (object) [
             'user' => null,
             'role' => null,
             'office' => null,
-            'province_id' => null
+            'province_id' => null,
+            'other_role' => null
         ];
     }
 
