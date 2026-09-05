@@ -21,7 +21,7 @@ if (!Sentinel::check()) {
             ->get();
             
     $office_id = Sentinel::getUser()->office_id;
-    $province_id = $user->office->province_id;
+    $province_id = $user->office->province_id ?? null;
     $my_office = $user->office;
     $my_district = $my_office->district_id;
 

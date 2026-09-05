@@ -1717,6 +1717,101 @@
 
     </div>
 
+
+{{-- ========================================================= --}}
+{{-- NATIONAL CONTRIBUTION HISTORY --}}
+{{-- ========================================================= --}}
+
+<div style="
+    background:#fff;
+    border:1px solid #e6e9ef;
+    border-radius:14px;
+    padding:25px;
+    margin-bottom:24px;
+">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:20px;
+    ">
+
+        <div>
+
+            <div style="
+                font-size:16px;
+                font-weight:700;
+                color:#202633;
+            ">
+                National Contribution History
+            </div>
+
+            <div style="
+                font-size:12px;
+                color:#8a93a3;
+                margin-top:4px;
+            ">
+                Contribution performance across all branches for the last 13 cash cycles
+            </div>
+
+        </div>
+
+
+        {{-- GRAPH FILTER --}}
+
+        <div>
+
+            <select
+                id="contributionLevel"
+                onchange="updateContributionGraph()"
+                style="
+                    border:1px solid #dfe3e8;
+                    border-radius:8px;
+                    padding:8px 30px 8px 10px;
+                    font-size:12px;
+                    color:#343b48;
+                    background:#fff;
+                    cursor:pointer;
+                    outline:none;
+                "
+            >
+
+                <option value="province">
+                    Provinces
+                </option>
+
+                <option value="district">
+                    Districts
+                </option>
+
+                <option value="office">
+                    Branches
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    {{-- GRAPH --}}
+
+    <div style="
+        position:relative;
+        width:100%;
+        height:420px;
+    ">
+
+        <canvas id="nationalContributionChart"></canvas>
+
+    </div>
+
+</div>
+
+
+
 </div>
 @endsection
 
@@ -1727,7 +1822,416 @@
 
 
 @section('footer-scripts')
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+
+
+/* ============================================================
+   NATIONAL CONTRIBUTION GRAPH
+   ============================================================ */
+
+const nationalContributionData =
+    @json($nationalContribution['graph'] ?? []);
+
+let nationalContributionChart = null;
+
+
+/*
+|--------------------------------------------------------------------------
+| FORMAT MONEY
+|--------------------------------------------------------------------------
+*/
+
+function formatContribution(value)
+{
+    return new Intl.NumberFormat(
+        'en-ZM',
+        {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }
+    ).format(value);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| GET UNIQUE GROUPS
+|--------------------------------------------------------------------------
+*/
+
+function getContributionGroups(level)
+{
+    const groups = {};
+
+    nationalContributionData.forEach(row => {
+
+        let id;
+        let name;
+
+        if (level === 'province') {
+
+            id =
+                row.province_id;
+
+            name =
+                row.province_name;
+
+        }
+
+        else if (level === 'district') {
+
+            id =
+                row.district_id;
+
+            name =
+                row.district_name;
+
+        }
+
+        else {
+
+            id =
+                row.office_id;
+
+            name =
+                row.office_name;
+
+        }
+
+
+        if (!groups[id]) {
+
+            groups[id] = {
+
+                id: id,
+
+                name: name,
+
+                cycles: {}
+
+            };
+
+        }
+
+
+        groups[id].cycles[
+            row.cycle_start
+        ] =
+            Number(row.contribution) || 0;
+
+    });
+
+
+    return Object.values(groups);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| UPDATE GRAPH
+|--------------------------------------------------------------------------
+*/
+
+function updateContributionGraph()
+{
+    const level =
+        document.getElementById(
+            'contributionLevel'
+        ).value;
+
+
+    const groups =
+        getContributionGroups(level);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET ALL CYCLES
+    |--------------------------------------------------------------------------
+    */
+
+    const cycleMap = {};
+
+
+    nationalContributionData.forEach(row => {
+
+        cycleMap[
+            row.cycle_start
+        ] = {
+
+            start:
+                row.cycle_start,
+
+            end:
+                row.cycle_end
+
+        };
+
+    });
+
+
+    const cycles =
+        Object.values(cycleMap)
+            .sort(
+                (a, b) =>
+                    new Date(a.start) -
+                    new Date(b.start)
+            );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LABELS
+    |--------------------------------------------------------------------------
+    */
+
+    const labels =
+        cycles.map(cycle => {
+
+            const start =
+                new Date(
+                    cycle.start + 'T00:00:00'
+                );
+
+            return start.toLocaleDateString(
+                'en-GB',
+                {
+                    day:'2-digit',
+                    month:'short',
+                    year:'numeric'
+                }
+            );
+
+        });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DATASETS
+    |--------------------------------------------------------------------------
+    */
+
+    const datasets =
+        groups.map(group => {
+
+            return {
+
+                label:
+                    group.name,
+
+                data:
+                    cycles.map(
+                        cycle =>
+                            group.cycles[
+                                cycle.start
+                            ] || 0
+                    ),
+
+                borderWidth:2,
+
+                pointRadius:3,
+
+                pointHoverRadius:5,
+
+                tension:0.3,
+
+                fill:false
+
+            };
+
+        });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DESTROY OLD GRAPH
+    |--------------------------------------------------------------------------
+    */
+
+    if (nationalContributionChart) {
+
+        nationalContributionChart.destroy();
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE GRAPH
+    |--------------------------------------------------------------------------
+    */
+
+    const ctx =
+        document
+            .getElementById(
+                'nationalContributionChart'
+            )
+            .getContext('2d');
+
+
+    nationalContributionChart =
+        new Chart(
+            ctx,
+            {
+
+                type:'line',
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: datasets
+
+                },
+
+                options: {
+
+                    responsive:true,
+
+                    maintainAspectRatio:false,
+
+
+                    interaction: {
+
+                        mode:'index',
+
+                        intersect:false
+
+                    },
+
+
+                    plugins: {
+
+                        legend: {
+
+                            display:true,
+
+                            position:'bottom',
+
+                            labels: {
+
+                                usePointStyle:true,
+
+                                padding:15,
+
+                                font: {
+
+                                    size:11
+
+                                }
+
+                            }
+
+                        },
+
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label:function(context)
+                                {
+
+                                    return (
+                                        context.dataset.label +
+                                        ': K' +
+                                        formatContribution(
+                                            context.parsed.y
+                                        )
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+
+                    scales: {
+
+                        x: {
+
+                            grid: {
+
+                                display:false
+
+                            },
+
+                            ticks: {
+
+                                font: {
+
+                                    size:10
+
+                                },
+
+                                maxRotation:0,
+
+                                autoSkip:true,
+
+                                maxTicksLimit:13
+
+                            }
+
+                        },
+
+
+                        y: {
+
+                            beginAtZero:false,
+
+                            ticks: {
+
+                                font: {
+
+                                    size:10
+
+                                },
+
+                                callback:function(value)
+                                {
+
+                                    return 'K' +
+                                        formatContribution(
+                                            value
+                                        );
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| LOAD GRAPH WHEN PAGE IS READY
+|--------------------------------------------------------------------------
+*/
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function()
+    {
+
+        updateContributionGraph();
+
+    }
+);
+
+    
 
 function toggleNationalOffice(id)
 {

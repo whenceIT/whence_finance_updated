@@ -654,6 +654,33 @@ public function national(Request $request)
     $nationalHealth['provinces'] ?? [];
 
 
+
+        /*
+    |--------------------------------------------------------------------------
+    | NATIONAL CONTRIBUTION HISTORY
+    |--------------------------------------------------------------------------
+    */
+
+    $contributionResponse = Http::timeout(60)
+        ->get(
+            $apiUrl . '/cash-health/national/contributions'
+        );
+
+
+    if (!$contributionResponse->successful()) {
+
+        abort(
+            $contributionResponse->status(),
+            'Unable to retrieve National Contribution History data.'
+        );
+
+    }
+
+
+    $nationalContribution =
+        $contributionResponse->json();
+
+
     /*
     |--------------------------------------------------------------------------
     | AVAILABLE CYCLES
@@ -694,16 +721,18 @@ public function national(Request $request)
     |--------------------------------------------------------------------------
     */
 
-    return view(
-        'cash-health.national',
-        compact(
-            'nationalHealth',
-            'cycleStart',
-            'cycleEnd',
-            'availableCycles',
-            'offices'
-        )
-    );
+ return view(
+    'cash-health.national',
+    compact(
+        'nationalHealth',
+        'cycleStart',
+        'cycleEnd',
+        'availableCycles',
+        'offices',
+        'nationalContribution'
+    )
+);
+
 }
 
 
