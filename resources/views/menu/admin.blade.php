@@ -23,7 +23,7 @@ if (!Sentinel::check()) {
     $office_id = Sentinel::getUser()->office_id;
     $province_id = $user->office->province_id ?? null;
     $my_office = $user->office;
-    $my_district = $my_office->district_id;
+    $my_district = $my_office->district_id ?? null;
 
     // Collateral count based on role
     $userId = $user->id;
