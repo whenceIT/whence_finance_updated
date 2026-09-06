@@ -19,6 +19,7 @@
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">Edit Client KYC Information</h3>
+            <h4 class="text-semibold">{{ $client->first_name }} {{ $client->last_name }}</h4>
             <div class="box-tools pull-right">
                 <a href="{{ route('motor-vehicle-loans.index') }}" class="btn btn-info btn-sm">
                     Back
@@ -26,7 +27,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('clients.update-kyc', $client->id) }}" class="form-horizontal" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('clients.update-kyc', $loanId ? [$client->id, $loanId] : [$client->id]) }}" class="form-horizontal" enctype="multipart/form-data">
             @csrf
 
             <div class="box-body">
@@ -165,12 +166,11 @@
 
             <div class="box-footer">
                 <div class="heading-elements">
-                    <button type="submit" class="btn btn-primary pull-right">Save KYC</button>
+                    <button type="submit" class="btn btn-primary pull-right">Save and Proceed to PEP Verification</button>
                     <button type="button" onclick="window.history.back()" class="btn btn-info pull-right" style="margin-right: 10px;">Cancel</button>
                 </div>
             </div>
         </form>
     </div>
 </section>
-
 @endsection

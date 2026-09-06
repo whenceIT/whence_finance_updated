@@ -78,9 +78,9 @@ class Vehicle extends Model
         return $this->hasMany(VehicleInspection::class);
     }
 
-    public function motorVehicleLoans()
+    public function loan()
     {
-        return $this->hasMany(MotorVehicleLoan::class);
+        return $this->belongsTo(Loan::class, 'loan_id');
     }
 
     public function photos()

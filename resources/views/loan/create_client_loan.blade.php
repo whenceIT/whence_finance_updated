@@ -4,9 +4,7 @@
 @endsection
 
 @section('content')
-<?php
-$todaysDate = date('Y-m-d');
-?>
+<?php $todaysDate = date('Y-m-d'); ?>
 <div class="box box-primary">
     <div class="box-header with-border">
         <h3 class="box-title">{{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }} @if($loan_product->id == 0) (Motor Vehicle Loan) @endif</h3>
@@ -128,12 +126,10 @@ $todaysDate = date('Y-m-d');
                     <div class="col-md-2">
                         <input type="number" name="interest_rate" class="form-control" min="20" max="35" value="{{$loan_product->default_interest_rate}}" required id="interest_rate">
                     </div>
-
                 @else
-  <div class="col-md-2">
+                    <div class="col-md-2">
                         <input type="number" name="interest_rate" class="form-control" min="40" max="40" value="{{$loan_product->default_interest_rate}}" required id="interest_rate">
                     </div>
-
                 @endif
                     <label for="interest_rate_type" class="control-label col-md-2 text-left">% {{trans_choice('general.per',1)}}
                         @if($loan_product->interest_rate_type=="month") {{trans_choice('general.month',1)}} @endif
@@ -159,6 +155,7 @@ $todaysDate = date('Y-m-d');
                     </div>
                 </div>
 
+                @if($loan_product->id != 0)
                 <div class="form-group">
                     <label for="has_collateral" class="control-label col-md-2">Loan Has Collateral? <span class="text-danger">*</span></label>
                     <div class="col-md-3">
@@ -170,8 +167,10 @@ $todaysDate = date('Y-m-d');
                         <small class="text-muted">Select Yes to add collateral information</small>
                     </div>
                 </div>
+                @endif
 
                 <input type="hidden" name="redirect_to_collateral" id="redirect_to_collateral" value="0">
+                <input type="hidden" name="mvl_next" id="mvl_next" value="@if($loan_product->id == 0) 1 @else 0 @endif">
             </div>
 
             {{-- Disbursement & Verification --}}
@@ -192,53 +191,51 @@ $todaysDate = date('Y-m-d');
 
 
                 @if($loan_product->id == 0)
-<div class="form-group">
+                <div class="form-group">
 
-    <label class="control-label col-md-2">Vetted by</label>
-    <div class="col-md-3" style="position: relative;">
-        <input type="text" 
-               id="vetted_by_search" 
-               class="form-control" 
-               placeholder="Search employee...">
+                    <label class="control-label col-md-2">Vetted by</label>
+                    <div class="col-md-3" style="position: relative;">
+                        <input type="text" 
+                            id="vetted_by_search" 
+                            class="form-control" 
+                            placeholder="Search employee...">
 
-        <input type="hidden" name="vetted_by" id="vetted_by">
+                        <input type="hidden" name="vetted_by" id="vetted_by">
 
-        <div id="vetted_results" 
-             style="
-                position:absolute;
-                background:white;
-                border:1px solid #ddd;
-                width:100%;
-                z-index:9999;
-             ">
-        </div>
-    </div>
+                        <div id="vetted_results" 
+                            style="
+                                position:absolute;
+                                background:white;
+                                border:1px solid #ddd;
+                                width:100%;
+                                z-index:9999;
+                            ">
+                        </div>
+                    </div>
 
 
-    <label class="control-label col-md-2">Verified by</label>
-    <div class="col-md-3" style="position: relative;">
-        <input type="text" 
-               id="verified_by_search" 
-               class="form-control" 
-               placeholder="Search employee...">
+                    <label class="control-label col-md-2">Verified by</label>
+                    <div class="col-md-3" style="position: relative;">
+                        <input type="text" 
+                            id="verified_by_search" 
+                            class="form-control" 
+                            placeholder="Search employee...">
 
-        <input type="hidden" name="verified_by" id="verified_by">
+                        <input type="hidden" name="verified_by" id="verified_by">
 
-        <div id="verified_results" 
-             style="
-                position:absolute;
-                background:white;
-                border:1px solid #ddd;
-                width:100%;
-                z-index:9999;
-             ">
-        </div>
-    </div>
-
-</div>
+                        <div id="verified_results" 
+                            style="
+                                position:absolute;
+                                background:white;
+                                border:1px solid #ddd;
+                                width:100%;
+                                z-index:9999;
+                            ">
+                        </div>
+                    </div>
+                </div>
                 @else
-
-                   <div class="form-group">
+                <div class="form-group">
                     <label class="control-label col-md-2">Vetted by</label>
                     <div class="col-md-3">
                         <select name="vetted_by" class="form-control select2" required>
@@ -263,10 +260,7 @@ $todaysDate = date('Y-m-d');
                         </select>
                     </div>
                 </div>
-
                 @endif
-
-             
             </div>
 
             
@@ -347,22 +341,20 @@ $todaysDate = date('Y-m-d');
             z-index:9999;
          ">
     </div>
-
 </div>
       
-          <label for="office_id"
-                           class="control-label col-md-2">Referrer Branch</label>
-                    <div class="col-md-3">
-                        <select name="office_id" class="form-control select2" id="office_id" required>
-                            <option></option>
-                            @php
-                                $offices = \App\Helpers\GeneralHelper::get_filtered_offices_new();
-                            @endphp
-                            @foreach($offices as $key)
-                                <option value="{{$key->id}}">{{$key->name}}</option>
-                            @endforeach
-                        </select>
-                    </div>
+        <label for="office_id" class="control-label col-md-2">Referrer Branch</label>
+        <div class="col-md-3">
+            <select name="office_id" class="form-control select2" id="office_id" required>
+                <option></option>
+                @php
+                    $offices = \App\Helpers\GeneralHelper::get_filtered_offices_new();
+                @endphp
+                @foreach($offices as $key)
+                    <option value="{{$key->id}}">{{$key->name}}</option>
+                @endforeach
+            </select>
+        </div>
 
     </div>
 </div>
@@ -424,7 +416,7 @@ $todaysDate = date('Y-m-d');
 
 @endif
            
-               {{-- Cycle --}}
+              <!-- Cycle  -->
                <!-- <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
                 <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">Cycle Information</h4>
                 <div class="form-group">
@@ -441,7 +433,7 @@ $todaysDate = date('Y-m-d');
                 </div>
                </div> -->
 
-            {{-- Charges --}}
+            <!-- Charges  -->
             <!-- <div class="panel panel-default" style="border-radius:6px; padding:15px; margin-bottom:20px;">
                 <h4 style="color:#3c8dbc; font-weight:600; margin-bottom:15px;">Charges</h4>
 
@@ -528,7 +520,7 @@ $todaysDate = date('Y-m-d');
                 </div>
             </div> -->
 
-            {{-- Custom Fields --}}
+             <!-- Custom Fields  -->
             @if(\App\Models\Setting::where('setting_key','enable_custom_fields')->first()->setting_value==1)
                 @foreach(\App\Models\CustomField::where('category','loans')->get() as $key)
                     <div class="form-group">
@@ -546,7 +538,7 @@ $todaysDate = date('Y-m-d');
         </div> <!-- box-body -->
 
         <div class="box-footer">
-            <button type="submit" class="btn btn-primary pull-right">{{trans_choice('general.save',1)}}</button>
+            <button type="submit" class="btn btn-primary pull-right">{{trans_choice('general.save',1)}} @if($loan_product->id == 0) and proceed to KYC verification @endif</button>
         </div>
     </form>
 </div>
@@ -752,24 +744,6 @@ setupEmployeeSearch(
         
         let phone_numbeer = "{{ $number }}";
         $('#phone_number').val(phone_numbeer);
-
-        // Handle collateral selection - redirect to collateral create page
-        $('#has_collateral').change(function() {
-            if ($(this).val() == '1') {
-                // Get the loan_id that will be created (need to submit first)
-                // For now, we'll set a flag to redirect after form submit
-                $('#redirect_to_collateral').val('1');
-            }
-        });
-
-        // Handle collateral selection - redirect to collateral create page after loan creation
-        $('#has_collateral').change(function() {
-            if ($(this).val() == '1') {
-                $('#redirect_to_collateral').val('1');
-            } else {
-                $('#redirect_to_collateral').val('0');
-            }
-        });
 
     </script>
 @endsection

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MotorVehicleLoan;
+use App\Models\Loan;
 use App\Models\Vehicle;
 use App\Models\Client;
 use App\Models\User;
 use App\Models\Office;
 use App\Models\District;
 use App\Models\Province;
-use App\Models\Loan;
 use App\Models\MotorVehicleLoanWorkflowStage;
 use App\Models\MotorVehicleLoanStatusHistory;
 use App\Models\MotorVehicleAuditLog;
@@ -33,7 +32,7 @@ class MotorVehicleLoanLifecycleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MotorVehicleLoan::with(['vehicle', 'client', 'loanConsultant', 'originatingBranch']);
+        $query = Loan::with(['vehicle', 'client', 'loanConsultant', 'originatingBranch']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -61,7 +60,7 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function show($id)
     {
-        $loan = MotorVehicleLoan::with([
+        $loan = Loan::with([
             'vehicle', 'client', 'loanConsultant', 'originatingBranch', 'branchAssessor',
             'district', 'province', 'currentCustodian', 'workflowStages', 'statusHistory',
             'auditLogs', 'complianceScreenings', 'vehicle.ownershipRecords',
@@ -73,21 +72,21 @@ class MotorVehicleLoanLifecycleController extends Controller
         $statusHistory = $loan->statusHistory()->orderBy('transition_date', 'desc')->get();
         $auditLogs = $loan->auditLogs()->orderBy('actioned_at', 'desc')->get();
         $compliance = $loan->complianceScreenings()->latest()->first();
-        $valuations = $loan->vehicle->valuations ?? collect();
-        $inspections = $loan->vehicle->inspections ?? collect();
-        $insurancePolicies = $loan->vehicle->insurancePolicies ?? collect();
-        $custody = $loan->vehicle->custody;
-        $movements = $loan->vehicle->movements ?? collect();
-        $rollCalls = $loan->vehicle->rollCalls ?? collect();
-        $photos = $loan->vehicle->photos ?? collect();
-        $documents = $loan->vehicle->documents ?? collect();
+        $valuations = $loan->vehicle ? $loan->vehicle->valuations : collect();
+        $inspections = $loan->vehicle ? $loan->vehicle->inspections : collect();
+        $insurancePolicies = $loan->vehicle ? $loan->vehicle->insurancePolicies : collect();
+        $custody = $loan->vehicle ? $loan->vehicle->custody : null;
+        $movements = $loan->vehicle ? $loan->vehicle->movements : collect();
+        $rollCalls = $loan->vehicle ? $loan->vehicle->rollCalls : collect();
+        $photos = $loan->vehicle ? $loan->vehicle->photos : collect();
+        $documents = $loan->vehicle ? $loan->vehicle->documents : collect();
 
         return view('motor_vehicle.loan_lifecycle.show', compact('loan', 'workflowStages', 'statusHistory', 'auditLogs', 'compliance', 'valuations', 'inspections', 'insurancePolicies', 'custody', 'movements', 'rollCalls', 'photos', 'documents'));
     }
 
     public function editMasterRecord($id)
     {
-        $loan = MotorVehicleLoan::with(['vehicle', 'client', 'loanConsultant', 'originatingBranch', 'branchAssessor', 'district', 'province'])->findOrFail($id);
+        $loan = Loan::with(['vehicle', 'client', 'loanConsultant', 'originatingBranch', 'branchAssessor', 'district', 'province'])->findOrFail($id);
         $users = User::all();
         $branches = Office::all();
         $districts = District::all();
@@ -98,7 +97,7 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function updateMasterRecord(Request $request, $id)
     {
-        $loan = MotorVehicleLoan::findOrFail($id);
+        $loan = Loan::findOrFail($id);
 
         $validated = $request->validate([
             'loan_consultant_id' => 'nullable|exists:users,id',
@@ -126,7 +125,7 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function transitionStage(Request $request, $id)
     {
-        $loan = MotorVehicleLoan::findOrFail($id);
+        $loan = Loan::findOrFail($id);
         $request->validate([
             'stage' => 'required|string',
             'comments' => 'nullable|string',
@@ -170,22 +169,21 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function auditTrail($id)
     {
-        $loan = MotorVehicleLoan::findOrFail($id);
+        $loan = Loan::findOrFail($id);
         $auditLogs = $loan->auditLogs()->orderBy('actioned_at', 'desc')->paginate(50);
 
         return view('motor_vehicle.loan_lifecycle.audit_trail', compact('loan', 'auditLogs'));
     }
 
-    public function editKyc($clientId)
+    public function editKyc($clientId, $loanId = null)
     {
-        $client = Client::findOrFail($clientId);
-
-        return view('motor_vehicle.loan_lifecycle.edit_kyc', compact('client'));
+        $client = $clientId;
+        return view('motor_vehicle.loan_lifecycle.edit_kyc', compact('client', 'loanId'));
     }
 
-    public function updateKyc(Request $request, $clientId)
+    public function updateKyc(Request $request, $clientId, $loanId = null)
     {
-        $client = Client::findOrFail($clientId);
+        $client = $clientId;
 
         $validated = $request->validate([
             'nrc_number' => 'nullable|string',
@@ -216,12 +214,16 @@ class MotorVehicleLoanLifecycleController extends Controller
         $client->update($validated);
 
         Flash::success('KYC information updated successfully');
+        if ($loanId) {
+            return redirect()->route('motor-vehicle-loans.compliance-screening', $loanId);
+        }
         return back();
     }
 
     public function complianceScreening($loanId)
     {
-        $loan = MotorVehicleLoan::with('client')->findOrFail($loanId);
+        
+        $loan = Loan::with('client')->findOrFail($loanId);
         $screenings = ComplianceScreening::where('motor_vehicle_loan_id', $loanId)->latest()->get();
         $latest = $screenings->first();
 
@@ -230,8 +232,8 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function storeComplianceScreening(Request $request, $loanId)
     {
-        $loan = MotorVehicleLoan::findOrFail($loanId);
-        $user = Auth::user();
+        $loan = Loan::findOrFail($loanId);
+        $user = Sentinel::getUser();
 
         $validated = $request->validate([
             'pep_result' => 'nullable|string',
@@ -250,7 +252,11 @@ class MotorVehicleLoanLifecycleController extends Controller
         ComplianceScreening::create($validated);
 
         Flash::success('Compliance screening recorded successfully');
-        return back();
+
+        if ($loan->vehicle_id) {
+            return redirect()->route('vehicles.ownership-verification.show', $loan->vehicle_id);
+        }
+        return redirect()->route('vehicles.ownership-verification');
     }
 
     public function productConfigurations()
@@ -325,6 +331,7 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function ownershipVerification($vehicleId = null)
     {
+        dd($vehicleId);
         if ($vehicleId) {
             $vehicle = Vehicle::findOrFail($vehicleId);
             $records = VehicleOwnershipRecord::where('vehicle_id', $vehicleId)->get();
@@ -524,7 +531,7 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     private function logAuditForVehicle($vehicleId, $action, $oldValue, $newValue)
     {
-        $loan = MotorVehicleLoan::where('vehicle_id', $vehicleId)->first();
+        $loan = Loan::where('vehicle_id', $vehicleId)->first();
         $this->logAudit($loan ? $loan->id : null, $vehicleId, $action, $oldValue, $newValue);
     }
 }

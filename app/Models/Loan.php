@@ -15,7 +15,19 @@ class Loan extends Model
         'dormant_recovery',
         'shared',
         'esc_recovered',
-        // ... other fillable fields
+        'vehicle_id',
+        'loan_consultant_id',
+        'branch_assessor_id',
+        'current_custodian_id',
+        'vehicle_status',
+        'custody_status',
+        'current_storage_location',
+        'current_custodian_phone',
+        'current_custodian_nrc',
+        'current_custodian_alternative_contact',
+        'vehicle_value',
+        'ltv_percent',
+        'requested_amount',
     ];
 
     protected $casts = [
@@ -147,9 +159,59 @@ class Loan extends Model
         return $this->hasOne(User::class, 'id', 'disbursed_by_id');
     }
 
-    public function motorVehicleLoan()
+    public function vehicle()
     {
-        return $this->hasOne(MotorVehicleLoan::class);
+        return $this->hasOne(Vehicle::class, 'loan_id', 'id');
+    }
+
+    public function loanConsultant()
+    {
+        return $this->belongsTo(User::class, 'loan_consultant_id');
+    }
+
+    public function originatingBranch()
+    {
+        return $this->belongsTo(Office::class, 'office_id');
+    }
+
+    public function branchAssessor()
+    {
+        return $this->belongsTo(User::class, 'branch_assessor_id');
+    }
+
+    public function currentCustodian()
+    {
+        return $this->belongsTo(User::class, 'current_custodian_id');
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class, 'district_id');
+    }
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class, 'province_id');
+    }
+
+    public function workflowStages()
+    {
+        return $this->hasMany(MotorVehicleLoanWorkflowStage::class, 'motor_vehicle_loan_id');
+    }
+
+    public function statusHistory()
+    {
+        return $this->hasMany(MotorVehicleLoanStatusHistory::class, 'motor_vehicle_loan_id');
+    }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(MotorVehicleAuditLog::class, 'motor_vehicle_loan_id');
+    }
+
+    public function complianceScreenings()
+    {
+        return $this->hasMany(ComplianceScreening::class, 'motor_vehicle_loan_id');
     }
 
     public function repossessions()

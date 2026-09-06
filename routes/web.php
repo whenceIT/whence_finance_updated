@@ -464,8 +464,8 @@ Route::group(['prefix' => 'motor-vehicle-loans'], function () {
 });
 
 Route::group(['prefix' => 'clients'], function () {
-    Route::get('{client}/edit-kyc', 'MotorVehicleLoanLifecycleController@editKyc')->name('clients.edit-kyc');
-    Route::post('{client}/update-kyc', 'MotorVehicleLoanLifecycleController@updateKyc')->name('clients.update-kyc');
+    Route::get('{client}/edit-kyc/{loan_id?}', 'MotorVehicleLoanLifecycleController@editKyc')->name('clients.edit-kyc');
+    Route::post('{client}/update-kyc/{loan_id?}', 'MotorVehicleLoanLifecycleController@updateKyc')->name('clients.update-kyc');
 });
 
 Route::group(['prefix' => 'vehicles'], function () {

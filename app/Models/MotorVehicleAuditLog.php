@@ -25,9 +25,9 @@ class MotorVehicleAuditLog extends Model
         'actioned_at' => 'datetime',
     ];
 
-    public function motorVehicleLoan()
+    public function loan()
     {
-        return $this->belongsTo(MotorVehicleLoan::class);
+        return $this->belongsTo(Loan::class, 'motor_vehicle_loan_id');
     }
 
     public function vehicle()

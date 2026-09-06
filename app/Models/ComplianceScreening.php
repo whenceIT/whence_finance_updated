@@ -28,9 +28,9 @@ class ComplianceScreening extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function motorVehicleLoan()
+    public function loan()
     {
-        return $this->belongsTo(MotorVehicleLoan::class);
+        return $this->belongsTo(Loan::class, 'motor_vehicle_loan_id');
     }
 
     public function screeningOfficer()

@@ -12,7 +12,29 @@ class Client extends Model
 
     protected $fillable = [
         'approved_dormant',
-        // Add other fillable fields as needed
+        'nrc_number',
+        'tpin',
+        'address_line1',
+        'address_line2',
+        'city',
+        'employer',
+        'employer_address',
+        'business_name',
+        'business_type',
+        'annual_income',
+        'phone_primary',
+        'phone_secondary',
+        'email_primary',
+        'next_of_kin_name',
+        'next_of_kin_relationship',
+        'next_of_kin_phone',
+        'next_of_kin_address',
+        'guarantor_name',
+        'guarantor_nrc',
+        'guarantor_phone',
+        'guarantor_address',
+        'guarantor_employer',
+        'guarantor_relationship',
     ];
 
     public function identifications()
@@ -93,6 +115,6 @@ class Client extends Model
 
 public function motorVehicleLoans()
     {
-        return $this->hasMany(MotorVehicleLoan::class);
+        return $this->hasMany(Loan::class)->where('loan_product_id', 0);
     }
 }
