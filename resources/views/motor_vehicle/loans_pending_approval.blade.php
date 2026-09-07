@@ -24,7 +24,7 @@
                         <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
                         <th>{{ trans_choice('general.created_at',1) }}</th>
                         <th>{{ trans_choice('general.product',1) }}</th>
-                        <th>{{ Onboarding Progress }}</th>
+                        <th>Onboarding Progress</th>
                         <th>{{ trans_choice('general.action',1) }}</th>
                     </tr>
                 </thead>
@@ -62,11 +62,7 @@
                 {{$key->status}}
             </td>
             <td>
-            @php
-                
-            $status = $statuses[$key->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null];
-            
-            @endphp
+            @php $status = $statuses[$key->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null]; @endphp
                     <div class="onboarding-progress" style="display: flex; align-items: center; gap: 8px;">
                             <div style="text-align: center;">
                                 @if($status['kyc_completed'] !== null)

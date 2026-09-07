@@ -904,6 +904,7 @@ public function sales(Request $request)
             ->get();
 
         $statuses = [];
+ 
         foreach ($data as $loan) {
             $kycCompleted = false;
             $complianceCompleted = false;
@@ -930,6 +931,7 @@ public function sales(Request $request)
             ];
         }
 
+        // dd($statuses);
         return view('motor_vehicle.loans_pending_approval', compact('data', 'statuses'));
     }
 
