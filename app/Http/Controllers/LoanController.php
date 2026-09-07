@@ -2972,16 +2972,6 @@ try {
     return redirect()->back();
 }
 
-if (
-    !isset($result['status']) ||
-    $result['status'] !== 'pending'
-) {
-
-    Flash::success('Transfer request was rejected.');
-
-   return redirect()->back();
-}
-
 
    }
 
