@@ -18,6 +18,7 @@ use App\Models\VehicleCustody;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use App\Models\Office;
+use App\Models\ComplianceScreening;
 use Laracasts\Flash\Flash;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
@@ -896,18 +897,40 @@ public function sales(Request $request)
 
   public function loans_pending_approval()
     {
-        if (!Sentinel::hasAccess('expenses')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
+
+        $data = Loan::whereIn('status', ['pending', 'approved'])
+            ->where('loan_product_id', 0)
+            ->with('client')
+            ->get();
+
+        $statuses = [];
+        foreach ($data as $loan) {
+            $kycCompleted = false;
+            $complianceCompleted = false;
+
+            if ($loan->loan_product_id == 1 && $loan->client) {
+                $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+                $kycCompleted = true;
+                foreach ($kycFields as $field) {
+                    if (empty($loan->client->$field)) {
+                        $kycCompleted = false;
+                        break;
+                    }
+                }
+
+                $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
+                    ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
+                    ->exists();
+                $complianceCompleted = $compliance;
+            }
+
+            $statuses[$loan->id] = [
+                'kyc_completed' => $kycCompleted,
+                'compliance_screening_completed' => $complianceCompleted,
+            ];
         }
 
-          $data = [];
- 
-
-            $data = Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->get();
-   
-
-        return view('motor_vehicle.loans_pending_approval', compact('data'));
+        return view('motor_vehicle.loans_pending_approval', compact('data', 'statuses'));
     }
 
 

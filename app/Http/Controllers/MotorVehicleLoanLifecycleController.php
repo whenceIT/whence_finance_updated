@@ -534,4 +534,37 @@ class MotorVehicleLoanLifecycleController extends Controller
         $loan = Loan::where('vehicle_id', $vehicleId)->first();
         $this->logAudit($loan ? $loan->id : null, $vehicleId, $action, $oldValue, $newValue);
     }
+
+    public function checkKycAndComplianceStatus($loanId)
+    {
+        $loan = Loan::findOrFail($loanId);
+
+        $kycCompleted = false;
+        $complianceCompleted = false;
+
+        if ($loan->loan_product_id == 1) {
+            $client = $loan->client;
+
+            if ($client) {
+                $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+                $kycCompleted = true;
+                foreach ($kycFields as $field) {
+                    if (empty($client->$field)) {
+                        $kycCompleted = false;
+                        break;
+                    }
+                }
+            }
+
+            $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loanId)
+                ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
+                ->exists();
+            $complianceCompleted = $compliance;
+        }
+
+        return response()->json([
+            'kyc_completed' => $kycCompleted,
+            'compliance_screening_completed' => $complianceCompleted,
+        ]);
+    }
 }

@@ -1,12 +1,11 @@
 @extends('layouts.master')
 @section('title')
-Motor Vehicle Loans Pending Approval
+    Motor Vehicle Loans Pending Approval
 @endsection
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">Motor Vehicle Loans Pending</h3>
-
             <div class="box-tools pull-right">
                 @if(Sentinel::hasAccess('loans.create'))
                     <a href="{{ url('loan/create') }}" class="btn btn-info btn-sm">
@@ -18,48 +17,88 @@ Motor Vehicle Loans Pending Approval
         <div class="box-body table-responsive">
             <table class="table  table-bordered table-hover table-striped" id="data-table">
                 <thead>
-                <tr>
-                    <th>{{ trans_choice('general.account',1) }}#</th>
-                    <th>{{ trans_choice('general.branch',1) }}</th>
-                    <th>{{ trans_choice('general.client',1) }}</th>
-                    <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
-                    <th>{{ trans_choice('general.created_at',1) }}</th>
-		    <th>{{ trans_choice('general.product',1) }}</th>
-                         <th>Status</th>
-                    <th>{{ trans_choice('general.action',1) }}</th>
-                </tr>
+                    <tr>
+                        <th>{{ trans_choice('general.account',1) }}#</th>
+                        <th>{{ trans_choice('general.branch',1) }}</th>
+                        <th>{{ trans_choice('general.client',1) }}</th>
+                        <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
+                        <th>{{ trans_choice('general.created_at',1) }}</th>
+                        <th>{{ trans_choice('general.product',1) }}</th>
+                        <th>{{ Onboarding Progress }}</th>
+                        <th>{{ trans_choice('general.action',1) }}</th>
+                    </tr>
                 </thead>
                 <tbody>
                 @foreach($data as $key)
-                    <tr>
-                        <td>{{ $key->id }}</td>
-                        <td>
-                            @if(!empty($key->office))
-                                {{$key->office->name}}
+                <tr>
+                <td>{{ $key->id }}</td>
+                <td>
+                    @if(!empty($key->office))
+                        {{$key->office->name}}
+                    @endif
+                </td>
+                <td>
+                    @if($key->client_type=="client")
+                        @if(!empty($key->client))
+                            @if($key->client->client_type=="individual")
+                                {{$key->client->first_name}} {{$key->client->middle_name}} {{$key->client->last_name}}
+                            @else
+                                {{$key->client->full_name}}
                             @endif
-                        </td>
-                        <td>
-                            @if($key->client_type=="client")
-                                @if(!empty($key->client))
-                                    @if($key->client->client_type=="individual")
-                                        {{$key->client->first_name}} {{$key->client->middle_name}} {{$key->client->last_name}}
-                                    @else
-                                        {{$key->client->full_name}}
-                                    @endif
-                                @endif
-                            @endif
-                            @if($key->client_type=="group")
-                                {{$key->group->name}}
-                            @endif
-                        </td>
-                        <td>{{ number_format($key->principal,$key->decimals) }}</td>
-                        <td>{{ $key->created_date }}</td>
-                        <td>
-                            @if(!empty($key->loan_product))
-                                {{$key->loan_product->name}}
-                            @endif
+                        @endif
+                    @endif
+                    @if($key->client_type=="group")
+                        {{$key->group->name}}
+                    @endif
+                </td>
+                <td>{{ number_format($key->principal, $key->decimals) }}</td>
+                <td>{{ $key->created_date }}</td>
+                <td>
+                @if(!empty($key->loan_product))
+                    {{$key->loan_product->name}}
+                @endif
 			</td>
-        <td>{{$key->status}}</td>
+            <td>
+                {{$key->status}}
+            </td>
+            <td>
+            @php
+                
+            $status = $statuses[$key->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null];
+            
+            @endphp
+                    <div class="onboarding-progress" style="display: flex; align-items: center; gap: 8px;">
+                            <div style="text-align: center;">
+                                @if($status['kyc_completed'] !== null)
+                                    <a href="{{ route('clients.edit-kyc', [$key->client_id, $key->id]) }}" style="text-decoration: none;" title="Go to KYC">
+                                        @if($status['kyc_completed'] === true)
+                                            <i class="fa fa-check-circle" style="color: #00a65a; font-size: 18px;"></i>
+                                        @else
+                                            <i class="fa fa-times-circle" style="color: #dd4b39; font-size: 18px;"></i>
+                                        @endif
+                                    </a>
+                                @else
+                                    <span style="color: #777; font-size: 12px;">N/A</span>
+                                @endif
+                                <div style="font-size: 10px; color: #666;">KYC</div>
+                            </div>
+                            <div style="width: 1px; height: 25px; background: #ccc;"></div>
+                            <div style="text-align: center;">
+                                @if($status['compliance_screening_completed'] !== null)
+                                    <a href="{{ route('motor-vehicle-loans.compliance-screening', $key->id) }}" style="text-decoration: none;" title="Go to Compliance Screening">
+                                        @if($status['compliance_screening_completed'] === true)
+                                            <i class="fa fa-check-circle" style="color: #00a65a; font-size: 18px;"></i>
+                                        @else
+                                            <i class="fa fa-times-circle" style="color: #dd4b39; font-size: 18px;"></i>
+                                        @endif
+                                    </a>
+                                @else
+                                    <span style="color: #777; font-size: 12px;">N/A</span>
+                                @endif
+                                <div style="font-size: 10px; color: #666;">Compliance</div>
+                            </div>
+                        </div>
+                    </td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-toggle="dropdown"
@@ -102,7 +141,6 @@ Motor Vehicle Loans Pending Approval
 @endsection
 @section('footer-scripts')
     <script>
-
         $('#data-table').DataTable({
             dom: 'frtip',
             "paging": true,
@@ -133,4 +171,17 @@ Motor Vehicle Loans Pending Approval
             responsive: false
         });
     </script>
+    <style>
+        .onboarding-progress a {
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .onboarding-progress a:hover {
+            transform: scale(1.2);
+        }
+        .onboarding-progress a:hover i {
+            filter: brightness(0.8);
+        }
+    </style>
 @endsection

@@ -82,3 +82,5 @@ Route::get('/offices', function () {
         'data' => \App\Models\Office::with('province')->orderBy('name')->get()
     ]);
 });
+
+Route::get('/loans/{loanId}/kyc-compliance-status', 'MotorVehicleLoanLifecycleController@checkKycAndComplianceStatus');
