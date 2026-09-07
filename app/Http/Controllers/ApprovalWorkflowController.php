@@ -124,7 +124,7 @@ class ApprovalWorkflowController extends Controller
         return response()->json(['success' => true, 'message' => $count . ' deposit(s) approved successfully.']);
     }
 
-public function bulkDecline(Request $request)
+    public function bulkDecline(Request $request)
      {
          $ids = $request->input('ids');
          
@@ -137,7 +137,7 @@ public function bulkDecline(Request $request)
          return response()->json(['success' => true, 'message' => count($ids) . ' deposit(s) declined successfully.']);
      }
 
-public function declineAll(Request $request)
+    public function declineAll(Request $request)
      {
          $query = Deposit::withoutGlobalScope('approved')
              ->select(['d.*'])
@@ -248,10 +248,36 @@ public function approveDeclineSetupDebt($id, $status)
         $setupDebtTransaction->status = 1;
         $setupDebtTransaction->save();
         return response()->json(['success' => true, 'message' => 'Setup debt transaction approved successfully.']);
-    } else {
-        $setupDebtTransaction->delete();
-        return response()->json(['success' => true, 'message' => 'Setup debt transaction declined and deleted.']);
+        } else {
+            $setupDebtTransaction->delete();
+            return response()->json(['success' => true, 'message' => 'Setup debt transaction declined and deleted.']);
+        }
     }
-}
+
+    public function bulkApproveSetupDebt(Request $request)
+    {
+        $ids = $request->input('ids');
+
+        if (empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'No setup debt transactions selected.']);
+        }
+
+        SetupDebtTransaction::whereIn('id', $ids)->update(['status' => 1]);
+
+        return response()->json(['success' => true, 'message' => count($ids) . ' setup debt transaction(s) approved successfully.']);
+    }
+
+    public function bulkDeclineSetupDebt(Request $request)
+    {
+        $ids = $request->input('ids');
+
+        if (empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'No setup debt transactions selected.']);
+        }
+
+        SetupDebtTransaction::whereIn('id', $ids)->delete();
+
+        return response()->json(['success' => true, 'message' => count($ids) . ' setup debt transaction(s) declined successfully.']);
+    }
 
 }

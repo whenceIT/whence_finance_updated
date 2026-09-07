@@ -2080,6 +2080,8 @@ Route::get('collateral/approvals', 'CollateralApprovalController@queue')->name('
     Route::post('approvals/deposit-approvals/decline-all', 'ApprovalWorkflowController@declineAll')->name('approvals.deposit-approvals.decline-all');
 
     // Setup Debt Approvals
+    Route::post('approvals/setup-debt/bulk-approve', 'ApprovalWorkflowController@bulkApproveSetupDebt')->name('approvals.setup-debt.bulk-approve');
+    Route::post('approvals/setup-debt/bulk-decline', 'ApprovalWorkflowController@bulkDeclineSetupDebt')->name('approvals.setup-debt.bulk-decline');
     Route::post('approvals/setup-debt/{id}/{status}', 'ApprovalWorkflowController@approveDeclineSetupDebt')->name('approvals.setup-debt.action');
 
     Route::get('collateral/setup', 'CollateralController@setup')->name('collateral.setup');
