@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('vehicle_inspections', function (Blueprint $table) {
-            $table->integer('mileage')->nullable()->after('vehicle_id');
             $table->text('mechanical_condition')->nullable()->after('condition_notes');
             $table->text('interior_condition')->nullable()->after('mechanical_condition');
             $table->text('exterior_condition')->nullable()->after('interior_condition');
