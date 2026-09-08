@@ -865,7 +865,7 @@ if (!Sentinel::check()) {
             </li>
             <!-- Approvals -->
             @if(Sentinel::hasAccess('expenses'))
-            <li class="treeview @if(Request::is('user/carry_over_approvals') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval')) active menu-open @endif">
+            <li class="treeview @if(Request::is('user/carry_over_approvals') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('vehicles/loans_pending_approval')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-thumbs-up"></i> <span>Approvals</span>
                     @if(Sentinel::hasAccess('settings'))
@@ -880,6 +880,9 @@ if (!Sentinel::check()) {
                     @endif
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('loan/managers_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->count() }}</span>@endif</a></li>
+                    @endif
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> MVL Approvals @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->where('office_id',$office_id)->count() }}</span>@endif</a></li>
                     @endif
 
                       @if(Sentinel::hasAccess('expenses'))
@@ -1606,24 +1609,24 @@ if (!Sentinel::check()) {
                 <ul class="treeview-menu">
                     <!-- Branch Uncollected -->
                     @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Vehicles Dashboard</a></li>
+                    <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>MVL Dashboard</a></li>
                     @endif
 
                     
-                    @if(Sentinel::hasAccess('settings'))
+                    <!-- @if(Sentinel::hasAccess('settings'))
                     <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->where('loan_product_id',0)->count() }}</span>@endif</a></li>
-                    @endif
+                    @endif -->
                   
 
-                     @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles/create') }}"><i class="fa fa-circle-o"></i>Loans</a></li>
+                    @if(Sentinel::hasAccess('expenses'))
+                    <li><a href="{{ url('vehicles/mvl/motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>MV Loans</a></li>
                     @endif
 
                     @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles</a></li>
+                    <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles Register</a></li>
                     @endif
 
-                       @if(Sentinel::hasAccess('expenses'))
+                    <!-- @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles/sales') }}"><i class="fa fa-circle-o"></i>Vehicle Sales</a></li>
                     @endif
 
@@ -1653,7 +1656,7 @@ if (!Sentinel::check()) {
 
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles/roll-calls') }}"><i class="fa fa-circle-o"></i>Roll Calls</a></li>
-                    @endif
+                    @endif -->
 
 
                 </ul>

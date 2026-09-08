@@ -421,7 +421,7 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('sales', 'VehicleController@sales');
     Route::get('loans_pending_approval', 'VehicleController@loans_pending_approval');
     Route::get('dashboard', 'VehicleController@dashboard');
-    Route::get('create', 'VehicleController@MotorVehicleLoan');
+    Route::get('mvl/motor-vehicle-loans', 'VehicleController@MotorVehicleLoan');
     Route::get('analytics_dashboard', 'VehicleController@analytics_dashboard');
     Route::any('store', 'VehicleController@store');
     Route::any('{id}', 'VehicleController@show');
@@ -439,6 +439,8 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::delete('{vehicle}/photos/{photo}/destroy','VehicleController@destroyPhoto');
     Route::get('{vehicle}/inspections/create','VehicleController@createInspections');
     Route::any('{vehicle}/inspections/store','VehicleController@storeInspections');
+    Route::get('{vehicle}/valuations/create','VehicleController@createValuation');
+    Route::any('{vehicle}/valuations/store','VehicleController@storeValuation');
     Route::get('loans1','VehicleController@MotorVehicleLoan');
     Route::get('new_route','VehicleController@MotorVehicleLoan');
     Route::post('{vehicle}/sell','VehicleController@sellVehicle');

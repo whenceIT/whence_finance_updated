@@ -232,6 +232,7 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function storeComplianceScreening(Request $request, $loanId)
     {
+       
         $loan = Loan::findOrFail($loanId);
         $user = Sentinel::getUser();
 
@@ -253,10 +254,10 @@ class MotorVehicleLoanLifecycleController extends Controller
 
         Flash::success('Compliance screening recorded successfully');
 
-        if ($loan->vehicle_id) {
-            return redirect()->route('vehicles.ownership-verification.show', $loan->vehicle_id);
-        }
-        return redirect()->route('vehicles.ownership-verification');
+        $vehicle = Vehicle::where('loan_id', $loan->id)->first();
+    
+        return redirect()->route('vehicles.ownership-verification.show', $vehicle->id);
+
     }
 
     public function productConfigurations()
@@ -331,9 +332,16 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function ownershipVerification($vehicleId = null)
     {
-        dd($vehicleId);
+        
         if ($vehicleId) {
-            $vehicle = Vehicle::findOrFail($vehicleId);
+            $vehicle = Vehicle::with([
+                'insurancePolicies',
+                'inspections',
+                'documents',
+                'photos',
+                'custody.receiver',
+                'valuations',
+            ])->findOrFail($vehicleId);
             $records = VehicleOwnershipRecord::where('vehicle_id', $vehicleId)->get();
             return view('motor_vehicle.ownership.verification', compact('vehicle', 'records'));
         }
@@ -541,15 +549,16 @@ class MotorVehicleLoanLifecycleController extends Controller
 
         $kycCompleted = false;
         $complianceCompleted = false;
+        $ownershipCompleted = false;
 
-        if ($loan->loan_product_id == 1) {
+        if ($loan->loan_product_id == 0) {
             $client = $loan->client;
 
             if ($client) {
                 $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
                 $kycCompleted = true;
                 foreach ($kycFields as $field) {
-                    if (empty($client->$field)) {
+                    if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
                         $kycCompleted = false;
                         break;
                     }
@@ -560,11 +569,18 @@ class MotorVehicleLoanLifecycleController extends Controller
                 ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
                 ->exists();
             $complianceCompleted = $compliance;
+
+            $vehicle = Vehicle::where('loan_id', $loan->id)->first();
+            if ($vehicle) {
+                $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
+                $ownershipCompleted = $ownership;
+            }
         }
 
         return response()->json([
             'kyc_completed' => $kycCompleted,
             'compliance_screening_completed' => $complianceCompleted,
+            'ownership_completed' => $ownershipCompleted,
         ]);
     }
 }

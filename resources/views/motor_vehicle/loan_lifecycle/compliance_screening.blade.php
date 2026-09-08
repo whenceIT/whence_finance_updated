@@ -33,6 +33,9 @@
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h3 class="box-title">Latest Screening Result</h3>
+                @if($latest)
+                    <span class="label label-primary pull-right">Editing</span>
+                @endif
             </div>
             <div class="box-body">
                 @if($latest)
@@ -114,17 +117,17 @@
                             <div class="form-group">
                                 <label>PEP Result <span class="text-danger">*</span></label>
                                 <small class="form-text text-muted">Did the client match any Politically Exposed Person (PEP) database? Enter "None" or "No match" if clear.</small>
-                                <input type="text" name="pep_result" class="form-control" required placeholder="e.g., No match found / Cleared">
+                                <input type="text" name="pep_result" class="form-control" required placeholder="e.g., No match found / Cleared" value="{{ old('pep_result', $latest->pep_result ?? '') }}">
                             </div>
                             <div class="form-group">
                                 <label>Sanctions Result <span class="text-danger">*</span></label>
                                 <small class="form-text text-muted">Did the client appear on any sanctions watchlist (UN, UN, OFAC, etc.)? Enter "None" if no match.</small>
-                                <input type="text" name="sanctions_result" class="form-control" required placeholder="e.g., No sanctions listed / Cleared">
+                                <input type="text" name="sanctions_result" class="form-control" required placeholder="e.g., No sanctions listed / Cleared" value="{{ old('sanctions_result', $latest->sanctions_result ?? '') }}">
                             </div>
                             <div class="form-group">
                                 <label>Screening Date <span class="text-danger">*</span></label>
                                 <small class="form-text text-muted">The date this PEP and Sanctions check was performed.</small>
-                                <input type="date" name="screening_date" class="form-control" required value="{{ old('screening_date', date('Y-m-d')) }}">
+                                <input type="date" name="screening_date" class="form-control" required value="{{ old('screening_date', $latest->screening_date ? $latest->screening_date->format('Y-m-d') : date('Y-m-d')) }}">
                             </div>
                             <div class="form-group">
                                 <label>Match Level <span class="text-danger">*</span></label>
@@ -133,9 +136,9 @@
                                 </small>
                                 <select name="match_level" class="form-control" required>
                                     <option value="">-- Select Match Level --</option>
-                                    <option value="low">Low — Unlikely to be the same person</option>
-                                    <option value="medium">Medium — Possible match, needs review</option>
-                                    <option value="high">High — Likely the same person</option>
+                                    <option value="low" {{ old('match_level', $latest->match_level ?? '') == 'low' ? 'selected' : '' }}>Low — Unlikely to be the same person</option>
+                                    <option value="medium" {{ old('match_level', $latest->match_level ?? '') == 'medium' ? 'selected' : '' }}>Medium — Possible match, needs review</option>
+                                    <option value="high" {{ old('match_level', $latest->match_level ?? '') == 'high' ? 'selected' : '' }}>High — Likely the same person</option>
                                 </select>
                             </div>
                         </div>
@@ -145,21 +148,27 @@
                                 <small class="form-text text-muted">The final decision for this screening check:</small>
                                 <select name="status" class="form-control" required>
                                     <option value="">-- Select Status --</option>
-                                    <option value="pending">Pending — Waiting for more info or review</option>
-                                    <option value="cleared">Cleared — No issues found, loan can proceed</option>
-                                    <option value="flagged">Flagged — Match found, needs escalation</option>
-                                    <option value="requires_review">Requires Review — Needs manual assessment</option>
+                                    <option value="pending" {{ old('status', $latest->status ?? '') == 'pending' ? 'selected' : '' }}>Pending — Waiting for more info or review</option>
+                                    <option value="cleared" {{ old('status', $latest->status ?? '') == 'cleared' ? 'selected' : '' }}>Cleared — No issues found, loan can proceed</option>
+                                    <option value="flagged" {{ old('status', $latest->status ?? '') == 'flagged' ? 'selected' : '' }}>Flagged — Match found, needs escalation</option>
+                                    <option value="requires_review" {{ old('status', $latest->status ?? '') == 'requires_review' ? 'selected' : '' }}>Requires Review — Needs manual assessment</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label>Supporting Evidence</label>
-                                <small class="form-text text-muted">Upload any documents from the screening (e.g., screenshots from the PEP database, sanctions report).</small>
+                                <small class="form-text text-muted">Upload any documents from the screening (e.g., screenshots from the PEP database, sanctions report). Leave blank to keep existing file.</small>
+                                @if($latest && $latest->supporting_evidence)
+                                    <p class="text-muted" style="margin-top: 5px;">
+                                        <i class="fa fa-file-pdf-o"></i> Current file:
+                                        <a href="{{ $latest->supporting_evidence }}" target="_blank">View</a>
+                                    </p>
+                                @endif
                                 <input type="file" name="supporting_evidence" class="form-control">
                             </div>
                             <div class="form-group">
                                 <label>Comments</label>
                                 <small class="form-text text-muted">Any additional notes, observations, or reasons for the match level chosen.</small>
-                                <textarea name="comments" class="form-control" rows="4" placeholder="Enter any relevant notes..."></textarea>
+                                <textarea name="comments" class="form-control" rows="4" placeholder="Enter any relevant notes...">{{ old('comments', $latest->comments ?? '') }}</textarea>
                             </div>
                         </div>
                     </div>

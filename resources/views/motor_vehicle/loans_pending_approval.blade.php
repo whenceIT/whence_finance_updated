@@ -14,6 +14,39 @@
                 @endif
             </div>
         </div>
+        <div class="box-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="callout callout-info" style="margin-bottom: 20px;">
+                        <h4><i class="fa fa-car"></i> Vehicle & Loan Summary</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Total Pending:</strong><br>
+                                <span class="badge bg-blue">{{ $data->count() }}</span> loans
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Total Amount:</strong><br>
+                                KSh {{ number_format($data->sum('principal'), 2) }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Pending Approval:</strong><br>
+                                <span class="badge bg-yellow">{{ $data->where('status', 'pending')->count() }}</span> loans
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Approved:</strong><br>
+                                <span class="badge bg-green">{{ $data->where('status', 'approved')->count() }}</span> loans
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">Loans List</h3>
+        </div>
         <div class="box-body table-responsive">
             <table class="table  table-bordered table-hover table-striped" id="data-table">
                 <thead>
@@ -23,7 +56,7 @@
                         <th>{{ trans_choice('general.client',1) }}</th>
                         <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
                         <th>{{ trans_choice('general.created_at',1) }}</th>
-                        <th>{{ trans_choice('general.product',1) }}</th>
+                        <th>Approval</th>
                         <th>Onboarding Progress</th>
                         <th>{{ trans_choice('general.action',1) }}</th>
                     </tr>
@@ -54,15 +87,10 @@
                 <td>{{ number_format($key->principal, $key->decimals) }}</td>
                 <td>{{ $key->created_date }}</td>
                 <td>
-                @if(!empty($key->loan_product))
-                    {{$key->loan_product->name}}
-                @endif
-			</td>
-            <td>
                 {{$key->status}}
             </td>
             <td>
-            @php $status = $statuses[$key->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null]; @endphp
+            @php $status = $statuses[$key->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null, 'ownership_completed' => null]; @endphp
                     <div class="onboarding-progress" style="display: flex; align-items: center; gap: 8px;">
                             <div style="text-align: center;">
                                 @if($status['kyc_completed'] !== null)
@@ -92,6 +120,21 @@
                                     <span style="color: #777; font-size: 12px;">N/A</span>
                                 @endif
                                 <div style="font-size: 10px; color: #666;">Compliance</div>
+                            </div>
+                            <div style="width: 1px; height: 25px; background: #ccc;"></div>
+                            <div style="text-align: center;">
+                                @if($status['ownership_completed'] !== null)
+                                    <a href="{{ route('vehicles.ownership-verification.show', $key->vehicle_id ?? ($key->vehicle->id ?? '')) }}" style="text-decoration: none;" title="Go to Vehicle Ownership">
+                                        @if($status['ownership_completed'] === true)
+                                            <i class="fa fa-check-circle" style="color: #00a65a; font-size: 18px;"></i>
+                                        @else
+                                            <i class="fa fa-times-circle" style="color: #dd4b39; font-size: 18px;"></i>
+                                        @endif
+                                    </a>
+                                @else
+                                    <span style="color: #777; font-size: 12px;">N/A</span>
+                                @endif
+                                <div style="font-size: 10px; color: #666;">Ownership, Verification & Valuation</div>
                             </div>
                         </div>
                     </td>
