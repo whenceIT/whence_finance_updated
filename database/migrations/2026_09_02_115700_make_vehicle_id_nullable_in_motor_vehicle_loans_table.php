@@ -6,17 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        Schema::table('motor_vehicle_loans', function (Blueprint $table) {
-            $table->unsignedBigInteger('vehicle_id')->nullable()->change();
-        });
-    }
+    // public function up(): void
+    // {
+    //     Schema::table('motor_vehicle_loans', function (Blueprint $table) {
+    //         $table->unsignedBigInteger('vehicle_id')->nullable()->change();
+    //     });
+    // }
 
-    public function down(): void
-    {
-        Schema::table('motor_vehicle_loans', function (Blueprint $table) {
-            $table->unsignedBigInteger('vehicle_id')->nullable(false)->change();
-        });
-    }
+    // public function down(): void
+    // {
+    //     Schema::table('motor_vehicle_loans', function (Blueprint $table) {
+    //         $table->unsignedBigInteger('vehicle_id')->nullable(false)->change();
+    //     });
+    // }
 };
