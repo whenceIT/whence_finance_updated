@@ -80,16 +80,19 @@
                             <div class="col-md-12">
                                 <div class="pull-right btn-group">
                                     @if($loan->loan_product_id == 0)
-                                    @if(Sentinel::hasAccess('settings'))
-                                       <a href="#" data-toggle="modal" data-target="#approve_loan_modal"
-                                           class="btn btn-primary"><i
-                                                    class="fa fa-check"></i>&nbsp;{{trans_choice('general.approve',1)}}
-                                        </a>
-                                        <a href="#" data-toggle="modal" data-target="#decline_loan_modal"
-                                           class="btn btn-primary"><i
-                                                    class="fa fa-times"></i>&nbsp;{{trans_choice('general.decline',1)}}
-                                        </a>
-                                    @endif
+                                        @if(Sentinel::hasAccess('settings'))
+                                            <!-- Only TD, Chair and I.T have permission-->
+                                            @hasRole('role.exec', 'role.dev')
+                                            <a href="#" data-toggle="modal" data-target="#approve_loan_modal"
+                                                class="btn btn-primary"><i
+                                                            class="fa fa-check"></i>&nbsp;{{trans_choice('general.approve',1)}} 
+                                                </a>
+                                                <a href="#" data-toggle="modal" data-target="#decline_loan_modal"
+                                                class="btn btn-primary"><i
+                                                            class="fa fa-times"></i>&nbsp;{{trans_choice('general.decline',1)}}
+                                                </a>
+                                            @endif
+                                        @endif
                                     @else
                                     @if(Sentinel::hasAccess('loans.approve'))
                                         <a href="#" data-toggle="modal" data-target="#approve_loan_modal"
