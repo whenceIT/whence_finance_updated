@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('gps_location')->nullable()->after('garage_gps');
             $table->text('location_description')->nullable()->after('gps_location');
             $table->timestamp('intake_date')->nullable()->after('location_description');
-            $table->boolean('keys_received')->default(false)->after('intake_date');
+            // $table->boolean('keys_received')->default(false)->after('intake_date');
             $table->boolean('documents_received')->default(false)->after('keys_received');
             $table->boolean('accessories_received')->default(false)->after('documents_received');
             $table->integer('fuel_level')->nullable()->after('accessories_received');
