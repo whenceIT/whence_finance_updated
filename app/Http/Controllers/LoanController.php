@@ -1634,6 +1634,12 @@ $vehicle->save();
             $user = Sentinel::getUser();
             $this->auditorService->logStoreClientLoan($user, request(), $loan, $client);
             
+            // Check if Motor Vehicle Loan and redirect to KYC/PEP verification
+            if ($request->has('mvl_next') && $request->mvl_next == '1') {
+                Flash::success(trans('general.successfully_saved'));
+                return redirect()->route('clients.edit-kyc', [$loan->client_id, $loan->id]);
+            }
+            
             // Check if loan has collateral and redirect to collateral create page
             if ($request->has('has_collateral') && $request->has_collateral == '1' && $request->has('redirect_to_collateral') && $request->redirect_to_collateral == '1') {
                 Flash::success(trans('general.successfully_saved'));

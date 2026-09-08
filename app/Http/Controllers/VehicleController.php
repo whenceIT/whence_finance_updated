@@ -14,10 +14,13 @@ use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 use Illuminate\Support\Facades\Log;
 use App\Models\Loan;
+use App\Models\VehicleValuation;
 use App\Models\VehicleCustody;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use App\Models\Office;
+use App\Models\ComplianceScreening;
+use App\Models\VehicleOwnershipRecord;
 use Laracasts\Flash\Flash;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
@@ -179,7 +182,9 @@ public function searchClients(Request $request)
             'policy_number' => 'required',
             'start_date' => 'required|date',
             'expiry_date' => 'required|date',
-            'insured_value' => 'required|numeric'
+            'insured_value' => 'required|numeric',
+            'premium' => 'nullable|numeric',
+            'cover_type' => 'nullable|string',
         ]);
 
         VehicleInsurance::create([
@@ -188,10 +193,12 @@ public function searchClients(Request $request)
             'policy_number' => $request->policy_number,
             'start_date' => $request->start_date,
             'expiry_date' => $request->expiry_date,
-            'insured_value' => $request->insured_value
+            'insured_value' => $request->insured_value,
+            'premium' => $request->premium,
+            'cover_type' => $request->cover_type,
         ]);
 
-       return redirect("/vehicles/{$vehicle->id}")
+       return redirect()->route('vehicles.ownership-verification.show', $vehicle->id)
     ->with(
         'success',
         'Insurance information added successfully.'
@@ -227,7 +234,7 @@ public function searchClients(Request $request)
         'custody_approved'       => 0,
     ]);
 
-    return redirect('/vehicles/'.$vehicle->id)
+    return redirect()->route('vehicles.ownership-verification.show', $vehicle->id)
         ->with('success', 'Vehicle successfully received into custody.');
 
 
@@ -335,7 +342,7 @@ public function searchClients(Request $request)
             'uploaded_by' => auth()->id()
         ]);
 
-        return redirect("/vehicles/{$vehicle->id}")
+        return redirect()->route('vehicles.ownership-verification.show', $vehicle->id)
             ->with(
                 'success',
                 'Document uploaded successfully.'
@@ -423,7 +430,7 @@ public function searchClients(Request $request)
                 'uploaded_by' => auth()->id()
             ]);
 
-            return redirect("/vehicles/{$vehicle->id}")
+            return redirect()->route('vehicles.ownership-verification.show', $vehicle->id)
                 ->with(
                     'success',
                     'Photo uploaded successfully.'
@@ -468,10 +475,12 @@ public function searchClients(Request $request)
         $request->validate([
             'inspection_date' => 'required',
             'inspector' => 'required',
-            'result' => 'required'
+            'result' => 'required',
+            'mileage' => 'nullable|integer',
+            'condition_score' => 'nullable|integer',
         ]);
 
-        $reportUrl = null;
+        $reportPath = null;
 
         if ($request->hasFile('report_file')) {
 
@@ -500,9 +509,10 @@ public function searchClients(Request $request)
                     'Key' => $fileName,
                     'Body' => fopen($file->getPathname(), 'r'),
                     'ACL' => 'public-read',
+                    'ContentType' => $file->getMimeType(),
                 ]);
 
-                $reportUrl = $result['ObjectURL'];
+                $reportPath = $result['ObjectURL'];
 
             } catch (AwsException $e) {
 
@@ -515,77 +525,215 @@ public function searchClients(Request $request)
             }
         }
 
-$inspection = new VehicleInspection();
+        $inspection = new VehicleInspection();
 
-$inspection->vehicle_id = $vehicle->id;
-$inspection->inspection_date = $request->inspection_date;
-$inspection->inspector = $request->inspector;
-$inspection->inspection_type = $request->inspection_type;
-$inspection->mileage = $request->mileage;
-$inspection->condition_rating = $request->condition_rating;
-$inspection->fuel = $request->fuel_level;
-$inspection->result = $request->result;
-$inspection->notes = $request->notes;
-$inspection->report_url = $reportUrl;
+        $inspection->vehicle_id = $vehicle->id;
+        $inspection->inspection_date = $request->inspection_date;
+        $inspection->inspector = $request->inspector;
+        $inspection->inspection_type = $request->inspection_type;
+        $inspection->mileage = $request->mileage;
+        $inspection->condition_rating = $request->condition_rating;
+        $inspection->result = $request->result;
+        $inspection->notes = $request->notes;
+        $inspection->condition_notes = $request->notes;
+        $inspection->mechanical_condition = $request->mechanical_condition;
+        $inspection->interior_condition = $request->interior_condition;
+        $inspection->exterior_condition = $request->exterior_condition;
+        $inspection->tyres_condition = $request->tyres_condition;
+        $inspection->battery_condition = $request->battery_condition;
+        $inspection->accessories_condition = $request->accessories_condition;
+        $inspection->condition_score = $request->condition_score;
+        $inspection->report_file_path = $reportPath;
 
-$inspection->save();
+        $inspection->save();
 
-if ($request->hasFile('photos')) {
+        $photoUrls = [];
 
-    foreach ($request->file('photos') as $photo) {
+        if ($request->hasFile('photos')) {
 
-        try {
+            foreach ($request->file('photos') as $photo) {
 
-            $s3Client = new S3Client([
-                    'version' => 'latest',
-                    'region'  => 'nyc3',
-                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
-                    'credentials' => [
-                        'key'    => 'DO00RP9FA3QZTA3JV637',
-                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
-                    ],
-                ]);
+                try {
 
-            $fileName =
-                'vehicle_inspections/' .
-                $vehicle->id .
-                '/photos/' .
-                time() . '_' .
-                uniqid() . '_' .
-                $photo->getClientOriginalName();
+                    $s3Client = new S3Client([
+                            'version' => 'latest',
+                            'region'  => 'nyc3',
+                            'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                            'credentials' => [
+                                'key'    => 'DO00RP9FA3QZTA3JV637',
+                                'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                            ],
+                        ]);
 
-            $result = $s3Client->putObject([
-                'Bucket' => 'wfssystem',
-                'Key' => $fileName,
-                'Body' => fopen($photo->getPathname(), 'r'),
-                'ACL' => 'public-read',
-            ]);
+                    $fileName =
+                        'vehicle_inspections/' .
+                        $vehicle->id .
+                        '/photos/' .
+                        time() . '_' .
+                        uniqid() . '_' .
+                        $photo->getClientOriginalName();
 
-            VehicleInspectionPhoto::create([
-                'vehicle_inspection_id' => $inspection->id,
-                'photo_url' => $result['ObjectURL'],
-            ]);
+                    $result = $s3Client->putObject([
+                        'Bucket' => 'wfssystem',
+                        'Key' => $fileName,
+                        'Body' => fopen($photo->getPathname(), 'r'),
+                        'ACL' => 'public-read',
+                    ]);
 
-        } catch (AwsException $e) {
+                    $photoUrl = $result['ObjectURL'];
+                    $photoUrls[] = $photoUrl;
 
-            Log::error($e->getMessage());
+                    VehicleInspectionPhoto::create([
+                        'vehicle_inspection_id' => $inspection->id,
+                        'photo_url' => $photoUrl,
+                    ]);
+
+                } catch (AwsException $e) {
+
+                    Log::error($e->getMessage());
+
+                }
+
+            }
 
         }
 
-    }
+        if (!empty($photoUrls)) {
+            $inspection->inspection_photos = $photoUrls;
+            $inspection->save();
+        }
 
-}
-
-
-
-        return redirect("/vehicles/{$vehicle->id}")
+        return redirect()->route('vehicles.ownership-verification.show', $vehicle->id)
             ->with(
                 'success',
                 'Inspection recorded successfully.'
             );
     }
 
-public function dashboard(Request $request)
+    public function storeValuation(Request $request, $vehicleId)
+    {
+        $vehicle = Vehicle::findOrFail($vehicleId);
+
+        $request->validate([
+            'valuation_company' => 'required|string',
+            'valuator_name' => 'nullable|string',
+            'valuation_date' => 'required|date',
+            'market_value' => 'required|numeric',
+            'forced_sale_value' => 'nullable|numeric',
+            'valuation_cost' => 'nullable|numeric',
+            'expiry_date' => 'nullable|date',
+        ]);
+
+        $reportPath = null;
+
+        if ($request->hasFile('report_file')) {
+            try {
+                $file = $request->file('report_file');
+                $fileName = 'vehicle_valuations/' . $vehicle->id . '/' . time() . '_' . $file->getClientOriginalName();
+                $s3Client = new S3Client([
+                    'version' => 'latest',
+                    'region' => 'nyc3',
+                    'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                    'credentials' => [
+                        'key' => 'DO00RP9FA3QZTA3JV637',
+                        'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                    ],
+                ]);
+                $result = $s3Client->putObject([
+                    'Bucket' => 'wfssystem',
+                    'Key' => $fileName,
+                    'Body' => fopen($file->getPathname(), 'r'),
+                    'ACL' => 'public-read',
+                    'ContentType' => $file->getMimeType(),
+                ]);
+                $reportPath = $result['ObjectURL'];
+            } catch (AwsException $e) {
+                Log::error($e->getMessage());
+                return back()->with('error', 'Failed to upload valuation report.');
+            }
+        }
+
+        $photos = [];
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                try {
+                    $s3Client = new S3Client([
+                        'version' => 'latest',
+                        'region' => 'nyc3',
+                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                        'credentials' => [
+                            'key' => 'DO00RP9FA3QZTA3JV637',
+                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                        ],
+                    ]);
+                    $fileName = 'vehicle_valuations/' . $vehicle->id . '/photos/' . time() . '_' . uniqid() . '_' . $photo->getClientOriginalName();
+                    $result = $s3Client->putObject([
+                        'Bucket' => 'wfssystem',
+                        'Key' => $fileName,
+                        'Body' => fopen($photo->getPathname(), 'r'),
+                        'ACL' => 'public-read',
+                    ]);
+                    $photos[] = $result['ObjectURL'];
+                } catch (AwsException $e) {
+                    Log::error($e->getMessage());
+                }
+            }
+        }
+
+        $supportingDocs = [];
+        if ($request->hasFile('supporting_documents')) {
+            foreach ($request->file('supporting_documents') as $doc) {
+                try {
+                    $s3Client = new S3Client([
+                        'version' => 'latest',
+                        'region' => 'nyc3',
+                        'endpoint' => 'https://nyc3.digitaloceanspaces.com',
+                        'credentials' => [
+                            'key' => 'DO00RP9FA3QZTA3JV637',
+                            'secret' => 'GWEj+tmCLlYb/RzX7b6vab8Kz9OjFO1PknyYyUQTnjk',
+                        ],
+                    ]);
+                    $fileName = 'vehicle_valuations/' . $vehicle->id . '/docs/' . time() . '_' . uniqid() . '_' . $doc->getClientOriginalName();
+                    $result = $s3Client->putObject([
+                        'Bucket' => 'wfssystem',
+                        'Key' => $fileName,
+                        'Body' => fopen($doc->getPathname(), 'r'),
+                        'ACL' => 'public-read',
+                        'ContentType' => $doc->getMimeType(),
+                    ]);
+                    $supportingDocs[] = $result['ObjectURL'];
+                } catch (AwsException $e) {
+                    Log::error($e->getMessage());
+                }
+            }
+        }
+
+        VehicleValuation::create([
+            'vehicle_id' => $vehicle->id,
+            'valuation_company' => $request->valuation_company,
+            'valuator_name' => $request->valuator_name,
+            'valuation_date' => $request->valuation_date,
+            'market_value' => $request->market_value,
+            'forced_sale_value' => $request->forced_sale_value,
+            'valuation_cost' => $request->valuation_cost,
+            'expiry_date' => $request->expiry_date,
+            'report_file_path' => $reportPath,
+            'photos' => $photos,
+            'supporting_documents' => $supportingDocs,
+        ]);
+
+        return redirect()->route('vehicles.ownership-verification.show', $vehicle->id)
+            ->with('success', 'Valuation recorded successfully.');
+    }
+
+    public function createValuation($vehicleId)
+    {
+        $vehicle = Vehicle::with('valuations')->findOrFail($vehicleId);
+
+        return view('motor_vehicle.create_valuations', compact('vehicle'));
+    }
+
+ public function dashboard(Request $request)
 {
     // Default dates: beginning of year to today
     $start_date = $request->start_date ?? Carbon::now()->startOfYear()->format('Y-m-d');
@@ -741,9 +889,46 @@ public function dashboard(Request $request)
 
     $offices = Office::orderBy('name')->get();
 
+    $statuses = [];
+    $allLoans = Loan::where('loan_product_id', 0)->with('client')->get();
+    foreach ($allLoans as $loan) {
+        $kycCompleted = false;
+        $complianceCompleted = false;
+        $ownershipCompleted = false;
+
+        if ($loan->loan_product_id == 0 && $loan->client) {
+            $client = $loan->client;
+            $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+            $kycCompleted = true;
+            foreach ($kycFields as $field) {
+                if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
+                    $kycCompleted = false;
+                    break;
+                }
+            }
+
+            $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
+                ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
+                ->exists();
+            $complianceCompleted = $compliance;
+
+            $vehicle = Vehicle::where('loan_id', $loan->id)->first();
+            if ($vehicle) {
+                $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
+                $ownershipCompleted = $ownership;
+            }
+        }
+
+        $statuses[$loan->id] = [
+            'kyc_completed' => $kycCompleted,
+            'compliance_screening_completed' => $complianceCompleted,
+            'ownership_completed' => $ownershipCompleted,
+        ];
+    }
+
     return view(
         'motor_vehicle.motor_vehicle_loans',
-        compact('recentLoans', 'offices')
+        compact('recentLoans', 'offices', 'statuses')
     );
 }
 
@@ -896,18 +1081,51 @@ public function sales(Request $request)
 
   public function loans_pending_approval()
     {
-        if (!Sentinel::hasAccess('expenses')) {
-            Flash::warning("Permission Denied");
-            return redirect()->back();
+
+        $data = Loan::whereIn('status', ['pending', 'approved'])
+            ->where('loan_product_id', 0)
+            ->with('client')
+            ->get();
+
+        $statuses = [];
+ 
+        foreach ($data as $loan) {
+            $kycCompleted = false;
+            $complianceCompleted = false;
+            $ownershipCompleted = false;
+
+            if ($loan->loan_product_id == 0 && $loan->client) {
+                $client = $loan->client;
+                $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+                $kycCompleted = true;
+                foreach ($kycFields as $field) {
+                    if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
+                        $kycCompleted = false;
+                        break;
+                    }
+                }
+
+                $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
+                    ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
+                    ->exists();
+                $complianceCompleted = $compliance;
+
+                $vehicle = Vehicle::where('loan_id', $loan->id)->first();
+                if ($vehicle) {
+                    $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
+                    $ownershipCompleted = $ownership;
+                }
+            }
+
+            $statuses[$loan->id] = [
+                'kyc_completed' => $kycCompleted,
+                'compliance_screening_completed' => $complianceCompleted,
+                'ownership_completed' => $ownershipCompleted,
+            ];
         }
 
-          $data = [];
- 
-
-            $data = Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->get();
-   
-
-        return view('motor_vehicle.loans_pending_approval', compact('data'));
+        // dd($statuses);
+        return view('motor_vehicle.loans_pending_approval', compact('data', 'statuses'));
     }
 
 
