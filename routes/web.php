@@ -424,10 +424,9 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('mvl/motor-vehicle-loans', 'VehicleController@MotorVehicleLoan');
     Route::get('analytics_dashboard', 'VehicleController@analytics_dashboard');
     Route::any('store', 'VehicleController@store');
-    Route::any('{id}', 'VehicleController@show');
-    Route::any('{id}/edit', 'VehicleController@edit');
-    Route::any('{id}/update', 'VehicleController@update');
     Route::get('search-clients', 'VehicleController@searchbClients');
+    Route::get('custody-register', 'MotorVehicleLoanLifecycleController@custodyRegister');
+    Route::get('vehicle-custody/pending-approval','VehicleController@getPendingCustodyApprovals');
     Route::get('{vehicle}/custody/create','VehicleController@createCustody');
     Route::any('{vehicle}/custody','VehicleController@storeCustody');
     Route::get('{vehicle}/insurance/create','VehicleController@createInsurance');
@@ -444,9 +443,11 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('loans1','VehicleController@MotorVehicleLoan');
     Route::get('new_route','VehicleController@MotorVehicleLoan');
     Route::post('{vehicle}/sell','VehicleController@sellVehicle');
-    Route::get('sales', 'VehicleController@sales');
     Route::post('vehicle-custody/{custody}/approve','VehicleController@approveCustody');
-    Route::get('vehicle-custody/pending-approval','VehicleController@getPendingCustodyApprovals');
+    // Wildcard routes must come AFTER specific routes
+    Route::any('{id}', 'VehicleController@show');
+    Route::any('{id}/edit', 'VehicleController@edit');
+    Route::any('{id}/update', 'VehicleController@update');
 });
 
 Route::group(['prefix' => 'motor-vehicle-loans'], function () {
@@ -483,6 +484,7 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('custody-register', 'MotorVehicleLoanLifecycleController@custodyRegister')->name('vehicles.custody-register');
     Route::get('{vehicle}/custody-register', 'MotorVehicleLoanLifecycleController@custodyRegister')->name('vehicles.custody-register.show');
     Route::post('{vehicle}/store-intake', 'MotorVehicleLoanLifecycleController@storeIntake')->name('vehicles.store-intake');
+    Route::get('disposal-register', 'VehicleController@disposalRegister')->name('vehicles.disposal-register');
 }); 
 
 Route::group(['prefix' => 'payrollloans'], function () {

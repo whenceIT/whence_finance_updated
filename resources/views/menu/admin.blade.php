@@ -1609,28 +1609,28 @@ if (!Sentinel::check()) {
                 </a>
                 <ul class="treeview-menu">
                     <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
+                    @if(in_array($role, [1,4]))
                     <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>MVL Dashboard</a></li>
-                    @endif
+            
 
                     
                     <!-- @if(Sentinel::hasAccess('settings'))
                     <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->where('loan_product_id',0)->count() }}</span>@endif</a></li>
                     @endif -->
                   
-
-                    @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles/mvl/motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>MV Loans</a></li>
-                    @endif
-
-                    @if(Sentinel::hasAccess('expenses'))
+               
                     <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles Register</a></li>
                     @endif
 
-                    <!-- @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles/sales') }}"><i class="fa fa-circle-o"></i>Vehicle Sales</a></li>
+                    @hasRole('role.exec', 'role.dev', 'role.risk')
+                    <li><a href="{{ url('vehicles/sales') }}"><i class="fa fa-circle-o"></i>Vehicles Sold</a></li>
+                 
+                    <li><a href="{{ url('vehicles/custody-register') }}"><i class="fa fa-circle-o"></i>Custody Register (Storage)</a></li>
+                    
+                    <li><a href="{{ url('vehicles/disposal-register') }}"><i class="fa fa-circle-o"></i>Disposal Register (Defaulted)</a></li>
                     @endif
-
+<!--
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>Loan Lifecycle</a></li>
                     @endif
@@ -1647,9 +1647,7 @@ if (!Sentinel::check()) {
                     <li><a href="{{ url('vehicles/ownership-verification') }}"><i class="fa fa-circle-o"></i>Ownership Verification</a></li>
                     @endif
 
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles/custody-register') }}"><i class="fa fa-circle-o"></i>Custody Register</a></li>
-                    @endif
+                 
 
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles/movements') }}"><i class="fa fa-circle-o"></i>Vehicle Movements</a></li>

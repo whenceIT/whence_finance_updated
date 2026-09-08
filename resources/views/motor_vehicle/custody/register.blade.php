@@ -34,7 +34,13 @@
 
             @forelse($custodies as $custody)
             <tr>
-                <td>{{ optional($custody->vehicle)->registration_number ?? 'N/A' }}</td>
+                <td>
+                    @if($custody->vehicle)
+                        <a href="{{ url('vehicles/'.$custody->vehicle->id) }}">{{ $custody->vehicle->registration_number }}</a>
+                    @else
+                        {{ optional($custody->vehicle)->registration_number ?? 'N/A' }}
+                    @endif
+                </td>
                 <td>{{ $custody->garage_name ?? 'N/A' }}</td>
                 <td>{{ $custody->garage_contact_person ?? 'N/A' }}</td>
                 <td>{{ $custody->garage_contact_phone ?? 'N/A' }}</td>

@@ -39,7 +39,7 @@
                     <span class="label label-danger">
                         SOLD
                     </span>
-                @elseif($vehicle->status=="in_custody")
+                @elseif($vehicle->status=="in_custody" || $vehicle->custody)
                     <span class="label label-warning">
                         IN CUSTODY
                     </span>

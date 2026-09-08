@@ -26,7 +26,6 @@
     @endif
     
 
-
     <div class="row">
         <div class="col-md-12">
             <div class="panel">
@@ -43,6 +42,13 @@
                 </div>
 		
                 <div class="panel-body">
+                    @if($loan->loan_product_id == 0)
+                        <div class="callout callout-info" style="margin-bottom: 20px;">
+                            <h4><i class="fa fa-tasks"></i> Onboarding Progress</h4>
+                            <x-onboarding-progress :status="$statuses[$loan->id] ?? null" :loan="$loan" />
+                        </div>
+                    @endif
+
                     @if($loan->status=="closed")
                         <div class="row">
                                 <div class="col-md-12">
@@ -680,10 +686,9 @@
     </div>
 
 </div>
-
-<div class="box-body">
-
-    <div class="row">
+   
+    <div class="box-body">
+        <div class="row">
 
         <div class="col-md-3 text-center">
 
