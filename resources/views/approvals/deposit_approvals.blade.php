@@ -7,13 +7,46 @@
             <h3 class="box-title">Deposit Approvals</h3>
         </div>
 
-        <ul class="nav nav-tabs" style="margin: 0 0 15px 0;">
+        <br>
+        <style>
+            .deposit-tabs .nav-tabs {
+                border-bottom: 2px solid #ddd;
+                margin-bottom: 15px;
+            }
+            .deposit-tabs .nav-tabs > li {
+                background: #f8f8f8;
+                border: 1px solid #ddd;
+                border-bottom: none;
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+                margin-right: 5px;
+            }
+            .deposit-tabs .nav-tabs > li > a {
+                color: #6c757d;
+                font-weight: 600;
+                padding: 10px 20px;
+                border: none;
+                background: transparent;
+            }
+            .deposit-tabs .nav-tabs > li > a:hover {
+                background: #e9ecef;
+                color: #495057;
+            }
+            .deposit-tabs .nav-tabs > li.active > a,
+            .deposit-tabs .nav-tabs > li.active > a:hover {
+                background: #28a745;
+                color: #fff;
+                border: none;
+            }
+        </style>
+        <ul class="nav nav-tabs deposit-tabs" style="margin: 0 0 15px 0;">
             <li class="active"><a data-toggle="tab" href="#mandatory-deposits"><i class="fa fa-check"></i> Mandatory Deposit Approvals</a></li>
             <li><a data-toggle="tab" href="#setup-debt-deposits"><i class="fa fa-money"></i> Setup Debt Deposits</a></li>
         </ul>
 
         <div class="tab-content">
-            <div id="mandatory-deposits" class="tab-pane in">
+            <div id="mandatory-deposits" class="tab-pane in active">
+
                 <div class="box-body">
                     <div class="row" style="margin-bottom: 15px;">
                         <div class="col-md-6">
@@ -36,6 +69,7 @@
                     </div>
                 </div>
                 <div class="box-body table-responsive">
+                    <p class="text-muted">View and approved or decline the mandatory fees for branches.</p>
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
@@ -103,7 +137,12 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="10" class="text-center">No deposits found.</td></tr>
+                                <tr><td colspan="11" class="text-center">
+                                    <div class="empty-state">
+                                        <img src="https://img.magnific.com/free-vector/illustration-character-saving-money-safe_53876-37248.jpg" alt="No deposits found" style="max-width: 200px; opacity: 0.6;">
+                                        <p class="text-muted" style="margin-top: 10px;">No deposits found.</p>
+                                    </div>
+                                </td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -115,11 +154,26 @@
 
             <div id="setup-debt-deposits" class="tab-pane">
                 <div class="box-body">
-                    <p class="text-muted">View approved setup debt transactions for branches.</p>
+
+                    <div class="row" style="margin-bottom: 15px;">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-success btn-sm" id="bulk-approve-debt-btn">
+                                <i class="fa fa-check"></i> Approve Selected
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" id="bulk-decline-debt-btn">
+                                <i class="fa fa-times"></i> Decline Selected
+                            </button>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <input type="text" id="search-input-debt" class="form-control input-sm" placeholder="Search..." style="width: 200px;">
+                        </div>
+                    </div>
+
+                    <p class="text-muted" style="padding-top: 12px;">View and approved or decline setup debt transactions for branches.</p>
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th style="width: 40px;">#</th>
+                                <th style="width: 40px;"><input type="checkbox" id="select-all-debt"></th>
                                 <th>Branch</th>
                                 <th>Description</th>
                                 <th style="width: 120px;">Amount</th>
@@ -133,7 +187,7 @@
                         <tbody>
                             @forelse($setupDebtDeposits ?? [] as $index => $transaction)
                                 <tr>
-                                    <td>{{ $index + 1 }}</td>
+                                    <td><input type="checkbox" class="row-select-debt" value="{{ $transaction->id }}"></td>
                                     <td>{{ $transaction->office->name ?? 'N/A' }}</td>
                                     <td>{{ $transaction->setupDebtCost->description ?: '—' }}</td>
                                     <td style="font-weight:700;">{{ number_format($transaction->amount, 2) }}</td>
@@ -166,7 +220,12 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="9" class="text-center">No approved setup debt transactions found.</td></tr>
+                                <tr><td colspan="9" class="text-center">
+                                    <div class="empty-state">
+                                        <img src="https://img.magnific.com/free-vector/illustration-character-saving-money-safe_53876-37248.jpg" alt="No setup debt transactions found" style="max-width: 200px; opacity: 0.6;">
+                                        <p class="text-muted" style="margin-top: 10px;">No setup debt transactions found.</p>
+                                    </div>
+                                </td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -275,10 +334,76 @@
 
         $('#search-input').on('keyup', function() {
             var searchVal = this.value.toLowerCase();
-            $('table tbody tr').each(function() {
+            $('#mandatory-deposits table tbody tr').each(function() {
                 var text = $(this).text().toLowerCase();
                 $(this).toggle(text.indexOf(searchVal) > -1);
             });
+        });
+
+        $('#search-input-debt').on('keyup', function() {
+            var searchVal = this.value.toLowerCase();
+            $('#setup-debt-deposits table tbody tr').each(function() {
+                var text = $(this).text().toLowerCase();
+                $(this).toggle(text.indexOf(searchVal) > -1);
+            });
+        });
+
+        $('#select-all-debt').on('click', function() {
+            $('.row-select-debt').prop('checked', this.checked);
+        });
+
+        $('#bulk-approve-debt-btn').on('click', function() {
+            var selected = $('.row-select-debt:checked').map(function() {
+                return this.value;
+            }).get();
+
+            if (selected.length === 0) {
+                window.KiloAlert.warning('Please select at least one setup debt transaction to approve.');
+                return;
+            }
+
+            if (confirm('Are you sure you want to APPROVE all selected setup debt transactions?')) {
+                $.post('{{ url("approvals/setup-debt/bulk-approve") }}', {
+                    _token: "{{ csrf_token() }}",
+                    ids: selected
+                }, function(response) {
+                    if (response.success) {
+                        window.KiloAlert.success(response.message);
+                    } else {
+                        window.KiloAlert.error(response.message || 'Action failed.');
+                    }
+                    setTimeout(() => location.reload(), 1500);
+                }).fail(function() {
+                    window.KiloAlert.error('Action failed. Please try again.');
+                });
+            }
+        });
+
+        $('#bulk-decline-debt-btn').on('click', function() {
+            var selected = $('.row-select-debt:checked').map(function() {
+                return this.value;
+            }).get();
+
+            if (selected.length === 0) {
+                window.KiloAlert.warning('Please select at least one setup debt transaction to decline.');
+                return;
+            }
+
+            if (confirm('Are you sure you want to DECLINE all selected setup debt transactions?')) {
+                $.post('{{ url("approvals/setup-debt/bulk-decline") }}', {
+                    _token: "{{ csrf_token() }}",
+                    ids: selected
+                }, function(response) {
+                    if (response.success) {
+                        window.KiloAlert.success(response.message);
+                    } else {
+                        window.KiloAlert.error(response.message || 'Action failed.');
+                    }
+                    setTimeout(() => location.reload(), 1500);
+                }).fail(function() {
+                    window.KiloAlert.error('Action failed. Please try again.');
+                });
+            }
         });
 
         $(document).on('click', '.approve-btn, .decline-btn', function(e) {

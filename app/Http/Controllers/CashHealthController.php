@@ -624,7 +624,7 @@ public function national(Request $request)
     |--------------------------------------------------------------------------
     */
 
-    $response = Http::timeout(60)
+    $response = Http::timeout(120)
         ->get(
             $apiUrl . '/cash-health/national',
             [
@@ -641,6 +641,25 @@ public function national(Request $request)
         );
     }
 
+   $summaryResponse = Http::withHeaders([
+    'x-user-email' => 'chikwetihenry@gmail.com'
+])->get(
+    'https://withinheremobileapi.com/api/v1/business-dashboard/company/CMP-35230338/summary'
+);
+
+$totalBalance = 0;
+
+if ($summaryResponse->successful()) {
+
+    $summaryData = $summaryResponse->json();
+
+    $totalBalance = (float) data_get(
+        $summaryData,
+        'data.summary.total_balance',
+        0
+    );
+}
+
 
     /*
     |--------------------------------------------------------------------------
@@ -653,32 +672,6 @@ public function national(Request $request)
     $nationalHealth['provinces'] =
     $nationalHealth['provinces'] ?? [];
 
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | NATIONAL CONTRIBUTION HISTORY
-    |--------------------------------------------------------------------------
-    */
-
-    $contributionResponse = Http::timeout(60)
-        ->get(
-            $apiUrl . '/cash-health/national/contributions'
-        );
-
-
-    if (!$contributionResponse->successful()) {
-
-        abort(
-            $contributionResponse->status(),
-            'Unable to retrieve National Contribution History data.'
-        );
-
-    }
-
-
-    $nationalContribution =
-        $contributionResponse->json();
 
 
     /*
@@ -721,7 +714,7 @@ public function national(Request $request)
     |--------------------------------------------------------------------------
     */
 
- return view(
+return view(
     'cash-health.national',
     compact(
         'nationalHealth',
@@ -729,7 +722,7 @@ public function national(Request $request)
         'cycleEnd',
         'availableCycles',
         'offices',
-        'nationalContribution'
+        'totalBalance'
     )
 );
 

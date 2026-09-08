@@ -114,6 +114,29 @@
             background:#fff;
         ">
 
+        {{-- CASH HEALTH GUIDE BUTTON --}}
+<button
+    type="button"
+    onclick="openCashHealthGuide()"
+    style="
+        border:1px solid #dfe3e8;
+        background:#fff;
+        color:#343b48;
+        border-radius:8px;
+        padding:8px 13px;
+        font-size:12px;
+        font-weight:600;
+        cursor:pointer;
+        margin-bottom:10px;
+        transition:all .15s ease;
+    "
+    onmouseover="this.style.background='#f7f8fa';"
+    onmouseout="this.style.background='#fff';"
+>
+    <i class="fa fa-info-circle"" style="margin-right:5px;"></i>
+    Cash Health Guide
+</button>
+
 
             <div style="
                 font-size:10px;
@@ -355,6 +378,42 @@
             ">
 
                 {{ $nationalHealth['office_count'] ?? 0 }}
+
+            </div>
+
+        </div>
+
+
+          {{-- ACTUAL CASH --}}
+
+        <div style="
+            background:#fff;
+            border:1px solid #e6e9ef;
+            border-radius:14px;
+            padding:22px;
+        ">
+
+            <div style="
+                font-size:11px;
+                font-weight:700;
+                color:#8a93a3;
+                letter-spacing:1px;
+            ">
+                INSTITUTION CASH BALANCE
+            </div>
+
+
+            <div style="
+                font-size:27px;
+                font-weight:700;
+                margin-top:12px;
+                color:{{ ($totalBalance ?? 0) < 0 ? '#dc2626' : '#202633' }};
+            ">
+
+                K{{ number_format(
+                    $totalBalance ?? 0,
+                    2
+                ) }}
 
             </div>
 
@@ -1796,23 +1855,1126 @@
     </div>
 
 
-    {{-- GRAPH --}}
+{{-- GRAPH --}}
 
-    <div style="
-        position:relative;
-        width:100%;
-        height:420px;
-    ">
+<div id="contributionLoading" style="
+    text-align:center;
+    padding:30px;
+    color:#666;
+">
+    <i class="fa fa-spinner fa-spin" style="font-size:24px;"></i>
 
-        <canvas id="nationalContributionChart"></canvas>
+    <div style="margin-top:10px;">
+        Gathering contribution history...
+    </div>
+
+    <small>
+        This may take a little while.
+    </small>
+</div>
+
+<div id="contributionGraphContainer" style="
+    display:none;
+    position:relative;
+    width:100%;
+    height:420px;
+">
+
+    <canvas id="nationalContributionChart"></canvas>
+
+</div>
+
+</div>
+
+
+
+</div>
+
+{{-- ========================================================= --}}
+{{-- CASH HEALTH GUIDE                                         --}}
+{{-- ========================================================= --}}
+
+<div
+    id="cashHealthGuideOverlay"
+    onclick="closeCashHealthGuide(event)"
+    style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,.35);
+        z-index:9998;
+        transition:opacity .2s ease;
+    "
+>
+
+    {{-- ===================================================== --}}
+    {{-- GUIDE DRAWER                                         --}}
+    {{-- ===================================================== --}}
+
+    <div
+        id="cashHealthGuide"
+        onclick="event.stopPropagation()"
+        style="
+            position:absolute;
+            top:0;
+            right:0;
+            width:460px;
+            max-width:92%;
+            height:100%;
+            background:#fff;
+            box-shadow:-8px 0 30px rgba(15,23,42,.12);
+            overflow-y:auto;
+            transform:translateX(100%);
+            transition:transform .25s ease;
+        "
+    >
+
+        {{-- ================================================= --}}
+        {{-- GUIDE HEADER                                      --}}
+        {{-- ================================================= --}}
+
+        <div style="
+            position:sticky;
+            top:0;
+            z-index:2;
+            background:#fff;
+            border-bottom:1px solid #e8ebf0;
+            padding:22px 25px 18px;
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:15px;
+            ">
+
+                <div>
+
+                    <div style="
+                        font-size:10px;
+                        font-weight:700;
+                        letter-spacing:1.2px;
+                        color:#8a93a3;
+                        margin-bottom:5px;
+                    ">
+                        CASH MANAGEMENT
+                    </div>
+
+                    <div style="
+                        font-size:21px;
+                        font-weight:700;
+                        color:#202633;
+                    ">
+                        Cash Health Guide
+                    </div>
+
+                    <div style="
+                        margin-top:5px;
+                        color:#737c8b;
+                        font-size:12px;
+                        line-height:1.5;
+                    ">
+                        Understand your scores and financial indicators.
+                    </div>
+
+                </div>
+
+
+                {{-- CLOSE BUTTON --}}
+
+                <button
+                    type="button"
+                    onclick="closeCashHealthGuide()"
+                    style="
+                        width:34px;
+                        height:34px;
+                        border:none;
+                        border-radius:8px;
+                        background:#f5f6f8;
+                        color:#697386;
+                        cursor:pointer;
+                        font-size:16px;
+                        flex-shrink:0;
+                    "
+                >
+                    <i class="fa-times"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        {{-- ================================================= --}}
+        {{-- GUIDE CONTENT                                     --}}
+        {{-- ================================================= --}}
+
+        <div style="
+            padding:24px 25px 40px;
+        ">
+
+
+            {{-- ================================================= --}}
+            {{-- QUICK REFERENCE                                  --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                background:#f8fafc;
+                border:1px solid #e8ebf0;
+                border-radius:12px;
+                padding:16px;
+                margin-bottom:25px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    font-weight:700;
+                    letter-spacing:.8px;
+                    color:#7b8494;
+                    margin-bottom:12px;
+                ">
+                    HOW TO READ THE NUMBERS
+                </div>
+
+
+                <div style="
+                    display:flex;
+                    gap:10px;
+                    margin-bottom:9px;
+                    align-items:center;
+                ">
+
+                    <div style="
+                        width:30px;
+                        height:30px;
+                        border-radius:7px;
+                        background:#eaf2ff;
+                        color:#3677e8;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:12px;
+                    ">
+                        <i class="fa fa-bar-chart"></i>
+                    </div>
+
+                    <div style="font-size:12px;color:#4b5563;">
+                        <strong style="color:#202633;">
+                            Score / 100
+                        </strong>
+                        — performance or health score
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    display:flex;
+                    gap:10px;
+                    margin-bottom:9px;
+                    align-items:center;
+                ">
+
+                    <div style="
+                        width:30px;
+                        height:30px;
+                        border-radius:7px;
+                        background:#e8f8f0;
+                        color:#168550;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:12px;
+                    ">
+                        <i class="fa fa-percent"></i>
+                    </div>
+
+                    <div style="font-size:12px;color:#4b5563;">
+                        <strong style="color:#202633;">
+                            %
+                        </strong>
+                        — percentage or ratio
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    display:flex;
+                    gap:10px;
+                    align-items:center;
+                ">
+
+                    <div style="
+                        width:30px;
+                        height:30px;
+                        border-radius:7px;
+                        background:#fef3c7;
+                        color:#b45309;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:12px;
+                    ">
+                        <strong>K</strong>
+                    </div>
+
+                    <div style="font-size:12px;color:#4b5563;">
+                        <strong style="color:#202633;">
+                            K (Kwacha)
+                        </strong>
+                        — financial amount
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            {{-- ================================================= --}}
+            {{-- OVERALL CASH HEALTH                               --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                margin-bottom:27px;
+            ">
+
+                <div style="
+                    font-size:14px;
+                    font-weight:700;
+                    color:#202633;
+                    margin-bottom:7px;
+                ">
+                    Overall Cash Health
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    color:#737c8b;
+                    line-height:1.7;
+                    margin-bottom:14px;
+                ">
+
+                    The Overall Cash Health is a
+                    <strong style="color:#343b48;">
+                        score out of 100
+                    </strong>,
+                    not a money value and not a percentage.
+
+                    It combines three areas of Cash Health:
+
+                </div>
+
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr 1fr;
+                    gap:7px;
+                    margin-bottom:15px;
+                ">
+
+                    <div style="
+                        background:#f7f8fa;
+                        border-radius:8px;
+                        padding:10px;
+                        text-align:center;
+                    ">
+                        <div style="
+                            font-size:16px;
+                            font-weight:700;
+                            color:#202633;
+                        ">
+                            35%
+                        </div>
+
+                        <div style="
+                            font-size:10px;
+                            color:#737c8b;
+                            margin-top:2px;
+                        ">
+                            Disbursement
+                        </div>
+                    </div>
+
+
+                    <div style="
+                        background:#f7f8fa;
+                        border-radius:8px;
+                        padding:10px;
+                        text-align:center;
+                    ">
+                        <div style="
+                            font-size:16px;
+                            font-weight:700;
+                            color:#202633;
+                        ">
+                            35%
+                        </div>
+
+                        <div style="
+                            font-size:10px;
+                            color:#737c8b;
+                            margin-top:2px;
+                        ">
+                            Collection
+                        </div>
+                    </div>
+
+
+                    <div style="
+                        background:#f7f8fa;
+                        border-radius:8px;
+                        padding:10px;
+                        text-align:center;
+                    ">
+                        <div style="
+                            font-size:16px;
+                            font-weight:700;
+                            color:#202633;
+                        ">
+                            30%
+                        </div>
+
+                        <div style="
+                            font-size:10px;
+                            color:#737c8b;
+                            margin-top:2px;
+                        ">
+                            Residual Cash
+                        </div>
+                    </div>
+
+                </div>
+
+
+                {{-- STATUS BANDS --}}
+
+                <div style="
+                    border:1px solid #edf0f3;
+                    border-radius:10px;
+                    overflow:hidden;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        padding:10px 12px;
+                        background:#ecfdf5;
+                        font-size:11px;
+                    ">
+                        <strong style="color:#15803d;">
+                            🟢 Healthy
+                        </strong>
+
+                        <span style="color:#166534;">
+                            80–100
+                        </span>
+                    </div>
+
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        padding:10px 12px;
+                        background:#fffbeb;
+                        font-size:11px;
+                    ">
+                        <strong style="color:#b45309;">
+                            🟡 Needs attention
+                        </strong>
+
+                        <span style="color:#92400e;">
+                            60–79
+                        </span>
+                    </div>
+
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        padding:10px 12px;
+                        background:#fef2f2;
+                        font-size:11px;
+                    ">
+                        <strong style="color:#dc2626;">
+                            🔴 At risk
+                        </strong>
+
+                        <span style="color:#991b1b;">
+                            0–59
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            {{-- ================================================= --}}
+            {{-- DISBURSEMENT                                     --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                padding-top:22px;
+                border-top:1px solid #edf0f3;
+                margin-bottom:25px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:7px;
+                ">
+
+                    <div style="
+                        font-size:14px;
+                        font-weight:700;
+                        color:#202633;
+                    ">
+                        Disbursement
+                    </div>
+
+                    <span style="
+                        padding:4px 7px;
+                        border-radius:6px;
+                        background:#eaf2ff;
+                        color:#3677e8;
+                        font-size:9px;
+                        font-weight:700;
+                    ">
+                        SCORE / 100
+                    </span>
+
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    color:#737c8b;
+                    line-height:1.7;
+                ">
+
+                    Measures how much was actually disbursed compared
+                    with the minimum loan target for the selected cycle.
+
+                    <div style="
+                        margin-top:10px;
+                        padding:10px 12px;
+                        background:#f8fafc;
+                        border-radius:8px;
+                        font-size:11px;
+                        color:#4b5563;
+                    ">
+
+                        <strong style="color:#202633;">
+                            Calculation:
+                        </strong>
+
+                        Actual Disbursed ÷ Minimum Loan Target × 100
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            {{-- ================================================= --}}
+            {{-- COLLECTION QUALITY                               --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                padding-top:22px;
+                border-top:1px solid #edf0f3;
+                margin-bottom:25px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:7px;
+                ">
+
+                    <div style="
+                        font-size:14px;
+                        font-weight:700;
+                        color:#202633;
+                    ">
+                        Collection Quality
+                    </div>
+
+                    <span style="
+                        padding:4px 7px;
+                        border-radius:6px;
+                        background:#eaf2ff;
+                        color:#3677e8;
+                        font-size:9px;
+                        font-weight:700;
+                    ">
+                        SCORE / 100
+                    </span>
+
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    color:#737c8b;
+                    line-height:1.7;
+                ">
+
+                    Measures the quality of loan collections during
+                    the selected cycle.
+
+                    The score considers collection performance,
+                    including defaults and full-payment performance.
+
+                </div>
+
+
+                <div style="
+                    margin-top:10px;
+                    padding:10px 12px;
+                    background:#f8fafc;
+                    border-radius:8px;
+                    font-size:11px;
+                    color:#4b5563;
+                ">
+
+                    <strong style="color:#202633;">
+                        Full-Payment Ratio:
+                    </strong>
+
+                    This is a
+                    <strong>percentage (%)</strong>
+                    showing the proportion of relevant repayments
+                    that were fully paid.
+
+                </div>
+
+            </div>
+
+
+
+            {{-- ================================================= --}}
+            {{-- RESIDUAL CASH                                    --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                padding-top:22px;
+                border-top:1px solid #edf0f3;
+                margin-bottom:25px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:7px;
+                ">
+
+                    <div style="
+                        font-size:14px;
+                        font-weight:700;
+                        color:#202633;
+                    ">
+                        Residual Cash
+                    </div>
+
+                    <span style="
+                        padding:4px 7px;
+                        border-radius:6px;
+                        background:#fff7ed;
+                        color:#c2410c;
+                        font-size:9px;
+                        font-weight:700;
+                    ">
+                        MONEY VALUE
+                    </span>
+
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    color:#737c8b;
+                    line-height:1.7;
+                ">
+
+                    Residual Cash is the amount of cash remaining
+                    after the expected financial requirements have
+                    been accounted for.
+
+                    It is a
+                    <strong style="color:#343b48;">
+                        money value in Kwacha (K)
+                    </strong>,
+                    not a score.
+
+                </div>
+
+
+                <div style="
+                    margin-top:10px;
+                    padding:10px 12px;
+                    background:#f8fafc;
+                    border-radius:8px;
+                    font-size:11px;
+                    color:#4b5563;
+                ">
+
+                    <strong style="color:#202633;">
+                        Positive:
+                    </strong>
+                    cash remains after requirements.
+
+                    <br>
+
+                    <strong style="color:#dc2626;">
+                        Negative:
+                    </strong>
+                    expected obligations exceed available cash.
+
+                </div>
+
+
+                <div style="
+                    margin-top:9px;
+                    font-size:11px;
+                    color:#737c8b;
+                ">
+
+                    <strong style="color:#202633;">
+                        Important:
+                    </strong>
+
+                    The Residual Cash Score is different.
+                    It is a
+                    <strong>score out of 100</strong>
+                    based on months of cash cover.
+
+                </div>
+
+            </div>
+
+
+
+            {{-- ================================================= --}}
+            {{-- VALUE ADDED / NET CONTRIBUTION                    --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                padding-top:22px;
+                border-top:1px solid #edf0f3;
+                margin-bottom:25px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:7px;
+                ">
+
+                    <div style="
+                        font-size:14px;
+                        font-weight:700;
+                        color:#202633;
+                    ">
+                        Value Added / Net Contribution
+                    </div>
+
+                    <span style="
+                        padding:4px 7px;
+                        border-radius:6px;
+                        background:#ecfdf5;
+                        color:#15803d;
+                        font-size:9px;
+                        font-weight:700;
+                    ">
+                        MONEY VALUE
+                    </span>
+
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    color:#737c8b;
+                    line-height:1.7;
+                ">
+
+                    Shows the net cash value contributed by the
+                    institution, province, district, or branch
+                    during the selected period.
+
+                </div>
+
+
+                <div style="
+                    margin-top:10px;
+                    padding:12px;
+                    background:#f8fafc;
+                    border-radius:8px;
+                    text-align:center;
+                    font-size:12px;
+                    color:#202633;
+                    font-weight:700;
+                ">
+
+                    Collections
+                    <span style="color:#9aa2af;">−</span>
+                    Disbursements
+                    <span style="color:#9aa2af;">−</span>
+                    Operating Costs
+
+                </div>
+
+
+                <div style="
+                    margin-top:10px;
+                    font-size:11px;
+                    color:#737c8b;
+                    line-height:1.6;
+                ">
+
+                    The result is a
+                    <strong style="color:#343b48;">
+                        Kwacha (K) amount
+                    </strong>.
+
+                    A positive value means the operation generated
+                    more cash than it consumed during the period.
+
+                    A negative value means it consumed more cash
+                    than it generated.
+
+                </div>
+
+            </div>
+
+
+
+            {{-- ================================================= --}}
+            {{-- FINANCIAL FIGURES                                 --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                padding-top:22px;
+                border-top:1px solid #edf0f3;
+                margin-bottom:25px;
+            ">
+
+                <div style="
+                    font-size:14px;
+                    font-weight:700;
+                    color:#202633;
+                    margin-bottom:8px;
+                ">
+                    Financial Figures
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    color:#737c8b;
+                    line-height:1.7;
+                    margin-bottom:12px;
+                ">
+
+                    Figures such as the following are
+                    <strong style="color:#343b48;">
+                        money values in Kwacha (K)
+                    </strong>:
+
+                </div>
+
+
+                <div style="
+                    display:flex;
+                    flex-wrap:wrap;
+                    gap:7px;
+                ">
+
+                    @foreach([
+                        'Actual Disbursed',
+                        'Collections',
+                        'Defaults',
+                        'Salaries',
+                        'Operating Costs',
+                        'Irregular Cost Reserve',
+                        'Residual Cash',
+                        'Net Contribution'
+                    ] as $item)
+
+                        <span style="
+                            padding:6px 8px;
+                            background:#f7f8fa;
+                            border:1px solid #edf0f3;
+                            border-radius:6px;
+                            font-size:10px;
+                            color:#596273;
+                        ">
+                            {{ $item }}
+                        </span>
+
+                    @endforeach
+
+                </div>
+
+            </div>
+
+
+
+            {{-- ================================================= --}}
+            {{-- CASH CYCLE                                        --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                padding-top:22px;
+                border-top:1px solid #edf0f3;
+                margin-bottom:25px;
+            ">
+
+                <div style="
+                    font-size:14px;
+                    font-weight:700;
+                    color:#202633;
+                    margin-bottom:8px;
+                ">
+                    Cash Cycle
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    color:#737c8b;
+                    line-height:1.7;
+                ">
+
+                    Cash Health is measured using a monthly cycle
+                    running from the
+
+                    <strong style="color:#202633;">
+                        25th of one month
+                    </strong>
+
+                    to the
+
+                    <strong style="color:#202633;">
+                        24th of the following month.
+                    </strong>
+
+                </div>
+
+
+                <div style="
+                    margin-top:10px;
+                    padding:11px 12px;
+                    background:#f8fafc;
+                    border-radius:8px;
+                    text-align:center;
+                    font-size:12px;
+                    font-weight:700;
+                    color:#343b48;
+                ">
+
+                    25 Aug 2026
+                    <span style="color:#9aa2af;margin:0 5px;">
+                        →
+                    </span>
+                    24 Sep 2026
+
+                </div>
+
+            </div>
+
+
+
+            {{-- ================================================= --}}
+            {{-- IMPORTANT REMINDER                               --}}
+            {{-- ================================================= --}}
+
+            <div style="
+                background:#f8fafc;
+                border:1px solid #e4e8ee;
+                border-radius:12px;
+                padding:15px;
+            ">
+
+                <div style="
+                    display:flex;
+                    gap:10px;
+                    align-items:flex-start;
+                ">
+
+                    <div style="
+                        width:30px;
+                        height:30px;
+                        min-width:30px;
+                        border-radius:8px;
+                        background:#eaf2ff;
+                        color:#3677e8;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:12px;
+                    ">
+                        <i class="fa fa-lightbulb"></i>
+                    </div>
+
+
+                    <div>
+
+                        <div style="
+                            font-size:12px;
+                            font-weight:700;
+                            color:#202633;
+                            margin-bottom:4px;
+                        ">
+                            Remember
+                        </div>
+
+                        <div style="
+                            font-size:11px;
+                            color:#737c8b;
+                            line-height:1.6;
+                        ">
+
+                            Review trends across multiple cycles,
+                            not just one good or bad period.
+
+                            A single cycle provides a snapshot;
+                            several cycles show the underlying trend.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
 </div>
 
 
+{{-- ========================================================= --}}
+{{-- GUIDE JAVASCRIPT                                          --}}
+{{-- ========================================================= --}}
 
-</div>
+<script>
+
+function openCashHealthGuide() {
+
+    const overlay =
+        document.getElementById('cashHealthGuideOverlay');
+
+    const guide =
+        document.getElementById('cashHealthGuide');
+
+
+    overlay.style.display = 'block';
+
+
+    // Small delay allows the transition to animate
+
+    setTimeout(function () {
+
+        guide.style.transform =
+            'translateX(0)';
+
+    }, 10);
+
+    document.body.style.overflow = 'hidden';
+
+}
+
+
+function closeCashHealthGuide(event) {
+
+    // If called by clicking the overlay,
+    // only close when the overlay itself was clicked.
+
+    if (
+        event &&
+        event.target !==
+        document.getElementById(
+            'cashHealthGuideOverlay'
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const overlay =
+        document.getElementById(
+            'cashHealthGuideOverlay'
+        );
+
+    const guide =
+        document.getElementById(
+            'cashHealthGuide'
+        );
+
+
+    guide.style.transform =
+        'translateX(100%)';
+
+
+    setTimeout(function () {
+
+        overlay.style.display =
+            'none';
+
+    }, 250);
+
+
+    document.body.style.overflow = '';
+
+}
+
+
+// Close guide with ESC key
+
+document.addEventListener(
+    'keydown',
+    function(event) {
+
+        if (event.key === 'Escape') {
+
+            const overlay =
+                document.getElementById(
+                    'cashHealthGuideOverlay'
+                );
+
+            if (
+                overlay &&
+                overlay.style.display !== 'none'
+            ) {
+
+                closeCashHealthGuide();
+
+            }
+
+        }
+
+    }
+);
+
+</script>
+
 @endsection
 
 
@@ -1830,9 +2992,7 @@
 /* ============================================================
    NATIONAL CONTRIBUTION GRAPH
    ============================================================ */
-
-const nationalContributionData =
-    @json($nationalContribution['graph'] ?? []);
+let nationalContributionData = [];
 
 let nationalContributionChart = null;
 
@@ -2214,6 +3374,68 @@ function updateContributionGraph()
         );
 }
 
+async function loadNationalContribution() {
+
+    const loading = document.getElementById('contributionLoading');
+    const graphContainer = document.getElementById('contributionGraphContainer');
+
+    if (loading) {
+        loading.style.display = 'block';
+    }
+
+    if (graphContainer) {
+        graphContainer.style.display = 'none';
+    }
+
+    try {
+
+        const response = await fetch(
+            'https://lms2backend.whencefinancesystem.com/cash-health/national/contributions'
+        );
+
+        if (!response.ok) {
+            throw new Error('Unable to retrieve contribution history');
+        }
+
+        const data = await response.json();
+
+        nationalContributionData = data.graph || [];
+
+        updateContributionGraph();
+
+        if (loading) {
+            loading.style.display = 'none';
+        }
+
+        if (graphContainer) {
+            graphContainer.style.display = 'block';
+        }
+
+    } catch (error) {
+
+        console.error(
+            'National contribution loading error:',
+            error
+        );
+
+        if (loading) {
+            loading.innerHTML = `
+                <i class="fa fa-exclamation-triangle"
+                   style="font-size:24px;"></i>
+
+                <div style="margin-top:10px;">
+                    Unable to load contribution history.
+                </div>
+
+                <small>
+                    Please refresh the page and try again.
+                </small>
+            `;
+        }
+
+    }
+}
+
 
 /*
 |--------------------------------------------------------------------------
@@ -2225,12 +3447,9 @@ document.addEventListener(
     'DOMContentLoaded',
     function()
     {
-
-        updateContributionGraph();
-
+        loadNationalContribution();
     }
 );
-
     
 
 function toggleNationalOffice(id)
