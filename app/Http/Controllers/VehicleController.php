@@ -887,13 +887,27 @@ public function searchClients(Request $request)
 
     $recentLoans = $query
         ->orderBy('created_date', 'desc')
+        ->with([
+            'client',
+            'loanConsultant',
+            'vehicle',
+            'vehicle.photos',
+            'vehicle.custody.receiver',
+            'vehicle.inspections',
+            'vehicle.valuations',
+            'vehicle.valuations.valuator',
+        ])
         ->paginate(20)
         ->appends($request->all());
 
     $offices = Office::orderBy('name')->get();
 
     $statuses = [];
-    $allLoans = Loan::where('loan_product_id', 0)->with('client')->get();
+    $allLoans = Loan::where('loan_product_id', 0)->with([
+        'client',
+        'vehicle.ownershipRecords',
+        'complianceScreenings',
+    ])->get();
     foreach ($allLoans as $loan) {
         $kycCompleted = false;
         $complianceCompleted = false;
@@ -910,15 +924,12 @@ public function searchClients(Request $request)
                 }
             }
 
-            $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
+            $complianceCompleted = $loan->complianceScreenings
                 ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
-                ->exists();
-            $complianceCompleted = $compliance;
+                ->isNotEmpty();
 
-            $vehicle = Vehicle::where('loan_id', $loan->id)->first();
-            if ($vehicle) {
-                $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
-                $ownershipCompleted = $ownership;
+            if ($loan->vehicle) {
+                $ownershipCompleted = $loan->vehicle->ownershipRecords->isNotEmpty();
             }
         }
 
@@ -1100,6 +1111,10 @@ public function sales(Request $request)
                 'vehicle.inspections',
                 'vehicle.valuations',
                 'vehicle.custody.receiver',
+                'vehicle.photos',
+                'vehicle.ownershipRecords',
+                'vehicle.custody',
+                'complianceScreenings',
             ]);
 
         if ($request->filled('office')) {
@@ -1149,15 +1164,12 @@ public function sales(Request $request)
                     }
                 }
 
-                $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
-                    ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
-                    ->exists();
-                $complianceCompleted = $compliance;
+                $complianceCompleted = $loan->relationLoaded('complianceScreenings')
+                    && $loan->complianceScreenings->whereIn('status', ['cleared', 'flagged', 'requires_review'])->isNotEmpty();
 
-                $vehicle = Vehicle::where('loan_id', $loan->id)->first();
-                if ($vehicle) {
-                    $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
-                    $ownershipCompleted = $ownership;
+                $vehicle = $loan->vehicle;
+                if ($vehicle && $vehicle->relationLoaded('ownershipRecords')) {
+                    $ownershipCompleted = $vehicle->ownershipRecords->isNotEmpty();
                 }
             }
 
@@ -1219,10 +1231,14 @@ return view(
 
     public function disposalRegister(Request $request)
     {
+        $mvlService = app(\App\Services\MVLService::class);
+        $mvlService->week1reminder();
+        $mvlService->month1reminder();
+
         $query = Loan::where('loan_product_id', 0)
             ->where(function ($q) {
                 $q->where('status', 'disbursed')
-                  ->orWhere('defaulted', 'yes');
+                  ->orWhere('status','defaulted');
             })
             ->whereNotNull('first_repayment_date')
             ->where('first_repayment_date', '<', Carbon::now()->subMonth())
@@ -1237,7 +1253,11 @@ return view(
                 'vehicle.inspections',
                 'vehicle.valuations',
                 'vehicle.custody.receiver',
+                'vehicle.photos',
+                'vehicle.ownershipRecords',
+                'complianceScreenings',
             ]);
+
 
         if ($request->filled('office')) {
             $query->where('office_id', $request->office);
@@ -1285,15 +1305,12 @@ return view(
                     }
                 }
 
-                $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
-                    ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
-                    ->exists();
-                $complianceCompleted = $compliance;
+                $complianceCompleted = $loan->relationLoaded('complianceScreenings')
+                    && $loan->complianceScreenings->whereIn('status', ['cleared', 'flagged', 'requires_review'])->isNotEmpty();
 
-                $vehicle = Vehicle::where('loan_id', $loan->id)->first();
-                if ($vehicle) {
-                    $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
-                    $ownershipCompleted = $ownership;
+                $vehicle = $loan->vehicle;
+                if ($vehicle && $vehicle->relationLoaded('ownershipRecords')) {
+                    $ownershipCompleted = $vehicle->ownershipRecords->isNotEmpty();
                 }
             }
 

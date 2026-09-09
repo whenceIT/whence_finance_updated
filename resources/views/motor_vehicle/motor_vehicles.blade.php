@@ -148,7 +148,11 @@
                                              style="height: 50px; width: auto; object-fit: cover; border-radius: 4px; cursor: pointer;"
                                              alt="Vehicle photo">
                                     @else
-                                        <span class="text-muted">No photo</span>
+                                        <img src="https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"
+                                             class="vehicle-photo-thumb"
+                                             data-photos='["https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"]'
+                                             style="height: 50px; width: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                                             alt="No photo">
                                     @endif
                                 </td>
 

@@ -426,6 +426,7 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::any('store', 'VehicleController@store');
     Route::get('search-clients', 'VehicleController@searchbClients');
     Route::get('custody-register', 'MotorVehicleLoanLifecycleController@custodyRegister');
+    Route::get('disposal-register', 'VehicleController@disposalRegister')->name('vehicles.disposal-register');
     Route::get('vehicle-custody/pending-approval','VehicleController@getPendingCustodyApprovals');
     Route::get('{vehicle}/custody/create','VehicleController@createCustody');
     Route::any('{vehicle}/custody','VehicleController@storeCustody');
@@ -484,7 +485,6 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('custody-register', 'MotorVehicleLoanLifecycleController@custodyRegister')->name('vehicles.custody-register');
     Route::get('{vehicle}/custody-register', 'MotorVehicleLoanLifecycleController@custodyRegister')->name('vehicles.custody-register.show');
     Route::post('{vehicle}/store-intake', 'MotorVehicleLoanLifecycleController@storeIntake')->name('vehicles.store-intake');
-    Route::get('disposal-register', 'VehicleController@disposalRegister')->name('vehicles.disposal-register');
 }); 
 
 Route::group(['prefix' => 'payrollloans'], function () {
