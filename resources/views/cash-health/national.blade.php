@@ -176,11 +176,12 @@
 
         $scores =
             $nationalHealth['scores'] ?? [];
-
-        $status =
-            strtoupper(
-                $scores['status'] ?? 'RED'
-            );
+$status = match (strtolower($scores['status'] ?? 'red')) {
+    'red'   => 'At Risk',
+    'amber' => 'Needs Attention',
+    'green' => 'Healthy',
+    default => 'At Risk',
+};
 
 
         /*
@@ -218,256 +219,126 @@
 {{-- HEADER --}}
 <div style="margin-bottom:22px;">
 
-    <div class="cash-health-top">
+{{-- ========================================================= --}}
+{{-- HEADER --}}
+{{-- ========================================================= --}}
 
-        {{-- TITLE --}}
-        <div>
+<div class="cash-health-top">
 
-            <div style="
-                font-size:10px;
-                font-weight:700;
-                letter-spacing:1.5px;
-                color:#8a93a3;
-                margin-bottom:5px;
-            ">
-                CASH MANAGEMENT
-            </div>
-
-            <h1 class="cash-health-title" style="
-                font-size:28px;
-                font-weight:700;
-                margin:0;
-                color:#202633;
-                letter-spacing:-.6px;
-                line-height:1.2;
-            ">
-                National Cash Health
-            </h1>
-
-            <div style="
-                color:#697386;
-                margin-top:5px;
-                font-size:13px;
-            ">
-                Organization-wide cash position
-            </div>
-
+    {{-- TITLE --}}
+    <div>
+        <div style="
+            font-size:10px;
+            font-weight:700;
+            letter-spacing:1.5px;
+            color:#8a93a3;
+            margin-bottom:5px;
+        ">
+            CASH MANAGEMENT
         </div>
 
+        <h1 class="cash-health-title" style="
+            font-size:28px;
+            font-weight:700;
+            margin:0;
+            color:#202633;
+            letter-spacing:-.6px;
+            line-height:1.2;
+        ">
+            National Cash Health
+        </h1>
 
-        {{-- RIGHT SIDE --}}
-        <div class="cash-health-controls">
-
-
-            {{-- GUIDE BUTTON --}}
-            <button
-                type="button"
-                onclick="openCashHealthGuide()"
-                style="
-                    height:38px;
-                    border:1px solid #dfe3e8;
-                    background:#fff;
-                    color:#343b48;
-                    border-radius:8px;
-                    padding:0 13px;
-                    font-size:12px;
-                    font-weight:600;
-                    cursor:pointer;
-                    white-space:nowrap;
-                "
-            >
-                <i class="fa fa-info-circle" style="margin-right:5px;"></i>
-                Cash Health Guide
-            </button>
-
-
-            {{-- CASH CYCLE --}}
-            <div
-                class="cash-cycle-selector"
-                style="
-                    display:flex;
-                    align-items:center;
-                    gap:10px;
-                    height:38px;
-                    padding:0 10px 0 13px;
-                    background:#fff;
-                    border:1px solid #e1e5eb;
-                    border-radius:8px;
-                "
-            >
-
-                <span style="
-                    font-size:10px;
-                    font-weight:700;
-                    letter-spacing:.7px;
-                    color:#8a93a3;
-                    white-space:nowrap;
-                ">
-                    CASH CYCLE
-                </span>
-
-                <form
-                    method="GET"
-                    action="{{ route('cash_health.national') }}"
-                    style="margin:0;"
-                >
-
-                    <select
-                        name="cycle_start"
-                        onchange="this.form.submit()"
-                        class="cash-cycle-select"
-                        style="
-                            border:none;
-                            padding:0 20px 0 0;
-                            font-size:12px;
-                            font-weight:600;
-                            color:#343b48;
-                            background:#fff;
-                            cursor:pointer;
-                            outline:none;
-                        "
-                    >
-
-                        @foreach($availableCycles as $availableCycle)
-
-                            <option
-                                value="{{ $availableCycle['start'] }}"
-                                {{ $cycleStart === $availableCycle['start'] ? 'selected' : '' }}
-                            >
-                                {{ \Carbon\Carbon::parse($availableCycle['start'])->format('d M Y') }}
-                                →
-                                {{ \Carbon\Carbon::parse($availableCycle['end'])->format('d M Y') }}
-                            </option>
-
-                        @endforeach
-
-                    </select>
-
-                </form>
-
-            </div>
-
+        <div style="
+            color:#697386;
+            margin-top:5px;
+            font-size:13px;
+        ">
+            Organization-wide cash position ||   {{ $nationalHealth['office_count'] ?? 0 }} offices
         </div>
-
     </div>
 
 
-    {{-- QUICK GUIDE --}}
-    <div class="cash-health-guide">
+    {{-- RIGHT SIDE --}}
+    <div class="cash-health-controls">
 
-        <div class="cash-health-guide-grid">
+        {{-- GUIDE BUTTON --}}
+        <button
+            type="button"
+            onclick="openCashHealthGuide()"
+            style="
+                height:38px;
+                border:1px solid #dfe3e8;
+                background:#fff;
+                color:#343b48;
+                border-radius:8px;
+                padding:0 13px;
+                font-size:12px;
+                font-weight:600;
+                cursor:pointer;
+                white-space:nowrap;
+            "
+        >
+            <i class="fa fa-info-circle" style="margin-right:5px;"></i>
+            Cash Health Guide
+        </button>
 
 
-            {{-- TITLE --}}
-            <div
-                class="guide-section"
-                style="background:#f8fafc;"
+        {{-- CASH CYCLE --}}
+        <div
+            class="cash-cycle-selector"
+            style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                height:38px;
+                padding:0 10px 0 13px;
+                background:#fff;
+                border:1px solid #e1e5eb;
+                border-radius:8px;
+            "
+        >
+            <span style="
+                font-size:10px;
+                font-weight:700;
+                letter-spacing:.7px;
+                color:#8a93a3;
+                white-space:nowrap;
+            ">
+                CASH CYCLE
+            </span>
+
+            <form
+                method="GET"
+                action="{{ route('cash_health.national') }}"
+                style="margin:0;"
             >
-                <div style="
-                    font-size:15px;
-                    font-weight:700;
-                    letter-spacing:.8px;
-                    color:#8a93a3;
-                    text-transform:uppercase;
-                ">
-                    Quick Guide
-                </div>
-
-                <div style="
-                    font-size:15px;
-                    font-weight:700;
-                    color:#202633;
-                    margin-top:3px;
-                ">
-                    How to read it
-                </div>
-            </div>
-
-
-            {{-- OVERALL SCORE --}}
-            <div class="guide-section">
-
-                <div class="guide-heading">
-                    Overall Score <span style="color:#9aa2af;font-weight:400;">/ 100</span>
-                </div>
-
-                <div class="status-bands">
-
-                    <span class="status-band status-healthy">
-                        80–100 Healthy
-                    </span>
-
-                    <span class="status-band status-attention">
-                        60–79 Attention
-                    </span>
-
-                    <span class="status-band status-risk">
-                        0–59 At Risk
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            {{-- SCORE WEIGHT --}}
-            <div class="guide-section">
-
-                <div class="guide-heading">
-                    Score Weight
-                </div>
-
-                <div class="score-weights">
-
-                    <span>
-                        <strong>35%</strong> Disbursement
-                    </span>
-
-                    <span>
-                        <strong>35%</strong> Collection
-                    </span>
-
-                    <span>
-                        <strong>30%</strong> Residual
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            {{-- FINANCIAL VALUES --}}
-            <div class="guide-section">
-
-                <div class="guide-heading">
-                    Financial Values
-                </div>
-
-                <div class="guide-text">
-                    <strong style="color:#343b48;">K</strong>
-                    = Kwacha
-                    <span style="margin:0 5px;color:#c5cad2;">•</span>
-                    <strong style="color:#343b48;">%</strong>
-                    = Percentage
-                </div>
-
-            </div>
-
-
-            {{-- CASH CYCLE --}}
-            <div class="guide-section">
-
-                <div class="guide-heading">
-                    Cash Cycle
-                </div>
-
-                <div class="guide-text">
-                    25th → 24th Monthly
-                </div>
-
-            </div>
-
-
+                <select
+                    name="cycle_start"
+                    onchange="this.form.submit()"
+                    class="cash-cycle-select"
+                    style="
+                        border:none;
+                        padding:0 20px 0 0;
+                        font-size:12px;
+                        font-weight:600;
+                        color:#343b48;
+                        background:#fff;
+                        cursor:pointer;
+                        outline:none;
+                    "
+                >
+                    @foreach($availableCycles as $availableCycle)
+                        <option
+                            value="{{ $availableCycle['start'] }}"
+                            {{ $cycleStart === $availableCycle['start'] ? 'selected' : '' }}
+                        >
+                            {{ \Carbon\Carbon::parse($availableCycle['start'])->format('d M Y') }}
+                            →
+                            {{ \Carbon\Carbon::parse($availableCycle['end'])->format('d M Y') }}
+                        </option>
+                    @endforeach
+                </select>
+            </form>
         </div>
 
     </div>
@@ -475,200 +346,59 @@
 </div>
 
 
+{{-- ========================================================= --}}
+{{-- INSTITUTION CASH BALANCE --}}
+{{-- ========================================================= --}}
 
-    {{-- ========================================================= --}}
-    {{-- SUMMARY CARDS --}}
-    {{-- ========================================================= --}}
+<div style="
+    margin-top:22px;
+    background:#fff;
+    border:1px solid #dfe3e8;
+    border-radius:12px;
+    padding:24px 26px;
+    box-shadow:0 2px 8px rgba(20,30,50,.04);
+">
 
-      <div style="
-        display:grid;
-        grid-template-columns:repeat(4,1fr);
-        gap:18px;
-        margin-bottom:24px;
+    <div style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:20px;
+        flex-wrap:wrap;
     ">
 
-
-        {{-- OVERALL SCORE --}}
-
-        <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
-        ">
+        {{-- LABEL --}}
+        <div>
 
             <div style="
                 font-size:11px;
                 font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
+                letter-spacing:1.2px;
+                color:#7b8494;
+                text-transform:uppercase;
+                margin-bottom:7px;
             ">
-                INSTITUTION CASH HEALTH SCORE
+                Institution Cash Balance
             </div>
 
-
             <div style="
-                font-size:38px;
-                font-weight:700;
-                margin-top:8px;
-                color:#202633;
+                font-size:12px;
+                color:#697386;
             ">
-
-                {{ number_format(
-                    $scores['overall'] ?? 0,
-                    0
-                ) }}
-
-            </div>
-
-
-            <span style="
-                display:inline-block;
-                margin-top:8px;
-                padding:5px 10px;
-                border-radius:20px;
-                background:{{ $statusBackground }};
-                color:{{ $statusColor }};
-                font-size:10px;
-                font-weight:700;
-            ">
-
-                {{ $status }}
-
-            </span>
-
-        </div>
-
-
-
-        {{-- RESIDUAL CASH --}}
-
-        <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
-        ">
-
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
-            ">
-                RESIDUAL CASH
-            </div>
-
-
-            <div style="
-                font-size:27px;
-                font-weight:700;
-                margin-top:12px;
-                color:{{ ($financials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#202633' }};
-            ">
-
-                K{{ number_format(
-                    $financials['residual_cash'] ?? 0,
-                    2
-                ) }}
-
+                Total available cash across the institution excluding bank 
             </div>
 
         </div>
 
 
-
-        {{-- NET CASH --}}
-
+        {{-- BALANCE --}}
         <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
+            text-align:right;
+            margin-left:auto;
         ">
 
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
-            ">
-                NET CASH POSITION
-            </div>
-
-
-            <div style="
-                font-size:27px;
-                font-weight:700;
-                margin-top:12px;
-                color:{{ ($financials['net_cash_position'] ?? 0) < 0 ? '#dc2626' : '#202633' }};
-            ">
-
-                K{{ number_format(
-                    $financials['net_cash_position'] ?? 0,
-                    2
-                ) }}
-
-            </div>
-
-        </div>
-
-
-
-        {{-- OFFICES --}}
-
-        <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
-        ">
-
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
-            ">
-                OFFICES
-            </div>
-
-
-            <div style="
-                font-size:28px;
-                font-weight:700;
-                margin-top:12px;
-                color:#202633;
-            ">
-
-                {{ $nationalHealth['office_count'] ?? 0 }}
-
-            </div>
-
-        </div>
-
-
-          {{-- ACTUAL CASH --}}
-
-        <div style="
-            background:#fff;
-            border:1px solid #e6e9ef;
-            border-radius:14px;
-            padding:22px;
-        ">
-
-            <div style="
-                font-size:11px;
-                font-weight:700;
-                color:#8a93a3;
-                letter-spacing:1px;
-            ">
-                INSTITUTION CASH BALANCE
-            </div>
-
-
-            <div style="
-                font-size:27px;
+                <div style="
+                font-size:40px;
                 font-weight:700;
                 margin-top:12px;
                 color:{{ ($totalBalance ?? 0) < 0 ? '#15803d' : '#15803d' }};
@@ -681,152 +411,494 @@
 
             </div>
 
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- QUICK GUIDE --}}
+{{-- ========================================================= --}}
+
+<div class="cash-health-guide" style="margin-top:22px;">
+
+<div class="cash-health-guide-grid" style="
+    display:grid;
+    grid-template-columns:160px 1fr 1fr;
+">
+
+    {{-- GUIDE TITLE --}}
+    <div
+        class="guide-section"
+        style="
+            background:#f8fafc;
+            display:flex;
+            align-items:center;
+        "
+    >
+        <div>
+            <div style="
+                font-size:15px;
+                font-weight:700;
+                letter-spacing:.8px;
+                color:#343b48;
+                text-transform:uppercase;
+                margin-bottom:5px;
+            ">
+                Guide
+            </div>
+        </div>
+    </div>
+
+
+    {{-- OVERALL SCORE --}}
+    <div class="guide-section">
+
+        <div class="guide-heading">
+            Overall Score
+            <span style="
+                color:#9aa2af;
+                font-weight:400;
+            ">
+                / 100
+            </span>
+        </div>
+
+        <div class="status-bands">
+
+            <span class="status-band status-healthy">
+                80–100 Healthy
+            </span>
+
+            <span class="status-band status-attention">
+                60–79 Attention
+            </span>
+
+            <span class="status-band status-risk">
+                0–59 At Risk
+            </span>
+
         </div>
 
     </div>
 
 
-    {{-- ========================================================= --}}
-    {{-- NATIONAL SCORE --}}
-    {{-- ========================================================= --}}
+    {{-- SCORE WEIGHT --}}
+    <div class="guide-section">
 
-       <div style="
-        background:#fff;
-        border:1px solid #e6e9ef;
-        border-radius:14px;
-        padding:25px;
-        margin-bottom:24px;
-    ">
+        <div class="guide-heading">
+            Score Weight
+        </div>
+
+        <div class="score-weights">
+
+            <span>
+                <strong>35%</strong>
+                Disbursement
+            </span>
+
+            <span>
+                <strong>35%</strong>
+                Collection
+            </span>
+
+            <span>
+                <strong>30%</strong>
+                Residual
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- SUMMARY CARDS --}}
+{{-- ========================================================= --}}
+
+<style>
+
+    .cash-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .cash-summary-card {
+        background: #fff;
+        border: 1px solid #e6e9ef;
+        border-radius: 14px;
+        padding: 22px;
+    }
+
+    .cash-summary-description {
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.6;
+        font-weight: 600;
+        color: #4b5563;
+    }
+
+
+    /* Tablet */
+
+    @media (max-width: 900px) {
+
+        .cash-summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+    }
+
+
+    /* Mobile */
+
+    @media (max-width: 600px) {
+
+        .cash-summary-grid {
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .cash-summary-card {
+            padding: 18px;
+        }
+
+    }
+
+</style>
+
+
+<div class="cash-summary-grid">
+
+
+    {{-- ===================================================== --}}
+    {{-- OVERALL SCORE --}}
+    {{-- ===================================================== --}}
+
+    <div class="cash-summary-card">
+
+        <div style="
+            font-size:11px;
+            font-weight:700;
+            color:#8a93a3;
+            letter-spacing:1px;
+        ">
+            INSTITUTION CASH HEALTH SCORE
+        </div>
 
 
         <div style="
-            font-size:16px;
+            font-size:38px;
             font-weight:700;
+            margin-top:8px;
             color:#202633;
-            margin-bottom:20px;
         ">
-            National Score
+
+            {{ number_format(
+                $scores['overall'] ?? 0,
+                0
+            ) }}
+
         </div>
 
 
-        @php
+        <span style="
+            display:inline-block;
+            margin-top:8px;
+            padding:5px 10px;
+            border-radius:20px;
+            background:{{ $statusBackground }};
+            color:{{ $statusColor }};
+            font-size:10px;
+            font-weight:700;
+        ">
 
-            $scoreRows = [
+            {{ $status }}
 
-                [
-                    'name' => 'Disbursement',
-                    'value' => $scores['disbursement'] ?? 0
-                ],
-
-                [
-                    'name' => 'Collection Quality',
-                    'value' => $scores['collection'] ?? 0
-                ],
-
-                [
-                    'name' => 'Residual Cash',
-                    'value' => $scores['residual_cash'] ?? 0
-                ],
-
-            ];
-
-        @endphp
+        </span>
 
 
-        @foreach($scoreRows as $score)
+        <div class="cash-summary-description">
+            A score from <strong>0–100</strong> showing the
+            institution's overall cash health. Higher scores
+            indicate better cash health.
+        </div>
+
+    </div>
+
+
+
+    {{-- ===================================================== --}}
+    {{-- RESIDUAL CASH --}}
+    {{-- ===================================================== --}}
+
+    <div class="cash-summary-card">
+
+        <div style="
+            font-size:11px;
+            font-weight:700;
+            color:#8a93a3;
+            letter-spacing:1px;
+        ">
+            RESIDUAL CASH
+        </div>
+
+
+        <div style="
+            font-size:27px;
+            font-weight:700;
+            margin-top:12px;
+            color:{{ ($financials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#202633' }};
+        ">
+
+            K{{ number_format(
+                $financials['residual_cash'] ?? 0,
+                2
+            ) }}
+
+        </div>
+
+
+        <div class="cash-summary-description">
+            The amount of cash remaining after expected costs,
+            reserves and other financial obligations are accounted for.
+        </div>
+
+    </div>
+
+
+
+    {{-- ===================================================== --}}
+    {{-- NET CASH POSITION --}}
+    {{-- ===================================================== --}}
+
+    <div class="cash-summary-card">
+
+        <div style="
+            font-size:11px;
+            font-weight:700;
+            color:#8a93a3;
+            letter-spacing:1px;
+        ">
+            NET CASH POSITION
+        </div>
+
+
+        <div style="
+            font-size:27px;
+            font-weight:700;
+            margin-top:12px;
+            color:{{ ($financials['net_cash_position'] ?? 0) < 0 ? '#dc2626' : '#202633' }};
+        ">
+
+            K{{ number_format(
+                $financials['net_cash_position'] ?? 0,
+                2
+            ) }}
+
+        </div>
+
+
+        <div class="cash-summary-description">
+            The net cash value generated after collections,
+            disbursements and operating costs are accounted for.
+        </div>
+
+    </div>
+
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- NATIONAL SCORE --}}
+{{-- ========================================================= --}}
+
+<div style="
+    background:#fff;
+    border:1px solid #e6e9ef;
+    border-radius:14px;
+    padding:25px;
+    margin-bottom:24px;
+">
+
+    <div style="
+        font-size:16px;
+        font-weight:700;
+        color:#202633;
+        margin-bottom:20px;
+    ">
+        National Score
+    </div>
+
+
+    @php
+
+        $scoreRows = [
+
+            [
+                'name' => 'Disbursement',
+                'value' => $scores['disbursement'] ?? 0,
+                'description' => 'A 0–100 score showing how much of the minimum loan target has been disbursed. A higher score means the institution is closer to meeting its lending target.'
+            ],
+
+            [
+                'name' => 'Collection Quality',
+                'value' => $scores['collection'] ?? 0,
+                'description' => 'A 0–100 score showing the quality of loan collections. It considers outstanding defaults and how consistently customers make full payments.'
+            ],
+
+            [
+                'name' => 'Residual Cash',
+                'value' => $scores['residual_cash'] ?? 0,
+                'description' => 'A 0–100 score showing whether the institution has enough residual cash to cover its expected financial obligations. A higher score means stronger cash coverage.'
+            ],
+
+        ];
+
+    @endphp
+
+
+    @foreach($scoreRows as $score)
+
+        <div style="
+            margin-bottom:24px;
+        ">
+
+
+            {{-- SCORE HEADER --}}
 
             <div style="
-                margin-bottom:18px;
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:20px;
+                margin-bottom:7px;
             ">
 
 
-                <div style="
-                    display:flex;
-                    justify-content:space-between;
-                    margin-bottom:7px;
-                ">
-
-                    <span style="
-                        font-size:13px;
-                        color:#4b5563;
-                    ">
-                        {{ $score['name'] }}
-                    </span>
-
-
-                    <strong style="
-                        font-size:13px;
-                        color:#202633;
-                    ">
-
-                        {{ number_format(
-                            $score['value'],
-                            0
-                        ) }}
-
-                    </strong>
-
-                </div>
-
+                {{-- NAME + DESCRIPTION --}}
 
                 <div style="
-                    width:100%;
-                    height:8px;
-                    background:#edf0f4;
-                    border-radius:10px;
-                    overflow:hidden;
+                    flex:1;
                 ">
 
                     <div style="
-                        width:{{ min(100,max(0,$score['value'])) }}%;
-                        height:100%;
-                        background:{{ $statusColor }};
-                        border-radius:10px;
-                    "></div>
+                        font-size:13px;
+                        font-weight:700;
+                        color:#202633;
+                    ">
+                        {{ $score['name'] }}
+                    </div>
+
+
+                    <div style="
+                        margin-top:4px;
+                        font-size:11px;
+                        line-height:1.5;
+                        font-weight:600;
+                        color:#697386;
+                        max-width:850px;
+                    ">
+                        {{ $score['description'] }}
+                    </div>
 
                 </div>
 
-            </div>
 
-        @endforeach
-
-
-
-        {{-- REASON --}}
-
-        @if(!empty($nationalHealth['reason']))
-
-            <div style="
-                margin-top:22px;
-                padding:14px 16px;
-                border-radius:10px;
-                background:#f7f8fa;
-                color:#4b5563;
-                font-size:13px;
-                line-height:1.6;
-            ">
-
+                {{-- SCORE VALUE --}}
 
                 <strong style="
+                    font-size:14px;
                     color:#202633;
+                    white-space:nowrap;
                 ">
-                    Why this score?
+
+                    {{ number_format(
+                        $score['value'],
+                        0
+                    ) }}/100
+
                 </strong>
-
-
-                <div style="
-                    margin-top:4px;
-                ">
-
-                    {{ $nationalHealth['reason'] }}
-
-                </div>
 
             </div>
 
-        @endif
 
-    </div>
+            {{-- PROGRESS BAR --}}
+
+            <div style="
+                width:100%;
+                height:8px;
+                background:#edf0f4;
+                border-radius:10px;
+                overflow:hidden;
+                margin-top:9px;
+            ">
+
+                <div style="
+                    width:{{ min(100,max(0,$score['value'])) }}%;
+                    height:100%;
+                    background:{{ $statusColor }};
+                    border-radius:10px;
+                "></div>
+
+            </div>
+
+        </div>
+
+    @endforeach
+
+
+
+    {{-- ===================================================== --}}
+    {{-- REASON --}}
+    {{-- ===================================================== --}}
+
+    @if(!empty($nationalHealth['reason']))
+
+        <div style="
+            margin-top:22px;
+            padding:14px 16px;
+            border-radius:10px;
+            background:#f7f8fa;
+            color:#4b5563;
+            font-size:13px;
+            line-height:1.6;
+        ">
+
+            <strong style="
+                color:#202633;
+            ">
+                Why this score?
+            </strong>
+
+
+            <div style="
+                margin-top:4px;
+            ">
+
+                {{ $nationalHealth['reason'] }}
+
+            </div>
+
+        </div>
+
+    @endif
+
+</div>
+
+
 
 
 
@@ -1019,145 +1091,291 @@
 
 
 
-    {{-- ========================================================= --}}
-    {{-- OFFICE LIST --}}
-    {{-- ========================================================= --}}
+{{-- ========================================================= --}}
+{{-- OFFICE LIST --}}
+{{-- ========================================================= --}}
+
+<div style="
+    background:#fff;
+    border:1px solid #e6e9ef;
+    border-radius:14px;
+    overflow:hidden;
+">
+
+    {{-- HEADER --}}
 
     <div style="
-        background:#fff;
-        border:1px solid #e6e9ef;
-        border-radius:14px;
-        overflow:hidden;
+        padding:20px 22px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        border-bottom:1px solid #edf0f4;
     ">
 
+        <div>
 
-        {{-- HEADER --}}
-
-        <div style="
-            padding:20px 22px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            border-bottom:1px solid #edf0f4;
-        ">
-
-
-            <div>
-
-                <div style="
-                    font-size:16px;
-                    font-weight:700;
-                    color:#202633;
-                ">
-                    National Cash Health
-                </div>
-
-
-                <div style="
-                    font-size:12px;
-                    color:#8a93a3;
-                    margin-top:3px;
-                ">
-                    Review cash health across all provinces, distircts and offices
-                </div>
-
+            <div style="
+                font-size:16px;
+                font-weight:700;
+                color:#202633;
+            ">
+                National Cash Health
             </div>
-
 
             <div style="
                 font-size:12px;
-                color:#697386;
+                color:#4b5563;
+                margin-top:5px;
+                line-height:1.5;
+                font-weight:500;
             ">
-
-                {{ count(
-                    $nationalHealth['offices'] ?? []
-                ) }}
-
-                offices
-
+                Review the cash health of the institution by province,
+                district and office.
             </div>
 
         </div>
 
-
-
-        {{-- TABLE --}}
-
-        <table style="
-            width:100%;
-            border-collapse:collapse;
+        <div style="
+            font-size:12px;
+            color:#4b5563;
+            font-weight:600;
         ">
 
+            {{ count($nationalHealth['provinces'] ?? []) }}
 
-            <thead>
+            provinces
 
-                <tr style="
-                    background:#fafbfc;
+        </div>
+
+    </div>
+
+
+    {{-- TABLE GUIDE --}}
+
+    <div style="
+        padding:16px 22px;
+        background:#f3f5f8;
+        border-bottom:1px solid #dfe3e8;
+        font-size:13px;
+        color:#374151;
+        line-height:1.7;
+    ">
+
+        <strong style="
+            color:#202633;
+            font-weight:700;
+        ">
+            Guide:
+        </strong>
+
+        The
+        <strong style="
+            color:#202633;
+            font-weight:700;
+        ">
+            Cash Health Score
+        </strong>
+        is a score from
+        <strong style="
+            color:#202633;
+            font-weight:700;
+        ">
+            0–100
+        </strong>
+        that shows how healthy the cash position is.
+        It is a score, not a money amount.
+
+        <span style="
+            margin:0 10px;
+            color:#6b7280;
+            font-weight:700;
+        ">
+            •
+        </span>
+
+        <strong style="
+            color:#202633;
+            font-weight:700;
+        ">
+            Residual Cash
+        </strong>
+        is a money amount in Kwacha showing what remains after
+        expected cash obligations and reserves.
+
+        <span style="
+            margin:0 10px;
+            color:#6b7280;
+            font-weight:700;
+        ">
+            •
+        </span>
+
+        <strong style="
+            color:#202633;
+            font-weight:700;
+        ">
+            Status
+        </strong>
+        gives a simple indication of whether the cash position is
+        healthy, needs attention, or is at risk.
+
+    </div>
+
+
+    {{-- TABLE --}}
+
+    <table style="
+        width:100%;
+        border-collapse:collapse;
+    ">
+
+        <thead>
+
+            <tr style="
+                background:#f5f7fa;
+            ">
+
+                <th style="
+                    width:45px;
+                "></th>
+
+
+                {{-- PROVINCE --}}
+
+                <th style="
+                    text-align:left;
+                    padding:13px 15px;
+                    font-size:11px;
+                    color:#374151;
+                    letter-spacing:.8px;
+                    font-weight:700;
                 ">
 
-
-                    <th style="
-                        width:45px;
-                    "></th>
-
-
-                    <th style="
-                        text-align:left;
-                        padding:12px 15px;
-                        font-size:10px;
-                        color:#8a93a3;
-                        letter-spacing:.8px;
-                    ">
+                    <div>
                         PROVINCE
-                    </th>
+                    </div>
+
+                </th>
 
 
-                    <th style="
-                        text-align:right;
-                        padding:12px 15px;
+                {{-- CASH HEALTH SCORE --}}
+
+                <th style="
+                    text-align:right;
+                    padding:13px 15px;
+                    font-size:11px;
+                    color:#374151;
+                    letter-spacing:.8px;
+                    font-weight:700;
+                ">
+
+                    <div>
+                        CASH HEALTH SCORE
+                    </div>
+
+                    <div style="
                         font-size:10px;
-                        color:#8a93a3;
-                        letter-spacing:.8px;
+                        font-weight:500;
+                        letter-spacing:0;
+                        text-transform:none;
+                        margin-top:4px;
+                        color:#6b7280;
                     ">
-                       CASH HEALTH SCORE
-                    </th>
+                        0–100 score; higher is better
+                    </div>
+
+                </th>
 
 
-                    <th style="
-                        text-align:right;
-                        padding:12px 15px;
-                        font-size:10px;
-                        color:#8a93a3;
-                        letter-spacing:.8px;
-                    ">
+                {{-- RESIDUAL CASH --}}
+
+                <th style="
+                    text-align:right;
+                    padding:13px 15px;
+                    font-size:11px;
+                    color:#374151;
+                    letter-spacing:.8px;
+                    font-weight:700;
+                ">
+
+                    <div>
                         RESIDUAL CASH
-                    </th>
+                    </div>
 
-
-                    <th style="
-                        text-align:center;
-                        padding:12px 15px;
+                    <div style="
                         font-size:10px;
-                        color:#8a93a3;
-                        letter-spacing:.8px;
+                        font-weight:500;
+                        letter-spacing:0;
+                        text-transform:none;
+                        margin-top:4px;
+                        color:#6b7280;
                     ">
+                        Money remaining after obligations
+                    </div>
+
+                </th>
+
+
+                {{-- STATUS --}}
+
+                <th style="
+                    text-align:center;
+                    padding:13px 15px;
+                    font-size:11px;
+                    color:#374151;
+                    letter-spacing:.8px;
+                    font-weight:700;
+                ">
+
+                    <div>
                         STATUS
-                    </th>
+                    </div>
 
-                    <th style="
-    text-align:center;
-    padding:12px 15px;
-    font-size:10px;
-    color:#8a93a3;
-    letter-spacing:.8px;
-">
-    DETAILS
-</th>
+                    <div style="
+                        font-size:10px;
+                        font-weight:500;
+                        letter-spacing:0;
+                        text-transform:none;
+                        margin-top:4px;
+                        color:#6b7280;
+                    ">
+                        Overall condition
+                    </div>
 
-                </tr>
+                </th>
 
-            </thead>
 
+                {{-- DETAILS --}}
+
+                <th style="
+                    text-align:center;
+                    padding:13px 15px;
+                    font-size:11px;
+                    color:#374151;
+                    letter-spacing:.8px;
+                    font-weight:700;
+                ">
+
+                    <div>
+                        DETAILS
+                    </div>
+
+                    <div style="
+                        font-size:10px;
+                        font-weight:500;
+                        letter-spacing:0;
+                        text-transform:none;
+                        margin-top:4px;
+                        color:#6b7280;
+                    ">
+                        Reason for cash health score
+                    </div>
+
+                </th>
+
+            </tr>
+
+        </thead>
 <tbody>
 
 @foreach(($nationalHealth['provinces'] ?? []) as $province)
@@ -1166,6 +1384,8 @@
 
         $provinceId =
             $province['province_id'] ?? 0;
+
+         $scoreDetails = $province['reason'];
 
         $provinceKey =
             'national_province_' . $provinceId;
@@ -1176,12 +1396,14 @@
         $provinceFinancials =
             $province['financials'] ?? [];
 
-        $provinceStatus =
-            strtoupper(
-                $provinceScores['status'] ?? 'RED'
-            );
+     $provinceStatus = match (strtolower($provinceScores['status'] ?? 'red')) {
+    'red'   => 'At Risk',
+    'amber' => 'Needs Attention',
+    'green' => 'Healthy',
+    default => 'At Risk',
+};
 
-        $provinceStatusColor = match($provinceStatus) {
+        $provinceStatusColor = match($provinceScores['status']) {
 
             'GREEN' => '#15803d',
 
@@ -1191,7 +1413,7 @@
 
         };
 
-        $provinceStatusBackground = match($provinceStatus) {
+        $provinceStatusBackground = match($provinceScores['status']) {
 
             'GREEN' => '#dcfce7',
 
@@ -1200,6 +1422,8 @@
             default => '#fee2e2'
 
         };
+
+
 
     @endphp
 
@@ -1237,24 +1461,26 @@
 
 
         <td style="
-            padding:16px;
-            font-weight:700;
-            font-size:13px;
-            color:#202633;
-        ">
+    padding:16px;
+    font-weight:700;
+    font-size:13px;
+    color:#202633;
+">
 
-            {{ $province['province_name'] ?? 'Unknown Province' }}
 
-            <span style="
-                margin-left:8px;
-                font-size:10px;
-                color:#8a93a3;
-                font-weight:500;
-            ">
-                {{ $province['office_count'] ?? 0 }} offices
-            </span>
+        {{ $province['province_name'] ?? 'Unknown Province' }}
 
-        </td>
+    <span style="
+        margin-top:4px;
+        font-size:10px;
+        color:#8a93a3;
+        font-weight:500;
+    ">
+       {{ $province['office_count'] ?? 0 }} offices
+</span>
+
+</td>
+
 
 
         <td style="
@@ -1310,10 +1536,11 @@
 
         <td style="
             padding:16px;
+            font-size:12px;
             text-align:center;
         ">
 
-            —
+           {{$scoreDetails}}
 
         </td>
 
@@ -1349,6 +1576,8 @@
                         $districtId =
                             $district['district_id'] ?? 0;
 
+                             $scoreDetails = $district['reason'];
+
                         $districtKey =
                             $provinceKey .
                             '_district_' .
@@ -1359,13 +1588,14 @@
 
                         $districtFinancials =
                             $district['financials'] ?? [];
+$districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
+    'red'   => 'At Risk',
+    'amber' => 'Needs Attention',
+    'green' => 'Healthy',
+    default => 'At Risk',
+};
 
-                        $districtStatus =
-                            strtoupper(
-                                $districtScores['status'] ?? 'RED'
-                            );
-
-                        $districtStatusColor = match($districtStatus) {
+                        $districtStatusColor = match($districtScores['status'] ) {
 
                             'GREEN' => '#15803d',
 
@@ -1375,7 +1605,7 @@
 
                         };
 
-                        $districtStatusBackground = match($districtStatus) {
+                        $districtStatusBackground = match($districtScores['status']) {
 
                             'GREEN' => '#dcfce7',
 
@@ -1400,110 +1630,132 @@
                         overflow:hidden;
                     ">
 
-                        <div
-                            onclick="toggleNationalOffice('{{ $districtKey }}')"
-                            style="
-                                display:grid;
-                                grid-template-columns:45px 1fr 150px 180px 100px;
-                                align-items:center;
-                                cursor:pointer;
-                                background:#fff;
-                                border-bottom:1px solid #edf0f4;
-                            "
-                        >
+                      <div
+    onclick="toggleNationalOffice('{{ $districtKey }}')"
+    style="
+        display:grid;
+        grid-template-columns:45px minmax(180px, 1fr) 100px 160px 100px minmax(180px, 1.5fr);
+        align-items:center;
+        cursor:pointer;
+        background:#fff;
+        border-bottom:1px solid #edf0f4;
+    "
+>
 
-                            <div style="
-                                padding:14px;
-                                text-align:center;
-                            ">
-
-                                <span
-                                    id="{{ $districtKey }}_arrow"
-                                    style="
-                                        display:inline-block;
-                                        color:#8a93a3;
-                                        transition:.2s;
-                                    "
-                                >
-                                    ▶
-                                </span>
-
-                            </div>
-
-
-                            <div style="
-                                padding:14px;
-                                font-weight:600;
-                                font-size:12px;
-                                color:#202633;
-                            ">
-
-                                {{ $district['district_name'] ?? 'Unknown District' }}
-
-                                <span style="
-                                    margin-left:8px;
-                                    font-size:10px;
-                                    color:#8a93a3;
-                                    font-weight:500;
-                                ">
-                                    {{ $district['office_count'] ?? 0 }} offices
-                                </span>
-
-                            </div>
+{{-- ARROW --}}
+<div style="
+    padding:14px;
+    text-align:center;
+">
+    <span
+        id="{{ $districtKey }}_arrow"
+        style="
+            display:inline-block;
+            color:#8a93a3;
+            transition:.2s;
+        "
+    >
+        ▶
+    </span>
+</div>
 
 
-                            <div style="
-                                padding:14px;
-                                text-align:right;
-                                font-weight:700;
-                                font-size:12px;
-                            ">
+{{-- DISTRICT --}}
+<div style="
+    padding:14px;
+    font-weight:600;
+    font-size:12px;
+    color:#202633;
+    min-width:0;
+">
 
-                                {{ number_format(
-                                    $districtScores['overall'] ?? 0,
-                                    0
-                                ) }}
+    {{ $district['district_name'] ?? 'Unknown District' }}
 
-                            </div>
+    <span style="
+        margin-left:8px;
+        font-size:10px;
+        color:#8a93a3;
+        font-weight:500;
+    ">
+        {{ $district['office_count'] ?? 0 }} offices
+    </span>
 
-
-                            <div style="
-                                padding:14px;
-                                text-align:right;
-                                font-size:12px;
-                                color:{{ ($districtFinancials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#343b48' }};
-                            ">
-
-                                K{{ number_format(
-                                    $districtFinancials['residual_cash'] ?? 0,
-                                    2
-                                ) }}
-
-                            </div>
+</div>
 
 
-                            <div style="
-                                padding:14px;
-                                text-align:center;
-                            ">
+{{-- OVERALL SCORE --}}
+<div style="
+    padding:14px;
+    text-align:right;
+    font-weight:700;
+    font-size:12px;
+">
 
-                                <span style="
-                                    display:inline-block;
-                                    padding:4px 8px;
-                                    border-radius:20px;
-                                    background:{{ $districtStatusBackground }};
-                                    color:{{ $districtStatusColor }};
-                                    font-size:9px;
-                                    font-weight:700;
-                                ">
+    {{ number_format(
+        $districtScores['overall'] ?? 0,
+        0
+    ) }}
 
-                                    {{ $districtStatus }}
+</div>
 
-                                </span>
 
-                            </div>
+{{-- RESIDUAL --}}
+<div style="
+    padding:14px;
+    text-align:right;
+    font-size:12px;
+    color:{{ ($districtFinancials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#343b48' }};
+">
 
-                        </div>
+    K{{ number_format(
+        $districtFinancials['residual_cash'] ?? 0,
+        2
+    ) }}
+
+</div>
+
+
+{{-- STATUS --}}
+<div style="
+    padding:14px;
+    text-align:center;
+">
+
+    <span style="
+        display:inline-block;
+        padding:4px 8px;
+        border-radius:20px;
+        background:{{ $districtStatusBackground }};
+        color:{{ $districtStatusColor }};
+        font-size:9px;
+        font-weight:700;
+        white-space:nowrap;
+    ">
+
+        {{ $districtStatus }}
+
+    </span>
+
+</div>
+
+
+{{-- REASON --}}
+<div style="
+    padding:14px 16px;
+    font-size:11px;
+    line-height:1.4;
+    text-align:left;
+    color:#697386;
+    min-width:0;
+    overflow-wrap:anywhere;
+">
+
+    {{ $scoreDetails }}
+
+</div>
+
+
+</div>
 
 
                         {{-- ================================= --}}
@@ -1525,12 +1777,13 @@
                                     $officeFinancials =
                                         $office['financials'] ?? [];
 
-                                    $officeStatus =
-                                        strtoupper(
-                                            $officeScores['status'] ?? 'RED'
-                                        );
-
-                                    $officeStatusColor = match($officeStatus) {
+                                 $officeStatus = match (strtolower($officeScores['status'] ?? 'red')) {
+    'red'   => 'At Risk',
+    'amber' => 'Needs Attention',
+    'green' => 'Healthy',
+    default => 'At Risk',
+};
+                                    $officeStatusColor = match($officeScores['status'] ) {
 
                                         'GREEN' => '#15803d',
 
@@ -1540,7 +1793,7 @@
 
                                     };
 
-                                    $officeStatusBackground = match($officeStatus) {
+                                    $officeStatusBackground = match($officeScores['status'] ) {
 
                                         'GREEN' => '#dcfce7',
 
@@ -1742,76 +1995,112 @@
                                             margin-bottom:20px;
                                         ">
 
-                                            @php
+                                          @php
 
-                                                $officeMetrics = [
+    $officeMetrics = [
 
-                                                    'Minimum Loan Target' =>
-                                                        $officeFinancials['minimum_loan_target'] ?? 0,
+        [
+            'label' => 'Minimum Loan Target',
+            'description' => 'Minimum amount expected to be disbursed.',
+            'value' => $officeFinancials['minimum_loan_target'] ?? 0
+        ],
 
-                                                    'Maximum Repayment' =>
-                                                        $officeFinancials['maximum_expected_repayment'] ?? 0,
+        [
+            'label' => 'Maximum Repayment',
+            'description' => 'Expected maximum amount to be collected.',
+            'value' => $officeFinancials['maximum_expected_repayment'] ?? 0
+        ],
 
-                                                    'Fixed Costs' =>
-                                                        $officeFinancials['mandatory_fixed_cost'] ?? 0,
+        [
+            'label' => 'Fixed Costs',
+            'description' => 'Essential operating costs that must be paid.',
+            'value' => $officeFinancials['mandatory_fixed_cost'] ?? 0
+        ],
 
-                                                    'Salaries' =>
-                                                        $officeFinancials['salaries'] ?? 0,
+        [
+            'label' => 'Salaries',
+            'description' => 'Expected salary costs for the period.',
+            'value' => $officeFinancials['salaries'] ?? 0
+        ],
 
-                                                    'Defaults' =>
-                                                        $officeFinancials['defaults'] ?? 0,
+        [
+            'label' => 'Defaults',
+            'description' => 'Money that is currently overdue or uncollected.',
+            'value' => $officeFinancials['defaults'] ?? 0
+        ],
 
-                                                    'Irregular Reserve' =>
-                                                        $officeFinancials['irregular_cost_reserve'] ?? 0,
+        [
+            'label' => 'Irregular Reserve',
+            'description' => 'Money set aside for irregular costs.',
+            'value' => $officeFinancials['irregular_cost_reserve'] ?? 0
+        ],
 
-                                                    'Salary Advances' =>
-                                                        $officeFinancials['salary_advance_reserve'] ?? 0,
+        [
+            'label' => 'Salary Advances',
+            'description' => 'Money advanced to staff.',
+            'value' => $officeFinancials['salary_advance_reserve'] ?? 0
+        ],
 
-                                                    'Net Cash' =>
-                                                        $officeFinancials['net_cash_position'] ?? 0,
+        [
+            'label' => 'Net Cash',
+            'description' => 'Collections minus disbursements and operating costs.',
+            'value' => $officeFinancials['net_cash_position'] ?? 0
+        ],
 
-                                                    'Residual Cash' =>
-                                                        $officeFinancials['residual_cash'] ?? 0,
+        [
+            'label' => 'Residual Cash',
+            'description' => 'Cash remaining after expected obligations and reserves.',
+            'value' => $officeFinancials['residual_cash'] ?? 0
+        ],
 
-                                                ];
+    ];
 
-                                            @endphp
+@endphp
 
 
-                                            @foreach($officeMetrics as $label => $value)
+@foreach($officeMetrics as $metric)
 
-                                                <div style="
-                                                    background:#fff;
-                                                    border:1px solid #e7eaf0;
-                                                    border-radius:10px;
-                                                    padding:14px;
-                                                ">
+    <div style="
+        background:#fff;
+        border:1px solid #e7eaf0;
+        border-radius:10px;
+        padding:14px;
+    ">
 
-                                                    <div style="
-                                                        font-size:10px;
-                                                        color:#8a93a3;
-                                                        margin-bottom:6px;
-                                                    ">
-                                                        {{ $label }}
-                                                    </div>
+        <div style="
+            font-size:10px;
+            color:#697386;
+            font-weight:700;
+            margin-bottom:4px;
+        ">
+            {{ $metric['label'] }}
+        </div>
 
-                                                    <div style="
-                                                        font-size:15px;
-                                                        font-weight:700;
-                                                        color:{{ $value < 0 ? '#dc2626' : '#202633' }};
-                                                    ">
+        <div style="
+            font-size:10px;
+            color:#9aa2af;
+            line-height:1.4;
+            margin-bottom:8px;
+        ">
+            {{ $metric['description'] }}
+        </div>
 
-                                                        K{{ number_format(
-                                                            $value,
-                                                            2
-                                                        ) }}
+        <div style="
+            font-size:15px;
+            font-weight:700;
+            color:{{ $metric['value'] < 0 ? '#dc2626' : '#202633' }};
+        ">
 
-                                                    </div>
+            K{{ number_format(
+                $metric['value'],
+                2
+            ) }}
 
-                                                </div>
+        </div>
 
-                                            @endforeach
+    </div>
 
+@endforeach
                                         </div>
 
 
