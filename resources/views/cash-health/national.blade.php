@@ -1,6 +1,168 @@
 @extends('layouts.master')
 
 @section('content')
+
+<style>
+    .cash-health-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 18px;
+    }
+
+    .cash-health-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .cash-health-guide {
+        background: #fff;
+        border: 1px solid #e4e8ee;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .cash-health-guide-grid {
+        display: grid;
+        grid-template-columns: 150px 1.2fr 1fr 1fr 145px;
+    }
+
+    .guide-section {
+        padding: 14px 16px;
+        border-right: 1px solid #edf0f3;
+    }
+
+    .guide-section:last-child {
+        border-right: none;
+    }
+
+    .guide-heading {
+        font-size: 15px;
+        font-weight: 700;
+        color: #202633;
+        margin-bottom: 7px;
+    }
+
+    .guide-text {
+        font-size: 20px;
+        color: #697386;
+        line-height: 1.5;
+    }
+
+    .status-bands {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .status-band {
+        padding: 4px 7px;
+        border-radius: 5px;
+        font-size: 15px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .status-healthy {
+        background: #ecfdf5;
+        color: #15803d;
+    }
+
+    .status-attention {
+        background: #fffbeb;
+        color: #b45309;
+    }
+
+    .status-risk {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .score-weights {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 15px;
+        color: #697386;
+    }
+
+
+    /* TABLET */
+    @media (max-width: 1100px) {
+
+        .cash-health-guide-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .guide-section {
+            border-bottom: 1px solid #edf0f3;
+        }
+
+        .guide-section:first-child {
+            grid-column: 1 / -1;
+        }
+
+    }
+
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+
+        .cash-health-top {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cash-health-controls {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .cash-health-controls > * {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .cash-health-guide-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .guide-section {
+            border-right: none;
+            border-bottom: 1px solid #edf0f3;
+        }
+
+        .guide-section:last-child {
+            border-bottom: none;
+        }
+
+    }
+
+
+    /* SMALL PHONES */
+    @media (max-width: 480px) {
+
+        .cash-health-title {
+            font-size: 22px !important;
+        }
+
+        .cash-cycle-selector {
+            flex-direction: column;
+            align-items: stretch !important;
+            padding: 10px !important;
+        }
+
+        .cash-cycle-select {
+            width: 100%;
+            max-width: 100% !important;
+        }
+
+    }
+</style>
+
 <div style="
     padding:30px;
     background:#f6f8fb;
@@ -52,48 +214,40 @@
 
 
 
-    {{-- ========================================================= --}}
-    {{-- HEADER --}}
-    {{-- ========================================================= --}}
 
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:flex-end;
-        margin-bottom:28px;
-    ">
+{{-- HEADER --}}
+<div style="margin-bottom:22px;">
 
+    <div class="cash-health-top">
 
         {{-- TITLE --}}
-
         <div>
 
             <div style="
-                font-size:11px;
+                font-size:10px;
                 font-weight:700;
                 letter-spacing:1.5px;
-                color:#7b8494;
+                color:#8a93a3;
                 margin-bottom:5px;
             ">
                 CASH MANAGEMENT
             </div>
 
-
-            <h1 style="
-                font-size:30px;
+            <h1 class="cash-health-title" style="
+                font-size:28px;
                 font-weight:700;
                 margin:0;
                 color:#202633;
-                letter-spacing:-0.7px;
+                letter-spacing:-.6px;
+                line-height:1.2;
             ">
                 National Cash Health
             </h1>
 
-
             <div style="
                 color:#697386;
                 margin-top:5px;
-                font-size:14px;
+                font-size:13px;
             ">
                 Organization-wide cash position
             </div>
@@ -101,114 +255,224 @@
         </div>
 
 
-
-        {{-- ===================================================== --}}
-        {{-- CYCLE SELECTOR --}}
-        {{-- ===================================================== --}}
-
-        <div style="
-            text-align:right;
-            padding:12px 18px;
-            border:1px solid #e6e9ef;
-            border-radius:12px;
-            background:#fff;
-        ">
-
-        {{-- CASH HEALTH GUIDE BUTTON --}}
-<button
-    type="button"
-    onclick="openCashHealthGuide()"
-    style="
-        border:1px solid #dfe3e8;
-        background:#fff;
-        color:#343b48;
-        border-radius:8px;
-        padding:8px 13px;
-        font-size:12px;
-        font-weight:600;
-        cursor:pointer;
-        margin-bottom:10px;
-        transition:all .15s ease;
-    "
-    onmouseover="this.style.background='#f7f8fa';"
-    onmouseout="this.style.background='#fff';"
->
-    <i class="fa fa-info-circle"" style="margin-right:5px;"></i>
-    Cash Health Guide
-</button>
+        {{-- RIGHT SIDE --}}
+        <div class="cash-health-controls">
 
 
-            <div style="
-                font-size:10px;
-                font-weight:700;
-                letter-spacing:1px;
-                color:#8a93a3;
-                margin-bottom:7px;
-            ">
-                CASH CYCLE
-            </div>
+            {{-- GUIDE BUTTON --}}
+            <button
+                type="button"
+                onclick="openCashHealthGuide()"
+                style="
+                    height:38px;
+                    border:1px solid #dfe3e8;
+                    background:#fff;
+                    color:#343b48;
+                    border-radius:8px;
+                    padding:0 13px;
+                    font-size:12px;
+                    font-weight:600;
+                    cursor:pointer;
+                    white-space:nowrap;
+                "
+            >
+                <i class="fa fa-info-circle" style="margin-right:5px;"></i>
+                Cash Health Guide
+            </button>
 
 
-            <form
-                method="GET"
-                action="{{ route('cash_health.national') }}"
-                style="margin:0;"
+            {{-- CASH CYCLE --}}
+            <div
+                class="cash-cycle-selector"
+                style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    height:38px;
+                    padding:0 10px 0 13px;
+                    background:#fff;
+                    border:1px solid #e1e5eb;
+                    border-radius:8px;
+                "
             >
 
-                <select
-                    name="cycle_start"
-                    onchange="this.form.submit()"
-                    style="
-                        border:1px solid #dfe3e8;
-                        border-radius:8px;
-                        padding:8px 35px 8px 10px;
-                        font-size:13px;
-                        color:#343b48;
-                        background:#fff;
-                        cursor:pointer;
-                        outline:none;
-                    "
+                <span style="
+                    font-size:10px;
+                    font-weight:700;
+                    letter-spacing:.7px;
+                    color:#8a93a3;
+                    white-space:nowrap;
+                ">
+                    CASH CYCLE
+                </span>
+
+                <form
+                    method="GET"
+                    action="{{ route('cash_health.national') }}"
+                    style="margin:0;"
                 >
 
-                    @foreach($availableCycles as $availableCycle)
+                    <select
+                        name="cycle_start"
+                        onchange="this.form.submit()"
+                        class="cash-cycle-select"
+                        style="
+                            border:none;
+                            padding:0 20px 0 0;
+                            font-size:12px;
+                            font-weight:600;
+                            color:#343b48;
+                            background:#fff;
+                            cursor:pointer;
+                            outline:none;
+                        "
+                    >
 
-                        <option
-                            value="{{ $availableCycle['start'] }}"
-                            {{ $cycleStart === $availableCycle['start'] ? 'selected' : '' }}
-                        >
+                        @foreach($availableCycles as $availableCycle)
 
-                            {{ \Carbon\Carbon::parse($availableCycle['start'])->format('d M Y') }}
+                            <option
+                                value="{{ $availableCycle['start'] }}"
+                                {{ $cycleStart === $availableCycle['start'] ? 'selected' : '' }}
+                            >
+                                {{ \Carbon\Carbon::parse($availableCycle['start'])->format('d M Y') }}
+                                →
+                                {{ \Carbon\Carbon::parse($availableCycle['end'])->format('d M Y') }}
+                            </option>
 
-                            →
+                        @endforeach
 
-                            {{ \Carbon\Carbon::parse($availableCycle['end'])->format('d M Y') }}
+                    </select>
 
-                        </option>
-
-                    @endforeach
-
-                </select>
-
-            </form>
-
-
-            <div style="
-                margin-top:6px;
-                font-size:11px;
-                color:#8a93a3;
-            ">
-
-                {{ \Carbon\Carbon::parse($cycleStart)->format('d M Y') }}
-
-                →
-
-                {{ \Carbon\Carbon::parse($cycleEnd)->format('d M Y') }}
+                </form>
 
             </div>
 
         </div>
 
     </div>
+
+
+    {{-- QUICK GUIDE --}}
+    <div class="cash-health-guide">
+
+        <div class="cash-health-guide-grid">
+
+
+            {{-- TITLE --}}
+            <div
+                class="guide-section"
+                style="background:#f8fafc;"
+            >
+                <div style="
+                    font-size:15px;
+                    font-weight:700;
+                    letter-spacing:.8px;
+                    color:#8a93a3;
+                    text-transform:uppercase;
+                ">
+                    Quick Guide
+                </div>
+
+                <div style="
+                    font-size:15px;
+                    font-weight:700;
+                    color:#202633;
+                    margin-top:3px;
+                ">
+                    How to read it
+                </div>
+            </div>
+
+
+            {{-- OVERALL SCORE --}}
+            <div class="guide-section">
+
+                <div class="guide-heading">
+                    Overall Score <span style="color:#9aa2af;font-weight:400;">/ 100</span>
+                </div>
+
+                <div class="status-bands">
+
+                    <span class="status-band status-healthy">
+                        80–100 Healthy
+                    </span>
+
+                    <span class="status-band status-attention">
+                        60–79 Attention
+                    </span>
+
+                    <span class="status-band status-risk">
+                        0–59 At Risk
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            {{-- SCORE WEIGHT --}}
+            <div class="guide-section">
+
+                <div class="guide-heading">
+                    Score Weight
+                </div>
+
+                <div class="score-weights">
+
+                    <span>
+                        <strong>35%</strong> Disbursement
+                    </span>
+
+                    <span>
+                        <strong>35%</strong> Collection
+                    </span>
+
+                    <span>
+                        <strong>30%</strong> Residual
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            {{-- FINANCIAL VALUES --}}
+            <div class="guide-section">
+
+                <div class="guide-heading">
+                    Financial Values
+                </div>
+
+                <div class="guide-text">
+                    <strong style="color:#343b48;">K</strong>
+                    = Kwacha
+                    <span style="margin:0 5px;color:#c5cad2;">•</span>
+                    <strong style="color:#343b48;">%</strong>
+                    = Percentage
+                </div>
+
+            </div>
+
+
+            {{-- CASH CYCLE --}}
+            <div class="guide-section">
+
+                <div class="guide-heading">
+                    Cash Cycle
+                </div>
+
+                <div class="guide-text">
+                    25th → 24th Monthly
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
 
 
 
@@ -407,7 +671,7 @@
                 font-size:27px;
                 font-weight:700;
                 margin-top:12px;
-                color:{{ ($totalBalance ?? 0) < 0 ? '#dc2626' : '#202633' }};
+                color:{{ ($totalBalance ?? 0) < 0 ? '#15803d' : '#15803d' }};
             ">
 
                 K{{ number_format(
@@ -3189,11 +3453,11 @@ function updateContributionGraph()
                             ] || 0
                     ),
 
-                borderWidth:2,
+              borderWidth:1.5,
 
-                pointRadius:3,
+pointRadius:2,
 
-                pointHoverRadius:5,
+pointHoverRadius:6,
 
                 tension:0.3,
 
@@ -3231,10 +3495,65 @@ function updateContributionGraph()
             .getContext('2d');
 
 
+            const zeroLinePlugin = {
+
+    id: 'zeroLine',
+
+    afterDraw(chart) {
+
+        const yScale = chart.scales.y;
+
+        if (!yScale) {
+            return;
+        }
+
+        const zeroY = yScale.getPixelForValue(0);
+
+        if (
+            zeroY < yScale.top ||
+            zeroY > yScale.bottom
+        ) {
+            return;
+        }
+
+        const ctx = chart.ctx;
+
+        ctx.save();
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            chart.chartArea.left,
+            zeroY
+        );
+
+        ctx.lineTo(
+            chart.chartArea.right,
+            zeroY
+        );
+
+        ctx.lineWidth = 3;
+
+        ctx.strokeStyle = '#202633';
+
+        ctx.setLineDash([]);
+
+        ctx.stroke();
+
+        ctx.restore();
+
+    }
+
+};
+
+
     nationalContributionChart =
         new Chart(
             ctx,
             {
+                 plugins: [
+                zeroLinePlugin
+            ],
 
                 type:'line',
 
@@ -3253,13 +3572,13 @@ function updateContributionGraph()
                     maintainAspectRatio:false,
 
 
-                    interaction: {
+                 interaction: {
 
-                        mode:'index',
+    mode: 'nearest',
 
-                        intersect:false
+    intersect: true
 
-                    },
+},
 
 
                     plugins: {
