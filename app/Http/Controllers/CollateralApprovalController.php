@@ -260,6 +260,27 @@ class CollateralApprovalController extends Controller
         $collateral->sold_at = Carbon::now();
         $collateral->save();
 
+        if ($collateral->loan_id) {
+            $loan = $collateral->loan;
+            if ($loan) {
+                $date = explode('-', $collateral->sold_at->toDateString());
+                \App\Models\LoanTransaction::create([
+                    'created_by_id' => Sentinel::getUser()->id,
+                    'office_id'     => $loan->office_id,
+                    'loan_id'       => $loan->id,
+                    'reversible'    => 1,
+                    'payment_apply_to' => 'full_payment',
+                    'transaction_type' => 'repayment',
+                    'date'          => $collateral->sold_at->toDateString(),
+                    'year'          => $date[0],
+                    'month'         => $date[1],
+                    'credit'        => $collateral->sold_price,
+                    'notes'         => 'Collateral sale',
+                    'is_collateral' => 1,
+                ]);
+            }
+        }
+
         AuditTrail::create([
             'user_id'    => Sentinel::getUser()->id,
             'action'     => 'collateral_sold',
