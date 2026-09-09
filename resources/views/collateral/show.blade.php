@@ -580,27 +580,27 @@
                 'pledged' => [
                     'next' => 'seizure_pending',
                     'label' => 'Request Seizure',
-                    'roles' => [3, 4],
+                    'roles' => [3, 4, 6],
                 ],
                 'seizure_pending' => [
                     'next' => 'seized_inventory',
                     'label' => 'Approve Seizure',
-                    'roles' => [1],
+                    'roles' => [1,4,6],
                 ],
                 'seized_inventory' => [
                     'next' => 'valuation_completed',
                     'label' => 'Mark as Valuation Completed',
-                    'roles' => [1],
+                    'roles' => [1,4,6],
                 ],
                 'valuation_completed' => [
                     'next' => 'listed_for_sale',
                     'label' => 'List for Sale',
-                    'roles' => [1],
+                    'roles' => [1,4,6],
                 ],
                 'listed_for_sale' => [
                     'next' => 'written_off',
                     'label' => 'Write Off',
-                    'roles' => [1],
+                    'roles' => [1,4,6],
                 ],
             ];
             $currentWorkflow = $workflow[$collateral->status] ?? null;
