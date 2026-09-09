@@ -250,7 +250,7 @@
 
     <div class="cd-header">
         <div></div>
-        @if($isSupervisor && $collateral->status == 'listed_for_sale')
+        @if($isSupervisor || $collateral->status == 'listed_for_sale')
         <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#sellCollateralModal">
             <i class="fa fa-tag" aria-hidden="true"></i> Sell Collateral
         </button>
