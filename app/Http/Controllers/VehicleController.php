@@ -21,6 +21,9 @@ use Carbon\Carbon;
 use App\Models\Office;
 use App\Models\ComplianceScreening;
 use App\Models\VehicleOwnershipRecord;
+use App\Models\District;
+use App\Models\Province;
+use App\Models\User;
 use Laracasts\Flash\Flash;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
@@ -884,13 +887,27 @@ public function searchClients(Request $request)
 
     $recentLoans = $query
         ->orderBy('created_date', 'desc')
+        ->with([
+            'client',
+            'loanConsultant',
+            'vehicle',
+            'vehicle.photos',
+            'vehicle.custody.receiver',
+            'vehicle.inspections',
+            'vehicle.valuations',
+            'vehicle.valuations.valuator',
+        ])
         ->paginate(20)
         ->appends($request->all());
 
     $offices = Office::orderBy('name')->get();
 
     $statuses = [];
-    $allLoans = Loan::where('loan_product_id', 0)->with('client')->get();
+    $allLoans = Loan::where('loan_product_id', 0)->with([
+        'client',
+        'vehicle.ownershipRecords',
+        'complianceScreenings',
+    ])->get();
     foreach ($allLoans as $loan) {
         $kycCompleted = false;
         $complianceCompleted = false;
@@ -907,15 +924,12 @@ public function searchClients(Request $request)
                 }
             }
 
-            $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
+            $complianceCompleted = $loan->complianceScreenings
                 ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
-                ->exists();
-            $complianceCompleted = $compliance;
+                ->isNotEmpty();
 
-            $vehicle = Vehicle::where('loan_id', $loan->id)->first();
-            if ($vehicle) {
-                $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
-                $ownershipCompleted = $ownership;
+            if ($loan->vehicle) {
+                $ownershipCompleted = $loan->vehicle->ownershipRecords->isNotEmpty();
             }
         }
 
@@ -1079,13 +1093,58 @@ public function sales(Request $request)
     );
 }
 
-  public function loans_pending_approval()
+  public function loans_pending_approval(Request $request)
     {
 
-        $data = Loan::whereIn('status', ['pending', 'approved'])
+        $query = Loan::whereIn('status', ['pending', 'approved'])
             ->where('loan_product_id', 0)
-            ->with('client')
-            ->get();
+            ->with([
+                'client',
+                'loanConsultant',
+                'approved_by',
+                'created_by',
+                'loan_officer',
+                'originatingBranch.district',
+                'originatingBranch.province',
+                'district',
+                'province',
+                'vehicle.inspections',
+                'vehicle.valuations',
+                'vehicle.custody.receiver',
+                'vehicle.photos',
+                'vehicle.ownershipRecords',
+                'vehicle.custody',
+                'complianceScreenings',
+            ]);
+
+        if ($request->filled('office')) {
+            $query->where('office_id', $request->office);
+        }
+
+        if ($request->filled('district')) {
+            $query->whereHas('originatingBranch', function ($q) use ($request) {
+                $q->where('district_id', $request->district);
+            });
+        }
+
+        if ($request->filled('province')) {
+            $query->whereHas('originatingBranch', function ($q) use ($request) {
+                $q->where('province_id', $request->province);
+            });
+        }
+
+        if ($request->filled('staff')) {
+            $staffId = $request->staff;
+            $query->where(function ($q) use ($staffId) {
+                $q->where('loan_consultant_id', $staffId)
+                  ->orWhere('branch_assessor_id', $staffId)
+                  ->orWhere('approved_by_id', $staffId)
+                  ->orWhere('created_by_id', $staffId)
+                  ->orWhere('loan_officer_id', $staffId);
+            });
+        }
+
+        $data = $query->get();
 
         $statuses = [];
  
@@ -1105,15 +1164,12 @@ public function sales(Request $request)
                     }
                 }
 
-                $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
-                    ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
-                    ->exists();
-                $complianceCompleted = $compliance;
+                $complianceCompleted = $loan->relationLoaded('complianceScreenings')
+                    && $loan->complianceScreenings->whereIn('status', ['cleared', 'flagged', 'requires_review'])->isNotEmpty();
 
-                $vehicle = Vehicle::where('loan_id', $loan->id)->first();
-                if ($vehicle) {
-                    $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
-                    $ownershipCompleted = $ownership;
+                $vehicle = $loan->vehicle;
+                if ($vehicle && $vehicle->relationLoaded('ownershipRecords')) {
+                    $ownershipCompleted = $vehicle->ownershipRecords->isNotEmpty();
                 }
             }
 
@@ -1125,7 +1181,12 @@ public function sales(Request $request)
         }
 
         // dd($statuses);
-        return view('motor_vehicle.loans_pending_approval', compact('data', 'statuses'));
+        $offices = Office::orderBy('name')->get();
+        $districts = \App\Models\District::orderBy('name')->get();
+        $provinces = \App\Models\Province::orderBy('name')->get();
+        $staff = \App\Models\User::orderBy('first_name')->get();
+
+        return view('motor_vehicle.loans_pending_approval', compact('data', 'statuses', 'offices', 'districts', 'provinces', 'staff'));
     }
 
 
@@ -1159,17 +1220,117 @@ $data=$response->json();
 
 
 return view(
-'motor_vehicle.analytics_dashboard',
-compact(
-'data',
-'start',
-'end'
-)
+    'motor_vehicle.analytics_dashboard',
+    compact(
+        'data',
+        'start',
+        'end'
+    )
 );
+    }
+
+    public function disposalRegister(Request $request)
+    {
+        $mvlService = app(\App\Services\MVLService::class);
+        $mvlService->week1reminder();
+        $mvlService->month1reminder();
+
+        $query = Loan::where('loan_product_id', 0)
+            ->where(function ($q) {
+                $q->where('status', 'disbursed')
+                  ->orWhere('status','defaulted');
+            })
+            ->whereNotNull('first_repayment_date')
+            ->where('first_repayment_date', '<', Carbon::now()->subMonth())
+            ->with([
+                'client',
+                'loanConsultant',
+                'approved_by',
+                'created_by',
+                'loan_officer',
+                'originatingBranch.district',
+                'originatingBranch.province',
+                'vehicle.inspections',
+                'vehicle.valuations',
+                'vehicle.custody.receiver',
+                'vehicle.photos',
+                'vehicle.ownershipRecords',
+                'complianceScreenings',
+            ]);
+
+
+        if ($request->filled('office')) {
+            $query->where('office_id', $request->office);
+        }
+
+        if ($request->filled('district')) {
+            $query->whereHas('originatingBranch', function ($q) use ($request) {
+                $q->where('district_id', $request->district);
+            });
+        }
+
+        if ($request->filled('province')) {
+            $query->whereHas('originatingBranch', function ($q) use ($request) {
+                $q->where('province_id', $request->province);
+            });
+        }
+
+        if ($request->filled('staff')) {
+            $staffId = $request->staff;
+            $query->where(function ($q) use ($staffId) {
+                $q->where('loan_consultant_id', $staffId)
+                  ->orWhere('branch_assessor_id', $staffId)
+                  ->orWhere('approved_by_id', $staffId)
+                  ->orWhere('created_by_id', $staffId)
+                  ->orWhere('loan_officer_id', $staffId);
+            });
+        }
+
+        $loans = $query->orderBy('first_repayment_date', 'asc')->get();
+
+        $statuses = [];
+        foreach ($loans as $loan) {
+            $kycCompleted = false;
+            $complianceCompleted = false;
+            $ownershipCompleted = false;
+
+            if ($loan->loan_product_id == 0 && $loan->client) {
+                $client = $loan->client;
+                $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+                $kycCompleted = true;
+                foreach ($kycFields as $field) {
+                    if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
+                        $kycCompleted = false;
+                        break;
+                    }
+                }
+
+                $complianceCompleted = $loan->relationLoaded('complianceScreenings')
+                    && $loan->complianceScreenings->whereIn('status', ['cleared', 'flagged', 'requires_review'])->isNotEmpty();
+
+                $vehicle = $loan->vehicle;
+                if ($vehicle && $vehicle->relationLoaded('ownershipRecords')) {
+                    $ownershipCompleted = $vehicle->ownershipRecords->isNotEmpty();
+                }
+            }
+
+            $statuses[$loan->id] = [
+                'kyc_completed' => $kycCompleted,
+                'compliance_screening_completed' => $complianceCompleted,
+                'ownership_completed' => $ownershipCompleted,
+            ];
+        }
+
+        $offices = Office::orderBy('name')->get();
+        $districts = District::orderBy('name')->get();
+        $provinces = Province::orderBy('name')->get();
+        $staff = User::orderBy('first_name')->get();
+
+        return view('motor_vehicle.disposal_register', compact('loans', 'statuses', 'offices', 'districts', 'provinces', 'staff'));
+    }
 
 
 }
 
 
 
-}

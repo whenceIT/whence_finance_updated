@@ -467,9 +467,60 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function custodyRegister()
     {
-        $custodies = VehicleCustody::with(['vehicle', 'receiver'])->latest()->paginate(20);
+        $custodies = VehicleCustody::with([
+            'vehicle',
+            'vehicle.photos',
+            'vehicle.ownershipRecords',
+            'vehicle.loan',
+            'vehicle.loan.client',
+            'vehicle.loan.loanConsultant',
+            'vehicle.loan.complianceScreenings',
+            'vehicle.inspections',
+            'vehicle.valuations',
+            'receiver',
+        ])->latest()->paginate(20);
 
-        return view('motor_vehicle.custody.register', compact('custodies'));
+        $statuses = [];
+        $totalApproved = VehicleCustody::where('custody_approved', true)->count();
+        $totalPending = VehicleCustody::where('custody_approved', false)->count();
+        foreach ($custodies as $custody) {
+            $loan = optional($custody->vehicle)->loan;
+            if ($loan) {
+                $kycCompleted = false;
+                $complianceCompleted = false;
+                $ownershipCompleted = false;
+
+                if ($loan->loan_product_id == 0 && $loan->client) {
+                    $client = $loan->client;
+                    $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+                    $kycCompleted = true;
+                    foreach ($kycFields as $field) {
+                        if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
+                            $kycCompleted = false;
+                            break;
+                        }
+                    }
+
+                    $complianceCompleted = $loan->complianceScreenings
+                        ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
+                        ->isNotEmpty();
+
+                    if ($custody->vehicle) {
+                        $ownershipCompleted = $custody->vehicle->ownershipRecords->isNotEmpty();
+                    }
+                }
+
+                $statuses[$custody->id] = [
+                    'kyc_completed'              => $kycCompleted,
+                    'compliance_screening_completed' => $complianceCompleted,
+                    'ownership_completed'        => $ownershipCompleted,
+                ];
+            } else {
+                $statuses[$custody->id] = ['kyc_completed' => null, 'compliance_screening_completed' => null, 'ownership_completed' => null];
+            }
+        }
+
+        return view('motor_vehicle.custody.register', compact('custodies', 'statuses', 'totalApproved', 'totalPending'));
     }
 
     public function storeIntake(Request $request, $vehicleId)

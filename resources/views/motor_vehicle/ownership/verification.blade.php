@@ -5,7 +5,7 @@
 <section class="content-header">
     <h1>Vehicle Ownership Verification</h1>
     <ol class="breadcrumb">
-        <li><a href="{{ url('/') }}/motor-vehicle-loans">Motor Vehicle Loans</a></li>
+        <li><a href="../mvl/motor-vehicle-loans">Motor Vehicle Loans</a></li>
         <li><a href="{{ url('/') }}/vehicles/{{ $vehicle->id }}">Vehicle Details</a></li>
         <li class="active">Ownership Verification</li>
     </ol>
@@ -30,13 +30,84 @@
                     <p class="text-muted">{{ $vehicle->year ?? 'N/A' }} | {{ $vehicle->color ?? 'N/A' }}</p>
                 </div>
                 <div class="box-body table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <tr><th>Registration</th><td>{{ $vehicle->registration_number ?? 'N/A' }}</td></tr>
-                        <tr><th>Engine No.</th><td>{{ $vehicle->engine_number ?? 'N/A' }}</td></tr>
-                        <tr><th>Chassis No.</th><td>{{ $vehicle->chassis_number ?? 'N/A' }}</td></tr>
-                        <tr><th>Mileage</th><td>{{ $vehicle->mileage ?? 'N/A' }}</td></tr>
-                        <tr><th>Fuel Type</th><td>{{ $vehicle->fuel_type ?? 'N/A' }}</td></tr>
-                        <tr><th>Transmission</th><td>{{ $vehicle->transmission ?? 'N/A' }}</td></tr>
+                    <table class="table table-bordered table-striped" id="vehicleDetailsTable">
+                        <tr>
+                            <th style="width: 40%;">Number Plate</th>
+                            <td>
+                                <span class="editable-field" data-field="registration_number" data-value="{{ $vehicle->registration_number ?? '' }}">
+                                    {{ $vehicle->registration_number ?? 'N/A' }}
+                                </span>
+                                <a href="javascript:void(0)" class="edit-btn pull-right" data-field="registration_number" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Color</th>
+                            <td>
+                                <span class="editable-field" data-field="color" data-value="{{ $vehicle->color ?? '' }}">
+                                    {{ $vehicle->color ?? 'N/A' }}
+                                </span>
+                                <a href="javascript:void(0)" class="edit-btn pull-right" data-field="color" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Engine No.</th>
+                            <td>
+                                <span class="editable-field" data-field="engine_number" data-value="{{ $vehicle->engine_number ?? '' }}">
+                                    {{ $vehicle->engine_number ?? 'N/A' }}
+                                </span>
+                                <a href="javascript:void(0)" class="edit-btn pull-right" data-field="engine_number" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Chassis No.</th>
+                            <td>
+                                <span class="editable-field" data-field="chassis_number" data-value="{{ $vehicle->chassis_number ?? '' }}">
+                                    {{ $vehicle->chassis_number ?? 'N/A' }}
+                                </span>
+                                <a href="javascript:void(0)" class="edit-btn pull-right" data-field="chassis_number" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Mileage</th>
+                            <td>
+                                <span class="editable-field" data-field="mileage" data-value="{{ $vehicle->mileage ?? '' }}">
+                                    {{ $vehicle->mileage ?? 'N/A' }}
+                                </span>
+                                <a href="javascript:void(0)" class="edit-btn pull-right" data-field="mileage" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Fuel Type</th>
+                            <td>
+                                <span class="editable-field" data-field="fuel_type" data-value="{{ $vehicle->fuel_type ?? '' }}">
+                                    {{ $vehicle->fuel_type ?? 'N/A' }}
+                                </span>
+                                <a href="javascript:void(0)" class="edit-btn pull-right" data-field="fuel_type" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Transmission</th>
+                            <td>
+                                <span class="editable-field" data-field="transmission" data-value="{{ $vehicle->transmission ?? '' }}">
+                                    {{ $vehicle->transmission ?? 'N/A' }}
+                                </span>
+                                <a href="javascript:void(0)" class="edit-btn pull-right" data-field="transmission" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
                     </table>
                 </div>
             </div>
@@ -1009,6 +1080,79 @@
 @endsection
 
 @section('footer-scripts')
+<style>
+.editable-field {
+    display: inline-block;
+    padding: 3px 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+.editable-field:hover {
+    background-color: #f5f5f5;
+}
+.edit-btn {
+    color: #3c8dbc;
+    margin-left: 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.edit-btn:hover {
+    opacity: 1;
+    text-decoration: none;
+}
+.edit-input {
+    display: inline-block;
+    padding: 3px 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 150px;
+    font-size: 14px;
+}
+.save-btn, .cancel-btn {
+    padding: 3px 8px;
+    margin-left: 5px;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+.save-btn {
+    background-color: #28a745;
+    color: white;
+}
+.save-btn:hover {
+    background-color: #218838;
+}
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
+}
+.cancel-btn:hover {
+    background-color: #5a6268;
+}
+.save-btn:disabled, .cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.inline-edit-wrapper {
+    display: flex;
+    align-items: center;
+}
+.loading-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3c8dbc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 <script>
 document.getElementById('ownership_type').addEventListener('change', function() {
     var sections = document.querySelectorAll('.ownership-section');
@@ -1027,5 +1171,134 @@ document.getElementById('ownership_type').addEventListener('change', function() 
 });
 
 document.getElementById('ownership_type').dispatchEvent(new Event('change'));
+
+// Inline Edit Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    var vehicleId = {{ $vehicle->id }};
+    var csrfToken = '{{ csrf_token() }}';
+    
+    document.querySelectorAll('.edit-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var field = this.getAttribute('data-field');
+            var row = this.closest('tr');
+            var displaySpan = row.querySelector('.editable-field');
+            var currentValue = displaySpan.getAttribute('data-value') || displaySpan.textContent.trim();
+            
+            if (currentValue === 'N/A') currentValue = '';
+            
+            // Create input field
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'edit-input';
+            input.value = currentValue;
+            input.setAttribute('data-original-value', currentValue);
+            
+            // Create save button
+            var saveBtn = document.createElement('button');
+            saveBtn.className = 'save-btn';
+            saveBtn.innerHTML = '<i class="fa fa-check"></i> Save';
+            saveBtn.setAttribute('data-field', field);
+            
+            // Create cancel button
+            var cancelBtn = document.createElement('button');
+            cancelBtn.className = 'cancel-btn';
+            cancelBtn.innerHTML = '<i class="fa fa-times"></i> Cancel';
+            
+            // Create wrapper
+            var wrapper = document.createElement('div');
+            wrapper.className = 'inline-edit-wrapper';
+            wrapper.appendChild(input);
+            wrapper.appendChild(saveBtn);
+            wrapper.appendChild(cancelBtn);
+            
+            // Replace display with wrapper
+            displaySpan.style.display = 'none';
+            this.style.display = 'none';
+            row.querySelector('td').insertBefore(wrapper, row.querySelector('td').firstChild);
+            
+            // Focus input
+            input.focus();
+            input.select();
+            
+            // Cancel handler
+            cancelBtn.addEventListener('click', function() {
+                wrapper.remove();
+                displaySpan.style.display = 'inline-block';
+                row.querySelector('.edit-btn').style.display = 'inline-block';
+            });
+            
+            // Save handler
+            saveBtn.addEventListener('click', function() {
+                var newValue = input.value.trim();
+                var originalValue = input.getAttribute('data-original-value');
+                
+                if (newValue === originalValue) {
+                    // No change, just cancel
+                    wrapper.remove();
+                    displaySpan.style.display = 'inline-block';
+                    row.querySelector('.edit-btn').style.display = 'inline-block';
+                    return;
+                }
+                
+                // Show loading
+                saveBtn.disabled = true;
+                cancelBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="loading-spinner"></span> Saving...';
+                
+                // Send AJAX request
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/vehicles/' + vehicleId + '/update', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        saveBtn.disabled = false;
+                        cancelBtn.disabled = false;
+                        
+                        if (xhr.status === 200) {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                // Update display
+                                displaySpan.textContent = newValue || 'N/A';
+                                displaySpan.setAttribute('data-value', newValue);
+                                
+                                wrapper.remove();
+                                displaySpan.style.display = 'inline-block';
+                                row.querySelector('.edit-btn').style.display = 'inline-block';
+                                
+                                // Show success message
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.success('Field updated successfully!');
+                                } else {
+                                    alert('Field updated successfully!');
+                                }
+                            } else {
+                                saveBtn.innerHTML = '<i class="fa fa-check"></i> Save';
+                                alert('Error: ' + (response.message || 'Failed to update'));
+                            }
+                        } else {
+                            saveBtn.innerHTML = '<i class="fa fa-check"></i> Save';
+                            alert('Error: Failed to save changes');
+                        }
+                    }
+                };
+                
+                xhr.send('field=' + encodeURIComponent(field) + '&value=' + encodeURIComponent(newValue));
+            });
+            
+            // Enter key to save, Escape to cancel
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveBtn.click();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelBtn.click();
+                }
+            });
+        });
+    });
+});
 </script>
 @endsection

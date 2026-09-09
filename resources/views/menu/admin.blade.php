@@ -42,7 +42,7 @@ if (!Sentinel::check()) {
         $query->where('district_id', $districtId);
     } elseif ($roleId == 6) {
         // Provincial Manager — own province
-        $provinceId = $user->office->province_id;
+        $provinceId = $user->office->province_id ?? null;
         $query->where('province_id', $provinceId);
     } else {
         // Default: scope to collateral created by the user (Loan Consultants)
@@ -148,7 +148,7 @@ if (!Sentinel::check()) {
                     <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i>GOA Dashboard</a></li>
                     <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Motor Vehicles Dashboard</a></li>
                     <li><a href="{{ url('payrollloans/dashboard') }}"><i class="fa fa-circle-o"></i>Payroll Loans Dashboard</a></li>
-                    <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Collateral Assets Dashboard</a></li>
+                    <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Collateral Dashboard</a></li>
                 </ul>
             </li>
             @endif
@@ -446,7 +446,7 @@ if (!Sentinel::check()) {
                                 <li><a href="{{ route('collateral.analytics.branch') }}"><i class="fa fa-circle-o"></i> Branch Analytics</a>
                                      </li>
                             @endif
-                            @if($role == 4)
+                            @if(in_array($role, [4,6]))
                             <li><a href="{{ route('collateral.approvals.queue') }}"><i class="fa fa-circle-o"></i>Collateral Approvals</a></li>
                             @endif
                         </ul>
@@ -1594,10 +1594,7 @@ if (!Sentinel::check()) {
             {{-- HUMAN RESOURCES MODULE                                 --}}
             {{-- ====================================================== --}}
 
-          
-
-
-                                 <!-- ============================================
+            <!-- ============================================
                  MOTOR VECHICLE SECTION
             ============================================ -->
             <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/dormant_loans') || Request::is('motor-vehicle-loans*') || Request::is('clients/*/edit-kyc') || Request::is('vehicles/ownership-verification') || Request::is('vehicles/*/ownership-verification') || Request::is('vehicles/movements') || Request::is('vehicles/*/movements') || Request::is('vehicles/roll-calls') || Request::is('vehicles/*/roll-calls') || Request::is('vehicles/custody-register') || Request::is('vehicles/*/custody-register') ) active menu-open @endif">
@@ -1609,57 +1606,39 @@ if (!Sentinel::check()) {
                 </a>
                 <ul class="treeview-menu">
                     <!-- Branch Uncollected -->
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>MVL Dashboard</a></li>
+                    @if(in_array($role, [1,4]))
+                        <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>MVL Dashboard</a></li>
+                        <!-- @if(Sentinel::hasAccess('settings'))
+                        <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->where('loan_product_id',0)->count() }}</span>@endif</a></li>
+                        @endif -->
+                        <li><a href="{{ url('vehicles/mvl/motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>MV Loans</a></li>
+                        <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles Register</a></li>
                     @endif
 
-                    
-                    <!-- @if(Sentinel::hasAccess('settings'))
-                    <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->where('loan_product_id',0)->count() }}</span>@endif</a></li>
-                    @endif -->
-                  
-
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles/mvl/motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>MV Loans</a></li>
+                    @hasRole('role.exec', 'role.dev', 'role.risk')
+                        <li><a href="{{ url('vehicles/custody-register') }}"><i class="fa fa-circle-o"></i>Custody Register (Storage)</a></li>
+                        <li><a href="{{ url('vehicles/disposal-register') }}"><i class="fa fa-circle-o"></i>Disposal Register (Defaulted)</a></li>
+                        <li><a href="{{ url('vehicles/sales') }}"><i class="fa fa-circle-o"></i>Vehicles Sold</a></li>
                     @endif
-
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles Register</a></li>
-                    @endif
-
-                    <!-- @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles/sales') }}"><i class="fa fa-circle-o"></i>Vehicle Sales</a></li>
-                    @endif
-
+                    <!--
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>Loan Lifecycle</a></li>
                     @endif
-
                     @if(Sentinel::hasAccess('settings'))
                     <li><a href="{{ url('loan/product/data') }}"><i class="fa fa-circle-o"></i>Loan Products</a></li>
                     @endif
-
                     @if(Sentinel::hasAccess('settings'))
                     <li><a href="{{ url('motor-vehicle-loans/approval-matrices') }}"><i class="fa fa-circle-o"></i>Approval Matrices</a></li>
                     @endif
-
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles/ownership-verification') }}"><i class="fa fa-circle-o"></i>Ownership Verification</a></li>
                     @endif
-
-                    @if(Sentinel::hasAccess('expenses'))
-                    <li><a href="{{ url('vehicles/custody-register') }}"><i class="fa fa-circle-o"></i>Custody Register</a></li>
-                    @endif
-
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles/movements') }}"><i class="fa fa-circle-o"></i>Vehicle Movements</a></li>
                     @endif
-
                     @if(Sentinel::hasAccess('expenses'))
                     <li><a href="{{ url('vehicles/roll-calls') }}"><i class="fa fa-circle-o"></i>Roll Calls</a></li>
                     @endif -->
-
-
                 </ul>
             </li>
 

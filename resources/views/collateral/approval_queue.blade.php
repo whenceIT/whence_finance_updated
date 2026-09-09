@@ -4,7 +4,7 @@
     @php
         $isValuator = Sentinel::getUser()->isCollateralValuator();
         $showWriteOff = in_array($roleId, [1]);
-        $showRelease = in_array($roleId, [4]);
+        $showRelease = in_array($roleId, [4, 6]);
         $activeTab = $isValuator ? 'seizure-pending-tab' : ($showWriteOff ? 'pending-written-off-tab' : ($showRelease ? 'release-pending-tab' : ''));
     @endphp
     <div class="box box-primary">
@@ -59,11 +59,11 @@
                             @forelse($seizurePending as $collateral)
                                 <tr>
                                     <td>{{ $collateral->name }}</td>
-                                    <td>{{ optional($collateral->loan)->id }}</td>
+                                    <td>{{ optional($collateral->loan)->id ?? '' }}</td>
                                     <td>{{ optional(optional($collateral->loan)->client)->first_name ?? 'N/A' }} {{ optional(optional($collateral->loan)->client)->last_name ?? '' }}</td>
                                     <td>{{ number_format($collateral->current_worth, 2) }}</td>
                                     <td>{{ ucfirst($collateral->condition) }}</td>
-                                    <td>{{ optional($collateral->created_by)->first_name }} {{ optional($collateral->created_by)->last_name }}</td>
+                                    <td>{{ optional($collateral->created_by)->first_name ?? '' }} {{ optional($collateral->created_by)->last_name ?? '' }}</td>
                                     <td>{{ $collateral->created_at->format('Y-m-d H:i') }}</td>
                                     <td>
                                         <a href="{{ route('collateral.show', $collateral) }}" class="btn btn-xs btn-primary">View</a>
@@ -107,11 +107,11 @@
                             @forelse($pendingWrittenOff as $collateral)
                                 <tr>
                                     <td>{{ $collateral->name }}</td>
-                                    <td>{{ optional($collateral->loan)->id }}</td>
+                                    <td>{{ optional($collateral->loan)->id ?? '' }}</td>
                                     <td>{{ optional(optional($collateral->loan)->client)->first_name ?? 'N/A' }} {{ optional(optional($collateral->loan)->client)->last_name ?? '' }}</td>
                                     <td>{{ number_format($collateral->current_worth, 2) }}</td>
                                     <td>{{ ucfirst($collateral->condition) }}</td>
-                                    <td>{{ optional($collateral->created_by)->first_name }} {{ optional($collateral->created_by)->last_name }}</td>
+                                    <td>{{ optional($collateral->created_by)->first_name ?? '' }} {{ optional($collateral->created_by)->last_name ?? '' }}</td>
                                     <td>{{ $collateral->created_at->format('Y-m-d H:i') }}</td>
                                     <td>
                                         <a href="{{ route('collateral.show', $collateral) }}" class="btn btn-xs btn-primary">View</a>
@@ -152,12 +152,12 @@
                             @forelse($releasePending as $collateral)
                                 <tr>
                                     <td>{{ $collateral->name }}</td>
-                                    <td>{{ optional($collateral->loan)->id }}</td>
+                                    <td>{{ optional($collateral->loan)->id ?? '' }}</td>
                                     <td>{{ optional(optional($collateral->loan)->client)->first_name ?? 'N/A' }} {{ optional(optional($collateral->loan)->client)->last_name ?? '' }}</td>
                                     <td>{{ number_format($collateral->current_worth, 2) }}</td>
                                     <td>{{ ucfirst($collateral->condition) }}</td>
-                                    <td>{{ optional($collateral->created_by)->first_name }} {{ optional($collateral->created_by)->last_name }}</td>
-                                    <td>{{ optional($collateral->release_requested_at?->format('Y-m-d H:i')) }}</td>
+                                    <td>{{ optional($collateral->created_by)->first_name ?? '' }} {{ optional($collateral->created_by)->last_name ?? '' }}</td>
+                                    <td>{{ optional($collateral->release_requested_at)->format('Y-m-d H:i') ?? '' }}</td>
                                     <td>
                                         <a href="{{ route('collateral.show', $collateral) }}" class="btn btn-xs btn-primary">View</a>
                                         <form method="post" action="{{ route('collateral.approvals.approve_release', $collateral) }}" style="display: inline;">

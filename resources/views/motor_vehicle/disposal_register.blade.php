@@ -1,40 +1,33 @@
 @extends('layouts.master')
 @section('title')
-    Motor Vehicle Loans Pending Approval
+    Disposal Register
 @endsection
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">Motor Vehicle Loans Pending</h3>
-            <div class="box-tools pull-right">
-                @if(Sentinel::hasAccess('loans.create'))
-                    <a href="{{ url('loan/create') }}" class="btn btn-info btn-sm">
-                        {{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}
-                    </a>
-                @endif
-            </div>
+            <h3 class="box-title">Disposal Register (Defaulted Motor Vehicle Loans)</h3>
         </div>
         <div class="box-body">
             <div class="row">
                 <div class="col-md-12">
                     <div class="callout callout-info" style="margin-bottom: 20px;">
-                        <h4><i class="fa fa-car"></i> Vehicle & Loan Summary</h4>
+                        <h4><i class="fa fa-car"></i> Disposal Summary</h4>
                         <div class="row">
                             <div class="col-md-3">
-                                <strong>Total Pending:</strong><br>
-                                <span class="badge bg-blue">{{ $data->count() }}</span> loans
+                                <strong>Total Defaulted/Disbursed:</strong><br>
+                                <span class="badge bg-blue">{{ $loans->count() }}</span> loans
                             </div>
                             <div class="col-md-3">
-                                <strong>Total Amount:</strong><br>
-                                KSh {{ number_format($data->sum('principal'), 2) }}
+                                <strong>Total Value:</strong><br>
+                                K{{ number_format($loans->sum('principal'), 2) }}
                             </div>
                             <div class="col-md-3">
-                                <strong>Pending Approval:</strong><br>
-                                <span class="badge bg-yellow">{{ $data->where('status', 'pending')->count() }}</span> loans
+                                <strong>Defaulted:</strong><br>
+                                <span class="badge bg-red">{{ $loans->where('defaulted', 'yes')->count() }}</span> loans
                             </div>
                             <div class="col-md-3">
-                                <strong>Approved:</strong><br>
-                                <span class="badge bg-green">{{ $data->where('status', 'approved')->count() }}</span> loans
+                                <strong>Disbursed (Overdue):</strong><br>
+                                <span class="badge bg-yellow">{{ $loans->where('defaulted', '!=', 'yes')->count() }}</span> loans
                             </div>
                         </div>
                     </div>
@@ -120,7 +113,7 @@
         </div>
 
         <div class="box-body table-responsive">
-            <table class="table  table-bordered table-hover table-striped" id="data-table">
+            <table class="table table-bordered table-hover table-striped" id="data-table">
                 <thead>
                     <tr>
                         <th>Image</th>
@@ -135,146 +128,145 @@
                         <th>Valuator</th>
                         <th>Custodian</th>
                         <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
-                        <th>{{ trans_choice('general.created_at',1) }}</th>
-                        <th>Approval</th>
+                        <th>1st Repayment</th>
+                        <th>Time Taken to Sale</th>
+                        <th>Status</th>
                         <th>Onboarding Progress</th>
                         <th>{{ trans_choice('general.action',1) }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                @foreach($data as $key)
-                <tr>
-                <td>
-                    @if(!empty($key->vehicle) && $key->vehicle->photos->isNotEmpty())
-                        <img src="{{ $key->vehicle->photos->first()->photo_url }}"
-                             class="vehicle-photo-thumb"
-                             data-photos='@json($key->vehicle->photos->pluck("photo_url"))'
-                             style="height: 50px; width: auto; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                             alt="Vehicle photo">
-                    @else
-                        <img src="https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"
-                             class="vehicle-photo-thumb"
-                             data-photos='["https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"]'
-                             style="height: 50px; width: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                             alt="No photo">
-                    @endif
-                </td>
-                <td>{{ $key->id }}</td>
-                <td>
-                    @if(!empty($key->originatingBranch))
-                        {{$key->originatingBranch->name}}
-                    @endif
-                </td>
-                <td>
-                    @if(!empty($key->originatingBranch->district))
-                        {{$key->originatingBranch->district->name}}
-                    @endif
-                </td>
-                <td>
-                    @if(!empty($key->originatingBranch->province))
-                        {{$key->originatingBranch->province->name}}
-                    @endif
-                </td>
-                <td>
-                    @if($key->client_type=="client")
-                        @if(!empty($key->client))
-                            @if($key->client->client_type=="individual")
-                                {{$key->client->first_name}} {{$key->client->middle_name}} {{$key->client->last_name}}
+                @foreach($loans as $loan)
+                    @php
+                        $status = $statuses[$loan->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null, 'ownership_completed' => null];
+                        $firstRepayment = $loan->first_repayment_date ? \Carbon\Carbon::parse($loan->first_repayment_date) : null;
+                        $timeTaken = $firstRepayment ? \Carbon\Carbon::now()->diffInDays($firstRepayment) : null;
+                        $timeTakenLabel = $timeTaken ? $timeTaken . ' days' : 'N/A';
+                        if ($timeTaken >= 30) {
+                            $months = floor($timeTaken / 30);
+                            $days = $timeTaken % 30;
+                            $timeTakenLabel = $months . ' month' . ($months > 1 ? 's' : '') . ($days > 0 ? ' ' . $days . ' day' . ($days > 1 ? 's' : '') : '');
+                        }
+                    @endphp
+                    <tr>
+                        <td>
+                            @if(!empty($loan->vehicle) && $loan->vehicle->photos->isNotEmpty())
+                                <img src="{{ $loan->vehicle->photos->first()->photo_url }}"
+                                     class="vehicle-photo-thumb"
+                                     data-photos='@json($loan->vehicle->photos->pluck("photo_url"))'
+                                     style="height: 50px; width: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                                     alt="Vehicle photo">
                             @else
-                                {{$key->client->full_name}}
+                                <img src="https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"
+                                     class="vehicle-photo-thumb"
+                                     data-photos='["https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"]'
+                                     style="height: 50px; width: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                                     alt="No photo">
                             @endif
-                        @endif
-                    @endif
-                    @if($key->client_type=="group")
-                        {{$key->group->name}}
-                    @endif
-                </td>
-                <td>
-                    @if(!empty($key->loanConsultant))
-                        {{$key->loanConsultant->first_name}} {{$key->loanConsultant->last_name}}
-                        <br><small class="text-muted">ID: {{$key->loanConsultant->id}}</small>
-                    @endif
-                </td>
-                <td>
-                    @if(!empty($key->created_by))
-                        {{$key->created_by->first_name}} {{$key->created_by->last_name}}
-                    @endif
-                </td>
-                <td>
-                    @php
-                        $latestInspection = null;
-                        if (!empty($key->vehicle) && $key->vehicle->relationLoaded('inspections')) {
-                            $latestInspection = $key->vehicle->inspections->sortByDesc('inspection_date')->first();
-                        }
-                    @endphp
-                    @if(!empty($latestInspection))
-                        {{ $latestInspection->inspector }}
-                    @endif
-                </td>
-                <td>
-                    @php
-                        $latestValuation = null;
-                        if (!empty($key->vehicle) && $key->vehicle->relationLoaded('valuations')) {
-                            $latestValuation = $key->vehicle->valuations->sortByDesc('valuation_date')->first();
-                        }
-                    @endphp
-                    @if(!empty($latestValuation) && !empty($latestValuation->valuator))
-                        {{ $latestValuation->valuator->first_name }} {{ $latestValuation->valuator->last_name }}
-                    @endif
-                </td>
-                <td>
-                    @if(!empty($key->vehicle) && !empty($key->vehicle->custody) && !empty($key->vehicle->custody->receiver))
-                        {{ $key->vehicle->custody->receiver->first_name }} {{ $key->vehicle->custody->receiver->last_name }}
-                    @endif
-                </td>
-                <td>{{ number_format($key->principal, $key->decimals) }}</td>
-                <td>{{ $key->created_date }}</td>
-                <td>
-                {{$key->status}}
-            </td>
-            <td>
-                <x-onboarding-progress :status="$statuses[$key->id]" :loan="$key" />
-            </td>
-                <td>
-                    <div class="btn-group">
-                        <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-toggle="dropdown"
-                                aria-expanded="false"><i
-                                    class="fa fa-navicon"></i></button>
-                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                            @if(Sentinel::hasAccess('loans.view'))
-                                <li>
-                                    <a href="{{ url('loan/'.$key->id.'/show') }}"><i
-                                                class="fa fa-search"></i>
-                                        {{ trans_choice('general.detail',2) }}</a>
-                                </li>
+                        </td>
+                        <td>{{ $loan->id }}</td>
+                        <td>
+                            @if(!empty($loan->originatingBranch))
+                                {{$loan->originatingBranch->name}}
                             @endif
-                            @if($key->status=="pending")
-                                @if(Sentinel::hasAccess('loans.update'))
-                                    <li>
-                                        <a href="{{ url('loan/'.$key->id.'/edit') }}"><i
-                                                    class="fa fa-edit"></i>
-                                            {{ trans('general.edit') }}</a>
-                                    </li>
-                                @endif
-                                @if(Sentinel::hasAccess('loans.delete'))
-                                    <li>
-                                        <a href="{{ url('loan/'.$key->id.'/delete') }}"
-                                           class="delete"><i
-                                                    class="fa fa-trash"></i>
-                                            {{ trans('general.delete') }}</a>
-                                    </li>
+                        </td>
+                        <td>
+                            @if(!empty($loan->originatingBranch->district))
+                                {{$loan->originatingBranch->district->name}}
+                            @endif
+                        </td>
+                        <td>
+                            @if(!empty($loan->originatingBranch->province))
+                                {{$loan->originatingBranch->province->name}}
+                            @endif
+                        </td>
+                        <td>
+                            @if($loan->client_type=="client")
+                                @if(!empty($loan->client))
+                                    @if($loan->client->client_type=="individual")
+                                        {{$loan->client->first_name}} {{$loan->client->middle_name}} {{$loan->client->last_name}}
+                                    @else
+                                        {{$loan->client->full_name}}
+                                    @endif
                                 @endif
                             @endif
-                        </ul>
-                    </div>
-                </td>
-            </tr>
-        @endforeach
+                            @if($loan->client_type=="group")
+                                {{$loan->group->name}}
+                            @endif
+                        </td>
+                        <td>
+                            @if(!empty($loan->loanConsultant))
+                                {{$loan->loanConsultant->first_name}} {{$loan->loanConsultant->last_name}}
+                                <br><small class="text-muted">ID: {{$loan->loanConsultant->id}}</small>
+                            @endif
+                        </td>
+                        <td>
+                            @if(!empty($loan->created_by))
+                                {{$loan->created_by->first_name}} {{$loan->created_by->last_name}}
+                            @endif
+                        </td>
+                        <td>
+                            @php $latestInspection = $loan->vehicle->inspections->sortByDesc('inspection_date')->first(); @endphp
+                            @if(!empty($latestInspection))
+                                {{ $latestInspection->inspector }}
+                            @endif
+                        </td>
+                        <td>
+                            @php $latestValuation = $loan->vehicle->valuations->sortByDesc('valuation_date')->first(); @endphp
+                            @if(!empty($latestValuation) && !empty($latestValuation->valuator))
+                                {{ $latestValuation->valuator->first_name }} {{ $latestValuation->valuator->last_name }}
+                            @endif
+                        </td>
+                        <td>
+                            @if(!empty($loan->vehicle->custody) && !empty($loan->vehicle->custody->receiver))
+                                {{ $loan->vehicle->custody->receiver->first_name }} {{ $loan->vehicle->custody->receiver->last_name }}
+                            @endif
+                        </td>
+                        <td>{{ number_format($loan->principal, $loan->decimals) }}</td>
+                        <td>
+                            @if($firstRepayment)
+                                {{ $firstRepayment->format('Y-m-d') }}
+                            @else
+                                N/A
+                            @endif
+                        </td>
+                        <td>
+                            <span class="badge bg-red">{{ $timeTakenLabel }}</span>
+                        </td>
+                        <td>
+                            @if($loan->defaulted == 'yes')
+                                <span class="label label-danger">Defaulted</span>
+                            @else
+                                <span class="label label-warning">{{ ucfirst($loan->status) }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            <x-onboarding-progress :status="$status" :loan="$loan" />
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-toggle="dropdown"
+                                        aria-expanded="false"><i
+                                            class="fa fa-navicon"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                                    @if(Sentinel::hasAccess('loans.view'))
+                                        <li>
+                                            <a href="{{ url('loan/'.$loan->id.'/show') }}"><i
+                                                        class="fa fa-search"></i>
+                                                {{ trans_choice('general.detail',2) }}</a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
                 </tbody>
             </table>
         </div>
     </div>
-    
+@endsection
+@section('footer-scripts')
     <script>
         $('#data-table').DataTable({
             dom: 'frtip',
@@ -285,7 +277,7 @@
             "ordering": true,
             "info": true,
             "autoWidth": true,
-            "order": [[11, "desc"]],
+            "order": [[12, "desc"]],
             "columnDefs": [
                 {"orderable": false, "targets": []}
             ],
@@ -307,7 +299,7 @@
         });
     </script>
 
-<script>
+    <script>
 (function() {
     const modal = document.getElementById('vehiclePhotoModal');
     if (!modal) return;

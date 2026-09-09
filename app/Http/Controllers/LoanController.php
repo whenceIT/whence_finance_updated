@@ -65,6 +65,8 @@ use App\Services\NotifixService;
 use App\Models\ClientAppLoanApplications;
 use App\Models\ClientAppUsers;
 use App\Models\Vehicle;
+use App\Models\ComplianceScreening;
+use App\Models\VehicleOwnershipRecord;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
@@ -1840,10 +1842,39 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
 
         $vehicle = Vehicle::with('client')->where('loan_id',$loan->id)->first();
 
+        $statuses = [];
+        if ($loan->loan_product_id == 0 && $loan->client) {
+            $client = $loan->client;
+            $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+            $kycCompleted = true;
+            foreach ($kycFields as $field) {
+                if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
+                    $kycCompleted = false;
+                    break;
+                }
+            }
+
+            $compliance = ComplianceScreening::where('motor_vehicle_loan_id', $loan->id)
+                ->whereIn('status', ['cleared', 'flagged', 'requires_review'])
+                ->exists();
+            $complianceCompleted = $compliance;
+
+            $ownershipCompleted = false;
+            if ($vehicle) {
+                $ownership = VehicleOwnershipRecord::where('vehicle_id', $vehicle->id)->exists();
+                $ownershipCompleted = $ownership;
+            }
+
+            $statuses[$loan->id] = [
+                'kyc_completed' => $kycCompleted,
+                'compliance_screening_completed' => $complianceCompleted,
+                'ownership_completed' => $ownershipCompleted,
+            ];
+        }
 
        // $cashBalance = 30000;
        // $user_id = 1;
-        return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id','vehicle'));
+        return view('loan.show', compact('loan', 'ledgerBlocker','cashBalance','user_id','vehicle', 'statuses'));
     }
 
 
