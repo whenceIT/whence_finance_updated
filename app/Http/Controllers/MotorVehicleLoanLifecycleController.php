@@ -467,7 +467,7 @@ class MotorVehicleLoanLifecycleController extends Controller
 
     public function custodyRegister()
     {
-        $custodies = VehicleCustody::with(['vehicle', 'receiver'])->latest()->paginate(20);
+        $custodies = VehicleCustody::with(['vehicle.loan.loanConsultant', 'vehicle.inspections', 'vehicle.valuations', 'receiver'])->latest()->paginate(20);
 
         return view('motor_vehicle.custody.register', compact('custodies'));
     }

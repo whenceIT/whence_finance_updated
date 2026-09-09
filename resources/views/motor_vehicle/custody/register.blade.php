@@ -21,9 +21,12 @@
             <thead>
             <tr>
                 <th>Vehicle</th>
+                <th>Loan Consultant</th>
+                <th>Received By</th>
+                <th>Inspector</th>
+                <th>Valuator</th>
+                <th>Custodian</th>
                 <th>Garage Name</th>
-                <th>Contact Person</th>
-                <th>Phone</th>
                 <th>Status</th>
                 <th>Storage Start Date</th>
                 <th>Approved</th>
@@ -41,13 +44,52 @@
                         {{ optional($custody->vehicle)->registration_number ?? 'N/A' }}
                     @endif
                 </td>
+                <td>
+                    @php
+                        $loan = optional($custody->vehicle)->loan;
+                    @endphp
+                    @if(!empty($loan) && !empty($loan->loanConsultant))
+                        {{ $loan->loanConsultant->first_name }} {{ $loan->loanConsultant->last_name }}
+                        <br><small class="text-muted">ID: {{ $loan->loanConsultant->id }}</small>
+                    @endif
+                </td>
+                <td>
+                    @if(!empty($custody->receiver))
+                        {{ $custody->receiver->first_name }} {{ $custody->receiver->last_name }}
+                    @endif
+                </td>
+                <td>
+                    @php
+                        $latestInspection = null;
+                        if (!empty($custody->vehicle) && $custody->vehicle->relationLoaded('inspections')) {
+                            $latestInspection = $custody->vehicle->inspections->sortByDesc('inspection_date')->first();
+                        }
+                    @endphp
+                    @if(!empty($latestInspection))
+                        {{ $latestInspection->inspector }}
+                    @endif
+                </td>
+                <td>
+                    @php
+                        $latestValuation = null;
+                        if (!empty($custody->vehicle) && $custody->vehicle->relationLoaded('valuations')) {
+                            $latestValuation = $custody->vehicle->valuations->sortByDesc('valuation_date')->first();
+                        }
+                    @endphp
+                    @if(!empty($latestValuation) && !empty($latestValuation->valuator))
+                        {{ $latestValuation->valuator->first_name }} {{ $latestValuation->valuator->last_name }}
+                    @endif
+                </td>
+                <td>
+                    @if(!empty($custody->receiver))
+                        {{ $custody->receiver->first_name }} {{ $custody->receiver->last_name }}
+                    @endif
+                </td>
                 <td>{{ $custody->garage_name ?? 'N/A' }}</td>
-                <td>{{ $custody->garage_contact_person ?? 'N/A' }}</td>
-                <td>{{ $custody->garage_contact_phone ?? 'N/A' }}</td>
                 <td>{{ ucfirst($custody->status ?? 'N/A') }}</td>
                 <td>{{ $custody->received_at ? \Carbon\Carbon::parse($custody->received_at)->format('Y-m-d H:i') : 'N/A' }}</td>
                 <td>
-                    @if($custody->approved)
+                    @if($custody->custody_approved)
                         <span class="label label-success">Yes</span>
                     @else
                         <span class="label label-danger">No</span>
@@ -56,7 +98,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="7" class="text-center">No custody records found.</td>
+                <td colspan="10" class="text-center">No custody records found.</td>
             </tr>
             @endforelse
 
