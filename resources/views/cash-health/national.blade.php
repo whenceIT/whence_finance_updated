@@ -1258,6 +1258,23 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
                 </th>
 
 
+                <th style="
+    text-align:right;
+    padding:14px 15px;
+    font-size:11px;
+">
+    CASH BALANCE
+    <div style="
+        font-size:10px;
+        font-weight:400;
+        color:#9ca3af;
+        margin-top:3px;
+    ">
+        Current available cash
+    </div>
+</th>
+
+
                 {{-- CASH HEALTH SCORE --}}
 
                 <th style="
@@ -1460,6 +1477,7 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
         </td>
 
 
+
         <td style="
     padding:16px;
     font-weight:700;
@@ -1479,6 +1497,24 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
        {{ $province['office_count'] ?? 0 }} offices
 </span>
 
+</td>
+
+
+
+
+        <td style="
+    padding:14px 15px;
+    text-align:right;
+    font-weight:600;
+    color:#111827;
+    white-space:nowrap;
+">
+   <span
+    class="province-cash-balance"
+    data-province-id="{{ $province['province_id'] }}"
+>
+    <i class="fa fa-spinner fa-spin"></i>
+</span>
 </td>
 
 
@@ -1557,7 +1593,7 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
     >
 
         <td
-            colspan="6"
+            colspan="7"
             style="
                 padding:0;
                 background:#fafbfc;
@@ -1630,11 +1666,11 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
                         overflow:hidden;
                     ">
 
-                      <div
+<div
     onclick="toggleNationalOffice('{{ $districtKey }}')"
     style="
         display:grid;
-        grid-template-columns:45px minmax(180px, 1fr) 100px 160px 100px minmax(180px, 1.5fr);
+        grid-template-columns:45px minmax(180px, 1fr) 120px 110px 150px 120px minmax(220px, 1.5fr);
         align-items:center;
         cursor:pointer;
         background:#fff;
@@ -1682,6 +1718,24 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
 
 </div>
 
+
+
+<div style="
+    padding:14px 15px;
+    text-align:right;
+    font-weight:600;
+    font-size:12px;
+    color:#202633;
+    min-width:0;
+    white-space:nowrap;
+">
+    <span
+        class="district-cash-balance"
+        data-district-id="{{ $district['district_id'] }}"
+    >
+        <i class="fa fa-spinner fa-spin"></i>
+    </span>
+</div>
 
 {{-- OVERALL SCORE --}}
 <div style="
@@ -1747,7 +1801,10 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
     text-align:left;
     color:#697386;
     min-width:0;
+    width:100%;
+    overflow:hidden;
     overflow-wrap:anywhere;
+    word-break:break-word;
 ">
 
     {{ $scoreDetails }}
@@ -1809,133 +1866,165 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
 
                                 @endphp
 
+{{-- ============================= --}}
+{{-- OFFICE --}}
+{{-- ============================= --}}
 
-                                {{-- ============================= --}}
-                                {{-- OFFICE --}}
-                                {{-- ============================= --}}
+<div
+    onclick="toggleNationalOffice('{{ $officeKey }}')"
+    style="
+        display:grid;
+        grid-template-columns:45px minmax(160px,1fr) 120px 120px 150px 120px 100px;
+        align-items:center;
+        border-top:1px solid #f0f2f5;
+        cursor:pointer;
+        background:#fafbfc;
+        width:100%;
+    "
+>
 
-                                <div
-                                    onclick="toggleNationalOffice('{{ $officeKey }}')"
-                                    style="
-                                        display:grid;
-                                        grid-template-columns:45px 1fr 150px 180px 100px 100px;
-                                        align-items:center;
-                                        border-top:1px solid #f0f2f5;
-                                        cursor:pointer;
-                                        background:#fafbfc;
-                                    "
-                                >
+    {{-- ARROW --}}
+    <div style="
+        padding:14px;
+        text-align:center;
+    ">
 
-                                    <div style="
-                                        padding:14px;
-                                        text-align:center;
-                                    ">
+        <span
+            id="{{ $officeKey }}_arrow"
+            style="
+                display:inline-block;
+                color:#a0a7b2;
+                transition:.2s;
+            "
+        >
+            ▶
+        </span>
 
-                                        <span
-                                            id="{{ $officeKey }}_arrow"
-                                            style="
-                                                display:inline-block;
-                                                color:#a0a7b2;
-                                                transition:.2s;
-                                            "
-                                        >
-                                            ▶
-                                        </span>
-
-                                    </div>
-
-
-                                    <div style="
-                                        padding:14px;
-                                        font-weight:600;
-                                        font-size:12px;
-                                        color:#343b48;
-                                    ">
-
-                                        {{ $offices[$office['office_id']]->name ?? 'Unknown Office' }}
-
-                                    </div>
+    </div>
 
 
-                                    <div style="
-                                        padding:14px;
-                                        text-align:right;
-                                        font-weight:700;
-                                        font-size:12px;
-                                    ">
+    {{-- OFFICE NAME --}}
+    <div style="
+        padding:14px;
+        font-weight:600;
+        font-size:12px;
+        color:#343b48;
+        min-width:0;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+    ">
 
-                                        {{ number_format(
-                                            $officeScores['overall'] ?? 0,
-                                            0
-                                        ) }}
+        {{ $offices[$office['office_id']]->name ?? 'Unknown Office' }}
 
-                                    </div>
-
-
-                                    <div style="
-                                        padding:14px;
-                                        text-align:right;
-                                        font-size:12px;
-                                        color:{{ ($officeFinancials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#343b48' }};
-                                    ">
-
-                                        K{{ number_format(
-                                            $officeFinancials['residual_cash'] ?? 0,
-                                            2
-                                        ) }}
-
-                                    </div>
+    </div>
 
 
-                                    <div style="
-                                        padding:14px;
-                                        text-align:center;
-                                    ">
+    {{-- CASH BALANCE --}}
+    <div style="
+        padding:14px;
+        text-align:right;
+        font-weight:700;
+        font-size:12px;
+        color:#202633;
+        min-width:0;
+        white-space:nowrap;
+    ">
 
-                                        <span style="
-                                            display:inline-block;
-                                            padding:4px 8px;
-                                            border-radius:20px;
-                                            background:{{ $officeStatusBackground }};
-                                            color:{{ $officeStatusColor }};
-                                            font-size:9px;
-                                            font-weight:700;
-                                        ">
+        <span
+            class="cash-balance"
+            data-office-id="{{ $office['office_id'] }}"
+        >
+            <i class="fa fa-spinner fa-spin"></i>
+        </span>
 
-                                            {{ $officeStatus }}
-
-                                        </span>
-
-                                    </div>
-
-
-                                    <div style="
-                                        padding:14px;
-                                        text-align:center;
-                                    ">
-
-                                        <a
-                                            href="{{ route('cash_health.show', ['id' => $office['office_id']]) }}"
-                                            onclick="event.stopPropagation();"
-                                            style="
-                                                display:inline-block;
-                                                padding:5px 10px;
-                                                background:#202633;
-                                                color:#fff;
-                                                border-radius:6px;
-                                                text-decoration:none;
-                                                font-size:10px;
-                                                font-weight:600;
-                                            "
-                                        >
-                                            View
-                                        </a>
-
-                                    </div>
-
-                                </div>
+    </div>
 
 
+    {{-- SCORE --}}
+    <div style="
+        padding:14px;
+        text-align:right;
+        font-weight:700;
+        font-size:12px;
+    ">
+
+        {{ number_format(
+            $officeScores['overall'] ?? 0,
+            0
+        ) }}
+
+    </div>
+
+
+    {{-- RESIDUAL CASH --}}
+    <div style="
+        padding:14px;
+        text-align:right;
+        font-size:12px;
+        color:{{ ($officeFinancials['residual_cash'] ?? 0) < 0 ? '#dc2626' : '#343b48' }};
+        white-space:nowrap;
+    ">
+
+        K{{ number_format(
+            $officeFinancials['residual_cash'] ?? 0,
+            2
+        ) }}
+
+    </div>
+
+
+    {{-- STATUS --}}
+    <div style="
+        padding:14px;
+        text-align:center;
+        min-width:0;
+    ">
+
+        <span style="
+            display:inline-block;
+            padding:4px 8px;
+            border-radius:20px;
+            background:{{ $officeStatusBackground }};
+            color:{{ $officeStatusColor }};
+            font-size:9px;
+            font-weight:700;
+            white-space:nowrap;
+        ">
+
+            {{ $officeStatus }}
+
+        </span>
+
+    </div>
+
+
+    {{-- VIEW --}}
+    <div style="
+        padding:14px;
+        text-align:center;
+    ">
+
+        <a
+            href="{{ route('cash_health.show', ['id' => $office['office_id']]) }}"
+            onclick="event.stopPropagation();"
+            style="
+                display:inline-block;
+                padding:5px 10px;
+                background:#202633;
+                color:#fff;
+                border-radius:6px;
+                text-decoration:none;
+                font-size:10px;
+                font-weight:600;
+            "
+        >
+            View
+        </a>
+
+    </div>
+
+</div>
                                 {{-- ================================= --}}
                                 {{-- OFFICE DETAILS --}}
                                 {{-- ================================= --}}
@@ -3536,25 +3625,522 @@ document.addEventListener(
 {{-- ============================================================= --}}
 
 
+
 @section('footer-scripts')
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+
+/* ============================================================
+   NATIONAL TABLE TOGGLE
+   ============================================================ */
+
+function toggleNationalOffice(id)
+{
+    const element =
+        document.getElementById(id);
+
+    const arrow =
+        document.getElementById(
+            id + '_arrow'
+        );
+
+    if (!element) {
+
+        console.warn(
+            'Element not found:',
+            id
+        );
+
+        return;
+    }
+
+    const isHidden =
+        element.style.display === 'none' ||
+        element.style.display === '';
+
+    if (isHidden) {
+
+        element.style.display =
+            element.tagName === 'TR'
+                ? 'table-row'
+                : 'block';
+
+    } else {
+
+        element.style.display = 'none';
+    }
+
+    if (arrow) {
+
+        arrow.style.transform =
+            isHidden
+                ? 'rotate(90deg)'
+                : 'rotate(0deg)';
+    }
+}
+
+
+/* ============================================================
+   NATIONAL CASH BALANCES
+   ============================================================ */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+
+        console.log(
+            'Starting national cash balance loading...'
+        );
+
+        const balancesUrl =
+            '{{ route('cash_health.national.balances') }}';
+
+        const officeBalanceUrl =
+            '{{ url('cash_health/national/balance') }}';
+
+
+        /* ---------------------------------------------------------
+           NUMBER FORMAT
+           --------------------------------------------------------- */
+
+        function formatMoney(amount)
+        {
+            return 'K ' + Number(amount).toLocaleString(
+                'en-US',
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+        }
+
+
+        /* ---------------------------------------------------------
+           MARK OFFICE UNAVAILABLE
+           --------------------------------------------------------- */
+
+        function markOfficeUnavailable(officeId)
+        {
+            const element =
+                document.querySelector(
+                    '.cash-balance[data-office-id="' +
+                    officeId +
+                    '"]'
+                );
+
+            if (element) {
+
+                element.innerHTML =
+                    '<span style="color:#999;">' +
+                    'Unavailable' +
+                    '</span>';
+            }
+        }
+
+
+        /* ---------------------------------------------------------
+           LOAD OFFICE BALANCE
+           --------------------------------------------------------- */
+
+        function loadOfficeBalance(
+            office,
+            districtTotals,
+            provinceTotals
+        ) {
+
+            return fetch(
+                officeBalanceUrl +
+                '/' +
+                office.office_id
+            )
+
+            .then(function (response) {
+
+                return response.json()
+
+                    .then(function (data) {
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                data.message ||
+                                'HTTP ' +
+                                response.status
+                            );
+                        }
+
+                        return data;
+                    });
+            })
+
+            .then(function (data) {
+
+                console.log(
+                    'Office balance:',
+                    office.office_id,
+                    data
+                );
+
+
+                if (
+                    !data.success ||
+                    data.balance === null ||
+                    data.balance === undefined
+                ) {
+
+                    markOfficeUnavailable(
+                        office.office_id
+                    );
+
+                    return null;
+                }
+
+
+                const amount =
+                    Number(data.balance);
+
+
+                if (!Number.isFinite(amount)) {
+
+                    markOfficeUnavailable(
+                        office.office_id
+                    );
+
+                    return null;
+                }
+
+
+                /* -------------------------------------------------
+                   OFFICE
+                   ------------------------------------------------- */
+
+                const officeElement =
+                    document.querySelector(
+                        '.cash-balance[data-office-id="' +
+                        office.office_id +
+                        '"]'
+                    );
+
+
+                if (officeElement) {
+
+                    officeElement.innerHTML =
+                        formatMoney(amount);
+                }
+
+
+                /* -------------------------------------------------
+                   DISTRICT
+                   ------------------------------------------------- */
+
+                const districtId =
+                    String(
+                        office.district_id
+                    );
+
+
+                districtTotals[districtId] =
+                    (
+                        districtTotals[districtId] ||
+                        0
+                    ) + amount;
+
+
+                /* -------------------------------------------------
+                   PROVINCE
+                   ------------------------------------------------- */
+
+                const provinceId =
+                    String(
+                        office.province_id
+                    );
+
+
+                provinceTotals[provinceId] =
+                    (
+                        provinceTotals[provinceId] ||
+                        0
+                    ) + amount;
+
+
+                return amount;
+            })
+
+            .catch(function (error) {
+
+                console.error(
+                    'Office balance failed:',
+                    office.office_id,
+                    error
+                );
+
+
+                markOfficeUnavailable(
+                    office.office_id
+                );
+
+
+                return null;
+            });
+        }
+
+
+        /* ---------------------------------------------------------
+           UPDATE DISTRICT TOTALS
+           --------------------------------------------------------- */
+
+        function updateDistrictTotals(
+            districtTotals
+        ) {
+
+            document
+                .querySelectorAll(
+                    '.district-cash-balance'
+                )
+                .forEach(function (element) {
+
+                    const districtId =
+                        String(
+                            element.dataset.districtId
+                        );
+
+
+                    const total =
+                        districtTotals[districtId] || 0;
+
+
+                    element.innerHTML =
+                        formatMoney(total);
+                });
+        }
+
+
+        /* ---------------------------------------------------------
+           UPDATE PROVINCE TOTALS
+           --------------------------------------------------------- */
+
+        function updateProvinceTotals(
+            provinceTotals
+        ) {
+
+            document
+                .querySelectorAll(
+                    '.province-cash-balance'
+                )
+                .forEach(function (element) {
+
+                    const provinceId =
+                        String(
+                            element.dataset.provinceId
+                        );
+
+
+                    const total =
+                        provinceTotals[provinceId] || 0;
+
+
+                    element.innerHTML =
+                        formatMoney(total);
+                });
+        }
+
+
+        /* ---------------------------------------------------------
+           LOAD OFFICE LIST
+           --------------------------------------------------------- */
+
+        fetch(balancesUrl)
+
+            .then(function (response) {
+
+                return response.json()
+
+                    .then(function (data) {
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                data.message ||
+                                'HTTP ' +
+                                response.status
+                            );
+                        }
+
+                        return data;
+                    });
+            })
+
+
+            .then(function (data) {
+
+                console.log(
+                    'Office list response:',
+                    data
+                );
+
+
+                if (!data.success) {
+
+                    throw new Error(
+                        data.message ||
+                        'Unable to load offices.'
+                    );
+                }
+
+
+                const offices =
+                    data.offices || [];
+
+
+                console.log(
+                    'Offices to process:',
+                    offices.length
+                );
+
+
+                /* -------------------------------------------------
+                   TOTALS
+                   ------------------------------------------------- */
+
+                const districtTotals = {};
+
+                const provinceTotals = {};
+
+                let nationalTotal = 0;
+
+
+                /* -------------------------------------------------
+                   PROCESS OFFICES ONE AT A TIME
+                   ------------------------------------------------- */
+
+                let chain =
+                    Promise.resolve();
+
+
+                offices.forEach(
+                    function (office) {
+
+                        chain =
+                            chain
+
+                                .then(function () {
+
+                                    return loadOfficeBalance(
+                                        office,
+                                        districtTotals,
+                                        provinceTotals
+                                    );
+                                })
+
+                                .then(function (amount) {
+
+                                    if (
+                                        amount !== null &&
+                                        amount !== undefined
+                                    ) {
+
+                                        nationalTotal +=
+                                            amount;
+                                    }
+
+
+                                    /* ---------------------------------
+                                       UPDATE DISTRICT TOTALS
+                                       --------------------------------- */
+
+                                    updateDistrictTotals(
+                                        districtTotals
+                                    );
+
+
+                                    /* ---------------------------------
+                                       UPDATE PROVINCE TOTALS
+                                       --------------------------------- */
+
+                                    updateProvinceTotals(
+                                        provinceTotals
+                                    );
+
+
+                                    /* ---------------------------------
+                                       UPDATE NATIONAL TOTAL
+                                       --------------------------------- */
+
+                                    const nationalElement =
+                                        document.getElementById(
+                                            'nationalCashBalance'
+                                        );
+
+
+                                    if (nationalElement) {
+
+                                        nationalElement.innerHTML =
+                                            formatMoney(
+                                                nationalTotal
+                                            );
+                                    }
+                                });
+                    }
+                );
+
+
+                return chain;
+            })
+
+
+            .then(function () {
+
+                console.log(
+                    'National cash balance loading complete.'
+                );
+            })
+
+
+            .catch(function (error) {
+
+                console.error(
+                    'National cash balance error:',
+                    error
+                );
+
+
+                /* ---------------------------------------------
+                   NATIONAL BALANCE
+                   --------------------------------------------- */
+
+                const nationalElement =
+                    document.getElementById(
+                        'nationalCashBalance'
+                    );
+
+
+                if (nationalElement) {
+
+                    nationalElement.innerHTML =
+                        '<span style="color:#999;">' +
+                        'Unavailable' +
+                        '</span>';
+                }
+            });
+
+    }
+);
 
 
 /* ============================================================
    NATIONAL CONTRIBUTION GRAPH
    ============================================================ */
+
 let nationalContributionData = [];
 
 let nationalContributionChart = null;
 
 
-/*
-|--------------------------------------------------------------------------
-| FORMAT MONEY
-|--------------------------------------------------------------------------
-*/
+/* ------------------------------------------------------------
+   NUMBER FORMAT
+   ------------------------------------------------------------ */
 
 function formatContribution(value)
 {
@@ -3568,84 +4154,80 @@ function formatContribution(value)
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET UNIQUE GROUPS
-|--------------------------------------------------------------------------
-*/
+/* ------------------------------------------------------------
+   GET CONTRIBUTION GROUPS
+   ------------------------------------------------------------ */
 
 function getContributionGroups(level)
 {
     const groups = {};
 
-    nationalContributionData.forEach(row => {
 
-        let id;
-        let name;
+    nationalContributionData.forEach(
+        function (row) {
 
-        if (level === 'province') {
+            let id;
+            let name;
 
-            id =
-                row.province_id;
 
-            name =
-                row.province_name;
+            if (level === 'province') {
 
+                id =
+                    row.province_id;
+
+                name =
+                    row.province_name;
+
+            }
+            else if (level === 'district') {
+
+                id =
+                    row.district_id;
+
+                name =
+                    row.district_name;
+
+            }
+            else {
+
+                id =
+                    row.office_id;
+
+                name =
+                    row.office_name;
+            }
+
+
+            if (!groups[id]) {
+
+                groups[id] = {
+
+                    id: id,
+
+                    name: name,
+
+                    cycles: {}
+                };
+            }
+
+
+            groups[id].cycles[
+                row.cycle_start
+            ] =
+                Number(
+                    row.contribution
+                ) || 0;
         }
-
-        else if (level === 'district') {
-
-            id =
-                row.district_id;
-
-            name =
-                row.district_name;
-
-        }
-
-        else {
-
-            id =
-                row.office_id;
-
-            name =
-                row.office_name;
-
-        }
-
-
-        if (!groups[id]) {
-
-            groups[id] = {
-
-                id: id,
-
-                name: name,
-
-                cycles: {}
-
-            };
-
-        }
-
-
-        groups[id].cycles[
-            row.cycle_start
-        ] =
-            Number(row.contribution) || 0;
-
-    });
+    );
 
 
     return Object.values(groups);
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE GRAPH
-|--------------------------------------------------------------------------
-*/
+/* ------------------------------------------------------------
+   UPDATE CONTRIBUTION GRAPH
+   ------------------------------------------------------------ */
 
 function updateContributionGraph()
 {
@@ -3656,125 +4238,107 @@ function updateContributionGraph()
 
 
     const groups =
-        getContributionGroups(level);
+        getContributionGroups(
+            level
+        );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET ALL CYCLES
-    |--------------------------------------------------------------------------
-    */
 
     const cycleMap = {};
 
 
-    nationalContributionData.forEach(row => {
+    nationalContributionData.forEach(
+        function (row) {
 
-        cycleMap[
-            row.cycle_start
-        ] = {
+            cycleMap[
+                row.cycle_start
+            ] = {
 
-            start:
-                row.cycle_start,
+                start:
+                    row.cycle_start,
 
-            end:
-                row.cycle_end
-
-        };
-
-    });
+                end:
+                    row.cycle_end
+            };
+        }
+    );
 
 
     const cycles =
         Object.values(cycleMap)
             .sort(
-                (a, b) =>
-                    new Date(a.start) -
-                    new Date(b.start)
-            );
+                function (a, b) {
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | LABELS
-    |--------------------------------------------------------------------------
-    */
-
-    const labels =
-        cycles.map(cycle => {
-
-            const start =
-                new Date(
-                    cycle.start + 'T00:00:00'
-                );
-
-            return start.toLocaleDateString(
-                'en-GB',
-                {
-                    day:'2-digit',
-                    month:'short',
-                    year:'numeric'
+                    return (
+                        new Date(a.start) -
+                        new Date(b.start)
+                    );
                 }
             );
 
-        });
+
+    const labels =
+        cycles.map(
+            function (cycle) {
+
+                const start =
+                    new Date(
+                        cycle.start +
+                        'T00:00:00'
+                    );
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DATASETS
-    |--------------------------------------------------------------------------
-    */
+                return start.toLocaleDateString(
+                    'en-GB',
+                    {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    }
+                );
+            }
+        );
+
 
     const datasets =
-        groups.map(group => {
+        groups.map(
+            function (group) {
 
-            return {
+                return {
 
-                label:
-                    group.name,
+                    label:
+                        group.name,
 
-                data:
-                    cycles.map(
-                        cycle =>
-                            group.cycles[
-                                cycle.start
-                            ] || 0
-                    ),
+                    data:
+                        cycles.map(
+                            function (cycle) {
 
-              borderWidth:1.5,
+                                return (
+                                    group.cycles[
+                                        cycle.start
+                                    ] || 0
+                                );
+                            }
+                        ),
 
-pointRadius:2,
+                    borderWidth: 1.5,
 
-pointHoverRadius:6,
+                    pointRadius: 2,
 
-                tension:0.3,
+                    pointHoverRadius: 6,
 
-                fill:false
+                    tension: 0.3,
 
-            };
+                    fill: false
+                };
+            }
+        );
 
-        });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DESTROY OLD GRAPH
-    |--------------------------------------------------------------------------
-    */
 
     if (nationalContributionChart) {
 
         nationalContributionChart.destroy();
-
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | CREATE GRAPH
-    |--------------------------------------------------------------------------
-    */
 
     const ctx =
         document
@@ -3784,114 +4348,139 @@ pointHoverRadius:6,
             .getContext('2d');
 
 
-            const zeroLinePlugin = {
+    /* ------------------------------------------------------------
+       ZERO LINE
+       ------------------------------------------------------------ */
 
-    id: 'zeroLine',
+    const zeroLinePlugin = {
 
-    afterDraw(chart) {
+        id: 'zeroLine',
 
-        const yScale = chart.scales.y;
 
-        if (!yScale) {
-            return;
+        afterDraw(chart)
+        {
+            const yScale =
+                chart.scales.y;
+
+
+            if (!yScale) {
+                return;
+            }
+
+
+            const zeroY =
+                yScale.getPixelForValue(0);
+
+
+            if (
+                zeroY < yScale.top ||
+                zeroY > yScale.bottom
+            ) {
+
+                return;
+            }
+
+
+            const ctx =
+                chart.ctx;
+
+
+            ctx.save();
+
+
+            ctx.beginPath();
+
+
+            ctx.moveTo(
+                chart.chartArea.left,
+                zeroY
+            );
+
+
+            ctx.lineTo(
+                chart.chartArea.right,
+                zeroY
+            );
+
+
+            ctx.lineWidth = 3;
+
+            ctx.strokeStyle =
+                '#202633';
+
+            ctx.setLineDash([]);
+
+            ctx.stroke();
+
+
+            ctx.restore();
         }
+    };
 
-        const zeroY = yScale.getPixelForValue(0);
 
-        if (
-            zeroY < yScale.top ||
-            zeroY > yScale.bottom
-        ) {
-            return;
-        }
-
-        const ctx = chart.ctx;
-
-        ctx.save();
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            chart.chartArea.left,
-            zeroY
-        );
-
-        ctx.lineTo(
-            chart.chartArea.right,
-            zeroY
-        );
-
-        ctx.lineWidth = 3;
-
-        ctx.strokeStyle = '#202633';
-
-        ctx.setLineDash([]);
-
-        ctx.stroke();
-
-        ctx.restore();
-
-    }
-
-};
-
+    /* ------------------------------------------------------------
+       CREATE CHART
+       ------------------------------------------------------------ */
 
     nationalContributionChart =
         new Chart(
             ctx,
             {
-                 plugins: [
-                zeroLinePlugin
-            ],
 
-                type:'line',
+                plugins: [
+                    zeroLinePlugin
+                ],
+
+
+                type: 'line',
+
 
                 data: {
 
                     labels: labels,
 
                     datasets: datasets
-
                 },
+
 
                 options: {
 
-                    responsive:true,
+                    responsive: true,
 
-                    maintainAspectRatio:false,
+                    maintainAspectRatio: false,
 
 
-                 interaction: {
+                    /* --------------------------------------------
+                       ONLY HOVERED LINE / POINT
+                       -------------------------------------------- */
 
-    mode: 'nearest',
+                    interaction: {
 
-    intersect: true
+                        mode: 'nearest',
 
-},
+                        intersect: true
+                    },
 
 
                     plugins: {
 
                         legend: {
 
-                            display:true,
+                            display: true,
 
-                            position:'bottom',
+                            position: 'bottom',
 
                             labels: {
 
-                                usePointStyle:true,
+                                usePointStyle: true,
 
-                                padding:15,
+                                padding: 15,
 
                                 font: {
 
-                                    size:11
-
+                                    size: 11
                                 }
-
                             }
-
                         },
 
 
@@ -3899,23 +4488,22 @@ pointHoverRadius:6,
 
                             callbacks: {
 
-                                label:function(context)
-                                {
+                                label:
+                                    function (context) {
 
-                                    return (
-                                        context.dataset.label +
-                                        ': K' +
-                                        formatContribution(
-                                            context.parsed.y
-                                        )
-                                    );
+                                        return (
 
-                                }
+                                            context.dataset.label +
 
+                                            ': K' +
+
+                                            formatContribution(
+                                                context.parsed.y
+                                            )
+                                        );
+                                    }
                             }
-
                         }
-
                     },
 
 
@@ -3925,111 +4513,150 @@ pointHoverRadius:6,
 
                             grid: {
 
-                                display:false
-
+                                display: false
                             },
+
 
                             ticks: {
 
                                 font: {
 
-                                    size:10
-
+                                    size: 10
                                 },
 
-                                maxRotation:0,
 
-                                autoSkip:true,
+                                maxRotation: 0,
 
-                                maxTicksLimit:13
+                                autoSkip: true,
 
+                                maxTicksLimit: 13
                             }
-
                         },
 
 
                         y: {
 
-                            beginAtZero:false,
+                            beginAtZero: false,
+
 
                             ticks: {
 
                                 font: {
 
-                                    size:10
-
+                                    size: 10
                                 },
 
-                                callback:function(value)
-                                {
 
-                                    return 'K' +
-                                        formatContribution(
-                                            value
+                                callback:
+                                    function (value) {
+
+                                        return (
+                                            'K' +
+
+                                            formatContribution(
+                                                value
+                                            )
                                         );
-
-                                }
-
+                                    }
                             }
-
                         }
-
                     }
-
                 }
-
             }
         );
 }
 
-async function loadNationalContribution() {
 
-    const loading = document.getElementById('contributionLoading');
-    const graphContainer = document.getElementById('contributionGraphContainer');
+/* ------------------------------------------------------------
+   LOAD NATIONAL CONTRIBUTION DATA
+   ------------------------------------------------------------ */
+
+async function loadNationalContribution()
+{
+    const loading =
+        document.getElementById(
+            'contributionLoading'
+        );
+
+
+    const graphContainer =
+        document.getElementById(
+            'contributionGraphContainer'
+        );
+
 
     if (loading) {
-        loading.style.display = 'block';
+
+        loading.style.display =
+            'block';
     }
 
+
     if (graphContainer) {
-        graphContainer.style.display = 'none';
+
+        graphContainer.style.display =
+            'none';
     }
+
 
     try {
 
-        const response = await fetch(
-            'https://lms2backend.whencefinancesystem.com/cash-health/national/contributions'
-        );
+        const response =
+            await fetch(
+                'https://lms2backend.whencefinancesystem.com/cash-health/national/contributions'
+            );
+
 
         if (!response.ok) {
-            throw new Error('Unable to retrieve contribution history');
+
+            throw new Error(
+                'Unable to retrieve contribution history'
+            );
         }
 
-        const data = await response.json();
 
-        nationalContributionData = data.graph || [];
+        const data =
+            await response.json();
+
+
+        nationalContributionData =
+            data.graph || [];
+
 
         updateContributionGraph();
 
+
         if (loading) {
-            loading.style.display = 'none';
+
+            loading.style.display =
+                'none';
         }
+
 
         if (graphContainer) {
-            graphContainer.style.display = 'block';
+
+            graphContainer.style.display =
+                'block';
         }
 
-    } catch (error) {
+
+    }
+    catch (error) {
 
         console.error(
             'National contribution loading error:',
             error
         );
 
+
         if (loading) {
+
             loading.innerHTML = `
-                <i class="fa fa-exclamation-triangle"
-                   style="font-size:24px;"></i>
+
+                <i
+                    class="fa fa-exclamation-triangle"
+                    style="font-size:24px;"
+                ></i>
 
                 <div style="margin-top:10px;">
                     Unable to load contribution history.
@@ -4038,59 +4665,44 @@ async function loadNationalContribution() {
                 <small>
                     Please refresh the page and try again.
                 </small>
+
             `;
         }
-
     }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| LOAD GRAPH WHEN PAGE IS READY
-|--------------------------------------------------------------------------
-*/
+/* ------------------------------------------------------------
+   CONTRIBUTION LEVEL DROPDOWN
+   ------------------------------------------------------------ */
 
 document.addEventListener(
     'DOMContentLoaded',
-    function()
-    {
+    function () {
+
+        const contributionLevel =
+            document.getElementById(
+                'contributionLevel'
+            );
+
+
+        if (contributionLevel) {
+
+            contributionLevel.addEventListener(
+                'change',
+                function () {
+
+                    updateContributionGraph();
+                }
+            );
+        }
+
+
         loadNationalContribution();
     }
 );
-    
-
-function toggleNationalOffice(id)
-{
-    const row =
-        document.getElementById(id);
-
-    const arrow =
-        document.getElementById(
-            id + '_arrow'
-        );
-
-
-    if (
-        row.style.display === 'none' ||
-        row.style.display === ''
-    ) {
-
-        row.style.display =
-            'table-row';
-
-        arrow.style.transform =
-            'rotate(90deg)';
-
-    } else {
-
-        row.style.display =
-            'none';
-
-        arrow.style.transform =
-            'rotate(0deg)';
-    }
-}
 
 </script>
+
 @endsection
+

@@ -274,6 +274,18 @@ Route::group(['prefix' => 'cash_health'], function () {
     )->name('cash_health.contribution');
 
 
+    Route::get(
+    'national/balances',
+    'CashHealthController@nationalBalances'
+)->name('cash_health.national.balances');
+
+
+Route::get(
+    'national/balance/{officeId}',
+    'CashHealthController@nationalOfficeBalance'
+)->name('cash_health.national.office.balance');
+
+
 });
 
 Route::group(['prefix' => 'settings', 'middleware' => 'sentinel'], function () {

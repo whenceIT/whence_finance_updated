@@ -729,6 +729,106 @@ return view(
 }
 
 
+public function nationalBalances()
+{
+    $offices = Office::select(
+        'id',
+        'name',
+        'province_id',
+        'district_id',
+        'withinhere_wallet_id'
+    )->get();
+
+    $balances = [];
+
+    foreach ($offices as $office) {
+
+        $balances[] = [
+            'office_id' => $office->id,
+            'office_name' => $office->name,
+            'province_id' => $office->province_id,
+            'district_id' => $office->district_id,
+            'wallet_id' => $office->withinhere_wallet_id
+        ];
+    }
+
+    return response()->json([
+        'success' => true,
+        'offices' => $balances
+    ]);
+}
+
+
+public function nationalOfficeBalance($officeId)
+{
+    $office = Office::find($officeId);
+
+    if (!$office) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Office not found.'
+        ], 404);
+    }
+
+    if (!$office->withinhere_wallet_id) {
+
+        return response()->json([
+            'success' => false,
+            'office_id' => $office->id,
+            'balance' => null,
+            'message' => 'Please verify withinhere wallet.'
+        ]);
+    }
+
+    $cashBalance = null;
+
+    try {
+
+        /*
+         * ---------------------------------------------------------
+         * SAME METHOD USED IN transactions()
+         * ---------------------------------------------------------
+         */
+
+        $response = Http::timeout(180)
+            ->connectTimeout(30)
+            ->retry(2, 100)
+            ->post(
+                'https://withinheremobileapi.com/api/v1/lmsuser/branch_ledger',
+                [
+                    'wallet_id' => $office->withinhere_wallet_id,
+                    'start_date' => '2026-01-01',
+                    'end_date' => now()->format('Y-m-d')
+                ]
+            );
+
+        if ($response->successful()) {
+
+            $data = $response->json();
+
+            $cashBalance =
+                $data['user']['cash_balance'] ?? null;
+        }
+
+    } catch (\Throwable $e) {
+
+        return response()->json([
+            'success' => false,
+            'office_id' => $office->id,
+            'balance' => null,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+
+    return response()->json([
+        'success' => true,
+        'office_id' => $office->id,
+        'province_id' => $office->province_id,
+        'district_id' => $office->district_id,
+        'balance' => $cashBalance
+    ]);
+}
 
 
 
