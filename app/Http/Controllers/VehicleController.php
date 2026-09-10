@@ -14,6 +14,7 @@ use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 use Illuminate\Support\Facades\Log;
 use App\Models\Loan;
+use App\Models\LoanTransaction;
 use App\Models\VehicleValuation;
 use App\Models\VehicleCustody;
 use Illuminate\Support\Facades\Http;
@@ -900,6 +901,22 @@ public function searchClients(Request $request)
         ->paginate(20)
         ->appends($request->all());
 
+    $statsLoans = (clone $query)->get();
+    $closedLoanIds = $statsLoans->where('status', 'closed')->pluck('id');
+
+    $stats = [
+        'total' => $statsLoans->count(),
+        'total_amount' => $statsLoans->sum('principal'),
+        'pending' => $statsLoans->where('status', 'pending')->count(),
+        'pending_amount' => $statsLoans->where('status', 'pending')->sum('principal'),
+        'approved' => $statsLoans->where('status', 'approved')->count(),
+        'approved_amount' => $statsLoans->where('status', 'approved')->sum('principal'),
+        'disbursed' => $statsLoans->where('status', 'disbursed')->count(),
+        'disbursed_amount' => $statsLoans->where('status', 'disbursed')->sum('principal'),
+        'closed' => $statsLoans->where('status', 'closed')->count(),
+        'total_collected' => LoanTransaction::whereIn('loan_id', $closedLoanIds)->sum('credit'),
+    ];
+
     $offices = Office::orderBy('name')->get();
 
     $statuses = [];
@@ -942,8 +959,30 @@ public function searchClients(Request $request)
 
     return view(
         'motor_vehicle.motor_vehicle_loans',
-        compact('recentLoans', 'offices', 'statuses')
+        compact('recentLoans', 'offices', 'statuses', 'stats')
     );
+}
+
+
+public function loanDetailSheet(Request $request, $loanId)
+{
+    $loan = Loan::with([
+        'client',
+        'office',
+        'loanConsultant',
+        'vehicle',
+        'vehicle.photos',
+        'vehicle.custody.receiver',
+        'vehicle.custody',
+        'vehicle.valuations',
+        'vehicle.valuations.valuator',
+        'vehicle.inspections',
+        'vehicle.insurancePolicies',
+        'vehicle.documents',
+        'vehicle.ownershipRecords',
+    ])->findOrFail($loanId);
+
+    return response()->view('motor_vehicle.partials._vehicle_detail_sheet', compact('loan'));
 }
 
 
@@ -1146,6 +1185,15 @@ public function sales(Request $request)
 
         $data = $query->get();
 
+        $stats = [
+            'total' => $data->count(),
+            'total_amount' => $data->sum('principal'),
+            'pending' => $data->where('status', 'pending')->count(),
+            'pending_amount' => $data->where('status', 'pending')->sum('principal'),
+            'approved' => $data->where('status', 'approved')->count(),
+            'approved_amount' => $data->where('status', 'approved')->sum('principal'),
+        ];
+
         $statuses = [];
  
         foreach ($data as $loan) {
@@ -1186,7 +1234,7 @@ public function sales(Request $request)
         $provinces = \App\Models\Province::orderBy('name')->get();
         $staff = \App\Models\User::orderBy('first_name')->get();
 
-        return view('motor_vehicle.loans_pending_approval', compact('data', 'statuses', 'offices', 'districts', 'provinces', 'staff'));
+        return view('motor_vehicle.loans_pending_approval', compact('data', 'statuses', 'offices', 'districts', 'provinces', 'staff', 'stats'));
     }
 
 
@@ -1231,9 +1279,9 @@ return view(
 
     public function disposalRegister(Request $request)
     {
-        $mvlService = app(\App\Services\MVLService::class);
-        $mvlService->week1reminder();
-        $mvlService->month1reminder();
+        // $mvlService = app(\App\Services\MVLService::class);
+        // $mvlService->week1reminder();
+        // $mvlService->month1reminder();
 
         $query = Loan::where('loan_product_id', 0)
             ->where(function ($q) {
@@ -1288,6 +1336,15 @@ return view(
 
         $loans = $query->orderBy('first_repayment_date', 'asc')->get();
 
+        $stats = [
+            'total' => $loans->count(),
+            'total_amount' => $loans->sum('principal'),
+            'defaulted' => $loans->where('defaulted', 'yes')->count(),
+            'defaulted_amount' => $loans->where('defaulted', 'yes')->sum('principal'),
+            'disbursed_overdue' => $loans->where('defaulted', '!=', 'yes')->count(),
+            'disbursed_overdue_amount' => $loans->where('defaulted', '!=', 'yes')->sum('principal'),
+        ];
+
         $statuses = [];
         foreach ($loans as $loan) {
             $kycCompleted = false;
@@ -1326,7 +1383,7 @@ return view(
         $provinces = Province::orderBy('name')->get();
         $staff = User::orderBy('first_name')->get();
 
-        return view('motor_vehicle.disposal_register', compact('loans', 'statuses', 'offices', 'districts', 'provinces', 'staff'));
+        return view('motor_vehicle.disposal_register', compact('loans', 'statuses', 'offices', 'districts', 'provinces', 'staff', 'stats'));
     }
 
 

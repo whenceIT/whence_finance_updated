@@ -422,6 +422,7 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('loans_pending_approval', 'VehicleController@loans_pending_approval');
     Route::get('dashboard', 'VehicleController@dashboard');
     Route::get('mvl/motor-vehicle-loans', 'VehicleController@MotorVehicleLoan');
+    Route::get('loan-detail-sheet/{loanId}', 'VehicleController@loanDetailSheet');
     Route::get('analytics_dashboard', 'VehicleController@analytics_dashboard');
     Route::any('store', 'VehicleController@store');
     Route::get('search-clients', 'VehicleController@searchbClients');

@@ -48,6 +48,7 @@ class VehicleCustody extends Model
         'keys_received' => 'boolean',
         'documents_received' => 'boolean',
         'accessories_received' => 'boolean',
+        'intake_photos' => 'array',
     ];
 
     public function vehicle()

@@ -5,48 +5,10 @@
 @section('content')
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">Motor Vehicle Loans Pending</h3>
-            <div class="box-tools pull-right">
-                @if(Sentinel::hasAccess('loans.create'))
-                    <a href="{{ url('loan/create') }}" class="btn btn-info btn-sm">
-                        {{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}
-                    </a>
-                @endif
-            </div>
+            <h5 class="box-title">MVL pending approval</h5>
         </div>
-        <div class="box-body">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="callout callout-info" style="margin-bottom: 20px;">
-                        <h4><i class="fa fa-car"></i> Vehicle & Loan Summary</h4>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <strong>Total Pending:</strong><br>
-                                <span class="badge bg-blue">{{ $data->count() }}</span> loans
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Total Amount:</strong><br>
-                                KSh {{ number_format($data->sum('principal'), 2) }}
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Pending Approval:</strong><br>
-                                <span class="badge bg-yellow">{{ $data->where('status', 'pending')->count() }}</span> loans
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Approved:</strong><br>
-                                <span class="badge bg-green">{{ $data->where('status', 'approved')->count() }}</span> loans
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="box box-primary">
-        <div class="box-header with-border">
-            <h3 class="box-title">Loans List</h3>
-        </div>
+        
         <div class="box-body">
 
             <form method="GET" class="form-horizontal">
@@ -135,7 +97,7 @@
                         <th>Valuator</th>
                         <th>Custodian</th>
                         <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
-                        <th>{{ trans_choice('general.created_at',1) }}</th>
+                        <th>{{ trans_choice('general.market',1) }} {{ trans_choice('general.value',1) }}</th>
                         <th>Approval</th>
                         <th>Onboarding Progress</th>
                         <th>{{ trans_choice('general.action',1) }}</th>
@@ -145,16 +107,20 @@
                 @foreach($data as $key)
                 <tr>
                 <td>
-                    @if(!empty($key->vehicle) && $key->vehicle->photos->isNotEmpty())
-                        <img src="{{ $key->vehicle->photos->first()->photo_url }}"
+                     @if(!empty($key->vehicle) && $key->vehicle->photos->isNotEmpty())
+                        <img id="vehicle-thumb-{{ $key->id }}"
+                             src="{{ $key->vehicle->photos->first()->photo_url }}"
                              class="vehicle-photo-thumb"
                              data-photos='@json($key->vehicle->photos->pluck("photo_url"))'
+                             onclick="openLoanDetailSheet({{ $key->id }})"
                              style="height: 50px; width: auto; object-fit: cover; border-radius: 4px; cursor: pointer;"
                              alt="Vehicle photo">
                     @else
-                        <img src="https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"
+                        <img id="vehicle-thumb-{{ $key->id }}"
+                             src="https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"
                              class="vehicle-photo-thumb"
                              data-photos='["https://www.allthingsmotoringinternational.com/images/profile/230924/fairdrive-logo.jfif"]'
+                             onclick="openLoanDetailSheet({{ $key->id }})"
                              style="height: 50px; width: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
                              alt="No photo">
                     @endif
@@ -228,7 +194,7 @@
                     @endif
                 </td>
                 <td>{{ number_format($key->principal, $key->decimals) }}</td>
-                <td>{{ $key->created_date }}</td>
+                <td>{{ !empty($key->vehicle) ? 'K' . number_format($key->vehicle->market_value, 2) : 'N/A' }}</td>
                 <td>
                 {{$key->status}}
             </td>
@@ -237,9 +203,13 @@
             </td>
                 <td>
                     <div class="btn-group">
+                        <button type="button" class="btn btn-info btn-xs"
+                                onclick="openLoanDetailSheet({{ $key->id }})">
+                            <i class="fa fa-eye"></i> View
+                        </button>
                         <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-toggle="dropdown"
                                 aria-expanded="false"><i
-                                    class="fa fa-navicon"></i></button>
+                                class="fa fa-navicon"></i></button>
                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                             @if(Sentinel::hasAccess('loans.view'))
                                 <li>
@@ -307,84 +277,121 @@
         });
     </script>
 
-<script>
-(function() {
-    const modal = document.getElementById('vehiclePhotoModal');
-    if (!modal) return;
-    const modalImg = document.getElementById('vehicleModalImage');
-    const prevBtn = document.getElementById('vehicleModalPrev');
-    const nextBtn = document.getElementById('vehicleModalNext');
-    const thumbsContainer = document.getElementById('vehicleModalThumbs');
-    let photos = [];
-    let currentIndex = 0;
+{{-- Vehicle Detail Bottom Sheet --}}
+<div class="bottom-sheet-overlay" id="vehicleDetailOverlay">
+    <div class="bottom-sheet" id="vehicleDetailSheet" style="background: #fff; border-radius: 0; max-height: 95vh; max-width: 100vw;">
+        <div class="bottom-sheet-content" style="padding: 0; position: relative;">
+            <button type="button" class="bottom-sheet-close" id="closeVehicleDetailSheet" style="color: #333;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div class="bottom-sheet-handle"></div>
 
-    function updateImage(index) {
-        if (!photos.length) return;
-        currentIndex = (index + photos.length) % photos.length;
-        modalImg.style.transition = 'opacity 0.25s ease';
-        modalImg.style.opacity = '0';
-        setTimeout(() => {
-            modalImg.src = photos[currentIndex];
-            modalImg.onload = () => {
-                modalImg.style.opacity = '1';
-            };
-        }, 250);
-        updateThumbs();
-    }
-
-    function updateThumbs() {
-        thumbsContainer.innerHTML = '';
-        photos.forEach((url, idx) => {
-            const thumb = document.createElement('img');
-            thumb.src = url;
-            thumb.style.height = '50px';
-            thumb.style.width = 'auto';
-            thumb.style.objectFit = 'cover';
-            thumb.style.borderRadius = '4px';
-            thumb.style.cursor = 'pointer';
-            thumb.style.opacity = idx === currentIndex ? '1' : '0.5';
-            thumb.style.transition = 'opacity 0.2s';
-            thumb.onclick = () => updateImage(idx);
-            thumbsContainer.appendChild(thumb);
-        });
-    }
-
-    if (prevBtn) prevBtn.onclick = () => updateImage(currentIndex - 1);
-    if (nextBtn) nextBtn.onclick = () => updateImage(currentIndex + 1);
-
-    document.querySelectorAll('.vehicle-photo-thumb').forEach(img => {
-        img.addEventListener('click', function() {
-            try {
-                photos = JSON.parse(this.getAttribute('data-photos') || '[]');
-            } catch (e) {
-                photos = [];
-            }
-            if (!photos.length) return;
-            currentIndex = 0;
-            updateImage(0);
-            $(modal).modal('show');
-        });
-    });
-})();
-</script>
-
-<div class="modal fade" id="vehiclePhotoModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="width: auto; max-width: 90%;">
-        <div class="modal-content" style="background: transparent; box-shadow: none; border: none;">
-            <div class="modal-body" style="padding: 0; position: relative;">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; top: -30px; right: 0; color: #fff; font-size: 30px; z-index: 10;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <img id="vehicleModalImage" src="" alt="Vehicle photo" style="width: 100%; max-height: 75vh; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;">
-                <button type="button" class="btn btn-default btn-lg" id="vehicleModalPrev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.8;">
-                    <i class="fa fa-chevron-left"></i>
-                </button>
-                <button type="button" class="btn btn-default btn-lg" id="vehicleModalNext" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); opacity: 0.8;">
-                    <i class="fa fa-chevron-right"></i>
-                </button>
-                <div id="vehicleModalThumbs" style="display: flex; justify-content: center; gap: 8px; margin-top: 12px; overflow-x: auto; padding: 8px 0;"></div>
+            <div id="vehicleDetailContent" style="max-height: 85vh; overflow-y: auto; padding: 20px 30px 40px 30px;">
+                <div class="text-center" style="padding: 40px;">
+                    <i class="fa fa-spinner fa-spin fa-2x text-muted"></i>
+                    <p class="text-muted" style="margin-top: 10px;">Loading vehicle details...</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    const overlay = document.getElementById('vehicleDetailOverlay');
+    if (!overlay) return;
+    const sheet = document.getElementById('vehicleDetailSheet');
+    const contentEl = document.getElementById('vehicleDetailContent');
+    const closeBtn = document.getElementById('closeVehicleDetailSheet');
+
+    function openSheet(loanId) {
+        contentEl.innerHTML = '<div class="text-center" style="padding: 40px;"><i class="fa fa-spinner fa-spin fa-2x text-muted"></i><p class="text-muted" style="margin-top: 10px;">Loading vehicle details...</p></div>';
+        overlay.classList.add('active');
+        sheet.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        $.ajax({
+            url: '/vehicles/loan-detail-sheet/' + loanId,
+            method: 'GET',
+            success: function(html) {
+                contentEl.innerHTML = html;
+                if (window.initDetailPhotoGallery) window.initDetailPhotoGallery();
+            },
+            error: function() {
+                contentEl.innerHTML = '<div class="text-center" style="padding: 40px;"><p class="text-danger">Failed to load vehicle details.</p></div>';
+            }
+        });
+    }
+
+    function closeSheet() {
+        overlay.classList.remove('active');
+        sheet.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    window.openLoanDetailSheet = function(loanId) {
+        openSheet(loanId);
+    };
+
+    closeBtn.addEventListener('click', closeSheet);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeSheet();
+    });
+})();
+
+window.updateDetailPhoto = function(img) {
+    var photoImg = document.getElementById('detailPhotoViewerImage');
+    var container = document.getElementById('detailPhotoThumbs');
+    if (!photoImg || !container) return;
+    var photos = Array.from(container.querySelectorAll('img')).map(function(i) { return i.src; });
+    if (!photos.length) return;
+    var idx = photos.indexOf(img.src);
+    if (idx < 0) idx = 0;
+    photoImg.src = photos[idx];
+    attachGalleryNav();
+};
+
+window.initDetailPhotoGallery = function() {
+    var photoImg = document.getElementById('detailPhotoViewerImage');
+    var prevBtn = document.getElementById('detailPhotoPrev');
+    var nextBtn = document.getElementById('detailPhotoNext');
+    if (!photoImg) return;
+    var container = document.getElementById('detailPhotoThumbs');
+    if (!container) return;
+    var photos = Array.from(container.querySelectorAll('img')).map(function(i) { return i.src; });
+    if (!photos.length) return;
+    var currentIndex = photos.indexOf(photoImg.src);
+    if (currentIndex < 0) currentIndex = 0;
+    if (prevBtn) prevBtn.onclick = function() {
+        currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+        photoImg.src = photos[currentIndex];
+    };
+    if (nextBtn) nextBtn.onclick = function() {
+        currentIndex = (currentIndex + 1) % photos.length;
+        photoImg.src = photos[currentIndex];
+    };
+};
+
+function attachGalleryNav() {
+    var photoImg = document.getElementById('detailPhotoViewerImage');
+    var prevBtn = document.getElementById('detailPhotoPrev');
+    var nextBtn = document.getElementById('detailPhotoNext');
+    if (!photoImg) return;
+    var container = document.getElementById('detailPhotoThumbs');
+    if (!container) return;
+    var photos = Array.from(container.querySelectorAll('img')).map(function(i) { return i.src; });
+    if (!photos.length) return;
+    var currentIndex = photos.indexOf(photoImg.src);
+    if (currentIndex < 0) currentIndex = 0;
+    if (prevBtn) prevBtn.onclick = function() {
+        currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+        photoImg.src = photos[currentIndex];
+    };
+    if (nextBtn) nextBtn.onclick = function() {
+        currentIndex = (currentIndex + 1) % photos.length;
+        photoImg.src = photos[currentIndex];
+    };
+}
+</script>
+
 @endsection
