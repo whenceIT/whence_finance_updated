@@ -1840,7 +1840,16 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             $user_id = $data['user']['id'] ?? null;
         }
 
-        $vehicle = Vehicle::with('client')->where('loan_id',$loan->id)->first();
+        $vehicle = Vehicle::with([
+            'client',
+            'insurancePolicies',
+            'inspections',
+            'documents',
+            'photos',
+            'custody.receiver',
+            'valuations',
+            'ownershipRecords',
+        ])->where('loan_id', $loan->id)->first();
 
         $statuses = [];
         if ($loan->loan_product_id == 0 && $loan->client) {

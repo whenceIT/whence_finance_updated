@@ -534,9 +534,10 @@
 
                 <img
                     src="{{ $photo->photo_url }}"
-                    class="img-responsive"
+                    class="vehicle-photo-thumb img-responsive"
+                    data-photos='@json(optional($vehicle)->photos->pluck("photo_url"))'
                     style="cursor: pointer;"
-                    onclick="$('#vehiclePhotoModal{{ $photo->id }}').modal('show')">
+                    onclick="openPhotoBottomSheet(this)">
 
                 <form method="POST"
                       action="{{ url('vehicles/'.$vehicle->id.'/photos/'.$photo->id.'/destroy') }}"
@@ -548,19 +549,6 @@
                         <i class="fa fa-trash"></i>
                     </button>
                 </form>
-
-                <div class="modal fade" id="vehiclePhotoModal{{ $photo->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" style="width: auto; max-width: 90%;">
-                        <div class="modal-content" style="background: transparent; box-shadow: none; border: none;">
-                            <div class="modal-body" style="padding: 0; position: relative;">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; top: -30px; right: 0; color: #fff; font-size: 30px; z-index: 10;">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                                <img src="{{ $photo->photo_url }}" alt="Vehicle photo" style="width: 100%; max-height: 75vh; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
             <div class="caption">
 
@@ -932,6 +920,115 @@
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeSheet();
     });
+})();
+</script>
+
+<div class="bottom-sheet-overlay" id="vehiclePhotoViewerOverlay">
+    <div class="bottom-sheet" id="vehiclePhotoViewerSheet" style="background: #111; border-radius: 0; max-height: 90vh;">
+        <div class="bottom-sheet-content" style="padding: 0; position: relative;">
+            <button type="button" class="bottom-sheet-close" id="closeVehiclePhotoViewer" style="color: #fff;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div class="bottom-sheet-handle" style="background: #333;"></div>
+
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; position: relative; padding: 20px 60px 80px 60px;">
+                <img id="vehiclePhotoViewerImage"
+                     src=""
+                     alt="Vehicle photo"
+                     style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; opacity: 0; transition: opacity 0.25s ease;">
+
+                <button type="button" class="btn btn-default btn-lg" id="vehiclePhotoViewerPrev"
+                        style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); opacity: 0.8; background: rgba(255,255,255,0.2); border: none; color: #fff;">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+                <button type="button" class="btn btn-default btn-lg" id="vehiclePhotoViewerNext"
+                        style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.8; background: rgba(255,255,255,0.2); border: none; color: #fff;">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div id="vehiclePhotoViewerThumbs"
+                 style="display: flex; justify-content: center; gap: 8px; padding: 12px 0 20px 0; overflow-x: auto; background: #1a1a1a; border-top: 1px solid #333;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const overlay = document.getElementById('vehiclePhotoViewerOverlay');
+    const sheet = document.getElementById('vehiclePhotoViewerSheet');
+    const modalImg = document.getElementById('vehiclePhotoViewerImage');
+    const prevBtn = document.getElementById('vehiclePhotoViewerPrev');
+    const nextBtn = document.getElementById('vehiclePhotoViewerNext');
+    const thumbsContainer = document.getElementById('vehiclePhotoViewerThumbs');
+    const closeBtn = document.getElementById('closeVehiclePhotoViewer');
+
+    let photos = [];
+    let currentIndex = 0;
+
+    function renderThumbs() {
+        thumbsContainer.innerHTML = '';
+        photos.forEach((url, idx) => {
+            const thumb = document.createElement('img');
+            thumb.src = url;
+            thumb.style.height = '50px';
+            thumb.style.width = 'auto';
+            thumb.style.objectFit = 'cover';
+            thumb.style.borderRadius = '4px';
+            thumb.style.cursor = 'pointer';
+            thumb.style.opacity = idx === currentIndex ? '1' : '0.5';
+            thumb.style.transition = 'opacity 0.2s';
+            thumb.onclick = () => updateImage(idx);
+            thumbsContainer.appendChild(thumb);
+        });
+    }
+
+    function updateImage(index) {
+        if (!photos.length) return;
+        currentIndex = (index + photos.length) % photos.length;
+        modalImg.style.opacity = '0';
+        setTimeout(() => {
+            modalImg.src = photos[currentIndex];
+            modalImg.onload = () => { modalImg.style.opacity = '1'; };
+            renderThumbs();
+        }, 250);
+    }
+
+    function openViewer(img) {
+        try {
+            photos = JSON.parse(img.getAttribute('data-photos') || '[]');
+        } catch (e) {
+            photos = [];
+        }
+        if (!photos.length) return;
+
+        const clickedUrl = img.getAttribute('src');
+        currentIndex = photos.indexOf(clickedUrl);
+        if (currentIndex < 0) currentIndex = 0;
+
+        overlay.classList.add('active');
+        sheet.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        updateImage(currentIndex);
+    }
+
+    function closeViewer() {
+        overlay.classList.remove('active');
+        sheet.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    window.openPhotoBottomSheet = function(img) {
+        openViewer(img);
+    };
+
+    closeBtn.addEventListener('click', closeViewer);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeViewer();
+    });
+    prevBtn.addEventListener('click', () => updateImage(currentIndex - 1));
+    nextBtn.addEventListener('click', () => updateImage(currentIndex + 1));
 })();
 </script>
 

@@ -8,30 +8,47 @@
             <h3 class="box-title">Disposal Register (Defaulted Motor Vehicle Loans)</h3>
         </div>
         <div class="box-body">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="callout callout-info" style="margin-bottom: 20px;">
-                        <h4><i class="fa fa-car"></i> Disposal Summary</h4>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <strong>Total Defaulted/Disbursed:</strong><br>
-                                <span class="badge bg-blue">{{ $loans->count() }}</span> loans
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Total Value:</strong><br>
-                                K{{ number_format($loans->sum('principal'), 2) }}
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Defaulted:</strong><br>
-                                <span class="badge bg-red">{{ $loans->where('defaulted', 'yes')->count() }}</span> loans
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Disbursed (Overdue):</strong><br>
-                                <span class="badge bg-yellow">{{ $loans->where('defaulted', '!=', 'yes')->count() }}</span> loans
-                            </div>
+            <div class="row" style="margin-bottom: 20px;">
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="small-box bg-blue">
+                        <div class="inner">
+                            <h3>{{ $stats['total'] }}</h3>
+                            <p>Defaulted / Disbursed</p>
+                            <p style="font-size: 14px; margin-bottom: 0;">K{{ number_format($stats['total_amount'], 2) }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa fa-folder-open-o"></i>
                         </div>
                     </div>
                 </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="small-box bg-red">
+                        <div class="inner">
+                            <h3>{{ $stats['defaulted'] }}</h3>
+                            <p>Defaulted</p>
+                            <p style="font-size: 14px; margin-bottom: 0;">K{{ number_format($stats['defaulted_amount'], 2) }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="small-box bg-yellow">
+                        <div class="inner">
+                            <h3>{{ $stats['disbursed_overdue'] }}</h3>
+                            <p>Disbursed (Overdue)</p>
+                            <p style="font-size: 14px; margin-bottom: 0;">K{{ number_format($stats['disbursed_overdue_amount'], 2) }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa fa-exclamation-circle"></i>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -127,8 +144,9 @@
                         <th>Inspector</th>
                         <th>Valuator</th>
                         <th>Custodian</th>
-                        <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
-                        <th>1st Repayment</th>
+                            <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
+                            <th>Market Value</th>
+                            <th>1st Repayment (Time Ago)</th>
                         <th>Time Taken to Sale</th>
                         <th>Status</th>
                         <th>Onboarding Progress</th>
@@ -206,13 +224,13 @@
                             @endif
                         </td>
                         <td>
-                            @php $latestInspection = $loan->vehicle->inspections->sortByDesc('inspection_date')->first(); @endphp
+                            @php $latestInspection = !empty($loan->vehicle) ? $loan->vehicle->inspections->sortByDesc('inspection_date')->first() : null; @endphp
                             @if(!empty($latestInspection))
                                 {{ $latestInspection->inspector }}
                             @endif
                         </td>
                         <td>
-                            @php $latestValuation = $loan->vehicle->valuations->sortByDesc('valuation_date')->first(); @endphp
+                            @php $latestValuation = !empty($loan->vehicle) ? $loan->vehicle->valuations->sortByDesc('valuation_date')->first() : null; @endphp
                             @if(!empty($latestValuation) && !empty($latestValuation->valuator))
                                 {{ $latestValuation->valuator->first_name }} {{ $latestValuation->valuator->last_name }}
                             @endif
@@ -224,8 +242,16 @@
                         </td>
                         <td>{{ number_format($loan->principal, $loan->decimals) }}</td>
                         <td>
+                            @if(!empty($loan->vehicle) && !empty($loan->vehicle->market_value))
+                                K{{ number_format($loan->vehicle->market_value, 2) }}
+                            @else
+                                N/A
+                            @endif
+                        </td>
+                        <td>
                             @if($firstRepayment)
-                                {{ $firstRepayment->format('Y-m-d') }}
+                                {{ \Carbon\Carbon::parse($loan->first_repayment_date)->diffForHumans() }}
+                                <br><small class="text-muted">{{ $firstRepayment->format('Y-m-d') }}</small>
                             @else
                                 N/A
                             @endif
@@ -277,7 +303,7 @@
             "ordering": true,
             "info": true,
             "autoWidth": true,
-            "order": [[12, "desc"]],
+            "order": [[13, "desc"]],
             "columnDefs": [
                 {"orderable": false, "targets": []}
             ],

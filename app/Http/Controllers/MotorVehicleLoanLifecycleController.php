@@ -341,6 +341,7 @@ class MotorVehicleLoanLifecycleController extends Controller
                 'photos',
                 'custody.receiver',
                 'valuations',
+                'loan',
             ])->findOrFail($vehicleId);
             $records = VehicleOwnershipRecord::where('vehicle_id', $vehicleId)->get();
             return view('motor_vehicle.ownership.verification', compact('vehicle', 'records'));

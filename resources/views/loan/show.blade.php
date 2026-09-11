@@ -2326,6 +2326,9 @@ CURRENT BALANCE DASHBOARD
                                         aria-expanded="false">{{trans_choice('general.group',1)}} {{trans_choice('general.allocation',1)}}</a>
                         </li>
                     @endif
+                    @if($loan->loan_product_id == 0)
+                        <li class=""><a href="#vehicle_overview_tab" data-toggle="tab" aria-expanded="false"><i class="fa fa-car"></i> Vehicle Ownership &amp; Verifications</a></li>
+                    @endif
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane active" id="account_details">
@@ -3634,6 +3637,308 @@ CURRENT BALANCE DASHBOARD
                             </div>
                         </div>
                     @endif
+
+                    @if($loan->loan_product_id == 0)
+                    <!-- ===================== Vehicle Ownership & Verifications Overview Tab ===================== -->
+                    <div class="tab-pane" id="vehicle_overview_tab">
+                        @php
+                            $ownershipRecords = $vehicle->ownershipRecords ?? collect();
+                        @endphp
+
+                        <div class="box box-default" style="border: none; box-shadow: none;">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"><i class="fa fa-car"></i> Vehicle Ownership &amp; Verifications Summary</h3>
+                                <div class="box-tools pull-right">
+                                    <a href="{{ url('vehicles/'.$vehicle->id.'/ownership-verification') }}" class="btn btn-sm btn-primary">
+                                        <i class="fa fa-external-link-alt"></i> Manage Verifications
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="box-body">
+
+                                {{-- Ownership Records --}}
+                                <div class="panel panel-primary">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <i class="fa fa-user"></i> Ownership
+                                            @if($ownershipRecords->count() > 0)
+                                                <span class="label label-success pull-right"><i class="fa fa-check"></i> Recorded</span>
+                                            @else
+                                                <span class="label label-danger pull-right"><i class="fa fa-times"></i> Not Recorded</span>
+                                            @endif
+                                        </h4>
+                                    </div>
+                                    <div class="panel-body">
+                                        @if($ownershipRecords->count() > 0)
+                                            @php $latestOwnership = $ownershipRecords->last(); @endphp
+                                            <table class="table table-condensed table-bordered" style="margin-bottom: 0;">
+                                                <tr>
+                                                    <th style="width: 35%;">Ownership Type</th>
+                                                    <td><span class="label label-primary">{{ ucfirst(str_replace('_', ' ', $latestOwnership->ownership_type)) }}</span></td>
+                                                </tr>
+                                                @if($latestOwnership->registered_owner_name)
+                                                <tr><th>Registered Owner</th><td>{{ $latestOwnership->registered_owner_name }}</td></tr>
+                                                @endif
+                                                @if($latestOwnership->seller_name)
+                                                <tr><th>Seller</th><td>{{ $latestOwnership->seller_name }}</td></tr>
+                                                @endif
+                                                @if($latestOwnership->company_name)
+                                                <tr><th>Company</th><td>{{ $latestOwnership->company_name }}</td></tr>
+                                                @endif
+                                                @if($latestOwnership->authorized_representative_name)
+                                                <tr><th>Authorized Rep.</th><td>{{ $latestOwnership->authorized_representative_name }}</td></tr>
+                                                @endif
+                                                <tr><th>Recorded On</th><td>{{ $latestOwnership->created_at ? $latestOwnership->created_at->format('d M Y') : '-' }}</td></tr>
+                                                @if($ownershipRecords->count() > 1)
+                                                <tr><th>Total Records</th><td><span class="badge">{{ $ownershipRecords->count() }}</span></td></tr>
+                                                @endif
+                                            </table>
+                                        @else
+                                            <p class="text-muted"><i class="fa fa-info-circle"></i> No ownership records have been captured yet.</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    {{-- Insurance --}}
+                                    <div class="col-md-6">
+                                        <div class="panel panel-success">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <i class="fa fa-shield-alt"></i> Insurance
+                                                    @if($vehicle->insurancePolicies && $vehicle->insurancePolicies->count() > 0)
+                                                        <span class="label label-success pull-right"><i class="fa fa-check"></i> {{ $vehicle->insurancePolicies->count() }} polic{{ $vehicle->insurancePolicies->count() == 1 ? 'y' : 'ies' }}</span>
+                                                    @else
+                                                        <span class="label label-danger pull-right"><i class="fa fa-times"></i> None</span>
+                                                    @endif
+                                                </h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                @if($vehicle->insurancePolicies && $vehicle->insurancePolicies->count() > 0)
+                                                    @php $latestPolicy = $vehicle->insurancePolicies->sortByDesc('start_date')->first(); @endphp
+                                                    <table class="table table-condensed" style="margin-bottom: 0;">
+                                                        <tr><th>Insurer</th><td>{{ $latestPolicy->insurer_name ?? '-' }}</td></tr>
+                                                        <tr><th>Policy No.</th><td>{{ $latestPolicy->policy_number ?? '-' }}</td></tr>
+                                                        <tr><th>Cover Type</th><td>{{ $latestPolicy->cover_type ?? '-' }}</td></tr>
+                                                        <tr>
+                                                            <th>Expires</th>
+                                                            <td>
+                                                                @if($latestPolicy->expiry_date)
+                                                                    @php $exp = \Carbon\Carbon::parse($latestPolicy->expiry_date); @endphp
+                                                                    {{ $exp->format('d M Y') }}
+                                                                    @if($exp->isPast())
+                                                                        <span class="label label-danger">Expired</span>
+                                                                    @elseif($exp->diffInDays(\Carbon\Carbon::now()) <= 30)
+                                                                        <span class="label label-warning">Soon</span>
+                                                                    @else
+                                                                        <span class="label label-success">Active</span>
+                                                                    @endif
+                                                                @else
+                                                                    -
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                @else
+                                                    <p class="text-muted"><i class="fa fa-info-circle"></i> No insurance policies on record.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Inspection --}}
+                                    <div class="col-md-6">
+                                        <div class="panel panel-warning">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <i class="fa fa-clipboard-check"></i> Inspection
+                                                    @if($vehicle->inspections && $vehicle->inspections->count() > 0)
+                                                        <span class="label label-success pull-right"><i class="fa fa-check"></i> {{ $vehicle->inspections->count() }} record{{ $vehicle->inspections->count() == 1 ? '' : 's' }}</span>
+                                                    @else
+                                                        <span class="label label-danger pull-right"><i class="fa fa-times"></i> None</span>
+                                                    @endif
+                                                </h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                @if($vehicle->inspections && $vehicle->inspections->count() > 0)
+                                                    @php $latestInspection = $vehicle->inspections->sortByDesc('inspection_date')->first(); @endphp
+                                                    <table class="table table-condensed" style="margin-bottom: 0;">
+                                                        <tr><th>Date</th><td>{{ $latestInspection->inspection_date ? \Carbon\Carbon::parse($latestInspection->inspection_date)->format('d M Y') : '-' }}</td></tr>
+                                                        <tr><th>Type</th><td>{{ $latestInspection->inspection_type ?? '-' }}</td></tr>
+                                                        <tr><th>Inspector</th><td>{{ $latestInspection->inspector ?? '-' }}</td></tr>
+                                                        <tr><th>Rating</th><td>{{ $latestInspection->condition_rating ?? '-' }}</td></tr>
+                                                        <tr><th>Result</th><td>
+                                                            @php $inspResult = $latestInspection->result ?? ''; @endphp
+                                                            @if($inspResult === 'Passed') <span class="label label-success">Passed</span>
+                                                            @elseif($inspResult === 'Failed') <span class="label label-danger">Failed</span>
+                                                            @else <span class="label label-default">{{ $inspResult ?: '-' }}</span>
+                                                            @endif
+                                                        </td></tr>
+                                                    </table>
+                                                @else
+                                                    <p class="text-muted"><i class="fa fa-info-circle"></i> No inspection records on file.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>{{-- /row --}}
+
+                                <div class="row">
+                                    {{-- Valuation --}}
+                                    <div class="col-md-6">
+                                        <div class="panel panel-info">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <i class="fa fa-calculator"></i> Valuation
+                                                    @if($vehicle->valuations && $vehicle->valuations->count() > 0)
+                                                        <span class="label label-success pull-right"><i class="fa fa-check"></i> {{ $vehicle->valuations->count() }} record{{ $vehicle->valuations->count() == 1 ? '' : 's' }}</span>
+                                                    @else
+                                                        <span class="label label-danger pull-right"><i class="fa fa-times"></i> None</span>
+                                                    @endif
+                                                </h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                @if($vehicle->valuations && $vehicle->valuations->count() > 0)
+                                                    @php $latestValuation = $vehicle->valuations->sortByDesc('valuation_date')->first(); @endphp
+                                                    <table class="table table-condensed" style="margin-bottom: 0;">
+                                                        <tr><th>Date</th><td>{{ $latestValuation->valuation_date ? \Carbon\Carbon::parse($latestValuation->valuation_date)->format('d M Y') : '-' }}</td></tr>
+                                                        <tr><th>Company</th><td>{{ $latestValuation->valuation_company ?? '-' }}</td></tr>
+                                                        <tr><th>Market Value</th><td><strong>{{ $latestValuation->market_value ? number_format($latestValuation->market_value, 2) : '-' }}</strong></td></tr>
+                                                        <tr><th>Forced Sale</th><td>{{ $latestValuation->forced_sale_value ? number_format($latestValuation->forced_sale_value, 2) : '-' }}</td></tr>
+                                                        <tr>
+                                                            <th>Status</th>
+                                                            <td>
+                                                                @if($latestValuation->expiry_date)
+                                                                    @php $vExp = \Carbon\Carbon::parse($latestValuation->expiry_date); @endphp
+                                                                    @if($vExp->isPast()) <span class="label label-danger">Expired</span>
+                                                                    @else <span class="label label-success">Valid until {{ $vExp->format('d M Y') }}</span>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="label label-default">No expiry set</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                @else
+                                                    <p class="text-muted"><i class="fa fa-info-circle"></i> No valuation records on file.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Custody --}}
+                                    <div class="col-md-6">
+                                        <div class="panel panel-danger">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <i class="fa fa-warehouse"></i> Custody
+                                                    @if($vehicle->custody)
+                                                        <span class="label label-success pull-right"><i class="fa fa-check"></i> In Custody</span>
+                                                    @else
+                                                        <span class="label label-danger pull-right"><i class="fa fa-times"></i> Not in Custody</span>
+                                                    @endif
+                                                </h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                @if($vehicle->custody)
+                                                    <table class="table table-condensed" style="margin-bottom: 0;">
+                                                        <tr><th>Received At</th><td>{{ $vehicle->custody->received_at ? \Carbon\Carbon::parse($vehicle->custody->received_at)->format('d M Y H:i') : '-' }}</td></tr>
+                                                        <tr><th>Received By</th><td>{{ optional($vehicle->custody->receiver)->first_name ?? '' }} {{ optional($vehicle->custody->receiver)->last_name ?? '' }}</td></tr>
+                                                        <tr><th>Garage / Facility</th><td>{{ $vehicle->custody->garage_name ?? '-' }}</td></tr>
+                                                        <tr><th>Location</th><td>{{ $vehicle->custody->garage_location ?? '-' }}</td></tr>
+                                                        <tr><th>Status</th><td><span class="label label-primary">{{ ucfirst($vehicle->custody->status ?? 'N/A') }}</span></td></tr>
+                                                        <tr><th>Approved</th><td>
+                                                            @if($vehicle->custody->custody_approved)
+                                                                <span class="label label-success">Yes</span>
+                                                            @else
+                                                                <span class="label label-warning">Pending</span>
+                                                            @endif
+                                                        </td></tr>
+                                                    </table>
+                                                @else
+                                                    <p class="text-muted"><i class="fa fa-info-circle"></i> Vehicle has not been received into custody.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>{{-- /row --}}
+
+                                <div class="row">
+                                    {{-- Documents --}}
+                                    <div class="col-md-6">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <i class="fa fa-folder"></i> Documents
+                                                    @if($vehicle->documents && $vehicle->documents->count() > 0)
+                                                        <span class="label label-success pull-right"><i class="fa fa-check"></i> {{ $vehicle->documents->count() }} file{{ $vehicle->documents->count() == 1 ? '' : 's' }}</span>
+                                                    @else
+                                                        <span class="label label-danger pull-right"><i class="fa fa-times"></i> None</span>
+                                                    @endif
+                                                </h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                @if($vehicle->documents && $vehicle->documents->count() > 0)
+                                                    <ul class="list-unstyled" style="margin-bottom: 0;">
+                                                        @foreach($vehicle->documents as $doc)
+                                                        <li style="padding: 4px 0; border-bottom: 1px solid #f4f4f4;">
+                                                            <i class="fa fa-file-alt text-muted"></i>
+                                                            {{ $doc->document_type ?? 'Document' }}
+                                                            @if($doc->document_name) &mdash; {{ $doc->document_name }}@endif
+                                                            @if($doc->document_file)
+                                                                <a href="{{ $doc->document_file }}" target="_blank" class="btn btn-xs btn-default pull-right"><i class="fa fa-eye"></i> View</a>
+                                                            @endif
+                                                        </li>
+                                                        @endforeach
+                                                    </ul>
+                                                @else
+                                                    <p class="text-muted"><i class="fa fa-info-circle"></i> No documents uploaded.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Photos --}}
+                                    <div class="col-md-6">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <i class="fa fa-image"></i> Photos
+                                                    @if($vehicle->photos && $vehicle->photos->count() > 0)
+                                                        <span class="label label-success pull-right"><i class="fa fa-check"></i> {{ $vehicle->photos->count() }} photo{{ $vehicle->photos->count() == 1 ? '' : 's' }}</span>
+                                                    @else
+                                                        <span class="label label-danger pull-right"><i class="fa fa-times"></i> None</span>
+                                                    @endif
+                                                </h4>
+                                            </div>
+                                            <div class="panel-body">
+                                                @if($vehicle->photos && $vehicle->photos->count() > 0)
+                                                    <div class="row">
+                                                        @foreach($vehicle->photos->take(4) as $photo)
+                                                        <div class="col-xs-6" style="margin-bottom: 8px;">
+                                                            <img src="{{ $photo->photo_url }}" alt="{{ $photo->photo_type ?? 'Photo' }}" class="img-responsive img-thumbnail" style="max-height: 80px; object-fit: cover; width: 100%;">
+                                                            <p class="text-center text-muted" style="font-size: 11px; margin: 2px 0 0;">{{ $photo->photo_type ?? '-' }}</p>
+                                                        </div>
+                                                        @endforeach
+                                                    </div>
+                                                    @if($vehicle->photos->count() > 4)
+                                                        <p class="text-center text-muted" style="margin-top: 5px; font-size: 12px;">
+                                                            + {{ $vehicle->photos->count() - 4 }} more &mdash; <a href="{{ url('vehicles/'.$vehicle->id.'/ownership-verification') }}">view all</a>
+                                                        </p>
+                                                    @endif
+                                                @else
+                                                    <p class="text-muted"><i class="fa fa-info-circle"></i> No photos uploaded.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>{{-- /row --}}
+
+                            </div>{{-- /box-body --}}
+                        </div>{{-- /box --}}
+                    </div>
+                    @endif
+
                 </div>
             </div>
         </div>
