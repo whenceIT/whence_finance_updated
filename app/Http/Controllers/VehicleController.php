@@ -1279,9 +1279,9 @@ return view(
 
     public function disposalRegister(Request $request)
     {
-        // $mvlService = app(\App\Services\MVLService::class);
-        // $mvlService->week1reminder();
-        // $mvlService->month1reminder();
+        $mvlService = app(\App\Services\MVLService::class);
+        $mvlService->week1reminder();
+        $mvlService->month1reminder();
 
         $query = Loan::where('loan_product_id', 0)
             ->where(function ($q) {
