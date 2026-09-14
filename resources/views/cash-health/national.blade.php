@@ -772,6 +772,14 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
 
     @foreach($scoreRows as $score)
 
+    @php
+    $scoreValue = $score['value'];
+
+    $scoreColor = $scoreValue >= 70
+        ? '#15803d'
+        : ($scoreValue >= 40 ? '#b45309' : '#dc2626');
+@endphp
+
         <div style="
             margin-bottom:24px;
         ">
@@ -847,9 +855,9 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
             ">
 
                 <div style="
-                    width:{{ min(100,max(0,$score['value'])) }}%;
+                    width:{{ $score['value'] <= 0 ? '3' : min(100,max(0,$score['value'])) }}%;
                     height:100%;
-                    background:{{ $statusColor }};
+                    background:{{ $scoreColor }};
                     border-radius:10px;
                 "></div>
 
@@ -877,11 +885,10 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
             line-height:1.6;
         ">
 
-            <strong style="
-                color:#202633;
-            ">
-                Why this score?
-            </strong>
+          
+                                         <strong>
+    Why is the National Cash Health Score at this level?
+</strong
 
 
             <div style="
@@ -1104,50 +1111,54 @@ $status = match (strtolower($scores['status'] ?? 'red')) {
 
     {{-- HEADER --}}
 
-    <div style="
-        padding:20px 22px;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        border-bottom:1px solid #edf0f4;
-    ">
+  <div style="
+    padding:20px 22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid #edf0f4;
+">
 
-        <div>
+    <div style="min-width:0;">
 
-            <div style="
-                font-size:16px;
-                font-weight:700;
-                color:#202633;
-            ">
-                National Cash Health
-            </div>
-
-            <div style="
-                font-size:12px;
-                color:#4b5563;
-                margin-top:5px;
-                line-height:1.5;
-                font-weight:500;
-            ">
-                Review the cash health of the institution by province,
-                district and office.
-            </div>
-
+        <div style="
+            font-size:16px;
+            font-weight:700;
+            color:#202633;
+        ">
+            National Cash Health
         </div>
 
         <div style="
             font-size:12px;
             color:#4b5563;
-            font-weight:600;
+            margin-top:5px;
+            line-height:1.5;
+            font-weight:500;
+            max-width:850px;
         ">
-
-            {{ count($nationalHealth['provinces'] ?? []) }}
-
-            provinces
-
+            The National Cash Health Score measures the institution's overall
+            ability to meet its financial obligations using disbursement,
+            collection quality and residual cash performance.
         </div>
 
     </div>
+
+    <div style="
+        font-size:12px;
+        color:#4b5563;
+        font-weight:600;
+        white-space:nowrap;
+        margin-left:20px;
+    ">
+
+        {{ count($nationalHealth['provinces'] ?? []) }}
+
+        provinces
+
+    </div>
+
+</div>
 
 
     {{-- TABLE GUIDE --}}
@@ -2056,11 +2067,9 @@ $districtStatus = match (strtolower($districtScores['status'] ?? 'red')) {
                                                 line-height:1.6;
                                             ">
 
-                                                <strong style="
-                                                    color:#202633;
-                                                ">
-                                                    Why this score?
-                                                </strong>
+                                         <strong>
+    Why is the National Cash Health Score at this level?
+</strong>
 
                                                 <div style="
                                                     margin-top:4px;

@@ -576,7 +576,7 @@ public function save_wallet(Request $request)
 
         
         //reusable redirector helper
-        RedirectHelper::redirecttoDashboard();
+      //  RedirectHelper::redirecttoDashboard();
         $branch_data = [];
         $pendingApproval = false;
         $numbers_status = null;
