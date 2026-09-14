@@ -3209,7 +3209,7 @@ try {
 
 
             //add interest transaction, 
-            // if its payday loan then use amortization schedule to calculate interest
+            // if its payroll loan then use amortization schedule to calculate interest
             if($loan->loan_product_id == 1){
                 $schedule = DB::table('payroll_loan_schedules')
                     ->where('loan_amount', $loan->principal)

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Loan;
+use App\Models\SentMessage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -17,19 +18,40 @@ class MVLService
 
     public function week1reminder(): array
     {
+        $sentLoanIds = SentMessage::where('message_type', 'week1_reminder')->pluck('loan_id');
+
         $loans = Loan::where('loan_product_id', 0)
             ->whereNotNull('first_repayment_date')
             ->where('first_repayment_date', '<=', Carbon::now()->subWeek())
             ->where('status', '!=', 'closed')
+            ->whereNotIn('id', $sentLoanIds)
             ->with('client')
             ->get();
-
+            
         $message = 'Dear customer, your loan is in default and you have 3 weeks left to repay your motor vehicle loan or else your vehicle will be repossessed by the institution.';
 
         Log::info('MVL week1 reminder: sending SMS to', ['count' => $loans->count()]);
 
         if ($loans->isNotEmpty()) {
-            return $this->bulkSms->sendToLoans($loans, $message);
+            $result = $this->bulkSms->sendToLoans($loans, $message);
+
+            if (!empty($result)) {
+                $now = now();
+                $sentMessages = [];
+                foreach ($loans as $loan) {
+                    $sentMessages[] = [
+                        'loan_id' => $loan->id,
+                        'message_type' => 'week1_reminder',
+                        'message' => $message,
+                        'sent_at' => $now,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+                SentMessage::insert($sentMessages);
+            }
+
+            return $result;
         }
 
         return [];
@@ -37,10 +59,13 @@ class MVLService
 
     public function month1reminder(): array
     {
+        $sentLoanIds = SentMessage::where('message_type', 'month1_reminder')->pluck('loan_id');
+
         $loans = Loan::where('loan_product_id', 0)
             ->whereNotNull('first_repayment_date')
             ->where('first_repayment_date', '<=', Carbon::now()->subMonth())
             ->where('status', '!=', 'closed')
+            ->whereNotIn('id', $sentLoanIds)
             ->with('client')
             ->get();
 
@@ -49,7 +74,25 @@ class MVLService
         Log::info('MVL month1 reminder: sending SMS to', ['count' => $loans->count()]);
 
         if ($loans->isNotEmpty()) {
-            return $this->bulkSms->sendToLoans($loans, $message);
+            $result = $this->bulkSms->sendToLoans($loans, $message);
+
+            if (!empty($result)) {
+                $now = now();
+                $sentMessages = [];
+                foreach ($loans as $loan) {
+                    $sentMessages[] = [
+                        'loan_id' => $loan->id,
+                        'message_type' => 'month1_reminder',
+                        'message' => $message,
+                        'sent_at' => $now,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+                SentMessage::insert($sentMessages);
+            }
+
+            return $result;
         }
 
         return [];
