@@ -2940,83 +2940,66 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             Flash::warning("Permission Denied");
             return redirect()->back();
         }
+
         $rules = array(
             'disbursement_date' => 'required',
             'first_repayment_date' => 'required|after_or_equal:disbursement_date',
         );
+
         $validator = Validator::make($request->all(), $rules);
+
         if ($validator->fails()) {
             return redirect()->back()->withInput()->withErrors($validator);
         } else {
+
             $loan = Loan::find($id);
             if ($loan->status != "approved") {
                 Flash::warning("Loan not approved");
                 return redirect()->back();
             }
 
+            // 1. Withinhere Payment Processing
+            if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
+                $paymentType = $request->payment_type;
+                if ($paymentType == 'mobile_money') {
+                    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
+                    $payload = [
+                        'amount' => $request->amount,
+                        'phone' => $request->phone,
+                        'reason' => 'new loan disbursement',
+                        'user_id' => $request->user_id,
+                        'operator'=> $request->hidden_operator,
+                        'payout_type' => 'withinhere_to_mno',
+                        'totalDeducted' => $request->total_deducted
+                    ];
+                } else {
+                    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
+                    $payload = [
+                        'amount' => $request->amount,
+                        'user_id' => $request->user_id,
+                        'bankId' => $request->bank_id,
+                        'accountNumber' => $request->account_number,
+                        'reason' => 'new loan disbursement',
+                        'payout_type' => 'withinhere_to_bank',
+                        'totalDeducted' => $request->total_deducted
+                    ];
+                }
 
-if($loan->loan_product->id == 1 || $loan->loan_product->id == 2) {
-
-     
-
-            $paymentType = $request->payment_type;
-
-    if ($paymentType == 'mobile_money') {
-
-    $url = 'https://withinheremobileapi.com/api/v1/transfer/withdraw-to/mobile';
-
-    $payload = [
-        'amount' => $request->amount,
-        'phone' => $request->phone,
-        'reason' => 'new loan disbursement',
-        'user_id' => $request->user_id,
-        'operator'=> $request->hidden_operator,
-        'payout_type' => 'withinhere_to_mno',
-        'totalDeducted' => $request->total_deducted
-    ];
-
-} else {
-
-    $url = 'https://withinheremobileapi.com/api/v1/transfer/transfer-to/bank';
-
-    $payload = [
-        'amount' => $request->amount,
-        'user_id' => $request->user_id,
-        'bankId' => $request->bank_id,
-        'accountNumber' => $request->account_number,
-        'reason' => 'new loan disbursement',
-        'payout_type' => 'withinhere_to_bank',
-        'totalDeducted' => $request->total_deducted
-    ];
-}
-
-
-try {
-
-    $response = Http::post($url, $payload);
-
-    if (!$response->successful()) {
-
-         $body = $response->body();
-
-    Flash::success('API Error: ' . $body);
-    
-    }
-
-    $result = $response->json();
-
-} catch (\Exception $e) {
-
-    Flash::success('Could not connect to payment service.');
-
-    return redirect()->back();
-}
+                try {
+                    $response = Http::post($url, $payload);
+                    if (!$response->successful()) {
+                        $body = $response->body();
+                        Flash::success('API Error: ' . $body);
+                    }
+                    $result = $response->json();
+                } catch (\Exception $e) {
+                    Flash::success('Could not connect to payment service.');
+                    return redirect()->back();
+                }
+            }
 
 
-   }
-
-
-
+            // 2. Disbursing processing
             $loan->status = "disbursed";
             $loan->disbursed_by_id = Sentinel::getUser()->id;
             $loan->disbursed_notes = $request->disbursed_notes;
@@ -3208,8 +3191,9 @@ try {
             $loan_transaction->save();
 
 
-            //add interest transaction, 
-            // if its payroll loan then use amortization schedule to calculate interest
+            // 3. Add interest transaction, 
+            // if its payroll loan then 
+            // use amortization schedule to calculate interest
             if($loan->loan_product_id == 1){
                 $schedule = DB::table('payroll_loan_schedules')
                     ->where('loan_amount', $loan->principal)
@@ -3218,7 +3202,7 @@ try {
                 $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
                 if ($monthlyAmount) {
                     $totalRepayment = $monthlyAmount * $tenure;
-                    $total_interest = $totalRepayment - $loan->principal;
+                    $pl_total_interest = $totalRepayment - $loan->principal;
 
                     $loan_transaction = new LoanTransaction();
                     $loan_transaction->created_by_id = Sentinel::getUser()->id;
@@ -3229,7 +3213,7 @@ try {
                     $date = explode('-', $request->disbursement_date);
                     $loan_transaction->year = $date[0];
                     $loan_transaction->month = $date[1];
-                    $loan_transaction->debit = $total_interest;
+                    $loan_transaction->debit = $pl_total_interest;
                     $loan_transaction->save();
                 }
             }else{
@@ -3242,7 +3226,10 @@ try {
                 $date = explode('-', $request->disbursement_date);
                 $loan_transaction->year = $date[0];
                 $loan_transaction->month = $date[1];
-                $loan_transaction->debit = $total_interest;
+
+                //if the $total_interest = 0 manually calculate 40% of principal, fallback
+                $loan_transaction->debit = $total_interest > 0 ? $total_interest : ($loan->principal * 0.4);
+
                 $loan_transaction->save();
             }
 
