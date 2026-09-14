@@ -254,8 +254,10 @@
                                     K{{ number_format($loan->principal,2) }}
                                 </td>
 
-                                   <td>
-                                    {{$loan->created_date}}
+                                <td>
+                                    {{$loan->created_date ? \Carbon\Carbon::parse($loan->created_date)->toFormattedDateString() : 'N/A'}}
+                                    <br>
+                                    {{$loan->created_date ? \Carbon\Carbon::parse($loan->created_date)->diffForHumans() : 'N/A'}}
                                 </td>
 
 
@@ -322,7 +324,7 @@
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-info btn-xs" onclick="openLoanDetailSheet({{ $loan->id }})">
-                                        <i class="fa fa-eye"></i> View
+                                        <i class="fa fa-eye"></i> Vehicle
                                     </button>
                                 </td>
 

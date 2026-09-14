@@ -484,6 +484,12 @@ class MotorVehicleLoanLifecycleController extends Controller
         $statuses = [];
         $totalApproved = VehicleCustody::where('custody_approved', true)->count();
         $totalPending = VehicleCustody::where('custody_approved', false)->count();
+
+        $totalValue = VehicleCustody::join('vehicles', 'vehicle_custody.vehicle_id', '=', 'vehicles.id')->sum('vehicles.market_value');
+        $approvedValue = VehicleCustody::join('vehicles', 'vehicle_custody.vehicle_id', '=', 'vehicles.id')
+            ->where('custody_approved', true)->sum('vehicles.market_value');
+        $pendingValue = VehicleCustody::join('vehicles', 'vehicle_custody.vehicle_id', '=', 'vehicles.id')
+            ->where('custody_approved', false)->sum('vehicles.market_value');
         foreach ($custodies as $custody) {
             $loan = optional($custody->vehicle)->loan;
             if ($loan) {
@@ -521,7 +527,7 @@ class MotorVehicleLoanLifecycleController extends Controller
             }
         }
 
-        return view('motor_vehicle.custody.register', compact('custodies', 'statuses', 'totalApproved', 'totalPending'));
+        return view('motor_vehicle.custody.register', compact('custodies', 'statuses', 'totalApproved', 'totalPending', 'totalValue', 'approvedValue', 'pendingValue'));
     }
 
     public function storeIntake(Request $request, $vehicleId)

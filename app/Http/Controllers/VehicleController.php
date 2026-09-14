@@ -85,17 +85,121 @@ public function edit($id)
 
     public function show($id)
     {
-        $vehicle = Vehicle::with('client')
+        $vehicle = Vehicle::with([
+            'client',
+            'loan',
+            'loan.client',
+            'loan.complianceScreenings',
+            'insurancePolicies',
+            'documents',
+            'photos',
+            'inspections',
+            'valuations',
+            'ownershipRecords',
+            'custody',
+        ])
             ->findOrFail($id);
 
-        return view('motor_vehicle.show', compact('vehicle'));
+        $loan = $vehicle->loan;
+        $statuses = [];
+        $kycCompleted = false;
+        $complianceCompleted = false;
+        $ownershipCompleted = false;
+
+        if ($loan && $loan->loan_product_id == 0 && $loan->client) {
+            $client = $loan->client;
+            $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+            $kycCompleted = true;
+            foreach ($kycFields as $field) {
+                if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
+                    $kycCompleted = false;
+                    break;
+                }
+            }
+
+            $complianceCompleted = $loan->relationLoaded('complianceScreenings')
+                && $loan->complianceScreenings->whereIn('status', ['cleared', 'flagged', 'requires_review'])->isNotEmpty();
+
+            $ownershipCompleted = $vehicle->relationLoaded('ownershipRecords')
+                && $vehicle->ownershipRecords->isNotEmpty();
+        }
+
+        $statuses[$vehicle->id] = [
+            'kyc_completed'              => $kycCompleted,
+            'compliance_screening_completed' => $complianceCompleted,
+            'ownership_completed'        => $ownershipCompleted,
+        ];
+
+        return view('motor_vehicle.show', compact('vehicle', 'statuses'));
     }
 
+    public function report($id)
+    {
+        $vehicle = Vehicle::with([
+            'client',
+            'loan',
+            'loan.client',
+            'loan.complianceScreenings',
+            'insurancePolicies',
+            'documents',
+            'photos',
+            'inspections',
+            'valuations',
+            'ownershipRecords',
+            'custody',
+            'movements',
+        ])->findOrFail($id);
 
-public function update(Request $request, $id)
-{
-    $request->validate([
-        'make' => 'required',
+        $loan = $vehicle->loan;
+
+        return view('motor_vehicle.report', compact('vehicle', 'loan'));
+    }
+
+    public function reportKyc($id)
+    {
+        $vehicle = Vehicle::with([
+            'client',
+            'loan',
+            'loan.client',
+        ])->findOrFail($id);
+
+        $loan = $vehicle->loan;
+
+        return view('motor_vehicle.report_kyc', compact('vehicle', 'loan'));
+    }
+
+    public function reportCompliance($id)
+    {
+        $vehicle = Vehicle::with([
+            'client',
+            'loan',
+            'loan.client',
+            'loan.complianceScreenings',
+        ])->findOrFail($id);
+
+        $loan = $vehicle->loan;
+
+        return view('motor_vehicle.report_compliance', compact('vehicle', 'loan'));
+    }
+
+    public function reportOwnership($id)
+    {
+        $vehicle = Vehicle::with([
+            'client',
+            'loan',
+            'loan.client',
+            'ownershipRecords',
+        ])->findOrFail($id);
+
+        $loan = $vehicle->loan;
+
+        return view('motor_vehicle.report_ownership', compact('vehicle', 'loan'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'make' => 'required',
         'model' => 'required',
         'registration_number' => 'required'
     ]);
@@ -986,9 +1090,13 @@ public function loanDetailSheet(Request $request, $loanId)
 }
 
 
-   public function MotorVehicles(Request $request)
-{
-    $query = Vehicle::with('client.office');
+    public function MotorVehicles(Request $request){
+        $query = Vehicle::with([
+            'client.office',
+            'loan.client',
+            'loan.complianceScreenings',
+            'ownershipRecords',
+        ]);
 
     // Search
     if ($request->filled('search')) {
@@ -1016,12 +1124,11 @@ public function loanDetailSheet(Request $request, $loanId)
     }
 
     // Branch Filter
- // Branch Filter
-if ($request->filled('office')) {
-    $query->whereHas('client', function ($q) use ($request) {
-        $q->where('office_id', $request->office);
-    });
-}
+    if ($request->filled('office')) {
+        $query->whereHas('client', function ($q) use ($request) {
+            $q->where('office_id', $request->office);
+        });
+    }
 
     // Registration Date Filter
     if ($request->filled('date')) {
@@ -1035,9 +1142,41 @@ if ($request->filled('office')) {
 
     $offices = Office::orderBy('name')->get();
 
+    $statuses = [];
+    foreach ($vehicles as $vehicle) {
+        $kycCompleted = false;
+        $complianceCompleted = false;
+        $ownershipCompleted = false;
+
+        $loan = $vehicle->loan;
+        if ($loan && $loan->loan_product_id == 0 && $loan->client) {
+            $client = $loan->client;
+            $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+            $kycCompleted = true;
+            foreach ($kycFields as $field) {
+                if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
+                    $kycCompleted = false;
+                    break;
+                }
+            }
+
+            $complianceCompleted = $loan->relationLoaded('complianceScreenings')
+                && $loan->complianceScreenings->whereIn('status', ['cleared', 'flagged', 'requires_review'])->isNotEmpty();
+
+            $ownershipCompleted = $vehicle->relationLoaded('ownershipRecords')
+                && $vehicle->ownershipRecords->isNotEmpty();
+        }
+
+        $statuses[$vehicle->id] = [
+            'kyc_completed' => $kycCompleted,
+            'compliance_screening_completed' => $complianceCompleted,
+            'ownership_completed' => $ownershipCompleted,
+        ];
+    }
+
     return view(
         'motor_vehicle.motor_vehicles',
-        compact('vehicles', 'offices')
+        compact('vehicles', 'offices', 'statuses')
     );
 }
 

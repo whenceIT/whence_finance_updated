@@ -458,6 +458,10 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('new_route','VehicleController@MotorVehicleLoan');
     Route::post('{vehicle}/sell','VehicleController@sellVehicle');
     Route::post('vehicle-custody/{custody}/approve','VehicleController@approveCustody');
+    Route::get('{vehicle}/report','VehicleController@report')->name('vehicles.report');
+    Route::get('{vehicle}/report/kyc','VehicleController@reportKyc')->name('vehicles.report.kyc');
+    Route::get('{vehicle}/report/compliance','VehicleController@reportCompliance')->name('vehicles.report.compliance');
+    Route::get('{vehicle}/report/ownership','VehicleController@reportOwnership')->name('vehicles.report.ownership');
     // Wildcard routes must come AFTER specific routes
     Route::any('{id}', 'VehicleController@show');
     Route::any('{id}/edit', 'VehicleController@edit');

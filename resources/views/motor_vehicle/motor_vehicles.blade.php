@@ -123,6 +123,7 @@
                             <th>Model</th>
                             <th>Market Value</th>
                             <th>Status</th>
+                            <th>Onboarding Progress</th>
 
                         </tr>
 
@@ -135,9 +136,9 @@
                             <tr>
                                 
                             <td>
-                                 <a href="{{ url('vehicles/'.$vehicle->id) }}">
-    {{$vehicle->id}}
-    </a>
+                                <a href="{{ url('vehicles/'.$vehicle->id) }}">
+                                    {{$vehicle->id}}
+                                </a>
                             </td>
 
                                 <td>
@@ -203,7 +204,16 @@
                                         </span>
                                     @endif
 
-                                </td>
+                                 </td>
+                                    <td>
+                                        <x-onboarding-progress :status="$statuses[$vehicle->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null, 'ownership_completed' => null]" :loan="$vehicle->loan ?? null" />
+                                    </td>
+
+                                     <td>
+                                        <a href="{{ url('vehicles/'.$vehicle->id) }}" class="btn btn-sm btn-info" style="padding: 4px 10px; border-radius: 20px; font-size: 12px; line-height: 1.5;">
+                                            <i class="fa fa-eye"></i> view
+                                        </a>
+                                    </td>
 
                             </tr>
 
@@ -211,7 +221,7 @@
 
                             <tr>
 
-                                <td colspan="7" class="text-center">
+                                <td colspan="11" class="text-center">
                                     No vehicles found.
                                 </td>
 
