@@ -324,90 +324,106 @@ public function updateSetup(Request $request)
 
 
 
-    public function poadashboard(Request $request)
-    {
-
-
-       try {
-
-                $endpoint = "https://lms2backend.whencefinancesystem.com/all-target-data";
-
-                $ch = curl_init($endpoint);
-
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 3); // don’t slow system
-                curl_exec($ch);
-                curl_close($ch);
-
-            } catch (\Exception $e) {
-                // Fail silently – system must continue
-            }
-            
-        // ✅ DEFAULT CYCLE (25 → 24)
-        $today = Carbon::today();
-
-        $cycleStart = $today->copy()->day(25);
-        if ($today->day < 25) {
-            $cycleStart->subMonth();
-        }
-
-        $cycleEnd = $cycleStart->copy()->addMonth()->subDay();
-
-        // ✅ OVERRIDE WITH FILTER
-        $start_date = $request->start_date ?? $cycleStart->format('Y-m-d');
-        $end_date = $request->end_date ?? $cycleEnd->format('Y-m-d');
-
-        try {
-
-            // ✅ FETCH PROVINCES
-            $provinceResponse = Http::timeout(200)->get('https://lms2backend.whencefinancesystem.com/province-performance-all', [
-                'start_date' => $start_date,
-                'end_date' => $end_date
-            ]);
-
-            $provinces = $provinceResponse->successful()
-                ? ($provinceResponse->json()['data'] ?? [])
-                : [];
-
-        
-
-            // ✅ FETCH BRANCHES
-            $branchResponse = Http::timeout(60)->get('https://lms2backend.whencefinancesystem.com/branch-performance-all', [
-                'start_date' => $start_date,
-                'end_date' => $end_date
-            ]);
-
-            $branches = $branchResponse->successful()
-                ? ($branchResponse->json()['data'] ?? [])
-                : [];
-
-        } catch (\Exception $e) {
-
-          
-        }
-
-
-$targets_met = TargetsMet::whereDate('date', $today)
-    ->get()
-    ->groupBy(function ($item) {
-        return $item->user_id . '_' . $item->date;
-    })
-    ->map(function ($group) {
-        return $group->sortByDesc('target_level')->first();
-    })
-    ->values()
-    ->groupBy('office_name');
-
-        return view('user.poadashboard', compact(
-            'provinces',
-            'branches',
-            'start_date',
-            'end_date',
-            'targets_met'
-        ));
+  public function poadashboard(Request $request)
+{
+    try {
+        $endpoint = "https://lms2backend.whencefinancesystem.com/all-target-data";
+        $ch = curl_init($endpoint);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3); // don’t slow system
+        curl_exec($ch);
+        curl_close($ch);
+    } catch (\Exception $e) {
+        // Fail silently – system must continue
     }
 
+    // ✅ DEFAULT CYCLE (25 → 24)
+    $today = Carbon::today();
+
+    $cycleStart = $today->copy()->day(25);
+
+    if ($today->day < 25) {
+        $cycleStart->subMonth();
+    }
+
+    $cycleEnd = $cycleStart->copy()->addMonth()->subDay();
+
+    // ✅ OVERRIDE WITH FILTER
+    $start_date = $request->start_date ?? $cycleStart->format('Y-m-d');
+    $end_date = $request->end_date ?? $cycleEnd->format('Y-m-d');
+
+    try {
+
+        // ✅ FETCH PROVINCES
+        $provinceResponse = Http::timeout(200)->get(
+            'https://lms2backend.whencefinancesystem.com/province-performance-all',
+            [
+                'start_date' => $start_date,
+                'end_date' => $end_date
+            ]
+        );
+
+        $provinces = $provinceResponse->successful()
+            ? ($provinceResponse->json()['data'] ?? [])
+            : [];
+
+
+        // ✅ FETCH BRANCHES
+        $branchResponse = Http::timeout(60)->get(
+            'https://lms2backend.whencefinancesystem.com/branch-performance-all',
+            [
+                'start_date' => $start_date,
+                'end_date' => $end_date
+            ]
+        );
+
+        $branches = $branchResponse->successful()
+            ? ($branchResponse->json()['data'] ?? [])
+            : [];
+
+
+        // ✅ FETCH CONSULTANT TARGET EARLY WARNINGS
+        $earlyWarningResponse = Http::timeout(60)->get(
+            'https://lms2backend.whencefinancesystem.com/consultants-target-early-warning',
+            [
+                'start_date' => $start_date,
+                'end_date' => $end_date
+            ]
+        );
+
+        $targetEarlyWarnings = $earlyWarningResponse->successful()
+            ? ($earlyWarningResponse->json()['data'] ?? [])
+            : [];
+
+    } catch (\Exception $e) {
+
+        // Keep dashboard working even if one API fails
+        $targetEarlyWarnings = [];
+    }
+
+
+    $targets_met = TargetsMet::whereDate('date', $today)
+        ->get()
+        ->groupBy(function ($item) {
+            return $item->user_id . '_' . $item->date;
+        })
+        ->map(function ($group) {
+            return $group->sortByDesc('target_level')->first();
+        })
+        ->values()
+        ->groupBy('office_name');
+
+
+    return view('user.poadashboard', compact(
+        'provinces',
+        'branches',
+        'start_date',
+        'end_date',
+        'targets_met',
+        'targetEarlyWarnings'
+    ));
+}
 
 
     public function create_carry_over(Request $request)
