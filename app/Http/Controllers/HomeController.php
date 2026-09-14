@@ -275,8 +275,8 @@ class HomeController extends Controller
                     // Log login audit
                     $this->auditorService->logLogin(Sentinel::getUser()->id, $request);
 
-                    if (Sentinel::getUser()->blocked == 1 || Sentinel::getUser()->status == 'Inactive') {
-                        //prevent login
+                 //   if (Sentinel::getUser()->blocked == 1 || Sentinel::getUser()->status == 'Inactive') {
+                          if (Sentinel::getUser()->blocked == 1 ){
                         if (Sentinel::getUser()->blocked == 1) {
                             Flash::warning(trans('general.user_blocked'));
                         }else{
