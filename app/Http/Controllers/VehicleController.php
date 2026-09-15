@@ -25,6 +25,7 @@ use App\Models\VehicleOwnershipRecord;
 use App\Models\District;
 use App\Models\Province;
 use App\Models\User;
+use App\Models\UserRole;
 use Laracasts\Flash\Flash;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 
@@ -960,7 +961,7 @@ public function searchClients(Request $request)
 
    public function MotorVehicleLoan(Request $request)
 {
-    $query = Loan::where('loan_product_id', 0);
+    $query = $this->applyLoanRbacFilter(Loan::where('loan_product_id', 0));
 
     // Search (Loan ID or Client Name)
     if ($request->filled('search')) {
@@ -1021,10 +1022,10 @@ public function searchClients(Request $request)
         'total_collected' => LoanTransaction::whereIn('loan_id', $closedLoanIds)->sum('credit'),
     ];
 
-    $offices = Office::orderBy('name')->get();
+    $offices = $this->getAllowedOffices();
 
     $statuses = [];
-    $allLoans = Loan::where('loan_product_id', 0)->with([
+    $allLoans = $this->applyLoanRbacFilter(Loan::where('loan_product_id', 0))->with([
         'client',
         'vehicle.ownershipRecords',
         'complianceScreenings',
@@ -1098,87 +1099,198 @@ public function loanDetailSheet(Request $request, $loanId)
             'ownershipRecords',
         ]);
 
-    // Search
-    if ($request->filled('search')) {
-        $search = $request->search;
+        $query = $this->applyVehicleRbacFilter($query);
 
-        $query->where(function ($q) use ($search) {
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
 
-            $q->where('vehicle_code', 'like', "%{$search}%")
-              ->orWhere('registration_number', 'like', "%{$search}%")
-              ->orWhere('make', 'like', "%{$search}%")
-              ->orWhere('model', 'like', "%{$search}%")
-              ->orWhereHas('client', function ($client) use ($search) {
+            $query->where(function ($q) use ($search) {
 
-                    $client->where('first_name', 'like', "%{$search}%")
-                           ->orWhere('last_name', 'like', "%{$search}%");
+                $q->where('vehicle_code', 'like', "%{$search}%")
+                ->orWhere('registration_number', 'like', "%{$search}%")
+                ->orWhere('make', 'like', "%{$search}%")
+                ->orWhere('model', 'like', "%{$search}%")
+                ->orWhereHas('client', function ($client) use ($search) {
 
-              });
+                        $client->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
 
-        });
-    }
+                });
 
-    // Status Filter
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-
-    // Branch Filter
-    if ($request->filled('office')) {
-        $query->whereHas('client', function ($q) use ($request) {
-            $q->where('office_id', $request->office);
-        });
-    }
-
-    // Registration Date Filter
-    if ($request->filled('date')) {
-        $query->whereDate('created_at', $request->date);
-    }
-
-    $vehicles = $query
-        ->latest()
-        ->paginate(20)
-        ->appends($request->all());
-
-    $offices = Office::orderBy('name')->get();
-
-    $statuses = [];
-    foreach ($vehicles as $vehicle) {
-        $kycCompleted = false;
-        $complianceCompleted = false;
-        $ownershipCompleted = false;
-
-        $loan = $vehicle->loan;
-        if ($loan && $loan->loan_product_id == 0 && $loan->client) {
-            $client = $loan->client;
-            $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
-            $kycCompleted = true;
-            foreach ($kycFields as $field) {
-                if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
-                    $kycCompleted = false;
-                    break;
-                }
-            }
-
-            $complianceCompleted = $loan->relationLoaded('complianceScreenings')
-                && $loan->complianceScreenings->whereIn('status', ['cleared', 'flagged', 'requires_review'])->isNotEmpty();
-
-            $ownershipCompleted = $vehicle->relationLoaded('ownershipRecords')
-                && $vehicle->ownershipRecords->isNotEmpty();
+            });
         }
 
-        $statuses[$vehicle->id] = [
-            'kyc_completed' => $kycCompleted,
-            'compliance_screening_completed' => $complianceCompleted,
-            'ownership_completed' => $ownershipCompleted,
-        ];
+        // Status Filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Branch Filter
+        if ($request->filled('office')) {
+            $query->whereHas('client', function ($q) use ($request) {
+                $q->where('office_id', $request->office);
+            });
+        }
+
+        // Registration Date Filter
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $vehicles = $query->latest()->paginate(20)->appends($request->all());
+
+        $offices = $this->getAllowedOffices();
+
+        $statuses = [];
+        foreach ($vehicles as $vehicle) {
+            $kycCompleted = false;
+            $complianceCompleted = false;
+            $ownershipCompleted = false;
+
+            $loan = $vehicle->loan;
+            if ($loan && $loan->loan_product_id == 0 && $loan->client) {
+                $client = $loan->client;
+                $kycFields = ['nrc_number', 'phone_primary', 'email_primary', 'city', 'address_line1'];
+                $kycCompleted = true;
+                foreach ($kycFields as $field) {
+                    if (!isset($client->$field) || $client->$field === null || trim($client->$field) === '') {
+                        $kycCompleted = false;
+                        break;
+                    }
+                }
+
+                $complianceCompleted = $loan->relationLoaded('complianceScreenings')
+                    && $loan->complianceScreenings->whereIn('status', ['cleared', 'flagged', 'requires_review'])->isNotEmpty();
+
+                $ownershipCompleted = $vehicle->relationLoaded('ownershipRecords')
+                    && $vehicle->ownershipRecords->isNotEmpty();
+            }
+
+            $statuses[$vehicle->id] = [
+                'kyc_completed' => $kycCompleted,
+                'compliance_screening_completed' => $complianceCompleted,
+                'ownership_completed' => $ownershipCompleted,
+            ];
+        }
+
+        return view(
+            'motor_vehicle.motor_vehicles',
+            compact('vehicles', 'offices', 'statuses')
+        );
     }
 
-    return view(
-        'motor_vehicle.motor_vehicles',
-        compact('vehicles', 'offices', 'statuses')
-    );
-}
+    private function applyVehicleRbacFilter($query)
+    {
+        $user = Sentinel::getUser();
+        $userRole = UserRole::where('user_id', $user->id)->first();
+
+        if (!$userRole || $userRole->role_id == '1') {
+            return $query;
+        }
+
+        $roleId = $userRole->role_id;
+
+        if (in_array($roleId, ['3', '4'])) {
+            $query->where(function ($q) use ($user) {
+                $q->whereHas('client', function ($q) use ($user) {
+                    $q->where('office_id', $user->office_id);
+                })->orWhereHas('loan', function ($q) use ($user) {
+                    $q->where('office_id', $user->office_id);
+                });
+            });
+        } elseif ($roleId == '12') {
+            $office = Office::find($user->office_id);
+            $districtId = $office ? $office->district_id : null;
+            $query->where(function ($q) use ($districtId) {
+                $q->whereHas('client.office', function ($q) use ($districtId) {
+                    $q->where('district_id', $districtId);
+                })->orWhereHas('loan.office', function ($q) use ($districtId) {
+                    $q->where('district_id', $districtId);
+                });
+            });
+        } elseif ($roleId == '6') {
+            $query->where(function ($q) use ($user) {
+                $q->whereHas('client.office', function ($q) use ($user) {
+                    $q->where('province_id', $user->province_id);
+                })->orWhereHas('loan.office', function ($q) use ($user) {
+                    $q->where('province_id', $user->province_id);
+                });
+            });
+        }
+
+        return $query;
+    }
+
+    private function getAllowedOffices()
+    {
+        $user = Sentinel::getUser();
+        $userRole = UserRole::where('user_id', $user->id)->first();
+
+        if (!$userRole || $userRole->role_id == '1') {
+            return Office::orderBy('name')->get();
+        }
+
+        $roleId = $userRole->role_id;
+
+        if (in_array($roleId, ['3', '4'])) {
+            return Office::where('id', $user->office_id)->get();
+        }
+
+        if ($roleId == '12') {
+            $office = Office::find($user->office_id);
+            return Office::where('district_id', $office ? $office->district_id : null)
+                ->orderBy('name')->get();
+        }
+
+        if ($roleId == '6') {
+            return Office::where('province_id', $user->province_id)
+                ->orderBy('name')->get();
+        }
+
+        return collect();
+    }
+
+    private function applyLoanRbacFilter($query)
+    {
+        $user = Sentinel::getUser();
+        $userRole = UserRole::where('user_id', $user->id)->first();
+
+        if (!$userRole || $userRole->role_id == '1') {
+            return $query;
+        }
+
+        $roleId = $userRole->role_id;
+
+        if (in_array($roleId, ['3', '4'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('office_id', $user->office_id)
+                  ->orWhereHas('client', function ($subQ) use ($user) {
+                      $subQ->where('office_id', $user->office_id);
+                  });
+            });
+        } elseif ($roleId == '12') {
+            $office = Office::find($user->office_id);
+            $districtId = $office ? $office->district_id : null;
+            $query->where(function ($q) use ($districtId) {
+                $q->whereHas('office', function ($subQ) use ($districtId) {
+                    $subQ->where('district_id', $districtId);
+                })->orWhereHas('client.office', function ($subQ) use ($districtId) {
+                    $subQ->where('district_id', $districtId);
+                });
+            });
+        } elseif ($roleId == '6') {
+            $query->where(function ($q) use ($user) {
+                $q->whereHas('office', function ($subQ) use ($user) {
+                    $subQ->where('province_id', $user->province_id);
+                })->orWhereHas('client.office', function ($subQ) use ($user) {
+                    $subQ->where('province_id', $user->province_id);
+                });
+            });
+        }
+
+        return $query;
+    }
 
 
 
