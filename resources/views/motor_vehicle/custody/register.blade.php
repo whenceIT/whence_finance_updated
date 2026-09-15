@@ -15,20 +15,52 @@
     <div class="box-body">
         <div class="row">
             <div class="col-md-3">
-                <strong>Total Records:</strong><br>
-                <span class="badge bg-blue">{{ $custodies->total() }}</span>
+                <div class="small-box bg-blue">
+                    <div class="inner">
+                        <h3>{{ $custodies->total() }}</h3>
+                        <p>Total Records</p>
+                        <small>K{{ number_format($totalValue ?? 0, 2) }} total value</small>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-car"></i>
+                    </div>
+                </div>
             </div>
             <div class="col-md-3">
-                <strong>Approved:</strong><br>
-                <span class="badge bg-green">{{ $totalApproved ?? 0 }}</span>
+                <div class="small-box bg-green">
+                    <div class="inner">
+                        <h3>{{ $totalApproved ?? 0 }}</h3>
+                        <p>Approved</p>
+                        <small>K{{ number_format($approvedValue ?? 0, 2) }} total value</small>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-check-circle"></i>
+                    </div>
+                </div>
             </div>
             <div class="col-md-3">
-                <strong>Pending Approval:</strong><br>
-                <span class="badge bg-orange">{{ $totalPending ?? 0 }}</span>
+                <div class="small-box bg-yellow">
+                    <div class="inner">
+                        <h3>{{ $totalPending ?? 0 }}</h3>
+                        <p>Pending Approval</p>
+                        <small>K{{ number_format($pendingValue ?? 0, 2) }} total value</small>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-hourglass-half"></i>
+                    </div>
+                </div>
             </div>
             <div class="col-md-3">
-                <strong>Current Page:</strong><br>
-                <span class="badge bg-purple">{{ $custodies->currentPage() }} / {{ $custodies->lastPage() }}</span>
+                <div class="small-box bg-purple">
+                    <div class="inner">
+                        <h3>{{ $custodies->currentPage() }} / {{ $custodies->lastPage() }}</h3>
+                        <p>Current Page</p>
+                        <small>{{ $custodies->perPage() }} per page</small>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-pager"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -67,9 +99,14 @@
                 <td>
                     @if($custody->vehicle)
                         <a href="{{ url('vehicles/'.$custody->vehicle->id) }}">{{ $custody->vehicle->registration_number }}</a>
+                        
+                        <a href="{{ url('vehicles/'.$custody->vehicle->id) }}" class="btn btn-sm btn-info" style="padding: 4px 10px; border-radius: 20px; font-size: 12px; line-height: 1.5;">
+                            <i class="fa fa-eye"></i> view
+                        </a>
                     @else
                         {{ __('N/A') }}
                     @endif
+
                 </td>
                 <td>
                     @if(!empty($custody->vehicle) && $custody->vehicle->photos->isNotEmpty())

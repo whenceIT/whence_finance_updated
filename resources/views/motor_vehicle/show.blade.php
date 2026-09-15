@@ -14,7 +14,7 @@
             <i class="fa fa-info-circle"></i> Vehicle Status
         </h3>
 
-        @if($vehicle->status != 'sold')
+         @if($vehicle->status != 'sold')
             <button class="btn btn-danger pull-right"
                     data-toggle="modal"
                     data-target="#sellVehicleModal">
@@ -22,11 +22,24 @@
                 Sell Car
             </button>
         @endif
+
+        <a href="{{ url('vehicles/'.$vehicle->id.'/report') }}"
+           class="btn btn-success pull-right"
+           style="margin-right: 10px;">
+            <i class="fa fa-print"></i>
+            Executive Report
+        </a>
     </div>
 
     <div class="box-body">
 
-        <x-vehicle-timeline :currentStatus="$vehicle->status" />
+        @if($vehicle->loan)
+            <x-onboarding-progress :status="$statuses[$vehicle->id] ?? ['kyc_completed' => null, 'compliance_screening_completed' => null, 'ownership_completed' => null]" :loan="$vehicle->loan" :print-mode="true" />
+
+            <hr>
+        @endif
+
+        <x-vehicle-timeline :currentStatus="$vehicle->custody ? 'in_custody' : $vehicle->status" />
 
         <hr>
 

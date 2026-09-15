@@ -14,7 +14,7 @@
                     <div class="small-box bg-blue">
                         <div class="inner">
                             <h3>{{ $stats['total'] }}</h3>
-                            <p>Defaulted / Disbursed</p>
+                            <p>Total</p>
                             <p style="font-size: 14px; margin-bottom: 0;">K{{ number_format($stats['total_amount'], 2) }}</p>
                         </div>
                         <div class="icon">
@@ -134,7 +134,6 @@
                 <thead>
                     <tr>
                         <th>Image</th>
-                        <th>{{ trans_choice('general.account',1) }}#</th>
                         <th>{{ trans_choice('general.branch',1) }}</th>
                         <th>District</th>
                         <th>Province</th>
@@ -146,7 +145,7 @@
                         <th>Custodian</th>
                             <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
                             <th>Market Value</th>
-                            <th>1st Repayment (Time Ago)</th>
+                            <th>1st Repayment</th>
                         <th>Time Taken to Sale</th>
                         <th>Status</th>
                         <th>Onboarding Progress</th>
@@ -182,7 +181,6 @@
                                      alt="No photo">
                             @endif
                         </td>
-                        <td>{{ $loan->id }}</td>
                         <td>
                             @if(!empty($loan->originatingBranch))
                                 {{$loan->originatingBranch->name}}
@@ -275,13 +273,11 @@
                                         aria-expanded="false"><i
                                             class="fa fa-navicon"></i></button>
                                 <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                                    @if(Sentinel::hasAccess('loans.view'))
-                                        <li>
-                                            <a href="{{ url('loan/'.$loan->id.'/show') }}"><i
-                                                        class="fa fa-search"></i>
-                                                {{ trans_choice('general.detail',2) }}</a>
-                                        </li>
-                                    @endif
+                                    <li>
+                                        <a href="{{ url('loan/'.$loan->id.'/show') }}"><i
+                                                    class="fa fa-search"></i>
+                                            {{ trans_choice('general.detail',2) }}</a>
+                                    </li>
                                 </ul>
                             </div>
                         </td>

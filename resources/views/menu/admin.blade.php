@@ -1597,6 +1597,8 @@ if (!Sentinel::check()) {
             <!-- ============================================
                  MOTOR VECHICLE SECTION
             ============================================ -->
+            
+            
             <li class="treeview @if(Request::is('loan/branch_uncollected') || Request::is('loan/managers_pending_approval') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('advance/top_up_approvals') || Request::is('loan/transaction_approvals') || Request::is('loan/reloan_approvals') || Request::is('loan/waiver_approvals') || Request::is('loan/charge_approvals') || Request::is('client/managers_pending_approval') || Request::is('loan/waiver_approvals') || Request::is('user/carry_over_approvals') || Request::is('advances/*') || Request::is('loan/dormant_loans') || Request::is('motor-vehicle-loans*') || Request::is('clients/*/edit-kyc') || Request::is('vehicles/ownership-verification') || Request::is('vehicles/*/ownership-verification') || Request::is('vehicles/movements') || Request::is('vehicles/*/movements') || Request::is('vehicles/roll-calls') || Request::is('vehicles/*/roll-calls') || Request::is('vehicles/custody-register') || Request::is('vehicles/*/custody-register') ) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-car"></i> <span>Motor Vehicle Loans</span>
@@ -1606,11 +1608,11 @@ if (!Sentinel::check()) {
                 </a>
                 <ul class="treeview-menu">
                     <!-- Branch Uncollected -->
-                    @if(in_array($role, [1,4]))
+                    @if(in_array($role, [1,4,3]))
+                        @if(in_array($role, [1,4]))
                         <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>MVL Dashboard</a></li>
-                        <!-- @if(Sentinel::hasAccess('settings'))
-                        <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->where('loan_product_id',0)->count() }}</span>@endif</a></li>
-                        @endif -->
+                        <!-- <li><a href="{{ url('vehicles/loans_pending_approval') }}"><i class="fa fa-circle-o"></i> Loans Pending @if(Sentinel::hasAccess('settings'))<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('loan_product_id',0)->count() }}</span>@else<span class="label label-warning pull-right">{{\App\Models\Loan::whereIn('status', ['pending', 'approved'])->where('office_id',$office_id)->where('loan_product_id',0)->count() }}</span>@endif</a></li> -->
+                        @endif 
                         <li><a href="{{ url('vehicles/mvl/motor-vehicle-loans') }}"><i class="fa fa-circle-o"></i>MV Loans</a></li>
                         <li><a href="{{ url('vehicles') }}"><i class="fa fa-circle-o"></i>Vehicles Register</a></li>
                     @endif
