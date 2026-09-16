@@ -196,11 +196,27 @@ class UserController extends Controller
             ? ($branchResponse->json()['data'] ?? [])
             : [];
 
+            
+        // ✅ FETCH CONSULTANT TARGET EARLY WARNINGS
+        $earlyWarningResponse = Http::timeout(60)->get(
+            'https://lms2backend.whencefinancesystem.com/consultants-target-early-warning-province',
+            [
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'province_id' => $province_id
+            ]
+        );
+
+           $targetEarlyWarnings = $earlyWarningResponse->successful()
+            ? ($earlyWarningResponse->json()['data'] ?? [])
+            : [];
+
     } catch (\Exception $e) {
 
         // 👤 Fail gracefully
         $provinces = [];
         $branches = [];
+        $targetEarlyWarnings = [];
     }
  
 
@@ -244,6 +260,7 @@ return view('user.pmdashboard',compact(
         'branches',
         'start_date',
         'end_date',
+        'targetEarlyWarnings',
             ));
 }
 
@@ -272,6 +289,21 @@ public function bmdashboard(Request $request)
     $url2 = "https://lms2backend.whencefinancesystem.com/consultants-performance-by-office?office_id=$office_id&start_date=$start_date&end_date=$end_date";
     $url3 = "https://lms2backend.whencefinancesystem.com/branch-performance-new?office_id=$office_id";
 
+            // ✅ FETCH CONSULTANT TARGET EARLY WARNINGS
+        $earlyWarningResponse = Http::timeout(60)->get(
+            'https://lms2backend.whencefinancesystem.com/consultants-target-early-warning-branch',
+            [
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'office_id' => $office_id
+            ]
+        );
+
+           $targetEarlyWarnings = $earlyWarningResponse->successful()
+            ? ($earlyWarningResponse->json()['data'] ?? [])
+            : [];
+
+
     $json = @file_get_contents($url);
     $json2 = @file_get_contents($url2);
     $json3 = @file_get_contents($url3);
@@ -289,7 +321,8 @@ public function bmdashboard(Request $request)
         'end_date',
         'branch_data',
         'office_id',
-        'office'
+        'office',
+        'targetEarlyWarnings',
     ));
 }
 
