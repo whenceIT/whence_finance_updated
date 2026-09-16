@@ -457,6 +457,9 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('loans1','VehicleController@MotorVehicleLoan');
     Route::get('new_route','VehicleController@MotorVehicleLoan');
     Route::post('{vehicle}/sell','VehicleController@sellVehicle');
+    Route::post('{vehicle}/notice-presale','VehicleController@storeNoticePresale')->name('vehicles.notice-presale.store');
+    Route::get('recovery-data/{loanId}', 'VehicleController@recoveryData')->name('vehicles.recovery-data');
+    Route::post('recovery/{loanId}', 'VehicleController@storeRecovery')->name('vehicles.recovery.store');
     Route::post('vehicle-custody/{custody}/approve','VehicleController@approveCustody');
     Route::get('{vehicle}/report','VehicleController@report')->name('vehicles.report');
     Route::get('{vehicle}/report/kyc','VehicleController@reportKyc')->name('vehicles.report.kyc');

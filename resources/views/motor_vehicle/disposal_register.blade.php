@@ -22,29 +22,30 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="col-md-3 col-sm-6">
-                    <div class="small-box bg-red">
-                        <div class="inner">
-                            <h3>{{ $stats['defaulted'] }}</h3>
-                            <p>Defaulted</p>
-                            <p style="font-size: 14px; margin-bottom: 0;">K{{ number_format($stats['defaulted_amount'], 2) }}</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fa fa-exclamation-triangle"></i>
-                        </div>
-                    </div>
-                </div>
+                
 
                 <div class="col-md-3 col-sm-6">
                     <div class="small-box bg-yellow">
                         <div class="inner">
                             <h3>{{ $stats['disbursed_overdue'] }}</h3>
-                            <p>Disbursed (Overdue)</p>
+                            <p>Disbursed (Overdue/Defaulted)</p>
                             <p style="font-size: 14px; margin-bottom: 0;">K{{ number_format($stats['disbursed_overdue_amount'], 2) }}</p>
                         </div>
                         <div class="icon">
                             <i class="fa fa-exclamation-circle"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="small-box bg-red">
+                        <div class="inner">
+                            <h3>{{ $stats['closed_overdue'] }}</h3>
+                            <p>Recovered (Overdue/closed)</p>
+                            <p style="font-size: 14px; margin-bottom: 0;">K{{ number_format($stats['closed_overdue_amount'], 2) }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa fa-ban"></i>
                         </div>
                     </div>
                 </div>
@@ -55,7 +56,7 @@
 
     <div class="box box-primary">
         <div class="box-header with-border">
-            <h3 class="box-title">Loans List</h3>
+            <h5 class="box-title">Loans in more than 1 week and 1 month defualt</h5>
         </div>
         <div class="box-body">
 
@@ -134,22 +135,22 @@
                 <thead>
                     <tr>
                         <th>Image</th>
-                        <th>{{ trans_choice('general.branch',1) }}</th>
+                        <th>Branch</th>
                         <th>District</th>
                         <th>Province</th>
-                        <th>{{ trans_choice('general.client',1) }}</th>
+                        <th>Client</th>
                         <th>Loan Consultant</th>
                         <th>Received By</th>
                         <th>Inspector</th>
                         <th>Valuator</th>
                         <th>Custodian</th>
-                            <th>{{ trans_choice('general.proposed',1) }} {{ trans_choice('general.amount',1) }}</th>
-                            <th>Market Value</th>
-                            <th>1st Repayment</th>
+                        <th>Principal</th>
+                        <th>Market Value</th>
+                        <th>1st Repayment</th>
                         <th>Time Taken to Sale</th>
-                        <th>Status</th>
                         <th>Onboarding Progress</th>
-                        <th>{{ trans_choice('general.action',1) }}</th>
+                        <th>Recovery</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -258,14 +259,12 @@
                             <span class="badge bg-red">{{ $timeTakenLabel }}</span>
                         </td>
                         <td>
-                            @if($loan->defaulted == 'yes')
-                                <span class="label label-danger">Defaulted</span>
-                            @else
-                                <span class="label label-warning">{{ ucfirst($loan->status) }}</span>
-                            @endif
+                            <x-onboarding-progress :status="$status" :loan="$loan" />
                         </td>
                         <td>
-                            <x-onboarding-progress :status="$status" :loan="$loan" />
+                            <a href="javascript:void(0)" data-recovery-url="{{ url('vehicles/recovery-data/' . $loan->id) }}" class="recovery-btn">
+                                <i class="fa fa-bullseye"></i> Recovery Status
+                            </a>
                         </td>
                         <td>
                             <div class="btn-group">
@@ -276,7 +275,14 @@
                                     <li>
                                         <a href="{{ url('loan/'.$loan->id.'/show') }}"><i
                                                     class="fa fa-search"></i>
-                                            {{ trans_choice('general.detail',2) }}</a>
+                                            Loan Details</a>
+                                    </li>
+                                    <li>
+                                        @if(!empty($loan->vehicle))
+                                        <a href="{{ url('vehicles/'.$loan->vehicle->id) }}">
+                                            <i class="fa fa-eye"></i> Vehicle
+                                        </a>
+                                        @endif
                                     </li>
                                 </ul>
                             </div>
@@ -401,4 +407,189 @@
         </div>
     </div>
 </div>
+
+<!-- Recovery Bottom Sheet -->
+<div class="bottom-sheet-overlay" id="recoveryBottomSheetOverlay">
+    <div class="bottom-sheet" id="recoveryBottomSheet" style="max-height: 90vh;">
+        <button class="bottom-sheet-close" id="closeRecoveryBottomSheet">&times;</button>
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content" style="padding: 20px;">
+            <div style="border-bottom: 3px solid #d9534f; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-size: 22px; font-weight: 700; color: #333; margin: 0 0 5px 0;">
+                    <i class="fa fa-bullseye" style="color: #d9534f;"></i> Recovery
+                </h3>
+                <p style="margin: 0; color: #777; font-size: 14px;">
+                    <strong>Loan #<span id="recoveryLoanId"></span></strong>
+                    &mdash; <span id="recoveryVehicleInfo"></span>
+                </p>
+            </div>
+
+            <form id="recoveryForm" method="POST" action="" style="max-width: 100%; margin: 0;">
+                @csrf
+
+                <h4 style="margin: 0 0 15px 0; color: #d9534f; font-size: 16px; font-weight: 600;">Recovery Timeline</h4>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px;">
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Contractual Due Date</label>
+                        <input type="text" id="recoveryContractualDueDate" class="form-control" readonly style="background: #eee; border-radius: 4px;">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Date of Default</label>
+                        <input type="text" id="recoveryDateOfDefault" class="form-control" readonly style="background: #eee; border-radius: 4px;">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Days Overdue</label>
+                        <input type="text" id="recoveryDaysOverdue" class="form-control" readonly style="background: #eee; border-radius: 4px;">
+                    </div>
+
+                </div>
+
+                <h4 style="margin: 20px 0 15px 0; color: #333; font-size: 16px; font-weight: 600;">Recovery Details</h4>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px;">
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Storage Charges</label>
+                        <input type="number" step="0.01" name="storage_charges" id="recoveryStorageCharges" class="form-control" style="border-radius: 4px;" placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Valuation Costs</label>
+                        <input type="number" step="0.01" name="valuation_costs" id="recoveryValuationCosts" class="form-control" style="border-radius: 4px;" placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Repossession/Recovery Costs</label>
+                        <input type="number" step="0.01" name="repossession_costs" id="recoveryRepossessionCosts" class="form-control" style="border-radius: 4px;" placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Legal Costs</label>
+                        <input type="number" step="0.01" name="legal_costs" id="recoveryLegalCosts" class="form-control" style="border-radius: 4px;" placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Other Recovery Expenses</label>
+                        <input type="number" step="0.01" name="other_expenses" id="recoveryOtherExpenses" class="form-control" style="border-radius: 4px;" placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Applicable Penalties</label>
+                        <input type="number" step="0.01" name="penalties" id="recoveryPenalties" class="form-control" style="border-radius: 4px;" placeholder="0.00">
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Current Recovery Stage</label>
+                        <input type="text" name="current_recovery_stage" id="recoveryCurrentStage" class="form-control" style="border-radius: 4px;" placeholder="e.g. Initial Notice, Legal Action, Auction">
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Recovery Actions Taken</label>
+                        <textarea name="recovery_actions" id="recoveryActions" class="form-control" rows="3" style="border-radius: 4px;" placeholder="Describe recovery actions taken"></textarea>
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Communications with Client</label>
+                        <textarea name="communications" id="recoveryCommunications" class="form-control" rows="3" style="border-radius: 4px;" placeholder="Describe communications with client"></textarea>
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Promises/Arrangements Made</label>
+                        <textarea name="promises_arrangements" id="recoveryPromises" class="form-control" rows="3" style="border-radius: 4px;" placeholder="Describe any promises or arrangements"></textarea>
+                    </div>
+
+                </div>
+
+                <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="submit" class="btn btn-warning" style="border-radius: 4px; padding: 8px 24px;">
+                        <i class="fa fa-save"></i> Save Recovery
+                    </button>
+                    <button type="button" id="closeRecoveryBtn" class="btn btn-default" style="border-radius: 4px; padding: 8px 24px;">
+                        <i class="fa fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var recoveryOverlay = document.getElementById('recoveryBottomSheetOverlay');
+    var recoverySheet = document.getElementById('recoveryBottomSheet');
+    var closeRecoveryBtn = document.getElementById('closeRecoveryBottomSheet');
+    var closeRecoveryBtn2 = document.getElementById('closeRecoveryBtn');
+
+    function openRecoverySheet() {
+        recoveryOverlay.classList.add('active');
+        recoverySheet.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeRecoverySheet() {
+        recoveryOverlay.classList.remove('active');
+        recoverySheet.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.recovery-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var url = this.getAttribute('data-recovery-url');
+
+            $.get(url, function(data) {
+                document.getElementById('recoveryLoanId').textContent = data.loan_id;
+                document.getElementById('recoveryVehicleInfo').textContent = data.vehicle_info || '';
+                document.getElementById('recoveryContractualDueDate').value = data.contractual_due_date || '';
+                document.getElementById('recoveryDateOfDefault').value = data.date_of_default || '';
+                document.getElementById('recoveryDaysOverdue').value = data.days_overdue || 0;
+                document.getElementById('recoveryStorageCharges').value = data.storage_charges || '';
+                document.getElementById('recoveryValuationCosts').value = data.valuation_costs || '';
+                document.getElementById('recoveryRepossessionCosts').value = data.recovery_data ? data.recovery_data.repossession_costs : '';
+                document.getElementById('recoveryLegalCosts').value = data.recovery_data ? data.recovery_data.legal_costs : '';
+                document.getElementById('recoveryOtherExpenses').value = data.recovery_data ? data.recovery_data.other_expenses : '';
+                document.getElementById('recoveryPenalties').value = data.recovery_data ? data.recovery_data.penalties : '';
+                document.getElementById('recoveryCurrentStage').value = data.recovery_data ? data.recovery_data.current_recovery_stage : '';
+                document.getElementById('recoveryActions').value = data.recovery_data ? data.recovery_data.recovery_actions : '';
+                document.getElementById('recoveryCommunications').value = data.recovery_data ? data.recovery_data.communications : '';
+                document.getElementById('recoveryPromises').value = data.recovery_data ? data.recovery_data.promises_arrangements : '';
+
+                document.getElementById('recoveryForm').action = '/vehicles/recovery/' + data.loan_id;
+                openRecoverySheet();
+            }).fail(function() {
+                alert('Failed to load recovery data');
+            });
+        });
+    });
+
+    if (closeRecoveryBtn) closeRecoveryBtn.addEventListener('click', closeRecoverySheet);
+    if (closeRecoveryBtn2) closeRecoveryBtn2.addEventListener('click', closeRecoverySheet);
+    if (recoveryOverlay) recoveryOverlay.addEventListener('click', function(e) {
+        if (e.target === recoveryOverlay) closeRecoverySheet();
+    });
+
+    document.getElementById('recoveryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var form = this;
+        $.ajax({
+            url: form.action,
+            type: 'POST',
+            data: $(form).serialize(),
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            success: function(response) {
+                alert(response.message || 'Recovery data saved successfully');
+                closeRecoverySheet();
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Error: ' + (xhr.responseJSON?.message || 'Failed to save recovery data'));
+            }
+        });
+    });
+})();
+</script>
 @endsection

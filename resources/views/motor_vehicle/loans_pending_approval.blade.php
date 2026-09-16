@@ -211,7 +211,7 @@
                                 aria-expanded="false"><i
                                 class="fa fa-navicon"></i></button>
                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                            @if(Sentinel::hasAccess('loans.view'))
+                            @if(Sentinel::check() && Sentinel::hasAccess('loans.view'))
                                 <li>
                                     <a href="{{ url('loan/'.$key->id.'/show') }}"><i
                                                 class="fa fa-search"></i>
@@ -219,14 +219,14 @@
                                 </li>
                             @endif
                             @if($key->status=="pending")
-                                @if(Sentinel::hasAccess('loans.update'))
+                                @if(Sentinel::check() && Sentinel::hasAccess('loans.update'))
                                     <li>
                                         <a href="{{ url('loan/'.$key->id.'/edit') }}"><i
                                                     class="fa fa-edit"></i>
                                             {{ trans('general.edit') }}</a>
                                     </li>
                                 @endif
-                                @if(Sentinel::hasAccess('loans.delete'))
+                                @if(Sentinel::check() && Sentinel::hasAccess('loans.delete'))
                                     <li>
                                         <a href="{{ url('loan/'.$key->id.'/delete') }}"
                                            class="delete"><i

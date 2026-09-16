@@ -2047,6 +2047,13 @@ class RiskController extends Controller
             
             // Add deposit amount to total paid
             $totalPaid += $depositAmount;
+            
+            // Paid in current month
+            $paidCurrentMonth = $cost->transactions->whereBetween('transaction_date', [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+            ])->sum('amount');
+            
             $balance = $cost->amount - $totalPaid;
             
             $rows[] = [
@@ -2054,6 +2061,7 @@ class RiskController extends Controller
                 'office' => $cost->office,
                 'amount' => $cost->amount,
                 'total_paid' => $totalPaid,
+                'paid_current_month' => $paidCurrentMonth,
                 'balance' => $balance,
                 'description' => $cost->description,
                 'created_at' => $cost->created_at,

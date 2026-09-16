@@ -37,7 +37,8 @@ class VehicleCustody extends Model
         'accessories_received',
         'fuel_level',
         'intake_photos',
-        'signed_intake_form_path'
+        'signed_intake_form_path',
+        'storage_charges',
     ];
 
     protected $casts = [

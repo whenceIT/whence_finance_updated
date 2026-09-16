@@ -98,6 +98,7 @@ public function edit($id)
             'valuations',
             'ownershipRecords',
             'custody',
+            'noticePresale',
         ])
             ->findOrFail($id);
 
@@ -1183,6 +1184,9 @@ public function loanDetailSheet(Request $request, $loanId)
     private function applyVehicleRbacFilter($query)
     {
         $user = Sentinel::getUser();
+        if (!$user) {
+            return $query;
+        }
         $userRole = UserRole::where('user_id', $user->id)->first();
 
         if (!$userRole || $userRole->role_id == '1') {
@@ -1225,6 +1229,9 @@ public function loanDetailSheet(Request $request, $loanId)
     private function getAllowedOffices()
     {
         $user = Sentinel::getUser();
+        if (!$user) {
+            return collect();
+        }
         $userRole = UserRole::where('user_id', $user->id)->first();
 
         if (!$userRole || $userRole->role_id == '1') {
@@ -1254,6 +1261,9 @@ public function loanDetailSheet(Request $request, $loanId)
     private function applyLoanRbacFilter($query)
     {
         $user = Sentinel::getUser();
+        if (!$user) {
+            return $query;
+        }
         $userRole = UserRole::where('user_id', $user->id)->first();
 
         if (!$userRole || $userRole->role_id == '1') {
@@ -1552,6 +1562,7 @@ return view(
                 'vehicle.inspections',
                 'vehicle.valuations',
                 'vehicle.custody.receiver',
+                'vehicle.recoveries',
                 'vehicle.photos',
                 'vehicle.ownershipRecords',
                 'complianceScreenings',
@@ -1596,6 +1607,17 @@ return view(
             'disbursed_overdue_amount' => $loans->where('defaulted', '!=', 'yes')->sum('principal'),
         ];
 
+        // Closed overdue loans: loan_product_id=0, status=closed, first_repayment_date > created_at
+        // Note: "disposal_register" date not in DB; using created_at as proxy
+        $closedOverdueLoans = Loan::where('loan_product_id', 0)
+            ->where('status', 'closed')
+            ->whereNotNull('first_repayment_date')
+            ->whereRaw('first_repayment_date > created_at')
+            ->get();
+
+        $stats['closed_overdue'] = $closedOverdueLoans->count();
+        $stats['closed_overdue_amount'] = $closedOverdueLoans->sum('principal');
+
         $statuses = [];
         foreach ($loans as $loan) {
             $kycCompleted = false;
@@ -1635,6 +1657,122 @@ return view(
         $staff = User::orderBy('first_name')->get();
 
         return view('motor_vehicle.disposal_register', compact('loans', 'statuses', 'offices', 'districts', 'provinces', 'staff', 'stats'));
+    }
+
+    public function storeNoticePresale(Request $request, $vehicleId)
+    {
+        $vehicle = Vehicle::findOrFail($vehicleId);
+
+        $request->validate([
+            'notice_generated_date' => 'nullable|date',
+            'notice_served_date' => 'nullable|date',
+            'service_method' => 'nullable|string|max:255',
+            'officer_issuing' => 'nullable|string|max:255',
+            'deadline_to_client' => 'nullable|date',
+            'client_settled' => 'nullable|boolean',
+            'client_presented_buyer' => 'nullable|boolean',
+            'buyer_details' => 'nullable|string',
+            'outcome_after_expiry' => 'nullable|string',
+        ]);
+
+        VehicleNoticePresale::updateOrCreate(
+            ['vehicle_id' => $vehicleId],
+            [
+                'notice_generated_date' => $request->notice_generated_date,
+                'notice_served_date' => $request->notice_served_date,
+                'service_method' => $request->service_method ?? 'SMS',
+                'officer_issuing' => $request->officer_issuing ?? 'System Generated',
+                'deadline_to_client' => $request->deadline_to_client,
+                'client_settled' => $request->boolean('client_settled'),
+                'client_presented_buyer' => $request->boolean('client_presented_buyer'),
+                'buyer_details' => $request->buyer_details,
+                'outcome_after_expiry' => $request->outcome_after_expiry,
+                'created_by' => Sentinel::getUser() ? Sentinel::getUser()->id : null,
+            ]
+        );
+
+        return redirect()->to("vehicles/$vehicleId")
+            ->with('success', 'Notice of Intention to Sell saved successfully.');
+    }
+
+    public function recoveryData($loanId)
+    {
+        $loan = Loan::with(['vehicle.custody', 'vehicle.recoveries', 'vehicle.valuations', 'vehicle.custody.receiver'])->findOrFail($loanId);
+
+        $recovery = $loan->vehicle->recoveries()->first();
+        $custody = $loan->vehicle->custody;
+        $latestValuation = $loan->vehicle->valuations()->latest()->first();
+
+        $firstRepaymentDate = $loan->first_repayment_date ? \Carbon\Carbon::parse($loan->first_repayment_date) : null;
+        $dateOfDefault = $firstRepaymentDate ? $firstRepaymentDate->copy()->addMonth() : null;
+        $daysOverdue = $dateOfDefault && now()->gt($dateOfDefault) ? now()->diffInDays($dateOfDefault) : 0;
+
+        return response()->json([
+            'loan_id' => $loanId,
+            'vehicle_id' => $loan->vehicle->id,
+            'vehicle_info' => $loan->vehicle->make . ' ' . $loan->vehicle->model . ' (' . $loan->vehicle->registration_number . ')',
+            'contractual_due_date' => $firstRepaymentDate ? $firstRepaymentDate->format('Y-m-d') : null,
+            'date_of_default' => $dateOfDefault ? $dateOfDefault->format('Y-m-d') : null,
+            'days_overdue' => $daysOverdue,
+            'recovery_data' => $recovery ? [
+                'id' => $recovery->id,
+                'recovery_actions' => $recovery->recovery_actions,
+                'communications' => $recovery->communications,
+                'promises_arrangements' => $recovery->promises_arrangements,
+                'repossession_costs' => $recovery->repossession_costs,
+                'legal_costs' => $recovery->legal_costs,
+                'other_expenses' => $recovery->other_expenses,
+                'penalties' => $recovery->penalties,
+                'current_recovery_stage' => $recovery->current_recovery_stage,
+            ] : null,
+            'storage_charges' => $custody ? $custody->storage_charges : null,
+            'valuation_costs' => $latestValuation ? $latestValuation->valuation_cost : null,
+        ]);
+    }
+
+    public function storeRecovery(Request $request, $loanId)
+    {
+        $loan = Loan::findOrFail($loanId);
+
+        $request->validate([
+            'recovery_actions' => 'nullable|string',
+            'communications' => 'nullable|string',
+            'promises_arrangements' => 'nullable|string',
+            'repossession_costs' => 'nullable|numeric',
+            'valuation_costs' => 'nullable|numeric',
+            'legal_costs' => 'nullable|numeric',
+            'other_expenses' => 'nullable|numeric',
+            'penalties' => 'nullable|numeric',
+            'current_recovery_stage' => 'nullable|string',
+            'storage_charges' => 'nullable|numeric',
+        ]);
+
+        VehicleRecovery::updateOrCreate(
+            ['loan_id' => $loanId],
+            [
+                'vehicle_id' => $loan->vehicle ? $loan->vehicle->id : null,
+                'recovery_actions' => $request->recovery_actions,
+                'communications' => $request->communications,
+                'promises_arrangements' => $request->promises_arrangements,
+                'repossession_costs' => $request->repossession_costs ?? 0,
+                'valuation_costs' => $request->valuation_costs ?? 0,
+                'legal_costs' => $request->legal_costs ?? 0,
+                'other_expenses' => $request->other_expenses ?? 0,
+                'penalties' => $request->penalties ?? 0,
+                'current_recovery_stage' => $request->current_recovery_stage,
+                'created_by' => Sentinel::getUser() ? Sentinel::getUser()->id : null,
+            ]
+        );
+
+        // Update storage charges in VehicleCustody (latest record)
+        if ($request->has('storage_charges') && $loan->vehicle) {
+            $custody = $loan->vehicle->custody()->latest()->first();
+            if ($custody) {
+                $custody->update(['storage_charges' => $request->storage_charges]);
+            }
+        }
+
+        return response()->json(['success' => true, 'message' => 'Recovery data saved successfully.']);
     }
 
 

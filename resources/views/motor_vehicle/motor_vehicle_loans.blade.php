@@ -9,7 +9,7 @@
         <div class="box-header with-border">
             <h3 class="box-title">Motor Vehicle Loans Summary</h3>
             <div class="box-tools pull-right">
-                @if(Sentinel::hasAccess('loans.create'))
+                @if(Sentinel::check() && Sentinel::hasAccess('loans.create'))
                     <a href="{{ url('loan/create') }}" class="btn btn-info btn-sm">
                         {{ trans_choice('general.add',1) }} {{ trans_choice('general.loan',1) }}
                     </a>
