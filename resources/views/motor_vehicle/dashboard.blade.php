@@ -6,7 +6,7 @@
 <section class="content-header">
 
     <h1>
-        Motor Vehicle Loan Portfolio Dashboard erer
+        Motor Vehicle Loan Portfolio Dashboard
 
         <a href="{{ url('/vehicles/analytics_dashboard') }}" 
            class="btn btn-primary pull-right">

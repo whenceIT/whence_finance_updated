@@ -271,12 +271,10 @@ class HomeController extends Controller
                 if (Sentinel::authenticate($credentials, $remember)) {
                     //GeneralHelper::audit_trail("Logged in to system");
                     
-                    
                     // Log login audit
                     $this->auditorService->logLogin(Sentinel::getUser()->id, $request);
 
-                 //   if (Sentinel::getUser()->blocked == 1 || Sentinel::getUser()->status == 'Inactive') {
-                          if (Sentinel::getUser()->blocked == 1 ){
+                    if (Sentinel::getUser()->blocked == 1 ){
                         if (Sentinel::getUser()->blocked == 1) {
                             Flash::warning(trans('general.user_blocked'));
                         }else{
@@ -304,9 +302,6 @@ class HomeController extends Controller
                     }
                     if ($role->id == 3) {
                         $answer = AppraisalAnswer::where('user_id', Sentinel::getUser()->id)->where('form_id', 1)->where('question_id', 3)->where('quater_date', '>=', '10-2025')->first();
-
-
-
                     }
 
                     session()->flash('reset_training_advisor', true);
