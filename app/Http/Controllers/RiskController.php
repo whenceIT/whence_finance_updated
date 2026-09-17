@@ -12,6 +12,7 @@ use App\Models\Deposit;
 use App\Models\BankDepositLog;
 use App\Models\DepositMonthExemption;
 use App\Models\DebtBalances;
+use App\Models\FundMovements;
 
 
 class RiskController extends Controller
@@ -2035,18 +2036,31 @@ class RiskController extends Controller
         $costs = \App\Models\SetupDebtCost::with(['office', 'transactions'])->get();
         
         $rows = [];
+
         foreach ($costs as $cost) {
             $totalPaid = $cost->transactions->sum('amount');
-            
-            // query from deposits where deposit_type = 6 and office = cost->office->id for 13/07/2026
+
+            // Get Float transfers for this office
+            $floatAmount = \App\Models\FundMovements::where('movement_type', 'transfer')
+                ->where('office_id', $cost->office_id)
+                ->where('title', 'LIKE', '%Float%')
+                ->where('description', 'LIKE', '%Float%')
+                ->sum('amount');
+
+            // Get Savings deposits for 13/07/2026
             $targetDate = '2026-07-13';
+
             $depositAmount = \App\Models\BankDepositLog::where('deposit_type', 6)
                 ->where('office_id', $cost->office_id)
                 ->whereDate('created_date', $targetDate)
                 ->sum('amount');
-            
+
             // Add deposit amount to total paid
             $totalPaid += $depositAmount;
+
+            // Add Float transfer amount to total paid
+            $totalPaid += $floatAmount;
+
             $balance = $cost->amount - $totalPaid;
             
             $rows[] = [
@@ -2059,6 +2073,7 @@ class RiskController extends Controller
                 'created_at' => $cost->created_at,
                 'transactions' => $cost->transactions,
                 'deposit_amount' => $depositAmount,
+                'float_amount' => $floatAmount,
             ];
         }
         
@@ -2156,24 +2171,31 @@ class RiskController extends Controller
             'data' => $transaction,
         ]);
     }
-    
+
+
     public function getSetupDebtTransactions(Request $request, $id)
     {
         $costId = $id;
+
         $transactions = \App\Models\SetupDebtTransaction::with('creator')
             ->where('setup_debt_cost_id', $costId)
             ->orderBy('transaction_date', 'desc')
             ->get();
-        
-        // Get deposit from 13/07/2026 for the cost's office
+
+        // Get deposit and Float transfers for the cost's office
         if ($costId) {
             $cost = \App\Models\SetupDebtCost::findOrFail($costId);
+
+            /*
+            * Savings Deposit from 13/07/2026
+            */
             $targetDate = '2026-07-13';
+
             $depositAmount = \App\Models\BankDepositLog::where('deposit_type', 6)
                 ->where('office_id', $cost->office_id)
                 ->whereDate('created_date', $targetDate)
                 ->sum('amount');
-            
+
             if ($depositAmount > 0) {
                 // Create a fake transaction for the deposit
                 $depositTransaction = (object) [
@@ -2183,12 +2205,36 @@ class RiskController extends Controller
                     'notes' => 'Savings Deposit',
                     'creator' => null,
                 ];
+
                 $transactions->push($depositTransaction);
             }
+
+            /*
+            * Float Transfers
+            */
+            $floatAmount = \App\Models\FundMovements::where('movement_type', 'transfer')
+                ->where('office_id', $cost->office_id)
+                ->where('title', 'LIKE', '%Float%')
+                ->where('description', 'LIKE', '%Float%')
+                ->sum('amount');
+
+            if ($floatAmount > 0) {
+                // Create a fake transaction for the Float transfer
+                $floatTransaction = (object) [
+                    'id' => 'float_' . $costId,
+                    'amount' => $floatAmount,
+                    'transaction_date' => null,
+                    'notes' => 'Float Transfer',
+                    'creator' => null,
+                ];
+
+                $transactions->push($floatTransaction);
+            }
         }
-        
+
+        // Includes Setup Debt transactions + Savings Deposit + Float Transfer
         $totalPaid = $transactions->sum('amount');
-        
+
         return response()->json([
             'transactions' => $transactions,
             'total_paid' => $totalPaid,
