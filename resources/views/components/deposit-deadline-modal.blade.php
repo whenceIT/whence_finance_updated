@@ -135,63 +135,78 @@
 
 <script>
     $(document).ready(function() {
-        const deadlineData = @json($deadline ?? (object)[]);
-        const deadlineDate = deadlineData.countdown_date ? new Date(deadlineData.countdown_date).getTime() : null;
-        const deadlineName = deadlineData.name || 'Building Deposit';
-        const monthNames = ["January", "February", "March", "April", "May", "June", 
-                           "July", "August", "September", "October", "November", "December"];
-        
-        if (deadlineDate) {
-            const deadlineMonth = monthNames[new Date(deadlineData.countdown_date).getMonth()];
+        const deadlines = @json($deadlines ?? []);
+
+        if (!deadlines || deadlines.length === 0) {
+            $('#depositDeadlineWidget').hide();
+            return;
+        }
+
+        const now = new Date().getTime();
+        let upcoming = deadlines
+            .filter(function(d) { return new Date(d.countdown_date).getTime() >= now; })
+            .sort(function(a, b) { return new Date(a.countdown_date).getTime() - new Date(b.countdown_date).getTime(); });
+
+        if (upcoming.length === 0) {
+            $('#depositDeadlineWidget').hide();
+            return;
+        }
+
+        let currentIndex = 0;
+
+        function showDeadline(index) {
+            if (index >= upcoming.length) {
+                $('#depositDeadlineWidget').fadeOut(300);
+                return;
+            }
+
+            var deadline = upcoming[index];
+            var deadlineDate = new Date(deadline.countdown_date).getTime();
+            var deadlineName = deadline.name || 'Building Deposit';
+            var monthNames = ["January", "February", "March", "April", "May", "June", 
+                               "July", "August", "September", "October", "November", "December"];
+
+            var deadlineMonth = monthNames[new Date(deadline.countdown_date).getMonth()];
             $('#current-month').text(deadlineMonth);
+            $('#deadline-name').text(deadlineName);
+            $('#deadline-message').text('Complete ' + deadlineName + ', and prevent system locking.');
+            $('#days').text('-');
+            $('#hours').text('-');
+            $('#minutes').text('-');
+            $('.deadline-widget').removeClass('urgent');
+
+            $('#depositDeadlineWidget').fadeIn(300);
+
+            var updateCountdown = function() {
+                var now = new Date().getTime();
+                var distance = deadlineDate - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    currentIndex++;
+                    showDeadline(currentIndex);
+                    return;
+                }
+
+                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+                $('#days').text(days);
+                $('#hours').text(hours);
+                $('#minutes').text(minutes);
+
+                if (days === 0) {
+                    $('.deadline-widget').addClass('urgent');
+                }
+            };
+
+            var countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown();
         }
-        
-        $('#deadline-name').text(deadlineName);
-        
-        const updateCountdown = function() {
-            if (!deadlineDate) {
-                clearInterval(countdownInterval);
-                return;
-            }
-            
-            const now = new Date().getTime();
-            const distance = deadlineDate - now;
-            
-            if (distance < 0) {
-                clearInterval(countdownInterval);
-                $('#days').text('0');
-                $('#hours').text('0');
-                $('#minutes').text('0');
-                $('#deadline-message').html('<strong style="color: #ffcccc;">Deposit deadline has passed.</strong>');
-                $('#depositDeadlineWidget').hide();
-                return;
-            }
-            
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            
-            $('#days').text(days);
-            $('#hours').text(hours);
-            $('#minutes').text(minutes);
-            
-            if (days === 0) {
-                $('.deadline-widget').addClass('urgent');
-            }
-        };
-        
-        const countdownInterval = setInterval(updateCountdown, 1000);
-        updateCountdown();
-        
-        if (deadlineDate) {
-            const now = new Date().getTime();
-            const daysUntilDeadline = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
-            
-            if (daysUntilDeadline <= 30 && daysUntilDeadline >= 0) {
-                $('#depositDeadlineWidget').fadeIn(300);
-            }
-        }
-        
+
+        showDeadline(0);
+
         $('#closeWidget').on('click', function() {
             $('#depositDeadlineWidget').fadeOut(300);
         });

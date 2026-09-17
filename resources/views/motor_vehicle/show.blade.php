@@ -29,6 +29,15 @@
             <i class="fa fa-print"></i>
             Executive Report
         </a>
+
+        @if($vehicle->loan && $vehicle->loan->first_repayment_date && \Carbon\Carbon::parse($vehicle->loan->first_repayment_date)->lt(\Carbon\Carbon::now()->subDays(7)))
+        <button class="btn btn-warning pull-right"
+                id="openNoticePresaleSheet"
+                style="margin-right: 10px;">
+            <i class="fa fa-file-text"></i>
+            Notice of Intention to Sell
+        </button>
+        @endif
     </div>
 
     <div class="box-body">
@@ -907,6 +916,100 @@
     </div>
 </div>
 
+<!-- Notice of Intention to Sell Bottom Sheet -->
+<div class="bottom-sheet-overlay" id="noticePresaleBottomSheetOverlay">
+    <div class="bottom-sheet" id="noticePresaleBottomSheet" style="max-height: 90vh;">
+        <button class="bottom-sheet-close" id="closeNoticePresaleBottomSheet">&times;</button>
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content" style="padding: 20px;">
+            <div style="border-bottom: 3px solid #f0ad4e; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-size: 22px; font-weight: 700; color: #333; margin: 0 0 5px 0;">
+                    <i class="fa fa-file-text" style="color: #f0ad4e;"></i> Notice of Intention to Sell
+                </h3>
+                <p style="margin: 0; color: #777; font-size: 14px;">
+                    <strong>{{ $vehicle->make }} {{ $vehicle->model }}</strong> ({{ $vehicle->registration_number }})
+                    &mdash; Vehicle ID: {{ $vehicle->id }}
+                </p>
+            </div>
+
+            <form id="noticePresaleForm" method="POST" action="{{ url('vehicles/'.$vehicle->id.'/notice-presale') }}" style="max-width: 100%; margin: 0;">
+                @csrf
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px;">
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Date Notice Generated <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="The date the Notice of Intention to Sell was generated and recorded in the system." style="cursor: help;"></i></label>
+                        <input type="date" name="notice_generated_date" class="form-control" style="border-radius: 4px;"
+                               value="{{ optional($vehicle->noticePresale)->notice_generated_date ? $vehicle->noticePresale->notice_generated_date->format('Y-m-d') : '' }}">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Date Notice Served <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="The date the notice was formally delivered/served to the client." style="cursor: help;"></i></label>
+                        <input type="date" name="notice_served_date" class="form-control" style="border-radius: 4px;"
+                               value="{{ optional($vehicle->noticePresale)->notice_served_date ? $vehicle->noticePresale->notice_served_date->format('Y-m-d') : '' }}">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Method of Service <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="How the notice was delivered to the client (e.g. SMS, Email, Registered Post, Courier). Default is SMS." style="cursor: help;"></i></label>
+                        <input type="text" name="service_method" class="form-control" style="border-radius: 4px;" placeholder="Default: SMS"
+                               value="{{ optional($vehicle->noticePresale)->service_method ?? 'SMS' }}">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Officer Issuing <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="The officer responsible for issuing this notice. Defaults to System Generated if not assigned." style="cursor: help;"></i></label>
+                        <input type="text" name="officer_issuing" class="form-control" style="border-radius: 4px;" placeholder="Default: System Generated"
+                               value="{{ optional($vehicle->noticePresale)->officer_issuing ?? 'System Generated' }}">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Deadline to Client <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="The final date by which the client must respond, settle, or take action after receiving the notice." style="cursor: help;"></i></label>
+                        <input type="date" name="deadline_to_client" class="form-control" style="border-radius: 4px;"
+                               value="{{ optional($vehicle->noticePresale)->deadline_to_client ? $vehicle->noticePresale->deadline_to_client->format('Y-m-d') : '' }}">
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Client Settled? <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Whether the client has fully settled the outstanding balance after receiving the notice." style="cursor: help;"></i></label>
+                        <select name="client_settled" class="form-control" style="border-radius: 4px;">
+                            <option value="0" {{ optional($vehicle->noticePresale)->client_settled == false ? 'selected' : '' }}>No</option>
+                            <option value="1" {{ optional($vehicle->noticePresale)->client_settled == true ? 'selected' : '' }}>Yes</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Client Presented Buyer? <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Whether the client has presented a prospective buyer for the vehicle after the notice was issued." style="cursor: help;"></i></label>
+                        <select name="client_presented_buyer" class="form-control" style="border-radius: 4px;">
+                            <option value="0" {{ optional($vehicle->noticePresale)->client_presented_buyer == false ? 'selected' : '' }}>No</option>
+                            <option value="1" {{ optional($vehicle->noticePresale)->client_presented_buyer == true ? 'selected' : '' }}>Yes</option>
+                        </select>
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Buyer Details (Name & Contact) <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Names and contact information of the prospective buyer(s) presented by the client." style="cursor: help;"></i></label>
+                        <textarea name="buyer_details" class="form-control" rows="3" style="border-radius: 4px;"
+                                  placeholder="Enter client names and contact details">{{ optional($vehicle->noticePresale)->buyer_details }}</textarea>
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Outcome After Expiry <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="What action was taken or resulted after the notice deadline expired (e.g. vehicle listed for sale, disposed, settled)." style="cursor: help;"></i></label>
+                        <textarea name="outcome_after_expiry" class="form-control" rows="3" style="border-radius: 4px;"
+                                  placeholder="Enter outcome after notice expiry">{{ optional($vehicle->noticePresale)->outcome_after_expiry }}</textarea>
+                    </div>
+
+                </div>
+
+                <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="submit" class="btn btn-warning" style="border-radius: 4px; padding: 8px 24px;">
+                        <i class="fa fa-save"></i> Save Notice
+                    </button>
+                    <button type="button" id="closeNoticePresaleBtn" class="btn btn-default" style="border-radius: 4px; padding: 8px 24px;">
+                        <i class="fa fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 (function() {
     const overlay = document.getElementById('uploadPhotoBottomSheetOverlay');
@@ -931,6 +1034,33 @@
     closeBtn.addEventListener('click', closeSheet);
     cancelBtn.addEventListener('click', closeSheet);
     overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeSheet();
+    });
+})();
+
+(function() {
+    const overlay = document.getElementById('noticePresaleBottomSheetOverlay');
+    const sheet = document.getElementById('noticePresaleBottomSheet');
+    const openBtn = document.getElementById('openNoticePresaleSheet');
+    const closeBtn = document.getElementById('closeNoticePresaleBottomSheet');
+    const cancelBtn = document.getElementById('closeNoticePresaleBtn');
+
+    function openSheet() {
+        overlay.classList.add('active');
+        sheet.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSheet() {
+        overlay.classList.remove('active');
+        sheet.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openSheet);
+    if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeSheet);
+    if (overlay) overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeSheet();
     });
 })();
@@ -1045,4 +1175,12 @@
 })();
 </script>
 
+@endsection
+
+@section('footer-scripts')
+<script>
+$(function() {
+    $("[data-toggle='tooltip']").tooltip();
+});
+</script>
 @endsection

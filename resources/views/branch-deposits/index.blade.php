@@ -9,7 +9,6 @@
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
-    
 @endphp
 <x-kilo-alert/>
 <div class="row">

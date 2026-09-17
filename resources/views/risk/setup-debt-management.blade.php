@@ -73,6 +73,7 @@
                                 <th>Description</th>
                                 <th style="width:120px;">Debt Amount</th>
                                 <th style="width:120px;">Paid</th>
+                                <th style="width:120px;">Paid (Current Month)</th>
                                 <th style="width:120px;">Balance</th>
                                 <th style="width:100px;">Created</th>
                                 <th style="width:150px;">Actions</th>
@@ -95,6 +96,7 @@
                                 <td>{{ $row['description'] ?: '—' }}</td>
                                 <td style="font-weight:700;">{{ number_format($row['amount'], 2) }}</td>
                                 <td style="color:#27ae60;font-weight:600;">{{ number_format($row['total_paid'], 2) }}</td>
+                                <td style="color:#2980b9;font-weight:600;">{{ number_format($row['paid_current_month'], 2) }}</td>
                                 <td style="font-weight:700;color:{{ $row['balance'] > 0 ? '#e74c3c' : '#27ae60' }};">
                                     {{ number_format($row['balance'], 2) }}
                                     <div class="progress" style="height:4px;margin-top:4px;margin-bottom:0;">
@@ -124,7 +126,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="8" class="text-center" style="padding:24px;color:#888;">No setup debt costs recorded yet.</td></tr>
+                            <tr><td colspan="9" class="text-center" style="padding:24px;color:#888;">No setup debt costs recorded yet.</td></tr>
                         @endforelse
                         </tbody>
                     </table>
@@ -273,7 +275,7 @@
 <script>
 $(document).ready(function() {
     $('#costs-table').DataTable({
-        order: [[5, 'desc']], // Sort by balance descending
+        order: [[6, 'desc']], // Sort by balance descending
         pageLength: 25,
     });
 });

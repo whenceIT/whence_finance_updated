@@ -98,6 +98,16 @@ class Vehicle extends Model
         return $this->hasMany(VehicleOwnershipRecord::class);
     }
 
+    public function noticePresale()
+    {
+        return $this->hasOne(VehicleNoticePresale::class);
+    }
+
+    public function recoveries()
+    {
+        return $this->hasMany(VehicleRecovery::class);
+    }
+
     public function movements()
     {
         return $this->hasMany(VehicleMovement::class);

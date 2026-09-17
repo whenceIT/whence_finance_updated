@@ -608,8 +608,11 @@ public function save_wallet(Request $request)
     {
 
         
-        //reusable redirector helper
-      //  RedirectHelper::redirecttoDashboard();
+        //redirects other managers such as Risk, Recoveries, and Policy Managers to their dashboards
+        RedirectHelper::redirecttoDashboard();
+        
+        
+        //takes BMs, DMs, PMs to the dashboards
         $branch_data = [];
         $pendingApproval = false;
         $numbers_status = null;

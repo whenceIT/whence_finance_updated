@@ -457,6 +457,9 @@ Route::group(['prefix' => 'vehicles'], function () {
     Route::get('loans1','VehicleController@MotorVehicleLoan');
     Route::get('new_route','VehicleController@MotorVehicleLoan');
     Route::post('{vehicle}/sell','VehicleController@sellVehicle');
+    Route::post('{vehicle}/notice-presale','VehicleController@storeNoticePresale')->name('vehicles.notice-presale.store');
+    Route::get('recovery-data/{loanId}', 'VehicleController@recoveryData')->name('vehicles.recovery-data');
+    Route::post('recovery/{loanId}', 'VehicleController@storeRecovery')->name('vehicles.recovery.store');
     Route::post('vehicle-custody/{custody}/approve','VehicleController@approveCustody');
     Route::get('{vehicle}/report','VehicleController@report')->name('vehicles.report');
     Route::get('{vehicle}/report/kyc','VehicleController@reportKyc')->name('vehicles.report.kyc');
@@ -608,7 +611,8 @@ Route::group(['prefix' => 'user'], function () {
 Route::get('branch-deposits/standalone','BranchDepositController@standalonePage')->name('branch-deposits.standalone');
       Route::get('branch-deposits/overall-history','BranchDepositController@getOverallHistory')->name('branch-deposits.overall-history');
       Route::get('deposits/deadline', [BranchDepositController::class, 'getDeadline'])->name('deposits.deadline');
-      Route::post('deposits/deadline', [BranchDepositController::class, 'updateDeadline'])->name('deposits.deadline.update');
+      Route::post('deposits/deadline', [BranchDepositController::class, 'storeDeadline'])->name('deposits.deadline.store');
+      Route::delete('deposits/deadline/{id}', [BranchDepositController::class, 'destroyDeadline'])->name('deposits.deadline.destroy');
       Route::get('deposit_logs','UserController@deposit_logs');
 });
 //route for offices
