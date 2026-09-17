@@ -618,8 +618,11 @@ public function save_wallet(Request $request)
         $province_data = [];
         $start = null;
         $end = null;
+        $first_name = null;
+        $last_name = null;
         $role = Sentinel::getUser()->roles->first();
-
+        
+    $defaultedLoans = [];
         $is_user_active = Sentinel::getUser();
         $is_user_active->status = 'active';
         $is_user_active->save();
@@ -750,6 +753,8 @@ public function save_wallet(Request $request)
         if ($role->role_id == '3') {
 
             $user = Sentinel::getUser();
+            $first_name = $user->first_name;
+            $last_name = $user->last_name;
             $loan_officer_id = $user->id;
             $has_carry_over = CycleDates::where('loan_officer_id', $loan_officer_id)->first();
 
@@ -919,6 +924,32 @@ public function save_wallet(Request $request)
                     'pdua' => 0,
                 ];
             }
+
+
+
+
+    try {
+      
+
+        $apiUrl = 'https://lms2backend.whencefinancesystem.com';
+
+        $response = Http::timeout(30)
+            ->get($apiUrl . '/defaulted-loans', [
+                'user_id' =>  $loan_officer_id 
+            ]);
+
+        if ($response->successful()) {
+            $data1 = $response->json();
+
+            $defaultedLoans = $data1['loans'] ?? [];
+        }
+
+    } catch (\Exception $e) {
+        \Log::error('Failed to load defaulted loans', [
+            'user_id' => auth()->id(),
+            'error' => $e->getMessage()
+        ]);
+    }
 
 
         }
@@ -1133,7 +1164,7 @@ $cycle_date = $cycleDate->format('Y-m-d');
         }
 
         if ($role->role_id != '2') {
-            return view('dashboard', compact('end', 'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'pendingApproval', 'true_date', 'numbers_status', 'branch_data', 'province_data', 'loanCount', 'clientCount', 'collateralCount'));
+            return view('dashboard', compact('end','first_name','last_name' ,'myLoans', 'role', 'branchUsers', 'userBranch', 'myTransactions', 'myOpenLoans', 'newBranchLoans', 'branchTransactions', 'userProvince', 'province_loans', 'province_transactions', 'province_branches', 'allLoans', 'allTransactions', 'provinces', 'cycle_end', 'userId', 'data', 'start', 'end', 'pendingApproval', 'true_date', 'numbers_status', 'branch_data', 'province_data', 'loanCount', 'clientCount', 'collateralCount','defaultedLoans'));
         } else {
 
 
