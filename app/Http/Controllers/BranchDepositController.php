@@ -33,9 +33,9 @@ class BranchDepositController extends Controller
     {
         $blockages = \App\Models\Blockage::with('office')->latest()->get();
         $offices = \App\Models\Office::orderBy('created_at', 'asc')->get();
-        $deadline = Deadline::first();
+        $deadlines = \App\Models\Deadline::orderBy('countdown_date', 'asc')->get();
         
-        return view('branch-deposits.standalone', compact('blockages', 'offices', 'deadline'));
+        return view('branch-deposits.standalone', compact('blockages', 'offices', 'deadlines'));
     }
 
     public function storeBlockage(Request $request)
@@ -154,32 +154,41 @@ class BranchDepositController extends Controller
         ]);
     }
 
-    public function updateDeadline(Request $request)
+    public function storeDeadline(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'countdown_date' => 'required|date',
         ]);
 
-        $deadline = Deadline::first();
-
-        if ($deadline) {
-            $deadline->update([
-                'name' => $validated['name'],
-                'countdown_date' => $validated['countdown_date'],
-            ]);
-        } else {
-            $deadline = Deadline::create([
-                'name' => $validated['name'],
-                'countdown_date' => $validated['countdown_date'],
-            ]);
-        }
+        $deadline = Deadline::create([
+            'name' => $validated['name'],
+            'countdown_date' => $validated['countdown_date'],
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Deadline updated successfully',
+            'message' => 'Deadline created successfully',
             'data' => $deadline
         ]);
+    }
+
+    public function destroyDeadline($id)
+    {
+        try {
+            $deadline = Deadline::findOrFail($id);
+            $deadline->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Deadline deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete deadline: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function branchDepositTransactions(Request $request)

@@ -7,6 +7,7 @@ use App\Models\DebtBalances;
 use App\Models\Deposit;
 use App\Models\SetupDebtCost;
 use App\Models\SetupDebtTransaction;
+use App\Models\Deadline;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
@@ -192,6 +193,51 @@ class BlockerHelper
 
             
         return !$hasTransaction; 
+     }
+
+     public static function cleanupExpiredDeadlines()
+     {
+         $expired = Deadline::where('countdown_date', '<', Carbon::now())->get();
+
+         if ($expired->isEmpty()) {
+             return [
+                 'deleted' => 0,
+                 'names' => [],
+                 'message' => 'No expired deadlines found'
+             ];
+         }
+
+         $names = $expired->pluck('name')->toArray();
+         $count = $expired->count();
+
+         $expired->each(function ($deadline) {
+             $deadline->delete();
+         });
+
+         return [
+             'deleted' => $count,
+             'names' => $names,
+             'message' => 'Deleted ' . $count . ' expired deadline(s): ' . implode(', ', $names)
+         ];
     }
-    
+
+
+    public static function autolock($name){
+        if($name == 'Administration Department fee deposit'){
+            
+        }
+        if($name == 'Managers Housing deposit'){
+            
+        }
+        if($name == 'Building & Infrastructure fee deposits'){
+            
+        }
+        if($name == 'Statutory payments deposits'){
+            
+        }
+        if($name == 'Debt Setup Cost'){
+            
+        }
+    }
+
 }

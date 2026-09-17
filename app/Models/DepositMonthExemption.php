@@ -72,4 +72,24 @@ class DepositMonthExemption extends Model
        return $exemption->no_months_exclude ?? 0;
 
     }
+
+    /**
+     * Get all offices exempted for a given deposit type, month, and year.
+     *
+     * @param int $depositTypeId
+     * @param string $month Month name (e.g., "January")
+     * @param int $year Year (e.g., 2026)
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getExemptedOffices(int $depositTypeId, string $month, int $year)
+    {
+        $monthYear = $month . ' ' . $year;
+
+        $exemptions = self::where('deposit_type_id', $depositTypeId)
+            ->whereJsonContains('months', $monthYear)
+            ->with('office')
+            ->get();
+
+        return $exemptions->pluck('office')->filter()->unique('id');
+    }
 }

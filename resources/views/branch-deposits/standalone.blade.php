@@ -6,8 +6,6 @@
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
-    $deadlineName = isset($deadline) ? $deadline->name : 'Administration Department fee deposit';
-    $deadlineDateValue = isset($deadline) && $deadline->countdown_date ? \Carbon\Carbon::parse($deadline->countdown_date)->format('Y-m-d\TH:i') : '';
 @endphp
 @section('content')
 <div class="row">
@@ -22,28 +20,69 @@
                         <label for="deadline_name">Deadline Name <span class="text-danger">*</span></label>
                         <select class="form-control" id="deadline_name" name="name" required>
                             <option value="">Select Deadline Name</option>
-                            <option value="Administration Department fee deposit" {{ old('name', $deadlineName) == 'Administration Department fee deposit' ? 'selected' : '' }}>Administration Department fee deposit</option>
-                            <option value="Managers Housing deposit" {{ old('name', $deadlineName) == 'Managers Housing deposit' ? 'selected' : '' }}>Managers Housing deposit</option>
-                            <option value="Building & Infrastructure fee deposits" {{ old('name', $deadlineName) == 'Building & Infrastructure fee deposits' ? 'selected' : '' }}>Building & Infrastructure fee deposits</option>
-                            <option value="Salaries deposits" {{ old('name', $deadlineName) == 'Salaries deposits' ? 'selected' : '' }}>Salaries deposits</option>
-                            <option value="Statutory payments deposits" {{ old('name', $deadlineName) == 'Statutory payments deposits' ? 'selected' : '' }}>Statutory payments deposits</option>
-                            <option value="Savings deposits" {{ old('name', $deadlineName) == 'Savings deposits' ? 'selected' : '' }}>Savings deposits</option>
-                            <option value="Debt Setup Cost" {{ old('name', $deadlineName) == 'Debt Setup Cost' ? 'selected' : '' }}>Debt Setup Cost</option>
+                            <option value="Administration Department fee deposit">Administration Department fee deposit</option>
+                            <option value="Managers Housing deposit">Managers Housing deposit</option>
+                            <option value="Building & Infrastructure fee deposits">Building & Infrastructure fee deposits</option>
+                            <option value="Salaries deposits">Salaries deposits</option>
+                            <option value="Statutory payments deposits">Statutory payments deposits</option>
+                            <option value="Savings deposits">Savings deposits</option>
+                            <option value="Debt Setup Cost">Debt Setup Cost</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="deadline_date">Countdown Date <span class="text-danger">*</span></label>
-                        <input type="datetime-local" class="form-control" id="deadline_date" name="countdown_date" 
-                               value="{{ old('countdown_date', $deadlineDateValue) }}" required>
+                        <input type="datetime-local" class="form-control" id="deadline_date" name="countdown_date" required>
                         <small class="text-muted">Set the deadline for deposit reminders</small>
                     </div>
                     <div id="deadline-error" class="text-danger" style="display:none;"></div>
-                    <button type="submit" class="btn btn-primary" id="deadlineSaveBtn">Save Deadline</button>
+                    <button type="submit" class="btn btn-primary" id="deadlineSaveBtn">Add Deadline</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<!-- List all deadlines as cards (ordered by countdown date) -->
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-12">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">All Deadlines</h3>
+                    </div>
+                    <div class="box-body">
+                        @if($deadlines->isNotEmpty())
+                            <div class="row">
+                                @foreach($deadlines as $deadline)
+                                <div class="col-md-2 col-sm-3 col-xs-4" id="deadline-card-{{ $deadline->id }}">
+                                    <div class="small-box bg-aqua" style="cursor: default; min-height: 160px;">
+                                        <div class="inner">
+                                            <h3 style="font-size: 15px; margin-bottom: 8px;">
+                                                {{ $deadline->name }}
+                                                <button type="button" class="btn btn-danger btn-xs delete-deadline-btn" data-id="{{ $deadline->id }}" style="float: right; margin-top: -4px;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </h3>
+                                            <p>
+                                                <i class="fa fa-calendar"></i> {{ \Carbon\Carbon::parse($deadline->countdown_date)->format('Y-m-d H:i') }}
+                                            </p>
+                                            <p style="margin-bottom: 0;">
+                                                <i class="fa fa-clock-o"></i> Created: {{ $deadline->created_at->format('Y-m-d H:i:s') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center" style="padding: 40px; color: #888;">
+                                <i class="fa fa-clock-o" style="font-size: 48px; color: #ccc;"></i>
+                                <p style="margin-top: 15px; font-size: 16px;">No deadlines recorded yet</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
 
 <div class="row">
     <div class="col-md-12">
@@ -323,7 +362,7 @@ $(document).ready(function() {
         };
         
         $.ajax({
-            url: '{{ route("deposits.deadline.update") }}',
+            url: '{{ route("deposits.deadline.store") }}',
             type: 'POST',
             data: formData,
             success: function(response) {
@@ -345,9 +384,35 @@ $(document).ready(function() {
                 }
             },
             complete: function() {
-                $('#deadlineSaveBtn').prop('disabled', false).text('Save Deadline');
+                $('#deadlineSaveBtn').prop('disabled', false).text('Add Deadline');
             }
         });
+    });
+
+    // Handle delete deadline button click
+    $(document).on('click', '.delete-deadline-btn', function() {
+        var deadlineId = $(this).data('id');
+
+        if (confirm('Are you sure you want to delete this deadline?')) {
+            $.ajax({
+                url: '{{ route("deposits.deadline.destroy", ":id") }}'.replace(':id', deadlineId),
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        $('#deadline-row-' + deadlineId).fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error('Failed to delete deadline. Please try again.');
+                }
+            });
+        }
     });
 });
 </script>

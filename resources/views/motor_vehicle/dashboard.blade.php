@@ -233,7 +233,7 @@
 
 <div class="col-lg-3 col-xs-6">
 
-<div class="small-box bg-aqua">
+<div class="small-box bg-aqua" style="cursor: pointer;" data-endpoint="loans">
 
 <div class="inner">
 
@@ -243,6 +243,7 @@
 
 <p>
 Motor Vehicle Loans
+<span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total count of active Motor Vehicle Loans (MVL) on the book."></span>
 </p>
 
 </div>
@@ -259,7 +260,7 @@ Motor Vehicle Loans
 
 <div class="col-lg-3 col-xs-6">
 
-<div class="small-box bg-green">
+<div class="small-box bg-blue" style="cursor: pointer;" data-endpoint="vehicles">
 
 <div class="inner">
 
@@ -269,6 +270,7 @@ Motor Vehicle Loans
 
 <p>
 Vehicles
+<span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total number of vehicles registered under Motor Vehicle Loans (MVL)."></span>
 </p>
 
 </div>
@@ -286,7 +288,7 @@ Vehicles
 
 <div class="col-lg-3 col-xs-6">
 
-<div class="small-box bg-yellow">
+<div class="small-box bg-yellow" style="cursor: pointer;" data-endpoint="portfolio">
 
 <div class="inner">
 
@@ -297,6 +299,7 @@ K {{ number_format($data['national']['total_loan_portfolion'],2) }}
 
 <p>
 Total Portfolio Value
+<span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Sum of outstanding principal balances across all Motor Vehicle Loans (MVL)."></span>
 </p>
 
 </div>
@@ -314,7 +317,7 @@ Total Portfolio Value
 
 <div class="col-lg-3 col-xs-6">
 
-<div class="small-box bg-red">
+<div class="small-box bg-green" style="cursor: pointer;" data-endpoint="collections">
 
 <div class="inner">
 
@@ -325,6 +328,7 @@ K {{ number_format($data['national']['total_collections'],2) }}
 
 <p>
 Total Collections
+<span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Sum of repayments received against Motor Vehicle Loans (MVL) to date."></span>
 </p>
 
 </div>
@@ -340,6 +344,25 @@ Total Collections
 </div>
 
 
+</div>
+
+
+<div class="row" style="margin-top: 20px;">
+<div class="col-lg-3 col-xs-6">
+<div class="small-box bg-red" style="cursor: pointer;" data-endpoint="defaulted">
+<div class="inner">
+<h3>K {{ number_format($defaultedMVL, 2) }}</h3>
+<p>
+1 Month Defaulted
+<span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total principal + initial interest overdue on Motor Vehicle Loans (MVL) that have been in default for more than 1 month.">
+</span>
+</p>
+</div>
+<div class="icon">
+<i class="fa fa-ban"></i>
+</div>
+</div>
+</div>
 </div>
 
 <!-- ================= LOAN CONSULTANTS ================= -->
@@ -1698,4 +1721,200 @@ K {{ number_format($transaction['credit'] ?? 0,2) }}
 })();
 </script>
 
+@endsection
+
+<!-- MVL Records Bottom Sheet -->
+<div class="bottom-sheet-overlay" id="mvlRecordsOverlay">
+    <div class="bottom-sheet" id="mvlRecordsSheet" style="max-height: 85vh;">
+        <button class="bottom-sheet-close" id="closeMvlSheet">&times;</button>
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content">
+            <h3 class="bottom-sheet-title" id="mvlSheetTitle">Records</h3>
+            <div id="mvlShimmerContainer">
+                <div class="shimmer-row">
+                    <div class="shimmer-cell" style="width: 80px;"></div>
+                    <div class="shimmer-cell"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                    <div class="shimmer-cell" style="width: 100px;"></div>
+                    <div class="shimmer-cell" style="width: 70px;"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                </div>
+                <div class="shimmer-row">
+                    <div class="shimmer-cell" style="width: 80px;"></div>
+                    <div class="shimmer-cell"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                    <div class="shimmer-cell" style="width: 100px;"></div>
+                    <div class="shimmer-cell" style="width: 70px;"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                </div>
+                <div class="shimmer-row">
+                    <div class="shimmer-cell" style="width: 80px;"></div>
+                    <div class="shimmer-cell"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                    <div class="shimmer-cell" style="width: 100px;"></div>
+                    <div class="shimmer-cell" style="width: 70px;"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                </div>
+                <div class="shimmer-row">
+                    <div class="shimmer-cell" style="width: 80px;"></div>
+                    <div class="shimmer-cell"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                    <div class="shimmer-cell" style="width: 100px;"></div>
+                    <div class="shimmer-cell" style="width: 70px;"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                </div>
+                <div class="shimmer-row">
+                    <div class="shimmer-cell" style="width: 80px;"></div>
+                    <div class="shimmer-cell"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                    <div class="shimmer-cell" style="width: 100px;"></div>
+                    <div class="shimmer-cell" style="width: 70px;"></div>
+                    <div class="shimmer-cell" style="width: 120px;"></div>
+                </div>
+            </div>
+            <table class="table table-bordered table-striped" id="mvlRecordsTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>Loan ID</th>
+                        <th>Client</th>
+                        <th>Registration</th>
+                        <th>Principal</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody id="mvlRecordsBody">
+                </tbody>
+            </table>
+            <div id="mvlPagination" class="text-center" style="margin-top: 15px;"></div>
+            <p id="mvlNoRecords" class="text-center" style="display:none; color: #888; margin-top: 20px;">No records found</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .shimmer-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .shimmer-cell {
+        flex: 1;
+        height: 18px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+        0% { opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { opacity: 0.4; }
+    }
+</style>
+
+@section('footer-scripts')
+<script>
+$(function() {
+    $("[data-toggle='tooltip']").tooltip();
+
+    const endpointTitles = {
+        'loans': 'Motor Vehicle Loans',
+        'vehicles': 'Vehicles',
+        'portfolio': 'Total Portfolio Value',
+        'collections': 'Total Collections',
+        'defaulted': '1 Month Defaulted'
+    };
+
+    $(document).on('click', '.small-box[data-endpoint]', function() {
+        var endpoint = $(this).data('endpoint');
+        var title = endpointTitles[endpoint] || 'Records';
+        openMvlSheet(endpoint, title);
+    });
+
+    function openMvlSheet(endpoint, title) {
+        $('#mvlSheetTitle').text(title);
+        $('#mvlRecordsTable').hide();
+        $('#mvlNoRecords').hide();
+        $('#mvlPagination').hide();
+        $('#mvlShimmerContainer').show();
+        $('#mvlRecordsBody').empty();
+
+        var currentPage = 1;
+
+        function fetchRecords(page) {
+            $.ajax({
+                url: '/api/mvl/' + endpoint,
+                type: 'GET',
+                data: { page: page },
+                success: function(response) {
+                    $('#mvlShimmerContainer').hide();
+
+                    if (response.success && response.records.length > 0) {
+                        $('#mvlRecordsTable').show();
+                        var tbody = $('#mvlRecordsBody');
+                        tbody.empty();
+
+                        $.each(response.records, function(i, record) {
+                            tbody.append(
+                                '<tr>' +
+                                '<td>' + (record.loan_id || record.id) + '</td>' +
+                                '<td>' + record.client_name + '</td>' +
+                                '<td>' + record.registration_number + '</td>' +
+                                '<td>' + record.principal.toLocaleString() + '</td>' +
+                                '<td>' + record.status + '</td>' +
+                                '<td>' + record.created_date + '</td>' +
+                                '</tr>'
+                            );
+                        });
+
+                        var pagination = response.pagination;
+                        if (pagination.last_page > 1) {
+                            var pager = '';
+                            for (var i = 1; i <= pagination.last_page; i++) {
+                                pager += '<button class="btn btn-sm ' + (i === pagination.current_page ? 'btn-primary' : 'btn-default') + '" data-page="' + i + '" style="margin: 2px;">' + i + '</button>';
+                            }
+                            $('#mvlPagination').html(pager).show();
+                        } else {
+                            $('#mvlPagination').hide();
+                        }
+                    } else {
+                        $('#mvlNoRecords').show();
+                        $('#mvlPagination').hide();
+                    }
+                },
+                error: function() {
+                    $('#mvlShimmerContainer').hide();
+                    $('#mvlNoRecords').text('Failed to load records. Please try again.').show();
+                }
+            });
+        }
+
+        fetchRecords(1);
+
+        $(document).off('click', '#mvlPagination button[data-page]');
+        $(document).on('click', '#mvlPagination button[data-page]', function() {
+            var page = $(this).data('page');
+            fetchRecords(page);
+        });
+
+        $('#mvlRecordsOverlay').addClass('active');
+        $('#mvlRecordsSheet').addClass('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    $('#closeMvlSheet').on('click', function() {
+        $('#mvlRecordsOverlay').removeClass('active');
+        $('#mvlRecordsSheet').removeClass('active');
+        document.body.style.overflow = '';
+    });
+
+    $('#mvlRecordsOverlay').on('click', function(e) {
+        if (e.target === this) {
+            $('#mvlRecordsOverlay').removeClass('active');
+            $('#mvlRecordsSheet').removeClass('active');
+            document.body.style.overflow = '';
+        }
+    });
+});
+</script>
 @endsection

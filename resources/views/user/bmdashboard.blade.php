@@ -585,16 +585,12 @@ These are the balances of all branch loans as of  {{ date("jS M, Y", strtotime($
 @php
     $blockerUser = Sentinel::getUser();
     $debtBlocker = \App\Helpers\BlockerHelper::debt_blocker($blockerUser);
-    $deadline = \App\Models\Deadline::first();
-    $deadlineName = isset($deadline) ? $deadline->name : 'Building Deposit';
-    $deadlineDateValue = isset($deadline) && $deadline->countdown_date ? \Carbon\Carbon::parse($deadline->countdown_date)->format('Y-m-d\TH:i') : '';
+    $deadlines = \App\Models\Deadline::where('countdown_date', '>=', now())->orderBy('countdown_date', 'asc')->get();
 @endphp
 
 @include('components.deposit-deadline-modal')
 
-@if($debtBlocker)
-    @include('components.setup-debt-reminder')
-@endif
+
 @endsection
 
 

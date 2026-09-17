@@ -84,3 +84,11 @@ Route::get('/offices', function () {
 });
 
 Route::get('/loans/{loanId}/kyc-compliance-status', 'MotorVehicleLoanLifecycleController@checkKycAndComplianceStatus');
+
+Route::prefix('mvl')->group(function () {
+    Route::get('/loans', [\App\Http\Controllers\MVLAPIController::class, 'getLoans']);
+    Route::get('/vehicles', [\App\Http\Controllers\MVLAPIController::class, 'getVehicles']);
+    Route::get('/portfolio', [\App\Http\Controllers\MVLAPIController::class, 'getPortfolio']);
+    Route::get('/collections', [\App\Http\Controllers\MVLAPIController::class, 'getCollections']);
+    Route::get('/defaulted', [\App\Http\Controllers\MVLAPIController::class, 'getDefaulted']);
+});

@@ -611,7 +611,8 @@ Route::group(['prefix' => 'user'], function () {
 Route::get('branch-deposits/standalone','BranchDepositController@standalonePage')->name('branch-deposits.standalone');
       Route::get('branch-deposits/overall-history','BranchDepositController@getOverallHistory')->name('branch-deposits.overall-history');
       Route::get('deposits/deadline', [BranchDepositController::class, 'getDeadline'])->name('deposits.deadline');
-      Route::post('deposits/deadline', [BranchDepositController::class, 'updateDeadline'])->name('deposits.deadline.update');
+      Route::post('deposits/deadline', [BranchDepositController::class, 'storeDeadline'])->name('deposits.deadline.store');
+      Route::delete('deposits/deadline/{id}', [BranchDepositController::class, 'destroyDeadline'])->name('deposits.deadline.destroy');
       Route::get('deposit_logs','UserController@deposit_logs');
 });
 //route for offices

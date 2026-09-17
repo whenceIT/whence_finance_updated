@@ -41,7 +41,7 @@
                     <div class="small-box bg-red">
                         <div class="inner">
                             <h3>{{ $stats['closed_overdue'] }}</h3>
-                            <p>Recovered (Overdue/closed)</p>
+                            <p>Recovered (Overdue/closed) <span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total principal + initial interest recovered on Motor Vehicle Loans that have been overdue and closed/disposed."></span></p>
                             <p style="font-size: 14px; margin-bottom: 0;">K{{ number_format($stats['closed_overdue_amount'], 2) }}</p>
                         </div>
                         <div class="icon">
@@ -590,6 +590,8 @@
             }
         });
     });
+    // Initialize tooltips
+    $("[data-toggle='tooltip']").tooltip();
 })();
 </script>
 @endsection

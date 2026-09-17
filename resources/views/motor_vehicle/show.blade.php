@@ -938,37 +938,37 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px;">
 
                     <div>
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Date Notice Generated</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Date Notice Generated <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="The date the Notice of Intention to Sell was generated and recorded in the system." style="cursor: help;"></i></label>
                         <input type="date" name="notice_generated_date" class="form-control" style="border-radius: 4px;"
                                value="{{ optional($vehicle->noticePresale)->notice_generated_date ? $vehicle->noticePresale->notice_generated_date->format('Y-m-d') : '' }}">
                     </div>
 
                     <div>
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Date Notice Served</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Date Notice Served <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="The date the notice was formally delivered/served to the client." style="cursor: help;"></i></label>
                         <input type="date" name="notice_served_date" class="form-control" style="border-radius: 4px;"
                                value="{{ optional($vehicle->noticePresale)->notice_served_date ? $vehicle->noticePresale->notice_served_date->format('Y-m-d') : '' }}">
                     </div>
 
                     <div>
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Method of Service</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Method of Service <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="How the notice was delivered to the client (e.g. SMS, Email, Registered Post, Courier). Default is SMS." style="cursor: help;"></i></label>
                         <input type="text" name="service_method" class="form-control" style="border-radius: 4px;" placeholder="Default: SMS"
                                value="{{ optional($vehicle->noticePresale)->service_method ?? 'SMS' }}">
                     </div>
 
                     <div>
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Officer Issuing</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Officer Issuing <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="The officer responsible for issuing this notice. Defaults to System Generated if not assigned." style="cursor: help;"></i></label>
                         <input type="text" name="officer_issuing" class="form-control" style="border-radius: 4px;" placeholder="Default: System Generated"
                                value="{{ optional($vehicle->noticePresale)->officer_issuing ?? 'System Generated' }}">
                     </div>
 
                     <div>
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Deadline to Client</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Deadline to Client <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="The final date by which the client must respond, settle, or take action after receiving the notice." style="cursor: help;"></i></label>
                         <input type="date" name="deadline_to_client" class="form-control" style="border-radius: 4px;"
                                value="{{ optional($vehicle->noticePresale)->deadline_to_client ? $vehicle->noticePresale->deadline_to_client->format('Y-m-d') : '' }}">
                     </div>
 
                     <div>
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Client Settled?</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Client Settled? <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Whether the client has fully settled the outstanding balance after receiving the notice." style="cursor: help;"></i></label>
                         <select name="client_settled" class="form-control" style="border-radius: 4px;">
                             <option value="0" {{ optional($vehicle->noticePresale)->client_settled == false ? 'selected' : '' }}>No</option>
                             <option value="1" {{ optional($vehicle->noticePresale)->client_settled == true ? 'selected' : '' }}>Yes</option>
@@ -976,7 +976,7 @@
                     </div>
 
                     <div>
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Client Presented Buyer?</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Client Presented Buyer? <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Whether the client has presented a prospective buyer for the vehicle after the notice was issued." style="cursor: help;"></i></label>
                         <select name="client_presented_buyer" class="form-control" style="border-radius: 4px;">
                             <option value="0" {{ optional($vehicle->noticePresale)->client_presented_buyer == false ? 'selected' : '' }}>No</option>
                             <option value="1" {{ optional($vehicle->noticePresale)->client_presented_buyer == true ? 'selected' : '' }}>Yes</option>
@@ -984,13 +984,13 @@
                     </div>
 
                     <div style="grid-column: 1 / -1;">
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Buyer Details (Name & Contact)</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Buyer Details (Name & Contact) <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Names and contact information of the prospective buyer(s) presented by the client." style="cursor: help;"></i></label>
                         <textarea name="buyer_details" class="form-control" rows="3" style="border-radius: 4px;"
                                   placeholder="Enter client names and contact details">{{ optional($vehicle->noticePresale)->buyer_details }}</textarea>
                     </div>
 
                     <div style="grid-column: 1 / -1;">
-                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Outcome After Expiry</label>
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block; color: #555; font-size: 13px;">Outcome After Expiry <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="What action was taken or resulted after the notice deadline expired (e.g. vehicle listed for sale, disposed, settled)." style="cursor: help;"></i></label>
                         <textarea name="outcome_after_expiry" class="form-control" rows="3" style="border-radius: 4px;"
                                   placeholder="Enter outcome after notice expiry">{{ optional($vehicle->noticePresale)->outcome_after_expiry }}</textarea>
                     </div>
@@ -1175,4 +1175,12 @@
 })();
 </script>
 
+@endsection
+
+@section('footer-scripts')
+<script>
+$(function() {
+    $("[data-toggle='tooltip']").tooltip();
+});
+</script>
 @endsection
