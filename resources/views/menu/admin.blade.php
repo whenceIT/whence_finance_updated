@@ -149,6 +149,7 @@ if (!Sentinel::check()) {
                     <li><a href="{{ url('vehicles/dashboard') }}"><i class="fa fa-circle-o"></i>Motor Vehicles Dashboard</a></li>
                     <li><a href="{{ url('payrollloans/dashboard') }}"><i class="fa fa-circle-o"></i>Payroll Loans Dashboard</a></li>
                     <li><a href="{{ route('collateral.index', ['key' => 'admin']) }}"><i class="fa fa-circle-o"></i>Collateral Dashboard</a></li>
+                     <li><a href="{{ url('loan/defaulted-loans') }}"><i class="fa fa-circle-o"></i>Defaulted Loans Dashboard</a></li>
                 </ul>
             </li>
             @endif
