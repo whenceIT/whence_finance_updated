@@ -161,6 +161,7 @@ class MVLAPIController extends Controller
         ]);
     }
 
+    
     public function getDefaulted(Request $request)
     {
         $query = Loan::where('loan_product_id', 0)
@@ -177,8 +178,9 @@ class MVLAPIController extends Controller
         return response()->json([
             'success' => true,
             'records' => $loans->map(function ($loan) {
-                $debit = floatval($loan->transactions->sum('debit'));
-                $credit = floatval($loan->transactions->sum('credit'));
+                $defaultedTransactions = LoanTransaction::where('loan_id', $loan->id);
+                $debit = floatval($defaultedTransactions->sum('debit'));
+                $credit = floatval($defaultedTransactions->sum('credit'));
                 $balance = $debit - $credit;
 
                 return [
@@ -189,7 +191,7 @@ class MVLAPIController extends Controller
                     'balance' => round($balance, 2),
                     'status' => $loan->status,
                     'created_date' => $loan->created_date ? \Carbon\Carbon::parse($loan->created_date)->format('Y-m-d H:i:s') : 'N/A',
-                    'transactions' => $loan->transactions->map(function ($t) {
+                    'transactions' => LoanTransaction::where('loan_id', $loan->id)->get()->map(function ($t) {
                         return [
                             'id' => $t->id,
                             'date' => $t->date ? \Carbon\Carbon::parse($t->date)->format('Y-m-d') : 'N/A',
