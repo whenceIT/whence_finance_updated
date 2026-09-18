@@ -852,22 +852,19 @@ public function searchClients(Request $request)
     $today = Carbon::today();
     $thirtyDays = Carbon::today()->copy()->addDays(30);
 
-    $defaultedMVLPrincipal = Loan::where('loan_product_id', 0)
-        ->whereNotNull('first_repayment_date')
-        ->where('first_repayment_date', '<', Carbon::now()->subMonth())
-        ->sum('principal');
+    $defaultedTransactions = LoanTransaction::whereIn('loan_id', function ($q) {
+        $q->select('id')
+            ->from('loans')
+            ->where('loan_product_id', 0)
+            ->where('status', 'disbursed')
+            ->whereNotNull('first_repayment_date')
+            ->where('first_repayment_date', '<', Carbon::now());
+    });
 
-    $defaultedMVLInterest = \App\Models\LoanTransaction::where('transaction_type', 'interest_initial')
-        ->whereIn('loan_id', function ($q) {
-            $q->select('id')
-                ->from('loans')
-                ->where('loan_product_id', 0)
-                ->whereNotNull('first_repayment_date')
-                ->where('first_repayment_date', '<', Carbon::now()->subMonth());
-        })
-        ->sum('debit');
+    $defaultedMVLDebit = (clone $defaultedTransactions)->sum('debit');
+    $defaultedMVLCredit = (clone $defaultedTransactions)->sum('credit');
 
-    $defaultedMVL = $defaultedMVLPrincipal + $defaultedMVLInterest;
+    $defaultedMVL = $defaultedMVLDebit - $defaultedMVLCredit;
 
     $insuranceReminders = VehicleInsurance::with('vehicle.client')
         ->whereDate('expiry_date', '<=', $thirtyDays)
@@ -1558,9 +1555,9 @@ return view(
 
     public function disposalRegister(Request $request)
     {
-        $mvlService = app(\App\Services\MVLService::class);
-        $mvlService->week1reminder();
-        $mvlService->month1reminder();
+        // $mvlService = app(\App\Services\MVLService::class);
+        // $mvlService->week1reminder();
+        // $mvlService->month1reminder();
 
         $query = Loan::where('loan_product_id', 0)
             ->where(function ($q) {

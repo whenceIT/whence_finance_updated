@@ -89,11 +89,13 @@
     border: 1px solid #e2e8f0;
     overflow: hidden;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .status-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
+    border-color: #cbd5e1;
 }
 
 .status-header {
@@ -657,6 +659,7 @@
         <div>
 
             <!-- Staffing Status Card -->
+            <a href="{{ route('goa.vacancies-and-staffing') }}" style="display:block; text-decoration:none; color:inherit;">
             <div class="status-card">
                 <div class="status-header">
                     <div class="status-icon staff-icon">
@@ -687,8 +690,10 @@
                     </div>
                 </div>
             </div>
+            </a>
             <br>
         <!-- Fleet Status Card -->
+            <a href="{{ route('goa.fleet-management') }}" style="display:block; text-decoration:none; color:inherit;">
             <div class="status-card">
                 <div class="status-header">
                     <div class="status-icon fleet-icon">
@@ -723,8 +728,10 @@
                     </div>
                 </div>
             </div>
+            </a>
             <br>
             <!-- Maintenance Overview Card -->
+            <a href="{{ route('goa.fleet-management') }}" style="display:block; text-decoration:none; color:inherit;">
             <div class="status-card">
                 <div class="status-header">
                     <div class="status-icon maintenance-icon">
@@ -756,6 +763,7 @@
                     </div>
                 </div>
             </div>
+            </a>
 
             <!-- Fleet Distribution Chart -->
             <div class="chart-card">

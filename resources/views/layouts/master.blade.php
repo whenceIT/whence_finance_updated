@@ -900,14 +900,23 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                 /* Hide desktop navbar elements on mobile */
                 @media (max-width: 767px) {
 
-                    .main-header .navbar>.navbar-custom-menu,
-                    .main-header .navbar>.navbar-search {
+                    .main-header .navbar>.navbar-custom-menu {
                         display: none !important;
                     }
 
                     .main-header .navbar {
                         display: flex !important;
                         justify-content: flex-start !important;
+                    }
+
+                    .navbar-search .input-group {
+                        width: 100% !important;
+                    }
+
+                    .navbar-search .input-group-btn,
+                    .navbar-search #user-search,
+                    .navbar-search .input-group-addon {
+                        flex: 1;
                     }
                 }
             </style>
