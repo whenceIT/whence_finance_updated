@@ -178,11 +178,14 @@ class MVLAPIController extends Controller
                 l.status,
                 l.created_date,
                 CONCAT(c.first_name, ' ', c.last_name) AS client_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS loan_officer_name,
                 v.registration_number
             FROM loans l
             LEFT JOIN clients c ON c.id = l.client_id
+            LEFT JOIN users u ON u.id = l.loan_officer_id
             LEFT JOIN vehicles v ON v.loan_id = l.id
             WHERE l.loan_product_id = 0
+                AND l.status = 'disbursed'
                 AND l.first_repayment_date IS NOT NULL
                 AND l.first_repayment_date < ?
             ORDER BY l.first_repayment_date ASC
@@ -213,6 +216,7 @@ class MVLAPIController extends Controller
                 'id' => $loan->id,
                 'loan_id' => $loan->id,
                 'client_name' => $loan->client_name ?? 'N/A',
+                'loan_officer_name' => $loan->loan_officer_name ?? 'N/A',
                 'registration_number' => $loan->registration_number ?? 'N/A',
                 'balance' => round($balance, 2),
                 'status' => $loan->status,

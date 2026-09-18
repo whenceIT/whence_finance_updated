@@ -349,6 +349,21 @@ Total Collections
 
 <div class="row" style="margin-top: 20px;">
 <div class="col-lg-3 col-xs-6">
+<div class="small-box bg-navy" style="cursor: pointer;" data-endpoint="defaulted">
+<div class="inner">
+<h3>{{ number_format($defaultedMVL) }}</h3>
+<p>
+MVLs in Default (Count)
+<span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total count of Motor Vehicle Loans (MVL) that have been in default (Past their due date).">
+</span>
+</p>
+</div>
+<div class="icon">
+<i class="fa fa-exclamation-triangle"></i>
+</div>
+</div>
+</div>
+<div class="col-lg-3 col-xs-6">
 <div class="small-box bg-red" style="cursor: pointer;" data-endpoint="defaulted">
 <div class="inner">
 <h3>K {{ number_format($defaultedMVL, 2) }}</h3>
@@ -1777,8 +1792,9 @@ K {{ number_format($transaction['credit'] ?? 0,2) }}
                     <tr>
                         <th>Loan ID</th>
                         <th>Client</th>
+                        <th>Loan Consultant</th>
                         <th>Registration</th>
-                        <th>Principal</th>
+                        <th>Balance</th>
                         <th>Status</th>
                         <th>Created</th>
                     </tr>
@@ -1859,10 +1875,11 @@ $(function() {
                                 '<tr>' +
                                 '<td>' + (record.loan_id || record.id) + '</td>' +
                                 '<td>' + record.client_name + '</td>' +
+                                '<td>' + record.loan_officer_name + '</td>' +
                                 '<td>' + record.registration_number + '</td>' +
                                 '<td>' + (record.principal ? record.principal.toLocaleString() : (record.balance || 0).toLocaleString()) + '</td>' +
                                 '<td>' + record.status + '</td>' +
-                                '<td>' + record.created_date + '</td>' +
+                                '<td>' + (record.created_date ? moment(record.created_date).format('MMM D, YYYY') + ' (' + moment(record.created_date).fromNow() + ')' : 'N/A') + '</td>' +
                                 '</tr>'
                             );
                         });

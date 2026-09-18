@@ -856,6 +856,7 @@ public function searchClients(Request $request)
         $q->select('id')
             ->from('loans')
             ->where('loan_product_id', 0)
+            ->where('status', 'disbursed')
             ->whereNotNull('first_repayment_date')
             ->where('first_repayment_date', '<', Carbon::now());
     });
