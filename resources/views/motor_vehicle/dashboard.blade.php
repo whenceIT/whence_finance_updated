@@ -351,7 +351,7 @@ Total Collections
 <div class="col-lg-3 col-xs-6">
 <div class="small-box bg-navy" style="cursor: pointer;" data-endpoint="defaulted">
 <div class="inner">
-<h3>{{ number_format($defaultedMVL) }}</h3>
+<h3>{{ number_format($defaultedMVLCount) }}</h3>
 <p>
 MVLs in Default (Count)
 <span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total count of Motor Vehicle Loans (MVL) that have been in default (Past their due date).">
@@ -363,6 +363,8 @@ MVLs in Default (Count)
 </div>
 </div>
 </div>
+
+
 <div class="col-lg-3 col-xs-6">
 <div class="small-box bg-red" style="cursor: pointer;" data-endpoint="defaulted">
 <div class="inner">
@@ -380,6 +382,7 @@ MVLs in Default
 </div>
 </div>
 
+
 <!-- ================= LOAN CONSULTANTS ================= -->
 
 <div class="box box-primary">
@@ -394,7 +397,7 @@ MVLs in Default
     </div>
 
 
-    <div class="box-body table-responsive">
+    <div class="box-body table-responsive bg-blue">
 
 
         <table class="table table-bordered table-hover">
@@ -872,7 +875,7 @@ Province Performance
 </div>
 
 
-<div class="box-body table-responsive">
+<div class="box-body table-responsive bg-blue">
 
 
 <table class="table table-bordered table-hover">
@@ -1788,16 +1791,7 @@ K {{ number_format($transaction['credit'] ?? 0,2) }}
                 </div>
             </div>
             <table class="table table-bordered table-striped" id="mvlRecordsTable" style="display:none;">
-                <thead>
-                    <tr>
-                        <th>Loan ID</th>
-                        <th>Client</th>
-                        <th>Loan Consultant</th>
-                        <th>Registration</th>
-                        <th>Balance</th>
-                        <th>Status</th>
-                        <th>Created</th>
-                    </tr>
+                <thead id="mvlRecordsHead">
                 </thead>
                 <tbody id="mvlRecordsBody">
                 </tbody>
@@ -1854,8 +1848,44 @@ $(function() {
         $('#mvlPagination').hide();
         $('#mvlShimmerContainer').show();
         $('#mvlRecordsBody').empty();
+        $('#mvlRecordsHead').empty();
+
+        var columns = ['Loan', 'Client', 'Loan Consultant', 'Registration', 'Balance'];
+        if (endpoint === 'portfolio') columns.push('Portfolio');
+        if (endpoint === 'collections') columns.push('Collected');
+        columns.push('Due Date', 'Status');
+        if (endpoint === 'defaulted') columns.push('Time in Default');
+        columns.push('Actions');
+
+        var thead = '<tr>';
+        for (var i = 0; i < columns.length; i++) {
+            thead += '<th>' + columns[i] + '</th>';
+        }
+        thead += '</tr>';
+        $('#mvlRecordsHead').html(thead);
 
         var currentPage = 1;
+
+        var cellBuilders = {
+            'Loan': function(r) { return r.loan_id || r.id; },
+            'Client': function(r) { return r.client_name || 'N/A'; },
+            'Loan Consultant': function(r) { return r.loan_officer_name || 'N/A'; },
+            'Registration': function(r) { return r.registration_number || 'N/A'; },
+            'Balance': function(ep, r) {
+                if (ep === 'defaulted') return (r.balance || 0).toLocaleString();
+                if (ep === 'portfolio') return (r.debit || 0).toLocaleString();
+                if (ep === 'collections') return (r.credit || 0).toLocaleString();
+                return (r.principal || 0).toLocaleString();
+            },
+            'Portfolio': function(r) { return (r.debit || 0).toLocaleString(); },
+            'Collected': function(r) { return (r.credit || 0).toLocaleString(); },
+            'Due Date': function(r) { return r.due_date ? moment(r.due_date).fromNow() : 'N/A'; },
+            'Status': function(r) { return r.status || 'N/A'; },
+            'Time in Default': function(r) { return r.due_date ? moment(r.due_date).fromNow() : 'N/A'; },
+            'Actions': function(r) {
+                return '<a href="/motor-vehicle-loans/' + r.loan_id + '" class="btn btn-xs btn-primary" target="_blank">Show Loan</a> <a href="/vehicles/' + (r.vehicle_id || r.id) + '" class="btn btn-xs btn-info" target="_blank">Show Vehicle</a>';
+            }
+        };
 
         function fetchRecords(page) {
             $.ajax({
@@ -1871,17 +1901,17 @@ $(function() {
                         tbody.empty();
 
                         $.each(response.records, function(i, record) {
-                            tbody.append(
-                                '<tr>' +
-                                '<td>' + (record.loan_id || record.id) + '</td>' +
-                                '<td>' + record.client_name + '</td>' +
-                                '<td>' + record.loan_officer_name + '</td>' +
-                                '<td>' + record.registration_number + '</td>' +
-                                '<td>' + (record.principal ? record.principal.toLocaleString() : (record.balance || 0).toLocaleString()) + '</td>' +
-                                '<td>' + record.status + '</td>' +
-                                '<td>' + (record.created_date ? moment(record.created_date).format('MMM D, YYYY') + ' (' + moment(record.created_date).fromNow() + ')' : 'N/A') + '</td>' +
-                                '</tr>'
-                            );
+                            var row = '<tr>';
+                            for (var j = 0; j < columns.length; j++) {
+                                var col = columns[j];
+                                if (col === 'Balance') {
+                                    row += '<td>' + cellBuilders[col](endpoint, record) + '</td>';
+                                } else {
+                                    row += '<td>' + cellBuilders[col](record) + '</td>';
+                                }
+                            }
+                            row += '</tr>';
+                            tbody.append(row);
                         });
 
                         var pagination = response.pagination;
