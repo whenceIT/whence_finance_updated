@@ -353,8 +353,8 @@ Total Collections
 <div class="inner">
 <h3>K {{ number_format($defaultedMVL, 2) }}</h3>
 <p>
-1 Month Defaulted
-<span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total outstanding balance overdue on Motor Vehicle Loans (MVL) that have been in default for more than 1 month.">
+MVLs in Default
+<span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total outstanding balance (from loan_transactions: debit minus credit) of Motor Vehicle Loans (MVL) that have been in default (Past their due date)">
 </span>
 </p>
 </div>

@@ -132,8 +132,6 @@ class GOAController extends Controller
     {
         // $id is the Vacancy record ID — delete the vacancy listing
         $vacancy = Vacancy::findOrFail($id);
-
-        dd($vacancy);
         $vacancy->delete();
         return redirect()->back()->with('success', 'Vacancy removed successfully.');
     }
