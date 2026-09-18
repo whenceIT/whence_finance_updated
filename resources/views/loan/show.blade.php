@@ -3638,7 +3638,7 @@ CURRENT BALANCE DASHBOARD
                         </div>
                     @endif
 
-                    @if($loan->loan_product_id == 0)
+                    @if($loan->loan_product_id == 0 && $vehicle)
                     <!-- ===================== Vehicle Ownership & Verifications Overview Tab ===================== -->
                     <div class="tab-pane" id="vehicle_overview_tab">
                         @php

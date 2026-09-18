@@ -680,10 +680,6 @@
                             <span class="metric-label">Vacant</span>
                         </div>
                         <div class="metric-item">
-                            <span class="metric-value">{{ $inProcessPositions }}</span>
-                            <span class="metric-label">In Process</span>
-                        </div>
-                        <div class="metric-item">
                             <span class="metric-value">{{ $fillRate }}%</span>
                             <span class="metric-label">Fill Rate</span>
                         </div>

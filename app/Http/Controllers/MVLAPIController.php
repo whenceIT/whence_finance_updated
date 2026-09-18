@@ -12,7 +12,7 @@ class MVLAPIController extends Controller
     public function getLoans(Request $request)
     {
         $query = Loan::where('loan_product_id', 0)
-            ->with(['client', 'vehicle'])
+            ->with(['client', 'vehicle', 'loan_officer'])
             ->orderBy('created_date', 'desc');
 
         $page = $request->input('page', 1);
@@ -27,8 +27,12 @@ class MVLAPIController extends Controller
                     'id' => $loan->id,
                     'loan_id' => $loan->loan_id ?? $loan->id,
                     'client_name' => $loan->client ? $loan->client->first_name . ' ' . $loan->client->last_name : 'N/A',
+                    'loan_officer_name' => $loan->loan_officer ? $loan->loan_officer->first_name . ' ' . $loan->loan_officer->last_name : 'N/A',
                     'registration_number' => $loan->vehicle ? $loan->vehicle->registration_number : 'N/A',
+                    'vehicle_id' => $loan->vehicle ? $loan->vehicle->id : null,
+                    'due_date' => $loan->first_repayment_date ? \Carbon\Carbon::parse($loan->first_repayment_date)->format('Y-m-d') : 'N/A',
                     'principal' => $loan->principal ?? 0,
+                    'balance' => $loan->principal ?? 0,
                     'status' => $loan->status,
                     'created_date' => $loan->created_date ? \Carbon\Carbon::parse($loan->created_date)->format('Y-m-d H:i:s') : 'N/A',
                 ];
@@ -46,7 +50,7 @@ class MVLAPIController extends Controller
     {
         $query = Vehicle::whereHas('loan', function ($q) {
             $q->where('loan_product_id', 0);
-        })->with(['loan', 'loan.client'])
+        })->with(['loan', 'loan.client', 'loan.loan_officer'])
             ->orderBy('created_at', 'desc');
 
         $page = $request->input('page', 1);
@@ -62,8 +66,12 @@ class MVLAPIController extends Controller
                     'id' => $vehicle->id,
                     'loan_id' => $loan ? $loan->id : null,
                     'client_name' => $loan && $loan->client ? $loan->client->first_name . ' ' . $loan->client->last_name : 'N/A',
+                    'loan_officer_name' => $loan && $loan->loan_officer ? $loan->loan_officer->first_name . ' ' . $loan->loan_officer->last_name : 'N/A',
                     'registration_number' => $vehicle->registration_number ?? 'N/A',
+                    'vehicle_id' => $vehicle->id,
+                    'due_date' => $loan ? ($loan->first_repayment_date ? \Carbon\Carbon::parse($loan->first_repayment_date)->format('Y-m-d') : 'N/A') : 'N/A',
                     'principal' => $loan ? ($loan->principal ?? 0) : 0,
+                    'balance' => $loan ? ($loan->principal ?? 0) : 0,
                     'status' => $loan ? $loan->status : 'N/A',
                     'created_date' => $vehicle->created_at ? \Carbon\Carbon::parse($vehicle->created_at)->format('Y-m-d H:i:s') : 'N/A',
                 ];
@@ -81,7 +89,7 @@ class MVLAPIController extends Controller
     {
         $query = Loan::where('loan_product_id', 0)
             ->where('status', '!=', 'closed')
-            ->with(['client', 'vehicle'])
+            ->with(['client', 'vehicle', 'loan_officer'])
             ->orderBy('principal', 'desc');
 
         $page = $request->input('page', 1);
@@ -92,12 +100,21 @@ class MVLAPIController extends Controller
         return response()->json([
             'success' => true,
             'records' => $loans->map(function ($loan) {
+                $debit = floatval(\App\Models\LoanTransaction::where('loan_id', $loan->id)->sum('debit'));
+                $credit = floatval(\App\Models\LoanTransaction::where('loan_id', $loan->id)->sum('credit'));
+
                 return [
                     'id' => $loan->id,
                     'loan_id' => $loan->loan_id ?? $loan->id,
                     'client_name' => $loan->client ? $loan->client->first_name . ' ' . $loan->client->last_name : 'N/A',
+                    'loan_officer_name' => $loan->loan_officer ? $loan->loan_officer->first_name . ' ' . $loan->loan_officer->last_name : 'N/A',
                     'registration_number' => $loan->vehicle ? $loan->vehicle->registration_number : 'N/A',
+                    'vehicle_id' => $loan->vehicle ? $loan->vehicle->id : null,
+                    'due_date' => $loan->first_repayment_date ? \Carbon\Carbon::parse($loan->first_repayment_date)->format('Y-m-d') : 'N/A',
                     'principal' => $loan->principal ?? 0,
+                    'debit' => $debit,
+                    'credit' => $credit,
+                    'balance' => $debit - $credit,
                     'status' => $loan->status,
                     'created_date' => $loan->created_date ? \Carbon\Carbon::parse($loan->created_date)->format('Y-m-d H:i:s') : 'N/A',
                 ];
@@ -118,7 +135,7 @@ class MVLAPIController extends Controller
                 $q->where('transaction_type', 'repayment')
                     ->whereIn('payment_apply_to', ['reloan_payment', 'full_payment', 'part_payment']);
             })
-            ->with(['client', 'vehicle', 'transactions' => function ($q) {
+            ->with(['client', 'vehicle', 'loan_officer', 'transactions' => function ($q) {
                 $q->where('transaction_type', 'repayment')
                     ->whereIn('payment_apply_to', ['reloan_payment', 'full_payment', 'part_payment']);
             }])
@@ -140,13 +157,22 @@ class MVLAPIController extends Controller
                     return $sum + $credit;
                 }, 0);
 
+                $debit = floatval(\App\Models\LoanTransaction::where('loan_id', $loan->id)->sum('debit'));
+                $credit = floatval(\App\Models\LoanTransaction::where('loan_id', $loan->id)->sum('credit'));
+
                 return [
                     'id' => $loan->id,
                     'loan_id' => $loan->loan_id ?? $loan->id,
                     'client_name' => $loan->client ? $loan->client->first_name . ' ' . $loan->client->last_name : 'N/A',
+                    'loan_officer_name' => $loan->loan_officer ? $loan->loan_officer->first_name . ' ' . $loan->loan_officer->last_name : 'N/A',
                     'registration_number' => $loan->vehicle ? $loan->vehicle->registration_number : 'N/A',
+                    'vehicle_id' => $loan->vehicle ? $loan->vehicle->id : null,
+                    'due_date' => $loan->first_repayment_date ? \Carbon\Carbon::parse($loan->first_repayment_date)->format('Y-m-d') : 'N/A',
                     'principal' => $loan->principal ?? 0,
                     'collection_amount' => $collectionAmount,
+                    'debit' => $debit,
+                    'credit' => $credit,
+                    'balance' => $debit - $credit,
                     'status' => $loan->status,
                     'created_date' => $loan->created_date ? \Carbon\Carbon::parse($loan->created_date)->format('Y-m-d H:i:s') : 'N/A',
                 ];
