@@ -41,7 +41,7 @@
                 <div class="col-md-5">
                     <select name="client_id" class="form-control select2" id="client_id">
                           <option></option>
-                        @if($role->role_id == '3')
+                        @if($role->role_id == '3' || $role->role_id == '1')
                         @foreach(\App\Models\Client::where('status', 'active')->where('staff_id',$userId)->where('blacklisted', 0)->get() as $key)
                             <option value="{{$key->id}}">
                                 @if($key->client_type=="individual")
