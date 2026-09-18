@@ -130,21 +130,39 @@ class GOAController extends Controller
 
     public function removePosition($id)
     {
-        $position = Position::findOrFail($id);
-        $position->update(['is_vacant' => 0, 'num_of_vacancies' => 0]);
-        return redirect()->back()->with('success', 'Position removed successfully.');
+        // $id is the Vacancy record ID — delete the vacancy listing
+        $vacancy = Vacancy::findOrFail($id);
+
+        dd($vacancy);
+        $vacancy->delete();
+        return redirect()->back()->with('success', 'Vacancy removed successfully.');
     }
 
     public function fillPosition($id)
     {
-        $position = Position::findOrFail($id);
-        $position->update(['is_vacant' => 0, 'num_of_vacancies' => 0]);
+        // $id is the Vacancy record ID — mark position filled and remove the vacancy
+        $vacancy = Vacancy::with('position')->findOrFail($id);
+        if ($vacancy->position) {
+            $vacancy->position->update(['is_vacant' => 0, 'num_of_vacancies' => 0]);
+        }
+        $vacancy->delete();
         return redirect()->back()->with('success', 'Position filled successfully.');
     }
 
     public function showPosition($id)
     {
-        $position = Position::findOrFail($id);
-        return response()->json($position);
+        $position = Position::with('department')->findOrFail($id);
+        return response()->json([
+            'id'               => $position->id,
+            'name'             => $position->name,
+            'department'       => $position->department ? $position->department->name : 'N/A',
+            'status'           => $position->status,
+            'job_description'  => $position->job_description,
+            'posted_date'      => $position->posted_date ? $position->posted_date->format('Y-m-d') : null,
+            'date_added'       => $position->date_added ? $position->date_added->format('Y-m-d') : null,
+            'is_vacant'        => $position->is_vacant,
+            'num_of_vacancies' => $position->num_of_vacancies,
+            'num_of_active'    => $position->num_of_active,
+        ]);
     }
 }

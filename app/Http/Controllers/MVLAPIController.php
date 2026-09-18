@@ -164,10 +164,9 @@ class MVLAPIController extends Controller
     public function getDefaulted(Request $request)
     {
         $query = Loan::where('loan_product_id', 0)
-            ->where('status', 'defaulted')
             ->whereNotNull('first_repayment_date')
-            ->where('first_repayment_date', '<', Carbon::now()->subMonth())
-            ->with(['client', 'vehicle'])
+            ->where('first_repayment_date', '<', Carbon::now())
+            ->with(['client', 'vehicle', 'transactions'])
             ->orderBy('first_repayment_date', 'asc');
 
         $page = $request->input('page', 1);
@@ -178,14 +177,27 @@ class MVLAPIController extends Controller
         return response()->json([
             'success' => true,
             'records' => $loans->map(function ($loan) {
+                $debit = floatval($loan->transactions->sum('debit'));
+                $credit = floatval($loan->transactions->sum('credit'));
+                $balance = $debit - $credit;
+
                 return [
                     'id' => $loan->id,
                     'loan_id' => $loan->loan_id ?? $loan->id,
                     'client_name' => $loan->client ? $loan->client->first_name . ' ' . $loan->client->last_name : 'N/A',
                     'registration_number' => $loan->vehicle ? $loan->vehicle->registration_number : 'N/A',
-                    'principal' => $loan->principal ?? 0,
+                    'balance' => round($balance, 2),
                     'status' => $loan->status,
                     'created_date' => $loan->created_date ? \Carbon\Carbon::parse($loan->created_date)->format('Y-m-d H:i:s') : 'N/A',
+                    'transactions' => $loan->transactions->map(function ($t) {
+                        return [
+                            'id' => $t->id,
+                            'date' => $t->date ? \Carbon\Carbon::parse($t->date)->format('Y-m-d') : 'N/A',
+                            'transaction_type' => $t->transaction_type,
+                            'debit' => floatval($t->debit ?? 0),
+                            'credit' => floatval($t->credit ?? 0),
+                        ];
+                    }),
                 ];
             }),
             'pagination' => [

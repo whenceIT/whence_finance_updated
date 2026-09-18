@@ -334,15 +334,13 @@
                                 <td>{{ $vacancy->position->posted_date ? $vacancy->position->posted_date->diffForHumans() : 'N/A' }}</td>
                                 <td>{{ $vacancy->position->date_added ? $vacancy->position->date_added->format('Y-m-d') : 'N/A' }}</td>
                                 <td>
-                                    <form method="POST" action="{{ route('goa.position.remove', $vacancy->position->id) }}" style="display:inline;">
+                                    <form method="POST" action="{{ route('goa.position.remove', $vacancy->id) }}" style="display:inline;">
                                         @csrf
-                                        @method('POST')
                                         <button type="submit" class="btn btn-sm btn-danger">Remove</button>
                                     </form>
                                     <button class="btn btn-sm btn-info" onclick="viewPosition({{ $vacancy->position->id }})">View</button>
-                                    <form method="POST" action="{{ route('goa.position.fill', $vacancy->position->id) }}" style="display:inline;">
+                                    <form method="POST" action="{{ route('goa.position.fill', $vacancy->id) }}" style="display:inline;">
                                         @csrf
-                                        @method('POST')
                                         <button type="submit" class="btn btn-sm btn-success">Fill Position</button>
                                     </form>
                                 </td>
@@ -613,13 +611,16 @@
         });
 
         function viewPosition(id) {
-            fetch(`/goa_dashboard/position/${id}`)
-                .then(response => response.json())
+            fetch(`{{ url('goa_dashboard/position') }}/${id}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Server returned ' + response.status);
+                    return response.json();
+                })
                 .then(data => {
                     document.getElementById('modalPositionId').textContent = data.id;
                     document.getElementById('modalPositionName').textContent = data.name;
-                    document.getElementById('modalDepartment').textContent = data.department_id ? 'Department ' + data.department_id : 'N/A';
-                    document.getElementById('modalStatus').textContent = data.status;
+                    document.getElementById('modalDepartment').textContent = data.department || 'N/A';
+                    document.getElementById('modalStatus').textContent = data.status || 'N/A';
                     document.getElementById('modalJobDescription').textContent = data.job_description || 'N/A';
                     document.getElementById('modalPostedDate').textContent = data.posted_date || 'N/A';
                     document.getElementById('modalDateAdded').textContent = data.date_added || 'N/A';
@@ -627,6 +628,10 @@
                     document.getElementById('modalNumVacancies').textContent = data.num_of_vacancies || 0;
                     document.getElementById('modalNumActive').textContent = data.num_of_active || 0;
                     $('#positionModal').modal('show');
+                })
+                .catch(err => {
+                    alert('Could not load position details. Please try again.');
+                    console.error('viewPosition error:', err);
                 });
         }
     </script>
