@@ -1724,8 +1724,8 @@ K {{ number_format($transaction['credit'] ?? 0,2) }}
 @endsection
 
 <!-- MVL Records Bottom Sheet -->
-<div class="bottom-sheet-overlay" id="mvlRecordsOverlay">
-    <div class="bottom-sheet" id="mvlRecordsSheet" style="max-height: 85vh;">
+<div class="bottom-sheet-overlay" id="mvlRecordsOverlay" style="display: none;">
+    <div class="bottom-sheet" id="mvlRecordsSheet" style="max-height: 85vh; display: none;">
         <button class="bottom-sheet-close" id="closeMvlSheet">&times;</button>
         <div class="bottom-sheet-handle"></div>
         <div class="bottom-sheet-content">
@@ -1822,7 +1822,7 @@ $(function() {
         'vehicles': 'Vehicles',
         'portfolio': 'Total Portfolio Value',
         'collections': 'Total Collections',
-        'defaulted': '1 Month Defaulted'
+        'defaulted': 'Motor Vehicle Loans in Default'
     };
 
     $(document).on('click', '.small-box[data-endpoint]', function() {
@@ -1860,7 +1860,7 @@ $(function() {
                                 '<td>' + (record.loan_id || record.id) + '</td>' +
                                 '<td>' + record.client_name + '</td>' +
                                 '<td>' + record.registration_number + '</td>' +
-                                '<td>' + record.principal.toLocaleString() + '</td>' +
+                                '<td>' + (record.principal ? record.principal.toLocaleString() : (record.balance || 0).toLocaleString()) + '</td>' +
                                 '<td>' + record.status + '</td>' +
                                 '<td>' + record.created_date + '</td>' +
                                 '</tr>'
@@ -1897,21 +1897,21 @@ $(function() {
             fetchRecords(page);
         });
 
-        $('#mvlRecordsOverlay').addClass('active');
-        $('#mvlRecordsSheet').addClass('active');
+        $('#mvlRecordsOverlay').css('display', 'flex').addClass('active');
+        $('#mvlRecordsSheet').css('display', 'block').addClass('active');
         document.body.style.overflow = 'hidden';
     }
 
     $('#closeMvlSheet').on('click', function() {
-        $('#mvlRecordsOverlay').removeClass('active');
-        $('#mvlRecordsSheet').removeClass('active');
+        $('#mvlRecordsOverlay').css('display', 'none').removeClass('active');
+        $('#mvlRecordsSheet').css('display', 'none').removeClass('active');
         document.body.style.overflow = '';
     });
 
     $('#mvlRecordsOverlay').on('click', function(e) {
         if (e.target === this) {
-            $('#mvlRecordsOverlay').removeClass('active');
-            $('#mvlRecordsSheet').removeClass('active');
+            $('#mvlRecordsOverlay').css('display', 'none').removeClass('active');
+            $('#mvlRecordsSheet').css('display', 'none').removeClass('active');
             document.body.style.overflow = '';
         }
     });
