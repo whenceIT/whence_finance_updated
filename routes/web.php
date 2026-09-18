@@ -994,6 +994,8 @@ Route::group(['prefix' => 'loan'], function () {
     Route::get('recovery_case_approve/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseApprove');
     Route::get('recovery_case_decline/{id}', 'Recoveries\RecoveryCaseController@recoveryCaseDecline');
     Route::get('pending_client_app_applications','LoanController@pending_client_app_applications');
+    Route::get('defaulted-loans', 'LoanController@defaulted_loans')
+    ->name('defaulted-loans.index');
     Route::get('{id}/decline_client_application','LoanController@decline_client_application');
         Route::get('client_app_dashboard', [
         'as'   => 'client_app_dashboard',

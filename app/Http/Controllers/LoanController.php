@@ -363,6 +363,153 @@ public function search(Request $request)
     }
 
 
+     public function defaulted_loans(Request $request)
+    {
+        $defaultedLoans = [];
+
+        try {
+
+            $apiUrl = 'https://lms2backend.whencefinancesystem.com';
+
+            $response = Http::timeout(60)
+                ->get($apiUrl . '/defaulted-loans-all');
+
+            if ($response->successful()) {
+
+                $data = $response->json();
+
+                $defaultedLoans = $data['loans'] ?? [];
+
+            } else {
+
+                Log::error('Defaulted loans API returned an error', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+            }
+
+        } catch (\Exception $e) {
+
+            Log::error('Failed to load defaulted loans', [
+                'error' => $e->getMessage()
+            ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Total Defaulters
+        |--------------------------------------------------------------------------
+        */
+
+        $totalDefaulters = count($defaultedLoans);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | LC Defaulted Loan Counts
+        |--------------------------------------------------------------------------
+        |
+        | An LC is counted if they either:
+        | - vetted a defaulted loan
+        | - verified a defaulted loan
+        |
+        | If the same LC vetted AND verified the same loan, that loan is
+        | counted only once for that LC.
+        |
+        |--------------------------------------------------------------------------
+        */
+
+        $lcStats = [];
+
+
+        foreach ($defaultedLoans as $loan) {
+
+            $usersForLoan = [];
+
+            // Vetter
+            if (!empty($loan['vetted_by'])) {
+
+                $usersForLoan[$loan['vetted_by']] = [
+                    'id' => $loan['vetted_by'],
+                    'name' => $loan['vetted_by_name'] ?? 'Unknown'
+                ];
+
+            }
+
+            // Verifier
+            if (!empty($loan['verified_by'])) {
+
+                $usersForLoan[$loan['verified_by']] = [
+                    'id' => $loan['verified_by'],
+                    'name' => $loan['verified_by_name'] ?? 'Unknown'
+                ];
+
+            }
+
+
+            foreach ($usersForLoan as $userId => $user) {
+if (!isset($lcStats[$userId])) {
+
+    $lcStats[$userId] = [
+        'id' => $user['id'],
+        'name' => $user['name'],
+        'defaulted_loans' => 0,
+        'offices' => []
+    ];
+
+}
+
+$lcStats[$userId]['defaulted_loans']++;
+
+if (!empty($loan['office_name'])) {
+
+    $lcStats[$userId]['offices'][$loan['office_id']] =
+        $loan['office_name'];
+
+}
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sort LCs from most defaulted loans to least
+        |--------------------------------------------------------------------------
+        */
+
+     $lcStats = collect($lcStats)
+    ->map(function ($lc) {
+
+        $lc['offices'] = array_values($lc['offices']);
+
+        return $lc;
+
+    })
+    ->sortByDesc('defaulted_loans')
+    ->values()
+    ->all();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Number of LCs involved
+        |--------------------------------------------------------------------------
+        */
+
+        $totalLcs = count($lcStats);
+
+
+        return view('loan.defaulted_loans', compact(
+            'defaultedLoans',
+            'totalDefaulters',
+            'totalLcs',
+            'lcStats'
+        ));
+    }
+
+
     public function collections()
     {
         $userBranch = Sentinel::getUser()->office_id; //
