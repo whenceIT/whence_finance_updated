@@ -190,6 +190,135 @@
 
                 <!-- first row -->
                 <div class="row">
+
+
+                <div class="box box-danger">
+
+    <div class="box-header with-border"
+         style="cursor:pointer;"
+         data-toggle="collapse"
+         data-target="#defaultedLoansTable">
+
+        <h3 class="box-title">
+            <i class="fa fa-warning"></i>
+            Defaulted Loans Vetted or Verified by {{$first_name}} {{$last_name}}
+
+            @if(count($defaultedLoans) > 0)
+                <span class="label label-danger" style="margin-left:8px;">
+                    {{ count($defaultedLoans) }}
+                </span>
+            @endif
+        </h3>
+
+        <div class="box-tools pull-right">
+            <button type="button"
+                    class="btn btn-box-tool"
+                    data-toggle="collapse"
+                    data-target="#defaultedLoansTable">
+                <i class="fa fa-chevron-down"></i>
+            </button>
+        </div>
+
+    </div>
+
+
+    <div id="defaultedLoansTable" class="collapse">
+
+        <div class="box-body">
+
+            @if(count($defaultedLoans) > 0)
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover">
+
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Loan ID</th>
+                                <th>Office</th>
+                                <th>Loan Officer</th>
+                                <th>Created Date</th>
+                                <th>First Repayment</th>
+                                <th>Principal</th>
+                                <th>Balance</th>
+                                <th>Vetted By</th>
+                                <th>Verified By</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach($defaultedLoans as $index => $loan)
+
+                                <tr>
+
+                                    <td>
+                                        {{ $index + 1 }}
+                                    </td>
+
+                                    <td>
+                                        {{ $loan['loan_id'] }}
+                                    </td>
+
+                                    <td>
+                                        {{ $loan['office_name'] ?? 'N/A' }}
+                                    </td>
+
+                                    <td>
+                                        {{ $loan['loan_officer_name'] ?? 'N/A' }}
+                                    </td>
+
+                                    <td>
+                                        {{ $loan['created_date'] ?? 'N/A' }}
+                                    </td>
+
+                                    <td>
+                                        {{ $loan['first_repayment_date'] ?? 'N/A' }}
+                                    </td>
+
+                                    <td>
+                                        {{ number_format((float)($loan['principal'] ?? 0), 2) }}
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            {{ number_format((float)($loan['balance'] ?? 0), 2) }}
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        {{ $loan['vetted_by_name'] ?? 'N/A' }}
+                                    </td>
+
+                                    <td>
+                                        {{ $loan['verified_by_name'] ?? 'N/A' }}
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            @else
+
+                <div class="alert alert-success" style="margin-bottom:0;">
+                    <i class="fa fa-check-circle"></i>
+                    No defaulted loans found.
+                </div>
+
+            @endif
+
+        </div>
+
+    </div>
+
+</div>
                     <!-- cycle countdown -->
                     <?php
                     $MoneyGivenOut = 0;
@@ -494,18 +623,6 @@
                     </div>
 
 
-                        <div class="col-md-4 col-sm-6">
-                        <div class="small-box bg-red">
-                            <div class="inner">
-                                <h3>{{ number_format($data['carry_over'] ?? 0) }}</h3>
-                                <p>Carry Over</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-arrow-down"></i>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             @endif
 
@@ -667,7 +784,7 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
 
 
                 <!-- Short cut tools to: Loans, Collateral, Clients -->
-                @include('components.dashboard-shortcuts')
+               @include('components.dashboard-shortcuts')
 
 
                 <div style="margin-bottom:30px; margin-top:30px;">

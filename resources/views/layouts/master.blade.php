@@ -1387,7 +1387,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
             function showNotification(data) {
                 // Play notification sound
-                const audio = new Audio('https://www.myinstants.com/media/sounds/undertakers-bell_2UwFCIe.mp3'); // You can replace this URL with your own sound
+                const audio = new Audio('https://www.myinstants.com/media/sounds/cash-registere-sound-74680.mp3'); // You can replace this URL with your own sound
                 audio.play();
 
                 // Create the container div
