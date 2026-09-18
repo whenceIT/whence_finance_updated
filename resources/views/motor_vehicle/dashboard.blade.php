@@ -385,7 +385,144 @@ MVLs in Default
 
 <!-- ================= LOAN CONSULTANTS ================= -->
 
-<div class="box box-primary">
+<style>
+    .consultant-section .main-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        border: none;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        width: 100%;
+    }
+    .consultant-section .main-table thead {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: #fff;
+    }
+    .consultant-section .main-table thead th {
+        padding: 14px 16px;
+        border: none;
+        font-size: 13px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+    .consultant-section .main-table thead th:nth-child(4),
+    .consultant-section .main-table thead th:nth-child(5) { text-align: center; }
+    .consultant-section .main-table thead th:nth-child(n+6) { text-align: right; }
+    .consultant-section .main-table tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #e8e8e8;
+        cursor: pointer;
+    }
+    .consultant-section .main-table tbody tr:hover {
+        background: #f0f7ff;
+        box-shadow: inset 3px 0 0 #2a5298;
+    }
+    .consultant-section .main-table tbody td {
+        padding: 12px 16px;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+    .consultant-section .main-table .col-highlight { color: #2a5298; font-weight: 600; }
+    .consultant-section .main-table .col-positive { color: #2e7d32; font-weight: 600; }
+    .consultant-section .main-table .col-negative { color: #c62828; font-weight: 600; }
+    .consultant-section .main-table .col-muted { color: #555; }
+
+    .consultant-section .detail-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        border: 1px solid #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 13px;
+        width: 100%;
+    }
+    .consultant-section .detail-table thead {
+        background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+        color: #fff;
+    }
+    .consultant-section .detail-table thead th {
+        padding: 10px 12px;
+        border: none;
+        font-size: 12px;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+    .consultant-section .detail-table tbody tr {
+        transition: background 0.15s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .consultant-section .detail-table tbody tr:hover {
+        background: #f5fff5;
+    }
+    .consultant-section .detail-table tbody td {
+        padding: 10px 12px;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+    .consultant-section .detail-table .col-number { text-align: right; font-weight: 600; color: #333; }
+    .consultant-section .detail-table .col-status { font-weight: 600; padding: 3px 8px; border-radius: 4px; font-size: 12px; }
+    .consultant-section .detail-table .col-status.disbursed { background: #e8f5e9; color: #2e7d32; }
+    .consultant-section .detail-table .col-status.pending { background: #fff3e0; color: #e65100; }
+    .consultant-section .detail-table .col-status.overdue { background: #ffebee; color: #c62828; }
+    .consultant-section .detail-table .col-due { color: #1565c0; font-weight: 500; white-space: nowrap; }
+    .consultant-section .detail-table .col-default { color: #c62828; font-weight: 600; text-align: center; }
+    .consultant-section .detail-table .btn-expand { transition: all 0.2s ease; }
+    .consultant-section .detail-table .btn-expand:hover { transform: scale(1.05); }
+
+    .consultant-section .vehicle-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        border: 1px solid #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 13px;
+        width: 100%;
+    }
+    .consultant-section .vehicle-table thead {
+        background: linear-gradient(135deg, #fb8c00 0%, #ffa726 100%);
+        color: #fff;
+    }
+    .consultant-section .vehicle-table thead th {
+        padding: 10px 12px;
+        border: none;
+        font-size: 12px;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+    .consultant-section .vehicle-table tbody tr {
+        transition: background 0.15s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .consultant-section .vehicle-table tbody tr:hover {
+        background: #fff8e1;
+    }
+    .consultant-section .vehicle-table tbody td {
+        padding: 10px 12px;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+    .consultant-section .vehicle-table img {
+        border-radius: 4px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+    }
+    .consultant-section .vehicle-table img:hover {
+        transform: scale(1.08);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+</style>
+
+<div class="box box-primary consultant-section">
 
     <div class="box-header bg-blue">
 
@@ -397,53 +534,53 @@ MVLs in Default
     </div>
 
 
-    <div class="box-body table-responsive bg-blue">
+    <div class="box-body table-responsive bg-blue" style="padding: 20px; background: linear-gradient(135deg, #e8f0fe 0%, #d4e4fc 100%);">
 
 
-        <table class="table table-bordered table-hover">
+        <table class="table table-bordered table-hover" style="border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.1); border: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px;">
 
 
-            <thead class="bg-primary">
+            <thead style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: #fff;">
 
-                <tr>
+                <tr style="font-weight: 600; letter-spacing: 0.3px;">
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: left; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Loan Consultant
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: left; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Branch
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: left; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Province
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: center; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Loans
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: center; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Vehicles
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: right; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Given Out
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: right; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Expected Collections
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: right; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Expected Interest
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: right; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Collections
                     </th>
 
-                    <th>
+                    <th style="padding: 14px 16px; text-align: right; border: none; font-size: 13px; text-transform: uppercase; font-weight: 700;">
                         Uncollected
                     </th>
 
@@ -452,23 +589,25 @@ MVLs in Default
             </thead>
 
 
-            <tbody>
+            <tbody style="background: #fff;">
 
 
                 @foreach($consultantData['consultants'] as $index => $consultant)
 
 
                     <tr
-                        style="cursor:pointer"
+                        style="cursor:pointer; transition: all 0.2s ease; border-bottom: 1px solid #e8e8e8;"
+                        onmouseover="this.style.background='#f0f7ff'; this.style.boxShadow='inset 3px 0 0 #2a5298';"
+                        onmouseout="this.style.background=''; this.style.boxShadow='';"
                         data-toggle="collapse"
                         data-target="#consultant{{$index}}"
                         class="bg-info"
                     >
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px;">
 
-                            <i class="fa fa-plus-circle"></i>
+                            <i class="fa fa-plus-circle" style="color: #2a5298; margin-right: 6px;"></i>
 
                             <strong>
                                 {{ $consultant['consultant_name'] }}
@@ -477,47 +616,47 @@ MVLs in Default
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; color: #555;">
                             {{ $consultant['branch_name'] }}
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; color: #555;">
                             {{ $consultant['province_name'] }}
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; text-align: center; font-weight: 600; color: #2a5298;">
                             {{ number_format($consultant['number_of_loans']) }}
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; text-align: center; font-weight: 600; color: #2a5298;">
                             {{ number_format($consultant['number_of_vehicles']) }}
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; text-align: right; font-weight: 600; color: #333;">
                             K {{ number_format($consultant['given_out'] ?? 0, 2) }}
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; text-align: right; color: #555;">
                             K {{ number_format($consultant['expected_collections'] ?? 0, 2) }}
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; text-align: right; color: #555;">
                             K {{ number_format($consultant['expected_interest'] ?? 0, 2) }}
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; text-align: right; font-weight: 600; color: #2e7d32;">
                             K {{ number_format($consultant['total_collections'] ?? 0, 2) }}
                         </td>
 
 
-                        <td>
+                        <td style="padding: 12px 16px; font-size: 14px; text-align: right; font-weight: 600; color: #c62828;">
                             K {{ number_format($consultant['total_uncollected'] ?? 0, 2) }}
                         </td>
 
@@ -554,7 +693,7 @@ MVLs in Default
                                 <div class="box-body table-responsive">
 
 
-                                    <table class="table table-bordered table-striped">
+                                    <table class="detail-table">
 
 
                                         <thead>
@@ -728,7 +867,7 @@ MVLs in Default
                                                         <td colspan="13">
 
 
-                                                            <table class="table table-bordered table-condensed">
+                                                            <table class="vehicle-table">
 
 
                                                                 <thead>
@@ -1872,10 +2011,7 @@ $(function() {
             'Loan Consultant': function(r) { return r.loan_officer_name || 'N/A'; },
             'Registration': function(r) { return r.registration_number || 'N/A'; },
             'Balance': function(ep, r) {
-                if (ep === 'defaulted') return (r.balance || 0).toLocaleString();
-                if (ep === 'portfolio') return (r.debit || 0).toLocaleString();
-                if (ep === 'collections') return (r.credit || 0).toLocaleString();
-                return (r.principal || 0).toLocaleString();
+                return (r.balance || 0).toLocaleString();
             },
             'Portfolio': function(r) { return (r.debit || 0).toLocaleString(); },
             'Collected': function(r) { return (r.credit || 0).toLocaleString(); },
