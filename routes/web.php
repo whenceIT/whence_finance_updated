@@ -399,7 +399,7 @@ Route::group(['prefix' => 'recovery'], function () {
     Route::post('dept-shares/store', 'Recoveries\DeptSharesController@store')->name('recovery.dept-shares.store');
 });
 
-// GOA Manager routes
+// GOA Manager routes   
 Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('/', 'GOAController@index')->name('goa.index');
     Route::get('fleet-management', 'GOAController@fleetManagement')->name('goa.fleet-management');

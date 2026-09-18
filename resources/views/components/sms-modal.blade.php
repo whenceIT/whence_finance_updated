@@ -8,6 +8,7 @@
                 <select id="sms-type" name="message_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" required>
                     <option value="single">Single SMS</option>
                     <option value="overdue">Overdue Reminder</option>
+                    <option value="balances">Balances Reminder</option>
                 </select>
             </div>
             <div id="single-sms-fields">
@@ -61,7 +62,7 @@
 
         // Toggle fields based on message type
         $('#sms-type').on('change', function() {
-            if ($(this).val() === 'overdue') {
+            if ($(this).val() === 'overdue' || $(this).val() === 'balances') {
                 $('#single-sms-fields').hide();
                 $('#bulk-sms-fields').show();
                 $('#sms-phone').removeAttr('required');
@@ -82,7 +83,7 @@
             e.preventDefault();
             console.log('Form submitted');
             var formData = $(this).serialize();
-            var url = $('#sms-type').val() === 'overdue' ? '/api/send-bulk-sms' : '/api/send-sms';
+            var url = ($('#sms-type').val() === 'overdue' || $('#sms-type').val() === 'balances') ? '/api/send-bulk-sms' : '/api/send-sms';
             console.log('URL:', url, 'Data:', formData);
 
             $('#sms-response').html('<div style="color: #007bff;">Sending...</div>').show();
