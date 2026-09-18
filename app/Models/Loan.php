@@ -306,6 +306,60 @@ class Loan extends Model
         return DB::select($sql, $params);
     }
 
+    public function active_loans_by_office($office_id = null)
+    {
+        $office_condition = $office_id ? "l.office_id = ?" : "1=1";
+        $params = $office_id ? [$office_id] : [];
+
+        $sql = "SELECT
+
+            l.id,
+            l.account_number,
+            l.client_id,
+            l.loan_officer_id,
+            l.principal,
+            l.approved_amount,
+            l.disbursement_date,
+            l.first_repayment_date,
+            l.status,
+
+            CONCAT(c.first_name, ' ', c.last_name) AS client_name,
+            c.phone AS 'Client_Phone',
+
+            CONCAT(u_lo.first_name, ' ', u_lo.last_name) AS loan_officer_name,
+
+            CONCAT(u_created.first_name, ' ', u_created.last_name) AS created_by,
+            CONCAT(u_approved.first_name, ' ', u_approved.last_name) AS approved_by,
+            CONCAT(u_disbursed.first_name, ' ', u_disbursed.last_name) AS disbursed_by
+
+        FROM loans l
+
+        LEFT JOIN clients c
+            ON c.id = l.client_id
+
+        LEFT JOIN users u_lo
+            ON u_lo.id = l.loan_officer_id
+
+        LEFT JOIN users u_created
+            ON u_created.id = l.created_by_id
+
+        LEFT JOIN users u_approved
+            ON u_approved.id = l.approved_by_id
+
+        LEFT JOIN users u_disbursed
+            ON u_disbursed.id = l.disbursed_by_id
+
+        WHERE
+            {$office_condition}
+            AND l.status = 'disbursed'
+            AND l.first_repayment_date IS NOT NULL
+
+        ORDER BY
+            l.first_repayment_date ASC";
+
+        return DB::select($sql, $params);
+    }
+
     public function loan_remainder($officer_id = null)
     {
         $officer_condition = $officer_id ? "l.loan_officer_id = ?" : "1=1";

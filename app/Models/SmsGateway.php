@@ -88,14 +88,71 @@ class SmsGateway extends Model
     }
 
     //add sms function to send this message to clients remainder
-        public static function sendRepaymentClientRemindSms()
-        {
+    public static function sendRepaymentClientRemindSms()
+    {
 
-            $message = 'Hello ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ', your loan of ' . number_format($topup->amount, 2) . ' has been overdue. Please ensure that your loan is paid on time to avoid any legal actions. Thank you for choosing Merger Finance.';
+        $message = 'Hello ' . htmlspecialchars($client->first_name) . ' ' . htmlspecialchars($client->last_name) . ', your loan of ' . number_format($topup->amount, 2) . ' has been overdue. Please ensure that your loan is paid on time to avoid any legal actions. Thank you for choosing Merger Finance.';
+        $bulkSms = new BulkSMS();
+        return $bulkSms->sendToClients([$client], $message);
+    }
+
+    /**
+     * Send balance reminder SMS to all clients with active loans in an office.
+     *
+     * @param int $office_id
+     * @return array
+     */
+    public static function sendBalanceReminderSms($office_id)
+    {
+        $activeLoans = \DB::select("
+            SELECT 
+                l.id,
+                l.account_number,
+                l.principal,
+                l.approved_amount,
+                l.client_id,
+                CONCAT(c.first_name, ' ', c.last_name) AS client_name,
+                c.phone AS Client_Phone,
+                COALESCE((
+                    SELECT SUM(lt.debit) - SUM(lt.credit) 
+                    FROM loan_transactions lt 
+                    WHERE lt.loan_id = l.id
+                ), 0) AS balance
+            FROM loans l
+            LEFT JOIN clients c ON c.id = l.client_id
+            WHERE l.office_id = ?
+            AND l.status = 'disbursed'
+        ", [$office_id]);
+
+        $results = [];
+        foreach ($activeLoans as $loan) {
+            $client = (object) [
+                'first_name' => explode(' ', $loan->client_name)[0] ?? '',
+                'last_name' => explode(' ', $loan->client_name)[1] ?? '',
+                'phone' => $loan->Client_Phone,
+                'mobile' => $loan->Client_Phone,
+            ];
+
+            $balance = $loan->balance;
+            if ($balance === null || $balance === false || !is_numeric($balance)) {
+                $balance = null;
+            }
+
+            $principal = $loan->approved_amount ?? $loan->principal;
+
+            $message = 'Dear Customer, your loan of ZMW ' . number_format($principal, 2);
+            if ($balance !== null) {
+                $message .= ' has an outstanding balance of ZMW ' . number_format($balance, 2);
+            }
+            $message .= '. Please make your payment on time to avoid penalties. For assistance, contact 0773425477.';
+
             $bulkSms = new BulkSMS();
-            return $bulkSms->sendToClients([$client], $message);
+            $result = $bulkSms->sendToClients([$client], $message);
+            $results[] = $result;
         }
 
+        return $results;
+    }
 
 
 }
