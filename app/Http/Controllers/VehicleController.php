@@ -866,6 +866,12 @@ public function searchClients(Request $request)
 
     $defaultedMVL = $defaultedMVLDebit - $defaultedMVLCredit;
 
+    $defaultedMVLCount = Loan::where('loan_product_id', 0)
+        ->where('status', 'disbursed')
+        ->whereNotNull('first_repayment_date')
+        ->where('first_repayment_date', '<', Carbon::now())
+        ->count();
+
     $insuranceReminders = VehicleInsurance::with('vehicle.client')
         ->whereDate('expiry_date', '<=', $thirtyDays)
         ->orderBy('expiry_date', 'asc')
@@ -954,7 +960,8 @@ public function searchClients(Request $request)
                 'start_date',
                 'end_date',
                 'insuranceReminders',
-                'defaultedMVL'
+                'defaultedMVL',
+                'defaultedMVLCount'
             )
         );
 

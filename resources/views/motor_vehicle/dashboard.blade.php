@@ -351,7 +351,7 @@ Total Collections
 <div class="col-lg-3 col-xs-6">
 <div class="small-box bg-navy" style="cursor: pointer;" data-endpoint="defaulted">
 <div class="inner">
-<h3>{{ number_format($defaultedMVL) }}</h3>
+<h3>{{ number_format($defaultedMVLCount) }}</h3>
 <p>
 MVLs in Default (Count)
 <span class="fa fa-info-circle" style="color: #fff; cursor: help;" data-toggle="tooltip" data-placement="top" title="Total count of Motor Vehicle Loans (MVL) that have been in default (Past their due date).">
@@ -363,6 +363,8 @@ MVLs in Default (Count)
 </div>
 </div>
 </div>
+
+
 <div class="col-lg-3 col-xs-6">
 <div class="small-box bg-red" style="cursor: pointer;" data-endpoint="defaulted">
 <div class="inner">
@@ -1790,13 +1792,15 @@ K {{ number_format($transaction['credit'] ?? 0,2) }}
             <table class="table table-bordered table-striped" id="mvlRecordsTable" style="display:none;">
                 <thead>
                     <tr>
-                        <th>Loan ID</th>
+                        <th>Loan</th>
                         <th>Client</th>
                         <th>Loan Consultant</th>
                         <th>Registration</th>
                         <th>Balance</th>
+                        <th>Due Date</th>
                         <th>Status</th>
                         <th>Created</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="mvlRecordsBody">
@@ -1878,8 +1882,10 @@ $(function() {
                                 '<td>' + record.loan_officer_name + '</td>' +
                                 '<td>' + record.registration_number + '</td>' +
                                 '<td>' + (record.principal ? record.principal.toLocaleString() : (record.balance || 0).toLocaleString()) + '</td>' +
+                                '<td>' + (record.due_date ? moment(record.due_date).format('MMM D, YYYY') : 'N/A') + '</td>' +
                                 '<td>' + record.status + '</td>' +
                                 '<td>' + (record.created_date ? moment(record.created_date).format('MMM D, YYYY') + ' (' + moment(record.created_date).fromNow() + ')' : 'N/A') + '</td>' +
+                                '<td><a href="/motor-vehicle-loans/' + record.loan_id + '" class="btn btn-xs btn-primary" target="_blank">Show Loan</a> <a href="/vehicles/' + record.vehicle_id + '" class="btn btn-xs btn-info" target="_blank">Show Vehicle</a></td>' +
                                 '</tr>'
                             );
                         });

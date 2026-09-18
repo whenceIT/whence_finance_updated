@@ -177,8 +177,10 @@ class MVLAPIController extends Controller
                 l.id,
                 l.status,
                 l.created_date,
+                l.first_repayment_date,
                 CONCAT(c.first_name, ' ', c.last_name) AS client_name,
                 CONCAT(u.first_name, ' ', u.last_name) AS loan_officer_name,
+                v.id AS vehicle_id,
                 v.registration_number
             FROM loans l
             LEFT JOIN clients c ON c.id = l.client_id
@@ -220,7 +222,9 @@ class MVLAPIController extends Controller
                 'registration_number' => $loan->registration_number ?? 'N/A',
                 'balance' => round($balance, 2),
                 'status' => $loan->status,
+                'due_date' => $loan->first_repayment_date ? \Carbon\Carbon::parse($loan->first_repayment_date)->format('Y-m-d') : 'N/A',
                 'created_date' => $loan->created_date ? \Carbon\Carbon::parse($loan->created_date)->format('Y-m-d H:i:s') : 'N/A',
+                'vehicle_id' => $loan->vehicle_id ?? null,
                 'transactions' => $transArr,
             ];
         }
