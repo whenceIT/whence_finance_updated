@@ -2243,7 +2243,7 @@ $cycle_date = $cycleDate->format('Y-m-d');
             'end_date' => $end,
         ]);
 
-        $url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
+        $url = "https://lms2backend.whencefinancesystem.com/my-performance-new-admin?$query";
 
         $json = @file_get_contents($url);
         $data = $json ? json_decode($json, true) : null;
