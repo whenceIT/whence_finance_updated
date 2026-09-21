@@ -92,3 +92,5 @@ Route::prefix('mvl')->group(function () {
     Route::get('/collections', [\App\Http\Controllers\MVLAPIController::class, 'getCollections']);
     Route::get('/defaulted', [\App\Http\Controllers\MVLAPIController::class, 'getDefaulted']);
 });
+
+Route::post('/schedule/autolock', [\App\Http\Controllers\API\ScheduleController::class, 'runAutolock']);

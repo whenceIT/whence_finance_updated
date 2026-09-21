@@ -2002,6 +2002,40 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
         });
     </script>
 
+    @if($user && (int) $role === 1)
+        <script>
+            (function() {
+                function runAutolock() {
+                    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    var requestOptions = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : '',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'same-origin'
+                    };
+
+                    fetch("{{ url('/api/schedule/autolock') }}", requestOptions)
+                        .then(function(response) {
+                            return response.text();
+                        })
+                        .then(function(result) {
+                            console.log(result);
+                        })
+                        .catch(function(error) {
+                            console.error('Autolock error:', error);
+                        });
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    setInterval(runAutolock, 3 * 60 * 1000);
+                });
+            })();
+        </script>
+    @endif
+
     <!-- Toggle User Dropdown Script -->
     <script>
         function toggleUserDropdown(event) {
@@ -2116,23 +2150,32 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
         if (custodyIndicator) {
             custodyIndicator.addEventListener('click', function(e) {
                 e.preventDefault();
-                fetch('/vehicle-custody/pending-approval')
-                    .then(response => response.json())
+                fetch('/vehicles/vehicle-custody/pending-approval')
+                    .then(response => {
+                        if (!response.ok) return null;
+                        return response.json();
+                    })
                     .then(data => {
-                        if (data.success && data.data && data.data.length > 0) {
+                        if (data && data.success && data.data && data.data.length > 0) {
                             if (typeof showApproveCustodyModal === 'function') {
                                 showApproveCustodyModal(data.data[0]);
                             }
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error checking custody approvals:', error);
                     });
             });
         }
 
         // Auto-show modal on page load if there are pending approvals
-        fetch('/vehicle-custody/pending-approval')
-            .then(response => response.json())
+        fetch('/vehicles/vehicle-custody/pending-approval')
+            .then(response => {
+                if (!response.ok) return null;
+                return response.json();
+            })
             .then(data => {
-                if (data.success && data.data && data.data.length > 0) {
+                if (data && data.success && data.data && data.data.length > 0) {
                     // Update badge
                     const badge = document.getElementById('custodyApprovalBadge');
                     const indicator = document.getElementById('custodyApprovalIndicator');

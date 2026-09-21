@@ -2022,7 +2022,10 @@ class RiskController extends Controller
 
     public function exemptionList()
     {
-        return view('risk.exemption-list');
+        $depositTypes = \App\Models\DepositType::orderBy('name')->get();
+        $offices = \App\Models\Office::orderBy('name')->get();
+
+        return view('risk.exemption-list', compact('depositTypes', 'offices'));
     }
 
 
