@@ -46,12 +46,18 @@ class SmsController extends Controller
     {
         $request->validate([
             'message_type' => 'required|string',
-            'office_id' => 'required_if:message_type,overdue|integer',
+            'office_id' => 'required_if:message_type,overdue,balances|integer',
         ]);
 
         try {
             if ($request->message_type === 'overdue') {
                 $result = SmsGateway::sendOverdueSms($request->office_id);
+                return response()->json([
+                    'success' => true,
+                    'data' => $result,
+                ]);
+            } elseif ($request->message_type === 'balances') {
+                $result = SmsGateway::sendBalanceReminderSms($request->office_id);
                 return response()->json([
                     'success' => true,
                     'data' => $result,
