@@ -429,6 +429,22 @@ public function updateSetup(Request $request)
             ? ($earlyWarningResponse->json()['data'] ?? [])
             : [];
 
+
+            
+    // ✅ FETCH CONSULTANT TARGET TRIGGERING PATTERNS
+$triggeringPatternResponse = Http::timeout(60)->get(
+    'https://lms2backend.whencefinancesystem.com/consultants-target-triggering-pattern',
+    [
+        'start_date' => $start_date,
+        'end_date' => $end_date
+    ]
+);
+
+$triggeringPatternConsultants = $triggeringPatternResponse->successful()
+    ? ($triggeringPatternResponse->json()['data'] ?? [])
+    : [];
+
+
     } catch (\Exception $e) {
 
         // Keep dashboard working even if one API fails
@@ -454,7 +470,8 @@ public function updateSetup(Request $request)
         'start_date',
         'end_date',
         'targets_met',
-        'targetEarlyWarnings'
+        'targetEarlyWarnings',
+        'triggeringPatternConsultants'
     ));
 }
 

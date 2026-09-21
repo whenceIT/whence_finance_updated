@@ -568,6 +568,177 @@ These are the balances of all your loans as of  {{ date("jS M, Y", strtotime($st
     </div>
 </div>
 
+
+{{-- PERFORMANCE ANALYTICS --}}
+@if($data)
+
+<div class="box box-primary" style="margin-top: 25px;">
+
+    <div class="box-header with-border text-center">
+        <h3 class="box-title">
+            Performance Analytics
+        </h3>
+    </div>
+
+    <div class="box-body">
+
+        {{-- COLLECTION ANALYTICS --}}
+        <h4 class="text-center" style="margin-bottom: 20px;">
+            <i class="fa fa-money"></i> Collection Breakdown
+        </h4>
+
+        <div class="row">
+
+            <div class="col-md-4 col-sm-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-purple">
+                        <i class="fa fa-refresh"></i>
+                    </span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Reloan Collections</span>
+                        <span class="info-box-number">
+                            {{ $data['reloan_collections_percentage'] ?? '0.00' }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-green">
+                        <i class="fa fa-check"></i>
+                    </span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Full Payment Collections</span>
+                        <span class="info-box-number">
+                            {{ $data['full_payment_collections_percentage'] ?? '0.00' }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-yellow">
+                        <i class="fa fa-clock-o"></i>
+                    </span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Part Payment Collections</span>
+                        <span class="info-box-number">
+                            {{ $data['part_payment_collections_percentage'] ?? '0.00' }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <hr>
+
+        {{-- GIVEN OUT ANALYTICS --}}
+        <h4 class="text-center" style="margin-bottom: 20px;">
+            <i class="fa fa-arrow-up"></i> Money Given Out Breakdown
+        </h4>
+
+        <div class="row">
+
+            <div class="col-md-6 col-sm-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-purple">
+                        <i class="fa fa-refresh"></i>
+                    </span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Reloans Given Out</span>
+                        <span class="info-box-number">
+                            {{ $data['reloan_given_out_percentage'] ?? '0.00' }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-sm-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-aqua">
+                        <i class="fa fa-plus"></i>
+                    </span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">New Loans Given Out</span>
+                        <span class="info-box-number">
+                            {{ $data['new_loans_given_out_percentage'] ?? '0.00' }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <hr>
+
+        {{-- NEW CLIENTS --}}
+        <h4 class="text-center" style="margin-bottom: 20px;">
+            <i class="fa fa-users"></i> New Clients
+        </h4>
+
+        <div class="text-center" style="margin-bottom: 20px;">
+            <span style="font-size: 35px; font-weight: bold;">
+                {{ $data['new_clients_count'] ?? 0 }}
+            </span>
+
+            <div class="text-muted">
+                New clients during this period
+            </div>
+        </div>
+
+        @if(!empty($data['new_clients']))
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Client ID</th>
+                            <th>Client Name</th>
+                            <th>Joined Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach($data['new_clients'] as $client)
+                            <tr>
+                                <td>{{ $client['id'] }}</td>
+
+                                <td>
+                                    {{ $client['first_name'] }}
+                                    {{ $client['last_name'] }}
+                                </td>
+
+                                <td>
+                                    {{ $client['joined_date'] }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+        @else
+
+            <p class="text-center text-muted">
+                No new clients during this period.
+            </p>
+
+        @endif
+
+    </div>
+</div>
+
+@endif
+
+
   <div style="margin-bottom:30px; margin-top:30px;">
                     <p
                         style="display: flex;
