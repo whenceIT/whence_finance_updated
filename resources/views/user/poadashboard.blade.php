@@ -198,6 +198,305 @@
 </div>
 
 
+{{-- ========================================================= --}}
+{{-- CONSULTANT TARGET TRIGGERING PATTERN --}}
+{{-- ========================================================= --}}
+
+<div class="box box-warning">
+
+<div class="box-header with-border"
+     onclick="toggleTriggeringPattern()"
+     style="cursor:pointer;">
+
+    <h3 class="box-title">
+        <i class="fa fa-refresh"></i>
+        Target Triggering Pattern
+    </h3>
+
+    <div class="box-tools pull-right">
+
+        <span class="label label-warning"
+              style="font-size:13px; padding:6px 10px;">
+            {{ count($triggeringPatternConsultants ?? []) }} Consultant(s)
+        </span>
+
+        <button type="button"
+                class="btn btn-box-tool"
+                onclick="event.stopPropagation(); toggleTriggeringPattern();">
+
+            <i id="triggeringPatternArrow"
+               class="fa fa-chevron-down"></i>
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="box-body"
+     id="triggeringPatternBody"
+     style="display:none;">
+
+    @if(!empty($triggeringPatternConsultants) &&
+        count($triggeringPatternConsultants) > 0)
+
+        <div class="alert alert-warning"
+             style="margin-bottom:15px;">
+
+            <i class="fa fa-exclamation-triangle"></i>
+
+            <strong>Triggering Pattern:</strong>
+
+            The following loan consultants have
+            <strong>missed two consecutive targets and then met the
+            next target</strong>.
+
+            This pattern may indicate repeated avoidance of
+            three consecutive missed targets.
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover">
+
+                <thead style="background:#f4f4f4;">
+
+                    <tr>
+
+                        <th style="width:40px;">
+                            #
+                        </th>
+
+                        <th>
+                            Consultant
+                        </th>
+
+                        <th>
+                            Branch
+                        </th>
+
+                        <th>
+                            Target History
+                        </th>
+
+                        <th>
+                            Pattern
+                        </th>
+
+                        <th>
+                            Cycles
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @foreach($triggeringPatternConsultants as $index => $consultant)
+
+                        <tr>
+
+                            {{-- NUMBER --}}
+                            <td>
+                                {{ $index + 1 }}
+                            </td>
+
+
+                            {{-- CONSULTANT --}}
+                            <td>
+
+                                <strong>
+                                    {{ $consultant['name'] ?? 'N/A' }}
+                                </strong>
+
+                            </td>
+
+
+                            {{-- BRANCH --}}
+                            <td>
+
+                                {{ $consultant['office_name']
+                                    ?? $consultant['office_id']
+                                    ?? 'N/A' }}
+
+                            </td>
+
+
+                            {{-- TARGET HISTORY --}}
+                            <td>
+
+                                @php
+                                    $history =
+                                        $consultant['target_history'] ?? [];
+                                @endphp
+
+                                <div style="white-space:nowrap;">
+
+                                    @foreach($history as $value)
+
+                                        @if((int)$value === 1)
+
+                                            <span
+                                                title="Target Met"
+                                                style="
+                                                    display:inline-block;
+                                                    width:16px;
+                                                    height:16px;
+                                                    border-radius:50%;
+                                                    background:#00a65a;
+                                                    margin-right:4px;
+                                                    vertical-align:middle;
+                                                ">
+                                            </span>
+
+                                        @else
+
+                                            <span
+                                                title="Target Missed"
+                                                style="
+                                                    display:inline-block;
+                                                    width:16px;
+                                                    height:16px;
+                                                    border-radius:50%;
+                                                    background:#dd4b39;
+                                                    margin-right:4px;
+                                                    vertical-align:middle;
+                                                ">
+                                            </span>
+
+                                        @endif
+
+                                    @endforeach
+
+                                </div>
+
+                                <small class="text-muted">
+                                    Newest → oldest
+                                </small>
+
+                            </td>
+
+
+                            {{-- PATTERN --}}
+                            <td>
+
+                                <span class="label label-warning"
+                                      style="
+                                        font-size:12px;
+                                        padding:6px 9px;
+                                      ">
+
+                                    1 → 0 → 0
+
+                                </span>
+
+                                <br>
+
+                                <small class="text-muted">
+                                    Met → Missed → Missed
+                                </small>
+
+                            </td>
+
+
+                            {{-- CYCLES --}}
+                            <td>
+
+                                @php
+                                    $cycles =
+                                        $consultant['triggering_cycles']
+                                        ?? [];
+                                @endphp
+
+                                @foreach($cycles as $cycle)
+
+                                    <div style="margin-bottom:5px;">
+
+                                        @if(($cycle['status'] ?? '') === 'met')
+
+                                            <span class="label label-success">
+                                                MET
+                                            </span>
+
+                                        @else
+
+                                            <span class="label label-danger">
+                                                MISSED
+                                            </span>
+
+                                        @endif
+
+                                        <small>
+                                            {{ $cycle['cycle_start'] ?? '' }}
+                                            →
+                                            {{ $cycle['cycle_end'] ?? '' }}
+                                        </small>
+
+                                    </div>
+
+                                @endforeach
+
+                            </td>
+
+
+                            {{-- ACTION --}}
+                            <td>
+
+                                @if(!empty($consultant['user_id']))
+
+                                    <a href="/user/{{ $consultant['user_id'] }}/staff_info"
+                                       class="btn btn-xs btn-warning">
+
+                                        <i class="fa fa-user"></i>
+                                        View Consultant
+
+                                    </a>
+
+                                @endif
+
+                            </td>
+
+                        </tr>
+
+                    @endforeach
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    @else
+
+        <div class="alert alert-success"
+             style="margin-bottom:0;">
+
+            <i class="fa fa-check-circle"></i>
+
+            <strong>No triggering patterns.</strong>
+
+            No loan consultant has been identified with a
+            <strong>Met → Missed → Missed</strong>
+            target pattern in the reviewed cycles.
+
+        </div>
+
+    @endif
+
+</div>
+
+</div>
+
+
     <div class="box box-primary">
         <div class="box-header with-border">
             <h3 class="box-title">
@@ -825,6 +1124,37 @@ if (body.style.display === 'none') {
     arrow.classList.add('fa-chevron-down');
 
 }
+
+}
+
+
+function toggleTriggeringPattern() {
+
+    const body =
+        document.getElementById('triggeringPatternBody');
+
+    const arrow =
+        document.getElementById('triggeringPatternArrow');
+
+    if (!body || !arrow) {
+        return;
+    }
+
+    if (body.style.display === 'none') {
+
+        body.style.display = 'block';
+
+        arrow.classList.remove('fa-chevron-down');
+        arrow.classList.add('fa-chevron-up');
+
+    } else {
+
+        body.style.display = 'none';
+
+        arrow.classList.remove('fa-chevron-up');
+        arrow.classList.add('fa-chevron-down');
+
+    }
 
 }
 

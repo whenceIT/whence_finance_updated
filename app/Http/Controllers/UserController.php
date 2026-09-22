@@ -429,6 +429,22 @@ public function updateSetup(Request $request)
             ? ($earlyWarningResponse->json()['data'] ?? [])
             : [];
 
+
+            
+    // ✅ FETCH CONSULTANT TARGET TRIGGERING PATTERNS
+$triggeringPatternResponse = Http::timeout(60)->get(
+    'https://lms2backend.whencefinancesystem.com/consultants-target-triggering-pattern',
+    [
+        'start_date' => $start_date,
+        'end_date' => $end_date
+    ]
+);
+
+$triggeringPatternConsultants = $triggeringPatternResponse->successful()
+    ? ($triggeringPatternResponse->json()['data'] ?? [])
+    : [];
+
+
     } catch (\Exception $e) {
 
         // Keep dashboard working even if one API fails
@@ -454,7 +470,8 @@ public function updateSetup(Request $request)
         'start_date',
         'end_date',
         'targets_met',
-        'targetEarlyWarnings'
+        'targetEarlyWarnings',
+        'triggeringPatternConsultants'
     ));
 }
 
@@ -2226,7 +2243,7 @@ $cycle_date = $cycleDate->format('Y-m-d');
             'end_date' => $end,
         ]);
 
-        $url = "https://lms2backend.whencefinancesystem.com/my-performance-new?$query";
+        $url = "https://lms2backend.whencefinancesystem.com/my-performance-new-admin?$query";
 
         $json = @file_get_contents($url);
         $data = $json ? json_decode($json, true) : null;
