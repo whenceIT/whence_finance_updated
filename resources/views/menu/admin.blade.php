@@ -176,6 +176,7 @@ if (!Sentinel::check()) {
             <!-- ============================================
                  GOA MANAGER SECTION
             ============================================ -->
+            @hasRole('role.exec', 'role.goa')
             <li class="treeview @if(Request::is('goa_dashboard*')) active menu-open @endif">
                 <a href="#">
                     <i class="fa fa-building"></i> <span>GOA Manager</span>
@@ -201,7 +202,7 @@ if (!Sentinel::check()) {
                     </li>
                 </ul>
             </li>
-           
+           @endif
 
             @if($role == 4 || $role == 6)
             <li class="@if(Request::is('dashboard')) active @endif">
