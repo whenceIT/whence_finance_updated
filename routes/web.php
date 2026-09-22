@@ -416,6 +416,11 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('/', 'GOAController@index')->name('goa.index');
     Route::get('fleet-management', 'GOAController@fleetManagement')->name('goa.fleet-management');
     Route::get('vacancies-and-staffing', 'GOAController@vacanciesAndStaffing')->name('goa.vacancies-and-staffing');
+    Route::post('branch-staffing-capacity/store', 'GOAController@storeBranchCapacity')->name('goa.branch-capacity.store');
+    Route::get('branch-staffing-capacity', 'GOAController@branchStaffingCapacity')->name('goa.branch-staffing-capacity');
+    Route::post('branch-staffing-capacity/vacancy', 'GOAController@storeVacancy')->name('goa.branch-vacancy.store');
+    Route::put('branch-staffing-capacity/vacancy/{id}', 'GOAController@updateVacancy')->name('goa.branch-vacancy.update');
+    Route::delete('branch-staffing-capacity/vacancy/{id}', 'GOAController@destroyVacancy')->name('goa.branch-vacancy.destroy');
     Route::resource('fleets', FleetController::class);
     Route::put('fleets/{fleet}/insurance', 'FleetController@updateInsurance')->name('fleets.update-insurance');
     Route::post('maintenance/store', 'FleetController@storeMaintenance')->name('maintenance.store');

@@ -172,7 +172,7 @@ if (!Sentinel::check()) {
             @endif
 
              
-            @hasRole('role.exec', 'role.goa')
+          
             <!-- ============================================
                  GOA MANAGER SECTION
             ============================================ -->
@@ -186,10 +186,22 @@ if (!Sentinel::check()) {
                 <ul class="treeview-menu">
                     <li><a href="{{ route('goa.index') }}"><i class="fa fa-circle-o"></i> Dashboard</a></li>
                     <li><a href="{{ route('goa.fleet-management') }}"><i class="fa fa-circle-o"></i> Fleet Management</a></li>
-                    <li><a href="{{ route('goa.vacancies-and-staffing') }}"><i class="fa fa-circle-o"></i> Vacancies & Staffing</a></li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-circle-o"></i> Vacancies & Staffing
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="{{ route('goa.vacancies-and-staffing') }}"><i class="fa fa-circle-o"></i> Manage Vacancy</a></li>
+                            <li><a href="{{ route('goa.branch-staffing-capacity') }}"><i class="fa fa-circle-o"></i> Branch Staffing Capacity</a></li>
+                           
+                        </ul>
+                    </li>
                 </ul>
             </li>
-            @endif
+           
 
             @if($role == 4 || $role == 6)
             <li class="@if(Request::is('dashboard')) active @endif">
