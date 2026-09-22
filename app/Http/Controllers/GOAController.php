@@ -260,6 +260,104 @@ class GOAController extends Controller
     }
 
     /**
+     * Display the recruitment pipeline dashboard.
+     *
+     * Shows a funnel/timeline view of the recruitment process for each vacancy
+     * across all branches or filtered by branch.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function recruitmentPipeline(Request $request)
+    {
+        $offices = Office::with(['district', 'province'])->where('active', 1)->orderBy('name')->get();
+        $positions = Position::orderBy('name')->get();
+
+        // Get selected office for filtering
+        $selectedOfficeId = $request->get('office_id');
+        $activeTab = 'recruitment-pipeline';
+        $selectedOffice = $selectedOfficeId
+            ? $offices->firstWhere('id', (int) $selectedOfficeId)
+            : null;
+
+        // Base query for vacancies
+        $vacancyQuery = Vacancy::with(['office', 'position.department']);
+
+        if ($selectedOffice) {
+            $vacancyQuery->where('office_id', $selectedOffice->id);
+        }
+
+        $vacancies = $vacancyQuery->orderBy('office_id')
+            ->orderBy('position_id')
+            ->orderByDesc('date_arose')
+            ->get();
+
+        // Group vacancies by office for summary
+        $vacanciesByOffice = $vacancies->groupBy('office_id');
+
+        // Calculate pipeline summary statistics
+        $pipelineStats = [
+            'vacancies' => $vacancies->sum('num_of_vacancies'),
+            'applicants' => $vacancies->sum('num_of_applicants'),
+            'total_applicants' => $vacancies->sum('num_of_applicants'),
+            'shortlisted' => $vacancies->sum('num_of_shortlisted'),
+            'interviewed' => $vacancies->whereIn('interview_status', ['Completed', 'In Progress'])->sum('num_of_shortlisted'),
+            'selected' => $vacancies->whereNotNull('selected_candidate')->where('selected_candidate', '!=', '')->count(),
+            'offers_issued' => $vacancies->whereIn('offer_status', ['Accepted', 'Pending'])->count(),
+            'reported' => $vacancies->whereNotNull('actual_reporting_date')->count(),
+        ];
+
+        // For each vacancy, calculate pipeline stages
+        $vacanciesWithPipeline = $vacancies->map(function ($vacancy) {
+            $numVacancies = $vacancy->num_of_vacancies ?? 0;
+            $applicants = $vacancy->num_of_applicants ?? 0;
+            $shortlisted = $vacancy->num_of_shortlisted ?? 0;
+            $interviewStatus = $vacancy->interview_status ?? 'Not Started';
+            $selectedCandidate = $vacancy->selected_candidate;
+            $offerStatus = $vacancy->offer_status ?? 'Not Made';
+            $actualReporting = $vacancy->actual_reporting_date;
+
+            // Determine interview count based on interview status
+            $interviewed = 0;
+            if (in_array($interviewStatus, ['Completed', 'In Progress'])) {
+                $interviewed = min($shortlisted, $numVacancies);
+            }
+
+            // Determine selected count
+            $selected = $selectedCandidate && $selectedCandidate !== '' ? 1 : 0;
+
+            // Determine offers issued
+            $offersIssued = in_array($offerStatus, ['Accepted', 'Pending']) ? 1 : 0;
+
+            // Determine reported
+            $reported = $actualReporting ? 1 : 0;
+
+            return [
+                'vacancy' => $vacancy,
+                'pipeline' => [
+                    'vacancies' => $numVacancies,
+                    'applicants' => $applicants,
+                    'shortlisted' => $shortlisted,
+                    'interviewed' => $interviewed,
+                    'selected' => $selected,
+                    'offers_issued' => $offersIssued,
+                    'reported' => $reported,
+                ],
+                'conversion_rates' => [
+                    'application_to_shortlist' => $applicants > 0 ? round(($shortlisted / $applicants) * 100, 1) : 0,
+                    'shortlist_to_interview' => $shortlisted > 0 ? round(($interviewed / $shortlisted) * 100, 1) : 0,
+                    'interview_to_select' => $interviewed > 0 ? round(($selected / $interviewed) * 100, 1) : 0,
+                    'select_to_offer' => $selected > 0 ? round(($offersIssued / $selected) * 100, 1) : 0,
+                    'offer_to_report' => $offersIssued > 0 ? round(($reported / $offersIssued) * 100, 1) : 0,
+                ],
+            ];
+        });
+
+        return view('goa.recruitment-pipeline', compact(
+            'offices', 'positions', 'selectedOffice', 'selectedOfficeId', 'vacanciesWithPipeline', 'pipelineStats', 'activeTab'
+        ));
+    }
+
+    /**
      * Compare approved capacity against current personnel for one scope
      * (a position within a branch, or the whole branch).
      *
@@ -437,5 +535,18 @@ class GOAController extends Controller
             'num_of_vacancies' => $position->num_of_vacancies,
             'num_of_active'    => $position->num_of_active,
         ]);
+    }
+
+    public function assignPosition(Request $request, $user)
+    {
+        $request->validate([
+            'position_id' => ['required', 'integer', 'exists:job_positions,id'],
+        ]);
+
+        $member = \App\Models\User::findOrFail($user);
+        $member->position_id = $request->position_id;
+        $member->save();
+
+        return redirect()->back()->with('success', 'Position assigned to ' . $member->first_name . ' ' . $member->last_name . ' successfully.');
     }
 }

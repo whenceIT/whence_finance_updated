@@ -197,7 +197,7 @@ if (!Sentinel::check()) {
                         <ul class="treeview-menu">
                             <li><a href="{{ route('goa.vacancies-and-staffing') }}"><i class="fa fa-circle-o"></i> Manage Vacancy</a></li>
                             <li><a href="{{ route('goa.branch-staffing-capacity') }}"><i class="fa fa-circle-o"></i> Branch Staffing Capacity</a></li>
-                           
+                            <li><a href="{{ route('goa.recruitment-pipeline') }}"><i class="fa fa-circle-o"></i> Recruitment Pipeline</a></li>
                         </ul>
                     </li>
                 </ul>

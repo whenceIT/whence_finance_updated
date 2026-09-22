@@ -418,6 +418,7 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::get('vacancies-and-staffing', 'GOAController@vacanciesAndStaffing')->name('goa.vacancies-and-staffing');
     Route::post('branch-staffing-capacity/store', 'GOAController@storeBranchCapacity')->name('goa.branch-capacity.store');
     Route::get('branch-staffing-capacity', 'GOAController@branchStaffingCapacity')->name('goa.branch-staffing-capacity');
+    Route::get('recruitment-pipeline', 'GOAController@recruitmentPipeline')->name('goa.recruitment-pipeline');
     Route::post('branch-staffing-capacity/vacancy', 'GOAController@storeVacancy')->name('goa.branch-vacancy.store');
     Route::put('branch-staffing-capacity/vacancy/{id}', 'GOAController@updateVacancy')->name('goa.branch-vacancy.update');
     Route::delete('branch-staffing-capacity/vacancy/{id}', 'GOAController@destroyVacancy')->name('goa.branch-vacancy.destroy');
@@ -431,6 +432,7 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::post('vacancy/{id}/remove', 'GOAController@removePosition')->name('goa.position.remove');
     Route::post('vacancy/{id}/fill', 'GOAController@fillPosition')->name('goa.position.fill');
     Route::get('position/{id}', 'GOAController@showPosition')->name('goa.position.show');
+    Route::patch('personnel/{user}/assign-position', 'GOAController@assignPosition')->name('goa.personnel.assign-position');
 });
 
 Route::group(['prefix' => 'vehicles'], function () {
