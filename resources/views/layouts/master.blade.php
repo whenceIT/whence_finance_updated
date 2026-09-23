@@ -869,6 +869,18 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-cog" style="font-size: 18px;"></i>
                 </a>
+                {{-- Conference countdown (mobile) — rendered here, script lives in the desktop include above --}}
+                <a href="#" onclick="$('#conferenceModal').modal('show'); return false;"
+                   title="Conference Countdown"
+                   style="color:#ffffff; position:absolute; left:10px; top:50%; transform:translateY(-50%);
+                          display:flex; align-items:center; justify-content:center; gap:4px;
+                          height:34px; padding:0 8px; border-radius:7px;
+                          background:linear-gradient(135deg,rgba(255,200,0,.25),rgba(255,100,0,.25));
+                          border:1px solid rgba(255,200,0,.5);
+                          text-decoration:none; cursor:pointer; white-space:nowrap; font-size:10px; font-weight:700;">
+                    <span>🏆</span>
+                    <span id="confTimerMobile" style="color:#ffe066; letter-spacing:.04em;">--d --h --m</span>
+                </a>
             </div>
             <style>
                 /* Desktop header: visible on screens >= 768px */
@@ -978,7 +990,20 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
-                    <!-- Add a Notification  -->
+                <!-- Conference Countdown (desktop) -->
+                <a href="#" onclick="$('#conferenceModal').modal('show'); return false;"
+                   title="Annual Management Conference – 15 Oct 2026"
+                   style="margin-top:2px; margin-right:155px; color:#ffffff; position:absolute; right:70px;
+                          display:flex; align-items:center; justify-content:center; gap:5px;
+                          height:40px; padding:0 10px; border-radius:8px;
+                          background:linear-gradient(135deg,rgba(255,200,0,.22),rgba(255,100,0,.22));
+                          border:1px solid rgba(255,200,0,.45);
+                          text-decoration:none; cursor:pointer; white-space:nowrap;
+                          font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase;">
+                    <span style="font-size:14px;">🏆</span>
+                    <span id="confTimerDesktop" style="letter-spacing:.06em; color:#ffe066;">--d --h --m --s</span>
+                </a>
+                <!-- Add a Notification  -->
                 <a href="#" onclick="toggleNotificationDropdown(event); return false;"
                     style="margin-top:2px; margin-right: 90px; color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-bell" style="font-size: 18px;"></i>
@@ -2202,6 +2227,7 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
     @include('components.vacancy-alert-popup')
     @include('components.insurance-alert-popup')
+    @include('components.conference-countdown')
 
 </body>
 

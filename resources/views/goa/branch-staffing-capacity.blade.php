@@ -891,8 +891,8 @@
                 </div>
                 <div class="capacity-kpi kpi-vacant">
                     <span class="capacity-kpi-label">Total Vacancies</span>
-                    <span class="capacity-kpi-value">{{ number_format($overallMetrics['vacancy']) }}</span>
-                    <span class="capacity-kpi-note">Company-wide staffing gap</span>
+                    <span class="capacity-kpi-value">{{ number_format(max($overallMetrics['approved'] - $overallMetrics['current'], 0)) }}</span>
+                    <span class="capacity-kpi-note">Approved capacity &minus; current personnel</span>
                 </div>
                 <div class="capacity-kpi kpi-staffing">
                     <span class="capacity-kpi-label">Overall Staffing Level</span>

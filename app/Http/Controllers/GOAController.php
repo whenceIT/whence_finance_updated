@@ -57,6 +57,16 @@ class GOAController extends Controller
             ->count();
         $fillRate = $approvedTotal > 0 ? round(($personnelTotal / $approvedTotal) * 100) : 0;
 
+        // Recruitment pipeline statistics (all branches)
+        $pipelineTotalVacancies = Vacancy::where('recruitment_status', '!=', 'Filled')
+            ->where('recruitment_status', '!=', 'Cancelled')
+            ->sum('num_of_vacancies');
+        $pipelineTotalApplicants = Vacancy::sum('num_of_applicants');
+        $pipelineTotalShortlisted = Vacancy::sum('num_of_shortlisted');
+        $pipelineTotalOffersIssued = Vacancy::whereIn('offer_status', ['Pending', 'Accepted'])
+            ->count();
+        $pipelineTotalReported = Vacancy::whereNotNull('actual_reporting_date')->count();
+
         // Maintenance statistics
         $scheduledMaintenance = FleetMaintenanceSchedule::where('status', 'pending')->count();
         $overdueMaintenance = FleetMaintenanceSchedule::where('status', 'pending')
@@ -70,6 +80,9 @@ class GOAController extends Controller
         return view('goa.index', compact(
             'totalVehicles', 'activeVehicles', 'maintenanceVehicles', 'outOfServiceVehicles', 'utilization',
             'avgVehicleAge', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'fillRate',
+            'approvedTotal', 'personnelTotal',
+            'pipelineTotalVacancies', 'pipelineTotalApplicants', 'pipelineTotalShortlisted',
+            'pipelineTotalOffersIssued', 'pipelineTotalReported',
             'scheduledMaintenance', 'overdueMaintenance', 'thisMonthMaintenance', 'insuranceExpired', 'insuranceUpToDate',
             'insuranceExpiredRecent', 'insuranceExpiringSoon', 'maintenanceSoon', 'insurancePastDue', 'maintenancePastDue', 'monthlyMaintenanceCost'
         ));

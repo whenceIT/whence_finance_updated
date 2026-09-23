@@ -4278,19 +4278,12 @@ $new_balance = $debit_amount - $credit_amount;
         //     Flash::warning(trans('general.permission_denied'));
         //     return redirect()->back();
         // }
-        $current_balance = 0;
-        $out = 0;
-        $in = 0;
-        $Loan = Loan::with('transactions')->where('id', $loan_transaction->loan_id)->first();
-        foreach ($Loan->transactions as $transaction) {
-            $out = $out + $transaction->debit;
-            $in = $in + $transaction->credit;
-        }
-        $current_balance = $out - $in;
+        $Loan = Loan::where('id', $loan_transaction->loan_id)->first();
+        $current_balance = GeneralHelper::new_new_loan_total_balance($Loan->id);
         // Handle reloan payment
-        if ($loan_transaction->payment_apply_to == 'reloan_payment') {
-            $current_balance += 0.4 * $current_balance;
-        }
+        // if ($loan_transaction->payment_apply_to == 'reloan_payment') {
+        //     $current_balance += 0.4 * $current_balance;
+        // }
 
         // Ensure balance is not negative
         if ($current_balance < 0) {
