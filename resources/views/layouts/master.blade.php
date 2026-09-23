@@ -865,14 +865,10 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                         style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
                 </a> -->
                 <!-- Tools Menu (visible on mobile) -->
-                <a href="#" onclick="toggleUserDropdown(event); return false;"
-                    style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
-                    <i class="fa fa-cog" style="font-size: 18px;"></i>
-                </a>
-                {{-- Conference countdown (mobile) — rendered here, script lives in the desktop include above --}}
+                {{-- Conference countdown (mobile) — right side, left of cog --}}
                 <a href="#" onclick="$('#conferenceModal').modal('show'); return false;"
                    title="Conference Countdown"
-                   style="color:#ffffff; position:absolute; left:10px; top:50%; transform:translateY(-50%);
+                   style="color:#ffffff; position:absolute; right:60px; top:50%; transform:translateY(-50%);
                           display:flex; align-items:center; justify-content:center; gap:4px;
                           height:34px; padding:0 8px; border-radius:7px;
                           background:linear-gradient(135deg,rgba(255,200,0,.25),rgba(255,100,0,.25));
@@ -880,6 +876,10 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                           text-decoration:none; cursor:pointer; white-space:nowrap; font-size:10px; font-weight:700;">
                     <span>🏆</span>
                     <span id="confTimerMobile" style="color:#ffe066; letter-spacing:.04em;">--d --h --m</span>
+                </a>
+                <a href="#" onclick="toggleUserDropdown(event); return false;"
+                    style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
+                    <i class="fa fa-cog" style="font-size: 18px;"></i>
                 </a>
             </div>
             <style>
