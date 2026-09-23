@@ -46,4 +46,9 @@ class Position extends Model
                     ->withPivot(['created_at', 'updated_at'])
                     ->withTimestamps();
     }
+
+    public function vacancies()
+    {
+        return $this->hasMany(Vacancy::class, 'position_id');
+    }
 }

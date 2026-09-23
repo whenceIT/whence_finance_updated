@@ -904,7 +904,76 @@
                     <div class="capacity-progress">
                         <span class="{{ $overallBarClass }}" style="width: {{ $overallPct === null ? 0 : min($overallPct, 100) }}%;"></span>
                     </div>
-</div>
+                </div>
+            </div>
+
+            {{-- Branch comparison table --}}
+            <div class="table-responsive">
+                <table class="table table-striped capacity-table">
+                    <thead>
+                        <tr>
+                            <th>Branch</th>
+                            <th>District</th>
+                            <th>Province</th>
+                            <th class="text-right">Approved</th>
+                            <th class="text-right">Current</th>
+                            <th class="text-right">Vacancies</th>
+                            <th class="text-right">Staffing %</th>
+                            <th class="text-right">Vacancy %</th>
+                            <th>Structure</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($branchSummary as $summary)
+                            @php
+                                $summaryPct = $summary['staffing_percentage'];
+                                $summaryBadge = $summaryPct === null ? 'muted' : ($summaryPct >= 90 ? 'ok' : ($summaryPct >= 70 ? 'warn' : 'critical'));
+                            @endphp
+                            <tr class="{{ $summary['vacancy'] > 0 ? 'capacity-row-warning' : '' }}">
+                                <td>
+                                    <strong>{{ $summary['office']->name }}</strong>
+                                    @if((int) $selectedOfficeId === (int) $summary['office']->id)
+                                        <span class="capacity-badge info">selected</span>
+                                    @endif
+                                </td>
+                                <td>{{ $summary['office']->district->name ?? '&mdash;' }}</td>
+                                <td>{{ $summary['office']->province->name ?? '&mdash;' }}</td>
+                                <td class="text-right">{{ $summary['approved'] }}</td>
+                                <td class="text-right">{{ $summary['current'] }}</td>
+                                <td class="text-right">
+                                    @if($summary['vacancy'] > 0)
+                                        <span class="capacity-badge critical">{{ $summary['vacancy'] }}</span>
+                                    @else
+                                        <span class="capacity-badge ok">0</span>
+                                    @endif
+                                </td>
+                                <td class="text-right">
+                                    <span class="capacity-badge {{ $summaryBadge }}">{{ $summaryPct === null ? 'N/A' : $summaryPct . '%' }}</span>
+                                </td>
+                                <td class="text-right">{{ $summary['vacancy_percentage'] }}%</td>
+                                <td>
+                                    @if($summary['structure_defined'])
+                                        <span class="capacity-badge ok">Captured</span>
+                                    @else
+                                        <span class="capacity-badge muted">Headcount only</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <a href="{{ route('goa.branch-staffing-capacity', ['office_id' => $summary['office']->id, 'tab' => 'dashboard']) }}"
+                                       class="btn btn-xs btn-default">
+                                       <i class="fa fa-search"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="10" class="text-center text-muted">No active branches found.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         {{-- ==================================================================
               RECRUITMENT PIPELINE — track recruitment process overview
          =================================================================== --}}
@@ -1013,75 +1082,9 @@
                 </div>
             @endif
         </div>
-     </div>
-            <div class="table-responsive">
-                <table class="table table-striped capacity-table">
-                    <thead>
-                        <tr>
-                            <th>Branch</th>
-                            <th>District</th>
-                            <th>Province</th>
-                            <th class="text-right">Approved</th>
-                            <th class="text-right">Current</th>
-                            <th class="text-right">Vacancies</th>
-                            <th class="text-right">Staffing %</th>
-                            <th class="text-right">Vacancy %</th>
-                            <th>Structure</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($branchSummary as $summary)
-                            @php
-                                $summaryPct = $summary['staffing_percentage'];
-                                $summaryBadge = $summaryPct === null ? 'muted' : ($summaryPct >= 90 ? 'ok' : ($summaryPct >= 70 ? 'warn' : 'critical'));
-                            @endphp
-                            <tr class="{{ $summary['vacancy'] > 0 ? 'capacity-row-warning' : '' }}">
-                                <td>
-                                    <strong>{{ $summary['office']->name }}</strong>
-                                    @if((int) $selectedOfficeId === (int) $summary['office']->id)
-                                        <span class="capacity-badge info">selected</span>
-                                    @endif
-                                </td>
-                                <td>{{ $summary['office']->district->name ?? '&mdash;' }}</td>
-                                <td>{{ $summary['office']->province->name ?? '&mdash;' }}</td>
-                                <td class="text-right">{{ $summary['approved'] }}</td>
-                                <td class="text-right">{{ $summary['current'] }}</td>
-                                <td class="text-right">
-                                    @if($summary['vacancy'] > 0)
-                                        <span class="capacity-badge critical">{{ $summary['vacancy'] }}</span>
-                                    @else
-                                        <span class="capacity-badge ok">0</span>
-                                    @endif
-                                </td>
-                                <td class="text-right">
-                                    <span class="capacity-badge {{ $summaryBadge }}">{{ $summaryPct === null ? 'N/A' : $summaryPct . '%' }}</span>
-                                </td>
-                                <td class="text-right">{{ $summary['vacancy_percentage'] }}%</td>
-                                <td>
-                                    @if($summary['structure_defined'])
-                                        <span class="capacity-badge ok">Captured</span>
-                                    @else
-                                        <span class="capacity-badge muted">Headcount only</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <a href="{{ route('goa.branch-staffing-capacity', ['office_id' => $summary['office']->id, 'tab' => 'dashboard']) }}"
-                                       class="btn btn-xs btn-default">
-                                        <i class="fa fa-search"></i> View
-                                    </a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="10" class="text-center text-muted">No active branches found.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
         {{-- ==================================================================
-             VACANCY REGISTER — every vacancy with its recruitment tracking
-        =================================================================== --}}
+              VACANCY REGISTER — every vacancy with its recruitment tracking
+         =================================================================== --}}
         <div class="capacity-section {{ $activeTab === 'vacancies' ? 'active' : '' }}" id="vacancies" role="tabpanel">
             <h5 class="capacity-section-title" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.3), 0 4px 8px -4px rgba(0, 0, 0, 0.05);">
                 <i class="fa fa-briefcase"></i> Vacancy Register &mdash; {{ $selectedOffice->name ?? 'No branch selected' }}
@@ -1261,8 +1264,36 @@
                         </div>
                         <div class="capacity-field">
                             <label for="vacancyReason">Reason for Vacancy</label>
-                            <input type="text" class="form-control" id="vacancyReason" name="reason"
-                                   value="{{ old('reason') }}" placeholder="Resignation, transfer, new position...">
+                            <select class="form-control" id="vacancyReason" name="reason">
+                                <option value="" disabled {{ old('reason') ? '' : 'selected' }}>-- Select Reason --</option>
+                                @php
+                                    $vacancyReasons = [
+                                        'New Position'                  => 'New Position – Newly created position due to business growth or expansion.',
+                                        'Employee Resignation'          => 'Employee Resignation – Previous employee resigned.',
+                                        'Employee Termination'          => 'Employee Termination – Previous employee was terminated.',
+                                        'Employee Retirement'           => 'Employee Retirement – Previous employee retired.',
+                                        'Employee Transfer'             => 'Employee Transfer – Previous employee transferred to another branch or department.',
+                                        'Promotion'                     => 'Promotion – Previous employee was promoted to another position.',
+                                        'Internal Transfer'             => 'Internal Transfer – Position became vacant due to an internal movement.',
+                                        'Employee Death'                => 'Employee Death – Position became vacant following the death of the employee.',
+                                        'Contract Expired'              => 'Contract Expired – Previous employee\'s contract ended.',
+                                        'Replacement'                   => 'Replacement – Vacancy created to replace an existing employee.',
+                                        'Branch Expansion'              => 'Branch Expansion – Additional staff required due to branch expansion.',
+                                        'Increased Workload'            => 'Increased Workload – Additional staff required because of increased workload.',
+                                        'New Branch/Office'             => 'New Branch/Office – Staff required for a newly opened branch or office.',
+                                        'Organizational Restructuring'  => 'Organizational Restructuring – Vacancy created following organizational changes.',
+                                        'Temporary Vacancy'             => 'Temporary Vacancy – Position temporarily vacant due to leave or absence.',
+                                        'Maternity/Parental Leave'      => 'Maternity/Parental Leave – Temporary replacement required.',
+                                        'Long-Term Leave'               => 'Long-Term Leave – Temporary replacement required for an employee on extended leave.',
+                                        'Skills Gap'                    => 'Skills Gap – Additional employee required to address a skills shortage.',
+                                        'Staffing Adjustment'           => 'Staffing Adjustment – Position required to bring staffing levels in line with approved capacity.',
+                                        'Other'                         => 'Other – Reason not covered by the available options.',
+                                    ];
+                                @endphp
+                                @foreach($vacancyReasons as $value => $label)
+                                    <option value="{{ $value }}" {{ old('reason') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="capacity-field">
                             <label for="vacancyRecruitmentStatus">Recruitment Status</label>

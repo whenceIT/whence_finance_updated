@@ -45,12 +45,17 @@ class GOAController extends Controller
             ->first()->avg_age ?? 0;
         $avgVehicleAge = round($avgVehicleAge, 1);
 
-        // Positions statistics
+        // Positions statistics — approved capacity vs current personnel (all branches)
         $totalPositions = Position::count();
-        $filledPositions = Position::where('is_vacant', 0)->count();
-        $vacantPositions = Position::where('is_vacant', 1)->count();
-        $inProcessPositions = Position::where('status', 'In Review')->count();
-        $fillRate = $totalPositions > 0 ? round(($filledPositions / $totalPositions) * 100) : 0;
+        $approvedTotal = Office::where('active', 1)->sum('branch_capacity');
+        $personnelTotal = User::whereIn('status', ['Active', 'active'])
+            ->whereNotNull('office_id')
+            ->count();
+        $filledPositions = $personnelTotal;
+        $vacantPositions = max($approvedTotal - $personnelTotal, 0);
+        $inProcessPositions = Vacancy::whereIn('recruitment_status', ['Advertising', 'Shortlisting', 'Interviewing', 'Offer Made'])
+            ->count();
+        $fillRate = $approvedTotal > 0 ? round(($personnelTotal / $approvedTotal) * 100) : 0;
 
         // Maintenance statistics
         $scheduledMaintenance = FleetMaintenanceSchedule::where('status', 'pending')->count();
@@ -103,23 +108,36 @@ class GOAController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function vacanciesAndStaffing()
+     public function vacanciesAndStaffing()
     {
-        $positions = Position::where('is_vacant', 1)->get();
+        $positions = Position::orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
-        $vacancies = Vacancy::with(['position.department', 'office'])->get();
+        $vacancies = Vacancy::with(['position.department', 'office'])
+            ->whereNotIn('recruitment_status', ['Filled', 'Cancelled'])
+            ->whereNull('actual_reporting_date')
+            ->get();
         $offices = Office::where('active', 1)->orderBy('name')->get();
 
-        // Staffing statistics
-        $totalPositions = Position::count();
-        $filledPositions = Position::where('is_vacant', 0)->count();
-        $vacantPositions = $vacancies->count();
-        $inProcessPositions = Position::where('status', 'In Review')->count();
+        // Staffing statistics — approved capacity vs current personnel (all branches)
+        $approvedTotal = Office::where('active', 1)->sum('branch_capacity');
+        $personnelTotal = User::whereIn('status', ['Active', 'active'])
+            ->whereNotNull('office_id')
+            ->count();
+        $totalPositions = $approvedTotal;
+        $filledPositions = $personnelTotal;
+        $vacantPositions = max($approvedTotal - $personnelTotal, 0);
+        $inProcessPositions = Vacancy::whereIn('recruitment_status', ['Advertising', 'Shortlisting', 'Interviewing', 'Offer Made'])
+            ->count();
 
-        // Department stats
+        // Department stats — based on users per department vs department capacity
         foreach($departments as $dept) {
             $dept->total_positions = Position::where('department_id', $dept->id)->count();
-            $dept->filled_positions = Position::where('department_id', $dept->id)->where('is_vacant', 0)->count();
+            $dept->filled_positions = User::whereIn('status', ['Active', 'active'])
+                ->whereNotNull('position_id')
+                ->whereHas('position', function($q) use ($dept) {
+                    $q->where('department_id', $dept->id);
+                })->count();
+            $dept->vacant_positions = max(($dept->capacity > 0 ? $dept->capacity : $dept->total_positions) - $dept->filled_positions, 0);
         }
 
         // Recent hires (users with positions updated_at)
