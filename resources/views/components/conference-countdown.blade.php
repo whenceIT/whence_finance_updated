@@ -66,7 +66,16 @@
             </div>
 
             {{-- Body --}}
-            <div class="modal-body" style="padding:1.75rem;background:#fafafa;max-height:62vh;overflow-y:auto;">
+            <div class="modal-body" style="padding:0;background:#fafafa;max-height:62vh;overflow-y:auto;
+                 position:relative;
+                 background-image:url('https://img.magnific.com/premium-vector/conference-concept-illustration_114360-24472.jpg');
+                 background-repeat:no-repeat;
+                 background-position:bottom right;
+                 background-size:260px auto;">
+                {{-- frosted overlay so illustration doesn't overpower text --}}
+                <div style="position:relative;z-index:1;padding:1.75rem;
+                            background:linear-gradient(to bottom right, rgba(250,250,250,1) 55%, rgba(250,250,250,0.55) 100%);">
+
 
                 <div style="background:linear-gradient(135deg,#f0fdf4,#fefce8);border-left:4px solid #00a04a;
                              border-radius:0 10px 10px 0;padding:1rem 1.25rem;margin-bottom:1.25rem;">
@@ -75,12 +84,12 @@
                     </p>
                 </div>
 
-                <p style="color:#374151;font-size:.875rem;line-height:1.7;margin-bottom:1rem;">
+                <p style="color:#374151;font-size:.975rem;line-height:1.7;margin-bottom:1rem;">
                     This theme isn't just a title — it's a call to action. It invites each of us to reflect on
                     <strong>how we lead, how we own our roles and how we hold ourselves accountable</strong>,
                     ultimately translating our positions into <strong>measurable performance</strong>.
                 </p>
-                <p style="color:#374151;font-size:.875rem;line-height:1.7;margin-bottom:1.25rem;">
+                <p style="color:#374151;font-size:.975rem;line-height:1.7;margin-bottom:1.25rem;">
                     Prepare mentally and professionally. Come ready not just to <em>listen</em>, but to
                     <strong>participate, challenge ideas, share experiences and drive solutions</strong>.
                 </p>
@@ -90,38 +99,39 @@
                     <p style="margin:0 0 .5rem;font-weight:700;color:#1e293b;font-size:.88rem;">
                         🎤 A Different Kind of Conference
                     </p>
-                    <p style="margin:0;color:#4b5563;font-size:.845rem;line-height:1.65;">
+                    <p style="margin:0;color:#4b5563;font-size:.945rem;line-height:1.65;">
                         Expect <strong>open discussions, interactive sessions, round-table conversations,
                         brainstorming and practical management dialogues</strong>.
                         Your voice matters — this is your platform, not just a seat in the audience.
                     </p>
-                    <ul style="margin:.75rem 0 0;padding-left:1.25rem;color:#374151;font-size:.845rem;line-height:1.9;">
+                    <ul style="margin:.75rem 0 0;padding-left:1.25rem;color:#374151;font-size:.945rem;line-height:1.9;">
                         <li>Bring the issues you believe we need to address.</li>
                         <li>Bring ideas that can make us better.</li>
                         <li>Come ready to hear perspectives different from your own.</li>
                     </ul>
                 </div>
 
-                <div style="background:#fff3cd;border:1px solid #fbbf24;border-radius:10px;
+                <div style="background:rgba(255,243,205,0.55);border:1px solid #fbbf24;border-radius:10px;
                              padding:.85rem 1.1rem;margin-bottom:1.1rem;">
-                    <p style="margin:0;font-size:.845rem;color:#78350f;line-height:1.65;">
+                    <p style="margin:0;font-size:.945rem;color:#78350f;line-height:1.65;">
                         🎥 <strong>Live arrival interviews kick things off!</strong> From the moment you arrive,
                         be ready to share your thoughts, expectations and perspectives as we open the conference.
                     </p>
                 </div>
 
-                <div style="background:linear-gradient(135deg,#eff6ff,#ecfdf5);border-radius:10px;
+                <div style="background:linear-gradient(135deg,rgba(239,246,255,0.55),rgba(236,253,245,0.55));border-radius:10px;
                              padding:.85rem 1.1rem;border:1px solid #bfdbfe;">
                     <p style="margin:0;font-size:.845rem;color:#1e40af;line-height:1.65;font-weight:700;">
                         🎉 AND YES… WE WILL HAVE FUN!
                     </p>
-                    <p style="margin:.4rem 0 0;font-size:.83rem;color:#374151;line-height:1.65;">
+                    <p style="margin:.4rem 0 0;font-size:.93rem;color:#374151;line-height:1.65;">
                         A water-packed day with all roads leading to <strong>Kafue! 🌊🔥</strong>
                         Bring your <em>competitive spirit, your energy and your sense of adventure</em>. 😄
                     </p>
                 </div>
 
-            </div>
+                </div>{{-- /frosted overlay --}}
+            </div>{{-- /modal-body --}}
 
             {{-- Footer --}}
             <div class="modal-footer"
