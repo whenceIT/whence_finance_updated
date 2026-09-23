@@ -175,9 +175,31 @@
                             </div>
                         </div>
 
-                    </div>
+        </div>
+    </div>
+
+    {{-- ─── Branch Cash Balances ─────────────────────────────────────── --}}
+    <div class="row" style="margin-top: 10px;">
+        <div class="col-lg-12">
+
+            <div class="section-divider">
+                <span>Branch Cash Balances</span>
+            </div>
+
+            {{-- Shimmer skeleton while offices load --}}
+            <div id="branchBalancesShimmer">
+                <div class="branch-balance-grid">
+                    @for ($i = 0; $i < 6; $i++)
+                        <div class="bento-card branch-balance-card shimmer-card">
+                            <div class="shimmer-line" style="width:60%;height:12px;margin-bottom:10px;"></div>
+                            <div class="shimmer-line" style="width:40%;height:22px;"></div>
+                        </div>
+                    @endfor
                 </div>
             </div>
+
+            {{-- Actual cards injected by JS --}}
+            <div id="branchBalancesGrid" class="branch-balance-grid" style="display:none;"></div>
 
         </div>
     </div>
@@ -223,9 +245,107 @@
                 $el.find('.countdown-mins').text(minutes);
             }
 
-            updateCountdown();
+        updateCountdown();
             setInterval(updateCountdown, 60000); // Update every minute
         });
+
+        // ── Branch Cash Balances ────────────────────────────────────────
+        function formatBalance(val) {
+            if (val === null || val === undefined) return '—';
+            return 'K ' + Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function balanceClass(val) {
+            if (val === null || val === undefined) return 'branch-balance-card--unknown';
+            if (val < 0)   return 'branch-balance-card--negative';
+            if (val === 0) return 'branch-balance-card--zero';
+            return 'branch-balance-card--positive';
+        }
+
+        function buildCard(office, balance, err) {
+            var cls   = balanceClass(balance);
+            var label = formatBalance(balance);
+            var errMsg = err ? '<div class="bb-error">' + err + '</div>' : '';
+            return '<div class="bento-card branch-balance-card ' + cls + '">' +
+                     '<div class="card-top">' +
+                       '<div class="icon-wrap"><i class="fa fa-university"></i></div>' +
+                       (office.wallet_id
+                         ? '<span class="bb-wallet-chip"><i class="fa fa-link"></i></span>'
+                         : '<span class="bb-wallet-chip bb-wallet-chip--none"><i class="fa fa-chain-broken"></i></span>') +
+                     '</div>' +
+                     '<div class="card-bottom">' +
+                       '<div class="title">' + office.office_name + '</div>' +
+                       '<div class="value bb-value">' + label + '</div>' +
+                       errMsg +
+                     '</div>' +
+                   '</div>';
+        }
+
+        $.ajax({
+            url: '/cash_health/national/balances',
+            type: 'GET',
+            success: function(res) {
+                if (!res.success || !res.offices || res.offices.length === 0) {
+                    $('#branchBalancesShimmer').hide();
+                    $('#branchBalancesGrid')
+                        .html('<p class="text-muted text-center">No offices found.</p>')
+                        .show();
+                    return;
+                }
+
+                var offices   = res.offices;
+                var total     = offices.length;
+                var completed = 0;
+                var cards     = new Array(total);
+
+                // Placeholder cards in DOM order so they fill in as each resolves
+                offices.forEach(function(office, idx) {
+                    cards[idx] = null; // will be set when response arrives
+                });
+
+                function tryRender() {
+                    // Only reveal the grid once all requests are done
+                    if (completed < total) return;
+                    var html = '';
+                    cards.forEach(function(c) { html += c; });
+                    $('#branchBalancesShimmer').hide();
+                    $('#branchBalancesGrid').html(html).show();
+                }
+
+                offices.forEach(function(office, idx) {
+                    if (!office.wallet_id) {
+                        cards[idx] = buildCard(office, null, 'No wallet linked');
+                        completed++;
+                        tryRender();
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '/cash_health/national/balance/' + office.office_id,
+                        type: 'GET',
+                        success: function(data) {
+                            var balance = (data.success && data.balance !== undefined) ? data.balance : null;
+                            var errMsg  = (!data.success && data.message) ? data.message : null;
+                            cards[idx]  = buildCard(office, balance, errMsg);
+                        },
+                        error: function() {
+                            cards[idx] = buildCard(office, null, 'Failed to load');
+                        },
+                        complete: function() {
+                            completed++;
+                            tryRender();
+                        }
+                    });
+                });
+            },
+            error: function() {
+                $('#branchBalancesShimmer').hide();
+                $('#branchBalancesGrid')
+                    .html('<p class="text-danger text-center">Could not load branch list.</p>')
+                    .show();
+            }
+        });
+
     });
     </script>
 
@@ -414,6 +534,75 @@
     @media (max-width: 576px) {
         .bento-grid, .countdown-grid { grid-template-columns: 1fr; }
         .bento-card.big { grid-column: 1; }
+    }
+
+    /* ── Branch Cash Balance Cards ─────────────────────────────────── */
+    .branch-balance-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+    @media (max-width: 992px) { .branch-balance-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 576px) { .branch-balance-grid { grid-template-columns: 1fr; } }
+
+    .branch-balance-card {
+        background: linear-gradient(135deg, #2c3e6a 0%, #3b5aad 100%);
+        min-height: 130px;
+    }
+    .branch-balance-card--positive {
+        background: linear-gradient(135deg, #0f6e48 0%, #27ae60 100%);
+    }
+    .branch-balance-card--negative {
+        background: linear-gradient(135deg, #8e0a1e 0%, #c0392b 100%);
+    }
+    .branch-balance-card--zero {
+        background: linear-gradient(135deg, #6c757d 0%, #95a5a6 100%);
+    }
+    .branch-balance-card--unknown {
+        background: linear-gradient(135deg, #4a4e69 0%, #6b7289 100%);
+    }
+
+    .bb-value {
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.15;
+    }
+    .bb-error {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-top: 4px;
+    }
+    .bb-wallet-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.18);
+        font-size: 12px;
+        color: #fff;
+    }
+    .bb-wallet-chip--none {
+        background: rgba(255,80,80,0.28);
+        color: #ffaaaa;
+    }
+
+    /* shimmer for branch balance skeleton cards */
+    .shimmer-card {
+        background: linear-gradient(135deg, #dde1ea 0%, #eaecf0 100%) !important;
+        box-shadow: none !important;
+    }
+    .shimmer-line {
+        background: linear-gradient(90deg, #d0d5df 25%, #e8eaf0 50%, #d0d5df 75%);
+        background-size: 200% 100%;
+        animation: shimmer-sweep 1.5s infinite;
+        border-radius: 4px;
+        display: block;
+    }
+    @keyframes shimmer-sweep {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
     }
     </style>
 

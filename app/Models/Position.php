@@ -19,6 +19,7 @@ class Position extends Model
         'is_vacant',
         'num_of_vacancies',
         'num_of_active',
+        'approved',
         'department_id',
         'posted_date'
     ];
@@ -27,6 +28,7 @@ class Position extends Model
         'is_vacant' => 'boolean',
         'num_of_vacancies' => 'integer',
         'num_of_active' => 'integer',
+        'approved' => 'integer',
         'department_id' => 'integer',
         'posted_date' => 'date',
         'date_added' => 'date',

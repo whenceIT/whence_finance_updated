@@ -125,7 +125,10 @@ class GOAController extends Controller
         // Recent hires (users with positions updated_at)
         $recentHires = User::with('position.department')->whereNotNull('position_id')->orderBy('updated_at', 'desc')->limit(10)->get();
 
-        return view('goa.vacancies-and-staffing', compact('positions', 'departments', 'vacancies', 'offices', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'recentHires'));
+        // All job_positions for the management tab
+        $allPositions = Position::with('department')->orderBy('name')->get();
+
+        return view('goa.vacancies-and-staffing', compact('positions', 'departments', 'vacancies', 'offices', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'recentHires', 'allPositions'));
     }
 
     /**
@@ -221,11 +224,12 @@ class GOAController extends Controller
             $positionRows = collect($relevantPositionIds)->map(function ($positionId) use ($allPositionsMap, $personnelByPosition) {
                 $group = $personnelByPosition->get($positionId, collect());
                 $position = $allPositionsMap->get($positionId);
+                $approvedForPosition = (int) ($position->approved ?? 0);
 
-                return array_merge($this->buildBranchCapacityMetrics(0, $group->count()), [
+                return array_merge($this->buildBranchCapacityMetrics($approvedForPosition, $group->count()), [
                     'position' => $position,
                     'position_id' => $positionId,
-                    'in_structure' => false,
+                    'in_structure' => $approvedForPosition > 0,
                     'personnel' => $group->values(),
                 ]);
             })->sortBy(function ($row) {
@@ -539,11 +543,8 @@ class GOAController extends Controller
 
     public function assignPosition(Request $request, $user)
     {
-        $request->validate([
-            'position_id' => ['required', 'integer', 'exists:job_positions,id'],
-        ]);
-
-        $member = \App\Models\User::findOrFail($user);
+        
+        $member = \App\Models\User::where('id',$user->id)->first();
         $member->position_id = $request->position_id;
         $member->save();
 

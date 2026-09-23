@@ -281,6 +281,11 @@
             <path d="M6.5 1A1.5 1.5 0 0 0 5 2.5V3H1.5A1.5 1.5 0 0 0 0 4.5v8A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 14.5 3H11v-.5A1.5 1.5 0 0 0 9.5 1zm0 1h3a.5.5 0 0 1 .5.5V3H6v-.5a.5.5 0 0 1 .5-.5m1.886 6.914L15 7.151V12.5a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5V7.15l6.614 1.764a1.5 1.5 0 0 0 .772 0M1.5 4h13a.5.5 0 0 1 .5.5v1.616L8.129 7.948a.5.5 0 0 1-.258 0L1 6.116V4.5a.5.5 0 0 1 .5-.5"/>
             </svg>Recent Hires
         </button>
+        <button class="staffing-nav-btn" data-section="all-positions" role="tab">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+            </svg>All Positions
+        </button>
     </div>
 
     <div class="staffing-content-container" id="staffingTabsContent">
@@ -524,6 +529,11 @@
                             </select>
                         </div>
                         <div class="staffing-modal-form-group">
+                            <label class="staffing-modal-label" for="roleApproved">Approved Capacity</label>
+                            <input class="staffing-modal-input" id="roleApproved" name="roleApproved" type="number" min="0" value="0" placeholder="0">
+                            <small class="text-muted">Total approved headcount for this position organisation-wide.</small>
+                        </div>
+                        <div class="staffing-modal-form-group">
                             <label class="staffing-modal-label" for="roleDescription">Description</label>
                             <textarea class="staffing-modal-textarea" id="roleDescription" name="roleDescription" placeholder="Describe the new role and responsibilities."></textarea>
                         </div>
@@ -675,4 +685,178 @@
             </div>
         </div>
     </div>
+
+    {{-- ── All Positions tab section ──────────────────────────────── --}}
+    {{-- Injected just before @endsection so it sits inside the content block --}}
+    <div class="staffing-section" id="all-positions" role="tabpanel">
+        <h5 style="display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-bottom:1.5rem;background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:white;padding:10px 24px;border-radius:60px;font-weight:600;font-size:1.25rem;box-shadow:0 8px 20px -4px rgba(245,158,11,.3),0 4px 8px -4px rgba(0,0,0,.05);width:100%;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-list-ul" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+            </svg>
+            All Positions
+        </h5>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="allPositionsTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Position Title</th>
+                        <th>Department</th>
+                        <th class="text-right">Approved</th>
+                        <th class="text-right">Active</th>
+                        <th class="text-right">Vacancies</th>
+                        <th>Status</th>
+                        <th>Date Added</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($allPositions as $pos)
+                        <tr>
+                            <td>{{ $pos->id }}</td>
+                            <td><strong>{{ $pos->name }}</strong></td>
+                            <td>{{ $pos->department->name ?? '&mdash;' }}</td>
+                            <td class="text-right">{{ $pos->approved }}</td>
+                            <td class="text-right">{{ $pos->num_of_active }}</td>
+                            <td class="text-right">{{ $pos->num_of_vacancies }}</td>
+                            <td>
+                                @if($pos->status === 'Active')
+                                    <span class="badge badge-success">Active</span>
+                                @elseif($pos->status === 'Open')
+                                    <span class="badge badge-warning">Open</span>
+                                @else
+                                    <span class="badge badge-secondary">{{ $pos->status ?? 'N/A' }}</span>
+                                @endif
+                            </td>
+                            <td>{{ $pos->date_added ? $pos->date_added->format('Y-m-d') : '&mdash;' }}</td>
+                            <td>
+                                <button type="button"
+                                        class="btn btn-xs btn-info"
+                                        onclick="openEditPositionModal({{ json_encode([
+                                            'id'          => $pos->id,
+                                            'name'        => $pos->name,
+                                            'department'  => $pos->department_id,
+                                            'approved'    => $pos->approved,
+                                            'description' => $pos->job_description,
+                                            'status'      => $pos->status,
+                                        ]) }})">
+                                    <i class="fa fa-pencil"></i> Edit
+                                </button>
+                                <form method="POST"
+                                      action="{{ route('staff.destroy-role', $pos->id) }}"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Delete position \'{{ addslashes($pos->name) }}\'? This cannot be undone.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-xs btn-danger">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">No positions found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Edit Position Modal --}}
+    <div class="staffing-modal-backdrop" id="editPositionBackdrop"></div>
+    <div class="staffing-modal" id="editPositionModal">
+        <div class="staffing-modal-card">
+            <div class="staffing-modal-header" style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:white;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <h4 class="staffing-modal-title" style="color:white;margin-bottom:.25rem;">Edit Position</h4>
+                    <p class="small mb-0" style="color:rgba(255,255,255,.8);">Update position details and approved headcount.</p>
+                </div>
+                <button type="button" class="staffing-modal-close" id="editPositionClose" style="color:white;">&times;</button>
+            </div>
+            <div class="staffing-modal-body">
+                <form id="editPositionForm" method="POST" action="">
+                    @csrf
+                    @method('PUT')
+                    <div class="staffing-modal-form-group">
+                        <label class="staffing-modal-label" for="editRoleTitle">Position Title</label>
+                        <input class="staffing-modal-input" id="editRoleTitle" name="roleTitle" type="text" required>
+                    </div>
+                    <div class="staffing-modal-form-group">
+                        <label class="staffing-modal-label" for="editRoleDepartment">Department</label>
+                        <select class="staffing-modal-select" id="editRoleDepartment" name="roleDepartment">
+                            <option value="">No Department</option>
+                            @foreach($departments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="staffing-modal-form-group">
+                        <label class="staffing-modal-label" for="editRoleApproved">Approved Capacity</label>
+                        <input class="staffing-modal-input" id="editRoleApproved" name="roleApproved" type="number" min="0">
+                    </div>
+                    <div class="staffing-modal-form-group">
+                        <label class="staffing-modal-label" for="editRoleStatus">Status</label>
+                        <select class="staffing-modal-select" id="editRoleStatus" name="roleStatus">
+                            <option value="Active">Active</option>
+                            <option value="Open">Open</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="staffing-modal-form-group">
+                        <label class="staffing-modal-label" for="editRoleDescription">Description</label>
+                        <textarea class="staffing-modal-textarea" id="editRoleDescription" name="roleDescription"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="staffing-modal-footer">
+                <button type="button" class="staffing-modal-secondary" id="editPositionCancel">Cancel</button>
+                <button type="submit" class="staffing-modal-submit" form="editPositionForm">
+                    <i class="fa fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── All-positions tab: wire section into existing nav switcher ──────
+        // (The existing nav-btn click listener handles .active toggling already,
+        //  but the new section was appended outside #staffingTabsContent.
+        //  Move it in on DOMContentLoaded.)
+        document.addEventListener('DOMContentLoaded', function () {
+            var container = document.getElementById('staffingTabsContent');
+            var section   = document.getElementById('all-positions');
+            if (container && section && section.parentNode !== container) {
+                container.appendChild(section);
+            }
+        });
+
+        // ── Edit Position Modal ──────────────────────────────────────────────
+        var editPositionBaseUrl = '{{ url('goa_dashboard/staff/role') }}';
+        var editBackdrop = document.getElementById('editPositionBackdrop');
+        var editModal    = document.getElementById('editPositionModal');
+        var editForm     = document.getElementById('editPositionForm');
+
+        function openEditPositionModal(data) {
+            document.getElementById('editRoleTitle').value       = data.name       || '';
+            document.getElementById('editRoleDepartment').value  = data.department || '';
+            document.getElementById('editRoleApproved').value    = data.approved   || 0;
+            document.getElementById('editRoleStatus').value      = data.status     || 'Active';
+            document.getElementById('editRoleDescription').value = data.description || '';
+            editForm.setAttribute('action', editPositionBaseUrl + '/' + data.id + '/update');
+            editBackdrop.style.display = 'block';
+            editModal.style.display    = 'block';
+        }
+
+        function closeEditPositionModal() {
+            editBackdrop.style.display = 'none';
+            editModal.style.display    = 'none';
+        }
+
+        document.getElementById('editPositionClose').addEventListener('click',  closeEditPositionModal);
+        document.getElementById('editPositionCancel').addEventListener('click', closeEditPositionModal);
+        editBackdrop.addEventListener('click', closeEditPositionModal);
+    </script>
 @endsection

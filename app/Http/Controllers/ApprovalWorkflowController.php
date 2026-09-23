@@ -247,6 +247,14 @@ public function approveDeclineSetupDebt($id, $status)
     if ($status == 1) {
         $setupDebtTransaction->status = 1;
         $setupDebtTransaction->save();
+
+        //if there is a record in the Blockage for this office update the time_to_unlock to 5 hours from now
+        $blockage = \App\Models\Blockage::where('office_id', $setupDebtTransaction->office_id)->first();
+        if ($blockage) {
+            $blockage->time_to_unlock = now()->addHours(5);
+            $blockage->save();
+        }
+        
         return response()->json(['success' => true, 'message' => 'Setup debt transaction approved successfully.']);
         } else {
             $setupDebtTransaction->delete();
@@ -262,7 +270,18 @@ public function approveDeclineSetupDebt($id, $status)
             return response()->json(['success' => false, 'message' => 'No setup debt transactions selected.']);
         }
 
+        $transactions = SetupDebtTransaction::whereIn('id', $ids)->get();
         SetupDebtTransaction::whereIn('id', $ids)->update(['status' => 1]);
+
+        // Update time_to_unlock on blockages for approved transactions' offices
+        $officeIds = $transactions->pluck('office_id')->unique()->filter();
+        foreach ($officeIds as $officeId) {
+            $blockage = \App\Models\Blockage::where('office_id', $officeId)->first();
+            if ($blockage) {
+                $blockage->time_to_unlock = now()->addHours(5);
+                $blockage->save();
+            }
+        }
 
         return response()->json(['success' => true, 'message' => count($ids) . ' setup debt transaction(s) approved successfully.']);
     }

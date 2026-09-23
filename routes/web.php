@@ -429,6 +429,8 @@ Route::group(['prefix' => 'goa_dashboard'], function () {
     Route::post('staff/update-position', 'StaffController@updatePosition')->name('staff.update-position');
     Route::post('staff/store-department', 'StaffController@storeDepartment')->name('staff.store-department');
     Route::post('staff/store-role', 'StaffController@storeRole')->name('staff.store-role');
+    Route::put('staff/role/{id}/update', 'StaffController@updateRole')->name('staff.update-role');
+    Route::delete('staff/role/{id}/destroy', 'StaffController@destroyRole')->name('staff.destroy-role');
     Route::post('vacancy/{id}/remove', 'GOAController@removePosition')->name('goa.position.remove');
     Route::post('vacancy/{id}/fill', 'GOAController@fillPosition')->name('goa.position.fill');
     Route::get('position/{id}', 'GOAController@showPosition')->name('goa.position.show');
@@ -642,6 +644,7 @@ Route::group(['prefix' => 'audits'], function () {
 //route for risk management
 Route::group(['prefix' => 'risk'], function () {
     Route::get('dashboard', [RiskDashboardController::class, 'index'])->name('risk.dashboard');
+    Route::get('dashboard/branch-cash-balances', [RiskDashboardController::class, 'branchCashBalances'])->name('risk.dashboard.branch-cash-balances');
     Route::get('overview', [RiskController::class, 'overview'])->name('risk.overview');
     Route::get('audit-trail', [RiskController::class, 'auditTrail']);
     Route::get('heat-map', [RiskController::class, 'heatMap'])->name('risk.heat-map');
