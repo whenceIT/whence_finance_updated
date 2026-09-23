@@ -4274,10 +4274,9 @@ $new_balance = $debit_amount - $credit_amount;
 
     public function pdf_transaction($loan_transaction)
     {
-        // if (!Sentinel::hasAccess('loans.transactions.view')) {
-        //     Flash::warning(trans('general.permission_denied'));
-        //     return redirect()->back();
-        // }
+        set_time_limit(300);
+        ini_set('max_execution_time', 300);
+
         $Loan = Loan::where('id', $loan_transaction->loan_id)->first();
         $current_balance = GeneralHelper::new_new_loan_total_balance($Loan->id);
         // Handle reloan payment
