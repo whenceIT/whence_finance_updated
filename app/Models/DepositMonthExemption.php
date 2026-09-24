@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class DepositMonthExemption extends Model
 {
@@ -24,6 +25,71 @@ class DepositMonthExemption extends Model
         'no_months_exclude' => 'integer',
         'months' => 'array',
     ];
+
+    private const MONTH_NAMES = [
+        1 => 'January',
+        2 => 'February',
+        3 => 'March',
+        4 => 'April',
+        5 => 'May',
+        6 => 'June',
+        7 => 'July',
+        8 => 'August',
+        9 => 'September',
+        10 => 'October',
+        11 => 'November',
+        12 => 'December',
+    ];
+
+    private static function monthValues($month, ?int $year): array
+    {
+        $now = Carbon::now();
+        $year = $year ?? $now->year;
+        $month = $month ?? $now->month;
+
+        if (is_numeric($month)) {
+            $monthNumber = (int) $month;
+
+            if ($monthNumber < 1 || $monthNumber > 12) {
+                throw new \InvalidArgumentException('Month must be between 1 and 12.');
+            }
+
+            $monthName = self::MONTH_NAMES[$monthNumber];
+        } else {
+            $monthName = trim((string) $month);
+            $monthName = (string) preg_replace('/\s+\d{4}$/', '', $monthName);
+            $monthNumber = array_search(
+                strtolower($monthName),
+                array_map('strtolower', self::MONTH_NAMES),
+                true
+            );
+
+            if ($monthNumber === false) {
+                throw new \InvalidArgumentException('Month must be a valid month name or number.');
+            }
+        }
+
+        return [(string) $monthNumber, $monthNumber, $monthName . ' ' . $year];
+    }
+
+    private static function applyMonthFilter($query, $month, ?int $year): void
+    {
+        [$monthString, $monthNumber, $monthYear] = self::monthValues($month, $year);
+
+        $query->where(function ($query) use ($monthString, $monthNumber, $monthYear) {
+            $query->whereJsonContains('months', $monthString)
+                ->orWhereJsonContains('months', $monthNumber)
+                ->orWhereJsonContains('months', $monthYear);
+        });
+    }
+
+    private static function applyDepositTypeFilter($query, int $depositTypeId): void
+    {
+        $query->where(function ($query) use ($depositTypeId) {
+            $query->where('deposit_type_id', $depositTypeId)
+                ->orWhereNull('deposit_type_id');
+        });
+    }
 
     public function office()
     {
@@ -83,12 +149,32 @@ class DepositMonthExemption extends Model
      */
     public static function getExemptedOffices(int $depositTypeId, string $month, int $year)
     {
-        $monthYear = $month . ' ' . $year;
+        $exemptions = self::query();
+        self::applyDepositTypeFilter($exemptions, $depositTypeId);
+        self::applyMonthFilter($exemptions, $month, $year);
 
-        $exemptions = self::where('deposit_type_id', $depositTypeId)
-            ->whereJsonContains('months', $monthYear)
-            ->with('office')
-            ->get();
+        $exemptions = $exemptions->with('office')->get();
+
+        return $exemptions->pluck('office')->filter()->unique('id');
+    }
+
+    public static function isExempted(int $depositTypeId, int $officeId, ?string $month = null, ?int $year = null)
+    {
+        $exemption = self::query()
+            ->where('office_id', $officeId);
+        self::applyDepositTypeFilter($exemption, $depositTypeId);
+        self::applyMonthFilter($exemption, $month, $year);
+
+        return $exemption->first() !== null;
+    }
+
+    public static function getExemptedOfficesCurrentMonth(int $depositTypeId)
+    {
+        $exemptions = self::query();
+        self::applyDepositTypeFilter($exemptions, $depositTypeId);
+        self::applyMonthFilter($exemptions, null, null);
+
+        $exemptions = $exemptions->with('office')->get();
 
         return $exemptions->pluck('office')->filter()->unique('id');
     }

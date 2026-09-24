@@ -92,3 +92,11 @@ Route::prefix('mvl')->group(function () {
     Route::get('/collections', [\App\Http\Controllers\MVLAPIController::class, 'getCollections']);
     Route::get('/defaulted', [\App\Http\Controllers\MVLAPIController::class, 'getDefaulted']);
 });
+
+Route::post('/schedule/autolock', [\App\Http\Controllers\API\ScheduleController::class, 'runAutolock']);
+
+// Fund movements for blocked offices
+Route::prefix('fund-movements')->group(function () {
+    Route::get('/blocked',              [\App\Http\Controllers\API\FundMovementsController::class, 'index']);
+    Route::get('/blocked/{blockageId}', [\App\Http\Controllers\API\FundMovementsController::class, 'byBlockage']);
+});

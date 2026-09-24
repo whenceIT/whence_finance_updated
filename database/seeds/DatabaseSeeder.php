@@ -28,5 +28,6 @@ class DatabaseSeeder extends Seeder
         $this->call(PolicyCategoriesTableSeeder::class);
         $this->call(DistrictSeeder::class);
         $this->call(ExpenseCategorySeeder::class);
+        $this->call(DepositAndBankDepositLogSeeder::class);
     }
 }

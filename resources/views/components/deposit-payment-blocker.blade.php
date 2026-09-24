@@ -12,14 +12,16 @@
     }
 @endphp
 @if($status && request()->path() != 'user/branch_deposits')
-<!-- Deposit Payment Blocker Modal -->
+    @if($blockage->time_to_unlock === null || $blockage->time_to_unlock > now())
+    <!-- If $blockage time_to_unlock has not passed or time_to_unlock is null - continue to display the blocking -->
+    <!-- Deposit Payment Blocker Modal -->
 <div id="depositPaymentBlocker" style="
     position: fixed;
-    top: 0;x
+    top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(10, 10, 30, 0.85);n
+    background: rgba(10, 10, 30, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 999999;
@@ -75,6 +77,7 @@
         ">
             {{ $blockage->reason ?? 'Please make the deposit arrears in order to access the system' }}
         </p>
+       
         
         <!-- Contact Info -->
         <div style="
@@ -97,7 +100,57 @@
                 <span>Contact <strong style="color: #2d3436;">Risk Department</strong></span>
             </p>
         </div>
-        
+         @if($blockage->time_to_unlock)
+        <div style="
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border: 1px solid #fbbf24;
+        ">
+            <p style="
+                margin: 0;
+                font-size: 14px;
+                color: #92400e;
+                font-weight: 600;
+            ">
+                <i class="fa fa-clock-o" style="margin-right: 6px;"></i>
+                Access will be restored in: <span id="timeToUnlockCountdown" style="font-weight: 700;">--:--:--</span>
+            </p>
+        </div>
+        <script>
+            (function() {
+                var unlockTime = new Date("{{ $blockage->time_to_unlock->toIso8601String() }}").getTime();
+                var countdownElement = document.getElementById('timeToUnlockCountdown');
+
+                function updateCountdown() {
+                    var now = new Date().getTime();
+                    var distance = unlockTime - now;
+
+                    if (distance <= 0) {
+                        countdownElement.textContent = '00:00:00';
+                        clearInterval(timer);
+                        location.reload();
+                        return;
+                    }
+
+                    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    var timeString = (hours < 10 ? '0' : '') + hours + ':' +
+                                     (minutes < 10 ? '0' : '') + minutes + ':' +
+                                     (seconds < 10 ? '0' : '') + seconds;
+
+                    countdownElement.textContent = timeString;
+                }
+
+                updateCountdown();
+                var timer = setInterval(updateCountdown, 1000);
+            })();
+        </script>
+        @else
         <!-- Action Button -->
         <a href="/user/branch_deposits" style="
             display: inline-block;
@@ -114,7 +167,7 @@
             <i class="fa fa-credit-card" style="margin-right: 6px;"></i>
             Make Deposit Payment
         </a>
-        
+        @endif
         <!-- Lock Icon -->
         <div style="margin-top: 20px; opacity: 0.3;">
             <i class="fa fa-lock" style="font-size: 18px; color: #636e72;"></i>
@@ -195,4 +248,5 @@
         });
     });
 </script>
+    @endif
 @endif

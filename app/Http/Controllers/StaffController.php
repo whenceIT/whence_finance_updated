@@ -61,18 +61,49 @@ class StaffController extends Controller
         return redirect()->route('goa.vacancies-and-staffing')->with('success', 'Department added successfully.');
     }
 
+    public function updateRole(Request $request, $id)
+    {
+        $data = $request->validate([
+            'roleTitle'       => 'required|string|max:255',
+            'roleDepartment'  => 'nullable|integer|exists:departments,id',
+            'roleApproved'    => 'nullable|integer|min:0',
+            'roleDescription' => 'nullable|string',
+            'roleStatus'      => 'nullable|string|max:50',
+        ]);
+
+        $position = Position::findOrFail($id);
+        $position->update([
+            'name'            => $data['roleTitle'],
+            'department_id'   => $data['roleDepartment'] ?? null,
+            'approved'        => $data['roleApproved'] ?? 0,
+            'job_description' => $data['roleDescription'] ?? null,
+            'status'          => $data['roleStatus'] ?? $position->status,
+        ]);
+
+        return redirect()->route('goa.vacancies-and-staffing')->with('success', 'Position updated successfully.');
+    }
+
+    public function destroyRole($id)
+    {
+        $position = Position::findOrFail($id);
+        $position->delete();
+
+        return redirect()->route('goa.vacancies-and-staffing')->with('success', 'Position deleted successfully.');
+    }
+
     public function storeRole(Request $request)
     {
         $data = $request->validate([
             'roleTitle' => 'required|string|max:255',
             'roleDepartment' => 'nullable|integer',
-            'roleLevel' => 'required|in:Entry,Mid,Senior',
-            'roleDescription' => 'nullable|string',
+            'roleDescription' => 'required|string',
+            'roleApproved' => 'nullable|integer|min:0',
         ]);
 
         Position::create([
             'name' => $data['roleTitle'],
             'job_description' => $data['roleDescription'],
+            'approved' => $data['roleApproved'] ?? 0,
             'is_vacant' => 0, // new position, not vacant
             'num_of_vacancies' => 0,
             'num_of_active' => 0,

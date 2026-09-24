@@ -44,7 +44,8 @@
     @endif
 
     @php
-        $validTabs = ['dashboard', 'branches', 'vacancies', 'setup'];
+        $baseTabs = ['dashboard', 'branches', 'vacancies', 'setup'];
+        $validTabs = $selectedOffice ? array_merge($baseTabs, ['recruitment-pipeline']) : $baseTabs;
         $activeTab = in_array($activeTab, $validTabs, true) ? $activeTab : 'dashboard';
         $selectedOfficeId = $selectedOffice->id ?? null;
         $recruitmentStatuses = \App\Models\Vacancy::RECRUITMENT_STATUSES;
@@ -547,6 +548,11 @@
         <button class="capacity-nav-btn {{ $activeTab === 'setup' ? 'active' : '' }}" data-section="setup" role="tab" type="button">
             <i class="fa fa-sliders"></i> Capacity Setup
         </button>
+        @if($selectedOffice)
+            <button class="capacity-nav-btn {{ $activeTab === 'recruitment-pipeline' ? 'active' : '' }}" data-section="recruitment-pipeline" role="tab" type="button">
+                <i class="fa fa-project-diagram"></i> Recruitment Pipeline
+            </button>
+        @endif
     </div>
 
     <div class="capacity-content-container" id="capacityTabsContent">
@@ -836,10 +842,21 @@
                         <h6>{{ $positionName }} <span class="capacity-badge info">{{ $group->count() }}</span></h6>
                         <ul class="capacity-personnel-list">
                             @foreach($group as $member)
-                                <li>
-                                    {{ $member->first_name }} {{ $member->last_name }}
-                                    @if($member->employee_number)
-                                        <small class="text-muted">({{ $member->employee_number }})</small>
+                                <li style="display: flex; align-items: center; gap: 0.4rem;">
+                                    <span>
+                                        {{ $member->first_name }} {{ $member->last_name }}
+                                        @if($member->employee_number)
+                                            <small class="text-muted">({{ $member->employee_number }})</small>
+                                        @endif
+                                    </span>
+                                    @if($positionName === 'No position assigned')
+                                        <button type="button"
+                                                class="btn btn-xs btn-default"
+                                                title="Assign position"
+                                                data-assign-position="{{ json_encode(['user_id' => $member->id, 'name' => $member->first_name . ' ' . $member->last_name]) }}"
+                                                style="padding: 1px 5px; line-height: 1.4;">
+                                            <i class="fa fa-pencil"></i>
+                                        </button>
                                     @endif
                                 </li>
                             @endforeach
@@ -874,8 +891,8 @@
                 </div>
                 <div class="capacity-kpi kpi-vacant">
                     <span class="capacity-kpi-label">Total Vacancies</span>
-                    <span class="capacity-kpi-value">{{ number_format($overallMetrics['vacancy']) }}</span>
-                    <span class="capacity-kpi-note">Company-wide staffing gap</span>
+                    <span class="capacity-kpi-value">{{ number_format(max($overallMetrics['approved'] - $overallMetrics['current'], 0)) }}</span>
+                    <span class="capacity-kpi-note">Approved capacity &minus; current personnel</span>
                 </div>
                 <div class="capacity-kpi kpi-staffing">
                     <span class="capacity-kpi-label">Overall Staffing Level</span>
@@ -889,6 +906,8 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Branch comparison table --}}
             <div class="table-responsive">
                 <table class="table table-striped capacity-table">
                     <thead>
@@ -943,7 +962,7 @@
                                 <td>
                                     <a href="{{ route('goa.branch-staffing-capacity', ['office_id' => $summary['office']->id, 'tab' => 'dashboard']) }}"
                                        class="btn btn-xs btn-default">
-                                        <i class="fa fa-search"></i> View
+                                       <i class="fa fa-search"></i> View
                                     </a>
                                 </td>
                             </tr>
@@ -954,9 +973,118 @@
                 </table>
             </div>
         </div>
+
         {{-- ==================================================================
-             VACANCY REGISTER — every vacancy with its recruitment tracking
-        =================================================================== --}}
+              RECRUITMENT PIPELINE — track recruitment process overview
+         =================================================================== --}}
+        <div class="capacity-section {{ $activeTab === 'recruitment-pipeline' ? 'active' : '' }}" id="recruitment-pipeline" role="tabpanel">
+            <h5 class="capacity-section-title" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 8px 20px -4px rgba(139, 92, 246, 0.3), 0 4px 8px -4px rgba(0, 0, 0, 0.05);">
+                <i class="fa fa-project-diagram"></i> Recruitment Pipeline
+            </h5>
+
+            <div class="capacity-empty-state" style="margin-bottom: 1rem;">
+                <i class="fa fa-info-circle"></i>
+                <p class="mb-0">View the <a href="{{ route('goa.recruitment-pipeline', ['office_id' => $selectedOfficeId]) }}" style="color: #3b82f6; text-decoration: underline;">full recruitment pipeline dashboard</a> for detailed tracking across all branches.</p>
+            </div>
+
+            @if($selectedOffice)
+                @php
+                    $vacanciesForOffice = $branchVacancies->filter(function($v) {
+                        return $v->position_id !== null;
+                    });
+                    
+                    $totalApplicants = $branchVacancies->sum('num_of_applicants');
+                    $totalShortlisted = $branchVacancies->sum('num_of_shortlisted');
+                    $totalInterviewed = $branchVacancies->whereIn('interview_status', ['Completed', 'In Progress'])->count();
+                    $totalSelected = $branchVacancies->whereNotNull('selected_candidate')->where('selected_candidate', '!=', '')->count();
+                    $totalOffersIssued = $branchVacancies->whereIn('offer_status', ['Accepted', 'Pending'])->count();
+                    $totalReported = $branchVacancies->whereNotNull('actual_reporting_date')->count();
+                @endphp
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="capacity-kpi kpi-approved">
+                        <span class="capacity-kpi-label">Total Vacancies</span>
+                        <span class="capacity-kpi-value">{{ $branchVacancies->sum('num_of_vacancies') }}</span>
+                    </div>
+                    <div class="capacity-kpi kpi-current">
+                        <span class="capacity-kpi-label">Applicants</span>
+                        <span class="capacity-kpi-value">{{ number_format($totalApplicants) }}</span>
+                    </div>
+                    <div class="capacity-kpi kpi-vacant">
+                        <span class="capacity-kpi-label">Shortlisted</span>
+                        <span class="capacity-kpi-value">{{ number_format($totalShortlisted) }}</span>
+                    </div>
+                    <div class="capacity-kpi kpi-staffing">
+                        <span class="capacity-kpi-label">Selected</span>
+                        <span class="capacity-kpi-value">{{ number_format($totalSelected) }}</span>
+                    </div>
+                </div>
+
+                @if($branchVacancies->isNotEmpty())
+                    <table class="table table-striped capacity-table">
+                        <thead>
+                            <tr>
+                                <th>Position</th>
+                                <th class="text-right">Vacancies</th>
+                                <th class="text-right">Applicants</th>
+                                <th class="text-right">Shortlisted</th>
+                                <th>Interview Status</th>
+                                <th>Selected</th>
+                                <th>Offer Status</th>
+                                <th>Reported</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($branchVacancies as $vacancy)
+                                @php
+                                    $offered = in_array($vacancy->offer_status ?? '', ['Accepted', 'Pending']);
+                                    $interviewed = in_array($vacancy->interview_status ?? '', ['Completed', 'In Progress']);
+                                @endphp
+                                <tr>
+                                    <td><strong>{{ $vacancy->position->name ?? 'Unknown' }}</strong></td>
+                                    <td class="text-right">{{ $vacancy->num_of_vacancies }}</td>
+                                    <td class="text-right">{{ number_format($vacancy->num_of_applicants) }}</td>
+                                    <td class="text-right">{{ number_format($vacancy->num_of_shortlisted) }}</td>
+                                    <td>{{ $vacancy->interview_status ?? 'N/A' }}</td>
+                                    <td class="text-right">{{ $vacancy->selected_candidate ? 'Yes (' . $vacancy->selected_candidate . ')' : 'No' }}</td>
+                                    <td class="text-right">
+                                        @if($offered)
+                                            <span class="capacity-badge ok">{{ $vacancy->offer_status }}</span>
+                                        @else
+                                            <span class="capacity-badge muted">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-right">
+                                        @if($vacancy->actual_reporting_date)
+                                            <span class="capacity-badge info">{{ $vacancy->actual_reporting_date->format('Y-m-d') }}</span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">No vacancy records for this branch.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                @else
+                    <div class="capacity-empty-state">
+                        <i class="fa fa-file-invoice"></i>
+                        <p class="mb-0">No vacancy records found for this branch.</p>
+                    </div>
+                @endif
+            @else
+                <div class="capacity-empty-state">
+                    <i class="fa fa-building-o"></i>
+                    <p class="mb-0">Select a branch to view its recruitment pipeline.</p>
+                </div>
+            @endif
+        </div>
+        {{-- ==================================================================
+              VACANCY REGISTER — every vacancy with its recruitment tracking
+         =================================================================== --}}
         <div class="capacity-section {{ $activeTab === 'vacancies' ? 'active' : '' }}" id="vacancies" role="tabpanel">
             <h5 class="capacity-section-title" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.3), 0 4px 8px -4px rgba(0, 0, 0, 0.05);">
                 <i class="fa fa-briefcase"></i> Vacancy Register &mdash; {{ $selectedOffice->name ?? 'No branch selected' }}
@@ -1136,8 +1264,36 @@
                         </div>
                         <div class="capacity-field">
                             <label for="vacancyReason">Reason for Vacancy</label>
-                            <input type="text" class="form-control" id="vacancyReason" name="reason"
-                                   value="{{ old('reason') }}" placeholder="Resignation, transfer, new position...">
+                            <select class="form-control" id="vacancyReason" name="reason">
+                                <option value="" disabled {{ old('reason') ? '' : 'selected' }}>-- Select Reason --</option>
+                                @php
+                                    $vacancyReasons = [
+                                        'New Position'                  => 'New Position – Newly created position due to business growth or expansion.',
+                                        'Employee Resignation'          => 'Employee Resignation – Previous employee resigned.',
+                                        'Employee Termination'          => 'Employee Termination – Previous employee was terminated.',
+                                        'Employee Retirement'           => 'Employee Retirement – Previous employee retired.',
+                                        'Employee Transfer'             => 'Employee Transfer – Previous employee transferred to another branch or department.',
+                                        'Promotion'                     => 'Promotion – Previous employee was promoted to another position.',
+                                        'Internal Transfer'             => 'Internal Transfer – Position became vacant due to an internal movement.',
+                                        'Employee Death'                => 'Employee Death – Position became vacant following the death of the employee.',
+                                        'Contract Expired'              => 'Contract Expired – Previous employee\'s contract ended.',
+                                        'Replacement'                   => 'Replacement – Vacancy created to replace an existing employee.',
+                                        'Branch Expansion'              => 'Branch Expansion – Additional staff required due to branch expansion.',
+                                        'Increased Workload'            => 'Increased Workload – Additional staff required because of increased workload.',
+                                        'New Branch/Office'             => 'New Branch/Office – Staff required for a newly opened branch or office.',
+                                        'Organizational Restructuring'  => 'Organizational Restructuring – Vacancy created following organizational changes.',
+                                        'Temporary Vacancy'             => 'Temporary Vacancy – Position temporarily vacant due to leave or absence.',
+                                        'Maternity/Parental Leave'      => 'Maternity/Parental Leave – Temporary replacement required.',
+                                        'Long-Term Leave'               => 'Long-Term Leave – Temporary replacement required for an employee on extended leave.',
+                                        'Skills Gap'                    => 'Skills Gap – Additional employee required to address a skills shortage.',
+                                        'Staffing Adjustment'           => 'Staffing Adjustment – Position required to bring staffing levels in line with approved capacity.',
+                                        'Other'                         => 'Other – Reason not covered by the available options.',
+                                    ];
+                                @endphp
+                                @foreach($vacancyReasons as $value => $label)
+                                    <option value="{{ $value }}" {{ old('reason') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="capacity-field">
                             <label for="vacancyRecruitmentStatus">Recruitment Status</label>
@@ -1211,8 +1367,64 @@
             </div>
         </div>
     </div>
+    {{-- Assign Position Modal --}}
+    <div class="capacity-modal" id="assignPositionModal">
+        <div class="capacity-modal-card" style="max-width: 480px;">
+            <div class="capacity-modal-header">
+                <h4 id="assignPositionModalTitle">Assign Position</h4>
+                <button type="button" class="capacity-modal-close" data-assign-position-modal-close="1">&times;</button>
+            </div>
+            <div class="capacity-modal-body">
+                <form id="assignPositionForm" method="POST" action="">
+                    @csrf
+                    <input type="hidden" name="_method" value="PATCH">
+                    <input type="hidden" name="user_id" id="assignPositionUserId">
+                    <div class="capacity-field">
+                        <label for="assignPositionSelect">Position</label>
+                        <select class="form-control" id="assignPositionSelect" name="position_id" required>
+                            <option value="">-- Select Position --</option>
+                            @foreach($positions as $position)
+                                <option value="{{ $position->id }}">{{ $position->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="capacity-modal-footer">
+                <button type="button" class="btn btn-default" data-assign-position-modal-close="1">Cancel</button>
+                <button type="submit" class="btn btn-primary" form="assignPositionForm">
+                    <i class="fa fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function () {
+            // ── Assign-position modal ──────────────────────────────────────
+            var assignModal     = document.getElementById('assignPositionModal');
+            var assignTitle     = document.getElementById('assignPositionModalTitle');
+            var assignForm      = document.getElementById('assignPositionForm');
+            var assignUserIdEl  = document.getElementById('assignPositionUserId');
+            var assignSelect    = document.getElementById('assignPositionSelect');
+            var assignBaseUrl   = '{{ route('goa.personnel.assign-position', ['user' => '__USER_ID__']) }}';
+
+            function openAssignModal(data) {
+                assignUserIdEl.value = data.user_id;
+                assignTitle.textContent = 'Assign Position — ' + (data.name || '');
+                assignSelect.value = '';
+                assignForm.setAttribute('action', assignBaseUrl.replace('__USER_ID__', data.user_id));
+                document.getElementById('capacityModalBackdrop').classList.add('open');
+                assignModal.classList.add('open');
+            }
+
+            function closeAssignModal() {
+                document.getElementById('capacityModalBackdrop').classList.remove('open');
+                assignModal.classList.remove('open');
+            }
+
+            // ── End assign-position modal ──────────────────────────────────
+
             var filterTab = document.getElementById('capacityFilterTab');
             var modalBackdrop = document.getElementById('capacityModalBackdrop');
             var vacancyModal = document.getElementById('vacancyModal');
@@ -1324,13 +1536,27 @@
                 if (closest(event.target, '[data-vacancy-modal-close]')) {
                     closeVacancyModal();
                 }
+
+                var assignBtn = closest(event.target, '[data-assign-position]');
+                if (assignBtn) {
+                    openAssignModal(parsePayload(assignBtn.getAttribute('data-assign-position')));
+                    return;
+                }
+
+                if (closest(event.target, '[data-assign-position-modal-close]')) {
+                    closeAssignModal();
+                }
             });
 
-            modalBackdrop.addEventListener('click', closeVacancyModal);
+            modalBackdrop.addEventListener('click', function () {
+                closeVacancyModal();
+                closeAssignModal();
+            });
 
             document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape' && vacancyModal.classList.contains('open')) {
+                if (event.key === 'Escape') {
                     closeVacancyModal();
+                    closeAssignModal();
                 }
             });
 

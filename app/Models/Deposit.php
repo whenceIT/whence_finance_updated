@@ -225,4 +225,21 @@ class Deposit extends Model
         }
         return $query->sum('amount');
     }
+
+    // Create a static function that returns offices that have deposits for the current month and status = 1 where deposit_type - x
+    // Pass deposit_type
+    public static function getOfficesWithDepositCurrentMonth(int $depositTypeId)
+    {
+        $now = \Carbon\Carbon::now();
+
+        return self::where('status', 1)
+            ->where('deposit_type', $depositTypeId)
+            ->whereYear('date', $now->year)
+            ->whereMonth('date', $now->month)
+            ->with('office')
+            ->get()
+            ->pluck('office')
+            ->filter()
+            ->unique('id');
+    }
 }

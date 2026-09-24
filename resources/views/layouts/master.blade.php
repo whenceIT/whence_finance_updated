@@ -865,6 +865,18 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                         style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
                 </a> -->
                 <!-- Tools Menu (visible on mobile) -->
+                {{-- Conference countdown (mobile) — right side, left of cog --}}
+                <a href="#" onclick="$('#conferenceModal').modal('show'); return false;"
+                   title="Conference Countdown"
+                   style="color:#ffffff; position:absolute; right:60px; top:50%; transform:translateY(-50%);
+                          display:flex; align-items:center; justify-content:center; gap:4px;
+                          height:34px; padding:0 8px; border-radius:7px;
+                          background:linear-gradient(135deg,rgba(255,200,0,.25),rgba(255,100,0,.25));
+                          border:1px solid rgba(255,200,0,.5);
+                          text-decoration:none; cursor:pointer; white-space:nowrap; font-size:10px; font-weight:700;">
+                    <span>🏆</span>
+                    <span id="confTimerMobile" style="color:#ffe066; letter-spacing:.04em;">--d --h --m</span>
+                </a>
                 <a href="#" onclick="toggleUserDropdown(event); return false;"
                     style="color: #ffffff; position: absolute; right: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-cog" style="font-size: 18px;"></i>
@@ -978,7 +990,20 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
 
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
-                    <!-- Add a Notification  -->
+                <!-- Conference Countdown (desktop) -->
+                <a href="#" onclick="$('#conferenceModal').modal('show'); return false;"
+                   title="Annual Management Conference – 15 Oct 2026"
+                   style="margin-top:2px; margin-right:155px; color:#ffffff; position:absolute; right:70px;
+                          display:flex; align-items:center; justify-content:center; gap:5px;
+                          height:40px; padding:0 10px; border-radius:8px;
+                          background:linear-gradient(135deg,rgba(255,200,0,.22),rgba(255,100,0,.22));
+                          border:1px solid rgba(255,200,0,.45);
+                          text-decoration:none; cursor:pointer; white-space:nowrap;
+                          font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase;">
+                    <span style="font-size:14px;">🏆</span>
+                    <span id="confTimerDesktop" style="letter-spacing:.06em; color:#ffe066;">--d --h --m --s</span>
+                </a>
+                <!-- Add a Notification  -->
                 <a href="#" onclick="toggleNotificationDropdown(event); return false;"
                     style="margin-top:2px; margin-right: 90px; color: #ffffff; position: absolute; right: 70px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); text-decoration: none; border: none; cursor: pointer;">
                     <i class="fa fa-bell" style="font-size: 18px;"></i>
@@ -1175,43 +1200,15 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
                     </div>
                 @endif
                 
-                @if($showInductionModal && $role !== 11)
-                    @include('partials.induction_modal')
-                @elseif(false)
-                    <!-- Policy Response Required Modal -->
-                    <div id="policyModal"
-                        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
-                        <div
-                            style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                            <h3 style="margin-bottom: 20px; color: #333;">Policy Acknowledgment Required</h3>
-                            <p style="margin-bottom: 30px; color: #666;">You have unread company policies that require your
-                                acknowledgment. Please review and respond to them.</p>
-                            <a href="{{ route('policies.view_policies') }}" class="btn btn-primary btn-lg"
-                                style="padding: 10px 30px; font-size: 16px;">Review Policies</a>
-                        </div>
-                    </div>
-                    <script>
-                        // Prevent closing the modal
-                        document.getElementById('policyModal').addEventListener('click', function (event) {
-                            event.stopPropagation();
-                        });
-                        document.addEventListener('keydown', function (event) {
-                            if (event.key === 'Escape') {
-                                event.preventDefault();
-                            }
-                        });
-                    </script>
-           @php
-    $user = Sentinel::getUser();
-@endphp
+                <!-- Patch Policy Acknowlegment here -->
 
-@elseif (
-    $user
-    && $user->role->role_id != 11
-    && $user->salary_details == 0
-    && !request()->routeIs('user.payroll.details')
-    && !in_array($user->id, [2, 3])
-)
+                @if (
+                        $user
+                        && $user->role->role_id != 11
+                        && $user->salary_details == 0
+                        && !request()->routeIs('user.payroll.details')
+                        && !in_array($user->id, [2, 3])
+                    )
                     <!-- Payroll Details Required Modal -->
                     <!-- <div id="payrollModal"
                         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.4s ease-out;">
@@ -2002,6 +1999,41 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
         });
     </script>
 
+    
+    @if($user && (int) $role === 4)
+        <script>
+            (function() {
+                function runAutolock() {
+                    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    var requestOptions = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : '',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'same-origin'
+                    };
+
+                    fetch("{{ url('/api/schedule/autolock') }}", requestOptions)
+                        .then(function(response) {
+                            return response.text();
+                        })
+                        .then(function(result) {
+                            console.log(result);
+                        })
+                        .catch(function(error) {
+                            console.error('Autolock error:', error);
+                        });
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    // setInterval(runAutolock, 1 * 60 * 1000);
+                });
+            })();
+        </script>
+    @endif
+
     <!-- Toggle User Dropdown Script -->
     <script>
         function toggleUserDropdown(event) {
@@ -2116,23 +2148,32 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
         if (custodyIndicator) {
             custodyIndicator.addEventListener('click', function(e) {
                 e.preventDefault();
-                fetch('/vehicle-custody/pending-approval')
-                    .then(response => response.json())
+                fetch('/vehicles/vehicle-custody/pending-approval')
+                    .then(response => {
+                        if (!response.ok) return null;
+                        return response.json();
+                    })
                     .then(data => {
-                        if (data.success && data.data && data.data.length > 0) {
+                        if (data && data.success && data.data && data.data.length > 0) {
                             if (typeof showApproveCustodyModal === 'function') {
                                 showApproveCustodyModal(data.data[0]);
                             }
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error checking custody approvals:', error);
                     });
             });
         }
 
         // Auto-show modal on page load if there are pending approvals
-        fetch('/vehicle-custody/pending-approval')
-            .then(response => response.json())
+        fetch('/vehicles/vehicle-custody/pending-approval')
+            .then(response => {
+                if (!response.ok) return null;
+                return response.json();
+            })
             .then(data => {
-                if (data.success && data.data && data.data.length > 0) {
+                if (data && data.success && data.data && data.data.length > 0) {
                     // Update badge
                     const badge = document.getElementById('custodyApprovalBadge');
                     const indicator = document.getElementById('custodyApprovalIndicator');
@@ -2156,6 +2197,10 @@ $pendingCollateralApprovals = app(\App\Services\CollateralApprovalService::class
         @endif
     });
     </script>
+
+    @include('components.vacancy-alert-popup')
+    @include('components.insurance-alert-popup')
+    @include('components.conference-countdown')
 
 </body>
 

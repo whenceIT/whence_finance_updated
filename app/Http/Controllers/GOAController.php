@@ -45,12 +45,27 @@ class GOAController extends Controller
             ->first()->avg_age ?? 0;
         $avgVehicleAge = round($avgVehicleAge, 1);
 
-        // Positions statistics
+        // Positions statistics — approved capacity vs current personnel (all branches)
         $totalPositions = Position::count();
-        $filledPositions = Position::where('is_vacant', 0)->count();
-        $vacantPositions = Position::where('is_vacant', 1)->count();
-        $inProcessPositions = Position::where('status', 'In Review')->count();
-        $fillRate = $totalPositions > 0 ? round(($filledPositions / $totalPositions) * 100) : 0;
+        $approvedTotal = Office::where('active', 1)->sum('branch_capacity');
+        $personnelTotal = User::whereIn('status', ['Active', 'active'])
+            ->whereNotNull('office_id')
+            ->count();
+        $filledPositions = $personnelTotal;
+        $vacantPositions = max($approvedTotal - $personnelTotal, 0);
+        $inProcessPositions = Vacancy::whereIn('recruitment_status', ['Advertising', 'Shortlisting', 'Interviewing', 'Offer Made'])
+            ->count();
+        $fillRate = $approvedTotal > 0 ? round(($personnelTotal / $approvedTotal) * 100) : 0;
+
+        // Recruitment pipeline statistics (all branches)
+        $pipelineTotalVacancies = Vacancy::where('recruitment_status', '!=', 'Filled')
+            ->where('recruitment_status', '!=', 'Cancelled')
+            ->sum('num_of_vacancies');
+        $pipelineTotalApplicants = Vacancy::sum('num_of_applicants');
+        $pipelineTotalShortlisted = Vacancy::sum('num_of_shortlisted');
+        $pipelineTotalOffersIssued = Vacancy::whereIn('offer_status', ['Pending', 'Accepted'])
+            ->count();
+        $pipelineTotalReported = Vacancy::whereNotNull('actual_reporting_date')->count();
 
         // Maintenance statistics
         $scheduledMaintenance = FleetMaintenanceSchedule::where('status', 'pending')->count();
@@ -65,6 +80,9 @@ class GOAController extends Controller
         return view('goa.index', compact(
             'totalVehicles', 'activeVehicles', 'maintenanceVehicles', 'outOfServiceVehicles', 'utilization',
             'avgVehicleAge', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'fillRate',
+            'approvedTotal', 'personnelTotal',
+            'pipelineTotalVacancies', 'pipelineTotalApplicants', 'pipelineTotalShortlisted',
+            'pipelineTotalOffersIssued', 'pipelineTotalReported',
             'scheduledMaintenance', 'overdueMaintenance', 'thisMonthMaintenance', 'insuranceExpired', 'insuranceUpToDate',
             'insuranceExpiredRecent', 'insuranceExpiringSoon', 'maintenanceSoon', 'insurancePastDue', 'maintenancePastDue', 'monthlyMaintenanceCost'
         ));
@@ -103,29 +121,45 @@ class GOAController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function vacanciesAndStaffing()
+     public function vacanciesAndStaffing()
     {
-        $positions = Position::where('is_vacant', 1)->get();
+        $positions = Position::orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
-        $vacancies = Vacancy::with(['position.department', 'office'])->get();
+        $vacancies = Vacancy::with(['position.department', 'office'])
+            ->whereNotIn('recruitment_status', ['Filled', 'Cancelled'])
+            ->whereNull('actual_reporting_date')
+            ->get();
         $offices = Office::where('active', 1)->orderBy('name')->get();
 
-        // Staffing statistics
-        $totalPositions = Position::count();
-        $filledPositions = Position::where('is_vacant', 0)->count();
-        $vacantPositions = $vacancies->count();
-        $inProcessPositions = Position::where('status', 'In Review')->count();
+        // Staffing statistics — approved capacity vs current personnel (all branches)
+        $approvedTotal = Office::where('active', 1)->sum('branch_capacity');
+        $personnelTotal = User::whereIn('status', ['Active', 'active'])
+            ->whereNotNull('office_id')
+            ->count();
+        $totalPositions = $approvedTotal;
+        $filledPositions = $personnelTotal;
+        $vacantPositions = max($approvedTotal - $personnelTotal, 0);
+        $inProcessPositions = Vacancy::whereIn('recruitment_status', ['Advertising', 'Shortlisting', 'Interviewing', 'Offer Made'])
+            ->count();
 
-        // Department stats
+        // Department stats — based on users per department vs department capacity
         foreach($departments as $dept) {
             $dept->total_positions = Position::where('department_id', $dept->id)->count();
-            $dept->filled_positions = Position::where('department_id', $dept->id)->where('is_vacant', 0)->count();
+            $dept->filled_positions = User::whereIn('status', ['Active', 'active'])
+                ->whereNotNull('position_id')
+                ->whereHas('position', function($q) use ($dept) {
+                    $q->where('department_id', $dept->id);
+                })->count();
+            $dept->vacant_positions = max(($dept->capacity > 0 ? $dept->capacity : $dept->total_positions) - $dept->filled_positions, 0);
         }
 
         // Recent hires (users with positions updated_at)
         $recentHires = User::with('position.department')->whereNotNull('position_id')->orderBy('updated_at', 'desc')->limit(10)->get();
 
-        return view('goa.vacancies-and-staffing', compact('positions', 'departments', 'vacancies', 'offices', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'recentHires'));
+        // All job_positions for the management tab
+        $allPositions = Position::with('department')->orderBy('name')->get();
+
+        return view('goa.vacancies-and-staffing', compact('positions', 'departments', 'vacancies', 'offices', 'totalPositions', 'filledPositions', 'vacantPositions', 'inProcessPositions', 'recentHires', 'allPositions'));
     }
 
     /**
@@ -221,11 +255,12 @@ class GOAController extends Controller
             $positionRows = collect($relevantPositionIds)->map(function ($positionId) use ($allPositionsMap, $personnelByPosition) {
                 $group = $personnelByPosition->get($positionId, collect());
                 $position = $allPositionsMap->get($positionId);
+                $approvedForPosition = (int) ($position->approved ?? 0);
 
-                return array_merge($this->buildBranchCapacityMetrics(0, $group->count()), [
+                return array_merge($this->buildBranchCapacityMetrics($approvedForPosition, $group->count()), [
                     'position' => $position,
                     'position_id' => $positionId,
-                    'in_structure' => false,
+                    'in_structure' => $approvedForPosition > 0,
                     'personnel' => $group->values(),
                 ]);
             })->sortBy(function ($row) {
@@ -256,6 +291,104 @@ class GOAController extends Controller
             'positionRows', 'personnel', 'unassignedPersonnel', 'approvedTotal',
             'personnelTotal', 'vacancyTotal', 'staffingPercentage', 'vacancyPercentage',
             'structureDefined', 'branchVacancies', 'vacancyByPosition', 'activeTab'
+        ));
+    }
+
+    /**
+     * Display the recruitment pipeline dashboard.
+     *
+     * Shows a funnel/timeline view of the recruitment process for each vacancy
+     * across all branches or filtered by branch.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function recruitmentPipeline(Request $request)
+    {
+        $offices = Office::with(['district', 'province'])->where('active', 1)->orderBy('name')->get();
+        $positions = Position::orderBy('name')->get();
+
+        // Get selected office for filtering
+        $selectedOfficeId = $request->get('office_id');
+        $activeTab = 'recruitment-pipeline';
+        $selectedOffice = $selectedOfficeId
+            ? $offices->firstWhere('id', (int) $selectedOfficeId)
+            : null;
+
+        // Base query for vacancies
+        $vacancyQuery = Vacancy::with(['office', 'position.department']);
+
+        if ($selectedOffice) {
+            $vacancyQuery->where('office_id', $selectedOffice->id);
+        }
+
+        $vacancies = $vacancyQuery->orderBy('office_id')
+            ->orderBy('position_id')
+            ->orderByDesc('date_arose')
+            ->get();
+
+        // Group vacancies by office for summary
+        $vacanciesByOffice = $vacancies->groupBy('office_id');
+
+        // Calculate pipeline summary statistics
+        $pipelineStats = [
+            'vacancies' => $vacancies->sum('num_of_vacancies'),
+            'applicants' => $vacancies->sum('num_of_applicants'),
+            'total_applicants' => $vacancies->sum('num_of_applicants'),
+            'shortlisted' => $vacancies->sum('num_of_shortlisted'),
+            'interviewed' => $vacancies->whereIn('interview_status', ['Completed', 'In Progress'])->sum('num_of_shortlisted'),
+            'selected' => $vacancies->whereNotNull('selected_candidate')->where('selected_candidate', '!=', '')->count(),
+            'offers_issued' => $vacancies->whereIn('offer_status', ['Accepted', 'Pending'])->count(),
+            'reported' => $vacancies->whereNotNull('actual_reporting_date')->count(),
+        ];
+
+        // For each vacancy, calculate pipeline stages
+        $vacanciesWithPipeline = $vacancies->map(function ($vacancy) {
+            $numVacancies = $vacancy->num_of_vacancies ?? 0;
+            $applicants = $vacancy->num_of_applicants ?? 0;
+            $shortlisted = $vacancy->num_of_shortlisted ?? 0;
+            $interviewStatus = $vacancy->interview_status ?? 'Not Started';
+            $selectedCandidate = $vacancy->selected_candidate;
+            $offerStatus = $vacancy->offer_status ?? 'Not Made';
+            $actualReporting = $vacancy->actual_reporting_date;
+
+            // Determine interview count based on interview status
+            $interviewed = 0;
+            if (in_array($interviewStatus, ['Completed', 'In Progress'])) {
+                $interviewed = min($shortlisted, $numVacancies);
+            }
+
+            // Determine selected count
+            $selected = $selectedCandidate && $selectedCandidate !== '' ? 1 : 0;
+
+            // Determine offers issued
+            $offersIssued = in_array($offerStatus, ['Accepted', 'Pending']) ? 1 : 0;
+
+            // Determine reported
+            $reported = $actualReporting ? 1 : 0;
+
+            return [
+                'vacancy' => $vacancy,
+                'pipeline' => [
+                    'vacancies' => $numVacancies,
+                    'applicants' => $applicants,
+                    'shortlisted' => $shortlisted,
+                    'interviewed' => $interviewed,
+                    'selected' => $selected,
+                    'offers_issued' => $offersIssued,
+                    'reported' => $reported,
+                ],
+                'conversion_rates' => [
+                    'application_to_shortlist' => $applicants > 0 ? round(($shortlisted / $applicants) * 100, 1) : 0,
+                    'shortlist_to_interview' => $shortlisted > 0 ? round(($interviewed / $shortlisted) * 100, 1) : 0,
+                    'interview_to_select' => $interviewed > 0 ? round(($selected / $interviewed) * 100, 1) : 0,
+                    'select_to_offer' => $selected > 0 ? round(($offersIssued / $selected) * 100, 1) : 0,
+                    'offer_to_report' => $offersIssued > 0 ? round(($reported / $offersIssued) * 100, 1) : 0,
+                ],
+            ];
+        });
+
+        return view('goa.recruitment-pipeline', compact(
+            'offices', 'positions', 'selectedOffice', 'selectedOfficeId', 'vacanciesWithPipeline', 'pipelineStats', 'activeTab'
         ));
     }
 
@@ -437,5 +570,15 @@ class GOAController extends Controller
             'num_of_vacancies' => $position->num_of_vacancies,
             'num_of_active'    => $position->num_of_active,
         ]);
+    }
+
+    public function assignPosition(Request $request, $user)
+    {
+        
+        $member = \App\Models\User::where('id',$user->id)->first();
+        $member->position_id = $request->position_id;
+        $member->save();
+
+        return redirect()->back()->with('success', 'Position assigned to ' . $member->first_name . ' ' . $member->last_name . ' successfully.');
     }
 }
