@@ -127,7 +127,7 @@
                             <div class="form-group">
                                 <label>Screening Date <span class="text-danger">*</span></label>
                                 <small class="form-text text-muted">The date this PEP and Sanctions check was performed.</small>
-                                <input type="date" name="screening_date" class="form-control" required value="{{ old('screening_date', $latest->screening_date ? $latest->screening_date->format('Y-m-d') : date('Y-m-d')) }}">
+                                <input type="date" name="screening_date" class="form-control" required value="{{ old('screening_date', $latest?->screening_date?->format('Y-m-d') ?? date('Y-m-d')) }}">
                             </div>
                             <div class="form-group">
                                 <label>Match Level <span class="text-danger">*</span></label>
