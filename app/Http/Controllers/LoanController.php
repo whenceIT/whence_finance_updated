@@ -1646,6 +1646,7 @@ $amount = $request->query('amount');
                 $loan->currency_id = $loan_product->currency_id;
                 $loan->loan_term = $request->loan_term;
                 $loan->loan_term_type = $request->loan_term_type;
+                $loan->schedule_type = $request->schedule_type ?? 'new';
                 $loan->repayment_frequency = $request->repayment_frequency;
                 $loan->repayment_frequency_type = $request->repayment_frequency_type;
                 $loan->interest_rate = $request->interest_rate;
@@ -3160,6 +3161,17 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
                 ),
                 'Y-m-d'
             );
+
+            //Paytoll Loan Final Due Date
+            if($loan->loan_product_id == 1){
+                // Final due date = disbursement date + loan_term months
+                // (first repayment is in month 1, last repayment is in month loan_term)
+                $loan->final_due_date = \Carbon\Carbon::parse($loan->disbursement_date)
+                    ->addMonths((int) $loan->loan_term)
+                    ->format('Y-m-d');
+            }
+
+
             $loan->save();
 
             //save repayment schedule
@@ -3323,6 +3335,7 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             $payment_detail->receipt_number = $request->receipt_number;
             $payment_detail->bank = $request->bank;
             $payment_detail->save();
+            
             //loan disbursement transaction
             $loan_transaction = new LoanTransaction();
             $loan_transaction->created_by_id = Sentinel::getUser()->id;
@@ -3342,11 +3355,21 @@ $withinhere_wallet_id = $office->withinhere_wallet_id;
             // if its payroll loan then 
             // use amortization schedule to calculate interest
             if($loan->loan_product_id == 1){
-                $schedule = DB::table('payroll_loan_schedules')
-                    ->where('loan_amount', $loan->principal)
-                    ->first();
-                $tenure = $loan->loan_term;
-                $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+                // Choose table based on schedule_type
+                if ($loan->schedule_type === 'old') {
+                    $scheduleRow = \App\Models\PayrollLoanOldSchedule::where('disbursement_amount', $loan->principal)->first();
+                    $tenure      = $loan->loan_term;
+                    $colMap      = [9 => 'repayment_9_months', 12 => 'repayment_12_months', 18 => 'repayment_18_months', 24 => 'repayment_24_months'];
+                    $col         = $colMap[$tenure] ?? null;
+                    $monthlyAmount = ($scheduleRow && $col) ? $scheduleRow->$col : null;
+                } else {
+                    $schedule = DB::table('payroll_loan_schedules')
+                        ->where('loan_amount', $loan->principal)
+                        ->first();
+                    $tenure = $loan->loan_term;
+                    $monthlyAmount = $schedule ? ($schedule->{"months_$tenure"} ?? null) : null;
+                }
+
                 if ($monthlyAmount) {
                     $totalRepayment = $monthlyAmount * $tenure;
                     $pl_total_interest = $totalRepayment - $loan->principal;
@@ -4259,7 +4282,13 @@ $new_balance = $debit_amount - $credit_amount;
             return redirect()->back();
         }
 
-        return view('loan.transaction.show', compact('loan_transaction'));
+        $loan = Loan::where('id', $loan_transaction->loan_id)->first();
+        $current_balance = $loan ? GeneralHelper::new_new_loan_total_balance($loan->id) : 0;
+        if ($current_balance < 0) {
+            $current_balance = 0;
+        }
+
+        return view('loan.transaction.show', compact('loan_transaction', 'loan', 'current_balance'));
     }
 
     public function print_transaction($loan_transaction)

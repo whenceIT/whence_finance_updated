@@ -55,7 +55,7 @@ class GOAController extends Controller
         $vacantPositions = max($approvedTotal - $personnelTotal, 0);
         $inProcessPositions = Vacancy::whereIn('recruitment_status', ['Advertising', 'Shortlisting', 'Interviewing', 'Offer Made'])
             ->count();
-        $fillRate = $approvedTotal > 0 ? round(($personnelTotal / $approvedTotal) * 100) : 0;
+        $fillRate = $approvedTotal > 0 ? min(100, round(($personnelTotal / $approvedTotal) * 100)) : 0;
 
         // Recruitment pipeline statistics (all branches)
         $pipelineTotalVacancies = Vacancy::where('recruitment_status', '!=', 'Filled')

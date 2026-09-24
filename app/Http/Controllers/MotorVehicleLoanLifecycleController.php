@@ -356,36 +356,88 @@ class MotorVehicleLoanLifecycleController extends Controller
         $vehicle = Vehicle::findOrFail($vehicleId);
 
         $validated = $request->validate([
-            'ownership_type' => 'required|in:individual,letter_of_sale,company',
-            'registered_owner' => 'nullable|string',
-            'seller_name' => 'nullable|string',
-            'seller_nrc' => 'nullable|string',
-            'seller_phone' => 'nullable|string',
-            'seller_email' => 'nullable|email',
-            'seller_address' => 'nullable|string',
-            'witness_1_name' => 'nullable|string',
-            'witness_1_nrc' => 'nullable|string',
-            'witness_2_name' => 'nullable|string',
-            'witness_2_nrc' => 'nullable|string',
-            'company_name' => 'nullable|string',
-            'company_registration' => 'nullable|string',
-            'company_directors' => 'nullable|array',
-            'company_resolution' => 'nullable|string',
-            'authorized_representative' => 'nullable|string',
+            'ownership_type'                => 'required|in:individual,letter_of_sale,company',
+            'registered_owner'              => 'nullable|string',
+            'seller_name'                   => 'nullable|string',
+            'seller_nrc'                    => 'nullable|string',
+            'seller_phone'                  => 'nullable|string',
+            'seller_email'                  => 'nullable|email',
+            'seller_address'                => 'nullable|string',
+            'witness_1_name'                => 'nullable|string',
+            'witness_1_nrc'                 => 'nullable|string',
+            'witness_2_name'                => 'nullable|string',
+            'witness_2_nrc'                 => 'nullable|string',
+            'company_name'                  => 'nullable|string',
+            'company_registration'          => 'nullable|string',
+            'directors'                     => 'nullable|string',
+            'company_resolution'            => 'nullable|string',
+            'authorized_representative'     => 'nullable|string',
             'authorized_representative_nrc' => 'nullable|string',
-            'letter_of_sale_file' => 'nullable|string',
-            'ownership_documents' => 'nullable|string',
+            'letter_of_sale_file'           => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'ownership_documents'           => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'ownership_verification_status' => 'nullable|string',
         ]);
 
-        $vehicle->update($validated);
-        VehicleOwnershipRecord::create(array_merge($validated, [
-            'vehicle_id' => $vehicleId,
-            'registered_owner_name' => $validated['registered_owner'] ?? null,
-            'company_registration_number' => $validated['company_registration'] ?? null,
+        // Handle file uploads — store to S3 (DigitalOcean Spaces); only replace path if a new file is provided
+        $ownershipDocumentsPath = null;
+        if ($request->hasFile('ownership_documents') && $request->file('ownership_documents')->isValid()) {
+            $ownershipDocumentsPath = $request->file('ownership_documents')
+                ->store('vehicle_ownership/' . $vehicleId, 'do');
+        }
+
+        $letterOfSalePath = null;
+        if ($request->hasFile('letter_of_sale_file') && $request->file('letter_of_sale_file')->isValid()) {
+            $letterOfSalePath = $request->file('letter_of_sale_file')
+                ->store('vehicle_ownership/' . $vehicleId, 'do');
+        }
+
+        // Build the data payload for the ownership record
+        $ownershipData = [
+            'ownership_type'                 => $validated['ownership_type'],
+            'registered_owner_name'          => $validated['registered_owner'] ?? null,
+            'seller_name'                    => $validated['seller_name'] ?? null,
+            'seller_nrc'                     => $validated['seller_nrc'] ?? null,
+            'seller_phone'                   => $validated['seller_phone'] ?? null,
+            'witness_1_name'                 => $validated['witness_1_name'] ?? null,
+            'witness_1_nrc'                  => $validated['witness_1_nrc'] ?? null,
+            'witness_2_name'                 => $validated['witness_2_name'] ?? null,
+            'witness_2_nrc'                  => $validated['witness_2_nrc'] ?? null,
+            'company_name'                   => $validated['company_name'] ?? null,
+            'company_registration_number'    => $validated['company_registration'] ?? null,
+            'directors'                      => $validated['directors'] ?? null,
             'authorized_representative_name' => $validated['authorized_representative'] ?? null,
-            'ownership_documents_path' => $validated['ownership_documents'] ?? null,
-        ]));
+            'authorized_representative_nrc'  => $validated['authorized_representative_nrc'] ?? null,
+        ];
+
+        // Only overwrite file paths when a new file was uploaded
+        if ($ownershipDocumentsPath) {
+            $ownershipData['ownership_documents_path'] = $ownershipDocumentsPath;
+        }
+        if ($letterOfSalePath) {
+            $ownershipData['letter_of_sale_file'] = $letterOfSalePath;
+        }
+
+        VehicleOwnershipRecord::updateOrCreate(
+            ['vehicle_id' => $vehicleId],
+            $ownershipData
+        );
+
+        // Mirror key ownership fields onto the vehicle record
+        $vehicle->update([
+            'ownership_type'                => $validated['ownership_type'],
+            'registered_owner'              => $validated['registered_owner'] ?? null,
+            'seller_name'                   => $validated['seller_name'] ?? null,
+            'seller_nrc'                    => $validated['seller_nrc'] ?? null,
+            'seller_phone'                  => $validated['seller_phone'] ?? null,
+            'company_name'                  => $validated['company_name'] ?? null,
+            'company_registration'          => $validated['company_registration'] ?? null,
+            'authorized_representative'     => $validated['authorized_representative'] ?? null,
+            'ownership_verification_status' => $validated['ownership_verification_status'] ?? null,
+            'ownership_documents'           => $ownershipDocumentsPath
+                                                ?? $vehicle->ownership_documents,
+            'letter_of_sale_file'           => $letterOfSalePath
+                                                ?? $vehicle->letter_of_sale_file,
+        ]);
 
         Flash::success('Ownership verification recorded successfully');
         return back();

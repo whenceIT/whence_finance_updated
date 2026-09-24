@@ -29,5 +29,6 @@ class DatabaseSeeder extends Seeder
         $this->call(DistrictSeeder::class);
         $this->call(ExpenseCategorySeeder::class);
         $this->call(DepositAndBankDepositLogSeeder::class);
+        $this->call(PayrollLoanOldScheduleSeeder::class);
     }
 }
